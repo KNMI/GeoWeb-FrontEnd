@@ -1,28 +1,27 @@
 {
-  "name": "react-tutorials",
-  "version": "0.0.0",
-  "description": "",
+  "name": "geoweb-frontend",
+  "version": "0.0.1",
+  "description": "A frontend for the GeoWeb project, uses ADAGUC viewer",
   "main": "webpack.config.js",
   "dependencies": {
-    "babel-core": "^6.17.0",
-    "babel-loader": "^6.2.0",
-    "babel-plugin-add-module-exports": "^0.1.2",
+    "babel-core": "6.22.1",
+    "babel-loader": "6.2.10",
+    "babel-plugin-add-module-exports": "0.2.1",
     "babel-plugin-react-html-attrs": "^2.0.0",
-    "babel-plugin-transform-class-properties": "^6.3.13",
+    "babel-plugin-transform-class-properties": "6.22.0",
     "babel-plugin-transform-decorators-legacy": "^1.3.4",
-    "babel-preset-es2015": "^6.3.13",
-    "babel-preset-react": "^6.3.13",
-    "babel-preset-stage-0": "^6.3.13",
-    "react": "^0.14.6",
-    "react-dom": "^0.14.6",
-    "webpack": "^1.14.0",
-    "webpack-dev-server": "^1.16.2"
+    "babel-preset-es2016": "6.22.0",
+    "babel-preset-react": "6.22.0",
+    "react": "15.4.2",
+    "react-dom": "15.4.2",
+    "webpack": "^2.2.0",
+    "webpack-dev-server": "^2.2.0"
   },
   "devDependencies": {},
   "scripts": {
     "dev": "webpack-dev-server --content-base src --inline --hot",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "author": "KNMI",
   "license": "ISC"
 }
