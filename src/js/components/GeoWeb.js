@@ -6,32 +6,37 @@ export default class GeoWeb extends React.Component {
 	constructor(){
 		super();
 		this.state = {
-			layer: "Harmonie"
+			layer: "Harmonie",
+			map_type: "mwsmap",
+			bounding_box: [314909.3659069278, 6470493.345653814, 859527.2396033217, 7176664.533565958],
+			projection_name: "EPSG:3857"
 		}
 		this.handle_change_layer = this.handle_change_layer.bind(this);
+		this.handle_map_type_change = this.handle_map_type_change.bind(this);
 	}
 
 	handle_change_layer(e){
-		console.log(this);
 		if(this.state.layer === "Harmonie")
-			this.setState({layer: "radar"});
+			this.setState({layer: "Radar"});
 		else{
 			this.setState({layer: "Harmonie"});
 
 		}
 	}
 
+	handle_map_type_change(e) {
+		if(this.state.map_type === "mwsmap")
+			this.setState({map_type: "streetmap"});
+		else
+			this.setState({map_type: "mwsmap"});
+	}
+
 	render()
 	{
-    	const projection_name = "EPSG:3857";
-    	const bounding_box = [314909.3659069278, 6470493.345653814, 859527.2396033217, 7176664.533565958];
-    	// const dataset = 'Harmonie';
-    	const map_type = 'mws';
 
-		return (<div>
-				    <Menu onLayerChange={this.handle_change_layer} />
-					<ADAGUC projection_name={projection_name} bounding_box={bounding_box} dataset={this.state.layer} map_type={map_type}/>
+		return <div>
+				    <Menu onLayerChange={this.handle_change_layer} onMapTypeChange={this.handle_map_type_change}/>
+					<ADAGUC projection_name={this.state.projection_name} bounding_box={this.state.bounding_box} dataset={this.state.layer} map_type={this.state.map_type}/>
 				</div>
-);
 	}
 }

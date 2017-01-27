@@ -1857,7 +1857,7 @@ event.stopPropagation();
         
         _map.flipBuffers();
         //Make info HTML
-    //    makeInfoHTML();
+       makeInfoHTML();
       };
       
       //if layers are not ready yet, wait for them
