@@ -33,10 +33,10 @@ export default class GeoWeb extends React.Component {
 
 	render()
 	{
-
+		// TODO: if menu is on top then the pointer location in the ADAGUC viewer is wrong
 		return <div>
-				    <Menu onLayerChange={this.handle_change_layer} onMapTypeChange={this.handle_map_type_change}/>
 					<ADAGUC projection_name={this.state.projection_name} bounding_box={this.state.bounding_box} dataset={this.state.layer} map_type={this.state.map_type}/>
+				    <Menu onLayerChange={this.handle_change_layer} onMapTypeChange={this.handle_map_type_change}/>
 				</div>
 	}
 }

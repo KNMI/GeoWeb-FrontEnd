@@ -75,7 +75,7 @@ export default class ADAGUC extends React.Component
   }
 
   resize_func(){
-      this.webMapJS.setSize($( window ).width(),$( document ).height())
+      this.webMapJS.setSize($( window ).width(),$( document ).height() - 43)
       // this.webMapJS.draw();
   }
 
@@ -95,7 +95,7 @@ export default class ADAGUC extends React.Component
     this.webMapJS = new WMJSMap(dom_element);
     this.webMapJS.setBaseURL(url);
     $( window ).resize(this.resize_func);
-    this.webMapJS.setSize($( window ).width(),$( document ).height());
+    this.webMapJS.setSize($( window ).width(),$( document ).height() - 43);
     // Add both possible base layers
     Object.keys(this.map_styles).map((key) => {
       this.baselayers.push(new WMJSLayer(this.map_styles[key]));
