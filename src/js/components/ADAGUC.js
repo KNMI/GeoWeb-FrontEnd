@@ -1,51 +1,19 @@
 import React from "react";
-
-export default class ADAGUC extends React.Component 
+import {connect} from "react-redux";
+import {OSM_STYLE, MWS_STYLE} from "../constants/map_styles";
+import {HARMONIE, RADAR} from "../constants/datasets";
+class ADAGUC extends React.Component 
 {
   constructor() {
     super();
-    this.state = {
-      map_created: false
-    }
     this.do_func = this.do_func.bind(this);
     this.resize_func = this.resize_func.bind(this);
     this.updateAnimation = this.updateAnimation.bind(this);
     this.set_active_baselayer = this.set_active_baselayer.bind(this);
-
+    this.map_styles = [OSM_STYLE, MWS_STYLE]
   }
-  map_styles = {
-    base_layer_osm_params: {
-      service:"http://geoservices.knmi.nl/cgi-bin/bgmaps.cgi?",
-      name:"streetmap",
-      title:"World base layer",
-      format:"image/gif",
-      enabled:true,
-    },
-    base_layer_mws_params: {
-      service:"http://geoservices.knmi.nl/cgi-bin/worldmaps.cgi?",
-      name:"mwsmap",
-      transparent: false,
-      title:"World base layer",
-      format:"image/png",
-      enabled:true,
-    },
-  }; 
   baselayers = [];
 
-  dataset_params = {
-    harmonie_layer_params: {
-      title:'Harmonie',
-      thumbnail:'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.HARM_N25.cgi?',
-      service:'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.HARM_N25.cgi?',
-      // name:'air_temperature__at_2m',
-      name: 'precipitation_flux'
-    },
-    radar_layer_params: {
-      title: 'Radar',
-      service: 'http://geoservices.knmi.nl/cgi-bin/RADNL_OPER_R___25PCPRR_L3.cgi?',
-      name: 'RADNL_OPER_R___25PCPRR_L3_COLOR',
-    }
-  };
     currentLatestDate = undefined;
     currentBeginDate = undefined;
 
@@ -75,8 +43,7 @@ export default class ADAGUC extends React.Component
   }
 
   resize_func(){
-      this.webMapJS.setSize($( window ).width(),$( document ).height() - 43)
-      // this.webMapJS.draw();
+      this.webMapJS.setSize($(window).width(),$(document).height() - 43)
   }
 
   set_active_baselayer(){
@@ -85,7 +52,7 @@ export default class ADAGUC extends React.Component
 
   createMap(dom_element)
   {
-    if(dom_element === null || this.state.map_created === true){
+    if(dom_element === null || this.props.map_created === true){
       return ;
       // TODO unmount -- should unmount and cleanup now
     }
@@ -105,16 +72,18 @@ export default class ADAGUC extends React.Component
     this.webMapJS.setBBOX(this.props.bounding_box.join());
 
     this.webMapJS.setBaseLayers(this.baselayers);
-    this.setState({map_created: true});
+    this.props.dispatch({type: 'MAP_CREATED'});
   }
 
   componentDidUpdate(prev_props, prev_state){
     // The first time, the map needs to be created. This is when in the previous state the map creation boolean is false
     // Otherwise only change when a new dataset is selected
-    if(!prev_state.map_created || this.props.dataset !== prev_props.dataset)
+    var {dataset} = this.props;
+    console.log('componentDidUpdate');
+    if(!prev_state || !prev_state.map_created || dataset !== prev_props.dataset)
     {
         // Create the new layer
-        var new_data_layer = new WMJSLayer(this.props.dataset === 'Harmonie' ? this.dataset_params.harmonie_layer_params : this.dataset_params.radar_layer_params);
+        var new_data_layer = new WMJSLayer(dataset === 'Harmonie' ? HARMONIE : RADAR);
         // Stop the old animation
         this.webMapJS.stopAnimating();
         // Start the animation of th new layer
@@ -123,7 +92,6 @@ export default class ADAGUC extends React.Component
         this.webMapJS.removeAllLayers();
         // And add the new layer
         this.webMapJS.addLayer(new_data_layer);
-        
     }else{
         this.set_active_baselayer();
     }
@@ -135,3 +103,4 @@ export default class ADAGUC extends React.Component
     return <div id="map" ref={(dom_element) => {this.createMap(dom_element); this.map_component = dom_element}}></div>
   }
 }
+export default connect()(ADAGUC)
