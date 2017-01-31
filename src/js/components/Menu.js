@@ -1,53 +1,53 @@
 import React from "react";
+import { DropdownButton } from 'react-bootstrap';
+
 import { connect } from 'react-redux'
-import {toggle_data, toggle_mapstyle} from "../actions/ADAGUC_actions"
-class MenuItem_faux extends React.Component {
-	constructor(){
-		super();
-	}
+import {set_data, set_map_style} from "../actions/ADAGUC_actions"
 
-	button_click(e){
-		switch(e.target.id)
+class MI extends React.Component {
+	constructor() {
+		super(); 
+		this.handle_click = this.handle_click.bind(this);
+
+	}
+	handle_click(e) {
+		if(this.props.parent_id === 'ddb-data')
 		{
-			case 'change_datalayer_button':
-				this.props.dispatch(toggle_data());
-				break;
-			case 'change_map_type_button':
-				this.props.dispatch(toggle_mapstyle());
-				break;
+			console.log(e.target.id);
+			this.props.dispatch(set_data(e.target.id));
 		}
+		else{
+			this.props.dispatch(set_map_style(e.target.id));
+		}
+
 	}
 
-	render(){
-		var button_style = {
-			marginRight: '5px'
-		};
-		var {type, id, content} = this.props;
-		if(type === 'button')
-			return <button style={button_style} onClick={this.button_click.bind(this)} class="btn btn-primary" id={id}>{content}</button>
+	render() {
+		return <li><a id={this.props.eventKey} onClick={this.handle_click}>{this.props.children}</a></li>
 	}
 }
 
-const MenuItem = connect()(MenuItem_faux);
+const MenuItem = connect()(MI)
 
 export default class Menu extends React.Component {	
 	constructor(){
 		super();
 	}
 
+
 	render()
 	{
-		// add to array here to add a button
-		const menu_items = [
-			{'button': 'Change datalayer'},
-			{'button': 'Change map type'},
-		];
-		const menu_item_components = menu_items.map((menu_item, i) => {
-			var key = Object.keys(menu_item)[0];
-			var value = menu_item[key];
-			const id = value.split(' ').join('_').toLowerCase().concat('_' + key);
-			return <MenuItem {...this.props} key={i} type={key} id={id} content={value} />;
-		});
-		return <div id="menu"> {menu_item_components} <span id='debug'></span></div>;
+		return <div id="innermenu">
+			<DropdownButton bsStyle='primary' title='Dataset' key='1' id='ddb-data'>
+				<MenuItem eventKey="1" id="harmonie_flux_button" parent_id='ddb-data'>HARMONIE Flux</MenuItem>
+				<MenuItem eventKey="2" id="harmonie_air_temp_button" parent_id='ddb-data'>HARMONIE Air temp</MenuItem>
+				<MenuItem eventKey="3" id="radar_button" parent_id='ddb-data'>Radar</MenuItem>
+			</DropdownButton>
+			<DropdownButton bsStyle='primary' title='Map Style' key='2' id='ddb-map'>
+				<MenuItem eventKey="1" id="mws_button" parent_id='ddb-map'>MWS</MenuItem>
+				<MenuItem eventKey="2" id="osm_button" parent_id='ddb-map'>OpenStreetMap</MenuItem>
+			</DropdownButton>
+			</div>
 	}
 }
+

@@ -1,4 +1,16 @@
-#map{
-	width: 100px!important;
-	margin: auto;
+#adaguc {
+	display: inline-block;
+	    float: left;
+}
+#menu {
+    display: inline-block;
+    float: left;
+
+}
+#innermenu {
+	float: left;
+}
+
+.dropdown {
+	margin: 5px
 }

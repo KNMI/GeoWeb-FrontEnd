@@ -12,8 +12,8 @@ let store = createStore(reducer, window.__REDUX_DEVTOOLS_EXTENSION__ && window._
 console.log(store.getState())
 
 render(
-	<Provider store={store}>
-		<GeoWeb />
-	</Provider>, 
-	document.getElementById('app')
+  <Provider store={store}>
+    <GeoWeb />
+  </Provider>, 
+  document.getElementById('app')
 );

@@ -1,13 +1,13 @@
 export const CREATE_MAP = 'CREATE_MAP'
-export const TOGGLE_DATA = 'TOGGLE_DATA'
-export const TOGGLE_MAPSTYLE = 'TOGGLE_MAPSTYLE'
+export const SET_DATA = 'SET_DATA'
+export const SET_MAP_STYLE = 'SET_MAP_STYLE'
 
 export function create_map() {
 	return {type: CREATE_MAP}
 }
-export function toggle_data() {
-	return {type: TOGGLE_DATA}
+export function set_data(data) {
+	return {type: SET_DATA, payload: data}
 }
-export function toggle_mapstyle() {
-	return {type: TOGGLE_MAPSTYLE}
+export function set_map_style(style) {
+	return {type: SET_MAP_STYLE, payload: style}
 }

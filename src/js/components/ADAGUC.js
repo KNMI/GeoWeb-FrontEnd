@@ -1,7 +1,5 @@
 import React from "react";
 import {connect} from "react-redux";
-import {OSM_STYLE, MWS_STYLE} from "../constants/map_styles";
-import {HARMONIE, RADAR} from "../constants/datasets";
 import {create_map} from "../actions/ADAGUC_actions"
 class ADAGUC extends React.Component 
 {
@@ -19,19 +17,17 @@ class ADAGUC extends React.Component
     var timeDim = layer.getDimension('time');
     var numTimeSteps = timeDim.size();
 
-    var num_steps_back = 12;
-    if(timeDim.getValueForIndex(numTimeSteps-1) != this.currentLatestDate){
-      this.currentLatestDate = timeDim.getValueForIndex(numTimeSteps-1);
-      this.currentBeginDate = timeDim.getValueForIndex(numTimeSteps - num_steps_back);
-      $('#debug').html("Latest date: "+this.currentLatestDate);
-      var dates = [];
-      for(var j=numTimeSteps - num_steps_back;j < numTimeSteps;++j){
-        dates.push({name:timeDim.name, value:timeDim.getValueForIndex(j)});
-      }
-      this.webMapJS.draw(dates);
+    var num_steps_back = Math.min(timeDim.size(), 25);
+    this.currentLatestDate = timeDim.getValueForIndex(numTimeSteps-1);
+    this.currentBeginDate = timeDim.getValueForIndex(numTimeSteps - num_steps_back);
+    $('#debug').html("Latest date: "+this.currentLatestDate);
+    var dates = [];
+    for(var j=numTimeSteps - num_steps_back;j < numTimeSteps;++j){
+      dates.push({name:timeDim.name, value:timeDim.getValueForIndex(j)});
     }
+    this.webMapJS.draw(dates);
     setTimeout(function(){layer.parseLayer(this.updateAnimation,true);},10000);
-  };
+  }
 
   do_func(layer){
     this.webMapJS.setAnimationDelay(200);
@@ -40,7 +36,7 @@ class ADAGUC extends React.Component
   }
 
   resize_func(){
-    this.webMapJS.setSize($(window).width(),$(document).height() - 43)
+    this.webMapJS.setSize(750,$(document).height() / 2);
   }
 
   set_active_baselayer(){
@@ -58,7 +54,9 @@ class ADAGUC extends React.Component
     this.webMapJS = new WMJSMap(dom_element);
     this.webMapJS.setBaseURL(url);
     $( window ).resize(this.resize_func);
-    this.webMapJS.setSize($( window ).width(),$( document ).height() - 43);
+   // this.webMapJS.setSize($( window ).width(),$( document ).height() - 43);
+        this.webMapJS.setSize(750,$(document).height() / 2);
+
     // Set the initial projection
     this.webMapJS.setProjection(this.props.projection_name);
     this.webMapJS.setBBOX(this.props.bounding_box.join());
@@ -72,7 +70,6 @@ class ADAGUC extends React.Component
     var {layer} = this.props;
     if(!prev_props.map_created || layer !== prev_props.layer)
     {
-      // Create the new layer
       var new_data_layer = new WMJSLayer(layer);
       // Stop the old animation
       this.webMapJS.stopAnimating();
@@ -82,15 +79,14 @@ class ADAGUC extends React.Component
       this.webMapJS.removeAllLayers();
       // And add the new layer
       this.webMapJS.addLayer(new_data_layer);
+      // console.log("switched layers");
     }else{
       this.webMapJS.setBaseLayers([new WMJSLayer(this.props.map_type)]);
     }
   }
 
-
-
   render() {  
-    return <div id="map" ref={(dom_element) => {this.createMap(dom_element); this.map_component = dom_element}}></div>
+    return <div id={this.props.id} ref={(dom_element) => {this.createMap(dom_element); this.map_component = dom_element}}></div>
   }
 }
 export default connect()(ADAGUC)
