@@ -10,23 +10,15 @@ const default_state = {
 
 const adaguc = (state = default_state, action) => {
   switch (action.type) {
-    case 'CHANGE_DATASET':
-      return [
-        ...state,
-        message: "hi"
-      ]
-    case 'CHANGE_MAP':
-    return [
-      ...state,
-      message: "bye"
-    ]
+    case 'LAYER_CHANGE':
+      const new_adaguc_state_layer = Object.assign({}, state.adaguc_properties, {layer: state.adaguc_properties.layer === 'Harmonie' ? 'Radar' : 'Harmonie'});
+      return Object.assign({}, state, {adaguc_properties: new_adaguc_state_layer});
+    case 'MAP_CHANGE':
+      const new_adaguc_state_map = Object.assign({}, state.adaguc_properties, {map_type: state.adaguc_properties.map_type === 'mwsmap' ? 'streetmap' : 'mwsmap'});
+      return Object.assign({}, state, {adaguc_properties: new_adaguc_state_map});
     case 'MAP_CREATED':
-    console.log('received event')
-      console.log('state:',state)
-      const new_adaguc_state = Object.assign({}, state.adaguc_properties, {map_created: true});
-      const new_state = Object.assign({}, state, {adaguc_properties: new_adaguc_state});
-      console.log('new_state:',new_state)
-      return new_state;
+      const new_adaguc_state_create = Object.assign({}, state.adaguc_properties, {map_created: true});
+      return Object.assign({}, state, {adaguc_properties: new_adaguc_state_create});
     default:
       return state
   }

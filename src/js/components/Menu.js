@@ -1,7 +1,7 @@
 import React from "react";
-import { Provider } from 'react-redux'
+import { connect } from 'react-redux'
 
-class MenuItem extends React.Component {
+class MenuItem_faux extends React.Component {
 	constructor(){
 		super();
 	}
@@ -10,11 +10,10 @@ class MenuItem extends React.Component {
 		switch(e.target.id)
 		{
 			case 'change_datalayer_button':
-				// Provider.store.dispatch({type: 'CHANGE_DATASET'});
-				this.props.onLayerChange(e);
+				this.props.dispatch({type: 'LAYER_CHANGE'});
 				break;
 			case 'change_map_type_button':
-				this.props.onMapTypeChange(e);
+				this.props.dispatch({type: 'MAP_CHANGE'});
 				break;
 		}
 	}
@@ -29,7 +28,9 @@ class MenuItem extends React.Component {
 	}
 }
 
-export default class Menu extends React.Component {	
+const MenuItem = connect()(MenuItem_faux);
+
+class Menu extends React.Component {	
 	constructor(){
 		super();
 	}
@@ -44,8 +45,10 @@ export default class Menu extends React.Component {
 		const menu_item_components = menu_items.map((menu_item, i) => {
 			var key = Object.keys(menu_item)[0];
 			var value = menu_item[key];
-			return <MenuItem {...this.props} key={i} type={key} id={value.split(' ').join('_').toLowerCase().concat('_' + key)} content={value} />;
+			const id = value.split(' ').join('_').toLowerCase().concat('_' + key);
+			return <MenuItem {...this.props} key={i} type={key} id={id} content={value} />;
 		});
 		return <div id="menu"> {menu_item_components} <span id='debug'></span></div>;
 	}
 }
+export default connect()(Menu)

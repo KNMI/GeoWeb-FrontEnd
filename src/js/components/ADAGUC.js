@@ -78,12 +78,11 @@ class ADAGUC extends React.Component
   componentDidUpdate(prev_props, prev_state){
     // The first time, the map needs to be created. This is when in the previous state the map creation boolean is false
     // Otherwise only change when a new dataset is selected
-    var {dataset} = this.props;
-    console.log('componentDidUpdate');
-    if(!prev_state || !prev_state.map_created || dataset !== prev_props.dataset)
+    var {layer} = this.props;
+    if(!prev_props.map_created || layer !== prev_props.layer)
     {
         // Create the new layer
-        var new_data_layer = new WMJSLayer(dataset === 'Harmonie' ? HARMONIE : RADAR);
+        var new_data_layer = new WMJSLayer(layer === 'Harmonie' ? HARMONIE : RADAR);
         // Stop the old animation
         this.webMapJS.stopAnimating();
         // Start the animation of th new layer
