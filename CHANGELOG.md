@@ -1,8 +1,13 @@
 Changelog
 =========
 
-3.0.0-alpha.0
--------------
+KNMI - 0.0.1
+------------
+### Improvements
+* Moved the tests so they are located next to the source files they test.
+
+3.0.0-alpha
+-----------
 
 ### Improvements
 * Migrated to Fractal Project Structure, huge thanks to [justingreenberg](https://github.com/justingreenberg). See https://github.com/davezuko/react-redux-starter-kit/pull/684 for details and discussion.
