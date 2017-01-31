@@ -1,6 +1,6 @@
 import React from "react";
 import { connect } from 'react-redux'
-
+import {toggle_data, toggle_mapstyle} from "../actions/ADAGUC_actions"
 class MenuItem_faux extends React.Component {
 	constructor(){
 		super();
@@ -10,10 +10,10 @@ class MenuItem_faux extends React.Component {
 		switch(e.target.id)
 		{
 			case 'change_datalayer_button':
-				this.props.dispatch({type: 'LAYER_CHANGE'});
+				this.props.dispatch(toggle_data());
 				break;
 			case 'change_map_type_button':
-				this.props.dispatch({type: 'MAP_CHANGE'});
+				this.props.dispatch(toggle_mapstyle());
 				break;
 		}
 	}

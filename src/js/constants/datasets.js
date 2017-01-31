@@ -2,8 +2,8 @@ export const HARMONIE = {
       title:'Harmonie',
       thumbnail:'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.HARM_N25.cgi?',
       service:'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.HARM_N25.cgi?',
-      // name:'air_temperature__at_2m',
-      name: 'precipitation_flux'
+      name:'air_temperature__at_2m',
+      // name: 'precipitation_flux'
     };
 export const RADAR = {
       title: 'Radar',
