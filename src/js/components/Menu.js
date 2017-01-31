@@ -30,7 +30,7 @@ class MenuItem_faux extends React.Component {
 
 const MenuItem = connect()(MenuItem_faux);
 
-class Menu extends React.Component {	
+export default class Menu extends React.Component {	
 	constructor(){
 		super();
 	}
@@ -51,4 +51,3 @@ class Menu extends React.Component {
 		return <div id="menu"> {menu_item_components} <span id='debug'></span></div>;
 	}
 }
-export default connect()(Menu)

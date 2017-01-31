@@ -25,6 +25,7 @@ const mapStateToProps = (state, ownProps) => {
   return state.adaguc.adaguc_properties;
 }
 
+// ????
 const mapDispatchToProps = (dispatch, ownProps) => {
   return {  }
 }
