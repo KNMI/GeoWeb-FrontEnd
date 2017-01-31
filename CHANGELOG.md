@@ -6,6 +6,8 @@ KNMI - 0.0.1
 ### Improvements
 * Moved the tests so they are located next to the source files they test.
 
+-----------
+
 3.0.0-alpha
 -----------
 

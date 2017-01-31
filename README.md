@@ -1,6 +1,23 @@
 # GeoWeb FrontEnd
 
-The GeoWeb FrontEnd started at the Royal Netherlands Meteorological Institute as part of the GeoWeb Project.
+The GeoWeb FrontEnd started at the Royal Netherlands Meteorological Institute as part of the GeoWeb Project. This project intends to provide integrated tooling for the Early Warning Center / Weather Room.
+
+## What you'll find here
+
+- [Components](#components)
+- [Getting started](#start-here)
+
+## Components
+
+- ESLint
+ - eslint-config-google
+ - eslint-plugin-react
+
+## Start here
+
+ - `npm install`
+
+===========================================
 
 ## Originated from: React Redux Starter Kit
 
