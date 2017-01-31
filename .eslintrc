@@ -10,15 +10,20 @@
     "promise"
   ],
   "env": {
-    "browser" : true
+    "browser" : true,
+    "mocha"   : true
   },
   "globals": {
     "__DEV__"      : false,
     "__TEST__"     : false,
     "__PROD__"     : false,
-    "__COVERAGE__" : false
+    "__COVERAGE__" : false,
+    "expect" : false,
+    "should" : false,
+    "sinon"  : false
   },
   "rules": {
+    "semi"                 : [1, "always"],
     "key-spacing"          : 0,
     "jsx-quotes"           : [2, "prefer-single"],
     "max-len"              : [2, 120, 2],
