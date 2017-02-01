@@ -36,7 +36,7 @@ class ADAGUC extends React.Component
   }
 
   resize_func(){
-    this.webMapJS.setSize(($(document).width()-300)/2,$(document).height() / 2);
+    this.webMapJS.setSize(($(window).width()-300)/2,$(window).height() / 2);
   }
 
   set_active_baselayer(){
@@ -55,7 +55,7 @@ class ADAGUC extends React.Component
     this.webMapJS.setBaseURL(url);
     $( window ).resize(this.resize_func);
    // this.webMapJS.setSize($( window ).width(),$( document ).height() - 43);
-        this.webMapJS.setSize(($(document).width()-300)/2,$(document).height() / 2);
+        this.webMapJS.setSize(($(window).width()-300)/2,$(window).height() / 2);
 
     // Set the initial projection
     this.webMapJS.setProjection(this.props.projection_name);
