@@ -27,12 +27,16 @@
     "redux-devtools": "^3.3.2",
     "standard": "^8.6.0",
     "webpack": "^2.2.0",
-    "webpack-dev-server": "^2.2.0"
+    "webpack-dev-server": "^2.2.0",
+    "copy-webpack-plugin":"^4.0.1"
   },
   "devDependencies": {},
   "scripts": {
     "dev": "webpack-dev-server --content-base src --inline --hot",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "clean": "rm -rf dist",
+    "build": "npm run clean && webpack"
+
   },
   "author": "KNMI",
   "license": "ISC"

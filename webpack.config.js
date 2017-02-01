@@ -1,6 +1,8 @@
 var debug = process.env.NODE_ENV !== 'production';
 var webpack = require('webpack');
 var path = require('path');
+var CopyWebpackPlugin = require('copy-webpack-plugin');
+
 
 module.exports = {
   context: path.join(__dirname, 'src'),
@@ -20,11 +22,16 @@ module.exports = {
     ],
   },
   output: {
-    path: __dirname + '/src/',
-    filename: 'client.min.js',
+    path: __dirname + '/dist/',
+    filename: 'client.min.js'
   },
   plugins: debug ? [] : [
     // new webpack.optimize.DedupePlugin(),
     new webpack.optimize.UglifyJsPlugin({mangle: false, sourcemap: false}),
   ],
+  plugins: [
+    new CopyWebpackPlugin([
+      { from: '.' }
+      ])
+  ]
 };
