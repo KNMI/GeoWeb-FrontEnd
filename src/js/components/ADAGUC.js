@@ -25,6 +25,10 @@ class ADAGUC extends React.Component
     for(var j=numTimeSteps - num_steps_back;j < numTimeSteps;++j){
       dates.push({name:timeDim.name, value:timeDim.getValueForIndex(j)});
     }
+    console.log(dates[1].value);
+    
+    //this.webMapJS.draw();
+    //this.webMapJS.setDimension('time',dates[1].value);
     this.webMapJS.draw(dates);
     setTimeout(function(){layer.parseLayer(this.updateAnimation,true);},10000);
   }
@@ -32,11 +36,13 @@ class ADAGUC extends React.Component
   do_func(layer){
     this.webMapJS.setAnimationDelay(200);
     this.updateAnimation(layer); 
+    this.webMapJS.setActiveLayer(layer);
     layer.onReady = undefined;
   }
 
   resize_func(){
     this.webMapJS.setSize(($(window).width()-300)/2,$(window).height() / 2);
+    this.webMapJS.draw();
   }
 
   set_active_baselayer(){
