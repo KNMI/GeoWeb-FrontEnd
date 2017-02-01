@@ -6,49 +6,63 @@ const debug = require('debug')('app:config:karma');
 debug('Creating configuration.');
 const karmaConfig = {
   basePath : '../', // project root in relation to bin/karma.js
-  files    : [
+
+  // only use PhantomJS for our 'test' browser
+  browsers: ['PhantomJS'],
+
+  // just run once by default unless --watch flag is passed
+  singleRun: !argv.watch,
+
+  // which karma frameworks do we want integrated
+  frameworks: ['mocha', 'chai'],
+
+  // displays tests in a nice readable format
+  reporters: ['spec'],
+
+  // include some polyfills
+  files: [
     {
       pattern  : `./${project.dir_test}/testSetup.js`,
       watched  : false,
       served   : true,
       included : true
-    }
-  ],
-  singleRun     : !argv.watch,
-  frameworks    : ['mocha'],
-  reporters     : ['mocha'],
-  preprocessors : {
-    [`${project.dir_test}/testSetup.js`] : ['webpack']
-  },
-  browsers : ['PhantomJS'],
-  webpack  : {
-    devtool : 'cheap-module-source-map',
-    resolve : Object.assign({}, webpackConfig.resolve, {
-      alias : Object.assign({}, webpackConfig.resolve.alias, {
-        sinon : 'sinon/pkg/sinon.js'
-      })
-    }),
-    plugins : webpackConfig.plugins,
-    module  : {
-      noParse : [
-        /\/sinon\.js/
-      ],
-      rules : webpackConfig.module.rules.concat([
-        {
-          test   : /sinon(\\|\/)pkg(\\|\/)sinon\.js/,
-          loader : 'imports-loader?define=>false,require=>false'
-        }
-      ])
     },
+    './**/*.spec.js' // specify files to watch for tests
+  ],
+  preprocessors : {
+
+    // these files we want to be precompiled with webpack
+    // also run tests throug sourcemap for easier debugging
+    [`${project.dir_test}/testSetup.js`] : ['webpack', 'sourcemap']
+  },
+  webpack  : webpackConfig, // {
+//   devtool : 'cheap-module-source-map',
+//   resolve : Object.assign({}, webpackConfig.resolve, {
+//     alias : Object.assign({}, webpackConfig.resolve.alias, {
+//       sinon : 'sinon/pkg/sinon.js'
+//     })
+//   }),
+//   plugins : webpackConfig.plugins,
+//   module  : {
+//     noParse : [
+//       /\/sinon\.js/
+//     ],
+//     rules : webpackConfig.module.rules  .concat([
+//       {
+//         test   : /sinon(\\|\/)pkg(\\|\/)sinon\.js/,
+//         loader : 'imports-loader?define=>false,require=>false'
+//       }
+//     ])
+//   },
     // Enzyme fix, see:
     // https://github.com/airbnb/enzyme/issues/47
-    externals : Object.assign({}, webpackConfig.externals, {
-      'react/addons'                   : true,
-      'react/lib/ExecutionEnvironment' : true,
-      'react/lib/ReactContext'         : 'window'
-    }),
-    sassLoader : webpackConfig.sassLoader
-  },
+//    externals : Object.assign({}, webpackConfig.externals, {
+//      'react/addons'                   : true,
+//      'react/lib/ExecutionEnvironment' : true,
+//      'react/lib/ReactContext'         : 'window'
+//    })/*,
+//    sassLoader : webpackConfig.sassLoader*/
+//  },
   webpackMiddleware : {
     noInfo : true
   },
@@ -63,9 +77,9 @@ if (project.globals.__COVERAGE__) {
     test    : /\.(js|jsx)$/,
     enforce : 'pre',
     include : new RegExp(project.dir_client),
-    exclude : /node_modules/,
+    exclude : /(node_modules|test|\.(test|spec)\.js$|\.scss$|\.jpg$)/,
     loader  : 'babel-loader',
-    query   : Object.assign({}, project.compiler_babel, {
+    options   : Object.assign({}, project.compiler_babel, {
       plugins : (project.compiler_babel.plugins || []).concat('istanbul')
     })
   }];

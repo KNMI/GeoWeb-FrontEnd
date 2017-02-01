@@ -2,7 +2,7 @@ const argv = require('yargs').argv;
 const webpack = require('webpack');
 const cssnano = require('cssnano');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-const ExtractTextPlugin = require('extract-text-webpack-plugin-webpack-2');
+const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const project = require('./project.config');
 const debug = require('debug')('app:config:webpack');
 
@@ -119,7 +119,7 @@ if (!__TEST__) {
   );
 }
 
-webpackConfig.plugins.push(
+/*webpackConfig.plugins.push(
   new webpack.LoaderOptionsPlugin({
     options: {
       postcss: [
@@ -143,22 +143,23 @@ webpackConfig.plugins.push(
         includePaths : project.paths.client('styles')
       }
     }
-  }));
+  }));*/
 
 // ------------------------------------
 // Loaders
 // ------------------------------------
 // JavaScript / JSON
+// /^(?!.*(main|reducers|test\.(test|spec)\.js$)).*\.jsx?$/
 webpackConfig.module.rules = [
   {
     test    : /\.(js|jsx)$/,
-    exclude : /(node_modules|\.spec\.js$)/,
+    exclude : /(node_modules|test|\.(test|spec)\.js$)/,
     loader  : 'babel-loader',
     options : project.compiler_babel
   },
   {
     test   : /\.json$/,
-    loader : 'json'
+    loader : 'json-loader'
   }
 ];
 
@@ -212,22 +213,23 @@ webpackConfig.module.rules.push(
 // when we don't know the public path (we know it only when HMR is enabled [in development]) we
 // need to use the extractTextPlugin to fix this issue:
 // http://stackoverflow.com/questions/34133808/webpack-ots-parsing-error-loading-fonts/34133809#34133809
-if (!__DEV__) {
+/*if (!__DEV__) {
   debug('Applying ExtractTextPlugin to CSS loaders.');
   webpackConfig.module.rules.filter((rule) =>
     rule.use && rule.use.find((name) => /css/.test(name.split('?')[0]))
   ).forEach((rule) => {
     const first = rule.use[0];
     const rest = rule.use.slice(1);
-    rule.loader = ExtractTextPlugin.extract(first, rest.join('!'));
+    rule.loader = ExtractTextPlugin.extract({fallbackLoader: first, loader: rest.join('!')});
     delete rule.use;
   });
 
   webpackConfig.plugins.push(
-    new ExtractTextPlugin('[name].[contenthash].css', {
+    new ExtractTextPlugin({
+      filename: '[name].[contenthash].css',
       allChunks : true
     })
   );
-}
+}*/
 
 module.exports = webpackConfig;
