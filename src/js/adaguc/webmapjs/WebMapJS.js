@@ -2139,6 +2139,18 @@ _map.flipBuffers = function(){
        _map.draw("pinchEnd");
        
     };
+
+    _map.destroy = function(){
+      detachEvents();
+    }
+
+    function detachEvents(){
+      console.log("Detaching...");
+      baseDiv.off("mousedown");
+      baseDiv.off("mousewheel");
+      del_event(document,"mouseup"  ,_map.mouseUpEvent  );  
+      del_event(document,"mousemove",_map.mouseMoveEvent);
+    }
     
     function attachEvents(){
       baseDiv.mousedown(_map.mouseDownEvent);

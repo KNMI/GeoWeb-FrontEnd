@@ -19,7 +19,7 @@ class GeoWeb extends React.Component {
 			console.log("single");
 		return <div>
 					<div id="adaguc">
-					<ADAGUC {...adaguc_props}  id="map1"/>
+					<ADAGUC {...adaguc_props}  id="map0"/>
 					</div>
 					<div id="menu">
 				    	<Menu />

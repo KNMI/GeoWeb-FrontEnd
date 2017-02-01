@@ -45,8 +45,8 @@ class ADAGUC extends React.Component
 
   createMap(dom_element)
   {
-    console.log(this.props.map_created)
     if(dom_element === null || this.props.map_created === true){
+
       return ;
     }
     var username = 'terpstra';
@@ -64,6 +64,10 @@ class ADAGUC extends React.Component
     this.props.dispatch(create_map());
   }
 
+  componentWillUnmount(){
+    console.log("call");
+    this.webMapJS.destroy();
+  }
   componentDidUpdate(prev_props, prev_state){
     // The first time, the map needs to be created. This is when in the previous state the map creation boolean is false
     // Otherwise only change when a new dataset is selected
