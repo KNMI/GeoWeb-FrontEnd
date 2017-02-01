@@ -1,5 +1,6 @@
 .DS_STORE
 *.log
+npm-debug.log*
 
 node_modules
 
