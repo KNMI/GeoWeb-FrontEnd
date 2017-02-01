@@ -1,7 +1,8 @@
-import {CREATE_MAP, SET_MAP_STYLE, SET_DATA} from "../actions/ADAGUC_actions";
+import {CREATE_MAP, SET_MAP_STYLE, SET_DATA, TOGGLE_TURBO} from "../actions/ADAGUC_actions";
 import {DATASETS} from "../constants/datasets";
 import {MAP_STYLES} from "../constants/map_styles";
 const default_state = {
+  single_layout: true,
   adaguc_properties: {
     layer: DATASETS[0],
     map_type: MAP_STYLES[1],
@@ -29,6 +30,10 @@ const adaguc = (state = default_state, action) => {
     case CREATE_MAP:
       const new_adaguc_state_create = Object.assign({}, state.adaguc_properties, {map_created: true});
       return Object.assign({}, state, {adaguc_properties: new_adaguc_state_create});
+    case TOGGLE_TURBO:
+      const new_adaguc_state_turbo = Object.assign({}, state.adaguc_properties, {map_created: false});
+      return Object.assign({}, state, {adaguc_properties: new_adaguc_state_turbo}, {single_layout: !state.single_layout});
+
     default:
       return state;
   }

@@ -45,9 +45,9 @@ class ADAGUC extends React.Component
 
   createMap(dom_element)
   {
+    console.log(this.props.map_created)
     if(dom_element === null || this.props.map_created === true){
       return ;
-      // TODO unmount -- should unmount and cleanup now
     }
     var username = 'terpstra';
     var url = ['http://localhost/~', username, '/adagucviewer/webmapjs'].join('');

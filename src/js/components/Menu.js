@@ -2,7 +2,7 @@ import React from "react";
 import { DropdownButton } from 'react-bootstrap';
 
 import { connect } from 'react-redux'
-import {set_data, set_map_style} from "../actions/ADAGUC_actions"
+import {set_data, set_map_style, toggle_turbo} from "../actions/ADAGUC_actions"
 
 class MI extends React.Component {
 	constructor() {
@@ -26,8 +26,24 @@ class MI extends React.Component {
 		return <li><a id={this.props.eventKey} onClick={this.handle_click}>{this.props.children}</a></li>
 	}
 }
+class BT extends React.Component {
+	constructor() {
+		super(); 
+		this.handle_click = this.handle_click.bind(this);
+
+	}
+	handle_click(e) {
+		console.log(e.target.id);
+		this.props.dispatch(toggle_turbo());
+	}
+
+	render() {
+		return <button class="btn btn-primary" onClick={this.handle_click}>{this.props.children}</button>
+	}
+}
 
 const MenuItem = connect()(MI)
+const Button = connect()(BT)
 
 export default class Menu extends React.Component {	
 	constructor(){
@@ -47,6 +63,7 @@ export default class Menu extends React.Component {
 				<MenuItem eventKey="1" id="mws_button" parent_id='ddb-map'>MWS</MenuItem>
 				<MenuItem eventKey="2" id="osm_button" parent_id='ddb-map'>OpenStreetMap</MenuItem>
 			</DropdownButton>
+			<Button>Turbo</Button>
 			</div>
 	}
 }
