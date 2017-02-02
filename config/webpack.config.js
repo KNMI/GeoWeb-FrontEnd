@@ -1,8 +1,8 @@
 const argv = require('yargs').argv;
 const webpack = require('webpack');
-const cssnano = require('cssnano');
+// const cssnano = require('cssnano');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-const ExtractTextPlugin = require('extract-text-webpack-plugin');
+// const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const project = require('./project.config');
 const debug = require('debug')('app:config:webpack');
 
@@ -119,7 +119,7 @@ if (!__TEST__) {
   );
 }
 
-/*webpackConfig.plugins.push(
+/* webpackConfig.plugins.push(
   new webpack.LoaderOptionsPlugin({
     options: {
       postcss: [
@@ -143,7 +143,7 @@ if (!__TEST__) {
         includePaths : project.paths.client('styles')
       }
     }
-  }));*/
+  })); */
 
 // ------------------------------------
 // Loaders
@@ -213,7 +213,7 @@ webpackConfig.module.rules.push(
 // when we don't know the public path (we know it only when HMR is enabled [in development]) we
 // need to use the extractTextPlugin to fix this issue:
 // http://stackoverflow.com/questions/34133808/webpack-ots-parsing-error-loading-fonts/34133809#34133809
-/*if (!__DEV__) {
+/* if (!__DEV__) {
   debug('Applying ExtractTextPlugin to CSS loaders.');
   webpackConfig.module.rules.filter((rule) =>
     rule.use && rule.use.find((name) => /css/.test(name.split('?')[0]))
@@ -230,6 +230,6 @@ webpackConfig.module.rules.push(
       allChunks : true
     })
   );
-}*/
+} */
 
 module.exports = webpackConfig;
