@@ -56,7 +56,8 @@ class ADAGUC extends React.Component
       // TODO unmount -- should unmount and cleanup now
     }
     var username = 'terpstra';
-    var url = ['http://localhost/~', username, '/adagucviewer/webmapjs'].join('');
+    //var url = ['http://localhost/~', username, '/adagucviewer/webmapjs'].join('');
+    var url = "http://birdexp07.knmi.nl/geoweb/adagucviewer/webmapjs/"
     this.webMapJS = new WMJSMap(dom_element);
     this.webMapJS.setBaseURL(url);
     $( window ).resize(this.resize_func);
