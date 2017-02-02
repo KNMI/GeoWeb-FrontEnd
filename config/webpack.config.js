@@ -119,41 +119,16 @@ if (!__TEST__) {
   );
 }
 
-/* webpackConfig.plugins.push(
-  new webpack.LoaderOptionsPlugin({
-    options: {
-      postcss: [
-        cssnano({
-          autoprefixer : {
-            add      : true,
-            remove   : true,
-            browsers : ['last 2 versions']
-          },
-          discardComments : {
-            removeAll : true
-          },
-          discardUnused : false,
-          mergeIdents   : false,
-          reduceIdents  : false,
-          safe          : true,
-          sourcemap     : true
-        })
-      ],
-      sassLoader: {
-        includePaths : project.paths.client('styles')
-      }
-    }
-  })); */
-
 // ------------------------------------
 // Loaders
 // ------------------------------------
 // JavaScript / JSON
 // /^(?!.*(main|reducers|test\.(test|spec)\.js$)).*\.jsx?$/
+// /(node_modules|test|\.(test|spec)\.js$)/
 webpackConfig.module.rules = [
   {
     test    : /\.(js|jsx)$/,
-    exclude : /(node_modules|test|\.(test|spec)\.js$)/,
+    exclude : /node_modules/,
     loader  : 'babel-loader',
     options : project.compiler_babel
   },
@@ -206,30 +181,5 @@ webpackConfig.module.rules.push(
     loader: 'url-loader?limit=8192'
   }
 );
-
-// ------------------------------------
-// Finalize Configuration
-// ------------------------------------
-// when we don't know the public path (we know it only when HMR is enabled [in development]) we
-// need to use the extractTextPlugin to fix this issue:
-// http://stackoverflow.com/questions/34133808/webpack-ots-parsing-error-loading-fonts/34133809#34133809
-/* if (!__DEV__) {
-  debug('Applying ExtractTextPlugin to CSS loaders.');
-  webpackConfig.module.rules.filter((rule) =>
-    rule.use && rule.use.find((name) => /css/.test(name.split('?')[0]))
-  ).forEach((rule) => {
-    const first = rule.use[0];
-    const rest = rule.use.slice(1);
-    rule.loader = ExtractTextPlugin.extract({fallbackLoader: first, loader: rest.join('!')});
-    delete rule.use;
-  });
-
-  webpackConfig.plugins.push(
-    new ExtractTextPlugin({
-      filename: '[name].[contenthash].css',
-      allChunks : true
-    })
-  );
-} */
 
 module.exports = webpackConfig;

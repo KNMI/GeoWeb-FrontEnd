@@ -2,7 +2,6 @@ const argv = require('yargs').argv;
 const project = require('./project.config');
 const webpackConfig = require('./webpack.config');
 const debug = require('debug')('app:config:karma');
-const path = require('path');
 
 debug('Creating configuration.');
 const karmaConfig = {
@@ -22,13 +21,10 @@ const karmaConfig = {
 
   // include some polyfills
   files: [
-    {
-      pattern  : `./${project.dir_test}/testSetup.js`,
-      watched  : false,
-      served   : true,
-      included : true
-    } // ,
-    // './**/*.spec.js' // specify files to watch for tests
+    'node_modules/babel-polyfill/dist/polyfill.js',
+    './node_modules/phantomjs-polyfill/bind-polyfill.js',
+    // './src/test/*.js',
+    './src/**/*.spec.js' // specify files to watch for tests
   ],
   preprocessors : {
 
@@ -36,51 +32,33 @@ const karmaConfig = {
     // also run tests through sourcemap for easier debugging
     // [`${project.dir_test}/testSetup.js`] : ['webpack', 'sourcemap'],
     // './**/*.spec.js': ['babel']
-    './**/*.spec.js': ['webpack', 'sourcemap']
+    './src/test/*.js': ['webpack', 'sourcemap'],
+    './src/**/*.spec.js': ['webpack', 'sourcemap']
   },
   webpack  : {
     devtool: 'inline-source-map',
-    resolve: {
-
-      // allow us to import components in tests like:
-      // import Example from 'components/Example';
-      modules: [
-        path.resolve(__dirname, './src')
-      ],
-
-      // allow us to avoid including extension name
-      extensions: ['.js', '.jsx'],
+    resolve: Object.assign({}, webpackConfig.resolve, {
 
       // required for enzyme to work properly
       alias: {
         'sinon': 'sinon/pkg/sinon'
       }
-    },
-    module: {
+    }),
+    module: Object.assign({}, webpackConfig.module, {
 
       // don't run babel-loader through the sinon module
       noParse: [
         /node_modules\/sinon\//
-      ],
-
-      // run babel loader for our tests
-      rules: [
-        {
-          test: /\.(js|jsx)$/,
-          exclude : /(node_modules|test)/,
-          loader: 'babel-loader',
-          options : project.compiler_babel
-        }
       ]
-    },
+    }),
 
     // required for enzyme to work properly
-    externals: {
+    externals: Object.assign({}, webpackConfig.externals, {
       'jsdom': 'window',
       'cheerio': 'window',
       'react/lib/ExecutionEnvironment': true,
       'react/lib/ReactContext': 'window'
-    }
+    })
   },
   webpackMiddleware : {
     noInfo : true
@@ -103,16 +81,16 @@ const karmaConfig = {
 
 if (project.globals.__COVERAGE__) {
   // karmaConfig.reporters.push('coverage');
-  karmaConfig.webpack.module.rules = [{
-    test    : /\.(js|jsx)$/,
-    enforce : 'pre',
-    include : new RegExp(project.dir_client),
-    exclude : /(node_modules|test|\.(test|spec)\.js$|\.scss$|\.jpg$)/,
-    loader  : 'babel-loader',
-    options   : Object.assign({}, project.compiler_babel, {
-      plugins : (project.compiler_babel.plugins || []).concat('istanbul')
-    })
-  }];
+  // karmaConfig.webpack.module.rules = [{
+  //   test    : /\.(js|jsx)$/,
+  //   enforce : 'pre',
+  //   include : new RegExp(project.dir_client),
+  //   exclude : /(node_modules)/,
+  //   loader  : 'babel-loader',
+  //   options   : Object.assign({}, project.compiler_babel, {
+  //     plugins : (project.compiler_babel.plugins || []).concat('istanbul')
+  //   })
+  // }];
 }
 
 module.exports = (cfg) => cfg.set(karmaConfig);

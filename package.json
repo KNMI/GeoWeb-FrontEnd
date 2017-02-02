@@ -4,7 +4,7 @@
   "description": "GeoWeb FrontEnd is the platform for the Early Warning Center and Weather Room",
   "main": "index.js",
   "engines": {
-    "node": ">=4.5.0",
+    "node": ">=6.4.0",
     "npm": "^3.0.0"
   },
   "scripts": {
@@ -119,6 +119,7 @@
   "devDependencies": {
     "babel-eslint": "^7.1.1",
     "babel-plugin-istanbul": "^3.1.2",
+    "babel-polyfill": "^6.22.0",
     "chai": "^3.5.0",
     "chai-as-promised": "^6.0.0",
     "chai-enzyme": "^0.6.1",
@@ -145,6 +146,7 @@
     "karma-webpack": "^2.0.2",
     "mocha": "^3.2.0",
     "nodemon": "^1.11.0",
+    "phantomjs-polyfill": "0.0.2",
     "phantomjs-prebuilt": "^2.1.14",
     "react-addons-test-utils": "^15.4.2",
     "redbox-react": "^1.3.3",

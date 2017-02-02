@@ -16,6 +16,8 @@ global.sinon = sinon;
 global.expect = chai.expect;
 global.should = chai.should();
 
+const project = require('./project.config');
+
 // ---------------------------------------
 // Require Tests
 // ---------------------------------------
@@ -32,7 +34,7 @@ const testsToRun = testsContext.keys().filter(inManifest)
 
 // require all `src/**/*.js` except for `main.js`, `reducers.js` and files ending in
 // `.spec.js(x)` or `.test.js(x)` (for isparta coverage reporting)
-if (__COVERAGE__) {
+if (project.globals.__COVERAGE__) {
   const componentsContext = require.context('../', true, /^(?!.*(main|reducers|test\.(test|spec)\.js$)).*\.jsx?$/);
   componentsContext.keys().forEach(componentsContext);
 }
