@@ -68,10 +68,10 @@ export default class Menu extends React.Component {
         <MenuItem store={store} eventKey='4' id='cut_europe_button' parentId='ddb-cut'>Europa</MenuItem>
         <MenuItem store={store} eventKey='5' id='cut_bonaire_button' parentId='ddb-cut'>Bonaire</MenuItem>
         <MenuItem store={store} eventKey='6' id='cut_saba_eust_button' parentId='ddb-cut'>Saba & St. Eustatius</MenuItem>
-        <MenuItem store={store} eventKey='7' id='cut_saba_eust_button' parentId='ddb-cut'>Noord Amerika</MenuItem>
-        <MenuItem store={store} eventKey='8' id='cut_saba_eust_button' parentId='ddb-cut'>Afrika</MenuItem>
-        <MenuItem store={store} eventKey='9' id='cut_saba_eust_button' parentId='ddb-cut'>Azie</MenuItem>
-        <MenuItem store={store} eventKey='10' id='cut_saba_eust_button' parentId='ddb-cut'>Australi&euml;</MenuItem>
+        <MenuItem store={store} eventKey='7' id='cut_n_america_button' parentId='ddb-cut'>Noord Amerika</MenuItem>
+        <MenuItem store={store} eventKey='8' id='cut_africa_button' parentId='ddb-cut'>Afrika</MenuItem>
+        <MenuItem store={store} eventKey='9' id='cut_asia_button' parentId='ddb-cut'>Azie</MenuItem>
+        <MenuItem store={store} eventKey='10' id='cut_australia_button' parentId='ddb-cut'>Australi&euml;</MenuItem>
       </DropdownButton>
 
     </div>;
