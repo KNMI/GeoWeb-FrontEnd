@@ -1,10 +1,9 @@
-<<<<<<< HEAD
 # GeoWeb FrontEnd
 
 The GeoWeb FrontEnd started at the Royal Netherlands Meteorological Institute as part of the GeoWeb Project. This project intends to provide integrated tooling for the Early Warning Center / Weather Room.
-<aside class="warning">
+
+## Notice
 This software is under very active development and should NEVER EVER be used in production! It is currently very alpha, very incomplete, and comes without any guarantees. It may create a perpetual thundercloud above your head.
-</aside>
 ## What you'll find here
 
 - [Components](#components)
