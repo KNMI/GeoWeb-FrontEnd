@@ -35,7 +35,7 @@ class ADAGUC extends React.Component {
   }
 
   resize () {
-    this.webMapJS.setSize(750, $(document).height() / 2);
+    this.webMapJS.setSize($(document).width() - 250, $(document).height());
   }
 
   setActiveBaseLayer () {
@@ -43,17 +43,18 @@ class ADAGUC extends React.Component {
   }
 
   initAdaguc (domElement) {
-    const { adagucProperties } = this.props;
-    if (domElement === null || adagucProperties.mapCreated === true) {
+    if (domElement === null || this.props.adagucProperties.mapCreated === true) {
       return;
     }
+    console.log('initAdaguc',this.props);
+    const { adagucProperties } = this.props;
     var username = 'terpstra';
     var url = ['http://localhost/~', username, '/adagucviewer/webmapjs'].join('');
     this.webMapJS = new WMJSMap(domElement);
     this.webMapJS.setBaseURL(url);
     $(window).resize(this.resize);
    // this.webMapJS.setSize($( window ).width(),$( document ).height() - 43);
-    this.webMapJS.setSize(750, $(document).height() / 2);
+    this.webMapJS.setSize($(document).width() - 250, $(document).height());
 
     // Set the initial projection
     this.webMapJS.setProjection(adagucProperties.projectionName);
@@ -68,7 +69,7 @@ class ADAGUC extends React.Component {
   componentDidUpdate (prevProps, prevState) {
     // The first time, the map needs to be created. This is when in the previous state the map creation boolean is false
     // Otherwise only change when a new dataset is selected
-    var { layer, mapType } = this.props.adagucProperties;
+    var { layer, mapType, boundingBox } = this.props.adagucProperties;
     if (!prevProps.adagucProperties.mapCreated || layer !== prevProps.adagucProperties.layer) {
       var newDataLayer = new WMJSLayer(layer);
       // Stop the old animation
@@ -80,8 +81,11 @@ class ADAGUC extends React.Component {
       // And add the new layer
       this.webMapJS.addLayer(newDataLayer);
       // console.log('switched layers');
-    } else {
+    } else if (mapType !== prevProps.adagucProperties.mapType) {
       this.webMapJS.setBaseLayers([new WMJSLayer(mapType)]);
+    }
+    else {
+      this.webMapJS.setBBOX(boundingBox.join());
     }
   }
 

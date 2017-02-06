@@ -2,6 +2,7 @@ import React from 'react';
 import ADAGUC from '../components/ADAGUC.js';
 import Menu from '../components/Menu.js';
 import { connect } from 'react-redux';
+import '../styles/core.scss';
 
 class GeoWeb extends React.Component {
   render () {

@@ -1,12 +1,13 @@
-import { CREATE_MAP, SET_MAP_STYLE, SET_DATA } from '../actions/ADAGUC_actions';
+import { CREATE_MAP, SET_MAP_STYLE, SET_DATA, SET_CUT } from '../actions/ADAGUC_actions';
 import { DATASETS } from '../constants/datasets';
 import { MAP_STYLES } from '../constants/map_styles';
+import { BOUNDING_BOXES } from '../constants/bounding_boxes';
 const defaultState = {
   singleLayout: true,
   adagucProperties: {
     layer: DATASETS[0],
     mapType: MAP_STYLES[1],
-    boundingBox: [314909.3659069278, 6470493.345653814, 859527.2396033217, 7176664.533565958],
+    boundingBox: BOUNDING_BOXES[0],
     projectionName: 'EPSG:3857',
     mapCreated: false
   }
@@ -32,6 +33,9 @@ const adagucReducer = (state = defaultState, action) => {
     case CREATE_MAP:
       const newAdagucCreateMap = Object.assign({}, state.adagucProperties, { mapCreated: true });
       return Object.assign({}, state, { adagucProperties: newAdagucCreateMap });
+    case SET_CUT:
+      const newAdagucBoundingBox = Object.assign({}, state.adagucProperties, { boundingBox: BOUNDING_BOXES[action.payload - 1] });
+      return Object.assign({}, state, { adagucProperties: newAdagucBoundingBox });
 
     default:
       return state;
