@@ -4,7 +4,7 @@ import {
   doubleAsync,
   default as counterReducer
 } from 'routes/Counter/modules/counter';
-
+import sinon from 'sinon';
 describe('(Redux Module) Counter', () => {
   it('Should export a constant COUNTER_INCREMENT.', () => {
     expect(COUNTER_INCREMENT).to.equal('COUNTER_INCREMENT');
@@ -78,7 +78,7 @@ describe('(Redux Module) Counter', () => {
     });
 
     it('Should return a promise from that thunk that gets fulfilled.', () => {
-      return doubleAsync()(_dispatchSpy, _getStateSpy).should.eventually.be.fulfilled;
+      return doubleAsync()(_dispatchSpy, _getStateSpy).should.be.fulfilled;
     });
 
     it('Should call dispatch and getState exactly once.', () => {

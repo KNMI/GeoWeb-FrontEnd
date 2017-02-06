@@ -1,4 +1,5 @@
 {
+  "ecmaVersion": 6,
   "parser": "babel-eslint",
   "extends": [
     "standard",

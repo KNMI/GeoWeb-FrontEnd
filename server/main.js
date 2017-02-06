@@ -35,18 +35,21 @@ if (project.env === 'development') {
   // these files. This middleware doesn't need to be enabled outside
   // of development since this directory will be copied into ~/dist
   // when the application is compiled.
-  app.use(express.static(project.paths.public()));
+  app.use(express.static(project.paths.static()));
+  // app.use(express.static(project.paths.public()));
 
   // This rewrites all routes requests to the root /index.html file
   // (ignoring file requests). If you want to implement universal
   // rendering, you'll want to remove this middleware.
   app.use('*', function (req, res, next) {
-    const filename = path.join(compiler.outputPath, 'index.html');
-    compiler.outputFileSystem.readFile(filename, (err, result) => {
-      if (err) {
-        return next(err);
-      }
-      res.set('content-type', 'text/html');
+    // console.log('req:',req.url)
+  //   const filename = path.join(compiler.outputPath, 'index.html');
+    compiler.outputFileSystem.readFile(req, (err, result) => {
+  //     if (err) {
+  //       return next(err);
+  //     }
+  //     res.set('content-type', 'text/html');
+      console.log(result)
       res.send(result);
       res.end();
     });

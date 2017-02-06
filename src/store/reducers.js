@@ -1,9 +1,9 @@
 import { combineReducers } from 'redux';
-import locationReducer from './location';
+import adagucReducer from './adagucReducer';
 
 export const makeRootReducer = (asyncReducers) => {
   return combineReducers({
-    location: locationReducer,
+    adaguc: adagucReducer,
     ...asyncReducers
   });
 };

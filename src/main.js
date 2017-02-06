@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import createStore from './store/createStore';
-import AppContainer from './containers/AppContainer';
+import GeoWeb from './containers/GeoWeb';
 
 // ========================================================
 // Store Instantiation
@@ -18,11 +18,10 @@ let render = () => {
   const routes = require('./routes/index').default(store);
 
   ReactDOM.render(
-    <AppContainer store={store} routes={routes} />,
+   <GeoWeb store={store} routes={routes} />,
     MOUNT_NODE
   );
 };
-
 // This code is excluded from production bundle
 if (__DEV__) {
   if (module.hot) {

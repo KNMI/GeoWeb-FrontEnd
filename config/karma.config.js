@@ -17,7 +17,7 @@ const karmaConfig = {
   frameworks: ['mocha', 'chai'],
 
   // displays tests in a nice readable format
-  reporters: ['spec'],
+  reporters: ['spec', 'coverage'],
 
   // include some polyfills
   files: [
@@ -68,7 +68,10 @@ const karmaConfig = {
     'karma-mocha',
     'karma-chai',
     'karma-webpack',
+    'karma-coverage',
     'karma-phantomjs-launcher',
+    'karma-jsdom-launcher',
+    'karma-chrome-launcher',
     'karma-spec-reporter',
     'karma-sourcemap-loader',
     'karma-babel-preprocessor'

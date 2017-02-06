@@ -128,7 +128,7 @@ if (!__TEST__) {
 webpackConfig.module.rules = [
   {
     test    : /\.(js|jsx)$/,
-    exclude : /node_modules/,
+    exclude : /(node_modules|static)/,
     loader  : 'babel-loader',
     options : project.compiler_babel
   },

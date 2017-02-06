@@ -20,6 +20,7 @@ const config = {
   dir_public : 'public',
   dir_server : 'server',
   dir_test   : 'src/test',
+  dir_static : 'src/static',
 
   // ----------------------------------
   // Server Configuration
@@ -114,7 +115,8 @@ config.paths = {
   base   : base,
   client : base.bind(null, config.dir_client),
   public : base.bind(null, config.dir_public),
-  dist   : base.bind(null, config.dir_dist)
+  dist   : base.bind(null, config.dir_dist),
+  static : base.bind(null, config.dir_static)
 };
 
 // ========================================================

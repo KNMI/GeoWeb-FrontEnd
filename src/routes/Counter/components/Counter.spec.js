@@ -2,6 +2,7 @@ import React from 'react';
 import { bindActionCreators } from 'redux';
 import { Counter } from 'routes/Counter/components/Counter';
 import { shallow } from 'enzyme';
+import sinon from 'sinon';
 
 describe('(Component) Counter', () => {
   let _props, _spies, _wrapper;
