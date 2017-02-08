@@ -1,6 +1,8 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { createMap } from '../actions/ADAGUC_actions';
+/*eslint-disable */
+
 class ADAGUC extends React.Component {
   constructor () {
     super();
@@ -35,7 +37,8 @@ class ADAGUC extends React.Component {
   }
 
   resize () {
-    this.webMapJS.setSize(750, $(document).height() / 2);
+    // eslint-disable-next-line no-use-before-define
+    this.webMapJS.setSize($(window).width() - 250, $(window).height());
   }
 
   setActiveBaseLayer () {
@@ -43,17 +46,18 @@ class ADAGUC extends React.Component {
   }
 
   initAdaguc (domElement) {
-    const { adagucProperties } = this.props;
-    if (domElement === null || adagucProperties.mapCreated === true) {
+    if (domElement === null || this.props.adagucProperties.mapCreated === true) {
       return;
     }
+    console.log('initAdaguc', this.props);
+    const { adagucProperties } = this.props;
     var username = 'terpstra';
     var url = ['http://localhost/~', username, '/adagucviewer/webmapjs'].join('');
     this.webMapJS = new WMJSMap(domElement);
     this.webMapJS.setBaseURL(url);
     $(window).resize(this.resize);
-   // this.webMapJS.setSize($( window ).width(),$( document ).height() - 43);
-    this.webMapJS.setSize(750, $(document).height() / 2);
+   // this.webMapJS.setSize($( window ).width(),$( window ).height() - 43);
+    this.webMapJS.setSize($(window).width() - 250, $(window).height());
 
     // Set the initial projection
     this.webMapJS.setProjection(adagucProperties.projectionName);
@@ -68,7 +72,7 @@ class ADAGUC extends React.Component {
   componentDidUpdate (prevProps, prevState) {
     // The first time, the map needs to be created. This is when in the previous state the map creation boolean is false
     // Otherwise only change when a new dataset is selected
-    var { layer, mapType } = this.props.adagucProperties;
+    var { layer, mapType, boundingBox } = this.props.adagucProperties;
     if (!prevProps.adagucProperties.mapCreated || layer !== prevProps.adagucProperties.layer) {
       var newDataLayer = new WMJSLayer(layer);
       // Stop the old animation
@@ -81,8 +85,10 @@ class ADAGUC extends React.Component {
       this.webMapJS.addLayer(newDataLayer);
       this.webMapJS.setActiveLayer(newDataLayer);
       // console.log('switched layers');
-    } else {
+    } else if (mapType !== prevProps.adagucProperties.mapType) {
       this.webMapJS.setBaseLayers([new WMJSLayer(mapType)]);
+    } else {
+      this.webMapJS.setBBOX(boundingBox.join());
     }
   }
 
@@ -97,3 +103,4 @@ ADAGUC.propTypes = {
 };
 
 export default connect()(ADAGUC);
+/*eslint-enable */
