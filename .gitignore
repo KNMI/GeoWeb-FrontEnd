@@ -1,5 +1,10 @@
-
 # Created by https://www.gitignore.io/api/node
+.DS_STORE
+
+dist
+coverage
+
+.idea/npm st
 
 ### Node ###
 # Logs
