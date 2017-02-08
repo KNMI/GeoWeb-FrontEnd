@@ -79,6 +79,7 @@ class ADAGUC extends React.Component {
       this.webMapJS.removeAllLayers();
       // And add the new layer
       this.webMapJS.addLayer(newDataLayer);
+      this.webMapJS.setActiveLayer(newDataLayer);
       // console.log('switched layers');
     } else {
       this.webMapJS.setBaseLayers([new WMJSLayer(mapType)]);
