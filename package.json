@@ -77,6 +77,10 @@
   "dependencies": {
     "babel-core": "^6.2.10",
     "babel-loader": "^6.2.10",
+    "babel-plugin-add-module-exports": "0.2.1",
+    "babel-plugin-react-html-attrs": "^2.0.0",
+    "babel-plugin-transform-class-properties": "6.22.0",
+    "babel-plugin-transform-decorators-legacy": "^1.3.4",
     "babel-plugin-transform-runtime": "^6.15.0",
     "babel-preset-es2015": "^6.22.0",
     "babel-preset-es2016": "^6.22.0",
@@ -110,20 +114,7 @@
     "style-loader": "^0.13.1",
     "url-loader": "^0.5.7",
     "webpack": "^2.2.0",
-<<<<<<< HEAD
-    "webpack-dev-server": "^2.2.0",
-    "copy-webpack-plugin":"^4.0.1"
-  },
-  "devDependencies": {},
-  "scripts": {
-    "dev": "webpack-dev-server --content-base src --inline --hot",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "clean": "rm -rf dist",
-    "build": "npm run clean && webpack"
-
-=======
     "yargs": "^6.6.0"
->>>>>>> b8a2993670b958c11282ff0de7957c41b358eba0
   },
   "devDependencies": {
     "babel-eslint": "^7.1.1",

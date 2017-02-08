@@ -18,7 +18,7 @@ let render = () => {
   const routes = require('./routes/index').default(store);
 
   ReactDOM.render(
-    <GeoWeb store={store} routes={routes} />,
+   <GeoWeb store={store} routes={routes} />,
     MOUNT_NODE
   );
 };
