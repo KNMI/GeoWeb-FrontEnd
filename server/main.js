@@ -1,6 +1,6 @@
 const express = require('express');
 const debug = require('debug')('app:server');
-const path = require('path');
+// const path = require('path');
 const webpack = require('webpack');
 const webpackConfig = require('../config/webpack.config');
 const project = require('../config/project.config');
@@ -45,11 +45,10 @@ if (project.env === 'development') {
     // console.log('req:',req.url)
   //   const filename = path.join(compiler.outputPath, 'index.html');
     compiler.outputFileSystem.readFile(req, (err, result) => {
-  //     if (err) {
-  //       return next(err);
-  //     }
+      if (err) {
+        return next(err);
+      }
   //     res.set('content-type', 'text/html');
-      console.log(result)
       res.send(result);
       res.end();
     });
