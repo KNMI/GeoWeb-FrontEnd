@@ -34,7 +34,8 @@ const adagucReducer = (state = defaultState, action) => {
       const newAdagucCreateMap = Object.assign({}, state.adagucProperties, { mapCreated: true });
       return Object.assign({}, state, { adagucProperties: newAdagucCreateMap });
     case SET_CUT:
-      const newAdagucBoundingBox = Object.assign({}, state.adagucProperties, { boundingBox: BOUNDING_BOXES[action.payload - 1] });
+      const newAdagucBoundingBox = Object.assign({}, state.adagucProperties,
+        { boundingBox: BOUNDING_BOXES[action.payload - 1] });
       return Object.assign({}, state, { adagucProperties: newAdagucBoundingBox });
 
     default:

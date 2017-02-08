@@ -54,7 +54,8 @@ export default class Menu extends React.Component {
     return <div id='innermenu'>
       <DropdownButton bsStyle='primary' bsSize='large' title='Dataset' key='1' id='ddb-data'>
         <MenuItem store={store} eventKey='1' id='harmonie_flux_button' parentId='ddb-data'>HARMONIE Flux</MenuItem>
-        <MenuItem store={store} eventKey='2' id='harmonie_air_temp_button' parentId='ddb-data'>HARMONIE Air temp</MenuItem>
+        <MenuItem store={store} eventKey='2' id='harmonie_air_temp_button'
+          parentId='ddb-data'>HARMONIE Air temp</MenuItem>
         <MenuItem store={store} eventKey='3' id='radar_button' parentId='ddb-data'>Radar</MenuItem>
       </DropdownButton><br />
       <DropdownButton bsStyle='primary' bsSize='large' title='Map Style' key='2' id='ddb-map'>
@@ -67,7 +68,8 @@ export default class Menu extends React.Component {
         <MenuItem store={store} eventKey='3' id='cut_western_europe_button' parentId='ddb-cut'>West Europa</MenuItem>
         <MenuItem store={store} eventKey='4' id='cut_europe_button' parentId='ddb-cut'>Europa</MenuItem>
         <MenuItem store={store} eventKey='5' id='cut_bonaire_button' parentId='ddb-cut'>Bonaire</MenuItem>
-        <MenuItem store={store} eventKey='6' id='cut_saba_eust_button' parentId='ddb-cut'>Saba & St. Eustatius</MenuItem>
+        <MenuItem store={store} eventKey='6' id='cut_saba_eust_button'
+          parentId='ddb-cut'>Saba & St. Eustatius</MenuItem>
         <MenuItem store={store} eventKey='7' id='cut_n_america_button' parentId='ddb-cut'>Noord Amerika</MenuItem>
         <MenuItem store={store} eventKey='8' id='cut_africa_button' parentId='ddb-cut'>Afrika</MenuItem>
         <MenuItem store={store} eventKey='9' id='cut_asia_button' parentId='ddb-cut'>Azie</MenuItem>

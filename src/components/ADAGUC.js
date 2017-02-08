@@ -1,6 +1,8 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { createMap } from '../actions/ADAGUC_actions';
+/*eslint-disable */
+
 class ADAGUC extends React.Component {
   constructor () {
     super();
@@ -35,7 +37,8 @@ class ADAGUC extends React.Component {
   }
 
   resize () {
-    this.webMapJS.setSize($(document).width() - 250, $(document).height());
+    // eslint-disable-next-line no-use-before-define
+    this.webMapJS.setSize($(window).width() - 250, $(window).height());
   }
 
   setActiveBaseLayer () {
@@ -46,15 +49,15 @@ class ADAGUC extends React.Component {
     if (domElement === null || this.props.adagucProperties.mapCreated === true) {
       return;
     }
-    console.log('initAdaguc',this.props);
+    console.log('initAdaguc', this.props);
     const { adagucProperties } = this.props;
     var username = 'terpstra';
     var url = ['http://localhost/~', username, '/adagucviewer/webmapjs'].join('');
     this.webMapJS = new WMJSMap(domElement);
     this.webMapJS.setBaseURL(url);
     $(window).resize(this.resize);
-   // this.webMapJS.setSize($( window ).width(),$( document ).height() - 43);
-    this.webMapJS.setSize($(document).width() - 250, $(document).height());
+   // this.webMapJS.setSize($( window ).width(),$( window ).height() - 43);
+    this.webMapJS.setSize($(window).width() - 250, $(window).height());
 
     // Set the initial projection
     this.webMapJS.setProjection(adagucProperties.projectionName);
@@ -83,8 +86,7 @@ class ADAGUC extends React.Component {
       // console.log('switched layers');
     } else if (mapType !== prevProps.adagucProperties.mapType) {
       this.webMapJS.setBaseLayers([new WMJSLayer(mapType)]);
-    }
-    else {
+    } else {
       this.webMapJS.setBBOX(boundingBox.join());
     }
   }
@@ -100,3 +102,4 @@ ADAGUC.propTypes = {
 };
 
 export default connect()(ADAGUC);
+/*eslint-enable */
