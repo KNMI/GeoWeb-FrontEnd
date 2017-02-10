@@ -13,10 +13,11 @@ const __TEST__ = project.globals.__TEST__;
 
 debug('Creating configuration.');
 const webpackConfig = {
-  name    : 'client',
-  target  : 'web',
-  devtool : project.compiler_devtool,
-  resolve : {
+  devServer: { historyApiFallback: true },
+  name     : 'client',
+  target   : 'web',
+  devtool  : project.compiler_devtool,
+  resolve  : {
     modules    : [
       project.paths.client(),
       'node_modules'

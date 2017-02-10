@@ -1,9 +1,7 @@
 import { combineReducers } from 'redux';
-import adagucReducer from './adagucReducer';
 
 export const makeRootReducer = (asyncReducers) => {
   return combineReducers({
-    adaguc: adagucReducer,
     ...asyncReducers
   });
 };

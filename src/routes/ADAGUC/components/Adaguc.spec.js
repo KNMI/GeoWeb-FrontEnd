@@ -1,10 +1,10 @@
 import React from 'react';
 import { bindActionCreators } from 'redux';
-import { Counter } from 'routes/Counter/components/Counter';
+import { Adaguc } from 'routes/Adaguc/components/Adaguc';
 import { shallow } from 'enzyme';
 import sinon from 'sinon';
 
-describe('(Component) Counter', () => {
+describe('(Component) Adaguc', () => {
   let _props, _spies, _wrapper;
 
   beforeEach(() => {
@@ -16,15 +16,15 @@ describe('(Component) Counter', () => {
         increment   : (_spies.increment = sinon.spy())
       }, _spies.dispatch = sinon.spy())
     };
-    _wrapper = shallow(<Counter {..._props} />);
+    _wrapper = shallow(<Adaguc {..._props} />);
   });
 
   it('Should render as a <div>.', () => {
     expect(_wrapper.is('div')).to.equal(true);
   });
 
-  it('Should render with an <h2> that includes Sample Counter text.', () => {
-    expect(_wrapper.find('h2').text()).to.match(/Counter:/);
+  it('Should render with an <h2> that includes Sample Adaguc text.', () => {
+    expect(_wrapper.find('h2').text()).to.match(/Adaguc:/);
   });
 
   it('Should render props.counter at the end of the sample counter <h2>.', () => {

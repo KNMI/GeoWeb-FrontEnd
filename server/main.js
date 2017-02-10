@@ -1,6 +1,6 @@
 const express = require('express');
 const debug = require('debug')('app:server');
-// const path = require('path');
+const path = require('path');
 const webpack = require('webpack');
 const webpackConfig = require('../config/webpack.config');
 const project = require('../config/project.config');
@@ -31,24 +31,19 @@ if (project.env === 'development') {
     path: '/__webpack_hmr'
   }));
 
-  // Serve static assets from ~/public since Webpack is unaware of
+  // Serve static assets from ~/static since Webpack is unaware of
   // these files. This middleware doesn't need to be enabled outside
   // of development since this directory will be copied into ~/dist
   // when the application is compiled.
   app.use(express.static(project.paths.static()));
-  // app.use(express.static(project.paths.public()));
 
-  // This rewrites all routes requests to the root /index.html file
-  // (ignoring file requests). If you want to implement universal
-  // rendering, you'll want to remove this middleware.
   app.use('*', function (req, res, next) {
-    // console.log('req:',req.url)
-  //   const filename = path.join(compiler.outputPath, 'index.html');
-    compiler.outputFileSystem.readFile(req, (err, result) => {
+    const filename = path.join(compiler.outputPath, 'index.html');
+    compiler.outputFileSystem.readFile(filename, (err, result) => {
       if (err) {
         return next(err);
       }
-  //     res.set('content-type', 'text/html');
+      res.set('content-type', 'text/html');
       res.send(result);
       res.end();
     });
