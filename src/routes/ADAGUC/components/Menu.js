@@ -46,6 +46,8 @@ export default class Menu extends React.Component {
         <MenuItem dataFunc={setData} eventKey='2' id='harmonie_air_temp_button'
           parentId='ddb-data'>HARMONIE Air temp</MenuItem>
         <MenuItem dataFunc={setData} eventKey='3' id='radar_button' parentId='ddb-data'>Radar</MenuItem>
+        <MenuItem dataFunc={setData} eventKey='4' id='satellite_ir_button' parentId='ddb-data'>Satellite IR</MenuItem>
+        <MenuItem dataFunc={setData} eventKey='5' id='satellite__cinesat_button' parentId='ddb-data'>Satellite CINESAT</MenuItem>
       </DropdownButton><br />
       <DropdownButton bsStyle='primary' bsSize='large' title='Map Style' key='2' id='ddb-map'>
         <MenuItem dataFunc={setMapStyle} eventKey='1' id='mws_button' parentId='ddb-map'>MWS</MenuItem>
