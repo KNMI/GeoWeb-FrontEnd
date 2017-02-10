@@ -35,7 +35,7 @@ export default class Adaguc extends React.Component {
   }
 
   resize () {
-    // eslint-disable-next-line no-use-before-define
+    // eslint-disable-next-line no-undef
     this.webMapJS.setSize($(window).width() - 250, $(window).height() - 50);
   }
 
@@ -46,14 +46,18 @@ export default class Adaguc extends React.Component {
     }
     var username = 'terpstra';
     var url = ['http://localhost/~', username, '/adagucviewer/webmapjs'].join('');
+    // eslint-disable-next-line no-undef
     this.webMapJS = new WMJSMap(document.getElementById('adaguc'));
     this.webMapJS.setBaseURL(url);
+    // eslint-disable-next-line no-undef
     $(window).resize(this.resize);
+    // eslint-disable-next-line no-undef
     this.webMapJS.setSize($(window).width() - 250, $(window).height() - 50);
 
     // Set the initial projection
     this.webMapJS.setProjection(adagucProperties.projectionName);
     this.webMapJS.setBBOX(adagucProperties.boundingBox.join());
+    // eslint-disable-next-line no-undef
     this.webMapJS.setBaseLayers([new WMJSLayer(adagucProperties.mapType)]);
     createMap();
   }
@@ -68,10 +72,12 @@ export default class Adaguc extends React.Component {
     var { layer, mapType, boundingBox } = this.props.adagucProperties;
     // if (!prevProps.adagucProperties.mapCreated || layer !== prevProps.adagucProperties.layer) {
     if (mapType !== prevProps.adagucProperties.mapType) {
+      // eslint-disable-next-line no-undef
       this.webMapJS.setBaseLayers([new WMJSLayer(mapType)]);
     } else if (boundingBox !== prevProps.adagucProperties.boundingBox) {
       this.webMapJS.setBBOX(boundingBox.join());
     } else {
+      // eslint-disable-next-line no-undef
       var newDataLayer = new WMJSLayer(layer);
       // Stop the old animation
       this.webMapJS.stopAnimating();
