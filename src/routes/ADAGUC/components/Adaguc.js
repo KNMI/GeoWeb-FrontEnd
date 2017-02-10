@@ -10,6 +10,8 @@ export default class Adaguc extends React.Component {
     this.animateLayer = this.animateLayer.bind(this);
     this.resize = this.resize.bind(this);
     this.updateAnimation = this.updateAnimation.bind(this);
+    this.onChangeAnimation = this.onChangeAnimation.bind(this);
+    this.isAnimating = false;
   }
   currentLatestDate = undefined;
   currentBeginDate = undefined;
@@ -26,7 +28,17 @@ export default class Adaguc extends React.Component {
     for (var j = numTimeSteps - numStepsBack; j < numTimeSteps; ++j) {
       dates.push({ name:timeDim.name, value:timeDim.getValueForIndex(j) });
     }
-    this.webMapJS.draw(dates);
+    this.webMapJS.stopAnimating();
+    if (this.isAnimating) {
+      this.webMapJS.isAnimating=false;
+      this.webMapJS.draw(dates);
+      this.webMapJS.isAnimating=true;
+    } else {
+      this.webMapJS.draw();
+      this.webMapJS.setDimension('time', dates[dates.length - 1].value);
+      this.webMapJS.draw();
+    }
+    console.log(this.webMapJS.isAnimating);
     setTimeout(function () { layer.parseLayer(this.updateAnimation, true); }, 10000);
   }
 
@@ -95,13 +107,19 @@ export default class Adaguc extends React.Component {
     }
   };
 
+  onChangeAnimation (value){
+    console.log(value);
+    this.isAnimating = !value;
+    this.updateAnimation(this.webMapJS.getActiveLayer());
+  }
+
   render () {
     return (<div>
       <div id='adaguccontainer'>
         <div id='adaguc' ref={(elem) => { this.initAdaguc(elem); }} />
       </div>
       <Menu {...this.props} />
-      <TimeComponent webmapjs={this.webMapJS} onChange={this.change} />
+      <TimeComponent webmapjs={this.webMapJS} onChangeAnimation={this.onChangeAnimation} />
       <MetaInfo webmapjs={this.webMapJS} />
     </div>);
   }

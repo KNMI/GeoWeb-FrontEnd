@@ -1,8 +1,10 @@
 import React from 'react';
 import NumberSpinner from './NumberSpinner.js';
+import ButtonPausePlayAnimation from './ButtonPausePlayAnimation.js'
+
 const TimeComponent = React.createClass({
   propTypes: {
-    onChange: React.PropTypes.func,
+    onChangeAnimation: React.PropTypes.func,
     date: React.PropTypes.string,
     webmapjs: React.PropTypes.object
   },
@@ -10,9 +12,9 @@ const TimeComponent = React.createClass({
     return { value: this.props.date };
   },
   getDefaultProps () {
-    console.log('getDefaultProps');
     return {
-      date:'2000-01-01T00:00:00Z'
+      date:'2000-01-01T00:00:00Z',
+      onChangeAnimation:function () {}
     };
   },
   handleChange (event) {
@@ -77,6 +79,9 @@ const TimeComponent = React.createClass({
   changeSecond (value) {
     let date = this.decomposeDateString(this.state.value); date.second = value; this.setNewDate(date);
   },
+  onChangeAnimation (value) {
+    this.props.onChangeAnimation(value);
+  },
   render () {
     const { webmapjs } = this.props;
     if (webmapjs !== undefined) {
@@ -88,14 +93,18 @@ const TimeComponent = React.createClass({
     }
     let { year, month, day, hour, minute, second } = this.decomposeDateString(this.state.value);
 
-    return <div >
-      <NumberSpinner value={year} numDigits={4} width={100} onChange={this.changeYear} />
-      <NumberSpinner value={month} numDigits={2} width={60} onChange={this.changeMonth} />
-      <NumberSpinner value={day} numDigits={2} width={60} onChange={this.changeDay} />
-      <NumberSpinner value={hour} numDigits={2} width={60} onChange={this.changeHour} />
-      <NumberSpinner value={minute} numDigits={2} width={60} onChange={this.changeMinute} />
-      <NumberSpinner value={second} numDigits={2} width={60} onChange={this.changeSecond} />
-
+    return <div style={{ display:'inline-block' }}>
+      <span style={{ float:'left' }}>
+        <ButtonPausePlayAnimation webmapjs={this.props.webmapjs} onChange={this.onChangeAnimation}/>
+      </span>
+      <span >
+        <NumberSpinner value={year} numDigits={4} width={100} onChange={this.changeYear} />
+        <NumberSpinner value={month} numDigits={2} width={60} onChange={this.changeMonth} />
+        <NumberSpinner value={day} numDigits={2} width={60} onChange={this.changeDay} />
+        <NumberSpinner value={hour} numDigits={2} width={60} onChange={this.changeHour} />
+        <NumberSpinner value={minute} numDigits={2} width={60} onChange={this.changeMinute} />
+        <NumberSpinner value={second} numDigits={2} width={60} onChange={this.changeSecond} />
+      </span>
     </div>;
   }
 });

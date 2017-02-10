@@ -1559,6 +1559,7 @@
                 animationListObject.requests = _map.getWMSRequests();
                 _map.animationList.push(animationListObject);
               }
+              console.log(_map.animationList);
               _map.setDimension(_map.animationList[_map.currentAnimationStep].name, _map.animationList[_map.currentAnimationStep].value);
             }
           }
