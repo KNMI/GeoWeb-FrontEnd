@@ -18,16 +18,12 @@ const TimeComponent = React.createClass({
   handleChange (event) {
   },
   eventOnMapDimUpdate () {
-    console.log('onmapdimupdate');
-    console.log(this.props.webmapjs.getDimension('time'));
     this.eventOnDimChange();
   },
   eventOnDimChange () {
-    console.log('onmapdimchange');
     let timeDim = this.props.webmapjs.getDimension('time');
     if (timeDim !== undefined) {
       this.setState({ value:timeDim.currentValue });
-      console.log(timeDim.currentValue);
     }
   },
   toISO8601 (value) {
@@ -50,11 +46,11 @@ const TimeComponent = React.createClass({
     return iso;
   },
   setNewDate (value) {
-    console.log(value);
     let isodate = this.toISO8601(value);
-    console.log('isodate'+isodate)
-    this.props.webmapjs.setDimension('time',isodate);
+    var date = parseISO8601DateToDate(isodate);
+    this.props.webmapjs.setDimension('time',date.toISO8601());
     this.props.webmapjs.draw();
+    this.eventOnDimChange();
   },
   decomposeDateString (value) {
     return { year:parseInt(this.state.value.substring(0, 4)),
@@ -65,14 +61,25 @@ const TimeComponent = React.createClass({
       second : parseInt(this.state.value.substring(17, 19))
     };
   },
-  changeYear (value) { let date = this.decomposeDateString(this.state.value); date.year = value; this.setNewDate(date); },
-  changeMonth (value) { let date = this.decomposeDateString(this.state.value); date.month = value; this.setNewDate(date); },
-  changeDay (value) { let date = this.decomposeDateString(this.state.value); date.day = value; this.setNewDate(date); },
-  changeHour (value) { let date = this.decomposeDateString(this.state.value); date.hour = value; this.setNewDate(date); },
-  changeMinute (value) { let date = this.decomposeDateString(this.state.value); date.minute = value; this.setNewDate(date); },
-  changeSecond (value) { let date = this.decomposeDateString(this.state.value); date.second = value; this.setNewDate(date); },
+  changeYear (value) {
+    let date = this.decomposeDateString(this.state.value); date.year = value; this.setNewDate(date);
+  },
+  changeMonth (value) {
+    let date = this.decomposeDateString(this.state.value); date.month = value; this.setNewDate(date);
+  },
+  changeDay (value) {
+    let date = this.decomposeDateString(this.state.value); date.day = value; this.setNewDate(date);
+  },
+  changeHour (value) {
+    let date = this.decomposeDateString(this.state.value); date.hour = value; this.setNewDate(date);
+  },
+  changeMinute (value) {
+    let date = this.decomposeDateString(this.state.value); date.minute = value; this.setNewDate(date);
+  },
+  changeSecond (value) {
+    let date = this.decomposeDateString(this.state.value); date.second = value; this.setNewDate(date);
+  },
   render () {
-    console.log('render' + this.state.value);
     if (this.props.webmapjs !== undefined) {
       if (this.listenersInitialized === undefined) { // TODO mount/unmount
         this.listenersInitialized = true;
@@ -82,7 +89,7 @@ const TimeComponent = React.createClass({
     }
     let { year, month, day, hour, minute, second } = this.decomposeDateString(this.state.value);
 
-    console.log(year);
+
     return <div >
       <NumberSpinner value={year} numDigits={4} width={100} onChange={this.changeYear} />
       <NumberSpinner value={month} numDigits={2} width={60} onChange={this.changeMonth} />

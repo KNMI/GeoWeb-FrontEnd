@@ -26,9 +26,9 @@ export default class Adaguc extends React.Component {
     for (var j = numTimeSteps - numStepsBack; j < numTimeSteps; ++j) {
       dates.push({ name:timeDim.name, value:timeDim.getValueForIndex(j) });
     }
-    this.webMapJS.draw();
-    this.webMapJS.setDimension('time',dates[dates.length-1].value);
-    this.webMapJS.draw();
+    //is.webMapJS.draw();
+    //this.webMapJS.setDimension('time',dates[dates.length-1].value);
+    this.webMapJS.draw(dates);
     setTimeout(function () { layer.parseLayer(this.updateAnimation, true); }, 10000);
   }
 
@@ -40,7 +40,7 @@ export default class Adaguc extends React.Component {
 
   resize () {
     // eslint-disable-next-line no-use-before-define
-    this.webMapJS.setSize($(window).width() - 200, $(window).height() - 250);
+    this.webMapJS.setSize($(window).width() - 200, $(window).height() - 150);
     this.webMapJS.draw();
   }
 
@@ -54,7 +54,7 @@ export default class Adaguc extends React.Component {
     this.webMapJS = new WMJSMap(document.getElementById('adaguc'));
     this.webMapJS.setBaseURL(url);
     $(window).resize(this.resize);
-    this.webMapJS.setSize($(window).width() - 200, $(window).height() - 250);
+    this.webMapJS.setSize($(window).width() - 200, $(window).height() - 150);
 
     // Set the initial projection
     this.webMapJS.setProjection(adagucProperties.projectionName);
