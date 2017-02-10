@@ -2,13 +2,23 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import createStore from './store/createStore';
 import GeoWeb from './containers/GeoWeb';
-
+import { DATASETS } from './constants/datasets';
+import { MAP_STYLES } from './constants/map_styles';
+import { BOUNDING_BOXES } from './constants/bounding_boxes';
 // ========================================================
 // Store Instantiation
 // ========================================================
-const initialState = window.___INITIAL_STATE__;
-const store = createStore(initialState);
+const initialState = {
+  adagucProperties: {
+    layer: DATASETS[0],
+    mapType: MAP_STYLES[1],
+    boundingBox: BOUNDING_BOXES[0],
+    projectionName: 'EPSG:3857',
+    mapCreated: false
+  }
+};
 
+const store = createStore(initialState);
 // ========================================================
 // Render Setup
 // ========================================================
@@ -18,7 +28,7 @@ let render = () => {
   const routes = require('./routes/index').default(store);
 
   ReactDOM.render(
-    <GeoWeb store={store} routes={routes} />,
+    <GeoWeb store={store} routes={routes} adagucProperties={store.getState()} />,
     MOUNT_NODE
   );
 };

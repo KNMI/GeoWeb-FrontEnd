@@ -1,6 +1,8 @@
 import ApiDemo from './components/ApiDemo';
 
 // Sync route definition
-export default (store){
+export default () => ({
+  path: 'apidemo',
   component : ApiDemo
-};
+});
+

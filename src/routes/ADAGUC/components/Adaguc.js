@@ -1,15 +1,13 @@
 import React from 'react';
-import { connect } from 'react-redux';
-import { createMap } from '../actions/ADAGUC_actions';
-/*eslint-disable */
+import { default as Menu } from './Menu';
 
-class ADAGUC extends React.Component {
+export default class Adaguc extends React.Component {
   constructor () {
     super();
+    this.initAdaguc = this.initAdaguc.bind(this);
     this.animateLayer = this.animateLayer.bind(this);
     this.resize = this.resize.bind(this);
     this.updateAnimation = this.updateAnimation.bind(this);
-    this.setActiveBaseLayer = this.setActiveBaseLayer.bind(this);
   }
   currentLatestDate = undefined;
   currentBeginDate = undefined;
@@ -21,7 +19,7 @@ class ADAGUC extends React.Component {
     var numStepsBack = Math.min(timeDim.size(), 25);
     this.currentLatestDate = timeDim.getValueForIndex(numTimeSteps - 1);
     this.currentBeginDate = timeDim.getValueForIndex(numTimeSteps - numStepsBack);
-    $('#debug').html('Latest date: ' + this.currentLatestDate);
+
     var dates = [];
     for (var j = numTimeSteps - numStepsBack; j < numTimeSteps; ++j) {
       dates.push({ name:timeDim.name, value:timeDim.getValueForIndex(j) });
@@ -38,42 +36,42 @@ class ADAGUC extends React.Component {
 
   resize () {
     // eslint-disable-next-line no-use-before-define
-    this.webMapJS.setSize($(window).width() - 250, $(window).height());
+    this.webMapJS.setSize($(window).width() - 250, $(window).height() - 50);
   }
 
-  setActiveBaseLayer () {
-    this.baselayers.map((layer) => { layer.enabled = layer.name === this.props.mapType.name; });
-  }
-
-  initAdaguc (domElement) {
-    if (domElement === null || this.props.adagucProperties.mapCreated === true) {
+  initAdaguc (elem) {
+    const { adagucProperties, createMap } = this.props;
+    if (adagucProperties.mapCreated) {
       return;
     }
-    console.log('initAdaguc', this.props);
-    const { adagucProperties } = this.props;
     var username = 'terpstra';
     var url = ['http://localhost/~', username, '/adagucviewer/webmapjs'].join('');
-    this.webMapJS = new WMJSMap(domElement);
+    this.webMapJS = new WMJSMap(document.getElementById('adaguc'));
     this.webMapJS.setBaseURL(url);
     $(window).resize(this.resize);
-   // this.webMapJS.setSize($( window ).width(),$( window ).height() - 43);
-    this.webMapJS.setSize($(window).width() - 250, $(window).height());
+    this.webMapJS.setSize($(window).width() - 250, $(window).height() - 50);
 
     // Set the initial projection
     this.webMapJS.setProjection(adagucProperties.projectionName);
     this.webMapJS.setBBOX(adagucProperties.boundingBox.join());
     this.webMapJS.setBaseLayers([new WMJSLayer(adagucProperties.mapType)]);
-    this.props.dispatch(createMap());
+    createMap();
   }
-
   componentWillUnmount () {
-    this.webMapJS.destroy();
+    if (this.webMapJS) {
+      this.webMapJS.destroy();
+    }
   }
   componentDidUpdate (prevProps, prevState) {
     // The first time, the map needs to be created. This is when in the previous state the map creation boolean is false
     // Otherwise only change when a new dataset is selected
     var { layer, mapType, boundingBox } = this.props.adagucProperties;
-    if (!prevProps.adagucProperties.mapCreated || layer !== prevProps.adagucProperties.layer) {
+    // if (!prevProps.adagucProperties.mapCreated || layer !== prevProps.adagucProperties.layer) {
+    if (mapType !== prevProps.adagucProperties.mapType) {
+      this.webMapJS.setBaseLayers([new WMJSLayer(mapType)]);
+    } else if (boundingBox !== prevProps.adagucProperties.boundingBox) {
+      this.webMapJS.setBBOX(boundingBox.join());
+    } else {
       var newDataLayer = new WMJSLayer(layer);
       // Stop the old animation
       this.webMapJS.stopAnimating();
@@ -85,22 +83,18 @@ class ADAGUC extends React.Component {
       this.webMapJS.addLayer(newDataLayer);
       this.webMapJS.setActiveLayer(newDataLayer);
       // console.log('switched layers');
-    } else if (mapType !== prevProps.adagucProperties.mapType) {
-      this.webMapJS.setBaseLayers([new WMJSLayer(mapType)]);
-    } else {
-      this.webMapJS.setBBOX(boundingBox.join());
     }
-  }
+  };
 
   render () {
-    return <div ref={(elem) => { this.initAdaguc(elem); this.map_component = elem; }} />;
+    return (<div><div id='adaguc' ref={(elem) => { this.initAdaguc(elem); }} /><Menu {...this.props} /></div>);
   }
-}
-ADAGUC.propTypes = {
-  adagucProperties: React.PropTypes.object,
-  store: React.PropTypes.object,
-  dispatch: React.PropTypes.func
 };
 
-export default connect()(ADAGUC);
-/*eslint-enable */
+Adaguc.propTypes = {
+  adagucProperties : React.PropTypes.object.isRequired,
+  createMap        : React.PropTypes.func.isRequired,
+  setData          : React.PropTypes.func.isRequired,
+  setMapStyle      : React.PropTypes.func.isRequired,
+  setCut           : React.PropTypes.func.isRequired
+};
