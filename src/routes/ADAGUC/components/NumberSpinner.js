@@ -39,8 +39,11 @@ const NumberSpinner = React.createClass({
     this.setState({ value: event.target.value });
     this.props.onChange(event.target.value);
   },
+  componentWillReceiveProps (nextProps) {
+    this.setState(nextProps);
+  },
   render () {
-    return <div style={{ width: this.props.width , display:'inline-block'}}>
+    return <div style={{ width: this.props.width, display:'inline-block' }} >
       <Button style={{ padding: 0 }} onClick={this.handleClickUp} block>
         <Glyphicon glyph='glyphicon glyphicon-chevron-up' />
       </Button>

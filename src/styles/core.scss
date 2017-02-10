@@ -13,11 +13,13 @@ body {
   padding: 0;
   height: 100%;
 }
-#adaguc {
-  float: left;
+#adaguccontainer {
+  display:inline-block;
 }
-#menu {
-  float: left;
+#innermenu {
+  width:200px;
+  display:inline-block;
+  float:right;
 }
 
 .dropdown{
