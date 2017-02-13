@@ -1,5 +1,5 @@
 import { connect } from 'react-redux';
-import { createMap, setMapStyle, setCut, setData } from '../modules/adaguc';
+import { createMap, setMapStyle, setCut, setData, setStyle } from '../modules/adaguc';
 
 /*  This is a container component. Notice it does not contain any JSX,
     nor does it import React. This component is **only** responsible for
@@ -17,7 +17,8 @@ const mapDispatchToProps = {
   createMap,
   setMapStyle,
   setCut,
-  setData
+  setData,
+  setStyle
 };
 
 const mapStateToProps = (state) => ({

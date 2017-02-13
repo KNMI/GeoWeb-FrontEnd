@@ -100,7 +100,7 @@ export default class Adaguc extends React.Component {
       <div id='adaguccontainer'>
         <div id='adaguc' ref={(elem) => { this.initAdaguc(elem); }} />
       </div>
-      <Menu {...this.props} />
+      <Menu {...this.props} webmapjs={this.webMapJS} />
       <div id='infocontainer'>
         <TimeComponent webmapjs={this.webMapJS} onChange={this.change} />
         <MetaInfo webmapjs={this.webMapJS} />
@@ -114,5 +114,6 @@ Adaguc.propTypes = {
   createMap        : React.PropTypes.func.isRequired,
   setData          : React.PropTypes.func.isRequired,
   setMapStyle      : React.PropTypes.func.isRequired,
-  setCut           : React.PropTypes.func.isRequired
+  setCut           : React.PropTypes.func.isRequired,
+  setStyle         : React.PropTypes.func.isRequired
 };
