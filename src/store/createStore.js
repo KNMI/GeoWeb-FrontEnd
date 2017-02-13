@@ -27,7 +27,7 @@ export default (initialState = {}) => {
   // Store Instantiation and HMR Setup
   // ======================================================
   let store = null;
-  if (__DEV__) {
+  if (global.__DEV__) {
     store = createStore(
       makeRootReducer(),
       initialState,
