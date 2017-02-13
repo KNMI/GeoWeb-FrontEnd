@@ -1559,14 +1559,15 @@
                 animationListObject.requests = _map.getWMSRequests();
                 _map.animationList.push(animationListObject);
               }
-              console.log(_map.animationList);
+              //console.log(_map.animationList);
               _map.setDimension(_map.animationList[_map.currentAnimationStep].name, _map.animationList[_map.currentAnimationStep].value);
+              wmjsAnimate.checkAnimation();
             }
           }
         }
       }
 
-      if (_map.isAnimating == true) {
+  /*    if (_map.isAnimating == true) {
         for (var j = 0; j < _map.animationList.length; j++) {
           _map.setDimension(_map.animationList[j].name, _map.animationList[j].value);
           _map.animationList[j].requests = _map.getWMSRequests();
@@ -1577,7 +1578,7 @@
         if (isDefined(mainTimeSlider)) {
           mainTimeSlider.el.hide();
         }
-      }
+      }*/
 
       _map._pdraw();
     };

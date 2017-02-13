@@ -23,4 +23,4 @@ const SATELLITE_CINESAT = {
   service:'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.SAT.cgi?',
   name: 'HRV-COMB'
 };
-export const DATASETS = [HARMONIE_FLUX, HARMONIE_AIR_TEMP, RADAR, SATELLITE_IR, SATELLITE_CINESAT];
+export const DATASETS = [RADAR, HARMONIE_FLUX, HARMONIE_AIR_TEMP, RADAR, SATELLITE_IR, SATELLITE_CINESAT];

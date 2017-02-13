@@ -30,15 +30,11 @@ export default class Adaguc extends React.Component {
     }
     this.webMapJS.stopAnimating();
     if (this.isAnimating) {
-      this.webMapJS.isAnimating=false;
       this.webMapJS.draw(dates);
-      this.webMapJS.isAnimating=true;
     } else {
-      this.webMapJS.draw();
       this.webMapJS.setDimension('time', dates[dates.length - 1].value);
       this.webMapJS.draw();
     }
-    console.log(this.webMapJS.isAnimating);
     setTimeout(function () { layer.parseLayer(this.updateAnimation, true); }, 10000);
   }
 
@@ -61,6 +57,9 @@ export default class Adaguc extends React.Component {
     }
     var username = 'terpstra';
     var url = ['http://localhost/~', username, '/adagucviewer/webmapjs'].join('');
+    //var url = 'http://localhost/adagucviewer/webmapjs'
+    //var url = 'http://birdexp07.knmi.nl/geoweb/adagucviewer/webmapjs';
+
     // eslint-disable-next-line no-undef
     this.webMapJS = new WMJSMap(document.getElementById('adaguc'));
     this.webMapJS.setBaseURL(url);
@@ -108,7 +107,6 @@ export default class Adaguc extends React.Component {
   };
 
   onChangeAnimation (value){
-    console.log(value);
     this.isAnimating = !value;
     this.updateAnimation(this.webMapJS.getActiveLayer());
   }

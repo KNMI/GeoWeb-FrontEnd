@@ -158,6 +158,7 @@ var WMJSAnimate = function (_map) {
 
     if (_map.isAnimatingLoopRunning == false) {
       _map.isAnimatingLoopRunning = true;
+      console.log("animateLoop");
       animateLoop();
     }
   };
