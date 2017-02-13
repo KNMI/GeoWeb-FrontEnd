@@ -88,7 +88,7 @@ const TimeComponent = React.createClass({
     }
     let { year, month, day, hour, minute, second } = this.decomposeDateString(this.state.value);
 
-    return <div >
+    return <div id='timecomponent'>
       <NumberSpinner value={year} numDigits={4} width={100} onChange={this.changeYear} />
       <NumberSpinner value={month} numDigits={2} width={60} onChange={this.changeMonth} />
       <NumberSpinner value={day} numDigits={2} width={60} onChange={this.changeDay} />

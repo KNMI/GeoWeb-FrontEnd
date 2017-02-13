@@ -101,8 +101,10 @@ export default class Adaguc extends React.Component {
         <div id='adaguc' ref={(elem) => { this.initAdaguc(elem); }} />
       </div>
       <Menu {...this.props} />
-      <TimeComponent webmapjs={this.webMapJS} onChange={this.change} />
-      <MetaInfo webmapjs={this.webMapJS} />
+      <div id='infocontainer'>
+        <TimeComponent webmapjs={this.webMapJS} onChange={this.change} />
+        <MetaInfo webmapjs={this.webMapJS} />
+      </div>
     </div>);
   }
 };
