@@ -62,6 +62,7 @@ export default class MetaInfo extends React.Component {
       if (this.listenersInitialized === undefined) { // TODO mount/unmount
         this.listenersInitialized = true;
         webmapjs.addListener('onmapdimupdate', this.eventOnMapDimUpdate, true);
+        // webmapjs.addListener('ondimchange', this.eventOnDimChange, true);
       }
     }
     return <div id='layerproperties'>{this.showLayerInfo(this.layer)}</div>;

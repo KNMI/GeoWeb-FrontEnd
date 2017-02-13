@@ -22,6 +22,7 @@ const TimeComponent = React.createClass({
   },
   eventOnDimChange () {
     let timeDim = this.props.webmapjs.getDimension('time');
+    // console.log(timeDim);
     if (timeDim !== undefined) {
       this.setState({ value:timeDim.currentValue });
     }
@@ -43,6 +44,7 @@ const TimeComponent = React.createClass({
     return iso;
   },
   setNewDate (value) {
+    console.log('update');
     let isodate = this.toISO8601(value);
     // eslint-disable-next-line no-undef
     var date = parseISO8601DateToDate(isodate);
@@ -77,11 +79,18 @@ const TimeComponent = React.createClass({
   changeSecond (value) {
     let date = this.decomposeDateString(this.state.value); date.second = value; this.setNewDate(date);
   },
+  componentDidMount() {
+    console.log('mount');
+  },
+  componentWillUnmount () {
+    console.log('unmount');
+  },
   render () {
     const { webmapjs } = this.props;
     if (webmapjs !== undefined) {
       if (this.listenersInitialized === undefined) { // TODO mount/unmount
         this.listenersInitialized = true;
+        console.log('initlistener');
         webmapjs.addListener('onmapdimupdate', this.eventOnMapDimUpdate, true);
         webmapjs.addListener('ondimchange', this.eventOnDimChange, true);
       }
