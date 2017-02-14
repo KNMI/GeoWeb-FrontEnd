@@ -75,6 +75,7 @@
   "author": "KNMI, based on work by David Zukowski <david@zuko.me> (http://zuko.me)",
   "license": "MIT",
   "dependencies": {
+    "axios": "^0.15.3",
     "babel-core": "^6.2.10",
     "babel-loader": "^6.2.10",
     "babel-plugin-add-module-exports": "0.2.1",
