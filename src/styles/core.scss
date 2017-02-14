@@ -26,13 +26,28 @@ body {
   margin: 5px;
 }
 
-#metainfo{
-  max-height: 50px;
-  clear: both;
-}
-
 *,
 *:before,
 *:after {
   box-sizing: inherit;
+}
+#infocontainer {
+  margin: auto;
+  margin-right: 250px;
+}
+#timecomponent {
+  float: left;
+}
+#layerproperties {
+  float: right;
+  flex-grow: 1;
+}
+#layerproperties td,
+#layerproperties th {
+  padding-right: 25px;
+  font-size: 18pt;
+}
+#layerproperties td:last-child,
+#layerproperties th:last-child {
+  font-size: 18pt;
 }

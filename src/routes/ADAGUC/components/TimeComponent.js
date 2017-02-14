@@ -1,6 +1,6 @@
 import React from 'react';
 import NumberSpinner from './NumberSpinner.js';
-import ButtonPausePlayAnimation from './ButtonPausePlayAnimation.js'
+import ButtonPausePlayAnimation from './ButtonPausePlayAnimation.js';
 
 const TimeComponent = React.createClass({
   propTypes: {
@@ -24,6 +24,7 @@ const TimeComponent = React.createClass({
   },
   eventOnDimChange () {
     let timeDim = this.props.webmapjs.getDimension('time');
+    // console.log(timeDim);
     if (timeDim !== undefined) {
       this.setState({ value:timeDim.currentValue });
     }
@@ -45,6 +46,7 @@ const TimeComponent = React.createClass({
     return iso;
   },
   setNewDate (value) {
+    console.log('update');
     let isodate = this.toISO8601(value);
     // eslint-disable-next-line no-undef
     var date = parseISO8601DateToDate(isodate);
@@ -82,11 +84,18 @@ const TimeComponent = React.createClass({
   onChangeAnimation (value) {
     this.props.onChangeAnimation(value);
   },
+  componentDidMount () {
+    console.log('mount');
+  },
+  componentWillUnmount () {
+    console.log('unmount');
+  },
   render () {
     const { webmapjs } = this.props;
     if (webmapjs !== undefined) {
       if (this.listenersInitialized === undefined) { // TODO mount/unmount
         this.listenersInitialized = true;
+        console.log('initlistener');
         webmapjs.addListener('onmapdimupdate', this.eventOnMapDimUpdate, true);
         webmapjs.addListener('ondimchange', this.eventOnDimChange, true);
       }
@@ -95,7 +104,7 @@ const TimeComponent = React.createClass({
 
     return <div style={{ display:'inline-block' }}>
       <span style={{ float:'left' }}>
-        <ButtonPausePlayAnimation webmapjs={this.props.webmapjs} onChange={this.onChangeAnimation}/>
+        <ButtonPausePlayAnimation webmapjs={this.props.webmapjs} onChange={this.onChangeAnimation} />
       </span>
       <span >
         <NumberSpinner value={year} numDigits={4} width={100} onChange={this.changeYear} />
