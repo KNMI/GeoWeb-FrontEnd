@@ -11,7 +11,6 @@ export const SET_LAYER = 'SET_LAYER';
 export const SET_LAYERS = 'SET_LAYERS';
 export const SET_STYLE = 'SET_STYLE';
 export const SET_STYLES = 'SET_STYLES';
-import { DATASETS } from '../constants/datasets';
 import { MAP_STYLES } from '../constants/map_styles';
 import { BOUNDING_BOXES } from '../constants/bounding_boxes';
 // ------------------------------------

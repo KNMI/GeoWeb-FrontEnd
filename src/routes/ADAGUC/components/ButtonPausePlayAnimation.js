@@ -15,15 +15,15 @@ const ButtonPausePlayAnimation = React.createClass({
   getDefaultProps () {
     return {
       webmapjs:undefined,
-      onChange:function (value) {console.log(value);}
+      onChange:function (value) { console.log(value); }
     };
   },
-  getIcon (newpauseorplay){
+  getIcon (newpauseorplay) {
     return newpauseorplay ? 'glyphicon glyphicon glyphicon-play' : 'glyphicon glyphicon glyphicon-pause';
   },
   handleClick (event) {
     let newpauseorplay = !this.state.pauseorplay;
-    this.setState({ pauseorplay:newpauseorplay, icon:this.getIcon(newpauseorplay)});
+    this.setState({ pauseorplay:newpauseorplay, icon:this.getIcon(newpauseorplay) });
     this.props.onChange(newpauseorplay);
   },
   componentWillReceiveProps (nextProps) {
@@ -34,7 +34,6 @@ const ButtonPausePlayAnimation = React.createClass({
       if (this.listenersInitialized === undefined) {
         this.listenersInitialized = true;
       }
-      //console.log(this.props.webmapjs.isAnimating);
     }
     return <div>
       <Button bsStyle='primary' bsSize='large' style={{ padding:'20px', margin:'5px' }} onClick={this.handleClick}>
