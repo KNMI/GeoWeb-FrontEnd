@@ -28,4 +28,5 @@ const SATELLITE_CINESAT = {
   name: 'HRV-COMB',
   style: 'default'
 };
+
 export const DATASETS = [HARMONIE_FLUX, HARMONIE_AIR_TEMP, RADAR, SATELLITE_IR, SATELLITE_CINESAT];

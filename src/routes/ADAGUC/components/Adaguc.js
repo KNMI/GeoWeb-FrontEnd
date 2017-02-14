@@ -2,7 +2,7 @@ import React from 'react';
 import { default as Menu } from './Menu';
 import TimeComponent from './TimeComponent.js';
 import MetaInfo from './MetaInfo.js';
-
+import axios from 'axios';
 export default class Adaguc extends React.Component {
   constructor () {
     super();
@@ -47,8 +47,9 @@ export default class Adaguc extends React.Component {
     if (adagucProperties.mapCreated) {
       return;
     }
-    var username = 'terpstra';
-    var url = ['http://localhost/~', username, '/adagucviewer/webmapjs'].join('');
+    const username = 'terpstra';
+    const machineName = 'bhw471';
+    const url = ['http://', machineName, '/~', username, '/adagucviewer/webmapjs'].join('');
     // eslint-disable-next-line no-undef
     this.webMapJS = new WMJSMap(document.getElementById('adaguc'));
     this.webMapJS.setBaseURL(url);
@@ -62,8 +63,12 @@ export default class Adaguc extends React.Component {
     this.webMapJS.setBBOX(adagucProperties.boundingBox.join());
     // eslint-disable-next-line no-undef
     this.webMapJS.setBaseLayers([new WMJSLayer(adagucProperties.mapType)]);
-    createMap();
+    axios.get('http://birdexp07.knmi.nl/cgi-bin/geoweb/getServices.cgi').then(res => {
+      const sources = res.data;
+      createMap(sources);
+    });
   }
+
   componentWillUnmount () {
     if (this.webMapJS) {
       this.webMapJS.destroy();
@@ -72,7 +77,8 @@ export default class Adaguc extends React.Component {
   componentDidUpdate (prevProps, prevState) {
     // The first time, the map needs to be created. This is when in the previous state the map creation boolean is false
     // Otherwise only change when a new dataset is selected
-    var { layer, mapType, boundingBox } = this.props.adagucProperties;
+    var { setLayers, setStyles } = this.props;
+    var { source, layer, style, mapType, boundingBox } = this.props.adagucProperties;
     // if (!prevProps.adagucProperties.mapCreated || layer !== prevProps.adagucProperties.layer) {
     if (mapType !== prevProps.adagucProperties.mapType) {
       // eslint-disable-next-line no-undef
@@ -80,8 +86,22 @@ export default class Adaguc extends React.Component {
     } else if (boundingBox !== prevProps.adagucProperties.boundingBox) {
       this.webMapJS.setBBOX(boundingBox.join());
     } else {
+      if (source === null) {
+        return;
+      }
+      console.log(prevProps);
+      if (!prevProps.adagucProperties.source || (prevProps.adagucProperties.source.service !== source.service)) {
+        // eslint-disable-next-line no-undef
+        var service = WMJSgetServiceFromStore(source.service);
+        service.getLayerNames((layernames) => { setLayers(layernames); }, (error) => { console.log('Error!: ', error); });
+      }
+      // console.log('Alle layers:', this.allelayers);
+      if (layer === null) {
+        return;
+      }
+      const combined = Object.assign({}, source, { name: layer }, { style: style });
       // eslint-disable-next-line no-undef
-      var newDataLayer = new WMJSLayer(layer);
+      var newDataLayer = new WMJSLayer(combined);
       // Stop the old animation
       this.webMapJS.stopAnimating();
       // Start the animation of th new layer
@@ -91,6 +111,10 @@ export default class Adaguc extends React.Component {
       // And add the new layer
       this.webMapJS.addLayer(newDataLayer);
       this.webMapJS.setActiveLayer(newDataLayer);
+      if (!prevProps.adagucProperties.layer || (prevProps.adagucProperties.layer !== layer)) {
+        const styles = this.webMapJS.getActiveLayer().styles;
+        setStyles(styles);
+      }
       // console.log('switched layers');
     }
   };
@@ -112,8 +136,11 @@ export default class Adaguc extends React.Component {
 Adaguc.propTypes = {
   adagucProperties : React.PropTypes.object.isRequired,
   createMap        : React.PropTypes.func.isRequired,
-  setData          : React.PropTypes.func.isRequired,
+  setSource        : React.PropTypes.func.isRequired,
+  setLayer         : React.PropTypes.func.isRequired,
+  setLayers        : React.PropTypes.func.isRequired,
   setMapStyle      : React.PropTypes.func.isRequired,
   setCut           : React.PropTypes.func.isRequired,
-  setStyle         : React.PropTypes.func.isRequired
+  setStyle         : React.PropTypes.func.isRequired,
+  setStyles        : React.PropTypes.func.isRequired
 };
