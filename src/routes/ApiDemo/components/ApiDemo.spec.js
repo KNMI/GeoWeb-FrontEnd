@@ -12,7 +12,7 @@ describe('(View) ApiDemo', () => {
   it('Renders a welcome message', () => {
     const welcome = _component.find('h4');
     expect(welcome).to.exist;
-    expect(welcome.text()).to.match(/Welcome!/);
+    expect(welcome.text()).to.match(/Welcome to apidemo!/);
   });
 
   it('Renders an awesome duck image', () => {

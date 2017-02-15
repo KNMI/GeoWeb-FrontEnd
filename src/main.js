@@ -10,7 +10,11 @@ import { BOUNDING_BOXES } from './routes/ADAGUC/constants/bounding_boxes';
 // ========================================================
 const initialState = {
   adagucProperties: {
-    layer: DATASETS[0],
+    source: null,
+    layer: null,
+    layers: null,
+    style: null,
+    styles: null,
     mapType: MAP_STYLES[1],
     boundingBox: BOUNDING_BOXES[0],
     projectionName: 'EPSG:3857',
@@ -38,7 +42,6 @@ const MOUNT_NODE = document.getElementById('root');
 
 let render = () => {
   const routes = require('./routes/index').default(store);
-
   ReactDOM.render(
     <AppContainer store={store} routes={routes} />,
     MOUNT_NODE

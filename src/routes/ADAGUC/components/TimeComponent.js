@@ -22,6 +22,7 @@ const TimeComponent = React.createClass({
   },
   eventOnDimChange () {
     let timeDim = this.props.webmapjs.getDimension('time');
+    // console.log(timeDim);
     if (timeDim !== undefined) {
       this.setState({ value:timeDim.currentValue });
     }
@@ -33,22 +34,21 @@ const TimeComponent = React.createClass({
       let len = width - string.length;
       let j = '';
       let zeros = '';
-      for (j = 0; j < len; j++)zeros += '0' + zeros;
+      for (j = 0; j < len; j++) {
+        zeros += '0' + zeros;
+      }
       string = zeros + string;
       return string;
     }
-    let iso = prf(value.year, 4) +
-        '-' + prf(value.month , 2) +
-            '-' + prf(value.day, 2) +
-                'T' + prf(value.hour, 2) +
-                    ':' + prf(value.minute, 2) +
-                        ':' + prf(value.second, 2) + 'Z';
+    let iso = prf(value.year, 4) + '-' + prf(value.month, 2) + '-' + prf(value.day, 2) + 'T' + prf(value.hour, 2) + ':' + prf(value.minute, 2) + ':' + prf(value.second, 2) + 'Z';
     return iso;
   },
   setNewDate (value) {
+    console.log('update');
     let isodate = this.toISO8601(value);
+    // eslint-disable-next-line no-undef
     var date = parseISO8601DateToDate(isodate);
-    this.props.webmapjs.setDimension('time',date.toISO8601());
+    this.props.webmapjs.setDimension('time', date.toISO8601());
     this.props.webmapjs.draw();
     this.eventOnDimChange();
   },
@@ -79,18 +79,25 @@ const TimeComponent = React.createClass({
   changeSecond (value) {
     let date = this.decomposeDateString(this.state.value); date.second = value; this.setNewDate(date);
   },
+  componentDidMount() {
+    console.log('mount');
+  },
+  componentWillUnmount () {
+    console.log('unmount');
+  },
   render () {
-    if (this.props.webmapjs !== undefined) {
+    const { webmapjs } = this.props;
+    if (webmapjs !== undefined) {
       if (this.listenersInitialized === undefined) { // TODO mount/unmount
         this.listenersInitialized = true;
-        this.props.webmapjs.addListener('onmapdimupdate', this.eventOnMapDimUpdate, true);
-        this.props.webmapjs.addListener('ondimchange', this.eventOnDimChange, true);
+        console.log('initlistener');
+        webmapjs.addListener('onmapdimupdate', this.eventOnMapDimUpdate, true);
+        webmapjs.addListener('ondimchange', this.eventOnDimChange, true);
       }
     }
     let { year, month, day, hour, minute, second } = this.decomposeDateString(this.state.value);
 
-
-    return <div >
+    return <div id='timecomponent'>
       <NumberSpinner value={year} numDigits={4} width={100} onChange={this.changeYear} />
       <NumberSpinner value={month} numDigits={2} width={60} onChange={this.changeMonth} />
       <NumberSpinner value={day} numDigits={2} width={60} onChange={this.changeDay} />
