@@ -9,15 +9,19 @@ export const SET_LAYER = 'SET_LAYER';
 export const SET_LAYERS = 'SET_LAYERS';
 export const SET_STYLE = 'SET_STYLE';
 export const SET_STYLES = 'SET_STYLES';
+export const SET_OVERLAY = 'SET_OVERLAY';
 import { MAP_STYLES } from '../constants/map_styles';
 import { BOUNDING_BOXES } from '../constants/bounding_boxes';
 // ------------------------------------
 // Actions
 // ------------------------------------
-function createMap (sources) {
+function createMap (sources, overlays) {
   return {
     type: CREATE_MAP,
-    payload: sources
+    payload: {
+      sources: sources,
+      overlays: overlays
+    }
   };
 }
 function setCut (boundingbox) {
@@ -62,6 +66,12 @@ function setStyles (styles) {
     payload: styles
   };
 }
+function setOverlay (dataidx) {
+  return {
+    type: SET_OVERLAY,
+    payload: dataidx
+  };
+}
 /*  This is a thunk, meaning it is a function that immediately
     returns a function for lazy evaluation. It is incredibly useful for
     creating async actions, especially when combined with redux-thunk! */
@@ -88,15 +98,16 @@ export const actions = {
   setLayer,
   setLayers,
   setStyles,
-  setStyle
+  setStyle,
+  setOverlay
 };
 
 const newMapState = (state, payload) => {
-  return Object.assign({}, state, { mapCreated: true }, { sources: payload });
+  return Object.assign({}, state, { mapCreated: true }, { sources: payload.sources }, { overlays: payload.overlays });
 };
 
 const newSource = (state, payload) => {
-  return Object.assign({}, state, { source: state.sources[payload] });
+  return Object.assign({}, state, { source: state.sources[payload] }, { layer: null }, { style: null });
 };
 const newLayer = (state, payload) => {
   return Object.assign({}, state, { layer: state.layers[payload] });
@@ -116,6 +127,14 @@ const newCut = (state, payload) => {
 const newStyle = (state, payload) => {
   return Object.assign({}, state, { style: state.styles[payload].name });
 };
+const newOverlay = (state, payload) => {
+  if (payload >= state.overlays.layers.length) {
+    console.log('reset');
+    return Object.assign({}, state, { overlay: null });
+  } else {
+    return Object.assign({}, state, { overlay: state.overlays.layers[payload] });
+  }
+};
 // ------------------------------------
 // Action Handlers
 // ------------------------------------
@@ -127,7 +146,8 @@ const ACTION_HANDLERS = {
   [SET_MAP_STYLE]        : (state, action) => newMapStyle(state, action.payload),
   [SET_CUT]              : (state, action) => newCut(state, action.payload),
   [SET_STYLE]            : (state, action) => newStyle(state, action.payload),
-  [SET_STYLES]           : (state, action) => newStyles(state, action.payload)
+  [SET_STYLES]           : (state, action) => newStyles(state, action.payload),
+  [SET_OVERLAY]          : (state, action) => newOverlay(state, action.payload)
 };
 
 // ------------------------------------

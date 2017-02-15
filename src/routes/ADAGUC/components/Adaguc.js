@@ -84,10 +84,15 @@ export default class Adaguc extends React.Component {
     this.webMapJS.setBBOX(adagucProperties.boundingBox.join());
     // eslint-disable-next-line no-undef
     this.webMapJS.setBaseLayers([new WMJSLayer(adagucProperties.mapType)]);
-    axios.get('http://birdexp07.knmi.nl/cgi-bin/geoweb/getServices.cgi').then(res => {
-      const sources = res.data;
-      dispatch(actions.createMap(sources));
-      this.webMapJS.draw();
+    axios.get('http://birdexp07.knmi.nl/cgi-bin/geoweb/getServices.cgi').then(src => {
+      const sources = src.data;
+      axios.get('http://birdexp07.knmi.nl/cgi-bin/geoweb/getOverlayServices.cgi').then(res => {
+        const overlaySrc = res.data[0];
+        // eslint-disable-next-line no-undef
+        var service = WMJSgetServiceFromStore(overlaySrc.service);
+        service.getLayerNames((layernames) => { dispatch(actions.createMap(sources, { ...overlaySrc, layers: layernames })); }, (error) => { console.log('Error!: ', error); });
+        this.webMapJS.draw();
+      });
     });
   }
   componentDidMount () {
@@ -111,11 +116,24 @@ export default class Adaguc extends React.Component {
     // Otherwise only change when a new dataset is selected
     const { actions, adagucProperties, dispatch } = this.props;
     const { setLayers, setStyles } = actions;
-    const { source, layer, style, mapType, boundingBox } = adagucProperties;
+    const { source, layer, style, mapType, boundingBox, overlays, overlay } = adagucProperties;
+      // eslint-disable-next-line no-undef
+    const baselayer = new WMJSLayer(mapType);
+    if (overlay) {
+      // eslint-disable-next-line no-undef
+      const overLayer = new WMJSLayer(Object.assign({}, overlays, { name: overlay }));
+      overLayer.keepOnTop = true;
+      const newBaselayers = [baselayer, overLayer];
+      this.webMapJS.setBaseLayers(newBaselayers);
+    } else {
+      // eslint-disable-next-line no-undef
+      this.webMapJS.setBaseLayers([baselayer]);
+    }
+    this.webMapJS.draw();
+
     // if (!prevProps.adagucProperties.mapCreated || layer !== prevProps.adagucProperties.layer) {
     if (mapType !== prevProps.adagucProperties.mapType) {
       // eslint-disable-next-line no-undef
-      this.webMapJS.setBaseLayers([new WMJSLayer(mapType)]);
     } else if (boundingBox !== prevProps.adagucProperties.boundingBox) {
       this.webMapJS.setBBOX(boundingBox.join());
     } else {
@@ -132,6 +150,7 @@ export default class Adaguc extends React.Component {
       if (layer === null) {
         return;
       }
+      console.log(source);
       const combined = Object.assign({}, source, { name: layer }, { style: style });
       // eslint-disable-next-line no-undef
       var newDataLayer = new WMJSLayer(combined);
@@ -141,18 +160,12 @@ export default class Adaguc extends React.Component {
       newDataLayer.onReady = this.animateLayer;
       // Remove all present layers
       this.webMapJS.removeAllLayers();
-      // And add the new layer
       this.webMapJS.addLayer(newDataLayer);
-      // var newDataLayer2 = new WMJSLayer(
-      //   {service:'http://geoservices.knmi.nl/cgi-bin/RADNL_OPER_R___25PCPRR_L3.cgi?',
-      //   name:'RADNL_OPER_R___25PCPRR_L3_COLOR'});
-      // this.webMapJS.addLayer(newDataLayer2);
       this.webMapJS.setActiveLayer(newDataLayer);
       if (!prevProps.adagucProperties.layer || (prevProps.adagucProperties.layer !== layer)) {
         const styles = this.webMapJS.getActiveLayer().styles;
         dispatch(setStyles(styles));
       }
-      // console.log('switched layers');
     }
   };
 
