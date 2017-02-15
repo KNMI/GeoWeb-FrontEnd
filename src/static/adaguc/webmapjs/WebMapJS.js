@@ -1555,11 +1555,11 @@
               _map.mouseHoverAnimationBox = false;
               for (var j = 0; j < animationList.length; j++) {
                 var animationListObject = { name:animationList[j].name, value:animationList[j].value };
-                _map.setDimension(animationList[j].name, animationList[j].value);
+                _map.setDimension(animationList[j].name, animationList[j].value,false);
                 animationListObject.requests = _map.getWMSRequests();
                 _map.animationList.push(animationListObject);
               }
-              _map.setDimension(_map.animationList[_map.currentAnimationStep].name, _map.animationList[_map.currentAnimationStep].value);
+              _map.setDimension(_map.animationList[_map.currentAnimationStep].name, _map.animationList[_map.currentAnimationStep].value, false);
               wmjsAnimate.checkAnimation();
             }
           }
@@ -1993,6 +1993,7 @@
     };
 
     _map.destroy = function () {
+      _map.stopAnimating();
       detachEvents();
     };
 
@@ -3210,7 +3211,7 @@
       return undefined;
     };
 
-    this.setDimension = function (name, value) {
+    this.setDimension = function (name, value, triggerEvent) {
       // debug("WebMapJS::setDimension('"+name+"','"+value+"')");
       if (!isDefined(name) || !isDefined(value)) {
         error('Unable to set dimension with undefined value or name');
@@ -3246,7 +3247,12 @@
 
          // if(cv!=value){
 
-          callBack.triggerEvent('ondimchange');
+          if ( triggerEvent !== false) {
+            triggerEvent = true;
+          }
+          if (triggerEvent === true) {
+            callBack.triggerEvent('ondimchange');
+          }
         // }
 
           // callBack.triggerEvent("ondimchange");

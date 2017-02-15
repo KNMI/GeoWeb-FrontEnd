@@ -17,7 +17,16 @@ export default class Adaguc extends React.Component {
   currentBeginDate = undefined;
 
   updateAnimation (layer) {
+    console.log('updateAnimation');
+    if (!layer) {
+      console.log('Layer not found');
+      return;
+    }
     var timeDim = layer.getDimension('time');
+    if (!timeDim) {
+      console.log('Time dim not found');
+      return;
+    }
     var numTimeSteps = timeDim.size();
 
     var numStepsBack = Math.min(timeDim.size(), 25);
@@ -47,15 +56,15 @@ export default class Adaguc extends React.Component {
 
   resize () {
     // eslint-disable-next-line no-undef
-    this.webMapJS.setSize($(window).width() - 200, $(window).height() - 150);
+    this.webMapJS.setSize($(window).width() - 250, $(window).height() - 250);
     this.webMapJS.draw();
   }
 
-  initAdaguc (elem) {
+  initAdaguc (adagucMapRef) {
     const { adagucProperties, createMap } = this.props;
-    if (adagucProperties.mapCreated) {
-      return;
-    }
+    // if (adagucProperties.mapCreated) {
+    //   return;
+    // }
     const url = 'http://localhost/adagucviewer/webmapjs';
     // var url = 'http://birdexp07.knmi.nl/geoweb/adagucviewer/webmapjs';
 
@@ -63,12 +72,12 @@ export default class Adaguc extends React.Component {
     // const machineName = 'bhw471';
     // const url = ['http://', machineName, '/~', username, '/adagucviewer/webmapjs'].join('');
     // eslint-disable-next-line no-undef
-    this.webMapJS = new WMJSMap(document.getElementById('adaguc'));
+    this.webMapJS = new WMJSMap(adagucMapRef);
     this.webMapJS.setBaseURL(url);
     // eslint-disable-next-line no-undef
     $(window).resize(this.resize);
     // eslint-disable-next-line no-undef
-    this.webMapJS.setSize($(window).width() - 250, $(window).height() - 150);
+    this.webMapJS.setSize($(window).width() - 250, $(window).height() - 250);
 
     // Set the initial projection
     this.webMapJS.setProjection(adagucProperties.projectionName);
@@ -82,8 +91,18 @@ export default class Adaguc extends React.Component {
       this.webMapJS.draw();
     });
   }
-
+  componentDidMount () {
+    console.log('componentDidMount', this.refs.maindiv);
+    this.initAdaguc(this.refs.adaguc);
+  }
+  componentWillReceiveProps (nextProps) {
+    console.log('componentWillReceiveProps', nextProps);
+  }
+  componentWillMount () {
+    console.log('componentWillMount');
+  }
   componentWillUnmount () {
+    console.log('componentWillUnmount');
     if (this.webMapJS) {
       this.webMapJS.destroy();
     }
@@ -124,6 +143,10 @@ export default class Adaguc extends React.Component {
       this.webMapJS.removeAllLayers();
       // And add the new layer
       this.webMapJS.addLayer(newDataLayer);
+      var newDataLayer2 = new WMJSLayer(
+        {service:'http://geoservices.knmi.nl/cgi-bin/RADNL_OPER_R___25PCPRR_L3.cgi?',
+        name:'RADNL_OPER_R___25PCPRR_L3_COLOR'});
+      this.webMapJS.addLayer(newDataLayer2);
       this.webMapJS.setActiveLayer(newDataLayer);
       if (!prevProps.adagucProperties.layer || (prevProps.adagucProperties.layer !== layer)) {
         const styles = this.webMapJS.getActiveLayer().styles;
@@ -141,12 +164,13 @@ export default class Adaguc extends React.Component {
 
   render () {
     return (<div>
-      <div id='adaguccontainer'>
-        <div id='adaguc' ref={(elem) => { this.initAdaguc(elem); }} />
+      <div style={{ display:'inline-block',position:'relative'}}>
+        <div ref='adaguc' />
       </div>
       <Menu {...this.props} webmapjs={this.webMapJS} />
       <div id='infocontainer'>
-        <TimeComponent webmapjs={this.webMapJS} onChangeAnimation={this.onChangeAnimation} />
+        <TimeComponent webmapjs={this.webMapJS} width={$(window).width()} onChangeAnimation={this.onChangeAnimation} />
+        <hr />
         <MetaInfo webmapjs={this.webMapJS} />
       </div>
     </div>);
