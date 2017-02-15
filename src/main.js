@@ -9,11 +9,13 @@ import { BOUNDING_BOXES } from './routes/ADAGUC/constants/bounding_boxes';
 // ========================================================
 const initialState = {
   adagucProperties: {
+    sources: null,
     source: null,
     layer: null,
     layers: null,
     style: null,
     styles: null,
+    overlay: null,
     mapType: MAP_STYLES[1],
     boundingBox: BOUNDING_BOXES[0],
     projectionName: 'EPSG:3857',

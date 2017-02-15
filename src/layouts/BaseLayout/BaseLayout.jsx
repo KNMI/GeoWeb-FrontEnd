@@ -15,7 +15,7 @@ class BaseLayout extends Component {
     const { header, leftSideBar, mainViewport, rightSideBar } = this.props;
 
     return (
-      <Container>
+      <Container fluid>
         <Row className='Header'>
           {header || 'Oops'}
         </Row>
