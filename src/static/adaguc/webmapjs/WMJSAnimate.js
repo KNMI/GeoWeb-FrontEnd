@@ -35,11 +35,15 @@ var WMJSAnimate = function (_map) {
       // _map.animateBusy = true;
 
       // console.log("draw on animation");
-      // console.log("Showing animationstep "+_map.currentAnimationStep);
-    _map.setDimension(animationStep.name, animationStep.value);
+     //console.log("Showing animationstep "+_map.currentAnimationStep + " with value "+ animationStep.value);
+    _map.setDimension(animationStep.name, animationStep.value , false);
+    callBack.triggerEvent('ondimchange');
+    // callBack.triggerEvent('onnextanimationstep', _map);
     _map._pdraw();
     _map.animateBusy = false;
-    drawAnimationBar();
+    // drawAnimationBar();
+
+
   };// animate
 
   var myAnimationTimer = 0;
@@ -62,6 +66,7 @@ var WMJSAnimate = function (_map) {
     myAnimationTimer = animationDelay / 50;
     // console.log("animate:"+myAnimationTimer);
 
+
     if (_map.mouseHoverAnimationBox === false) {
       animate();
 
@@ -73,11 +78,12 @@ var WMJSAnimate = function (_map) {
       var continueAnimation = false;
       var numReady = 0;
 
+
       var animationStep = _map.animationList[nextStep];
-      _map.setDimension(animationStep.name, animationStep.value);
+      _map.setDimension(animationStep.name, animationStep.value,false);
       _map.animationList[nextStep].requests = _map.getWMSRequests();
       animationStep = _map.animationList[_map.currentAnimationStep];
-      _map.setDimension(animationStep.name, animationStep.value);
+      _map.setDimension(animationStep.name, animationStep.value,false);
       for (var i = 0; i < _map.animationList[nextStep].requests.length; i++) {
         var url = _map.animationList[nextStep].requests[i];
         var image = _map.getImageStore().getImageForSrc(url);
@@ -85,7 +91,7 @@ var WMJSAnimate = function (_map) {
           numReady++;
         } else {
           myAnimationTimer = 0;
-          console.log('LOADING: ' + nextStep);
+          //console.log('LOADING: ' + nextStep);
 //           if(image){
 //             console.log("LOADING IMAGE: "+image.isLoading());
 //           }else{
@@ -113,9 +119,8 @@ var WMJSAnimate = function (_map) {
     if (!_map.animationTimer) {
       _map.animationTimer = new WMJSTimer();
     }
-    drawAnimationBar();
+    // drawAnimationBar();
 
-    callBack.triggerEvent('onnextanimationstep', _map);
 
     if (_map.mouseHoverAnimationBox === false) {
         // _map.setDimension(animationStep.name,animationStep.value);
@@ -126,6 +131,7 @@ var WMJSAnimate = function (_map) {
       var getNumImagesLoading = imageStore.getNumImagesLoading();
         // console.log("checkAnimation:getNumImagesLoading:"+getNumImagesLoading );
       if (getNumImagesLoading < maxSimultaneousLoads) {
+
         var numberPreCacheSteps = 6;// _map.animationList.length;
         if (_map.animationList.length > 0) {
           for (var j = 0; j < numberPreCacheSteps; j++) {
@@ -136,10 +142,13 @@ var WMJSAnimate = function (_map) {
 
             if (index >= 0) {
               var animationStep = _map.animationList[index];
-              _map.setDimension(animationStep.name, animationStep.value);
+
+              _map.setDimension(animationStep.name, animationStep.value,false);
               _map.animationList[index].requests = _map.getWMSRequests();
+
               animationStep = _map.animationList[_map.currentAnimationStep];
-              _map.setDimension(animationStep.name, animationStep.value);
+
+              _map.setDimension(animationStep.name, animationStep.value,false);
 
               _map.animationList[index].imagesInPrefetch = _map.prefetch(_map.animationList[index].requests);
 
@@ -152,6 +161,8 @@ var WMJSAnimate = function (_map) {
             }
           }
         }
+
+
       // http://bhw485.knmi.nl:8080/adagucviewer/index.dev.html?srs=EPSG%3A4326&bbox=49.41506772034526,-27.289267215532217,171.950217903172,27.587258866345476&service=http%3A%2F%2Fbirdexp07.knmi.nl%2Fcgi-bin%2Fplieger%2Fhimawari.cgi%3F&layer=tiled%24image%2Fpng%24true%24auto%2Frgba%241%240&selected=0&dims=time$2016-11-14T07:50:00Z&baselayers=naturalearth2$ne_10m_admin_0_countries_simplified
       }
     }

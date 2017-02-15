@@ -337,6 +337,11 @@ function parseISOTimeRangeDuration (isoTimeRangeDuration) {
   };
 }
 
+function getCurrentDateIso8601 () {
+  var d = new Date();
+  return parseISO8601DateToDate(d.toISOString().substring(0, 19) + 'Z');
+};
+
 /* Example:
 function init(){
   var isodate="1999-01-01T00:00:00Z/2009-12-01T00:00:00Z/PT60S";

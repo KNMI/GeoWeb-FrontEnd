@@ -47,7 +47,7 @@ const NumberSpinner = React.createClass({
       <Button style={{ padding: 0 }} onClick={this.handleClickUp} block>
         <Glyphicon glyph='glyphicon glyphicon-chevron-up' />
       </Button>
-      <FormControl type='text' value={this.formatNumDigits(this.state.value, this.props.numDigits)}
+      <FormControl bsStyle='primary' type='text' value={this.formatNumDigits(this.state.value, this.props.numDigits)}
         onChange={this.handleChange}
         style={{ fontSize:25, height:35, textAlign:'center' }} />
       <Button style={{ padding: 0 }} onClick={this.handleClickDown} block>
