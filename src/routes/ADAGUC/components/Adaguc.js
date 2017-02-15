@@ -146,10 +146,12 @@ export default class Adaguc extends React.Component {
       if (newDataLayer.name) {
         this.webMapJS.addLayer(newDataLayer);
       }
-      // var newDataLayer2 = new WMJSLayer(
-      //   {service:'http://geoservices.knmi.nl/cgi-bin/RADNL_OPER_R___25PCPRR_L3.cgi?',
-      //   name:'RADNL_OPER_R___25PCPRR_L3_COLOR'});
-      // this.webMapJS.addLayer(newDataLayer2);
+      // eslint-disable-next-line
+      var newDataLayer2 = new WMJSLayer({
+        service:'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.RADAR.cgi?',
+        name:'precipitation'
+      });
+      this.webMapJS.addLayer(newDataLayer2);
       this.webMapJS.setActiveLayer(newDataLayer);
       if (!prevProps.adagucProperties.layer || (prevProps.adagucProperties.layer !== layer)) {
         const styles = this.webMapJS.getActiveLayer().styles;
