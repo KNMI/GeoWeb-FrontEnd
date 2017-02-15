@@ -319,7 +319,7 @@ function parseISOTimeRangeDuration (isoTimeRangeDuration) {
       throw 'Date ' + currentDate.toISO8601() + ' not found!';
     } else {
       timeStep = (currentDate.getTime() - this.startTime.getTime()) / this.timeInterval.getTime();
-      timeStep = parseInt(timeStep + 0.5);
+      timeStep = parseInt(timeStep);
       return timeStep;
     }
     throw 'Date ' + currentDate.toISO8601() + ' not found';

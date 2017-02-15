@@ -180,7 +180,14 @@ function WMJSDimension (config) {
         return this.getIndexForValue(this.defaultValue);
       }
     }
+    // {
+    //   const v = value;
+    //   try{
+    //     console.log("getIndexForValue" + v + 'type'+type);
+    //   }catch(e){
 
+    //   }
+    // }
     if (type == 'timestartstopres') {
       try {
         if (typeof (value) === 'string') {

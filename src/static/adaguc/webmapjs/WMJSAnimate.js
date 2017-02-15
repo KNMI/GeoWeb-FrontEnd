@@ -38,7 +38,7 @@ var WMJSAnimate = function (_map) {
      //console.log("Showing animationstep "+_map.currentAnimationStep + " with value "+ animationStep.value);
     _map.setDimension(animationStep.name, animationStep.value , false);
     callBack.triggerEvent('ondimchange');
-    // callBack.triggerEvent('onnextanimationstep', _map);
+    callBack.triggerEvent('onnextanimationstep', _map);
     _map._pdraw();
     _map.animateBusy = false;
     // drawAnimationBar();

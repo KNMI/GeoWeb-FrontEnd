@@ -58,6 +58,7 @@ export default class Adaguc extends React.Component {
     // eslint-disable-next-line no-undef
     this.webMapJS.setSize($(window).width() - 250, $(window).height() - 250);
     this.webMapJS.draw();
+    this.render();
   }
 
   initAdaguc (adagucMapRef) {
@@ -132,7 +133,7 @@ export default class Adaguc extends React.Component {
       if (layer === null) {
         return;
       }
-      const combined = Object.assign({}, source, { name: layer }, { style: style });
+      const combined = Object.assign({}, source, { name: layer }, { style: style }, { opacity: 0.75 });
       // eslint-disable-next-line no-undef
       var newDataLayer = new WMJSLayer(combined);
       // Stop the old animation
@@ -142,7 +143,9 @@ export default class Adaguc extends React.Component {
       // Remove all present layers
       this.webMapJS.removeAllLayers();
       // And add the new layer
-      this.webMapJS.addLayer(newDataLayer);
+      if (newDataLayer.name) {
+        this.webMapJS.addLayer(newDataLayer);
+      }
       // var newDataLayer2 = new WMJSLayer(
       //   {service:'http://geoservices.knmi.nl/cgi-bin/RADNL_OPER_R___25PCPRR_L3.cgi?',
       //   name:'RADNL_OPER_R___25PCPRR_L3_COLOR'});

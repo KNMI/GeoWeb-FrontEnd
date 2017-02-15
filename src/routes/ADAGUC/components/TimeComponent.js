@@ -2,7 +2,7 @@ import React from 'react';
 import NumberSpinner from './NumberSpinner.js';
 import ButtonPausePlayAnimation from './ButtonPausePlayAnimation.js';
 import CanvasComponent from './CanvasComponent.js';
-
+import { Button, Glyphicon } from 'react-bootstrap';
 const TimeComponent = React.createClass({
   propTypes: {
     onChangeAnimation: React.PropTypes.func,
@@ -28,7 +28,9 @@ const TimeComponent = React.createClass({
     this.eventOnDimChange();
   },
   eventOnDimChange () {
+    if (!this.props.webmapjs) return;
     let timeDim = this.props.webmapjs.getDimension('time');
+
     // console.log(timeDim);
     if (timeDim !== undefined) {
       if (this.state.value === timeDim.currentValue) {
@@ -49,91 +51,145 @@ const TimeComponent = React.createClass({
     ctx.strokeStyle = '#FF0000';
 
     ctx.font = '14px Arial';
-
+    ctx.lineWidth = 1;
     let scaleWidth = canvasWidth;
     // eslint-disable-next-line no-undef
     let currentDate = getCurrentDateIso8601();
     // eslint-disable-next-line no-undef
-    let startDate = getCurrentDateIso8601();
+    this.startDate = parseISO8601DateToDate(timeDim.currentValue); // getCurrentDateIso8601();
     // eslint-disable-next-line no-undef
-    let endDate = getCurrentDateIso8601();
+    this.endDate = parseISO8601DateToDate(timeDim.currentValue); // getCurrentDateIso8601();
+
+    this.timeWidth = 24 / 2;
+    let hours = this.startDate.getUTCHours();
+    let h = parseInt(hours / this.timeWidth) * this.timeWidth;
+    this.startDate.setUTCHours(h);
+    this.startDate.setUTCMinutes(0);
+    this.startDate.setUTCSeconds(0);
+    this.endDate.setUTCHours(h);
+    this.endDate.setUTCMinutes(0);
+    this.endDate.setUTCSeconds(0);
 
     // eslint-disable-next-line no-undef
-    startDate.substract(new DateInterval(0, 0, 0, 8, startDate.getUTCMinutes(), startDate.getUTCSeconds()));
+    // startDate.substract(new DateInterval(0, 0, 0, 12, 0, 0));
+
     // eslint-disable-next-line no-undef
-    endDate.add(new DateInterval(0, 0, 0, 2, startDate.getUTCMinutes(), startDate.getUTCSeconds()));
+    this.startDate.add(new DateInterval(0, 0, 0, 0, 0, 0));
+    // eslint-disable-next-line no-undef
+    this.endDate.add(new DateInterval(0, 0, 0, this.timeWidth, 0, 0));
     // console.log(startDate.toISO8601());
-    let canvasDateIntervalStr = startDate.toISO8601() + '/' + endDate.toISO8601() + '/PT1M';
+    let canvasDateIntervalStr = this.startDate.toISO8601() + '/' + this.endDate.toISO8601() + '/PT1M';
     // console.log(canvasDateIntervalStr);
     // eslint-disable-next-line
-    let canvasDateInterval = new parseISOTimeRangeDuration(canvasDateIntervalStr);
+    this.canvasDateInterval = new parseISOTimeRangeDuration(canvasDateIntervalStr);
     // console.log(canvasDateInterval);
     // let sliderStartIndex = canvasDateInterval.getTimeStepFromISODate(startDate.toISO8601());
-    let sliderCurrentIndex = canvasDateInterval.getTimeStepFromISODate(currentDate.toISO8601());
-    let sliderMapIndex = canvasDateInterval.getTimeStepFromISODate(timeDim.currentValue);
-    let sliderStopIndex = canvasDateInterval.getTimeStepFromISODate(endDate.toISO8601());
+    let sliderCurrentIndex = -1;
+    try {
+      sliderCurrentIndex = this.canvasDateInterval.getTimeStepFromISODate(currentDate.toISO8601(), true);
+    } catch (e) {
+      // Current date is out of range
+      console.log(e);
+    }
+    let sliderMapIndex = this.canvasDateInterval.getTimeStepFromISODate(timeDim.currentValue);
+    let sliderStopIndex = this.canvasDateInterval.getTimeStepFromISODate(this.endDate.toISO8601());
 
-    let canvasDateIntervalStrHour = startDate.toISO8601() + '/' + endDate.toISO8601() + '/PT1H';
+    let canvasDateIntervalStrHour = this.startDate.toISO8601() + '/' + this.endDate.toISO8601() + '/PT1H';
     // // console.log(canvasDateIntervalStr);
     // eslint-disable-next-line no-undef
     // eslint-disable-next-line
     let canvasDateIntervalHour = new parseISOTimeRangeDuration(canvasDateIntervalStrHour);
-    let timeBlockStartIndex = canvasDateIntervalHour.getTimeStepFromDate(startDate);
-    let timeBlockStopIndex = canvasDateIntervalHour.getTimeStepFromISODate(endDate.toISO8601());
+    let timeBlockStartIndex = canvasDateIntervalHour.getTimeStepFromDate(this.startDate);
+    let timeBlockStopIndex = canvasDateIntervalHour.getTimeStepFromISODate(this.endDate.toISO8601());
+
+    /* Draw system time, past and future */
+    let x = parseInt((sliderCurrentIndex / sliderStopIndex) * scaleWidth) + 0.5;
+    ctx.fillStyle = '#CFC';
+    ctx.fillRect(0, 0, x - 0, canvasHeight);
+    ctx.fillStyle = '#DDF';
+    ctx.fillRect(x, 0, canvasWidth - x, canvasHeight);
 
     /* Draw time indication blocks */
-    for (let j = timeBlockStartIndex - 1; j < timeBlockStopIndex; j++) {
+    for (let j = timeBlockStartIndex - 1; j < timeBlockStopIndex + 1; j++) {
       let dateAtTimeStep = canvasDateIntervalHour.getDateAtTimeStep(j);
-      let layerTimeIndex = canvasDateInterval.getTimeStepFromDate(dateAtTimeStep);
-      let layerTimeIndexNext = canvasDateInterval.getTimeStepFromDate(canvasDateIntervalHour.getDateAtTimeStep(j + 1));
+      let layerTimeIndex = this.canvasDateInterval.getTimeStepFromDate(dateAtTimeStep);
+      let layerTimeIndexNext = this.canvasDateInterval.getTimeStepFromDate(canvasDateIntervalHour.getDateAtTimeStep(j + 1));
       let pos = layerTimeIndex / sliderStopIndex;
       let width = (layerTimeIndexNext - layerTimeIndex) / sliderStopIndex;
-      ctx.fillStyle = '#606060';
-      ctx.strokeStyle = '#404040';
-      ctx.fillRect(pos * scaleWidth, canvasHeight - 16, width * scaleWidth, 16);
-      ctx.strokeRect(pos * scaleWidth, canvasHeight - 16, width * scaleWidth, 16);
+      ctx.fillStyle = '#AAA';
+      ctx.strokeStyle = '#000';
+      ctx.lineWidth = 0.5;
+      let x = parseInt(pos * scaleWidth);
+      ctx.fillRect(x + 0.5, canvasHeight - 16 + 0.5, width * scaleWidth + 0.5, 15);
+      ctx.strokeRect(x + 0.5, canvasHeight - 16 + 0.5, width * scaleWidth + 0.5, 15);
       ctx.fillStyle = '#000';
-      ctx.fillText(dateAtTimeStep.getUTCHours(), pos * scaleWidth, canvasHeight - 3);
+      ctx.fillText(dateAtTimeStep.getUTCHours() + 'H', pos * scaleWidth + 3, canvasHeight - 3);
     }
 
     /* Draw blocks for layer */
-
     for (let j = 0; j < layers.length; j++) {
-      let y = j * 25;
+      let y = j * 25 + 5;
       let layer = layers[j];
       let dim = layer.getDimension('time');
-      let layerStartIndex = dim.getIndexForValue(startDate, false);
-      let layerStopIndex = dim.getIndexForValue(currentDate, false);
+      ctx.lineWidth = 1;
+      ctx.fillStyle = '#888';
+      ctx.fillRect(0, 5 + y + 0.5, canvasWidth, 20);
+      ctx.strokeStyle = '#AAA';
+      ctx.strokeRect(-1, 5 + y + 0.5, canvasWidth + 2, 20);
+      if (dim) {
+        let layerStartIndex = dim.getIndexForValue(this.startDate, false);
+        let layerStopIndex = dim.getIndexForValue(this.endDate, false);
+        for (let j = layerStartIndex - 1; j < layerStopIndex + 1; j++) {
+          let layerTimeIndex = this.canvasDateInterval.getTimeStepFromISODate(dim.getValueForIndex(j));
+          let layerTimeIndexNext = this.canvasDateInterval.getTimeStepFromISODate(dim.getValueForIndex(j + 1));
+          let pos = layerTimeIndex / sliderStopIndex;
+          let posNext = layerTimeIndexNext / sliderStopIndex;
+          // let width = (layerTimeIndexNext - layerTimeIndex) / sliderStopIndex;
+          ctx.fillStyle = '#BBB';
+          if (sliderMapIndex >= layerTimeIndex && sliderMapIndex < layerTimeIndexNext) {
+            ctx.fillStyle = '#FFFF60';
+          }
+          ctx.strokeStyle = '#888';
+          let x = parseInt(pos * scaleWidth);
+          let w = parseInt(posNext * scaleWidth) - x;
 
-      for (let j = layerStartIndex - 1; j < layerStopIndex + 1; j++) {
-        let layerTimeIndex = canvasDateInterval.getTimeStepFromISODate(dim.getValueForIndex(j));
-        let layerTimeIndexNext = canvasDateInterval.getTimeStepFromISODate(dim.getValueForIndex(j + 1));
-        let pos = layerTimeIndex / sliderStopIndex;
-        let width = (layerTimeIndexNext - layerTimeIndex) / sliderStopIndex;
-        ctx.fillStyle = '#606060';
-        if (sliderMapIndex >= layerTimeIndex && sliderMapIndex < layerTimeIndexNext) {
-          ctx.fillStyle = '#FFFF60';
+          ctx.fillRect(x + 0.5, 5 + y + 0.5, w, 20);
+          ctx.strokeRect(x + 0.5, 5 + y + 0.5, w, 20);
         }
-        ctx.strokeStyle = '#404040';
-        ctx.fillRect(pos * scaleWidth, 5 + y, width * scaleWidth, 20);
-        ctx.strokeRect(pos * scaleWidth, 5 + y, width * scaleWidth, 20);
       }
+      ctx.font = 'bold 10pt Arial';
       ctx.fillStyle = '#000';
-      ctx.fillText(layer.title, 6, 22 + y);
+      ctx.fillText(layer.title, 6, 20 + y);
     }
 
     /* Draw current system time */
-    ctx.beginPath();
-    ctx.strokeStyle = '#0000FF';
-    ctx.moveTo((sliderCurrentIndex / sliderStopIndex) * scaleWidth, 0);
-    ctx.lineTo((sliderCurrentIndex / sliderStopIndex) * scaleWidth, 150);
-    ctx.stroke();
+    if (sliderCurrentIndex !== -1) {
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.strokeStyle = '#0000FF';
+      x = parseInt((sliderCurrentIndex / sliderStopIndex) * scaleWidth) + 0.5;
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, canvasHeight);
+      ctx.stroke();
+    }
 
     /* Draw current map time */
+    ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.strokeStyle = '#FF0000';
-    ctx.moveTo((sliderMapIndex / sliderStopIndex) * scaleWidth, 0);
-    ctx.lineTo((sliderMapIndex / sliderStopIndex) * scaleWidth, 150);
+    ctx.strokeStyle = '#000000';
+    x = parseInt((sliderMapIndex / sliderStopIndex) * scaleWidth);
+    ctx.fillRect(x - 5, 0, 10, 4);
+    ctx.fillRect(x - 5, canvasHeight - 4, 10, 4);
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, canvasHeight);
+    let textXPos = x;
+    let textWidth = 30;
+    if (x > canvasWidth - (textWidth + 5)) {
+      textXPos -= (textWidth + 5);
+    } else {
+      textXPos += 5;
+    }
+    ctx.fillText(timeDim.currentValue.substring(11, 16), textXPos, canvasHeight / 2 + 10);
     ctx.stroke();
   },
   toISO8601 (value) {
@@ -199,6 +255,37 @@ const TimeComponent = React.createClass({
   },
   onRenderCanvas (ctx) {
     this.ctx = ctx;
+    this.eventOnDimChange();
+  },
+  onClickCanvas (x, y) {
+    let t = x / this.ctx.canvas.clientWidth;
+    let s = this.canvasDateInterval.getTimeSteps() - 1;
+    let newTimeStep = parseInt(t * s);
+    try {
+      let newDate = this.canvasDateInterval.getDateAtTimeStep(newTimeStep, true);
+      this.props.webmapjs.setDimension('time', newDate.toISO8601(), false);
+      this.props.webmapjs.draw();
+      this.eventOnDimChange();
+    } catch (e) {
+      console.log(e);
+    }
+  },
+  handleButtonClickNow () {
+    // eslint-disable-next-line no-undef
+    let currentDate = getCurrentDateIso8601();
+    this.props.webmapjs.setDimension('time', currentDate.toISO8601(), false);
+    this.props.webmapjs.draw();
+    this.eventOnDimChange();
+  },
+  handleButtonClickPrevPage () {
+    let date = this.decomposeDateString(this.state.value);
+    date.hour -= 1;
+    this.setNewDate(date);
+  },
+  handleButtonClickNextPage () {
+    let date = this.decomposeDateString(this.state.value);
+    date.hour += 1;
+    this.setNewDate(date);
   },
   render () {
     const { webmapjs } = this.props;
@@ -206,6 +293,8 @@ const TimeComponent = React.createClass({
       if (this.listenersInitialized === undefined) { // TODO mount/unmount
         this.listenersInitialized = true;
         console.log('initlistener');
+
+        webmapjs.addListener('onlayeradd', this.eventOnMapDimUpdate, true);
         webmapjs.addListener('onmapdimupdate', this.eventOnMapDimUpdate, true);
         webmapjs.addListener('ondimchange', this.eventOnDimChange, true);
       }
@@ -214,8 +303,11 @@ const TimeComponent = React.createClass({
 
     return <div style={{ display:'flex', border:'0px solid red' }}>
       <div style={{ display:'flex', flex: 1 }} >
-        <div style={{ background: 'lightblue' }}>
+        <div>
           <ButtonPausePlayAnimation webmapjs={this.props.webmapjs} onChange={this.onChangeAnimation} />
+        </div>
+        <div>
+          <Button bsStyle='primary' bsSize='large' style={{ padding:'20px', margin:'5px' }} onClick={this.handleButtonClickNow}>Now</Button>
         </div>
         <div style={{ whiteSpace: 'nowrap' }}>
           <NumberSpinner value={year} numDigits={4} width={100} onChange={this.changeYear} />
@@ -225,11 +317,21 @@ const TimeComponent = React.createClass({
           <NumberSpinner value={minute} numDigits={2} width={60} onChange={this.changeMinute} />
           <NumberSpinner value={second} numDigits={2} width={60} onChange={this.changeSecond} />
         </div >
-      </div>
-      <div style={{ border:'0px solid blue', display: 'block' }}>
-        <CanvasComponent width={this.props.width - 500} height={78} onRenderCanvas={this.onRenderCanvas} />
-      </div >
 
+      </div>
+      <div>
+        <Button bsStyle='primary' style={{ padding:'28px 5px 30px 5px' }} onClick={this.handleButtonClickPrevPage}>
+          <Glyphicon glyph={'glyphicon glyphicon-chevron-left'} />
+        </Button>
+      </div>
+      <div style={{ border:'0px solid blue', margin: '0px 2px 0px 2px', padding: 0, background:'white', display: 'block' }}>
+        <CanvasComponent width={this.props.width - 630} height={78} onRenderCanvas={this.onRenderCanvas} onClickCanvas={this.onClickCanvas} />
+      </div >
+      <div>
+        <Button bsStyle='primary' style={{ padding:'28px 5px 30px 5px' }} onClick={this.handleButtonClickNextPage}>
+          <Glyphicon glyph={'glyphicon glyphicon-chevron-right'} />
+        </Button>
+      </div>
     </div>;
   }
 });

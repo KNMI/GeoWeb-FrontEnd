@@ -29,10 +29,18 @@ const ButtonPausePlayAnimation = React.createClass({
   componentWillReceiveProps (nextProps) {
     this.setState(nextProps);
   },
+  onstopanimation () {
+    this.setState({ pauseorplay:true, icon:this.getIcon(true) });
+  },
+  onstartanimation () {
+    this.setState({ pauseorplay:false, icon:this.getIcon(false) });
+  },
   render () {
     if (this.props.webmapjs !== undefined) {
       if (this.listenersInitialized === undefined) {
         this.listenersInitialized = true;
+        this.props.webmapjs.addListener('onstopanimation', this.onstopanimation, true);
+        this.props.webmapjs.addListener('onstartanimation', this.onstartanimation, true);
       }
     }
     return <div>
