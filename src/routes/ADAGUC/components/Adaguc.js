@@ -65,8 +65,8 @@ export default class Adaguc extends React.Component {
     // if (adagucProperties.mapCreated) {
     //   return;
     // }
-    const url = 'http://localhost/adagucviewer/webmapjs';
-    // var url = 'http://birdexp07.knmi.nl/geoweb/adagucviewer/webmapjs';
+    // const url = 'http://localhost/adagucviewer/webmapjs';
+    var url = 'http://birdexp07.knmi.nl/geoweb/adagucviewer/webmapjs';
 
     // const username = 'terpstra';
     // const machineName = 'bhw471';
@@ -84,8 +84,8 @@ export default class Adaguc extends React.Component {
     this.webMapJS.setBBOX(adagucProperties.boundingBox.join());
     // eslint-disable-next-line no-undef
     this.webMapJS.setBaseLayers([new WMJSLayer(adagucProperties.mapType)]);
-    // axios.get('http://birdexp07.knmi.nl/cgi-bin/geoweb/getServices.cgi').then(res => {
-    axios.get('http://localhost/cgi-bin/getServices.cgi').then(res => {
+    axios.get('http://birdexp07.knmi.nl/cgi-bin/geoweb/getServices.cgi').then(res => {
+    // axios.get('http://localhost/cgi-bin/getServices.cgi').then(res => {
       const sources = res.data;
       createMap(sources);
       this.webMapJS.draw();
@@ -143,10 +143,10 @@ export default class Adaguc extends React.Component {
       this.webMapJS.removeAllLayers();
       // And add the new layer
       this.webMapJS.addLayer(newDataLayer);
-      var newDataLayer2 = new WMJSLayer(
-        {service:'http://geoservices.knmi.nl/cgi-bin/RADNL_OPER_R___25PCPRR_L3.cgi?',
-        name:'RADNL_OPER_R___25PCPRR_L3_COLOR'});
-      this.webMapJS.addLayer(newDataLayer2);
+      // var newDataLayer2 = new WMJSLayer(
+      //   {service:'http://geoservices.knmi.nl/cgi-bin/RADNL_OPER_R___25PCPRR_L3.cgi?',
+      //   name:'RADNL_OPER_R___25PCPRR_L3_COLOR'});
+      // this.webMapJS.addLayer(newDataLayer2);
       this.webMapJS.setActiveLayer(newDataLayer);
       if (!prevProps.adagucProperties.layer || (prevProps.adagucProperties.layer !== layer)) {
         const styles = this.webMapJS.getActiveLayer().styles;
@@ -163,13 +163,15 @@ export default class Adaguc extends React.Component {
   }
 
   render () {
+    // eslint-disable-next-line no-undef
+    let timeComponentWidth = $(window).width();
     return (<div>
-      <div style={{ display:'inline-block',position:'relative'}}>
+      <div style={{ display:'inline-block', position:'relative' }}>
         <div ref='adaguc' />
       </div>
       <Menu {...this.props} webmapjs={this.webMapJS} />
       <div id='infocontainer'>
-        <TimeComponent webmapjs={this.webMapJS} width={$(window).width()} onChangeAnimation={this.onChangeAnimation} />
+        <TimeComponent webmapjs={this.webMapJS} width={timeComponentWidth} onChangeAnimation={this.onChangeAnimation} />
         <hr />
         <MetaInfo webmapjs={this.webMapJS} />
       </div>

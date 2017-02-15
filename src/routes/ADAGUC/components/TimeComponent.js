@@ -31,19 +31,17 @@ const TimeComponent = React.createClass({
     let timeDim = this.props.webmapjs.getDimension('time');
     // console.log(timeDim);
     if (timeDim !== undefined) {
-      if( this.state.value == timeDim.currentValue ){
+      if (this.state.value === timeDim.currentValue) {
         return;
       }
       this.setState({ value:timeDim.currentValue });
-    }else{
+    } else {
       return;
     }
 
     let layers = this.props.webmapjs.getLayers();
 
-
-
-    let ctx  = this.ctx;
+    let ctx = this.ctx;
     let canvasWidth = ctx.canvas.clientWidth;
     let canvasHeight = ctx.canvas.clientHeight;
     ctx.fillStyle = '#CCC';
@@ -52,82 +50,77 @@ const TimeComponent = React.createClass({
 
     ctx.font = '14px Arial';
 
-
     let scaleWidth = canvasWidth;
-    let currentDate = getCurrentDateIso8601 ();
-    let startDate = getCurrentDateIso8601 ();
-    let endDate = getCurrentDateIso8601 ();
+    // eslint-disable-next-line no-undef
+    let currentDate = getCurrentDateIso8601();
+    // eslint-disable-next-line no-undef
+    let startDate = getCurrentDateIso8601();
+    // eslint-disable-next-line no-undef
+    let endDate = getCurrentDateIso8601();
 
-    startDate.substract(new DateInterval (0, 0, 0, 8, startDate.getUTCMinutes(), startDate.getUTCSeconds() ));
-    endDate.add(new DateInterval (0, 0, 0, 2, startDate.getUTCMinutes(), startDate.getUTCSeconds()));
+    // eslint-disable-next-line no-undef
+    startDate.substract(new DateInterval(0, 0, 0, 8, startDate.getUTCMinutes(), startDate.getUTCSeconds()));
+    // eslint-disable-next-line no-undef
+    endDate.add(new DateInterval(0, 0, 0, 2, startDate.getUTCMinutes(), startDate.getUTCSeconds()));
     // console.log(startDate.toISO8601());
-    let canvasDateIntervalStr = startDate.toISO8601()+'/'+endDate.toISO8601()+'/PT1M';
+    let canvasDateIntervalStr = startDate.toISO8601() + '/' + endDate.toISO8601() + '/PT1M';
     // console.log(canvasDateIntervalStr);
+    // eslint-disable-next-line
     let canvasDateInterval = new parseISOTimeRangeDuration(canvasDateIntervalStr);
     // console.log(canvasDateInterval);
-    let sliderStartIndex = canvasDateInterval.getTimeStepFromISODate(startDate.toISO8601());
+    // let sliderStartIndex = canvasDateInterval.getTimeStepFromISODate(startDate.toISO8601());
     let sliderCurrentIndex = canvasDateInterval.getTimeStepFromISODate(currentDate.toISO8601());
     let sliderMapIndex = canvasDateInterval.getTimeStepFromISODate(timeDim.currentValue);
     let sliderStopIndex = canvasDateInterval.getTimeStepFromISODate(endDate.toISO8601());
 
-
-    let canvasDateIntervalStrHour = startDate.toISO8601()+'/'+endDate.toISO8601()+'/PT1H';
+    let canvasDateIntervalStrHour = startDate.toISO8601() + '/' + endDate.toISO8601() + '/PT1H';
     // // console.log(canvasDateIntervalStr);
+    // eslint-disable-next-line no-undef
+    // eslint-disable-next-line
     let canvasDateIntervalHour = new parseISOTimeRangeDuration(canvasDateIntervalStrHour);
     let timeBlockStartIndex = canvasDateIntervalHour.getTimeStepFromDate(startDate);
     let timeBlockStopIndex = canvasDateIntervalHour.getTimeStepFromISODate(endDate.toISO8601());
-
 
     /* Draw time indication blocks */
     for (let j = timeBlockStartIndex - 1; j < timeBlockStopIndex; j++) {
       let dateAtTimeStep = canvasDateIntervalHour.getDateAtTimeStep(j);
       let layerTimeIndex = canvasDateInterval.getTimeStepFromDate(dateAtTimeStep);
       let layerTimeIndexNext = canvasDateInterval.getTimeStepFromDate(canvasDateIntervalHour.getDateAtTimeStep(j + 1));
-      let pos = layerTimeIndex/sliderStopIndex;
+      let pos = layerTimeIndex / sliderStopIndex;
       let width = (layerTimeIndexNext - layerTimeIndex) / sliderStopIndex;
       ctx.fillStyle = '#606060';
       ctx.strokeStyle = '#404040';
-      ctx.fillRect(pos * scaleWidth, canvasHeight-16, width * scaleWidth, 16);
-      ctx.strokeRect(pos * scaleWidth,  canvasHeight-16, width * scaleWidth, 16);
+      ctx.fillRect(pos * scaleWidth, canvasHeight - 16, width * scaleWidth, 16);
+      ctx.strokeRect(pos * scaleWidth, canvasHeight - 16, width * scaleWidth, 16);
       ctx.fillStyle = '#000';
-      ctx.fillText(dateAtTimeStep.getUTCHours(), pos * scaleWidth, canvasHeight-3);
+      ctx.fillText(dateAtTimeStep.getUTCHours(), pos * scaleWidth, canvasHeight - 3);
     }
-
 
     /* Draw blocks for layer */
 
-    for (let j=0; j<layers.length; j++){
-      let y = j*25;
+    for (let j = 0; j < layers.length; j++) {
+      let y = j * 25;
       let layer = layers[j];
       let dim = layer.getDimension('time');
       let layerStartIndex = dim.getIndexForValue(startDate, false);
       let layerStopIndex = dim.getIndexForValue(currentDate, false);
 
-
-
-      for (let j = layerStartIndex-1; j < layerStopIndex+1; j++) {
+      for (let j = layerStartIndex - 1; j < layerStopIndex + 1; j++) {
         let layerTimeIndex = canvasDateInterval.getTimeStepFromISODate(dim.getValueForIndex(j));
         let layerTimeIndexNext = canvasDateInterval.getTimeStepFromISODate(dim.getValueForIndex(j + 1));
-        let pos = layerTimeIndex/sliderStopIndex;
+        let pos = layerTimeIndex / sliderStopIndex;
         let width = (layerTimeIndexNext - layerTimeIndex) / sliderStopIndex;
         ctx.fillStyle = '#606060';
-        if (sliderMapIndex == layerTimeIndex) {
-           ctx.fillStyle = '#FFFF60';
+        if (sliderMapIndex >= layerTimeIndex && sliderMapIndex < layerTimeIndexNext) {
+          ctx.fillStyle = '#FFFF60';
         }
-
         ctx.strokeStyle = '#404040';
-        ctx.fillRect(pos * scaleWidth, 5+y, width * scaleWidth, 20);
-        ctx.strokeRect(pos * scaleWidth, 5+y, width * scaleWidth, 20);
+        ctx.fillRect(pos * scaleWidth, 5 + y, width * scaleWidth, 20);
+        ctx.strokeRect(pos * scaleWidth, 5 + y, width * scaleWidth, 20);
       }
       ctx.fillStyle = '#000';
-      ctx.fillText(layer.title, 6, 22+y);
+      ctx.fillText(layer.title, 6, 22 + y);
     }
-
-    // console.log(sliderStartIndex + ' till ' + sliderStopIndex)
-    // console.log(dim.getIndexForValue(startDate));
-    // console.log(dim.size()-1);
-    // console.log(dim.getIndexForValue(currentDate));
-    // console.log(dim.getIndexForValue(currentDate,false));
 
     /* Draw current system time */
     ctx.beginPath();
@@ -164,7 +157,7 @@ const TimeComponent = React.createClass({
     let isodate = this.toISO8601(value);
     // eslint-disable-next-line no-undef
     var date = parseISO8601DateToDate(isodate);
-    this.props.webmapjs.setDimension('time', date.toISO8601() , false);
+    this.props.webmapjs.setDimension('time', date.toISO8601(), false);
     this.props.webmapjs.draw();
     this.eventOnDimChange();
   },
@@ -215,7 +208,6 @@ const TimeComponent = React.createClass({
         console.log('initlistener');
         webmapjs.addListener('onmapdimupdate', this.eventOnMapDimUpdate, true);
         webmapjs.addListener('ondimchange', this.eventOnDimChange, true);
-
       }
     }
     let { year, month, day, hour, minute, second } = this.decomposeDateString(this.state.value);
