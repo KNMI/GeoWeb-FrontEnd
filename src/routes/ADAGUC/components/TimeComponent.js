@@ -34,12 +34,16 @@ const TimeComponent = React.createClass({
     // console.log(timeDim);
     if (timeDim !== undefined) {
       if (this.state.value === timeDim.currentValue) {
-        return;
+        if (this.hoverDate === this.hoverDateDone) {
+          // console.log('ret');
+          return;
+        }
       }
       this.setState({ value:timeDim.currentValue });
     } else {
       return;
     }
+    this.hoverDateDone = this.hoverDate;
 
     let layers = this.props.webmapjs.getLayers();
 
@@ -89,7 +93,7 @@ const TimeComponent = React.createClass({
       sliderCurrentIndex = this.canvasDateInterval.getTimeStepFromISODate(currentDate.toISO8601(), true);
     } catch (e) {
       // Current date is out of range
-      console.log(e);
+      // console.log(e);
     }
     let sliderMapIndex = this.canvasDateInterval.getTimeStepFromISODate(timeDim.currentValue);
     let sliderStopIndex = this.canvasDateInterval.getTimeStepFromISODate(this.endDate.toISO8601());
@@ -128,14 +132,15 @@ const TimeComponent = React.createClass({
 
     /* Draw blocks for layer */
     for (let j = 0; j < layers.length; j++) {
-      let y = j * 25 + 5;
+      let y = j * 25 + 1;
+      let h = 16;
       let layer = layers[j];
       let dim = layer.getDimension('time');
       ctx.lineWidth = 1;
-      ctx.fillStyle = '#888';
-      ctx.fillRect(0, 5 + y + 0.5, canvasWidth, 20);
+      ctx.fillStyle = '#F66';
+      ctx.fillRect(0, 5 + y + 0.5, canvasWidth, h);
       ctx.strokeStyle = '#AAA';
-      ctx.strokeRect(-1, 5 + y + 0.5, canvasWidth + 2, 20);
+      ctx.strokeRect(-1, 5 + y + 0.5, canvasWidth + 2, h);
       if (dim) {
         let layerStartIndex = dim.getIndexForValue(this.startDate, false);
         let layerStopIndex = dim.getIndexForValue(this.endDate, false);
@@ -153,18 +158,18 @@ const TimeComponent = React.createClass({
           let x = parseInt(pos * scaleWidth);
           let w = parseInt(posNext * scaleWidth) - x;
 
-          ctx.fillRect(x + 0.5, 5 + y + 0.5, w, 20);
-          ctx.strokeRect(x + 0.5, 5 + y + 0.5, w, 20);
+          ctx.fillRect(x + 0.5, 5 + y + 0.5, w, h);
+          ctx.strokeRect(x + 0.5, 5 + y + 0.5, w, h);
         }
       }
       ctx.font = 'bold 10pt Arial';
       ctx.fillStyle = '#000';
-      ctx.fillText(layer.title, 6, 20 + y);
+      ctx.fillText(layer.title, 6, h + 2 + y);
     }
 
     /* Draw current system time */
     if (sliderCurrentIndex !== -1) {
-      ctx.lineWidth = 3;
+      ctx.lineWidth = 2;
       ctx.beginPath();
       ctx.strokeStyle = '#0000FF';
       x = parseInt((sliderCurrentIndex / sliderStopIndex) * scaleWidth) + 0.5;
@@ -175,22 +180,33 @@ const TimeComponent = React.createClass({
 
     /* Draw current map time */
     ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.strokeStyle = '#000000';
+
+    ctx.strokeStyle = '#333';
     x = parseInt((sliderMapIndex / sliderStopIndex) * scaleWidth);
-    ctx.fillRect(x - 5, 0, 10, 4);
-    ctx.fillRect(x - 5, canvasHeight - 4, 10, 4);
-    ctx.moveTo(x, 0);
-    ctx.lineTo(x, canvasHeight);
-    let textXPos = x;
-    let textWidth = 30;
-    if (x > canvasWidth - (textWidth + 5)) {
-      textXPos -= (textWidth + 5);
-    } else {
-      textXPos += 5;
-    }
-    ctx.fillText(timeDim.currentValue.substring(11, 16), textXPos, canvasHeight / 2 + 10);
+    ctx.fillStyle = '#333';
+    // ctx.fillRect(x - 5, 0, 10, 3);
+    ctx.strokeStyle = '#444';
+    // ctx.fillRect(x - 5, canvasHeight - 19, 10, 3);
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(x + 0.0, 0);
+    ctx.lineTo(x + 0.0, canvasHeight);
     ctx.stroke();
+
+    // let textXPos = x;
+    // let textWidth = 30;
+    // if (x > canvasWidth - (textWidth + 8)) {
+    //   textXPos -= (textWidth + 8);
+    // } else {
+    //   textXPos += 8;
+    // }
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 0.5;
+    ctx.fillStyle = '#EEE';
+    ctx.fillRect(x - 26, canvasHeight - 15, 52, 14);
+    // ctx.strokeRect(x - 20.5, canvasHeight - 15.5, 40, 16);
+    ctx.fillStyle = '#000000';
+    ctx.fillText(timeDim.currentValue.substring(11, 16), x - 15, canvasHeight - 3);
   },
   toISO8601 (value) {
     function prf (input, width) {
@@ -209,7 +225,7 @@ const TimeComponent = React.createClass({
     return iso;
   },
   setNewDate (value) {
-    console.log('update');
+    // console.log('update');
     let isodate = this.toISO8601(value);
     // eslint-disable-next-line no-undef
     var date = parseISO8601DateToDate(isodate);
@@ -287,6 +303,17 @@ const TimeComponent = React.createClass({
     date.hour += 1;
     this.setNewDate(date);
   },
+  onMouseMoveCanvas (x, y) {
+    // let t = x / this.ctx.canvas.clientWidth;
+    // let s = this.canvasDateInterval.getTimeSteps() - 1;
+    // let newTimeStep = parseInt(t * s);
+    // try {
+    //   this.hoverDate = this.canvasDateInterval.getDateAtTimeStep(newTimeStep, true);
+    //   this.eventOnDimChange();
+    // } catch (e) {
+    //   console.log(e);
+    // }
+  },
   render () {
     const { webmapjs } = this.props;
     if (webmapjs !== undefined) {
@@ -299,33 +326,36 @@ const TimeComponent = React.createClass({
         webmapjs.addListener('ondimchange', this.eventOnDimChange, true);
       }
     }
-    let { year, month, day, hour, minute, second } = this.decomposeDateString(this.state.value);
+    let { year, month, day, hour, minute } = this.decomposeDateString(this.state.value);
 
     return <div style={{ display:'flex', border:'0px solid red' }}>
       <div style={{ display:'flex', flex: 1 }} >
         <div>
           <ButtonPausePlayAnimation webmapjs={this.props.webmapjs} onChange={this.onChangeAnimation} />
         </div>
-        <div>
-          <Button bsStyle='primary' bsSize='large' style={{ padding:'20px', margin:'5px' }} onClick={this.handleButtonClickNow}>Now</Button>
-        </div>
         <div style={{ whiteSpace: 'nowrap' }}>
           <NumberSpinner value={year} numDigits={4} width={100} onChange={this.changeYear} />
-          <NumberSpinner value={month} numDigits={2} width={60} onChange={this.changeMonth} />
+          <NumberSpinner value={month} numDigits={'month'} width={90} onChange={this.changeMonth} />
           <NumberSpinner value={day} numDigits={2} width={60} onChange={this.changeDay} />
           <NumberSpinner value={hour} numDigits={2} width={60} onChange={this.changeHour} />
           <NumberSpinner value={minute} numDigits={2} width={60} onChange={this.changeMinute} />
-          <NumberSpinner value={second} numDigits={2} width={60} onChange={this.changeSecond} />
+          { /* <NumberSpinner value={second} numDigits={2} width={60} onChange={this.changeSecond} /> */ }
         </div >
 
       </div>
       <div>
-        <Button bsStyle='primary' style={{ padding:'28px 5px 30px 5px' }} onClick={this.handleButtonClickPrevPage}>
+        <Button bsStyle='primary' bsSize='large' style={{ padding:'20px', margin:'5px' }} onClick={this.handleButtonClickNow}>Now</Button>
+      </div>
+      <div>
+        <Button bsStyle='primary' style={{ padding:'28px 5px 30px 5px', marginLeft:'1px' }} onClick={this.handleButtonClickPrevPage}>
           <Glyphicon glyph={'glyphicon glyphicon-chevron-left'} />
         </Button>
       </div>
       <div style={{ border:'0px solid blue', margin: '0px 2px 0px 2px', padding: 0, background:'white', display: 'block' }}>
-        <CanvasComponent width={this.props.width - 630} height={78} onRenderCanvas={this.onRenderCanvas} onClickCanvas={this.onClickCanvas} />
+        <CanvasComponent width={this.props.width - 620} height={78}
+          onRenderCanvas={this.onRenderCanvas}
+          onClick={this.onClickCanvas}
+          onMouseMove={this.onMouseMoveCanvas} />
       </div >
       <div>
         <Button bsStyle='primary' style={{ padding:'28px 5px 30px 5px' }} onClick={this.handleButtonClickNextPage}>

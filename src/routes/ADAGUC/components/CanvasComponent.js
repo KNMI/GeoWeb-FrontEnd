@@ -3,7 +3,8 @@ import React from 'react';
 const CanvasComponent = React.createClass({
   propTypes: {
     onRenderCanvas: React.PropTypes.func,
-    onClickCanvas: React.PropTypes.func,
+    onClick: React.PropTypes.func,
+    onMouseMove: React.PropTypes.func,
     width: React.PropTypes.number,
     height: React.PropTypes.number
   },
@@ -12,7 +13,8 @@ const CanvasComponent = React.createClass({
       width:300,
       height:300,
       onRenderCanvas:function () {},
-      onClickCanvas:function () {}
+      onClick:function () {},
+      onMouseMove:function () {}
     };
   },
   componentDidMount () {
@@ -22,19 +24,21 @@ const CanvasComponent = React.createClass({
     if (!this.refs) return;
     if (!this.refs.canvas) return;
     let canvas = this.refs.canvas;
-    let callBack = this.props.onClickCanvas;
+    let onClickCanvas = this.props.onClick;
+    let mousemove = this.props.onMouseMove;
 
     this.refs.canvas.addEventListener('mousemove', function (event) {
       let x = event.clientX - canvas.offsetLeft;
       let y = event.clientY - canvas.offsetTop;
       if (event.buttons === 1) {
-        callBack(x, y);
+        onClickCanvas(x, y);
       }
+      mousemove(x, y);
     });
     this.refs.canvas.addEventListener('click', function (event) {
       let x = event.clientX - canvas.offsetLeft;
       let y = event.clientY - canvas.offsetTop;
-      callBack(x, y);
+      onClickCanvas(x, y);
     });
     this.props.onRenderCanvas(this.refs.canvas.getContext('2d'));
   },
