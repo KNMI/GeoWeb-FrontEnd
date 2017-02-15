@@ -352,13 +352,13 @@ const TimeComponent = React.createClass({
         </Button>
       </div>
       <div style={{ border:'0px solid blue', margin: '0px 2px 0px 2px', padding: 0, background:'white', display: 'block' }}>
-        <CanvasComponent width={this.props.width - 620} height={78}
+        <CanvasComponent width={this.props.width - 575} height={78}
           onRenderCanvas={this.onRenderCanvas}
           onClick={this.onClickCanvas}
           onMouseMove={this.onMouseMoveCanvas} />
       </div >
       <div>
-        <Button bsStyle='primary' style={{ padding:'28px 5px 30px 5px' }} onClick={this.handleButtonClickNextPage}>
+        <Button bsStyle='primary' style={{ padding:'28px 5px 30px 5px', marginRight: '10px' }} onClick={this.handleButtonClickNextPage}>
           <Glyphicon glyph={'glyphicon glyphicon-chevron-right'} />
         </Button>
       </div>
