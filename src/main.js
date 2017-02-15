@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import createStore from './store/createStore';
-import GeoWeb from './containers/GeoWeb';
+import AppContainer from './containers/AppContainer';
 import { DATASETS } from './routes/ADAGUC/constants/datasets';
 import { MAP_STYLES } from './routes/ADAGUC/constants/map_styles';
 import { BOUNDING_BOXES } from './routes/ADAGUC/constants/bounding_boxes';
@@ -15,6 +15,18 @@ const initialState = {
     boundingBox: BOUNDING_BOXES[0],
     projectionName: 'EPSG:3857',
     mapCreated: false
+  },
+  header: {
+    title: 'hello Headers'
+  },
+  leftSideBar: {
+    title: 'hello LeftSideBar'
+  },
+  mainViewport: {
+    title: 'hello MainViewport'
+  },
+  rightSideBar: {
+    title: 'hello RightSideBar'
   }
 };
 
@@ -28,10 +40,11 @@ let render = () => {
   const routes = require('./routes/index').default(store);
 
   ReactDOM.render(
-    <GeoWeb store={store} routes={routes} adagucProperties={store.getState()} />,
+    <AppContainer store={store} routes={routes} />,
     MOUNT_NODE
   );
 };
+
 // This code is excluded from production bundle
 if (__DEV__) {
   if (module.hot) {

@@ -1,6 +1,6 @@
 import React from 'react';
 import { default as Menu } from './Menu';
-import TimeComponent from './TimeComponent.js';
+// import TimeComponent from './TimeComponent.js';
 
 export default class Adaguc extends React.Component {
   constructor () {
@@ -26,8 +26,8 @@ export default class Adaguc extends React.Component {
     for (var j = numTimeSteps - numStepsBack; j < numTimeSteps; ++j) {
       dates.push({ name:timeDim.name, value:timeDim.getValueForIndex(j) });
     }
-    //is.webMapJS.draw();
-    //this.webMapJS.setDimension('time',dates[dates.length-1].value);
+    // is.webMapJS.draw();
+    // this.webMapJS.setDimension('time',dates[dates.length-1].value);
     this.webMapJS.draw(dates);
     setTimeout(function () { layer.parseLayer(this.updateAnimation, true); }, 10000);
   }
@@ -92,12 +92,13 @@ export default class Adaguc extends React.Component {
   };
 
   render () {
-    return (<div>
-      <span id='adaguccontainer'>
-        <div id='adaguc' ref={(elem) => { this.initAdaguc(elem); }} />
-      </span>
-      <Menu {...this.props} />
-      <TimeComponent webmapjs={this.webMapJS} onChange={this.change} />
+    return (
+      <div>
+        <span id='adaguccontainer'>
+          <div id='adaguc' ref={(elem) => { this.initAdaguc(elem); }} />
+        </span>
+        <Menu {...this.props} />
+        {/* <TimeComponent webmapjs={this.webMapJS} onChange={this.change} /> */}
       </div>);
   }
 };
