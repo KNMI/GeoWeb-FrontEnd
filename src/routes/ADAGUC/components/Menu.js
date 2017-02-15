@@ -33,7 +33,7 @@ class StylesSelector extends React.Component {
     if (styles) {
       return <DataSelector dispatch={dispatch} dataFunc={dataFunc} items={styles.map((style) => style.title)} title={title} />;
     } else {
-      return <div />;
+      return <DropdownButton disabled bsStyle='primary' bsSize='large' title={title} id={title} />;
     }
   }
 }
@@ -53,7 +53,7 @@ class OverlaySelector extends React.Component {
     if (overlays) {
       return <DataSelector dispatch={dispatch} dataFunc={dataFunc} items={[...overlays.layers, 'Reset']} title={title} />;
     } else {
-      return <div />;
+      return <DropdownButton disabled bsStyle='primary' bsSize='large' title={title} id={title} />;
     }
   }
 }
@@ -64,7 +64,7 @@ class SourceSelector extends React.Component {
     if (sources) {
       return <DataSelector dispatch={dispatch} dataFunc={dataFunc} items={sources.map((source) => source.title)} title={title} />;
     } else {
-      return <div />;
+      return <DropdownButton disabled bsStyle='primary' bsSize='large' title={title} id={title} />;
     }
   }
 }
@@ -77,7 +77,7 @@ class DataSelector extends React.Component {
         { items.map((item, i) => <MenuItem dispatch={dispatch} dataFunc={dataFunc} key={i} id={i} content={item} />) }
       </DropdownButton>;
     } else {
-      return <div />;
+      return <DropdownButton disabled bsStyle='primary' bsSize='large' title={title} id={title} />;
     }
   }
 }
@@ -90,7 +90,7 @@ class LayerSelector extends React.Component {
         { layers.map((item, i) => <MenuItem dispatch={dispatch} dataFunc={dataFunc} key={i} id={i} content={item} />) }
       </DropdownButton>;
     } else {
-      return <div />;
+      return <DropdownButton disabled bsStyle='primary' bsSize='large' title={title} id={title} />;
     }
   }
 }

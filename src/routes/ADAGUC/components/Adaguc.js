@@ -58,6 +58,7 @@ export default class Adaguc extends React.Component {
     // eslint-disable-next-line no-undef
     this.webMapJS.setSize($(window).width() - 250, $(window).height() - 250);
     this.webMapJS.draw();
+    this.render();
   }
 
   initAdaguc (adagucMapRef) {
@@ -150,8 +151,7 @@ export default class Adaguc extends React.Component {
       if (layer === null) {
         return;
       }
-      console.log(source);
-      const combined = Object.assign({}, source, { name: layer }, { style: style });
+      const combined = Object.assign({}, source, { name: layer }, { style: style }, { opacity: 0.75 });
       // eslint-disable-next-line no-undef
       var newDataLayer = new WMJSLayer(combined);
       // Stop the old animation
@@ -160,7 +160,10 @@ export default class Adaguc extends React.Component {
       newDataLayer.onReady = this.animateLayer;
       // Remove all present layers
       this.webMapJS.removeAllLayers();
-      this.webMapJS.addLayer(newDataLayer);
+      // And add the new layer
+      if (newDataLayer.name) {
+        this.webMapJS.addLayer(newDataLayer);
+      }
       this.webMapJS.setActiveLayer(newDataLayer);
       if (!prevProps.adagucProperties.layer || (prevProps.adagucProperties.layer !== layer)) {
         const styles = this.webMapJS.getActiveLayer().styles;
