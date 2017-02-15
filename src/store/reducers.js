@@ -1,16 +1,14 @@
 import { combineReducers } from 'redux';
+const reducer = require('../routes/ADAGUC/modules/adaguc').default;
+const defaultReducer = require('./defaultReducer').default;
 
-export const makeRootReducer = (asyncReducers) => {
+export const makeRootReducer = () => {
   return combineReducers({
-    ...asyncReducers
+    adagucProperties: reducer,
+    header: defaultReducer,
+    rightSideBar: defaultReducer,
+    leftSideBar: defaultReducer,
+    mainViewport: defaultReducer
   });
 };
-
-export const injectReducer = (store, { key, reducer }) => {
-  if (Object.hasOwnProperty.call(store.asyncReducers, key)) return;
-
-  store.asyncReducers[key] = reducer;
-  store.replaceReducer(makeRootReducer(store.asyncReducers));
-};
-
 export default makeRootReducer;

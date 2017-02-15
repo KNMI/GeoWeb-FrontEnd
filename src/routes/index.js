@@ -1,7 +1,6 @@
 // We only need to import the modules necessary for initial render
 import BaseLayout from '../layouts/BaseLayout';
 import HomeRoute from './Home';
-import ADAGUC from './ADAGUC';
 import ApiDemo from './ApiDemo';
 import FileNotFoundRoute from './FileNotFound';
 
@@ -13,7 +12,6 @@ export const createRoutes = (store) => ({
   component: BaseLayout,
   indexRoute: HomeRoute(store),
   childRoutes: [
-    ADAGUC(store),
     ApiDemo(),
     FileNotFoundRoute()
   ]

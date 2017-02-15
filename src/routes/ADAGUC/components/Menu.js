@@ -1,8 +1,5 @@
 import React from 'react';
 import { DropdownButton } from 'react-bootstrap';
-import { DATASETS } from '../constants/datasets';
-// import { setData, setMapStyle, setCut } from '../actions/ADAGUC_actions';
-import axios from 'axios';
 
 class MenuItem extends React.Component {
   constructor () {
@@ -11,7 +8,7 @@ class MenuItem extends React.Component {
   }
   handleClick (e) {
     // Execute the appropriate data function passed as prop
-    this.props.dataFunc(this.props.id);
+    this.props.dispatch(this.props.dataFunc(this.props.id));
   }
 
   render () {
@@ -36,9 +33,9 @@ class Styles extends React.Component {
   }
 
   render () {
-    const { title, dataFunc, styles } = this.props;
+    const { dataFunc, dispatch, title, styles } = this.props;
     if (styles) {
-      return <DataSelector dataFunc={dataFunc} items={styles.map((style) => style.title)} title={title} />;
+      return <DataSelector dispatch={dispatch} dataFunc={dataFunc} items={styles.map((style) => style.title)} title={title} />;
     } else {
       return <div />;
     }
@@ -47,9 +44,9 @@ class Styles extends React.Component {
 
 class SourceSelector extends React.Component {
   render () {
-    const { sources, dataFunc, title } = this.props;
+    const { sources, dataFunc, title, dispatch } = this.props;
     if (sources) {
-      return <DataSelector dataFunc={dataFunc} items={sources.map((source) => source.title)} title={title} />;
+      return <DataSelector dispatch={dispatch} dataFunc={dataFunc} items={sources.map((source) => source.title)} title={title} />;
     } else {
       return <div />;
     }
@@ -63,10 +60,10 @@ SourceSelector.propTypes = {
 
 class DataSelector extends React.Component {
   render () {
-    const { dataFunc, items, title } = this.props;
+    const { dataFunc, items, title, dispatch } = this.props;
     if (items) {
       return <DropdownButton bsStyle='primary' bsSize='large' title={title} id={title}>
-        { items.map((item, i) => <MenuItem dataFunc={dataFunc} key={i} id={i} content={item} />) }
+        { items.map((item, i) => <MenuItem dispatch={dispatch} dataFunc={dataFunc} key={i} id={i} content={item} />) }
       </DropdownButton>;
     } else {
       return <div />;
@@ -76,17 +73,16 @@ class DataSelector extends React.Component {
 
 class LayerSelector extends React.Component {
   render () {
-    const { dataFunc, layers, title } = this.props;
+    const { dataFunc, layers, title, dispatch} = this.props;
     if (layers) {
       return <DropdownButton bsStyle='primary' bsSize='large' title={title} id={title}>
-        { layers.map((item, i) => <MenuItem dataFunc={dataFunc} key={i} id={i} content={item} />) }
+        { layers.map((item, i) => <MenuItem dispatch={dispatch} dataFunc={dataFunc} key={i} id={i} content={item} />) }
       </DropdownButton>;
     } else {
       return <div />;
     }
   }
 }
-
 
 DataSelector.propTypes = {
   dataFunc : React.PropTypes.func.isRequired,
@@ -97,16 +93,17 @@ DataSelector.propTypes = {
 export default class Menu extends React.Component {
   render () {
     // console.log(this.props);
-    const { setSource, setMapStyle, setCut, setStyle, adagucProperties, setLayer } = this.props;
+    const { adagucProperties, dispatch, actions } = this.props;
+    const { setSource, setMapStyle, setCut, setStyle, setLayer } = actions;
     // console.log(adagucProperties.sources);
     const mapStyles = ['MWS', 'OpenStreetMap'];
     const cuts = ['Nederland', 'NL + Noordzee', 'West Europa', 'Europa', 'Bonaire', 'Saba & St. Eustatius', 'Noord Amerika', 'Afrika', 'Azi&euml;', 'Australi&euml;'];
     return (<div id='innermenu'>
-      <SourceSelector dataFunc={setSource} sources={adagucProperties.sources} title='Sources' />
-      <LayerSelector dataFunc={setLayer} layers={adagucProperties.layers} title='Layers' />
-      <DataSelector dataFunc={setMapStyle} items={mapStyles} title='Map Styles' />
-      <DataSelector dataFunc={setCut} items={cuts} title='Uitsnedes' />
-      <Styles styles={adagucProperties.styles} title='Style' dataFunc={setStyle} />
+      <SourceSelector dispatch={dispatch} dataFunc={setSource} sources={adagucProperties.sources} title='Sources' />
+      <LayerSelector dispatch={dispatch} dataFunc={setLayer} layers={adagucProperties.layers} title='Layers' />
+      <DataSelector dispatch={dispatch} dataFunc={setMapStyle} items={mapStyles} title='Map Styles' />
+      <DataSelector dispatch={dispatch} dataFunc={setCut} items={cuts} title='Uitsnedes' />
+      <Styles dispatch={dispatch} styles={adagucProperties.styles} title='Style' dataFunc={setStyle} />
     </div>);
   }
 }
@@ -115,10 +112,6 @@ Menu.propTypes = {
   adagucProperties : React.PropTypes.object,
   webmapjs         : React.PropTypes.object,
   allelayers       : React.PropTypes.array,
-  createMap        : React.PropTypes.func.isRequired,
-  setSource        : React.PropTypes.func.isRequired,
-  setMapStyle      : React.PropTypes.func.isRequired,
-  setCut           : React.PropTypes.func.isRequired,
-  setStyle         : React.PropTypes.func.isRequired,
-  setLayer         : React.PropTypes.func.isRequired
+  actions          : React.PropTypes.object.isRequired,
+  dispatch         : React.PropTypes.func.isRequired
 };

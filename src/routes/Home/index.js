@@ -2,7 +2,8 @@ import { connect } from 'react-redux';
 import TitleBar from '../../components/TitleBar';
 import DataSelector from '../../components/DataSelector';
 import Inspector from '../../components/Inspector';
-// import GeoWeb from '../../containers/GeoWeb';
+import ADAGUC from '../ADAGUC/components/Adaguc';
+import { actions } from '../ADAGUC/modules/adaguc';
 
 const mapStateToHeaderProps = function (store) {
   return {
@@ -18,8 +19,15 @@ const mapStateToLeftSideBarProps = function (store) {
 
 const mapStateToMainViewportProps = function (store) {
   return {
-    title: store.mainViewport.title
+    adagucProperties: store.adagucProperties
   };
+};
+
+const mapDispatchToMainViewportProps = function (dispatch) {
+  return ({
+    dispatch: dispatch,
+    actions: actions
+  });
 };
 
 const mapStateToRightSideBarProps = function (store) {
@@ -28,12 +36,14 @@ const mapStateToRightSideBarProps = function (store) {
   };
 };
 
-export default (store) => ({
-  title: 'Start here',
-  components: {
-    header: connect(mapStateToHeaderProps)(TitleBar),
-    leftSideBar: connect(mapStateToLeftSideBarProps)(DataSelector),
-    mainViewport: connect(mapStateToMainViewportProps)(TitleBar),
-    rightSideBar: connect(mapStateToRightSideBarProps)(Inspector)
-  }
-});
+export default (store) => {
+  return {
+    title: 'Start here',
+    components: {
+      header: connect(mapStateToHeaderProps)(TitleBar),
+      leftSideBar: connect(mapStateToLeftSideBarProps)(DataSelector),
+      mainViewport: connect(mapStateToMainViewportProps, mapDispatchToMainViewportProps)(ADAGUC),
+      rightSideBar: connect(mapStateToRightSideBarProps)(Inspector)
+    }
+  };
+};

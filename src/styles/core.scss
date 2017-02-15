@@ -15,6 +15,7 @@ body {
 }
 #adaguccontainer {
   display:inline-block;
+  min-height: calc(100% - 133px);
 }
 #innermenu {
   width:200px;

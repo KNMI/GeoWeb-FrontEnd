@@ -1,6 +1,7 @@
 import React, { Component, PropTypes } from 'react';
 import { Container, Row, Col } from 'reactstrap';
 import 'bootstrap/dist/css/bootstrap.css';
+import '../../styles/core.scss';
 
 class BaseLayout extends Component {
   static propTypes = {

@@ -43,7 +43,9 @@ export default class Adaguc extends React.Component {
   }
 
   initAdaguc (elem) {
-    const { adagucProperties, createMap } = this.props;
+    console.log('initing adaguc');
+    console.log(this.props);
+    const { adagucProperties, actions, dispatch } = this.props;
     if (adagucProperties.mapCreated) {
       return;
     }
@@ -65,7 +67,8 @@ export default class Adaguc extends React.Component {
     this.webMapJS.setBaseLayers([new WMJSLayer(adagucProperties.mapType)]);
     axios.get('http://birdexp07.knmi.nl/cgi-bin/geoweb/getServices.cgi').then(res => {
       const sources = res.data;
-      createMap(sources);
+      console.log('sending event');
+      dispatch(actions.createMap(sources));
     });
   }
 
@@ -77,8 +80,9 @@ export default class Adaguc extends React.Component {
   componentDidUpdate (prevProps, prevState) {
     // The first time, the map needs to be created. This is when in the previous state the map creation boolean is false
     // Otherwise only change when a new dataset is selected
-    var { setLayers, setStyles } = this.props;
-    var { source, layer, style, mapType, boundingBox } = this.props.adagucProperties;
+    const { actions, adagucProperties, dispatch } = this.props;
+    const { setLayers, setStyles } = actions;
+    const { source, layer, style, mapType, boundingBox } = adagucProperties;
     // if (!prevProps.adagucProperties.mapCreated || layer !== prevProps.adagucProperties.layer) {
     if (mapType !== prevProps.adagucProperties.mapType) {
       // eslint-disable-next-line no-undef
@@ -93,7 +97,7 @@ export default class Adaguc extends React.Component {
       if (!prevProps.adagucProperties.source || (prevProps.adagucProperties.source.service !== source.service)) {
         // eslint-disable-next-line no-undef
         var service = WMJSgetServiceFromStore(source.service);
-        service.getLayerNames((layernames) => { setLayers(layernames); }, (error) => { console.log('Error!: ', error); });
+        service.getLayerNames((layernames) => { dispatch(setLayers(layernames)); }, (error) => { console.log('Error!: ', error); });
       }
       // console.log('Alle layers:', this.allelayers);
       if (layer === null) {
@@ -113,13 +117,14 @@ export default class Adaguc extends React.Component {
       this.webMapJS.setActiveLayer(newDataLayer);
       if (!prevProps.adagucProperties.layer || (prevProps.adagucProperties.layer !== layer)) {
         const styles = this.webMapJS.getActiveLayer().styles;
-        setStyles(styles);
+        dispatch(setStyles(styles));
       }
       // console.log('switched layers');
     }
   };
 
   render () {
+    console.log('rendering adaguc');
     return (<div>
       <div id='adaguccontainer'>
         <div id='adaguc' ref={(elem) => { this.initAdaguc(elem); }} />
@@ -135,12 +140,6 @@ export default class Adaguc extends React.Component {
 
 Adaguc.propTypes = {
   adagucProperties : React.PropTypes.object.isRequired,
-  createMap        : React.PropTypes.func.isRequired,
-  setSource        : React.PropTypes.func.isRequired,
-  setLayer         : React.PropTypes.func.isRequired,
-  setLayers        : React.PropTypes.func.isRequired,
-  setMapStyle      : React.PropTypes.func.isRequired,
-  setCut           : React.PropTypes.func.isRequired,
-  setStyle         : React.PropTypes.func.isRequired,
-  setStyles        : React.PropTypes.func.isRequired
+  actions          : React.PropTypes.object.isRequired,
+  dispatch         : React.PropTypes.func.isRequired
 };
