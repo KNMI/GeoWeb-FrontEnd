@@ -56,7 +56,7 @@ export default class Adaguc extends React.Component {
 
   resize () {
     // eslint-disable-next-line no-undef
-    this.webMapJS.setSize($(window).width() - 250, $(window).height() - 250);
+    this.webMapJS.setSize($(window).width(), $(window).height() - 250);
     this.webMapJS.draw();
     this.render();
   }
@@ -78,7 +78,7 @@ export default class Adaguc extends React.Component {
     // eslint-disable-next-line no-undef
     $(window).resize(this.resize);
     // eslint-disable-next-line no-undef
-    this.webMapJS.setSize($(window).width() - 250, $(window).height() - 250);
+    this.webMapJS.setSize($(window).width(), $(window).height() - 250);
 
     // Set the initial projection
     this.webMapJS.setProjection(adagucProperties.projectionName);
@@ -141,7 +141,7 @@ export default class Adaguc extends React.Component {
       if (source === null) {
         return;
       }
-      console.log(prevProps);
+      console.log('prevprops', prevProps);
       if (!prevProps.adagucProperties.source || (prevProps.adagucProperties.source.service !== source.service)) {
         // eslint-disable-next-line no-undef
         var service = WMJSgetServiceFromStore(source.service);
@@ -187,12 +187,13 @@ export default class Adaguc extends React.Component {
   render () {
     // eslint-disable-next-line no-undef
     let timeComponentWidth = $(window).width();
+    // let timeComponentWidth = this.webMapJS ? this.webMapJS.getSize().width : $(window).width();
     return (<div>
+      <Menu {...this.props} webmapjs={this.webMapJS} />
       <div style={{ display:'inline-block', position:'relative' }}>
         <div ref='adaguc' />
       </div>
-      <Menu {...this.props} webmapjs={this.webMapJS} />
-      <div id='infocontainer'>
+      <div id='infocontainer' style={{ margin: 0 }}>
         <TimeComponent webmapjs={this.webMapJS} width={timeComponentWidth} onChangeAnimation={this.onChangeAnimation} />
         <hr />
         <MetaInfo webmapjs={this.webMapJS} />

@@ -18,9 +18,7 @@ body {
   min-height: calc(100% - 133px);
 }
 #innermenu {
-  width:200px;
-  display:inline-block;
-  float:right;
+  display: block;
 }
 
 .dropdown{

@@ -149,7 +149,7 @@ export default class Menu extends React.Component {
       <SourceSelector dispatch={dispatch} dataFunc={setSource} sources={adagucProperties.sources} title='Sources' />
       <LayerSelector dispatch={dispatch} dataFunc={setLayer} layers={adagucProperties.layers} title='Layers' />
       <DataSelector dispatch={dispatch} dataFunc={setMapStyle} items={mapStyles} title='Map Styles' />
-      <DataSelector dispatch={dispatch} dataFunc={setCut} items={cuts} title='Uitsnedes' />
+      <DataSelector dispatch={dispatch} dataFunc={setCut} items={cuts} title='View' />
       <StylesSelector dispatch={dispatch} styles={adagucProperties.styles} title='Style' dataFunc={setStyle} />
       <OverlaySelector dispatch={dispatch} overlays={adagucProperties.overlays} title='Overlay' dataFunc={setOverlay} />
     </div>);

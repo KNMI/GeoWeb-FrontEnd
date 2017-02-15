@@ -10,21 +10,20 @@ export default class MetaInfo extends React.Component {
     // this.getLayerName = this.getLayerName.bind(this);
   }
   eventOnMapDimUpdate () {
-    this.layer = this.props.webmapjs.getLayers()[0];
+    // this.layer = this.props.webmapjs.getLayers()[0];
     this.eventOnDimChange();
   }
 
   getLayerName (layer) {
     if (layer) {
       const service = layer.service;
-      const title = layer.title;
       let retStr = '';
       if (service.includes('HARM')) {
-        retStr = 'HARMONIE - ' + title;
+        retStr = 'HARMONIE';
       } else if (service.includes('RADNL')) {
         retStr = 'Radar';
       } else {
-        retStr = 'Satellite - ' + title;
+        retStr = 'Satellite';
       }
 
       return retStr;
@@ -34,11 +33,13 @@ export default class MetaInfo extends React.Component {
 
   showLayerInfo (layer) {
     if (layer) {
+      console.log(layer);
       const layerName = this.getLayerName(layer);
+      const title = layer.title;
       const layerStyle = layer.getStyle();
       const refTime = layer.getDimension('reference_time');
-      let titles = ['Layer name', 'Style'];
-      let values = [layerName, layerStyle];
+      let titles = ['Source', 'Layer name', 'Style'];
+      let values = [layerName, title, layerStyle];
       if (refTime) {
         titles.push('Reference time');
         values.push(refTime.currentValue);
@@ -52,7 +53,7 @@ export default class MetaInfo extends React.Component {
   };
 
   eventOnDimChange () {
-    this.layer = this.props.webmapjs.getLayers()[0];
+    this.layer = this.props.webmapjs.getActiveLayer();
     this.setState({});
   }
 
