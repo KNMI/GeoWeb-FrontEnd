@@ -67,11 +67,11 @@ export default class Adaguc extends React.Component {
       return;
     }
     // const url = 'http://localhost/adagucviewer/webmapjs';
-    // var url = 'http://birdexp07.knmi.nl/geoweb/adagucviewer/webmapjs';
+    const url = 'http://birdexp07.knmi.nl/geoweb/adagucviewer/webmapjs';
 
-    const username = 'terpstra';
-    const machineName = 'bhw471';
-    const url = ['http://', machineName, '/~', username, '/adagucviewer/webmapjs'].join('');
+    // const username = 'terpstra';
+    // const machineName = 'birdexp07';
+    // const url = ['http://', machineName, '/~', username, '/adagucviewer/webmapjs'].join('');
     // eslint-disable-next-line no-undef
     this.webMapJS = new WMJSMap(adagucMapRef);
     this.webMapJS.setBaseURL(url);
