@@ -13,7 +13,6 @@ class BaseLayout extends Component {
 
   render () {
     const { header, leftSideBar, mainViewport, rightSideBar } = this.props;
-
     return (
       <Container fluid style={{ minHeight: '100%' }}>
         {/*<Row className='Header' style={{ maxHeight: '0' }}>
