@@ -16,7 +16,7 @@ export default (initialState = {}) => {
   const enhancers = [];
 
   let composeEnhancers = compose;
-  if (__DEV__ || global.__DEV__) {
+  if (global.__DEV__) {
     const composeWithDevToolsExtension = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__;
     if (typeof composeWithDevToolsExtension === 'function') {
       composeEnhancers = composeWithDevToolsExtension;
@@ -27,7 +27,7 @@ export default (initialState = {}) => {
   // Store Instantiation and HMR Setup
   // ======================================================
   let store = null;
-  if (__DEV__ || global.__DEV__) {
+  if (global.__DEV__) {
     store = createStore(
       makeRootReducer(),
       initialState,
