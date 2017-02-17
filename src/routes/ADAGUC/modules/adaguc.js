@@ -105,7 +105,10 @@ export const actions = {
 
 const newMapState = (state, payload) => {
   console.log(payload);
-  return Object.assign({}, state, { mapCreated: true }, { sources: payload.sources }, { overlayService: payload.overlays }, { overlayLayers: payload.overlays.layers.map((layer) => ({ title: layer })) });
+  return Object.assign({}, state, { mapCreated: true },
+    { sources: payload.sources },
+    { overlayService: payload.overlays },
+    { overlayLayers: payload.overlays.layers.map((layer) => ({ title: layer })) });
 };
 
 const newSource = (state, payload) => {
