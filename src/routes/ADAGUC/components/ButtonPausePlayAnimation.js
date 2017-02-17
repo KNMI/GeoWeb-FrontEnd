@@ -1,6 +1,6 @@
 import React from 'react';
-import { Button, Glyphicon } from 'react-bootstrap';
-
+import { Button } from 'reactstrap';
+import { Icon } from 'react-fa';
 const ButtonPausePlayAnimation = React.createClass({
   propTypes: {
     onChange: React.PropTypes.func,
@@ -19,7 +19,7 @@ const ButtonPausePlayAnimation = React.createClass({
     };
   },
   getIcon (newpauseorplay) {
-    return newpauseorplay ? 'glyphicon glyphicon glyphicon-play' : 'glyphicon glyphicon glyphicon-pause';
+    return newpauseorplay ? 'play' : 'pause';
   },
   handleClick (event) {
     let newpauseorplay = !this.state.pauseorplay;
@@ -44,8 +44,8 @@ const ButtonPausePlayAnimation = React.createClass({
       }
     }
     return <div>
-      <Button bsStyle='primary' bsSize='large' style={{ padding:'20px', margin:'5px' }} onClick={this.handleClick}>
-        <Glyphicon glyph={this.state.icon} />
+      <Button color='primary' size='lg' style={{ padding:'20px', margin:'5px' }} onClick={this.handleClick}>
+        <Icon name={this.state.icon} />
       </Button>
     </div>;
   }

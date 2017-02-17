@@ -17,7 +17,6 @@ export default class Adaguc extends React.Component {
   currentBeginDate = undefined;
 
   updateAnimation (layer) {
-    console.log('updateAnimation');
     if (!layer) {
       console.log('Layer not found');
       return;
@@ -82,7 +81,7 @@ export default class Adaguc extends React.Component {
 
     // Set the initial projection
     this.webMapJS.setProjection(adagucProperties.projectionName);
-    this.webMapJS.setBBOX(adagucProperties.boundingBox.join());
+    this.webMapJS.setBBOX(adagucProperties.boundingBox.bbox.join());
     // eslint-disable-next-line no-undef
     this.webMapJS.setBaseLayers([new WMJSLayer(adagucProperties.mapType)]);
     axios.get('http://birdexp07.knmi.nl/cgi-bin/geoweb/getServices.cgi').then(src => {
@@ -93,21 +92,21 @@ export default class Adaguc extends React.Component {
         var service = WMJSgetServiceFromStore(overlaySrc.service);
         service.getLayerNames((layernames) => { dispatch(actions.createMap(sources, { ...overlaySrc, layers: layernames })); }, (error) => { console.log('Error!: ', error); });
         this.webMapJS.draw();
+      }).catch((error) => {
+        console.log(error);
       });
+    }).catch((error) => {
+      console.log(error);
     });
   }
   componentDidMount () {
-    console.log('componentDidMount', this.refs.maindiv);
     this.initAdaguc(this.refs.adaguc);
   }
   componentWillReceiveProps (nextProps) {
-    console.log('componentWillReceiveProps', nextProps);
   }
   componentWillMount () {
-    console.log('componentWillMount');
   }
   componentWillUnmount () {
-    console.log('componentWillUnmount');
     if (this.webMapJS) {
       this.webMapJS.destroy();
     }
@@ -117,12 +116,12 @@ export default class Adaguc extends React.Component {
     // Otherwise only change when a new dataset is selected
     const { actions, adagucProperties, dispatch } = this.props;
     const { setLayers, setStyles } = actions;
-    const { source, layer, style, mapType, boundingBox, overlays, overlay } = adagucProperties;
+    const { source, layer, style, mapType, boundingBox, overlay } = adagucProperties;
       // eslint-disable-next-line no-undef
     const baselayer = new WMJSLayer(mapType);
     if (overlay) {
       // eslint-disable-next-line no-undef
-      const overLayer = new WMJSLayer(Object.assign({}, overlays, { name: overlay }));
+      const overLayer = new WMJSLayer(overlay);
       overLayer.keepOnTop = true;
       const newBaselayers = [baselayer, overLayer];
       this.webMapJS.setBaseLayers(newBaselayers);
@@ -141,13 +140,11 @@ export default class Adaguc extends React.Component {
       if (source === null) {
         return;
       }
-      console.log('prevprops', prevProps);
       if (!prevProps.adagucProperties.source || (prevProps.adagucProperties.source.service !== source.service)) {
         // eslint-disable-next-line no-undef
         var service = WMJSgetServiceFromStore(source.service);
         service.getLayerNames((layernames) => { dispatch(setLayers(layernames)); }, (error) => { console.log('Error!: ', error); });
       }
-      // console.log('Alle layers:', this.allelayers);
       if (layer === null) {
         return;
       }
@@ -179,7 +176,6 @@ export default class Adaguc extends React.Component {
   };
 
   onChangeAnimation (value) {
-    console.log('onChangeAnimation');
     this.isAnimating = !value;
     this.updateAnimation(this.webMapJS.getActiveLayer());
   }

@@ -1,5 +1,6 @@
 import React from 'react';
-import { Button, Glyphicon, FormControl } from 'react-bootstrap';
+import { Button, Input } from 'reactstrap';
+import { Icon } from 'react-fa';
 
 const NumberSpinner = React.createClass({
   propTypes: {
@@ -66,13 +67,13 @@ const NumberSpinner = React.createClass({
     }
     return <div style={{ width: this.props.width, display:'inline-block' }} >
       <Button style={{ padding: 0 }} onClick={this.handleClickUp} block>
-        <Glyphicon glyph='glyphicon glyphicon-chevron-up' />
+        <Icon name='chevron-up' />
       </Button>
-      <FormControl bsStyle='primary' type='text' value={value}
+      <Input type='text' value={value}
         onChange={this.handleChange}
         style={{ fontSize:25, height:35, textAlign:'center' }} />
       <Button style={{ padding: 0 }} onClick={this.handleClickDown} block>
-        <Glyphicon glyph='glyphicon glyphicon-chevron-down' />
+        <Icon name='chevron-down' />
       </Button>
     </div>;
   }
