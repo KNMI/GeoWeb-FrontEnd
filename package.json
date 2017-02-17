@@ -1,6 +1,6 @@
 {
   "name": "geoweb-frontend",
-  "version": "0.0.1",
+  "version": "0.2.0",
   "description": "GeoWeb FrontEnd is the platform for the Early Warning Center and Weather Room",
   "main": "index.js",
   "engines": {
@@ -107,8 +107,8 @@
     "react": "^15.4.2",
     "react-addons-css-transition-group": "^15.4.2",
     "react-addons-transition-group": "^15.4.2",
-    "react-bootstrap": "^0.30.7",
     "react-dom": "^15.4.2",
+    "react-fa": "^4.1.2",
     "react-redux": "^5.0.2",
     "react-router": "^3.0.2",
     "reactable": "^0.14.1",

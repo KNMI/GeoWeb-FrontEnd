@@ -20,8 +20,10 @@ export default class MetaInfo extends React.Component {
       let retStr = '';
       if (service.includes('HARM')) {
         retStr = 'HARMONIE';
-      } else if (service.includes('RADNL')) {
+      } else if (service.includes('RAD')) {
         retStr = 'Radar';
+      } else if (service.includes('OBS')) {
+        retStr = 'Observation';
       } else {
         retStr = 'Satellite';
       }
@@ -33,7 +35,6 @@ export default class MetaInfo extends React.Component {
 
   showLayerInfo (layer) {
     if (layer) {
-      console.log(layer);
       const layerName = this.getLayerName(layer);
       const title = layer.title;
       const layerStyle = layer.getStyle();

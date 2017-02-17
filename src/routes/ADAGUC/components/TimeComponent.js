@@ -2,7 +2,9 @@ import React from 'react';
 import NumberSpinner from './NumberSpinner.js';
 import ButtonPausePlayAnimation from './ButtonPausePlayAnimation.js';
 import CanvasComponent from './CanvasComponent.js';
-import { Button, Glyphicon } from 'react-bootstrap';
+import { Icon } from 'react-fa';
+import { Button } from 'reactstrap';
+
 const TimeComponent = React.createClass({
   propTypes: {
     onChangeAnimation: React.PropTypes.func,
@@ -31,11 +33,9 @@ const TimeComponent = React.createClass({
     if (!this.props.webmapjs) return;
     let timeDim = this.props.webmapjs.getDimension('time');
 
-    // console.log(timeDim);
     if (timeDim !== undefined) {
       if (this.state.value === timeDim.currentValue) {
         if (this.hoverDate === this.hoverDateDone) {
-          // console.log('ret');
           return;
         }
       }
@@ -344,11 +344,11 @@ const TimeComponent = React.createClass({
 
       </div>
       <div>
-        <Button bsStyle='primary' bsSize='large' style={{ padding:'20px', margin:'5px' }} onClick={this.handleButtonClickNow}>Now</Button>
+        <Button color='primary' size='large' style={{ padding:'20px', margin:'5px' }} onClick={this.handleButtonClickNow}>Now</Button>
       </div>
       <div>
-        <Button bsStyle='primary' style={{ padding:'28px 5px 30px 5px', marginLeft:'1px' }} onClick={this.handleButtonClickPrevPage}>
-          <Glyphicon glyph={'glyphicon glyphicon-chevron-left'} />
+        <Button color='primary' style={{ padding:'28px 5px 30px 5px', marginLeft:'1px' }} onClick={this.handleButtonClickPrevPage}>
+          <Icon name='chevron-left' />
         </Button>
       </div>
       <div style={{ border:'0px solid blue', margin: '0px 2px 0px 2px', padding: 0, background:'white', display: 'block' }}>
@@ -358,8 +358,8 @@ const TimeComponent = React.createClass({
           onMouseMove={this.onMouseMoveCanvas} />
       </div >
       <div>
-        <Button bsStyle='primary' style={{ padding:'28px 5px 30px 5px', marginRight: '10px' }} onClick={this.handleButtonClickNextPage}>
-          <Glyphicon glyph={'glyphicon glyphicon-chevron-right'} />
+        <Button color='primary' style={{ padding:'28px 5px 30px 5px' }} onClick={this.handleButtonClickNextPage}>
+          <Icon name='chevron-right' />
         </Button>
       </div>
     </div>;

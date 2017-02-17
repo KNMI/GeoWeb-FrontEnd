@@ -37,6 +37,7 @@ function setMapStyle (styleIdx) {
   };
 }
 function setSource (dataIdx) {
+  console.log('setSource', dataIdx);
   return {
     type: SET_SOURCE,
     payload: dataIdx
@@ -103,17 +104,18 @@ export const actions = {
 };
 
 const newMapState = (state, payload) => {
-  return Object.assign({}, state, { mapCreated: true }, { sources: payload.sources }, { overlays: payload.overlays });
+  console.log(payload);
+  return Object.assign({}, state, { mapCreated: true }, { sources: payload.sources }, { overlayService: payload.overlays }, { overlayLayers: payload.overlays.layers.map((layer) => ({ title: layer })) });
 };
 
 const newSource = (state, payload) => {
   return Object.assign({}, state, { source: state.sources[payload] }, { layer: null }, { style: null });
 };
 const newLayer = (state, payload) => {
-  return Object.assign({}, state, { layer: state.layers[payload] });
+  return Object.assign({}, state, { layer: state.layers[payload].title });
 };
 const newLayers = (state, payload) => {
-  return Object.assign({}, state, { layers: payload });
+  return Object.assign({}, state, { layers: payload.map((layer) => ({ title: layer })) });
 };
 const newStyles = (state, payload) => {
   return Object.assign({}, state, { styles: payload });
@@ -122,17 +124,20 @@ const newMapStyle = (state, payload) => {
   return Object.assign({}, state, { mapType: MAP_STYLES[payload] });
 };
 const newCut = (state, payload) => {
-  return Object.assign({}, state, { boundingBox: BOUNDING_BOXES[payload] });
+  return Object.assign({}, state, { boundingBox: BOUNDING_BOXES[payload].bbox });
 };
 const newStyle = (state, payload) => {
   return Object.assign({}, state, { style: state.styles[payload].name });
 };
 const newOverlay = (state, payload) => {
-  if (payload >= state.overlays.layers.length) {
-    console.log('reset');
+  console.log(state.overlay);
+  console.log(payload);
+  if (payload >= state.overlayLayers.length) {
     return Object.assign({}, state, { overlay: null });
   } else {
-    return Object.assign({}, state, { overlay: state.overlays.layers[payload] });
+    const overlayObject = Object.assign({}, state.overlayService, { name: state.overlayLayers[payload].title });
+    console.log(overlayObject);
+    return Object.assign({}, state, { overlay: overlayObject });
   }
 };
 // ------------------------------------
