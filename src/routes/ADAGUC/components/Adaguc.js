@@ -90,7 +90,14 @@ export default class Adaguc extends React.Component {
         const overlaySrc = res.data[0];
         // eslint-disable-next-line no-undef
         var service = WMJSgetServiceFromStore(overlaySrc.service);
-        service.getLayerNames((layernames) => { dispatch(actions.createMap(sources, { ...overlaySrc, layers: layernames })); }, (error) => { console.log('Error!: ', error); });
+        service.getLayerNames(
+          (layernames) => {
+            dispatch(actions.createMap(sources, { ...overlaySrc, layers: layernames }));
+          },
+          (error) => {
+            console.log('Error!: ', error);
+          }
+        );
         this.webMapJS.draw();
       }).catch((error) => {
         console.log(error);
