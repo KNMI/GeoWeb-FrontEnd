@@ -48,6 +48,8 @@ const AdagucMapDraw = React.createClass({
   componentDidMount () {
   },
   handleStartEdit () {
+    this.editMode = true;
+    this.props.webmapjs.draw();
   },
   convertGeoCoordsToScreenCoords (featureCoords) {
     const { webmapjs } = this.props;
@@ -59,6 +61,7 @@ const AdagucMapDraw = React.createClass({
     return XYCoords;
   },
   adagucBeforeDraw (ctx) {
+    if (this.editMode === false) return;
     /* Current selected feature from GeoJSON */
     let featureIndex = 2;
 
@@ -95,7 +98,7 @@ const AdagucMapDraw = React.createClass({
       ctx.fillStyle = '#88F';
       ctx.lineWidth = 1.0;
 
-      let drawVertice = function (coord) {
+      let drawVertice = (coord) => {
         ctx.fillRect(coord.x - 4.5, coord.y - 4.5, 9, 9);
         ctx.strokeRect(coord.x - 4.5, coord.y - 4.5, 9, 9);
         ctx.strokeRect(coord.x - 0.5, coord.y - 0.5, 1, 1);
@@ -108,6 +111,7 @@ const AdagucMapDraw = React.createClass({
     }
   },
   adagucMouseMove (event) {
+    if (this.editMode === false) return;
     let featureIndex = 2;
     /* The mouse is hovering a vertice, and the mousedown is into effect, move vertice accordingly */
     let feature = poly.features[featureIndex];
@@ -199,6 +203,7 @@ const AdagucMapDraw = React.createClass({
     if (webmapjs !== undefined) {
       if (this.listenersInitialized === undefined) { // TODO mount/unmount
         this.listenersInitialized = true;
+        this.editMode = false;
         console.log('initlistener');
 
         webmapjs.addListener('beforecanvasdisplay', this.adagucBeforeDraw, true);
