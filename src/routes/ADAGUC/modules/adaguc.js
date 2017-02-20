@@ -24,50 +24,49 @@ function createMap (sources, overlays) {
     }
   };
 }
-function setCut (boundingbox) {
+function setCut (boundingbox = BOUNDING_BOXES[0]) {
   return {
     type: SET_CUT,
     payload: boundingbox
   };
 }
-function setMapStyle (styleIdx) {
+function setMapStyle (styleIdx = 0) {
   return {
     type: SET_MAP_STYLE,
     payload: styleIdx
   };
 }
-function setSource (dataIdx) {
-  console.log('setSource', dataIdx);
+function setSource (dataIdx = 0) {
   return {
     type: SET_SOURCE,
     payload: dataIdx
   };
 }
-function setLayer (dataIdx) {
+function setLayer (dataIdx = 0) {
   return {
     type: SET_LAYER,
     payload: dataIdx
   };
 }
-function setLayers (dataIdx) {
+function setLayers (dataIdx = { }) {
   return {
     type: SET_LAYERS,
     payload: dataIdx
   };
 }
-function setStyle (style) {
+function setStyle (style = 0) {
   return {
     type: SET_STYLE,
     payload: style
   };
 }
-function setStyles (styles) {
+function setStyles (styles = { }) {
   return {
     type: SET_STYLES,
     payload: styles
   };
 }
-function setOverlay (dataidx) {
+function setOverlay (dataidx = 0) {
   return {
     type: SET_OVERLAY,
     payload: dataidx

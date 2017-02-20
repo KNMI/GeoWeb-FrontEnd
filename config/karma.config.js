@@ -8,7 +8,7 @@ const karmaConfig = {
   basePath : '../', // project root in relation to bin/karma.js
 
   // only use PhantomJS for our 'test' browser
-  browsers: ['PhantomJS'],
+  browsers: ['jsdom'],
 
   // just run once by default unless --watch flag is passed
   singleRun: !argv.watch,

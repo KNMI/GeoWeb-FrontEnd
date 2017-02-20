@@ -1,7 +1,6 @@
 import React from 'react';
 import { default as Menu } from './Menu';
 import { mount, shallow } from 'enzyme';
-import ReactTestUtils from 'react-addons-test-utils'; // ES6
 
 describe('(Component) Menu', () => {
   const funcs = {
