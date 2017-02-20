@@ -14,7 +14,7 @@ const TimeComponent = React.createClass({
     height: React.PropTypes.number
   },
   getInitialState () {
-    return { value: this.props.date };
+    return { value: this.props.date, width: this.props.width };
   },
   getDefaultProps () {
     return {
@@ -39,14 +39,23 @@ const TimeComponent = React.createClass({
           return;
         }
       }
-      this.setState({ value:timeDim.currentValue });
+      if (timeDim.currentValue !== this.state.value) {
+        this.setState({ value:timeDim.currentValue, width: this.state.width });
+      }
     } else {
+      return;
+    }
+    this.drawCanvas();
+  },
+  drawCanvas () {
+    if (!this.props.webmapjs) return;
+    let timeDim = this.props.webmapjs.getDimension('time');
+    if (timeDim === undefined) {
       return;
     }
     this.hoverDateDone = this.hoverDate;
 
     let layers = this.props.webmapjs.getLayers();
-
     let ctx = this.ctx;
     let canvasWidth = ctx.canvas.clientWidth;
     let canvasHeight = ctx.canvas.clientHeight;
@@ -266,12 +275,14 @@ const TimeComponent = React.createClass({
   componentDidMount () {
     console.log('mount');
   },
+  componentDidUpdate () {
+    this.drawCanvas();
+  },
   componentWillUnmount () {
     console.log('unmount');
   },
   onRenderCanvas (ctx) {
     this.ctx = ctx;
-    this.eventOnDimChange();
   },
   onClickCanvas (x, y) {
     let t = x / this.ctx.canvas.clientWidth;
@@ -352,7 +363,7 @@ const TimeComponent = React.createClass({
         </Button>
       </div>
       <div style={{ border:'0px solid blue', margin: '0px 2px 0px 2px', padding: 0, background:'white', display: 'block' }}>
-        <CanvasComponent width={this.props.width - 575} height={78}
+        <CanvasComponent width={this.state.width - 575} height={78}
           onRenderCanvas={this.onRenderCanvas}
           onClick={this.onClickCanvas}
           onMouseMove={this.onMouseMoveCanvas} />

@@ -57,7 +57,11 @@ export default class Adaguc extends React.Component {
     // eslint-disable-next-line no-undef
     this.webMapJS.setSize($(window).width(), $(window).height() - 260);
     this.webMapJS.draw();
-    this.render();
+    if (this.refs.TimeComponent) {
+      // eslint-disable-next-line no-undef
+      let timeComponentWidth = $(window).width() - 20;
+      this.refs.TimeComponent.setState({ 'width':timeComponentWidth });
+    }
   }
 
   initAdaguc (adagucMapRef) {
@@ -107,13 +111,20 @@ export default class Adaguc extends React.Component {
     });
   }
   componentDidMount () {
+    console.log('componentDidMount', this.refs.maindiv);
     this.initAdaguc(this.refs.adaguc);
   }
   componentWillReceiveProps (nextProps) {
+    console.log('componentWillReceiveProps', nextProps);
   }
   componentWillMount () {
+    console.log('componentWillMount');
+    /* Component will unmount, set flag that map is not created */
+    const { adagucProperties } = this.props;
+    adagucProperties.mapCreated = false;
   }
   componentWillUnmount () {
+    console.log('componentWillUnmount');
     if (this.webMapJS) {
       this.webMapJS.destroy();
     }
@@ -185,11 +196,13 @@ export default class Adaguc extends React.Component {
   onChangeAnimation (value) {
     this.isAnimating = !value;
     this.updateAnimation(this.webMapJS.getActiveLayer());
-  }
+  };
 
   render () {
     // eslint-disable-next-line no-undef
     let timeComponentWidth = $(window).width() - 20;
+    // console.log('timeComponentWidth=' + timeComponentWidth);
+
     // let timeComponentWidth = this.webMapJS ? this.webMapJS.getSize().width : $(window).width();
     return (<div>
       <Menu {...this.props} webmapjs={this.webMapJS} />
@@ -197,7 +210,7 @@ export default class Adaguc extends React.Component {
         <div ref='adaguc' />
       </div>
       <div id='infocontainer' style={{ margin: 0 }}>
-        <TimeComponent webmapjs={this.webMapJS} width={timeComponentWidth} onChangeAnimation={this.onChangeAnimation} />
+        <TimeComponent ref='TimeComponent' webmapjs={this.webMapJS} width={timeComponentWidth} onChangeAnimation={this.onChangeAnimation} />
         <hr />
         <MetaInfo webmapjs={this.webMapJS} />
       </div>
