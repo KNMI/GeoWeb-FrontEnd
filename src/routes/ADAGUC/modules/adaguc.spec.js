@@ -1,53 +1,49 @@
-// import {
-//   COUNTER_INCREMENT,
-//   increment,
-//   doubleAsync,
-//   default as counterReducer
-// } from 'routes/Counter/modules/counter';
-// import sinon from 'sinon';
+import {
+  SET_SOURCE,
+  actions,
+  default as adagucReducer
+} from 'routes/ADAGUC/modules/adaguc';
+
 describe('(Redux Module) Adaguc', () => {
-  // it('Should export a constant COUNTER_INCREMENT.', () => {
-  //   expect(COUNTER_INCREMENT).to.equal('COUNTER_INCREMENT');
-  // });
+  describe('(Reducer)', () => {
+    it('Should be a function.', () => {
+      expect(adagucReducer).to.be.a('function');
+    });
 
-  // describe('(Reducer)', () => {
-  //   it('Should be a function.', () => {
-  //     expect(counterReducer).to.be.a('function');
-  //   });
+    it('Should initialize with an empty state.', () => {
+      expect(adagucReducer(undefined, {})).to.eql({});
+    });
 
-  //   it('Should initialize with a state of 0 (Number).', () => {
-  //     expect(counterReducer(undefined, {})).to.equal(0);
-  //   });
+    it('Should return the previous state if an action was not matched.', () => {
+      let state = adagucReducer(undefined, {});
+      expect(state).to.eql({});
+      state = adagucReducer(state, { type: '@@@@@@@' });
+      expect(state).to.eql({});
+      state = adagucReducer(state, { type: 'SET_STYLES', payload: 'asdf' });
+      expect(state).to.eql({ styles: 'asdf' });
+      state = adagucReducer(state, { type: '@@@@@@@' });
+      expect(state).to.eql({ styles: 'asdf' });
+    });
+  });
 
-  //   it('Should return the previous state if an action was not matched.', () => {
-  //     let state = counterReducer(undefined, {});
-  //     expect(state).to.equal(0);
-  //     state = counterReducer(state, { type: '@@@@@@@' });
-  //     expect(state).to.equal(0);
-  //     state = counterReducer(state, increment(5));
-  //     expect(state).to.equal(5);
-  //     state = counterReducer(state, { type: '@@@@@@@' });
-  //     expect(state).to.equal(5);
-  //   });
-  // });
+  describe('(Action Creator) setSource', () => {
+    it('Should be exported as a function.', () => {
+      expect(actions).to.have.property('setSource');
+      expect(actions.setSource).to.be.a('function');
+    });
 
-  // describe('(Action Creator) increment', () => {
-  //   it('Should be exported as a function.', () => {
-  //     expect(increment).to.be.a('function');
-  //   });
+    it('Should return an action with type "SET_SOURCE".', () => {
+      expect(actions.setSource()).to.have.property('type', SET_SOURCE);
+    });
 
-  //   it('Should return an action with type "COUNTER_INCREMENT".', () => {
-  //     expect(increment()).to.have.property('type', COUNTER_INCREMENT);
-  //   });
+    it('Should assign the first argument to the "payload" property.', () => {
+      expect(actions.setSource(5)).to.have.property('payload', 5);
+    });
 
-  //   it('Should assign the first argument to the "payload" property.', () => {
-  //     expect(increment(5)).to.have.property('payload', 5);
-  //   });
-
-  //   it('Should default the "payload" property to 1 if not provided.', () => {
-  //     expect(increment()).to.have.property('payload', 1);
-  //   });
-  // });
+    it('Should default the "payload" property to 0 if not provided.', () => {
+      expect(actions.setSource()).to.have.property('payload', 0);
+    });
+  });
 
   // describe('(Action Creator) doubleAsync', () => {
   //   let _globalState;
@@ -56,12 +52,12 @@ describe('(Redux Module) Adaguc', () => {
 
   //   beforeEach(() => {
   //     _globalState = {
-  //       counter : counterReducer(undefined, {})
+  //       counter : adagucReducer(undefined, {})
   //     };
   //     _dispatchSpy = sinon.spy((action) => {
   //       _globalState = {
   //         ..._globalState,
-  //         counter : counterReducer(_globalState.counter, action)
+  //         counter : adagucReducer(_globalState.counter, action)
   //       };
   //     });
   //     _getStateSpy = sinon.spy(() => {
@@ -112,13 +108,13 @@ describe('(Redux Module) Adaguc', () => {
   // // (which cannot be mutated).
   // describe('(Action Handler) COUNTER_INCREMENT', () => {
   //   it('Should increment the state by the action payload\'s "value" property.', () => {
-  //     let state = counterReducer(undefined, {});
+  //     let state = adagucReducer(undefined, {});
   //     expect(state).to.equal(0);
-  //     state = counterReducer(state, increment(1));
+  //     state = adagucReducer(state, increment(1));
   //     expect(state).to.equal(1);
-  //     state = counterReducer(state, increment(2));
+  //     state = adagucReducer(state, increment(2));
   //     expect(state).to.equal(3);
-  //     state = counterReducer(state, increment(-3));
+  //     state = adagucReducer(state, increment(-3));
   //     expect(state).to.equal(0);
   //   });
   // });

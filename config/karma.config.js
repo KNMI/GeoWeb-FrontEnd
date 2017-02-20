@@ -8,7 +8,7 @@ const karmaConfig = {
   basePath : '../', // project root in relation to bin/karma.js
 
   // only use PhantomJS for our 'test' browser
-  browsers: ['PhantomJS'],
+  browsers: ['jsdom'],
 
   // just run once by default unless --watch flag is passed
   singleRun: !argv.watch,
@@ -30,13 +30,13 @@ const karmaConfig = {
 
     // these files we want to be precompiled with webpack
     // also run tests through sourcemap for easier debugging
-    // [`${project.dir_test}/testSetup.js`] : ['webpack', 'sourcemap'],
-    // './**/*.spec.js': ['babel']
-    './src/test/*.js': ['webpack', 'sourcemap'],
-    './src/**/*.spec.js': ['webpack', 'sourcemap']
+    './src/**/*.spec.js': ['webpack'],
+    './src/test/*.js': ['webpack'],
+    './src/**/*.js': ['webpack', 'sourcemap', 'coverage']
   },
   webpack  : {
     devtool: 'inline-source-map',
+
     resolve: Object.assign({}, webpackConfig.resolve, {
 
       // required for enzyme to work properly
@@ -76,24 +76,10 @@ const karmaConfig = {
     'karma-sourcemap-loader',
     'karma-babel-preprocessor'
   ]),
+
   coverageReporter : {
     dir: 'coverage',
     reporters : project.coverage_reporters
   }
 };
-
-if (project.globals.__COVERAGE__) {
-  // karmaConfig.reporters.push('coverage');
-  // karmaConfig.webpack.module.rules = [{
-  //   test    : /\.(js|jsx)$/,
-  //   enforce : 'pre',
-  //   include : new RegExp(project.dir_client),
-  //   exclude : /(node_modules)/,
-  //   loader  : 'babel-loader',
-  //   options   : Object.assign({}, project.compiler_babel, {
-  //     plugins : (project.compiler_babel.plugins || []).concat('istanbul')
-  //   })
-  // }];
-}
-
 module.exports = (cfg) => cfg.set(karmaConfig);
