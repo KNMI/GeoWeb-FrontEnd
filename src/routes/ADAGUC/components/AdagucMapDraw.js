@@ -209,6 +209,7 @@ const AdagucMapDraw = React.createClass({
         webmapjs.addListener('beforecanvasdisplay', this.adagucBeforeDraw, true);
         webmapjs.addListener('beforemousemove', this.adagucMouseMove, true);
       }
+      webmapjs.draw();
     }
     return (
       <Button onClick={this.handleStartEdit}>Start Editing</Button>
