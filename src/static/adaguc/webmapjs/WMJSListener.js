@@ -83,7 +83,7 @@ function WMJSListener () {
             callBacks[j].finished = 1;
           }
           try {
-            callBacks[j].functionpointer(param, _this);
+            return callBacks[j].functionpointer(param, _this);
           } catch (e) {
             console.log('Error for event ' + name + ' with ' + param);
             console.log(e);

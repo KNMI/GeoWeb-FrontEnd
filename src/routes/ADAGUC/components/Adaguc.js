@@ -1,6 +1,7 @@
 import React from 'react';
 import { default as Menu } from './Menu';
 import TimeComponent from './TimeComponent.js';
+import AdagucMapDraw from './AdagucMapDraw.js';
 import MetaInfo from './MetaInfo.js';
 import axios from 'axios';
 export default class Adaguc extends React.Component {
@@ -55,7 +56,7 @@ export default class Adaguc extends React.Component {
 
   resize () {
     // eslint-disable-next-line no-undef
-    this.webMapJS.setSize($(window).width(), $(window).height() - 260);
+    this.webMapJS.setSize($(window).width(), $(window).height() - 300);
     this.webMapJS.draw();
     if (this.refs.TimeComponent) {
       // eslint-disable-next-line no-undef
@@ -81,7 +82,7 @@ export default class Adaguc extends React.Component {
     // eslint-disable-next-line no-undef
     $(window).resize(this.resize);
     // eslint-disable-next-line no-undef
-    this.webMapJS.setSize($(window).width(), $(window).height() - 260);
+    this.webMapJS.setSize($(window).width(), $(window).height() - 300);
 
     // Set the initial projection
     this.webMapJS.setProjection(adagucProperties.projectionName);
@@ -200,7 +201,7 @@ export default class Adaguc extends React.Component {
 
   render () {
     // eslint-disable-next-line no-undef
-    let timeComponentWidth = $(window).width() - 20;
+    let timeComponentWidth = $(window).width();
     // console.log('timeComponentWidth=' + timeComponentWidth);
 
     // let timeComponentWidth = this.webMapJS ? this.webMapJS.getSize().width : $(window).width();
@@ -210,6 +211,7 @@ export default class Adaguc extends React.Component {
         <div ref='adaguc' />
       </div>
       <div id='infocontainer' style={{ margin: 0 }}>
+        <AdagucMapDraw webmapjs={this.webMapJS} />
         <TimeComponent ref='TimeComponent' webmapjs={this.webMapJS} width={timeComponentWidth} onChangeAnimation={this.onChangeAnimation} />
         <hr />
         <MetaInfo webmapjs={this.webMapJS} />

@@ -1796,12 +1796,14 @@
             if (enableConsoleDebugging)console.log('loadedBBOX.setBBOX(bbox)');
             loadedBBOX.setBBOX(loadingBBOX);
             if (enableConsoleDebugging)console.log('-----------------------');
+
             divBuffer[current].display(updateBBOX, loadedBBOX);
             divMapPin.oldx = divMapPin.exactX;
             divMapPin.oldy = divMapPin.exactY;
             divBuffer[prev].hide();
             currentSwapBuffer = current;
             newSwapBuffer = prev;
+
           } catch (e) {
             console.log(e);
           }
@@ -1813,6 +1815,13 @@
           loadingDivTimer.stop();
         }
       );
+    };
+
+    _map.getBackBufferCanvasContext = function () {
+      return divBuffer[newSwapBuffer].getCanvasContext();
+    };
+    _map.getFrontBufferCanvasContext = function () {
+      return divBuffer[currentSwapBuffer].getCanvasContext();
     };
 
     _map.redrawBuffer = function () {
@@ -2581,7 +2590,9 @@
     this.mouseMove = function (mouseCoordX, mouseCoordY) {
       mouseX = mouseCoordX;
       mouseY = mouseCoordY;
-
+      if (callBack.triggerEvent('beforemousemove', { mouseX:mouseX, mouseY:mouseY, mouseDown:mouseDownPressed === 1 ? true:false } ) === false) {
+        return;
+      }
       if (divBoundingBox.displayed == true && mapPanning == 0) {
         var tlpx = _map.getPixelCoordFromGeoCoord({ x:divBoundingBox.bbox.left, y:divBoundingBox.bbox.top });
         var brpx = _map.getPixelCoordFromGeoCoord({ x:divBoundingBox.bbox.right, y:divBoundingBox.bbox.bottom });
@@ -2901,6 +2912,14 @@
       _map.draw('mapZoomEnd');
     };
 
+    this.setCursor = function (cursor) {
+      if (cursor) {
+        baseDiv.css('cursor', cursor);
+      } else {
+        baseDiv.css('cursor', 'default');
+      }
+    };
+
     this.zoomTo = function (_newbbox) {
       if (enableConsoleDebugging)console.log('zoomTo');
       var setOrigBox = false;
@@ -3012,7 +3031,6 @@
         alert(debug('error in getPixelCoordFromLatLong ' + e));
         return undefined;
       }
-
       var newpos = _map.getPixelCoordFromGeoCoord(p);
 
       return newpos;
@@ -3174,7 +3192,7 @@
 
       var x = (w * (coordinates.x - b.left)) / (b.right - b.left);
       var y = (h * (coordinates.y - b.top)) / (b.bottom - b.top);
-      return { x:x, y:y };
+      return { x:parseInt(x), y:parseInt(y) };
     };
 
     // listeners:
@@ -3346,6 +3364,7 @@
     };
 
     this.setBBOX = function (left, bottom, right, top) {
+
       if (enableConsoleDebugging)console.log('setBBOX');
       bbox.setBBOX(left, bottom, right, top);
       resizeBBOX.setBBOX(bbox);
@@ -3639,6 +3658,7 @@
     this.setErrorFunction = function (errorFunction) { error = errorFunction; };
     // Make sure the constructor is called upon creation of the object
     constructor();
+    updateBoundingBox(bbox);
 
     // _map.setDisplayModeGFI();
   };

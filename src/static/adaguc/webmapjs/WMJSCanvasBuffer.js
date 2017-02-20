@@ -32,6 +32,10 @@ var WMJSCanvasBuffer = function (webmapJSCallback, _type, _imageStore, w, h) {
 
   this.canvas.addClass('WMJSCanvasBuffer-noselect');
 
+  this.getCanvasContext = function () {
+    return ctx;
+  };
+
   this.imageLoadComplete = function (image) {
     statDivBufferImageLoaded();
     webmapJSCallback.triggerEvent('onimageload');
@@ -92,7 +96,11 @@ var WMJSCanvasBuffer = function (webmapJSCallback, _type, _imageStore, w, h) {
         error("<a target=\'_blank\' href='" + _this.layerstodisplay[j].getSrc() + "'>" + _this.layerstodisplay[j].getSrc() + '</a>', false);
       }
     }
+    ctx.globalAlpha = 1;
+    webmapJSCallback.triggerEvent('beforecanvasdisplay',ctx);
+
     _this.canvas.show();
+    webmapJSCallback.triggerEvent('aftercanvasdisplay',ctx);
   };
 
   this.finishedLoading = function () {
