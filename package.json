@@ -142,6 +142,8 @@
     "eslint-plugin-react": "^6.9.0",
     "eslint-plugin-standard": "^2.0.1",
     "express": "^4.14.0",
+    "istanbul": "^0.4.5",
+    "istanbul-instrumenter-loader": "^2.0.0",
     "jsdom": "^9.9.1",
     "karma": "^1.4.1",
     "karma-babel-preprocessor": "^6.0.1",
@@ -165,6 +167,7 @@
     "redux-devtools": "^3.3.2",
     "sinon": "^1.17.7",
     "sinon-chai": "^2.8.0",
+    "transform-runtime": "0.0.0",
     "webpack-dev-middleware": "^1.9.0",
     "webpack-hot-middleware": "^2.16.1"
   },
