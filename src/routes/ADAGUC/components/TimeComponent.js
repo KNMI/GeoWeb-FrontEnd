@@ -347,7 +347,7 @@ const TimeComponent = React.createClass({
         <Button color='primary' size='large' style={{ padding:'20px', margin:'5px' }} onClick={this.handleButtonClickNow}>Now</Button>
       </div>
       <div>
-        <Button color='primary' style={{ padding:'28px 5px 30px 5px', marginLeft:'1px' }} onClick={this.handleButtonClickPrevPage}>
+        <Button color='primary' style={{ padding:'28px 5px 30px 5px', marginLeft:'1px', marginRight:'10px' }} onClick={this.handleButtonClickPrevPage}>
           <Icon name='chevron-left' />
         </Button>
       </div>
