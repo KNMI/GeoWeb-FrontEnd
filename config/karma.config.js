@@ -5,6 +5,11 @@ const debug = require('debug')('app:config:karma');
 
 debug('Creating configuration.');
 const karmaConfig = {
+  captureTimeout: 2000,
+  browserDisconnectTimeout: 2000,
+  browserDisconnectTolerance: 3,
+  browserNoActivityTimeout: 10000,
+
   basePath : '../', // project root in relation to bin/karma.js
 
   // only use PhantomJS for our 'test' browser
@@ -69,9 +74,7 @@ const karmaConfig = {
     'karma-chai',
     'karma-webpack',
     'karma-coverage',
-    'karma-phantomjs-launcher',
     'karma-jsdom-launcher',
-    'karma-chrome-launcher',
     'karma-spec-reporter',
     'karma-sourcemap-loader',
     'karma-babel-preprocessor'
@@ -82,4 +85,7 @@ const karmaConfig = {
     reporters : project.coverage_reporters
   }
 };
-module.exports = (cfg) => cfg.set(karmaConfig);
+module.exports = (cfg) => {
+  cfg.set(karmaConfig);
+  debug('Config set');
+};
