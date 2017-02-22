@@ -2481,7 +2481,7 @@
     };
 
     this.mouseDown = function (mouseCoordX, mouseCoordY, event) {
-      controlsBusy = true;
+
 
       var shiftKey = false;
       if (event) {
@@ -2490,6 +2490,17 @@
         }
       }
 
+      mouseDownX = mouseCoordX;
+      mouseDownY = mouseCoordY;
+      mouseDownPressed = 1;
+      if (mouseDragging === 0) {
+        if (checkInvalidMouseAction(mouseDownX, mouseDownY) === 0) {
+          if (callBack.triggerEvent('beforemousedown', { mouseX:mouseCoordX, mouseY:mouseCoordY, mouseDown:true, event:event } ) === false) {
+            return;
+          }
+        }
+      }
+      controlsBusy = true;
       if (!shiftKey) {
         if (oldMapMode != undefined) {
           mapMode = oldMapMode;
@@ -2499,10 +2510,6 @@
         if (oldMapMode == undefined)oldMapMode = mapMode;
         mapMode = 'zoom';
       }
-
-      mouseDownX = mouseCoordX;
-      mouseDownY = mouseCoordY;
-      mouseDownPressed = 1;
       callBack.triggerEvent('mousedown', { map:_map, x:mouseDownX, y:mouseDownY });
 
       if (mapMode == 'info') {
@@ -2590,8 +2597,10 @@
     this.mouseMove = function (mouseCoordX, mouseCoordY) {
       mouseX = mouseCoordX;
       mouseY = mouseCoordY;
-      if (callBack.triggerEvent('beforemousemove', { mouseX:mouseX, mouseY:mouseY, mouseDown:mouseDownPressed === 1 ? true:false } ) === false) {
-        return;
+      if (mouseDragging === 0 ){
+        if (callBack.triggerEvent('beforemousemove', { mouseX:mouseX, mouseY:mouseY, mouseDown:mouseDownPressed === 1 ? true:false } ) === false) {
+          return;
+        }
       }
       if (divBoundingBox.displayed == true && mapPanning == 0) {
         var tlpx = _map.getPixelCoordFromGeoCoord({ x:divBoundingBox.bbox.left, y:divBoundingBox.bbox.top });
@@ -2698,6 +2707,14 @@
       controlsBusy = false;
       mouseUpX = mouseCoordX;
       mouseUpY = mouseCoordY;
+      if (mouseDragging === 0 ) {
+          if (checkInvalidMouseAction(mouseUpX, mouseUpY) === 0) {
+          if (callBack.triggerEvent('beforemouseup', { mouseX:mouseCoordX, mouseY:mouseCoordY, mouseDown:false, event:e } ) === false) {
+            mouseDownPressed = 0;
+            return;
+          }
+        }
+      }
 
       if (mouseDownPressed == 1) {
         if (mapMode == 'zoomout') { _map.zoomOut(); }

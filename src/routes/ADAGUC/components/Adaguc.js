@@ -70,7 +70,10 @@ export default class Adaguc extends React.Component {
     if (adagucProperties.mapCreated) {
       return;
     }
+    // const rootURL = 'http://localhost/cgi-bin/';
     // const url = 'http://localhost/adagucviewer/webmapjs';
+
+    const rootURL = 'http://birdexp07.knmi.nl/cgi-bin/geoweb';
     const url = 'http://birdexp07.knmi.nl/geoweb/adagucviewer/webmapjs';
 
     // const username = 'terpstra';
@@ -89,9 +92,9 @@ export default class Adaguc extends React.Component {
     this.webMapJS.setBBOX(adagucProperties.boundingBox.bbox.join());
     // eslint-disable-next-line no-undef
     this.webMapJS.setBaseLayers([new WMJSLayer(adagucProperties.mapType)]);
-    axios.get('http://birdexp07.knmi.nl/cgi-bin/geoweb/getServices.cgi').then(src => {
+    axios.get(rootURL + '/getServices.cgi').then(src => {
       const sources = src.data;
-      axios.get('http://birdexp07.knmi.nl/cgi-bin/geoweb/getOverlayServices.cgi').then(res => {
+      axios.get(rootURL + '/getOverlayServices.cgi').then(res => {
         const overlaySrc = res.data[0];
         // eslint-disable-next-line no-undef
         var service = WMJSgetServiceFromStore(overlaySrc.service);
@@ -181,11 +184,11 @@ export default class Adaguc extends React.Component {
         this.webMapJS.addLayer(newDataLayer);
       }
       // eslint-disable-next-line
-      var newDataLayer2 = new WMJSLayer({
-        service:'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.RADAR.cgi?',
-        name:'precipitation'
-      });
-      this.webMapJS.addLayer(newDataLayer2);
+      // var newDataLayer2 = new WMJSLayer({
+      //   service:'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.RADAR.cgi?',
+      //   name:'precipitation'
+      // });
+      // this.webMapJS.addLayer(newDataLayer2);
       this.webMapJS.setActiveLayer(newDataLayer);
       if (!prevProps.adagucProperties.layer || (prevProps.adagucProperties.layer !== layer)) {
         const styles = this.webMapJS.getActiveLayer().styles;
