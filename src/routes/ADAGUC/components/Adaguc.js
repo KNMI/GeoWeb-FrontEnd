@@ -69,12 +69,8 @@ export default class Adaguc extends React.Component {
     if (adagucProperties.mapCreated) {
       return;
     }
-    // const url = 'http://localhost/adagucviewer/webmapjs';
     const url = 'http://birdexp07.knmi.nl/geoweb/adagucviewer/webmapjs';
 
-    // const username = 'terpstra';
-    // const machineName = 'birdexp07';
-    // const url = ['http://', machineName, '/~', username, '/adagucviewer/webmapjs'].join('');
     // eslint-disable-next-line no-undef
     this.webMapJS = new WMJSMap(adagucMapRef);
     this.webMapJS.setBaseURL(url);
@@ -153,7 +149,9 @@ export default class Adaguc extends React.Component {
     if (mapType !== prevProps.adagucProperties.mapType) {
       // eslint-disable-next-line no-undef
     } else if (boundingBox !== prevProps.adagucProperties.boundingBox) {
-      this.webMapJS.setBBOX(boundingBox.join());
+      console.log(boundingBox.bbox.join());
+      this.webMapJS.setBBOX(boundingBox.bbox.join());
+      this.webMapJS.draw();
     } else {
       if (source === null) {
         return;

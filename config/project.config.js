@@ -33,9 +33,24 @@ const config = {
   // ----------------------------------
   compiler_babel : {
     cacheDirectory : true,
-    plugins        : ['transform-runtime'],
-    presets        : ['es2015', 'react', 'stage-0']
+    plugins        : ['transform-runtime', 'transform-class-properties'],
+    presets        : ['es2016', 'react', 'stage-3'],
+    only           : ['src'],
+    env : {
+      test: {
+        plugins: [
+          ['istanbul', {
+            'include-all-sources': true,
+            exclude: [
+              '**/*.spec.js'
+            ],
+            include: ['**/*.js', '**/*.jsx']
+          }]
+        ]
+      }
+    }
   },
+
   compiler_devtool         : 'source-map',
   compiler_hash_type       : 'hash',
   compiler_fail_on_warning : false,

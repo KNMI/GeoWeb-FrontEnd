@@ -143,14 +143,7 @@ webpackConfig.module.rules = [
     test    : /\.json$/,
     loader  : 'json-loader',
     enforce : 'pre'
-  },
-  {
-    test: /src\/.+\.js$/,
-    loader: 'istanbul-instrumenter-loader',
-    exclude: /(\.spec\.js|test|node_modules)\//,
-    enforce: 'post'
   }
-
 ];
 
 // ------------------------------------

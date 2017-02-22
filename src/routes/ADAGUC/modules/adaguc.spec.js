@@ -3,6 +3,7 @@ import {
   actions,
   default as adagucReducer
 } from 'routes/ADAGUC/modules/adaguc';
+import sinon from 'sinon';
 
 describe('(Redux Module) Adaguc', () => {
   describe('(Reducer)', () => {
@@ -42,6 +43,32 @@ describe('(Redux Module) Adaguc', () => {
 
     it('Should default the "payload" property to 0 if not provided.', () => {
       expect(actions.setSource()).to.have.property('payload', 0);
+    });
+  });
+  describe('(Action Handler) setSource', () => {
+    let _globalState;
+    let _dispatchSpy;
+    let _getStateSpy;
+
+    beforeEach(() => {
+      _globalState = {
+        adagucProperties : adagucReducer(undefined, {})
+      };
+      _dispatchSpy = sinon.spy((action) => {
+        _globalState = {
+          ..._globalState,
+          adagucProperties : adagucReducer(_globalState.adagucProperties, action)
+        };
+      });
+      _getStateSpy = sinon.spy(() => {
+        return _globalState;
+      });
+    });
+
+    it('Should call dispatch and getState exactly once.', () => {
+      actions.setSource(_dispatchSpy, _getStateSpy);
+      _dispatchSpy.should.have.been.calledOnce;
+      _getStateSpy.should.have.been.calledOnce;
     });
   });
 

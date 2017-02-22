@@ -126,7 +126,7 @@ const newMapStyle = (state, payload) => {
   return Object.assign({}, state, { mapType: MAP_STYLES[payload] });
 };
 const newCut = (state, payload) => {
-  return Object.assign({}, state, { boundingBox: BOUNDING_BOXES[payload].bbox });
+  return Object.assign({}, state, { boundingBox: BOUNDING_BOXES[payload] });
 };
 const newStyle = (state, payload) => {
   return Object.assign({}, state, { style: state.styles[payload].name });
