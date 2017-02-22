@@ -22,7 +22,7 @@ const karmaConfig = {
   frameworks: ['mocha', 'chai'],
 
   // displays tests in a nice readable format
-  reporters: ['spec', 'coverage'],
+  reporters: ['spec', 'istanbul'],
 
   // include some polyfills
   files: [
@@ -37,7 +37,9 @@ const karmaConfig = {
     // also run tests through sourcemap for easier debugging
     './src/**/*.spec.js': ['webpack'],
     './src/test/*.js': ['webpack'],
-    './src/**/*.js': ['webpack', 'sourcemap', 'coverage']
+    './src/static/**/*.js': ['webpack'],
+    './src/**/*.js': ['webpack', 'sourcemap'],
+    './src/**/*.jsx': ['webpack', 'sourcemap']
   },
   webpack  : {
     devtool: 'inline-source-map',
@@ -68,20 +70,18 @@ const karmaConfig = {
   webpackMiddleware : {
     noInfo : true
   },
-
-  plugins: Object.assign([], webpackConfig.plugins, [
-    'karma-mocha',
+  plugins: webpackConfig.plugins.concat([
+    'karma-babel-preprocessor',
     'karma-chai',
-    'karma-webpack',
-    'karma-coverage',
+    'karma-istanbul',
     'karma-jsdom-launcher',
-    'karma-spec-reporter',
+    'karma-mocha',
     'karma-sourcemap-loader',
-    'karma-babel-preprocessor'
+    'karma-spec-reporter',
+    'karma-webpack'
   ]),
-
-  coverageReporter : {
-    dir: 'coverage',
+  istanbulReporter: {
+    dir : 'coverage/',
     reporters : project.coverage_reporters
   }
 };

@@ -4,13 +4,6 @@ import 'bootstrap/dist/css/bootstrap.css';
 import '../../styles/core.scss';
 
 class BaseLayout extends Component {
-  static propTypes = {
-    header: PropTypes.element,
-    leftSideBar: PropTypes.element,
-    mainViewport: PropTypes.element,
-    rightSideBar: PropTypes.element
-  }
-
   render () {
     const { header, leftSideBar, mainViewport, rightSideBar } = this.props;
     return (
@@ -33,5 +26,11 @@ class BaseLayout extends Component {
     );
   }
 }
+BaseLayout.propTypes = {
+  header: PropTypes.element,
+  leftSideBar: PropTypes.element,
+  mainViewport: PropTypes.element,
+  rightSideBar: PropTypes.element
+};
 
 export default BaseLayout;
