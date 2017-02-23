@@ -1,5 +1,6 @@
 // import React from 'react';
-// import { default as DataSelector } from './DataSelector';
+// eslint-disable-next-line no-unused-vars
+import { default as DataSelector } from './DataSelector';
 // import { mount, shallow } from 'enzyme';
 
 describe('(Component) DataSelector', () => {

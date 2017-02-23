@@ -1,5 +1,6 @@
 // import React from 'react';
-// import { default as Inspector } from './Inspector';
+// eslint-disable-next-line no-unused-vars
+import { default as Inspector } from './Inspector';
 // import { mount, shallow } from 'enzyme';
 
 describe('(Component) Inspector', () => {

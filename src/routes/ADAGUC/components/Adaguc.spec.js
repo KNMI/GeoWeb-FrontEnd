@@ -1,5 +1,6 @@
 // import React from 'react';
-// import { default as Adaguc } from './Adaguc';
+// eslint-disable-next-line no-unused-vars
+import { default as Adaguc } from './Adaguc';
 // import { mount, shallow } from 'enzyme';
 
 describe('(Component) Adaguc', () => {

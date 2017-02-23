@@ -1,5 +1,6 @@
 // import React from 'react';
-// import { default as AppContainer } from './AppContainer';
+// eslint-disable-next-line no-unused-vars
+import { default as AppContainer } from './AppContainer';
 // import { mount, shallow } from 'enzyme';
 
 describe('(Container) AppContainer', () => {
