@@ -2,6 +2,8 @@ import React from 'react';
 import { default as Menu } from './Menu';
 import TimeComponent from './TimeComponent.js';
 import AdagucMapDraw from './AdagucMapDraw.js';
+import AdagucMeasureDistance from './AdagucMeasureDistance.js';
+
 import MetaInfo from './MetaInfo.js';
 import axios from 'axios';
 export default class Adaguc extends React.Component {
@@ -213,6 +215,7 @@ export default class Adaguc extends React.Component {
       </div>
       <div id='infocontainer' style={{ margin: 0 }}>
         <AdagucMapDraw webmapjs={this.webMapJS} />
+        <AdagucMeasureDistance webmapjs={this.webMapJS} />
         <TimeComponent ref='TimeComponent' webmapjs={this.webMapJS} width={timeComponentWidth} onChangeAnimation={this.onChangeAnimation} />
         <hr />
         <MetaInfo webmapjs={this.webMapJS} />

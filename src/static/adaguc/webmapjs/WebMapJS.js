@@ -2495,8 +2495,11 @@
       mouseDownPressed = 1;
       if (mouseDragging === 0) {
         if (checkInvalidMouseAction(mouseDownX, mouseDownY) === 0) {
-          if (callBack.triggerEvent('beforemousedown', { mouseX:mouseCoordX, mouseY:mouseCoordY, mouseDown:true, event:event } ) === false) {
-            return;
+          let triggerResults = callBack.triggerEvent('beforemousedown', { mouseX:mouseCoordX, mouseY:mouseCoordY, mouseDown:true, event:event });
+          for (let j = 0; j < triggerResults.length; j++) {
+            if (triggerResults[j] === false) {
+              return;
+            }
           }
         }
       }
@@ -2598,8 +2601,11 @@
       mouseX = mouseCoordX;
       mouseY = mouseCoordY;
       if (mouseDragging === 0 ){
-        if (callBack.triggerEvent('beforemousemove', { mouseX:mouseX, mouseY:mouseY, mouseDown:mouseDownPressed === 1 ? true:false } ) === false) {
-          return;
+        let triggerResults = callBack.triggerEvent('beforemousemove', { mouseX:mouseX, mouseY:mouseY, mouseDown:mouseDownPressed === 1 ? true:false });
+        for (let j = 0; j < triggerResults.length; j++) {
+          if (triggerResults[j] === false) {
+            return;
+          }
         }
       }
       if (divBoundingBox.displayed == true && mapPanning == 0) {
@@ -2707,11 +2713,14 @@
       controlsBusy = false;
       mouseUpX = mouseCoordX;
       mouseUpY = mouseCoordY;
-      if (mouseDragging === 0 ) {
-          if (checkInvalidMouseAction(mouseUpX, mouseUpY) === 0) {
-          if (callBack.triggerEvent('beforemouseup', { mouseX:mouseCoordX, mouseY:mouseCoordY, mouseDown:false, event:e } ) === false) {
-            mouseDownPressed = 0;
-            return;
+      if (mouseDragging === 0) {
+        if (checkInvalidMouseAction(mouseUpX, mouseUpY) === 0) {
+          let triggerResults = callBack.triggerEvent('beforemouseup', { mouseX:mouseCoordX, mouseY:mouseCoordY, mouseDown:false, event:e });
+          for (let j = 0; j < triggerResults.length; j++) {
+            if (triggerResults[j] === false) {
+              mouseDownPressed = 0;
+              return;
+            }
           }
         }
       }
