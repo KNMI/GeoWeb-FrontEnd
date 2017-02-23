@@ -112,20 +112,16 @@ export default class Adaguc extends React.Component {
     });
   }
   componentDidMount () {
-    console.log('componentDidMount', this.refs.maindiv);
     this.initAdaguc(this.refs.adaguc);
   }
   componentWillReceiveProps (nextProps) {
-    console.log('componentWillReceiveProps', nextProps);
   }
   componentWillMount () {
-    console.log('componentWillMount');
     /* Component will unmount, set flag that map is not created */
     const { adagucProperties } = this.props;
     adagucProperties.mapCreated = false;
   }
   componentWillUnmount () {
-    console.log('componentWillUnmount');
     if (this.webMapJS) {
       this.webMapJS.destroy();
     }
@@ -136,7 +132,6 @@ export default class Adaguc extends React.Component {
     const { actions, adagucProperties, dispatch } = this.props;
     const { setLayers, setStyles } = actions;
     const { source, layer, style, mapType, boundingBox, overlay } = adagucProperties;
-    console.log(prevProps);
       // eslint-disable-next-line no-undef
     const baselayer = new WMJSLayer(mapType);
     if (overlay !== prevProps.adagucProperties.overlay || mapType !== prevProps.adagucProperties.mapType) {
@@ -215,7 +210,7 @@ export default class Adaguc extends React.Component {
         <AdagucMapDraw webmapjs={this.webMapJS} />
         <TimeComponent ref='TimeComponent' webmapjs={this.webMapJS} width={timeComponentWidth} onChangeAnimation={this.onChangeAnimation} />
         <hr />
-        <MetaInfo webmapjs={this.webMapJS} />
+        <MetaInfo activeLayer={this.webMapJS ? this.webMapJS.getActiveLayer() : null} />
       </div>
     </div>);
   }

@@ -4,14 +4,8 @@ import { Table } from 'reactable';
 export default class MetaInfo extends React.Component {
   constructor () {
     super();
-    this.eventOnDimChange = this.eventOnDimChange.bind(this);
-    this.eventOnMapDimUpdate = this.eventOnMapDimUpdate.bind(this);
     this.showLayerInfo = this.showLayerInfo.bind(this);
-    // this.getLayerName = this.getLayerName.bind(this);
-  }
-  eventOnMapDimUpdate () {
-    // this.layer = this.props.webmapjs.getLayers()[0];
-    this.eventOnDimChange();
+    this.getLayerName = this.getLayerName.bind(this);
   }
 
   getLayerName (layer) {
@@ -35,6 +29,7 @@ export default class MetaInfo extends React.Component {
 
   showLayerInfo (layer) {
     if (layer) {
+      console.log('here');
       const layerName = this.getLayerName(layer);
       const title = layer.title;
       const layerStyle = layer.getStyle();
@@ -49,28 +44,16 @@ export default class MetaInfo extends React.Component {
       let zipped = Object.assign({}, ...titles.map((n, index) => ({ [n]: values[index] })));
       return <Table className='infotable' data={[zipped]} />;
     } else {
-      return null;
+      return <Table />;
     }
   };
 
-  eventOnDimChange () {
-    this.layer = this.props.webmapjs.getActiveLayer();
-    this.setState({});
-  }
-
   render () {
-    const { webmapjs } = this.props;
-    if (webmapjs !== undefined) {
-      if (this.listenersInitialized === undefined) { // TODO mount/unmount
-        this.listenersInitialized = true;
-        webmapjs.addListener('onmapdimupdate', this.eventOnMapDimUpdate, true);
-        // webmapjs.addListener('ondimchange', this.eventOnDimChange, true);
-      }
-    }
-    return <div id='layerproperties'>{this.showLayerInfo(this.layer)}</div>;
+    const { activeLayer } = this.props;
+    return <div id='layerproperties'>{this.showLayerInfo(activeLayer)}</div>;
   }
 }
 
 MetaInfo.propTypes = {
-  webmapjs: React.PropTypes.object
+  activeLayer: React.PropTypes.object
 };

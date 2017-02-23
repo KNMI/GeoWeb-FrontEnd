@@ -105,7 +105,6 @@ if (__DEV__) {
   project.compiler_babel.presets.push('es2015');
   webpackConfig.plugins.push(
     new webpack.optimize.OccurrenceOrderPlugin(),
-    new webpack.optimize.DedupePlugin(),
     new webpack.optimize.UglifyJsPlugin({
       compress : {
         unused    : true,
