@@ -40,11 +40,9 @@ const config = {
       test: {
         plugins: [
           ['istanbul', {
-            'include-all-sources': true,
             exclude: [
               '**/*.spec.js'
-            ],
-            include: ['**/*.js', '**/*.jsx']
+            ]
           }]
         ]
       }

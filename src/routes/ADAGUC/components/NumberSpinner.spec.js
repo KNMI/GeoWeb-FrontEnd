@@ -1,5 +1,6 @@
 // import React from 'react';
-// import { default as NumberSpinner } from './NumberSpinner';
+// eslint-disable-next-line no-unused-vars
+import { default as NumberSpinner } from './NumberSpinner';
 // import { mount, shallow } from 'enzyme';
 
 describe('(Component) NumberSpinner', () => {

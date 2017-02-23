@@ -1,5 +1,6 @@
 // import React from 'react';
-// import { default as BaseLayout } from './BaseLayout';
+// eslint-disable-next-line no-unused-vars
+import { default as BaseLayout } from './BaseLayout';
 // import { mount, shallow } from 'enzyme';
 
 describe('(Layout) BaseLayout', () => {

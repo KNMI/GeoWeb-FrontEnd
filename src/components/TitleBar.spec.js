@@ -1,5 +1,6 @@
 // import React from 'react';
-// import { default as TitleBar } from './TitleBar';
+// eslint-disable-next-line no-unused-vars
+import { default as TitleBar } from './TitleBar';
 // import { mount, shallow } from 'enzyme';
 
 describe('(Component) TitleBar', () => {

@@ -1,5 +1,6 @@
 // import React from 'react';
-// import { default as MetaInfo } from './MetaInfo';
+// eslint-disable-next-line no-unused-vars
+import { default as MetaInfo } from './MetaInfo';
 // import { mount, shallow } from 'enzyme';
 
 describe('(Component) MetaInfo', () => {

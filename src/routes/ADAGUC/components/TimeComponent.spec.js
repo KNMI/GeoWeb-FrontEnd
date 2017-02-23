@@ -1,5 +1,6 @@
 // import React from 'react';
-// import { default as TimeComponent } from './TimeComponent';
+// eslint-disable-next-line no-unused-vars
+import { default as TimeComponent } from './TimeComponent';
 // import { mount, shallow } from 'enzyme';
 
 describe('(Component) TimeComponent', () => {

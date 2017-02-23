@@ -1,5 +1,6 @@
-// import React from 'react';
-// import { default as ButtonPausePlayAnimation } from './ButtonPausePlayAnimation';
+// import React from 'react';\
+// eslint-disable-next-line no-unused-vars
+import { default as ButtonPausePlayAnimation } from './ButtonPausePlayAnimation';
 // import { mount, shallow } from 'enzyme';
 
 describe('(Component) ButtonPausePlayAnimation', () => {
