@@ -1,6 +1,7 @@
 import React from 'react';
 import { default as Menu } from './Menu';
 import TimeComponent from './TimeComponent.js';
+import AdagucMapDraw from './AdagucMapDraw.js';
 import MetaInfo from './MetaInfo.js';
 import axios from 'axios';
 export default class Adaguc extends React.Component {
@@ -55,7 +56,7 @@ export default class Adaguc extends React.Component {
 
   resize () {
     // eslint-disable-next-line no-undef
-    this.webMapJS.setSize($(window).width(), $(window).height() - 260);
+    this.webMapJS.setSize($(window).width(), $(window).height() - 300);
     this.webMapJS.draw();
     if (this.refs.TimeComponent) {
       // eslint-disable-next-line no-undef
@@ -69,6 +70,10 @@ export default class Adaguc extends React.Component {
     if (adagucProperties.mapCreated) {
       return;
     }
+    // const rootURL = 'http://localhost/cgi-bin/';
+    // const url = 'http://localhost/adagucviewer/webmapjs';
+
+    const rootURL = 'http://birdexp07.knmi.nl/cgi-bin/geoweb';
     const url = 'http://birdexp07.knmi.nl/geoweb/adagucviewer/webmapjs';
 
     // eslint-disable-next-line no-undef
@@ -77,16 +82,16 @@ export default class Adaguc extends React.Component {
     // eslint-disable-next-line no-undef
     $(window).resize(this.resize);
     // eslint-disable-next-line no-undef
-    this.webMapJS.setSize($(window).width(), $(window).height() - 260);
+    this.webMapJS.setSize($(window).width(), $(window).height() - 300);
 
     // Set the initial projection
     this.webMapJS.setProjection(adagucProperties.projectionName);
     this.webMapJS.setBBOX(adagucProperties.boundingBox.bbox.join());
     // eslint-disable-next-line no-undef
     this.webMapJS.setBaseLayers([new WMJSLayer(adagucProperties.mapType)]);
-    axios.get('http://birdexp07.knmi.nl/cgi-bin/geoweb/getServices.cgi').then(src => {
+    axios.get(rootURL + '/getServices.cgi').then(src => {
       const sources = src.data;
-      axios.get('http://birdexp07.knmi.nl/cgi-bin/geoweb/getOverlayServices.cgi').then(res => {
+      axios.get(rootURL + '/getOverlayServices.cgi').then(res => {
         const overlaySrc = res.data[0];
         // eslint-disable-next-line no-undef
         var service = WMJSgetServiceFromStore(overlaySrc.service);
@@ -178,11 +183,11 @@ export default class Adaguc extends React.Component {
         this.webMapJS.addLayer(newDataLayer);
       }
       // eslint-disable-next-line
-      var newDataLayer2 = new WMJSLayer({
-        service:'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.RADAR.cgi?',
-        name:'precipitation'
-      });
-      this.webMapJS.addLayer(newDataLayer2);
+      // var newDataLayer2 = new WMJSLayer({
+      //   service:'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.RADAR.cgi?',
+      //   name:'precipitation'
+      // });
+      // this.webMapJS.addLayer(newDataLayer2);
       this.webMapJS.setActiveLayer(newDataLayer);
       if (!prevProps.adagucProperties.layer || (prevProps.adagucProperties.layer !== layer)) {
         const styles = this.webMapJS.getActiveLayer().styles;
@@ -198,7 +203,7 @@ export default class Adaguc extends React.Component {
 
   render () {
     // eslint-disable-next-line no-undef
-    let timeComponentWidth = $(window).width() - 20;
+    let timeComponentWidth = $(window).width();
     // console.log('timeComponentWidth=' + timeComponentWidth);
 
     // let timeComponentWidth = this.webMapJS ? this.webMapJS.getSize().width : $(window).width();
@@ -208,6 +213,7 @@ export default class Adaguc extends React.Component {
         <div ref='adaguc' />
       </div>
       <div id='infocontainer' style={{ margin: 0 }}>
+        <AdagucMapDraw webmapjs={this.webMapJS} />
         <TimeComponent ref='TimeComponent' webmapjs={this.webMapJS} width={timeComponentWidth} onChangeAnimation={this.onChangeAnimation} />
         <hr />
         <MetaInfo webmapjs={this.webMapJS} />

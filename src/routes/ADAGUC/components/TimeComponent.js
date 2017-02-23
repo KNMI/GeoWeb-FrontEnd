@@ -345,11 +345,11 @@ const TimeComponent = React.createClass({
           <ButtonPausePlayAnimation webmapjs={this.props.webmapjs} onChange={this.onChangeAnimation} />
         </div>
         <div style={{ whiteSpace: 'nowrap' }}>
-          <NumberSpinner value={year} numDigits={4} width={100} onChange={this.changeYear} />
+          <NumberSpinner value={year} numDigits={'4'} width={100} onChange={this.changeYear} />
           <NumberSpinner value={month} numDigits={'month'} width={90} onChange={this.changeMonth} />
-          <NumberSpinner value={day} numDigits={2} width={60} onChange={this.changeDay} />
-          <NumberSpinner value={hour} numDigits={2} width={60} onChange={this.changeHour} />
-          <NumberSpinner value={minute} numDigits={2} width={60} onChange={this.changeMinute} />
+          <NumberSpinner value={day} numDigits={'2'} width={60} onChange={this.changeDay} />
+          <NumberSpinner value={hour} numDigits={'2'} width={60} onChange={this.changeHour} />
+          <NumberSpinner value={minute} numDigits={'2'} width={60} onChange={this.changeMinute} />
           { /* <NumberSpinner value={second} numDigits={2} width={60} onChange={this.changeSecond} /> */ }
         </div >
 
@@ -358,12 +358,12 @@ const TimeComponent = React.createClass({
         <Button color='primary' size='large' style={{ padding:'20px', margin:'5px' }} onClick={this.handleButtonClickNow}>Now</Button>
       </div>
       <div>
-        <Button color='primary' style={{ padding:'28px 5px 30px 5px', marginLeft:'1px', marginRight:'10px' }} onClick={this.handleButtonClickPrevPage}>
+        <Button color='primary' style={{ padding:'28px 5px 30px 5px', marginLeft:'1px', marginRight:'0px' }} onClick={this.handleButtonClickPrevPage}>
           <Icon name='chevron-left' />
         </Button>
       </div>
       <div style={{ border:'0px solid blue', margin: '0px 2px 0px 2px', padding: 0, background:'white', display: 'block' }}>
-        <CanvasComponent width={this.state.width - 575} height={78}
+        <CanvasComponent width={this.state.width - 580} height={78}
           onRenderCanvas={this.onRenderCanvas}
           onClick={this.onClickCanvas}
           onMouseMove={this.onMouseMoveCanvas} />
