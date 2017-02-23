@@ -48,6 +48,7 @@ const AdagucMapDraw = React.createClass({
     return { editMode: false, setEditMode: '' };
   },
   handleStartEdit () {
+    console.log('handleStartEdit');
     if (this.state.editMode === false) {
       this.setState({ editMode:true });
     } else {
@@ -476,23 +477,30 @@ const AdagucMapDraw = React.createClass({
   featureHasChanged (text) {
     console.log('Feature has changed: ' + text, this.props.geojson);
   },
+  componentDidMount () {
+    console.log('componentDidMount');
+  },
   render () {
     const { webmapjs } = this.props;
+    if (this.disabled === undefined) {
+      this.disabled = true;
+    }
     if (webmapjs !== undefined) {
       if (this.listenersInitialized === undefined) {
         this.listenersInitialized = true;
-        this.state.editMode = false;
         webmapjs.addListener('beforecanvasdisplay', this.adagucBeforeDraw, true);
         webmapjs.addListener('beforemousemove', this.adagucMouseMove, true);
         webmapjs.addListener('beforemousedown', this.adagucMouseDown, true);
         webmapjs.addListener('beforemouseup', this.adagucMouseUp, true);
+        this.disabled = false;
+        console.log('webmapjs listeners added');
       }
       webmapjs.draw();
     }
     return (
       <div>
-        <Button onClick={this.handleStartEdit}>{this.state.editMode === false ? 'Create / Edit' : 'Exit editing mode'}</Button>
-        <Button onClick={this.handleDeleteFeatures}>{this.state.setEditMode !== 'deletefeatures' ? 'Delete' : 'Click to delete'}</Button>
+        <Button onClick={this.handleStartEdit} disabled={this.disabled}>{this.state.editMode === false ? 'Create / Edit' : 'Exit editing mode'}</Button>
+        <Button onClick={this.handleDeleteFeatures} disabled={this.disabled}>{this.state.setEditMode !== 'deletefeatures' ? 'Delete' : 'Click to delete'}</Button>
       </div>
     );
   }
