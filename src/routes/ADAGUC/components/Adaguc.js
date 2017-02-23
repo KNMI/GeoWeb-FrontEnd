@@ -136,25 +136,23 @@ export default class Adaguc extends React.Component {
     const { actions, adagucProperties, dispatch } = this.props;
     const { setLayers, setStyles } = actions;
     const { source, layer, style, mapType, boundingBox, overlay } = adagucProperties;
+    console.log(prevProps);
       // eslint-disable-next-line no-undef
     const baselayer = new WMJSLayer(mapType);
-    if (overlay) {
-      // eslint-disable-next-line no-undef
-      const overLayer = new WMJSLayer(overlay);
-      overLayer.keepOnTop = true;
-      const newBaselayers = [baselayer, overLayer];
-      this.webMapJS.setBaseLayers(newBaselayers);
-    } else {
-      // eslint-disable-next-line no-undef
-      this.webMapJS.setBaseLayers([baselayer]);
+    if (overlay !== prevProps.adagucProperties.overlay || mapType !== prevProps.adagucProperties.mapType) {
+      if (overlay) {
+        // eslint-disable-next-line no-undef
+        const overLayer = new WMJSLayer(overlay);
+        overLayer.keepOnTop = true;
+        const newBaselayers = [baselayer, overLayer];
+        this.webMapJS.setBaseLayers(newBaselayers);
+      } else {
+        // eslint-disable-next-line no-undef
+        this.webMapJS.setBaseLayers([baselayer]);
+      }
+      this.webMapJS.draw();
     }
-    this.webMapJS.draw();
-
-    // if (!prevProps.adagucProperties.mapCreated || layer !== prevProps.adagucProperties.layer) {
-    if (mapType !== prevProps.adagucProperties.mapType) {
-      // eslint-disable-next-line no-undef
-    } else if (boundingBox !== prevProps.adagucProperties.boundingBox) {
-      console.log(boundingBox.bbox.join());
+    if (boundingBox !== prevProps.adagucProperties.boundingBox) {
       this.webMapJS.setBBOX(boundingBox.bbox.join());
       this.webMapJS.draw();
     } else {
@@ -169,27 +167,28 @@ export default class Adaguc extends React.Component {
       if (layer === null) {
         return;
       }
-      const combined = Object.assign({}, source, { name: layer }, { style: style }, { opacity: 0.75 });
-      // eslint-disable-next-line no-undef
-      var newDataLayer = new WMJSLayer(combined);
-      // Stop the old animation
-      this.webMapJS.stopAnimating();
-      // Start the animation of th new layer
-      newDataLayer.onReady = this.animateLayer;
-      // Remove all present layers
-      this.webMapJS.removeAllLayers();
-      // And add the new layer
-      if (newDataLayer.name) {
-        this.webMapJS.addLayer(newDataLayer);
-      }
-      // eslint-disable-next-line
-      // var newDataLayer2 = new WMJSLayer({
-      //   service:'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.RADAR.cgi?',
-      //   name:'precipitation'
-      // });
-      // this.webMapJS.addLayer(newDataLayer2);
-      this.webMapJS.setActiveLayer(newDataLayer);
-      if (!prevProps.adagucProperties.layer || (prevProps.adagucProperties.layer !== layer)) {
+
+      if (!prevProps.adagucProperties.layer || (prevProps.adagucProperties.layer !== layer) || (prevProps.adagucProperties.style !== style)) {
+        const combined = Object.assign({}, source, { name: layer }, { style: style }, { opacity: 0.75 });
+        // eslint-disable-next-line no-undef
+        var newDataLayer = new WMJSLayer(combined);
+        // Stop the old animation
+        this.webMapJS.stopAnimating();
+        // Start the animation of th new layer
+        newDataLayer.onReady = this.animateLayer;
+        // Remove all present layers
+        this.webMapJS.removeAllLayers();
+        // And add the new layer
+        if (newDataLayer.name) {
+          this.webMapJS.addLayer(newDataLayer);
+        }
+        // eslint-disable-next-line
+        // var newDataLayer2 = new WMJSLayer({
+        //   service:'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.RADAR.cgi?',
+        //   name:'precipitation'
+        // });
+        // this.webMapJS.addLayer(newDataLayer2);
+        this.webMapJS.setActiveLayer(newDataLayer);
         const styles = this.webMapJS.getActiveLayer().styles;
         dispatch(setStyles(styles));
       }
