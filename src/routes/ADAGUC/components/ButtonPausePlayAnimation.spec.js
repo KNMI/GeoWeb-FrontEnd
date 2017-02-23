@@ -1,8 +1,8 @@
 // import React from 'react';
-// import { default as Adaguc } from './Adaguc';
+// import { default as ButtonPausePlayAnimation } from './ButtonPausePlayAnimation';
 // import { mount, shallow } from 'enzyme';
 
-describe('(Component) Adaguc', () => {
+describe('(Component) ButtonPausePlayAnimation', () => {
   // const funcs = {
   //   createMap: () => {},
   //   setCut: () => {},

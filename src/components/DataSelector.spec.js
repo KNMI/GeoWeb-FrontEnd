@@ -1,8 +1,8 @@
 // import React from 'react';
-// import { default as Adaguc } from './Adaguc';
+// import { default as DataSelector } from './DataSelector';
 // import { mount, shallow } from 'enzyme';
 
-describe('(Component) Adaguc', () => {
+describe('(Component) DataSelector', () => {
   // const funcs = {
   //   createMap: () => {},
   //   setCut: () => {},

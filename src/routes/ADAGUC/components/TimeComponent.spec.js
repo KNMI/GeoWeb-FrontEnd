@@ -1,8 +1,8 @@
 // import React from 'react';
-// import { default as Adaguc } from './Adaguc';
+// import { default as TimeComponent } from './TimeComponent';
 // import { mount, shallow } from 'enzyme';
 
-describe('(Component) Adaguc', () => {
+describe('(Component) TimeComponent', () => {
   // const funcs = {
   //   createMap: () => {},
   //   setCut: () => {},

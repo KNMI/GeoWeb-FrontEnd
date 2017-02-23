@@ -1,8 +1,8 @@
 // import React from 'react';
-// import { default as Adaguc } from './Adaguc';
+// import { default as Inspector } from './Inspector';
 // import { mount, shallow } from 'enzyme';
 
-describe('(Component) Adaguc', () => {
+describe('(Component) Inspector', () => {
   // const funcs = {
   //   createMap: () => {},
   //   setCut: () => {},

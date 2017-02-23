@@ -1,8 +1,8 @@
 // import React from 'react';
-// import { default as Adaguc } from './Adaguc';
+// import { default as BaseLayout } from './BaseLayout';
 // import { mount, shallow } from 'enzyme';
 
-describe('(Component) Adaguc', () => {
+describe('(Layout) BaseLayout', () => {
   // const funcs = {
   //   createMap: () => {},
   //   setCut: () => {},

@@ -1,8 +1,8 @@
 // import React from 'react';
-// import { default as Adaguc } from './Adaguc';
+// import { default as AppContainer } from './AppContainer';
 // import { mount, shallow } from 'enzyme';
 
-describe('(Component) Adaguc', () => {
+describe('(Container) AppContainer', () => {
   // const funcs = {
   //   createMap: () => {},
   //   setCut: () => {},

@@ -25,6 +25,7 @@ const webpackConfig = {
     extensions : ['.js', '.jsx', '.json'],
     enforceExtension : false
   },
+
   module: {}
 };
 // ------------------------------------
@@ -135,11 +136,13 @@ webpackConfig.module.rules = [
     test    : /\.(js|jsx)$/,
     exclude : /(node_modules|static)/,
     loader  : 'babel-loader',
-    options : project.compiler_babel
+    options : project.compiler_babel,
+    enforce : 'pre'
   },
   {
-    test   : /\.json$/,
-    loader : 'json-loader'
+    test    : /\.json$/,
+    loader  : 'json-loader',
+    enforce : 'pre'
   }
 ];
 

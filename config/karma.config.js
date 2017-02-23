@@ -5,10 +5,15 @@ const debug = require('debug')('app:config:karma');
 
 debug('Creating configuration.');
 const karmaConfig = {
+  captureTimeout: 2000,
+  browserDisconnectTimeout: 2000,
+  browserDisconnectTolerance: 3,
+  browserNoActivityTimeout: 10000,
+
   basePath : '../', // project root in relation to bin/karma.js
 
   // only use PhantomJS for our 'test' browser
-  browsers: ['PhantomJS'],
+  browsers: ['jsdom'],
 
   // just run once by default unless --watch flag is passed
   singleRun: !argv.watch,
@@ -17,7 +22,7 @@ const karmaConfig = {
   frameworks: ['mocha', 'chai'],
 
   // displays tests in a nice readable format
-  reporters: ['spec', 'coverage'],
+  reporters: ['spec', 'istanbul'],
 
   // include some polyfills
   files: [
@@ -30,13 +35,15 @@ const karmaConfig = {
 
     // these files we want to be precompiled with webpack
     // also run tests through sourcemap for easier debugging
-    // [`${project.dir_test}/testSetup.js`] : ['webpack', 'sourcemap'],
-    // './**/*.spec.js': ['babel']
-    './src/test/*.js': ['webpack', 'sourcemap'],
-    './src/**/*.spec.js': ['webpack', 'sourcemap']
+    './src/**/*.spec.js': ['webpack'],
+    './src/test/*.js': ['webpack'],
+    './src/static/**/*.js': ['webpack'],
+    './src/**/*.js': ['webpack', 'sourcemap'],
+    './src/**/*.jsx': ['webpack', 'sourcemap']
   },
   webpack  : {
     devtool: 'inline-source-map',
+
     resolve: Object.assign({}, webpackConfig.resolve, {
 
       // required for enzyme to work properly
@@ -63,37 +70,22 @@ const karmaConfig = {
   webpackMiddleware : {
     noInfo : true
   },
-
-  plugins: Object.assign([], webpackConfig.plugins, [
-    'karma-mocha',
+  plugins: webpackConfig.plugins.concat([
+    'karma-babel-preprocessor',
     'karma-chai',
-    'karma-webpack',
-    'karma-coverage',
-    'karma-phantomjs-launcher',
+    'karma-istanbul',
     'karma-jsdom-launcher',
-    'karma-chrome-launcher',
-    'karma-spec-reporter',
+    'karma-mocha',
     'karma-sourcemap-loader',
-    'karma-babel-preprocessor'
+    'karma-spec-reporter',
+    'karma-webpack'
   ]),
-  coverageReporter : {
-    dir: 'coverage',
+  istanbulReporter: {
+    dir : 'coverage/',
     reporters : project.coverage_reporters
   }
 };
-
-if (project.globals.__COVERAGE__) {
-  // karmaConfig.reporters.push('coverage');
-  // karmaConfig.webpack.module.rules = [{
-  //   test    : /\.(js|jsx)$/,
-  //   enforce : 'pre',
-  //   include : new RegExp(project.dir_client),
-  //   exclude : /(node_modules)/,
-  //   loader  : 'babel-loader',
-  //   options   : Object.assign({}, project.compiler_babel, {
-  //     plugins : (project.compiler_babel.plugins || []).concat('istanbul')
-  //   })
-  // }];
-}
-
-module.exports = (cfg) => cfg.set(karmaConfig);
+module.exports = (cfg) => {
+  cfg.set(karmaConfig);
+  debug('Config set');
+};

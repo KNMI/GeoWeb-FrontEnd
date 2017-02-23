@@ -1,8 +1,8 @@
 // import React from 'react';
-// import { default as Adaguc } from './Adaguc';
+// import { default as TitleBar } from './TitleBar';
 // import { mount, shallow } from 'enzyme';
 
-describe('(Component) Adaguc', () => {
+describe('(Component) TitleBar', () => {
   // const funcs = {
   //   createMap: () => {},
   //   setCut: () => {},

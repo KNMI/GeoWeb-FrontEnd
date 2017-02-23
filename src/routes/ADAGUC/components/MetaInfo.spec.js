@@ -1,8 +1,8 @@
 // import React from 'react';
-// import { default as Adaguc } from './Adaguc';
+// import { default as MetaInfo } from './MetaInfo';
 // import { mount, shallow } from 'enzyme';
 
-describe('(Component) Adaguc', () => {
+describe('(Component) MetaInfo', () => {
   // const funcs = {
   //   createMap: () => {},
   //   setCut: () => {},
