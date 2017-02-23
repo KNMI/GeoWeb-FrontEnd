@@ -35,7 +35,6 @@ const config = {
     cacheDirectory : true,
     plugins        : ['transform-runtime', 'transform-class-properties'],
     presets        : ['es2016', 'react', 'stage-3'],
-    only           : ['src'],
     env : {
       test: {
         plugins: [
