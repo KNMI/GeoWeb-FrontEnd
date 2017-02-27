@@ -330,7 +330,7 @@ const TimeComponent = React.createClass({
     if (webmapjs !== undefined) {
       if (this.listenersInitialized === undefined) { // TODO mount/unmount
         this.listenersInitialized = true;
-        console.log('initlistener');
+        // console.log('initlistener');
 
         webmapjs.addListener('onlayeradd', this.eventOnMapDimUpdate, true);
         webmapjs.addListener('onmapdimupdate', this.eventOnMapDimUpdate, true);

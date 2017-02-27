@@ -12,6 +12,7 @@ export const SET_STYLES = 'SET_STYLES';
 export const SET_OVERLAY = 'SET_OVERLAY';
 import { MAP_STYLES } from '../constants/map_styles';
 import { BOUNDING_BOXES } from '../constants/bounding_boxes';
+import { ADAGUCMAPDRAW_EDITING, ADAGUCMAPDRAW_DELETE, ADAGUCMAPDRAW_UPDATEFEATURE } from '../components/AdagucMapDraw';
 // ------------------------------------
 // Actions
 // ------------------------------------
@@ -72,6 +73,22 @@ function setOverlay (dataidx = 0) {
     payload: dataidx
   };
 }
+
+function adagucmapdrawEditClicked (adagucmapdraw) {
+  console.log('adagucmapdrawEditClicked', adagucmapdraw);
+  return {
+    type: 'ADAGUCMAPDRAW_EDITING',
+    payload: Object.assign({}, adagucmapdraw, { isInEditMode: !adagucmapdraw.isInEditMode })
+  };
+}
+
+function adagucmapdrawDeleteClicked (adagucmapdraw) {
+  console.log('adagucmapdrawDeleteClicked', adagucmapdraw);
+  return {
+    type: 'ADAGUCMAPDRAW_DELETE',
+    payload: Object.assign({}, adagucmapdraw, { isInDeleteMode: !adagucmapdraw.isInDeleteMode })
+  };
+}
 /*  This is a thunk, meaning it is a function that immediately
     returns a function for lazy evaluation. It is incredibly useful for
     creating async actions, especially when combined with redux-thunk! */
@@ -99,7 +116,9 @@ export const actions = {
   setLayers,
   setStyles,
   setStyle,
-  setOverlay
+  setOverlay,
+  adagucmapdrawEditClicked,
+  adagucmapdrawDeleteClicked
 };
 
 const newMapState = (state, payload) => {
@@ -142,6 +161,10 @@ const newOverlay = (state, payload) => {
     return Object.assign({}, state, { overlay: overlayObject });
   }
 };
+const handleAdagucMapDrawEditing = (state, payload) => {
+  // console.log(payload);
+  return Object.assign({}, state, { adagucmapdraw:{ ...payload } });
+};
 // ------------------------------------
 // Action Handlers
 // ------------------------------------
@@ -154,7 +177,10 @@ const ACTION_HANDLERS = {
   [SET_CUT]              : (state, action) => newCut(state, action.payload),
   [SET_STYLE]            : (state, action) => newStyle(state, action.payload),
   [SET_STYLES]           : (state, action) => newStyles(state, action.payload),
-  [SET_OVERLAY]          : (state, action) => newOverlay(state, action.payload)
+  [SET_OVERLAY]          : (state, action) => newOverlay(state, action.payload),
+  [ADAGUCMAPDRAW_EDITING] : (state, action) => handleAdagucMapDrawEditing(state, action.payload),
+  [ADAGUCMAPDRAW_DELETE] : (state, action) => handleAdagucMapDrawEditing(state, action.payload),
+  [ADAGUCMAPDRAW_UPDATEFEATURE] : (state, action) => handleAdagucMapDrawEditing(state, action.payload)
 };
 
 // ------------------------------------

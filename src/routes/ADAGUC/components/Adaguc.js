@@ -3,7 +3,7 @@ import { default as Menu } from './Menu';
 import TimeComponent from './TimeComponent.js';
 import AdagucMapDraw from './AdagucMapDraw.js';
 import AdagucMeasureDistance from './AdagucMeasureDistance.js';
-
+import { Button } from 'reactstrap';
 import MetaInfo from './MetaInfo.js';
 import axios from 'axios';
 export default class Adaguc extends React.Component {
@@ -138,7 +138,7 @@ export default class Adaguc extends React.Component {
     const { actions, adagucProperties, dispatch } = this.props;
     const { setLayers, setStyles } = actions;
     const { source, layer, style, mapType, boundingBox, overlay } = adagucProperties;
-    console.log(prevProps);
+    // console.log(prevProps);
       // eslint-disable-next-line no-undef
     const baselayer = new WMJSLayer(mapType);
     if (overlay !== prevProps.adagucProperties.overlay || mapType !== prevProps.adagucProperties.mapType) {
@@ -203,9 +203,16 @@ export default class Adaguc extends React.Component {
   };
 
   render () {
+    const { adagucProperties, dispatch, actions } = this.props;
     // eslint-disable-next-line no-undef
     let timeComponentWidth = $(window).width();
     // console.log('timeComponentWidth=' + timeComponentWidth);
+    if (this.disabled === undefined) {
+      this.disabled = true;
+    }
+    if (this.webMapJS !== undefined) {
+      this.disabled = false;
+    }
 
     // let timeComponentWidth = this.webMapJS ? this.webMapJS.getSize().width : $(window).width();
     return (<div>
@@ -214,7 +221,19 @@ export default class Adaguc extends React.Component {
         <div ref='adaguc' />
       </div>
       <div id='infocontainer' style={{ margin: 0 }}>
-        <AdagucMapDraw webmapjs={this.webMapJS} />
+        <AdagucMapDraw dispatch={this.props.dispatch}
+          editMode={adagucProperties.adagucmapdraw.editMode}
+          isInEditMode={adagucProperties.adagucmapdraw.isInEditMode}
+          webmapjs={this.webMapJS}
+        />
+        <div>
+          <Button onClick={() => dispatch(actions.adagucmapdrawEditClicked(adagucProperties.adagucmapdraw))}
+            disabled={this.disabled}>{adagucProperties.adagucmapdraw.isInEditMode === false ? 'Create / Edit' : 'Exit editing mode'}
+          </Button>
+          <Button onClick={() => dispatch(actions.adagucmapdrawDeleteClicked(adagucProperties.adagucmapdraw))}
+            disabled={this.disabled}>{adagucProperties.adagucmapdraw.isInDeleteMode === false ? 'Delete' : 'Click to delete'}
+          </Button>
+        </div>
         <AdagucMeasureDistance webmapjs={this.webMapJS} />
         <TimeComponent ref='TimeComponent' webmapjs={this.webMapJS} width={timeComponentWidth} onChangeAnimation={this.onChangeAnimation} />
         <hr />
