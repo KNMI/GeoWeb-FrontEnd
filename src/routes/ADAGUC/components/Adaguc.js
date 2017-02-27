@@ -91,35 +91,37 @@ export default class Adaguc extends React.Component {
     this.webMapJS.setBBOX(adagucProperties.boundingBox.bbox.join());
     // eslint-disable-next-line no-undef
     this.webMapJS.setBaseLayers([new WMJSLayer(adagucProperties.layers.baselayer)]);
-    var newDataLayer2 = new WMJSLayer({
-      service:'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.RADAR.cgi?',
-      name:'echotops'
-    });
-    this.webMapJS.addLayer(newDataLayer2);
+    // eslint-disable-next-line no-undef
+    // var newDataLayer2 = new WMJSLayer({
+    //   service:'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.RADAR.cgi?',
+    //   name:'echotops'
+    // });
+    // this.webMapJS.addLayer(newDataLayer2);
+    // eslint-disable-next-line no-undef
+    // var Overlay = new WMJSLayer({
+    //   service:'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.OVL.cgi?',
+    //   name:'FIR areas'
+    // });
+    // this.webMapJS.addLayer(Overlay);
 
-    var Overlay = new WMJSLayer({
-      service:'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.OVL.cgi?',
-      name:'FIR areas'
-    });
-    this.webMapJS.addLayer(Overlay);
-
-    this.webMapJS.setActiveLayer(newDataLayer2);
+    // this.webMapJS.setActiveLayer(newDataLayer2);
     axios.get(rootURL + '/getServices.cgi').then(src => {
       const sources = src.data;
       axios.get(rootURL + '/getOverlayServices.cgi').then(res => {
-        const overlaySrc = res.data[0];
-        // eslint-disable-next-line no-undef
-        var service = WMJSgetServiceFromStore(overlaySrc.service);
-        service.getLayerNames(
-          (layernames) => {
-            console.log(layernames);
-            console.log(service);
-            dispatch(actions.createMap(sources, { ...overlaySrc, layers: layernames }));
-          },
-          (error) => {
-            console.log('Error!: ', error);
-          }
-        );
+        dispatch(actions.createMap(sources, res.data[0]));
+        // const overlaySrc = res.data[0];
+        // // eslint-disable-next-line no-undef
+        // var service = WMJSgetServiceFromStore(overlaySrc.service);
+        // service.getLayerNames(
+        //   (layernames) => {
+        //     console.log(layernames);
+        //     console.log(service);
+        //     dispatch(actions.createMap(sources, { ...overlaySrc, layers: layernames }));
+        //   },
+        //   (error) => {
+        //     console.log('Error!: ', error);
+        //   }
+        // );
         this.webMapJS.draw();
       }).catch((error) => {
         console.log(error);
@@ -155,24 +157,35 @@ export default class Adaguc extends React.Component {
       this.webMapJS.setBBOX(boundingBox.bbox.join());
       this.webMapJS.draw();
     } else if (layers !== prevProps.adagucProperties.layers) {
+      console.log('new layers!');
       const { baselayer, datalayers, overlays } = layers;
       if (baselayer !== prevProps.adagucProperties.layers.baselayer) {
+        console.log('newbaselayer!');
         // eslint-disable-next-line no-undef
         this.webMapJS.setBaseLayers([new WMJSLayer(baselayer)]);
         this.webMapJS.draw();
       } else if (overlays !== prevProps.adagucProperties.layers.overlays) {
+        console.log('newoverlay!');
         // eslint-disable-next-line no-undef
         const overlayers = overlays.map((overlay) => { const newOverlay = new WMJSLayer(overlay); newOverlay.keepOnTop = true; return newOverlay; });
         // eslint-disable-next-line no-undef
-        const newBaselayers = [new WMJSLayer(baselayer), overlayers];
+        const newBaselayers = [new WMJSLayer(baselayer)].concat(overlayers);
+        console.log(newBaselayers);
         this.webMapJS.setBaseLayers(newBaselayers);
         this.webMapJS.draw();
       } else {
+        console.log('new regular layers!');
         this.webMapJS.stopAnimating();
         // eslint-disable-next-line no-undef
         const newDatalayers = datalayers.map((datalayer) => { const newDataLayer = new WMJSLayer(datalayer); newDataLayer.onReady = this.animateLayer; return newDataLayer; });
         this.webMapJS.removeAllLayers();
         newDatalayers.forEach((layer) => this.webMapJS.addLayer(layer));
+        const newActiveLayer = (this.webMapJS.getLayers()[0]);
+        if (newActiveLayer) {
+          this.webMapJS.setActiveLayer(this.webMapJS.getLayers()[0]);
+        } else {
+          this.webMapJS.draw();
+        }
       }
     } else {
       console.log('???');
@@ -225,15 +238,10 @@ export default class Adaguc extends React.Component {
         title: 'Analyses'
       }
     ];
-    if (this.webMapJS) {
-      console.log(this.webMapJS.getBaseLayers());
-    }
-    const layers = this.webMapJS ? this.webMapJS.getLayers() : null;
-    const baselayers = this.webMapJS ? this.webMapJS.getBaseLayers() : null;
     return (
       <div>
         <div>
-          <Menu pageWrapId={'adagucWrapper'} outerContainerId={'root'} width={400} noOverlay isOpen>
+          <Menu pageWrapId={'adagucWrapper'} outerContainerId={'root'} width={400} noOverlay>
             <MenuItem title='Shift tasks' notification='3' subitems={shiftTaskItems} />
             <MenuItem title='Products' subitems={productItems} />
             <MenuItem title='Reports & Logs' subitems={[{ title: 'Basis forecast', notificationCount: 3 }]} />
@@ -247,7 +255,7 @@ export default class Adaguc extends React.Component {
           </div>
           <div id='infocontainer' style={{ margin: 0 }}>
             <TimeComponent ref='TimeComponent' webmapjs={this.webMapJS} width={timeComponentWidth} onChangeAnimation={this.onChangeAnimation} />
-            <LayerManager layers={layers} baselayers={baselayers} />
+            <LayerManager dispatch={this.props.dispatch} actions={this.props.actions} sources={this.props.adagucProperties.sources} layers={this.props.adagucProperties.layers} />
           </div>
         </div>
       </div>
@@ -277,7 +285,11 @@ class MenuItem extends React.Component {
           <Card>
             <CardBlock>
               <ListGroup>
-                {subitems.map((subitemobj, i) => <ListGroupItem id='submenuitem' className='justify-content-between' tag='button' key={i}>{subitemobj.title} <span>{subitemobj.notificationCount > 0 ? <Badge color='danger' pill>{subitemobj.notificationCount}</Badge> : null} {<Icon name='caret-right' />}</span></ListGroupItem>)}
+                {subitems.map((subitemobj, i) =>
+                  <ListGroupItem id='submenuitem' className='justify-content-between' tag='button' key={i}>{subitemobj.title}
+                    <span>{subitemobj.notificationCount > 0 ? <Badge color='danger' pill>{subitemobj.notificationCount}</Badge> : null}
+                      {<Icon name='caret-right' />}</span>
+                  </ListGroupItem>)}
               </ListGroup>
             </CardBlock>
           </Card>
@@ -286,6 +298,12 @@ class MenuItem extends React.Component {
     );
   }
 }
+
+MenuItem.propTypes = {
+  title         : React.PropTypes.string.isRequired,
+  notification  : React.PropTypes.string,
+  subitems      : React.PropTypes.array.isRequired
+};
 
 Adaguc.propTypes = {
   adagucProperties : React.PropTypes.object.isRequired,
