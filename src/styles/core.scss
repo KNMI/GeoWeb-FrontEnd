@@ -13,40 +13,99 @@ body {
   padding: 0;
   height: 100%;
 }
-#adaguccontainer {
-  display:inline-block;
-  min-height: calc(100% - 133px);
-}
-#innermenu {
-  display: block;
-}
+// #adaguccontainer {
+//   display:inline-block;
+//   min-height: calc(100% - 133px);
+// }
+// #innermenu {
+//   display: block;
+// }
 
-.dropdown{
-  margin: 5px;
-}
+// .dropdown{
+//   margin: 5px;
+// }
 
 *,
 *:before,
 *:after {
   box-sizing: inherit;
 }
-#infocontainer {
-  margin: auto;
-  margin-right: 250px;
+#gw-navbar {
+  width: 100%
 }
-#timecomponent {
-  float: left;
+
+#layerinfo.list-group-item {
+  padding: 0;
 }
-#layerproperties {
-  float: right;
-  flex-grow: 1;
+
+#submenuitem:hover{
+  background-color: #e2e2e2 !important;
 }
-#layerproperties td,
-#layerproperties th {
-  padding-right: 25px;
-  font-size: 18pt;
+// #infocontainer {
+//   margin: auto;
+//   margin-right: 250px;
+// }
+// #timecomponent {
+//   float: left;
+// }
+// #layerproperties {
+//   float: right;
+//   flex-grow: 1;
+// }
+// #layerproperties td,
+// #layerproperties th {
+//   padding-right: 25px;
+//   font-size: 18pt;
+// }
+// #layerproperties td:last-child,
+// #layerproperties th:last-child {
+//   font-size: 18pt;
+// }
+/* Position and sizing of burger button */
+.bm-burger-button {
+  position: fixed;
+  width: 36px;
+  height: 30px;
+  left: 16px;
+  top: 75px;
 }
-#layerproperties td:last-child,
-#layerproperties th:last-child {
-  font-size: 18pt;
+
+/* Color/shape of burger icon bars */
+.bm-burger-bars {
+  background: #373a47;
+}
+
+/* Position and sizing of clickable cross button */
+.bm-cross-button {
+  height: 24px;
+  width: 24px;
+}
+
+/* Color/shape of close button cross */
+.bm-cross {
+  background: #e2e2e2;
+}
+
+/* General sidebar styles */
+.bm-menu {
+  background: #373a47;
+  padding: 0em 1em 0em 0em;
+  font-size: 1.15em;
+  min-width: 100px;
+}
+
+/* Morph shape necessary with bubble or elastic */
+.bm-morph-shape {
+  fill: #373a47;
+}
+
+/* Wrapper for item list */
+.bm-item-list {
+  color: #b8b7ad;
+  padding: 0.8em;
+}
+
+/* Styling of overlay */
+.bm-overlay {
+  background: rgba(0, 0, 0, 0.3);
 }

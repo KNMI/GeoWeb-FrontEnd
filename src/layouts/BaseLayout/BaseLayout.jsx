@@ -8,19 +8,16 @@ class BaseLayout extends Component {
     const { header, leftSideBar, mainViewport, rightSideBar } = this.props;
     return (
       <Container fluid style={{ minHeight: '100%' }}>
-        {/*<Row className='Header' style={{ maxHeight: '0' }}>
+        <Row className='Header'>
           {header || 'Oops'}
-        </Row>*/}
-        <Row style={{ minHeight: '100%', flex: 1 }}>
-          {/*<Col xs='3' className='LeftSideBar' style={{ maxHeight: '0' }}>
-            {leftSideBar || 'Oops'}
-          </Col>*/}
-          <Col xs='auto' className='MainViewport' style={{ minHeight: '100%' }}>
+        </Row>
+        <Row>
+          <Col xs='auto' className='MainViewport'>
             {mainViewport || 'Oops'}
           </Col>
-          {/*<Col xs='3' className='RightSideBar' style={{ maxHeight: '0' }}>
+          {/* <Col xs='3' className='RightSideBar'>
             {rightSideBar || 'Oops'}
-          </Col>*/}
+          </Col> */}
         </Row>
       </Container>
     );

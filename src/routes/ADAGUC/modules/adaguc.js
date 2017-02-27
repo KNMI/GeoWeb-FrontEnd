@@ -102,12 +102,40 @@ export const actions = {
   setOverlay
 };
 
+/*
+const initialState = {
+  adagucProperties: {
+    sources: {
+      data: null,
+      overlay: null
+    },
+    layers: {
+      baselayer: MAP_STYLES[1],
+      datalayers: [],
+      overlays: []
+    },
+    boundingBox: BOUNDING_BOXES[0],
+    projectionName: 'EPSG:3857',
+    mapCreated: false
+  },
+  header: {
+    title: 'hello Headers'
+  },
+  leftSideBar: {
+    title: 'hello LeftSideBar'
+  },
+  mainViewport: {
+    title: 'hello MainViewport'
+  },
+  rightSideBar: {
+    title: 'hello RightSideBar'
+  }
+};
+ */
 const newMapState = (state, payload) => {
   console.log(payload);
   return Object.assign({}, state, { mapCreated: true },
-    { sources: payload.sources },
-    { overlayService: payload.overlays },
-    { overlayLayers: payload.overlays.layers.map((layer) => ({ title: layer })) });
+    { sources: { data: payload.sources, overlay: payload.overlays } });
 };
 
 const newSource = (state, payload) => {

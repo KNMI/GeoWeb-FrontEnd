@@ -131,9 +131,7 @@ export default class Menu extends React.Component {
 }
 
 Menu.propTypes = {
-  adagucProperties : React.PropTypes.object,
-  webmapjs         : React.PropTypes.object,
-  allelayers       : React.PropTypes.array,
+  adagucProperties : React.PropTypes.object.isRequired,
   actions          : React.PropTypes.object.isRequired,
   dispatch         : React.PropTypes.func.isRequired
 };
