@@ -1840,6 +1840,7 @@
 
           // baseLayers[j].id=(-2)-j;;
         }
+        callBack.triggerEvent('onlayeradd');
       } else baseLayers = undefined;
     };
 
@@ -1855,6 +1856,8 @@
           }
           // baseLayers[j].id=(-2)-j;;
         }
+        console.log('log from adaguc: new baselayers');
+        callBack.triggerEvent('onlayeradd');
       } else baseLayers = undefined;
     };
 

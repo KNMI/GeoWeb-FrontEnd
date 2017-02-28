@@ -35,15 +35,16 @@ const TimeComponent = React.createClass({
 
     if (timeDim !== undefined) {
       if (this.state.value === timeDim.currentValue) {
+        console.log('doing update');
         if (this.hoverDate === this.hoverDateDone) {
-          return;
+          this.drawCanvas();
         }
       }
       if (timeDim.currentValue !== this.state.value) {
         this.setState({ value:timeDim.currentValue, width: this.state.width });
       }
     } else {
-      return;
+      this.drawCanvas();
     }
     this.drawCanvas();
   },
@@ -56,6 +57,7 @@ const TimeComponent = React.createClass({
     this.hoverDateDone = this.hoverDate;
 
     let layers = this.props.webmapjs.getLayers();
+    let overlayers = this.props.webmapjs.getBaseLayers().filter((layer) => layer.keepOnTop === true);
     let ctx = this.ctx;
     let canvasWidth = ctx.canvas.clientWidth;
     let canvasHeight = ctx.canvas.clientHeight;
@@ -138,18 +140,18 @@ const TimeComponent = React.createClass({
       ctx.fillStyle = '#000';
       ctx.fillText(dateAtTimeStep.getUTCHours() + 'H', pos * scaleWidth + 3, canvasHeight - 3);
     }
-
+    console.log('overlayers', overlayers.length);
     /* Draw blocks for layer */
-    for (let j = 0; j < layers.length; j++) {
-      let y = j * 25 + 1;
+    for (let j = 0; j < layers.length + 0; j++) {
+      let y = j * 20 + 1 + overlayers.length * 20;
       let h = 16;
       let layer = layers[j];
       let dim = layer.getDimension('time');
       ctx.lineWidth = 1;
       ctx.fillStyle = '#F66';
-      ctx.fillRect(0, 5 + y + 0.5, canvasWidth, h);
+      ctx.fillRect(0, y + 0.5, canvasWidth, h);
       ctx.strokeStyle = '#AAA';
-      ctx.strokeRect(-1, 5 + y + 0.5, canvasWidth + 2, h);
+      ctx.strokeRect(-1, y + 0.5, canvasWidth + 2, h);
       if (dim) {
         let layerStartIndex = dim.getIndexForValue(this.startDate, false);
         let layerStopIndex = dim.getIndexForValue(this.endDate, false);
@@ -167,13 +169,13 @@ const TimeComponent = React.createClass({
           let x = parseInt(pos * scaleWidth);
           let w = parseInt(posNext * scaleWidth) - x;
 
-          ctx.fillRect(x + 0.5, 5 + y + 0.5, w, h);
-          ctx.strokeRect(x + 0.5, 5 + y + 0.5, w, h);
+          ctx.fillRect(x + 0.5, y + 0.5, w, h);
+          ctx.strokeRect(x + 0.5, y + 0.5, w, h);
         }
       }
-      ctx.font = 'bold 10pt Arial';
-      ctx.fillStyle = '#000';
-      ctx.fillText(layer.title, 6, h + 2 + y);
+      // ctx.font = 'bold 10pt Arial';
+      // ctx.fillStyle = '#000';
+      // ctx.fillText(layer.title, 6, h + y - 3);
     }
 
     /* Draw current system time */
@@ -363,7 +365,7 @@ const TimeComponent = React.createClass({
         </Button>
       </div>
       <div style={{ display: 'flex', flex: '0 0 auto', border:'0px solid blue', margin: '0px 2px 0px 2px', padding: 0, background:'white' }}>
-        <CanvasComponent width={this.state.width - 1000} height={78}
+        <CanvasComponent width={this.state.width - 1000} height={150}
           onRenderCanvas={this.onRenderCanvas}
           onClick={this.onClickCanvas}
           onMouseMove={this.onMouseMoveCanvas} />

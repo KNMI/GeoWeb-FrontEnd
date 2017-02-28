@@ -2,13 +2,14 @@ import React from 'react';
 import { slide as Menu } from 'react-burger-menu';
 
 // import { default as Menu } from './Menu';
-import { Badge, ListGroup, ListGroupItem, Collapse, CardBlock, Card } from 'reactstrap';
+import { Badge, ListGroup, ListGroupItem, Collapse, CardBlock, Card, ButtonDropdown, DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap';
 import TimeComponent from './TimeComponent.js';
 import AdagucMapDraw from './AdagucMapDraw.js';
 import LayerManager from './LayerManager.js';
 import AdagucMeasureDistance from './AdagucMeasureDistance.js';
 import axios from 'axios';
 import Icon from 'react-fa';
+import { BOUNDING_BOXES } from '../constants/bounding_boxes';
 export default class Adaguc extends React.Component {
   constructor () {
     super();
@@ -18,6 +19,10 @@ export default class Adaguc extends React.Component {
     this.updateAnimation = this.updateAnimation.bind(this);
     this.onChangeAnimation = this.onChangeAnimation.bind(this);
     this.isAnimating = false;
+    this.state = {
+      dropdownOpenView: false
+    };
+    this.toggleView = this.toggleView.bind(this);
   }
 
   currentLatestDate = undefined;
@@ -62,7 +67,7 @@ export default class Adaguc extends React.Component {
 
   resize () {
     // eslint-disable-next-line no-undef
-    this.webMapJS.setSize($(window).width(), $(window).height() - 230);
+    this.webMapJS.setSize($(window).width(), $(window).height() - 275);
     this.webMapJS.draw();
     if (this.refs.TimeComponent) {
       // eslint-disable-next-line no-undef
@@ -85,7 +90,7 @@ export default class Adaguc extends React.Component {
     // eslint-disable-next-line no-undef
     $(window).resize(this.resize);
     // eslint-disable-next-line no-undef
-    this.webMapJS.setSize($(window).width(), $(window).height() - 230);
+    this.webMapJS.setSize($(window).width(), $(window).height() - 275);
 
     // Set the initial projection
     this.webMapJS.setProjection(adagucProperties.projectionName);
@@ -170,7 +175,11 @@ export default class Adaguc extends React.Component {
     this.isAnimating = !value;
     this.updateAnimation(this.webMapJS.getActiveLayer());
   };
-
+  toggleView () {
+    this.setState({
+      dropdownOpenView: !this.state.dropdownOpenView
+    });
+  }
   render () {
     // eslint-disable-next-line no-undef
     let timeComponentWidth = $(window).width();
@@ -212,6 +221,9 @@ export default class Adaguc extends React.Component {
         title: 'Analyses'
       }
     ];
+    const { dispatch, actions, adagucProperties } = this.props;
+    const { setCut } = actions;
+    const { sources, layers } = adagucProperties;
     return (
       <div>
         <div>
@@ -228,11 +240,12 @@ export default class Adaguc extends React.Component {
             <div style={{ margin: '5px 10px 10px 5px ' }}>
               <AdagucMapDraw webmapjs={this.webMapJS} />
               <AdagucMeasureDistance webmapjs={this.webMapJS} />
+              <DropdownButton dispatch={dispatch} dataFunc={setCut} items={BOUNDING_BOXES} title='View' isOpen={this.state.dropdownOpenView} toggle={this.toggleView} />
             </div>
           </div>
           <div id='infocontainer' style={{ margin: 0, display: 'flex', flex: '0 0 auto' }}>
             <TimeComponent ref='TimeComponent' webmapjs={this.webMapJS} width={timeComponentWidth} onChangeAnimation={this.onChangeAnimation} />
-            <LayerManager dispatch={this.props.dispatch} actions={this.props.actions} sources={this.props.adagucProperties.sources} layers={this.props.adagucProperties.layers} />
+            <LayerManager dispatch={dispatch} actions={actions} sources={sources} layers={layers} />
           </div>
         </div>
       </div>
@@ -286,4 +299,60 @@ Adaguc.propTypes = {
   adagucProperties : React.PropTypes.object.isRequired,
   actions          : React.PropTypes.object.isRequired,
   dispatch         : React.PropTypes.func.isRequired
+};
+
+class DropdownButton extends React.Component {
+  render () {
+    const { items, title, isOpen, toggle } = this.props;
+    if (items) {
+      return (
+        <ButtonDropdown style={{ float: 'right', marginRight: '333px' }} isOpen={isOpen} toggle={toggle} dropup>
+          <DropdownToggle color='primary' caret>
+            {title}
+          </DropdownToggle>
+          <DropdownMenu>
+            {items.map((item, i) => (<DropDownMenuItem {...this.props} item={item} id={i} key={i} />))}
+          </DropdownMenu>
+        </ButtonDropdown>
+      );
+    } else {
+      return (
+        <ButtonDropdown isOpen={false} toggle={(e) => { return e; }}>
+          <DropdownToggle color='primary' caret disabled>
+            {title}
+          </DropdownToggle>
+        </ButtonDropdown>);
+    }
+  }
+}
+
+DropdownButton.propTypes = {
+  items         : React.PropTypes.array,
+  title         : React.PropTypes.string.isRequired,
+  isOpen        : React.PropTypes.bool.isRequired,
+  toggle        : React.PropTypes.func.isRequired
+};
+
+class DropDownMenuItem extends React.Component {
+  constructor () {
+    super();
+    this.handleClick = this.handleClick.bind(this);
+  }
+
+  handleClick (e) {
+    const { dataFunc, dispatch, id } = this.props;
+    // Execute the appropriate data function passed as prop
+    dispatch(dataFunc(id));
+  }
+  render () {
+    const { item } = this.props;
+    return <DropdownItem onClick={this.handleClick}>{item.title}</DropdownItem>;
+  }
+}
+
+DropDownMenuItem.propTypes = {
+  dataFunc        : React.PropTypes.func.isRequired,
+  dispatch        : React.PropTypes.func.isRequired,
+  id              : React.PropTypes.number.isRequired,
+  item            : React.PropTypes.object.isRequired
 };
