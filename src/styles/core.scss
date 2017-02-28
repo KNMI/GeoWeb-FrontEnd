@@ -1,6 +1,7 @@
 @import 'base';
 @import '~normalize.css/normalize';
-// @import 'typeaheadjs';
+@import '~bootstrap/scss/bootstrap';
+@import 'typeaheadjs';
 // Some best-practice CSS that's useful for most apps
 // Just remove them if they're not what you want
 html {
@@ -38,9 +39,9 @@ body {
   padding: 0;
 }
 
-#submenuitem:hover{
-  background-color: #e2e2e2 !important;
-}
+// #submenuitem:hover{
+//   background-color: #e2e2e2 !important;
+// }
 // #infocontainer {
 //   margin: auto;
 //   margin-right: 250px;
