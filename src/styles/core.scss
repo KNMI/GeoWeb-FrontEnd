@@ -109,3 +109,11 @@ body {
 .bm-overlay {
   background: rgba(0, 0, 0, 0.3);
 }
+span {
+  max-width: 250px;
+}
+span.badge {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

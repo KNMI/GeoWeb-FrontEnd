@@ -1,5 +1,5 @@
 import React from 'react';
-import { push as Menu } from 'react-burger-menu';
+import { slide as Menu } from 'react-burger-menu';
 
 // import { default as Menu } from './Menu';
 import { Badge, ListGroup, ListGroupItem, Collapse, CardBlock, Card } from 'reactstrap';
@@ -61,7 +61,7 @@ export default class Adaguc extends React.Component {
 
   resize () {
     // eslint-disable-next-line no-undef
-    this.webMapJS.setSize($(window).width(), $(window).height() - 300);
+    this.webMapJS.setSize($(window).width(), $(window).height() - 230);
     this.webMapJS.draw();
     if (this.refs.TimeComponent) {
       // eslint-disable-next-line no-undef
@@ -84,7 +84,7 @@ export default class Adaguc extends React.Component {
     // eslint-disable-next-line no-undef
     $(window).resize(this.resize);
     // eslint-disable-next-line no-undef
-    this.webMapJS.setSize($(window).width(), $(window).height() - 300);
+    this.webMapJS.setSize($(window).width(), $(window).height() - 230);
 
     // Set the initial projection
     this.webMapJS.setProjection(adagucProperties.projectionName);
@@ -253,7 +253,7 @@ export default class Adaguc extends React.Component {
             <div ref='adaguc' />
             <AdagucMapDraw webmapjs={this.webMapJS} />
           </div>
-          <div id='infocontainer' style={{ margin: 0 }}>
+          <div id='infocontainer' style={{ margin: 0, display: 'flex', flex: '0 0 auto' }}>
             <TimeComponent ref='TimeComponent' webmapjs={this.webMapJS} width={timeComponentWidth} onChangeAnimation={this.onChangeAnimation} />
             <LayerManager dispatch={this.props.dispatch} actions={this.props.actions} sources={this.props.adagucProperties.sources} layers={this.props.adagucProperties.layers} />
           </div>

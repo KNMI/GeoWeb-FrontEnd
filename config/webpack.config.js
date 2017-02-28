@@ -11,7 +11,7 @@ const __DEV__ = project.globals.__DEV__;
 const __PROD__ = project.globals.__PROD__;
 const __TEST__ = project.globals.__TEST__;
 
-debug('Creating configuration.');
+debug('Creating awesome webpack configuration.');
 const webpackConfig = {
   devServer: { historyApiFallback: true },
   name     : 'client',
@@ -65,7 +65,7 @@ webpackConfig.plugins = [
   new HtmlWebpackPlugin({
     template : project.paths.client('index.html'),
     hash     : false,
-    favicon  : project.paths.public('favicon.ico'),
+    favicon  : project.paths.client('components/assets/icon.ico'),
     filename : 'index.html',
     inject   : 'body',
     minify   : {

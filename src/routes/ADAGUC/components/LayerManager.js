@@ -92,16 +92,18 @@ export default class LayerManager extends React.Component {
     if (layer) {
       const service = layer.service;
       let retStr = '';
-      if (service.includes('HARM')) {
-        retStr = 'HARMONIE';
-      } else if (service.includes('RAD')) {
-        retStr = 'Radar';
-      } else if (service.includes('OBS')) {
-        retStr = 'Observation';
-      } else if (service.includes('SAT')) {
-        retStr = 'Satellite';
-      } else if (service.includes('OVL')) {
-        retStr = 'Overlay';
+      if (service.includes('adaguc')) {
+        if (service.includes('HARM')) {
+          retStr = 'HARMONIE';
+        } else if (service.includes('RAD')) {
+          retStr = 'Radar';
+        } else if (service.includes('OBS')) {
+          retStr = 'Observation';
+        } else if (service.includes('SAT')) {
+          retStr = 'Satellite';
+        } else if (service.includes('OVL')) {
+          retStr = 'Overlay';
+        }
       } else {
         retStr = 'Lightning';
       }
@@ -130,11 +132,11 @@ export default class LayerManager extends React.Component {
     const overlayclone = overlays.slice(0);
     console.log('sources: ', this.props.sources);
     return (
-      <div>
+      <div style={{ marginLeft: '5px' }} >
         {this.renderLayerSet(overlayclone.reverse(), 'overlay')}
         {this.renderLayerSet(datalayerclone.reverse(), 'data')}
         {this.renderLayerSet([baselayer], 'base')}
-        <Button color='primary' onClick={this.toggleModal}>+</Button>
+        <Button color='primary' onClick={this.toggleModal}>Add layer</Button>
         <Modal isOpen={this.state.modal} toggle={this.toggleModal}>
           <ModalHeader toggle={this.toggleModal}>Add layer</ModalHeader>
           <Nav tabs>

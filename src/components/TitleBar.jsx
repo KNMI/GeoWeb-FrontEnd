@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import Icon from 'react-fa';
-import GeoWebLogo from './assets/geoweb.jpg';
+import GeoWebLogo from './assets/icon.svg';
 import { Navbar, NavbarToggler, NavbarBrand, Collapse, Nav, NavItem, NavLink, Popover, PopoverTitle, PopoverContent } from 'reactstrap';
 var moment = require('moment');
 class TitleBar extends Component {

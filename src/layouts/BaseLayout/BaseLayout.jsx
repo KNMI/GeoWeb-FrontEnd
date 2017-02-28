@@ -7,7 +7,7 @@ class BaseLayout extends Component {
   render () {
     const { header, leftSideBar, mainViewport, rightSideBar } = this.props;
     return (
-      <Container fluid style={{ minHeight: '100%' }}>
+      <Container fluid style={{ minHeight: '100vh' }}>
         <Row className='Header'>
           {header || 'Oops'}
         </Row>

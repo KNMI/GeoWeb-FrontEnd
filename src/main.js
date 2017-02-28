@@ -37,7 +37,7 @@ const initialState = {
   }
 };
 
-const store = createStore(initialState);
+const store = createStore(initialState, __DEV__);
 // ========================================================
 // Render Setup
 // ========================================================
