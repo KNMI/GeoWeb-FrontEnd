@@ -498,9 +498,9 @@ const AdagucMapDraw = React.createClass({
       webmapjs.draw();
     }
     return (
-      <div>
-        <Button onClick={this.handleStartEdit} disabled={this.disabled}>{this.state.editMode === false ? 'Create / Edit' : 'Exit editing mode'}</Button>
-        <Button onClick={this.handleDeleteFeatures} disabled={this.disabled}>{this.state.setEditMode !== 'deletefeatures' ? 'Delete' : 'Click to delete'}</Button>
+      <div style={{ display: 'inline-block', marginRight: '15px' }} >
+        <Button style={{ marginRight: '5px' }} color='primary' onClick={this.handleStartEdit} disabled={this.disabled}>{this.state.editMode === false ? 'Create / Edit' : 'Exit editing mode'}</Button>
+        <Button color='primary' onClick={this.handleDeleteFeatures} disabled={this.disabled}>{this.state.setEditMode !== 'deletefeatures' ? 'Delete' : 'Click to delete'}</Button>
       </div>
     );
   }

@@ -92,37 +92,10 @@ export default class Adaguc extends React.Component {
     this.webMapJS.setBBOX(adagucProperties.boundingBox.bbox.join());
     // eslint-disable-next-line no-undef
     this.webMapJS.setBaseLayers([new WMJSLayer(adagucProperties.layers.baselayer)]);
-    // eslint-disable-next-line no-undef
-    // var newDataLayer2 = new WMJSLayer({
-    //   service:'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.RADAR.cgi?',
-    //   name:'echotops'
-    // });
-    // this.webMapJS.addLayer(newDataLayer2);
-    // eslint-disable-next-line no-undef
-    // var Overlay = new WMJSLayer({
-    //   service:'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.OVL.cgi?',
-    //   name:'FIR areas'
-    // });
-    // this.webMapJS.addLayer(Overlay);
-
-    // this.webMapJS.setActiveLayer(newDataLayer2);
     axios.get(rootURL + '/getServices.cgi').then(src => {
       const sources = src.data;
       axios.get(rootURL + '/getOverlayServices.cgi').then(res => {
         dispatch(actions.createMap(sources, res.data[0]));
-        // const overlaySrc = res.data[0];
-        // // eslint-disable-next-line no-undef
-        // var service = WMJSgetServiceFromStore(overlaySrc.service);
-        // service.getLayerNames(
-        //   (layernames) => {
-        //     console.log(layernames);
-        //     console.log(service);
-        //     dispatch(actions.createMap(sources, { ...overlaySrc, layers: layernames }));
-        //   },
-        //   (error) => {
-        //     console.log('Error!: ', error);
-        //   }
-        // );
         this.webMapJS.draw();
       }).catch((error) => {
         console.log(error);
@@ -252,8 +225,10 @@ export default class Adaguc extends React.Component {
         <div id='adagucWrapper'>
           <div>
             <div ref='adaguc' />
-            <AdagucMapDraw webmapjs={this.webMapJS} />
-            <AdagucMeasureDistance webmapjs={this.webMapJS} />
+            <div style={{ margin: '5px 10px 10px 5px ' }}>
+              <AdagucMapDraw webmapjs={this.webMapJS} />
+              <AdagucMeasureDistance webmapjs={this.webMapJS} />
+            </div>
           </div>
           <div id='infocontainer' style={{ margin: 0, display: 'flex', flex: '0 0 auto' }}>
             <TimeComponent ref='TimeComponent' webmapjs={this.webMapJS} width={timeComponentWidth} onChangeAnimation={this.onChangeAnimation} />
