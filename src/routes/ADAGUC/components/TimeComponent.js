@@ -35,7 +35,6 @@ const TimeComponent = React.createClass({
 
     if (timeDim !== undefined) {
       if (this.state.value === timeDim.currentValue) {
-        console.log('doing update');
         if (this.hoverDate === this.hoverDateDone) {
           this.drawCanvas();
         }
@@ -140,7 +139,6 @@ const TimeComponent = React.createClass({
       ctx.fillStyle = '#000';
       ctx.fillText(dateAtTimeStep.getUTCHours() + 'H', pos * scaleWidth + 3, canvasHeight - 3);
     }
-    console.log('overlayers', overlayers.length);
     /* Draw blocks for layer */
     for (let j = 0; j < layers.length + 0; j++) {
       let y = j * 20 + 1 + overlayers.length * 20;
@@ -275,13 +273,11 @@ const TimeComponent = React.createClass({
     this.props.onChangeAnimation(value);
   },
   componentDidMount () {
-    console.log('mount');
   },
   componentDidUpdate () {
     this.drawCanvas();
   },
   componentWillUnmount () {
-    console.log('unmount');
   },
   onRenderCanvas (ctx) {
     this.ctx = ctx;
@@ -332,7 +328,6 @@ const TimeComponent = React.createClass({
     if (webmapjs !== undefined) {
       if (this.listenersInitialized === undefined) { // TODO mount/unmount
         this.listenersInitialized = true;
-        console.log('initlistener');
 
         webmapjs.addListener('onlayeradd', this.eventOnMapDimUpdate, true);
         webmapjs.addListener('onmapdimupdate', this.eventOnMapDimUpdate, true);

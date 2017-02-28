@@ -1,10 +1,7 @@
 import React from 'react';
-import { TabContent, TabPane, Nav, NavItem, NavLink, ListGroupItem, Badge, Button, Modal, ModalHeader, ModalBody, ModalFooter,
-Card,
-CardTitle,
-CardImg,
-CardImgOverlay } from 'reactstrap';
+import { TabContent, TabPane, Nav, NavItem, NavLink, ListGroupItem, Badge, Button, Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
 import { Icon } from 'react-fa';
+import { Typeahead } from 'react-bootstrap-typeahead';
 import classnames from 'classnames';
 
 export default class LayerManager extends React.Component {
@@ -15,6 +12,7 @@ export default class LayerManager extends React.Component {
     this.toggleModal = this.toggleModal.bind(this);
     this.toggleTab = this.toggleTab.bind(this);
     this.handleAddLayer = this.handleAddLayer.bind(this);
+    this.generateMap = this.generateMap.bind(this);
     this.state = {
       modal: false,
       activeTab: '1',
@@ -56,10 +54,11 @@ export default class LayerManager extends React.Component {
   }
 
   handleAddLayer (e) {
+    const addItem = e[0];
     if (!this.state.overlay) {
-      this.props.dispatch(this.props.actions.addLayer({ service: this.state.selectedSource.service, name: e.currentTarget.id, title: e.currentTarget.innerHTML }));
+      this.props.dispatch(this.props.actions.addLayer({ service: this.state.selectedSource.service, name: addItem.id, title: addItem.label }));
     } else {
-      this.props.dispatch(this.props.actions.addOverlayLayer({ service: this.state.selectedSource.service, name: e.currentTarget.id, title: e.currentTarget.innerHTML }));
+      this.props.dispatch(this.props.actions.addOverlayLayer({ service: this.state.selectedSource.service, name: addItem.id, title: addItem.label }));
     }
     this.setState({
       modal: false,
@@ -69,24 +68,33 @@ export default class LayerManager extends React.Component {
       overlay: false
     });
   }
+
+  generateMap (layers) {
+    let layerobjs = [];
+    for (var i = 0; i < layers.length; ++i) {
+      layerobjs.push({ id: layers[i].name, label: layers[i].text });
+    }
+    this.setState({
+      layers: layerobjs,
+      activeTab: '2'
+    });
+    console.log(layerobjs);
+  }
+
   handleCardClick (e) {
     let selectedSource = this.props.sources.data.filter((source) => source.name === e.currentTarget.id);
     if (!selectedSource || selectedSource.length === 0) {
-      console.log('here');
-      console.log(e.currentTarget.id);
       selectedSource = this.props.sources.overlay.filter((source) => source.name === e.currentTarget.id);
       this.setState({ overlay: true });
     } else {
       this.setState({ overlay: false });
     }
-    console.log(selectedSource);
     const selectedService = selectedSource[0];
 
     // eslint-disable-next-line no-undef
     var srv = WMJSgetServiceFromStore(selectedService.service);
     this.setState({ selectedSource: selectedService });
-    // srv.getLayerObjectsFlat((node) => console.log(node));
-    srv.getLayerObjectsFlat((layernames) => { console.log(layernames); this.setState({ layers: (layernames), activeTab: '2' }); }, (err) => console.log(err));
+    srv.getLayerObjectsFlat((layers) => this.generateMap(layers), (err) => console.log(err));
   }
   getLayerName (layer) {
     if (layer) {
@@ -130,7 +138,6 @@ export default class LayerManager extends React.Component {
     const { datalayers, baselayer, overlays } = layers;
     const datalayerclone = datalayers.slice(0);
     const overlayclone = overlays.slice(0);
-    console.log('sources: ', this.props.sources);
     return (
       <div style={{ marginLeft: '5px' }} >
         {this.renderLayerSet(overlayclone.reverse(), 'overlay')}
@@ -165,7 +172,7 @@ export default class LayerManager extends React.Component {
                 { (sources.data) ? sources.overlay.map((src, i) => <Button id={src.name} key={i} onClick={this.handleCardClick}>{src.title}</Button>) : <div /> }
               </TabPane>
               <TabPane tabId='2'>
-                {this.state.layers ? this.state.layers.map((layer, i) => <Button onClick={this.handleAddLayer} id={layer.name} key={i}>{layer.text}</Button>) : ''}
+                <Typeahead onChange={this.handleAddLayer} options={this.state.layers ? this.state.layers : []} />
               </TabPane>
             </TabContent>
           </ModalBody>
@@ -173,26 +180,10 @@ export default class LayerManager extends React.Component {
             <Button color='secondary' onClick={this.toggleModal}>Cancel</Button>
           </ModalFooter>
         </Modal>
-
       </div>
     );
   }
 }
-
-class MyCard extends React.Component {
-  render () {
-    return (<Card>
-      <CardImg top width='100%' src='https://placeholdit.imgix.net/~text?txtsize=33&txt=400%C3%97200&w=400&h=200' alt='Card image cap' />
-      <CardImgOverlay>
-        <CardTitle>{this.props.title}</CardTitle>
-      </CardImgOverlay>
-    </Card>);
-  }
-}
-
-MyCard.propTypes = {
-  title: React.PropTypes.string.isRequired
-};
 
 LayerManager.propTypes = {
   dispatch: React.PropTypes.func.isRequired,

@@ -1,0 +1,30 @@
+span.twitter-typeahead {
+  width: 100%;
+
+  .tt-menu {
+    @extend .dropdown-menu;
+  }
+
+  .tt-suggestion {
+    @extend .dropdown-item;
+  }
+
+  .tt-suggestion.tt-cursor {
+     @extend .dropdown-item.active;
+  }
+
+  $font-size-root: 14px;
+  .input-group & {
+    display: block !important;
+    .tt-menu {
+      top:(2 * $input-padding-y + $font-size-base*$line-height-base + 2 * $input-btn-border-width/$font-size-root) !important;
+    }
+  }
+}
+
+.dropdown-menu > li {
+  padding: 0 1rem 0.25rem 1rem;
+}
+.dropdown-menu > li.active {
+  background-color: #d9edf7;
+}
