@@ -6,6 +6,7 @@ import { Badge, ListGroup, ListGroupItem, Collapse, CardBlock, Card } from 'reac
 import TimeComponent from './TimeComponent.js';
 import AdagucMapDraw from './AdagucMapDraw.js';
 import LayerManager from './LayerManager.js';
+import AdagucMeasureDistance from './AdagucMeasureDistance.js';
 import axios from 'axios';
 import Icon from 'react-fa';
 export default class Adaguc extends React.Component {
@@ -252,6 +253,7 @@ export default class Adaguc extends React.Component {
           <div>
             <div ref='adaguc' />
             <AdagucMapDraw webmapjs={this.webMapJS} />
+            <AdagucMeasureDistance webmapjs={this.webMapJS} />
           </div>
           <div id='infocontainer' style={{ margin: 0, display: 'flex', flex: '0 0 auto' }}>
             <TimeComponent ref='TimeComponent' webmapjs={this.webMapJS} width={timeComponentWidth} onChangeAnimation={this.onChangeAnimation} />

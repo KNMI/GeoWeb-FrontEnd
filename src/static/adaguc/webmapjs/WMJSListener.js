@@ -5,7 +5,7 @@
  * Copyright KNMI
  */
 function WMJSListener () {
-  var callBacks = Array();
+  var callBacks = [];
   var numCallBacks = 0;
   var suspendedEvents = [];
   var _this = this;
@@ -18,25 +18,28 @@ function WMJSListener () {
 
   // Add multiple functions which will be called after the event with the same name is triggered
   this.addToCallback = function (name, functionpointer, keepOnCall) {
+    // console.log('adding listener ', name);
     var cbp = -1;// callbackpointer
     if (!keepOnCall) {
       keepOnCall = false;
     }
     for (var j = 0; j < numCallBacks; j++) {
       // A callback list index pointer. if finished==1, then this index may be replaced by a new one.
-      if (callBacks[j].finished == 1) { cbp = j; break; }
+      if (callBacks[j].finished === 1) { cbp = j; break; }
       // If the current callback already exist, we will simply keep it
-      if (callBacks[j].name == name && callBacks[j].functionpointer == functionpointer) {
+      if (callBacks[j].name === name && callBacks[j].functionpointer === functionpointer) {
         // callBacks[j].timesAdded++;
-
+        // console.log('listener already added: ', name);
         callBacks[j].keepOnCall = keepOnCall;
         return false;
       }
     }
-    if (cbp == -1) {
+    if (cbp === -1) {
       cbp = numCallBacks;
       numCallBacks++;
       callBacks[cbp] = new CallBackFunction();
+    } else {
+      // console.log('replacing old unused listener: ', name);
     }
     callBacks[cbp].name = name;
     callBacks[cbp].functionpointer = functionpointer;
@@ -48,9 +51,9 @@ function WMJSListener () {
 
   this.removeEvents = function (name) {
     for (var j = 0; j < numCallBacks; j++) {
-      if (callBacks[j].finished == 0) {
-        if (callBacks[j].name == name) {
-          if (callBacks[j].keepOnCall == false) {
+      if (callBacks[j].finished === 0) {
+        if (callBacks[j].name === name) {
+          if (callBacks[j].keepOnCall === false) {
             callBacks[j].finished = 1;
           }
         }
@@ -69,21 +72,19 @@ function WMJSListener () {
 
   // Trigger an event with a name
   this.triggerEvent = function (name, param) {
-    if (suspendedEvents[name] == true) {
+    if (suspendedEvents[name] === true) {
       // console.log(name+" is suspended");
       return;
     }
-//     if(name != 'onmousemove'){
-//       console.log("Event "+name+" triggered.");
-//     }
+    let returnList = [];
     for (var j = 0; j < numCallBacks; j++) {
-      if (callBacks[j].finished == 0) {
-        if (callBacks[j].name == name) {
-          if (callBacks[j].keepOnCall == false) {
+      if (callBacks[j].finished === 0) {
+        if (callBacks[j].name === name) {
+          if (callBacks[j].keepOnCall === false) {
             callBacks[j].finished = 1;
           }
           try {
-            return callBacks[j].functionpointer(param, _this);
+            returnList.push(callBacks[j].functionpointer(param, _this));
           } catch (e) {
             console.log('Error for event ' + name + ' with ' + param);
             console.log(e);
@@ -91,5 +92,6 @@ function WMJSListener () {
         }
       }
     }
+    return returnList;
   };
 };
