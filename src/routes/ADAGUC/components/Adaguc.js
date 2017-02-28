@@ -62,7 +62,7 @@ export default class Adaguc extends React.Component {
 
   resize () {
     // eslint-disable-next-line no-undef
-    this.webMapJS.setSize($(window).width(), $(window).height() - 230);
+    this.webMapJS.setSize($(window).width(), $(window).height() - 275);
     this.webMapJS.draw();
     if (this.refs.TimeComponent) {
       // eslint-disable-next-line no-undef
@@ -85,7 +85,7 @@ export default class Adaguc extends React.Component {
     // eslint-disable-next-line no-undef
     $(window).resize(this.resize);
     // eslint-disable-next-line no-undef
-    this.webMapJS.setSize($(window).width(), $(window).height() - 230);
+    this.webMapJS.setSize($(window).width(), $(window).height() - 275);
 
     // Set the initial projection
     this.webMapJS.setProjection(adagucProperties.projectionName);
