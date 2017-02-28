@@ -1,5 +1,4 @@
 import {
-  SET_SOURCE,
   actions,
   default as adagucReducer
 } from 'routes/ADAGUC/modules/adaguc';
@@ -34,7 +33,7 @@ describe('(Redux Module) Adaguc', () => {
     });
 
     it('Should return an action with type "SET_SOURCE".', () => {
-      expect(actions.setSource()).to.have.property('type', SET_SOURCE);
+      expect(actions.setSource()).to.have.property('type', 'SET_SOURCE');
     });
 
     it('Should assign the first argument to the "payload" property.', () => {

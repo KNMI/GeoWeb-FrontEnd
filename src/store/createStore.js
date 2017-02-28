@@ -4,7 +4,7 @@ import { browserHistory } from 'react-router';
 import makeRootReducer from './reducers';
 import { updateLocation } from './location';
 
-export default (initialState = {}) => {
+export default (initialState = {}, isdev = false) => {
   // ======================================================
   // Middleware Configuration
   // ======================================================
@@ -14,9 +14,8 @@ export default (initialState = {}) => {
   // Store Enhancers
   // ======================================================
   const enhancers = [];
-
   let composeEnhancers = compose;
-  if (global.__DEV__) {
+  if (isdev) {
     const composeWithDevToolsExtension = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__;
     if (typeof composeWithDevToolsExtension === 'function') {
       composeEnhancers = composeWithDevToolsExtension;
@@ -26,27 +25,14 @@ export default (initialState = {}) => {
   // ======================================================
   // Store Instantiation and HMR Setup
   // ======================================================
-  let store = null;
-  if (global.__DEV__) {
-    store = createStore(
-      makeRootReducer(),
-      initialState,
-      window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__(),
-      composeEnhancers(
-        applyMiddleware(...middleware),
-        ...enhancers
-      )
-    );
-  } else {
-    store = createStore(
-      makeRootReducer(),
-      initialState,
-      composeEnhancers(
-        applyMiddleware(...middleware),
-        ...enhancers
-      )
-    );
-  }
+  let store = createStore(
+    makeRootReducer(),
+    initialState,
+    composeEnhancers(
+      applyMiddleware(...middleware),
+      ...enhancers
+    )
+  );
   store.asyncReducers = {};
 
   // To unsubscribe, invoke `store.unsubscribeHistory()` anytime

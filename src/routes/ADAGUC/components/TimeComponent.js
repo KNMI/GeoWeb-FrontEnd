@@ -339,9 +339,9 @@ const TimeComponent = React.createClass({
     }
     let { year, month, day, hour, minute } = this.decomposeDateString(this.state.value);
 
-    return <div style={{ display:'flex', border:'0px solid red' }}>
-      <div style={{ display:'flex', flex: 1 }} >
-        <div>
+    return <div style={{ display:'flex', flex: '0 0 auto', border:'0px solid red' }}>
+      <div style={{ display:'flex', flex: '0 0 auto' }} >
+        <div style={{ display:'flex', flex: '0 0 auto' }}>
           <ButtonPausePlayAnimation webmapjs={this.props.webmapjs} onChange={this.onChangeAnimation} />
         </div>
         <div style={{ whiteSpace: 'nowrap' }}>
@@ -354,21 +354,21 @@ const TimeComponent = React.createClass({
         </div >
 
       </div>
-      <div>
-        <Button color='primary' size='large' style={{ padding:'20px', margin:'5px' }} onClick={this.handleButtonClickNow}>Now</Button>
+      <div style={{ display:'flex', flex: '0 0 auto' }} >
+        <Button color='primary' size='large' style={{ padding:'20px', margin:' 0 5px' }} onClick={this.handleButtonClickNow}>Now</Button>
       </div>
-      <div>
+      <div style={{ display:'flex', flex: '0 0 auto' }}>
         <Button color='primary' style={{ padding:'28px 5px 30px 5px', marginLeft:'1px', marginRight:'0px' }} onClick={this.handleButtonClickPrevPage}>
           <Icon name='chevron-left' />
         </Button>
       </div>
-      <div style={{ border:'0px solid blue', margin: '0px 2px 0px 2px', padding: 0, background:'white', display: 'block' }}>
-        <CanvasComponent width={this.state.width - 580} height={78}
+      <div style={{ display: 'flex', flex: '0 0 auto', border:'0px solid blue', margin: '0px 2px 0px 2px', padding: 0, background:'white' }}>
+        <CanvasComponent width={this.state.width - 1000} height={78}
           onRenderCanvas={this.onRenderCanvas}
           onClick={this.onClickCanvas}
           onMouseMove={this.onMouseMoveCanvas} />
-      </div >
-      <div>
+      </div>
+      <div style={{ display: 'flex', flex: '0 0 auto' }}>
         <Button color='primary' style={{ padding:'28px 5px 30px 5px' }} onClick={this.handleButtonClickNextPage}>
           <Icon name='chevron-right' />
         </Button>

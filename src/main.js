@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import createStore from './store/createStore';
 import AppContainer from './containers/AppContainer';
+
 import { MAP_STYLES } from './routes/ADAGUC/constants/map_styles';
 import { BOUNDING_BOXES } from './routes/ADAGUC/constants/bounding_boxes';
 // ========================================================
@@ -9,14 +10,15 @@ import { BOUNDING_BOXES } from './routes/ADAGUC/constants/bounding_boxes';
 // ========================================================
 const initialState = {
   adagucProperties: {
-    sources: null,
-    source: null,
-    layer: null,
-    layers: null,
-    style: null,
-    styles: null,
-    overlay: null,
-    mapType: MAP_STYLES[1],
+    sources: {
+      data: null,
+      overlay: null
+    },
+    layers: {
+      baselayer: MAP_STYLES[1],
+      datalayers: [],
+      overlays: []
+    },
     boundingBox: BOUNDING_BOXES[0],
     projectionName: 'EPSG:3857',
     mapCreated: false
@@ -35,7 +37,7 @@ const initialState = {
   }
 };
 
-const store = createStore(initialState);
+const store = createStore(initialState, __DEV__);
 // ========================================================
 // Render Setup
 // ========================================================
