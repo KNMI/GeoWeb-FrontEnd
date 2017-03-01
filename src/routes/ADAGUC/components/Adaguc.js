@@ -230,7 +230,7 @@ export default class Adaguc extends React.Component {
     ];
     const { dispatch, actions, adagucProperties } = this.props;
     const { setCut } = actions;
-    const { sources, layers } = adagucProperties;
+    const { sources, layers, coords } = adagucProperties;
     const phenomena = ['OBSC TS', 'EMBD TS', 'FRQ TS', 'SQL TS', 'OBSC TSGR', 'EMBD TSGR', 'FRQ TSGR',
       'SQL TSGR', 'SEV TURB', 'SEV ICE', 'SEV ICE (FZRA)', 'SEV MTW', 'HVY DS', 'HVY SS', 'RDOACT CLD'];
     return (
@@ -248,6 +248,14 @@ export default class Adaguc extends React.Component {
                   <ListGroupItem id='menuitem' onClick={this.toggle} className='justify-content-between' active>Create SIGMET</ListGroupItem>
                   <Label>Select phenomenon</Label>
                   <Typeahead onChange={(p) => dispatch(actions.prepareSIGMET(p))} placeholder='Click or type' options={phenomena} />
+                  <Label>Coordinates</Label>
+                  {
+                    (coords && coords.features)
+                      ? coords.features[0].geometry.coordinates[0].map((latlon) => {
+                        return latlon[0].toString().substring(0, 7) + ' Lat, ' + latlon[1].toString().substring(0, 7) + ' Lon';
+                      }).map((str) => <div>{str}</div>)
+                      : ''
+                  }
                 </ListGroup>
               </div>
             }
@@ -256,7 +264,7 @@ export default class Adaguc extends React.Component {
           <div>
             <div ref='adaguc' />
             <div style={{ margin: '5px 10px 10px 5px ' }}>
-              <AdagucMapDraw webmapjs={this.webMapJS} />
+              <AdagucMapDraw dispatch={dispatch} actions={actions} webmapjs={this.webMapJS} />
               <AdagucMeasureDistance webmapjs={this.webMapJS} />
               <DropdownButton dispatch={dispatch} dataFunc={setCut} items={BOUNDING_BOXES} title='View' isOpen={this.state.dropdownOpenView} toggle={this.toggleView} />
             </div>
