@@ -71,7 +71,7 @@ const NumberSpinner = React.createClass({
       </Button>
       <Input type='text' value={value}
         onChange={this.handleChange}
-        style={{ fontSize:25, height:42, textAlign:'center' }} />
+        style={{ fontSize:22, height:25, padding: '5px', textAlign: 'center' }} />
       <Button style={{ padding: 0 }} onClick={this.handleClickDown} block>
         <Icon name='chevron-down' />
       </Button>

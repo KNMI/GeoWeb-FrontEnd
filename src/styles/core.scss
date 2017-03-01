@@ -84,15 +84,17 @@ body {
 
 /* Color/shape of close button cross */
 .bm-cross {
-  background: #e2e2e2;
+  background: #373a47;
 }
 
 /* General sidebar styles */
 .bm-menu {
-  background: #373a47;
+  background: #eeeeee;
   padding: 0em 1em 0em 0em;
   font-size: 1.15em;
   min-width: 100px;
+  border:1px solid rgba(0, 0, 0, 0.5);
+
 }
 
 /* Morph shape necessary with bubble or elastic */

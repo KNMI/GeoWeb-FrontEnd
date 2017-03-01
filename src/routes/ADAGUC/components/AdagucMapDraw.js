@@ -24,7 +24,9 @@ import { Button } from 'reactstrap';
 const AdagucMapDraw = React.createClass({
   propTypes: {
     webmapjs: React.PropTypes.object,
-    geojson: React.PropTypes.object
+    geojson: React.PropTypes.object,
+    dispatch: React.PropTypes.func,
+    actions: React.PropTypes.object
   },
   getDefaultProps () {
     return {
@@ -476,6 +478,7 @@ const AdagucMapDraw = React.createClass({
   },
   featureHasChanged (text) {
     console.log('Feature has changed: ' + text, this.props.geojson);
+    this.props.dispatch(this.props.actions.coords(this.props.geojson));
   },
   componentDidMount () {
     console.log('componentDidMount');

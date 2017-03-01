@@ -11,6 +11,8 @@ const LOGIN = 'LOGIN';
 const SET_CUT = 'SET_CUT';
 const SET_MAP_STYLE = 'SET_MAP_STYLE';
 const SET_STYLE = 'SET_STYLE';
+const PREPARE_SIGMET = 'PREPARE_SIGMET';
+const COORDS = 'COORDS';
 // ------------------------------------
 // Actions
 // ------------------------------------
@@ -61,7 +63,12 @@ function addOverlayLayer (layer) {
     payload: layer
   };
 }
-
+function prepareSIGMET (phenomenon) {
+  return {
+    type: PREPARE_SIGMET,
+    payload: phenomenon
+  };
+}
 function deleteLayer (layerParams, layertype) {
   return {
     type: DELETE_LAYER,
@@ -69,6 +76,12 @@ function deleteLayer (layerParams, layertype) {
       removeLayer: layerParams,
       type : layertype
     }
+  };
+}
+function coords (newcoords) {
+  return {
+    type: COORDS,
+    payload: newcoords
   };
 }
 /*  This is a thunk, meaning it is a function that immediately
@@ -89,6 +102,65 @@ function deleteLayer (layerParams, layertype) {
 //   };
 // };
 
+const sigmetLayers = (p) => {
+  switch (p) {
+    case 'OBSC TS':
+    case 'EMBD TS':
+    case 'FRQ TS':
+    case 'SQL TS':
+    case 'OBSC TSGR':
+    case 'EMBD TSGR':
+    case 'FRQ TSGR':
+    case 'SQL TSGR':
+      return (
+      {
+        layers: {
+          datalayers: [
+            {
+              service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.OBS.cgi?',
+              title: 'OBS',
+              name: '10M/ww',
+              label: 'wawa Weather Code (ww)'
+            },
+            {
+              service: 'http://bvmlab-218-41.knmi.nl/cgi-bin/WWWRADAR3.cgi?',
+              title: 'LGT',
+              name: 'LGT_NL25_LAM_05M',
+              label: 'LGT_NL25_LAM_05M'
+            },
+            {
+              service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.RADAR.cgi?',
+              title: 'RADAR',
+              name: 'echotops',
+              label: 'Echotoppen'
+            },
+            {
+              service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.RADAR.cgi?',
+              title: 'RADAR',
+              name: 'precipitation',
+              label: 'Neerslag'
+            },
+            {
+              service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.SAT.cgi?',
+              title: 'SAT',
+              name: 'HRV-COMB',
+              label: 'RGB-HRV-COMB'
+            }
+          ],
+          overlays: [
+            {
+              service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.OVL.cgi?',
+              title: 'OVL',
+              name: 'FIR_DEC_2013_EU',
+              label: 'FIR areas'
+            }
+          ]
+        },
+        boundingBox: BOUNDING_BOXES[1]
+      });
+  }
+};
+
 export const actions = {
   addLayer,
   addOverlayLayer,
@@ -97,7 +169,9 @@ export const actions = {
   login,
   setCut,
   setMapStyle,
-  setStyle
+  setStyle,
+  prepareSIGMET,
+  coords
 };
 
 /*
@@ -172,6 +246,12 @@ const doLogin = (state, payload) => {
   return Object.assign({}, state, { loggedIn: true, username: payload });
 };
 
+const setSigmet = (state, payload) => {
+  const sigmet = sigmetLayers(payload[0]);
+  const newlayers = Object.assign({}, state.layers, sigmet.layers);
+  return Object.assign({}, state, { layers: newlayers, boundingBox: sigmet.boundingBox });
+};
+
 const doDeleteLayer = (state, payload) => {
   const { removeLayer, type } = payload;
   console.log(removeLayer);
@@ -190,6 +270,10 @@ const doDeleteLayer = (state, payload) => {
   return Object.assign({}, state, { layers: fitleredLayers });
 };
 
+const setNewCoords = (state, payload) => {
+  return Object.assign({}, state, { coords: payload });
+};
+
 // ------------------------------------
 // Action Handlers
 // ------------------------------------
@@ -201,7 +285,9 @@ const ACTION_HANDLERS = {
   [LOGIN]                : (state, action) => doLogin(state, action.payload),
   [SET_CUT]              : (state, action) => newCut(state, action.payload),
   [SET_MAP_STYLE]        : (state, action) => newMapStyle(state, action.payload),
-  [SET_STYLE]            : (state, action) => newStyle(state, action.payload)
+  [SET_STYLE]            : (state, action) => newStyle(state, action.payload),
+  [PREPARE_SIGMET]       : (state, action) => setSigmet(state, action.payload),
+  [COORDS]               : (state, action) => setNewCoords(state, action.payload)
 };
 
 // ------------------------------------

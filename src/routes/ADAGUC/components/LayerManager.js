@@ -142,13 +142,13 @@ export default class LayerManager extends React.Component {
   render () {
     const { layers, sources } = this.props;
     console.log('layers', layers);
-    const { datalayers, baselayer, overlays } = layers;
+    const { datalayers, overlays } = layers;
     console.log('layerset', datalayers);
     return (
       <div style={{ marginLeft: '5px' }} >
         {this.renderLayerSet(overlays, 'overlay')}
         {this.renderLayerSet(datalayers, 'data')}
-        {this.renderLayerSet([baselayer], 'base')}
+        {/* this.renderLayerSet([baselayer], 'base') */}
         <Button color='primary' onClick={this.toggleModal}>Add layer</Button>
         <Modal isOpen={this.state.modal} toggle={this.toggleModal}>
           <ModalHeader toggle={this.toggleModal}>Add layer</ModalHeader>
@@ -230,5 +230,5 @@ class LayerStyle extends React.Component {
   }
 }
 LayerStyle.propTypes = {
-  style: React.PropTypes.string.isRequired
+  style: React.PropTypes.string
 };

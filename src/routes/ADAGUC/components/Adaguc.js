@@ -1,12 +1,14 @@
 import React from 'react';
-import { slide as Menu } from 'react-burger-menu';
-import { Badge, ListGroup, ListGroupItem, Collapse, CardBlock, Card, ButtonDropdown, DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap';
+import { Badge, ListGroup, ListGroupItem, Collapse,
+  CardBlock, Card, ButtonDropdown, DropdownToggle, DropdownMenu, Label,
+  DropdownItem } from 'reactstrap';
 import TimeComponent from './TimeComponent.js';
 import AdagucMapDraw from './AdagucMapDraw.js';
 import LayerManager from './LayerManager.js';
 import AdagucMeasureDistance from './AdagucMeasureDistance.js';
 import axios from 'axios';
 import Icon from 'react-fa';
+import { Typeahead } from 'react-bootstrap-typeahead';
 import { BOUNDING_BOXES } from '../constants/bounding_boxes';
 export default class Adaguc extends React.Component {
   constructor () {
@@ -17,9 +19,14 @@ export default class Adaguc extends React.Component {
     this.updateAnimation = this.updateAnimation.bind(this);
     this.onChangeAnimation = this.onChangeAnimation.bind(this);
     this.isAnimating = false;
+    this.createSIGMET = this.createSIGMET.bind(this);
     this.state = {
-      dropdownOpenView: false
+      dropdownOpenView: false,
+      modal: false,
+      activeTab: '1',
+      inSigmetModus: false
     };
+
     this.toggleView = this.toggleView.bind(this);
   }
 
@@ -65,11 +72,11 @@ export default class Adaguc extends React.Component {
 
   resize () {
     // eslint-disable-next-line no-undef
-    this.webMapJS.setSize($(window).width(), $(window).height() - 275);
+    this.webMapJS.setSize($(window).width() - 400, $(window).height() - 300);
     this.webMapJS.draw();
     if (this.refs.TimeComponent) {
       // eslint-disable-next-line no-undef
-      let timeComponentWidth = $(window).width() - 20;
+      let timeComponentWidth = $(window).width() - 420;
       this.refs.TimeComponent.setState({ 'width':timeComponentWidth });
     }
   }
@@ -88,7 +95,7 @@ export default class Adaguc extends React.Component {
     // eslint-disable-next-line no-undef
     $(window).resize(this.resize);
     // eslint-disable-next-line no-undef
-    this.webMapJS.setSize($(window).width(), $(window).height() - 275);
+    this.webMapJS.setSize($(window).width() - 400, $(window).height() - 300);
 
     // Set the initial projection
     this.webMapJS.setProjection(adagucProperties.projectionName);
@@ -126,7 +133,8 @@ export default class Adaguc extends React.Component {
     if (boundingBox !== prevProps.adagucProperties.boundingBox) {
       this.webMapJS.setBBOX(boundingBox.bbox.join());
       this.webMapJS.draw();
-    } else if (layers !== prevProps.adagucProperties.layers) {
+    }
+    if (layers !== prevProps.adagucProperties.layers) {
       console.log('new layers!');
       const { baselayer, datalayers, overlays } = layers;
       if (baselayer !== prevProps.adagucProperties.layers.baselayer) {
@@ -134,7 +142,8 @@ export default class Adaguc extends React.Component {
         // eslint-disable-next-line no-undef
         this.webMapJS.setBaseLayers([new WMJSLayer(baselayer)]);
         this.webMapJS.draw();
-      } else if (overlays !== prevProps.adagucProperties.layers.overlays) {
+      }
+      if (overlays !== prevProps.adagucProperties.layers.overlays) {
         console.log('newoverlay!');
         // eslint-disable-next-line no-undef
         const overlayers = overlays.map((overlay) => { const newOverlay = new WMJSLayer(overlay); newOverlay.keepOnTop = true; return newOverlay; });
@@ -143,23 +152,29 @@ export default class Adaguc extends React.Component {
         console.log(newBaselayers);
         this.webMapJS.setBaseLayers(newBaselayers);
         this.webMapJS.draw();
+      }
+      console.log('new regular layers!');
+      this.webMapJS.stopAnimating();
+      // eslint-disable-next-line no-undef
+      const newDatalayers = datalayers.map((datalayer) => { const newDataLayer = new WMJSLayer(datalayer); newDataLayer.onReady = this.animateLayer; return newDataLayer; });
+      this.webMapJS.removeAllLayers();
+      newDatalayers.reverse().forEach((layer) => this.webMapJS.addLayer(layer));
+      const newActiveLayer = (this.webMapJS.getLayers()[0]);
+      if (newActiveLayer) {
+        this.webMapJS.setActiveLayer(this.webMapJS.getLayers()[0]);
       } else {
-        console.log('new regular layers!');
-        this.webMapJS.stopAnimating();
-        // eslint-disable-next-line no-undef
-        const newDatalayers = datalayers.map((datalayer) => { const newDataLayer = new WMJSLayer(datalayer); newDataLayer.onReady = this.animateLayer; return newDataLayer; });
-        this.webMapJS.removeAllLayers();
-        newDatalayers.reverse().forEach((layer) => this.webMapJS.addLayer(layer));
-        const newActiveLayer = (this.webMapJS.getLayers()[0]);
-        if (newActiveLayer) {
-          this.webMapJS.setActiveLayer(this.webMapJS.getLayers()[0]);
-        } else {
-          this.webMapJS.draw();
-        }
+        this.webMapJS.draw();
       }
     } else {
       console.log('???');
     }
+  }
+
+  createSIGMET () {
+    console.log('createSIGMET');
+    this.setState({
+      inSigmetModus: !this.state.inSigmetModus
+    });
   }
 
   onChangeAnimation (value) {
@@ -173,7 +188,7 @@ export default class Adaguc extends React.Component {
   }
   render () {
     // eslint-disable-next-line no-undef
-    let timeComponentWidth = $(window).width();
+    let timeComponentWidth = $(window).width() - 400;
     const shiftTaskItems = [
       {
         title: 'Basis forecast'
@@ -202,8 +217,9 @@ export default class Adaguc extends React.Component {
         title: 'Warnings'
       },
       {
-        title: 'SIGMETs',
-        notificationCount: 1
+        title: 'Create SIGMET',
+        notificationCount: 4,
+        action: this.createSIGMET
       },
       {
         title: 'Forecasts'
@@ -214,22 +230,41 @@ export default class Adaguc extends React.Component {
     ];
     const { dispatch, actions, adagucProperties } = this.props;
     const { setCut } = actions;
-    const { sources, layers } = adagucProperties;
+    const { sources, layers, coords } = adagucProperties;
+    const phenomena = ['OBSC TS', 'EMBD TS', 'FRQ TS', 'SQL TS', 'OBSC TSGR', 'EMBD TSGR', 'FRQ TSGR',
+      'SQL TSGR', 'SEV TURB', 'SEV ICE', 'SEV ICE (FZRA)', 'SEV MTW', 'HVY DS', 'HVY SS', 'RDOACT CLD'];
     return (
       <div>
-        <div>
-          <Menu pageWrapId={'adagucWrapper'} outerContainerId={'root'} width={400} noOverlay>
-            <MenuItem title='Shift tasks' notification='3' subitems={shiftTaskItems} />
-            <MenuItem title='Products' subitems={productItems} />
-            <MenuItem title='Reports & Logs' subitems={[{ title: 'Basis forecast', notificationCount: 3 }]} />
-            <MenuItem title='Monitoring & Triggers' subitems={[{ title: 'Basis forecast', notificationCount: 3 }]} />
-          </Menu>
-        </div>
-        <div id='adagucWrapper'>
+        <Menu>
+          {
+            (!this.state.inSigmetModus)
+              ? <div>
+                <MenuItem title='Shift tasks' notification='3' subitems={shiftTaskItems} />
+                <MenuItem title='Products' subitems={productItems} />
+                <MenuItem title='Reports & Logs' subitems={[{ title: 'Basis forecast', notificationCount: 3 }]} />
+                <MenuItem title='Monitoring & Triggers' subitems={[{ title: 'Basis forecast', notificationCount: 3 }]} />
+              </div> : <div>
+                <ListGroup style={{ margin: '2px' }}>
+                  <ListGroupItem id='menuitem' onClick={this.toggle} className='justify-content-between' active>Create SIGMET</ListGroupItem>
+                  <Label>Select phenomenon</Label>
+                  <Typeahead onChange={(p) => dispatch(actions.prepareSIGMET(p))} placeholder='Click or type' options={phenomena} />
+                  <Label>Coordinates</Label>
+                  {
+                    (coords && coords.features)
+                      ? coords.features[0].geometry.coordinates[0].map((latlon) => {
+                        return latlon[0].toString().substring(0, 7) + ' Lat, ' + latlon[1].toString().substring(0, 7) + ' Lon';
+                      }).map((str, i) => <div key={i}>{str}</div>)
+                      : ''
+                  }
+                </ListGroup>
+              </div>
+            }
+        </Menu>
+        <div id='adagucWrapper' style={{ display: 'inline-block' }}>
           <div>
             <div ref='adaguc' />
             <div style={{ margin: '5px 10px 10px 5px ' }}>
-              <AdagucMapDraw webmapjs={this.webMapJS} />
+              <AdagucMapDraw dispatch={dispatch} actions={actions} webmapjs={this.webMapJS} />
               <AdagucMeasureDistance webmapjs={this.webMapJS} />
               <DropdownButton dispatch={dispatch} dataFunc={setCut} items={BOUNDING_BOXES} title='View' isOpen={this.state.dropdownOpenView} toggle={this.toggleView} />
             </div>
@@ -259,7 +294,7 @@ class MenuItem extends React.Component {
     const { title, notification, subitems } = this.props;
     const numNotifications = parseInt(notification);
     return (
-      <ListGroup>
+      <ListGroup style={{ margin: '2px' }}>
         <ListGroupItem id='menuitem' onClick={this.toggle} className='justify-content-between' active>{title}
           {numNotifications > 0 ? <Badge color='danger' pill>{numNotifications}</Badge> : null}</ListGroupItem>
         <Collapse isOpen={this.state.collapse}>
@@ -267,7 +302,7 @@ class MenuItem extends React.Component {
             <CardBlock>
               <ListGroup>
                 {subitems.map((subitemobj, i) =>
-                  <ListGroupItem id='submenuitem' className='justify-content-between' tag='button' key={i}>{subitemobj.title}
+                  <ListGroupItem id='submenuitem' className='justify-content-between' tag='button' key={i} onClick={subitemobj.action} >{subitemobj.title}
                     <span>{subitemobj.notificationCount > 0 ? <Badge color='danger' pill>{subitemobj.notificationCount}</Badge> : null}
                       {<Icon name='caret-right' />}</span>
                   </ListGroupItem>)}
@@ -290,6 +325,21 @@ Adaguc.propTypes = {
   adagucProperties : React.PropTypes.object.isRequired,
   actions          : React.PropTypes.object.isRequired,
   dispatch         : React.PropTypes.func.isRequired
+};
+
+class Menu extends React.Component {
+  render () {
+    return (
+      <div style={{ display: 'inline-block', height: '100%', maxHeight: '100%', minWidth: '400px', float: 'left' }}>
+        <div style={{ display: 'inline-block', height: '100%', maxHeight: '100%', width: '100%' }}>
+          {this.props.children}
+        </div>
+      </div>
+    );
+  }
+}
+Menu.propTypes = {
+  children: React.PropTypes.element.isRequired
 };
 
 class DropdownButton extends React.Component {
