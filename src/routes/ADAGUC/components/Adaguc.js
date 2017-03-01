@@ -253,7 +253,7 @@ export default class Adaguc extends React.Component {
                     (coords && coords.features)
                       ? coords.features[0].geometry.coordinates[0].map((latlon) => {
                         return latlon[0].toString().substring(0, 7) + ' Lat, ' + latlon[1].toString().substring(0, 7) + ' Lon';
-                      }).map((str) => <div>{str}</div>)
+                      }).map((str, i) => <div key={i}>{str}</div>)
                       : ''
                   }
                 </ListGroup>
