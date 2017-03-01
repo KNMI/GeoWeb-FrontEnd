@@ -25,9 +25,11 @@ var WMJSGetCapabilities = function (service, forceReload, succes, fail) {
   }
 
   try {
-    if (!isDefined(xml2jsonrequestURL)) {};
+    if (!isDefined(xml2jsonrequestURL)) {
+      xml2jsonrequestURL = 'http://birdexp07.knmi.nl:8080/XML2JSON?';
+    };
   } catch (e) {
-    xml2jsonrequestURL = base + '/php/xml2jsonrequest.php?';
+    xml2jsonrequestURL = 'http://birdexp07.knmi.nl:8080/XML2JSON?';
   }
   try {
     if (!isDefined(requestProxy)) {};

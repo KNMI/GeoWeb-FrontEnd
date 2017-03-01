@@ -1,7 +1,5 @@
 import React from 'react';
 import { slide as Menu } from 'react-burger-menu';
-
-// import { default as Menu } from './Menu';
 import { Badge, ListGroup, ListGroupItem, Collapse, CardBlock, Card, ButtonDropdown, DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap';
 import TimeComponent from './TimeComponent.js';
 import AdagucMapDraw from './AdagucMapDraw.js';
@@ -81,7 +79,7 @@ export default class Adaguc extends React.Component {
     if (adagucProperties.mapCreated) {
       return;
     }
-    const rootURL = 'http://birdexp07.knmi.nl/cgi-bin/geoweb';
+    const rootURL = 'http://birdexp07.knmi.nl:8080';
     const url = 'http://birdexp07.knmi.nl/geoweb/adagucviewer/webmapjs';
 
     // eslint-disable-next-line no-undef
@@ -97,18 +95,11 @@ export default class Adaguc extends React.Component {
     this.webMapJS.setBBOX(adagucProperties.boundingBox.bbox.join());
     // eslint-disable-next-line no-undef
     this.webMapJS.setBaseLayers([new WMJSLayer(adagucProperties.layers.baselayer)]);
-    axios.get(rootURL + '/getServices.cgi').then(src => {
-      const sources = src.data;
-      axios.get(rootURL + '/getOverlayServices.cgi').then(res => {
-        dispatch(actions.createMap(sources, res.data[0]));
-        this.webMapJS.draw();
-      }).catch((error) => {
-        console.log(error);
-      });
-    }).catch((error) => {
-      console.log(error);
-    });
+    axios.all(['getServices', 'getOverlayServices'].map((req) => axios.get(rootURL + '/' + req))).then(
+      axios.spread((services, overlays) => dispatch(actions.createMap(services.data, overlays.data[0])))
+    );
   }
+
   componentDidMount () {
     this.initAdaguc(this.refs.adaguc);
   }

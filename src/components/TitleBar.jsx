@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import Icon from 'react-fa';
 import GeoWebLogo from './assets/icon.svg';
+import axios from 'axios';
 import { Navbar, NavbarToggler, NavbarBrand, Collapse, Nav, NavItem, NavLink, Popover, PopoverTitle, PopoverContent } from 'reactstrap';
 var moment = require('moment');
 class TitleBar extends Component {
@@ -8,6 +9,7 @@ class TitleBar extends Component {
     super(props);
     this.toggle = this.toggle.bind(this);
     this.setTime = this.setTime.bind(this);
+    this.doLogin = this.doLogin.bind(this);
     this.state = {
       currentTime: moment.utc().format('YYYY MMM DD - HH:mm:ss').toString(),
       isOpen: false
@@ -30,7 +32,21 @@ class TitleBar extends Component {
     this.setState({ currentTime: currentTime });
   }
 
+  doLogin () {
+    const rootURL = 'http://birdexp07.knmi.nl:8080';
+    const { dispatch, actions } = this.props;
+    axios.get(rootURL + '/login?username=met1&password=met1', { withCredentials: true }).then(src => {
+      const data = src.data;
+      if (data.userName !== null) {
+        dispatch(actions.login(data.userName));
+        axios.all(['getServices', 'getOverlayServices'].map((req) => axios.get(rootURL + '/' + req, { withCredentials: true }))).then(
+          axios.spread((services, overlays) => dispatch(actions.createMap(services.data, overlays.data[0])))
+        );
+      }
+    });
+  }
   render () {
+    const { loggedIn, username } = this.props.adagucProperties;
     return (
       <div id='gw-navbar'>
         <Navbar color='faded' light toggleable>
@@ -50,7 +66,7 @@ class TitleBar extends Component {
           <Collapse isOpen={this.state.isOpen} navbar>
             <Nav className='ml-auto' navbar>
               <NavItem>
-                <NavLink><Icon name='user' /></NavLink>
+                <NavLink><Icon name='user' onClick={this.doLogin} />{loggedIn ? username : ''}</NavLink>
               </NavItem>
               <NavItem>
                 <NavLink><Icon name='cog' /></NavLink>

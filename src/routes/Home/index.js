@@ -4,7 +4,6 @@ import DataSelector from '../../components/DataSelector';
 import Inspector from '../../components/Inspector';
 import ADAGUC from '../ADAGUC/components/Adaguc';
 import { actions } from '../ADAGUC/modules/adaguc';
-
 const mapStateToLeftSideBarProps = function (store) {
   return {
     adagucProperties: store.adagucProperties,
@@ -35,7 +34,7 @@ export default (store) => {
   return {
     title: 'Start here',
     components: {
-      header: TitleBar,
+      header: connect(mapStateToMainViewportProps, mapDispatchToMainViewportProps)(TitleBar),
       leftSideBar: connect(mapStateToLeftSideBarProps, mapDispatchToMainViewportProps)(DataSelector),
       mainViewport: connect(mapStateToMainViewportProps, mapDispatchToMainViewportProps)(ADAGUC),
       rightSideBar: connect(mapStateToRightSideBarProps)(Inspector)
