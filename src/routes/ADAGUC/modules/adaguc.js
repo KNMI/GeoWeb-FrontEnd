@@ -62,10 +62,13 @@ function addOverlayLayer (layer) {
   };
 }
 
-function deleteLayer (layerParams) {
+function deleteLayer (layerParams, layertype) {
   return {
     type: DELETE_LAYER,
-    payload: layerParams
+    payload: {
+      removeLayer: layerParams,
+      type : layertype
+    }
   };
 }
 /*  This is a thunk, meaning it is a function that immediately
@@ -145,8 +148,9 @@ const doAddLayer = (state, payload) => {
   if (!state.layers) {
     state.layers = { datalayers: [], overlays: [] };
   }
-  let oldlayers = state.layers.datalayers;
-  const newlayers = Object.assign({}, state.layers, { datalayers: oldlayers.concat(payload) });
+  let oldlayers = [...state.layers.datalayers];
+  oldlayers.unshift(payload);
+  const newlayers = Object.assign({}, state.layers, { datalayers: oldlayers });
 
   return Object.assign({}, state, { layers: newlayers });
 };
@@ -156,8 +160,10 @@ const doAddOverlayLayer = (state, payload) => {
     state.layers = { datalayers: [], overlays: [] };
   }
 
-  let oldlayers = state.layers.overlays;
-  const newlayers = Object.assign({}, state.layers, { overlays: oldlayers.concat(payload) });
+  let oldlayers = [...state.layers.overlays];
+  oldlayers.unshift(payload);
+
+  const newlayers = Object.assign({}, state.layers, { overlays: oldlayers });
 
   return Object.assign({}, state, { layers: newlayers });
 };
@@ -167,16 +173,21 @@ const doLogin = (state, payload) => {
 };
 
 const doDeleteLayer = (state, payload) => {
-  const newDataLayers = state.layers.datalayers.filter((layer) => layer !== payload);
-  const newOverlayLayers = state.layers.overlays.filter((layer) => layer !== payload);
+  const { removeLayer, type } = payload;
+  console.log(removeLayer);
   let fitleredLayers;
-  if (newDataLayers.length !== state.layers.datalayers.length) {
-    fitleredLayers = { datalayers: newDataLayers };
-  } else if (newOverlayLayers !== state.layers.datalayers.length) {
-    fitleredLayers = { overlays: newOverlayLayers };
+  switch (type) {
+    case 'data':
+      fitleredLayers = Object.assign({}, state.layers, { datalayers: state.layers.datalayers.filter((layer) => layer !== removeLayer) });
+      break;
+    case 'overlay':
+      fitleredLayers = Object.assign({}, state.layers, { overlays: state.layers.overlays.filter((layer) => layer !== removeLayer) });
+      break;
+    default:
+      fitleredLayers = state.layers;
+      break;
   }
-  const newLayers = Object.assign({}, state.layers, fitleredLayers);
-  return Object.assign({}, state, { layers: newLayers });
+  return Object.assign({}, state, { layers: fitleredLayers });
 };
 
 // ------------------------------------

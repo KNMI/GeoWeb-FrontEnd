@@ -38,14 +38,12 @@ export default class LayerManager extends React.Component {
   deleteLayer (type, i) {
     const { layers, dispatch, actions } = this.props;
     const { datalayers, overlays } = layers;
-    const overlaysRev = overlays.reverse();
-    const datalayerRev = datalayers.reverse();
     switch (type) {
       case 'overlay':
-        dispatch(actions.deleteLayer(overlaysRev[i]));
+        dispatch(actions.deleteLayer(overlays[i], type));
         break;
       case 'data':
-        dispatch(actions.deleteLayer(datalayerRev[i]));
+        dispatch(actions.deleteLayer(datalayers[i], type));
         break;
       default:
         console.log('Reducer saw an unknown value');
@@ -121,16 +119,20 @@ export default class LayerManager extends React.Component {
     return null;
   }
   renderLayerSet (layers, type) {
-    return layers.map((layer, i) => {
-      return <ListGroupItem id='layerinfo' key={i}><Icon name='times' onClick={() => this.deleteLayer(type, i)} />
-        <LayerName name={type === 'data' ? this.getLayerName(layer) : ''} />
-        <Badge pill>
-          {layer.title}
-          <Icon style={{ marginLeft: '5px' }} name='pencil' />
-        </Badge>
-        <LayerStyle style={layer.currentStyle} />
-      </ListGroupItem>;
-    });
+    if (!layers || layers.length === 0) {
+      return <div />;
+    } else {
+      return layers.map((layer, i) => {
+        return <ListGroupItem id='layerinfo' key={i}><Icon name='times' onClick={() => this.deleteLayer(type, i)} />
+          <LayerName name={type === 'data' ? this.getLayerName(layer) : ''} />
+          <Badge pill>
+            {layer.title}
+            <Icon style={{ marginLeft: '5px' }} name='pencil' />
+          </Badge>
+          <LayerStyle style={layer.currentStyle} />
+        </ListGroupItem>;
+      });
+    }
   }
 
   componentDidUpdate (prevProps, prevState) {
@@ -141,12 +143,11 @@ export default class LayerManager extends React.Component {
     const { layers, sources } = this.props;
     console.log('layers', layers);
     const { datalayers, baselayer, overlays } = layers;
-    const datalayerclone = [...datalayers];
-    const overlayclone = [...overlays];
+    console.log('layerset', datalayers);
     return (
       <div style={{ marginLeft: '5px' }} >
-        {this.renderLayerSet(overlayclone.reverse(), 'overlay')}
-        {this.renderLayerSet(datalayerclone.reverse(), 'data')}
+        {this.renderLayerSet(overlays, 'overlay')}
+        {this.renderLayerSet(datalayers, 'data')}
         {this.renderLayerSet([baselayer], 'base')}
         <Button color='primary' onClick={this.toggleModal}>Add layer</Button>
         <Modal isOpen={this.state.modal} toggle={this.toggleModal}>

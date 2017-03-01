@@ -149,7 +149,7 @@ export default class Adaguc extends React.Component {
         // eslint-disable-next-line no-undef
         const newDatalayers = datalayers.map((datalayer) => { const newDataLayer = new WMJSLayer(datalayer); newDataLayer.onReady = this.animateLayer; return newDataLayer; });
         this.webMapJS.removeAllLayers();
-        newDatalayers.forEach((layer) => this.webMapJS.addLayer(layer));
+        newDatalayers.reverse().forEach((layer) => this.webMapJS.addLayer(layer));
         const newActiveLayer = (this.webMapJS.getLayers()[0]);
         if (newActiveLayer) {
           this.webMapJS.setActiveLayer(this.webMapJS.getLayers()[0]);
