@@ -133,11 +133,16 @@ export default class LayerManager extends React.Component {
     });
   }
 
+  componentDidUpdate (prevProps, prevState) {
+    console.log('Didupdate!', this.props.layers);
+  }
+
   render () {
     const { layers, sources } = this.props;
+    console.log('layers', layers);
     const { datalayers, baselayer, overlays } = layers;
-    const datalayerclone = datalayers.slice(0);
-    const overlayclone = overlays.slice(0);
+    const datalayerclone = [...datalayers];
+    const overlayclone = [...overlays];
     return (
       <div style={{ marginLeft: '5px' }} >
         {this.renderLayerSet(overlayclone.reverse(), 'overlay')}

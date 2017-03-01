@@ -19,32 +19,34 @@ describe('(Redux Module) Adaguc', () => {
       expect(state).to.eql({});
       state = adagucReducer(state, { type: '@@@@@@@' });
       expect(state).to.eql({});
-      state = adagucReducer(state, { type: 'SET_STYLES', payload: 'asdf' });
-      expect(state).to.eql({ styles: 'asdf' });
+      state = adagucReducer(state, { type: 'LOGIN', payload: 'asdf' });
+      expect(state).to.eql({ loggedIn: true, username: 'asdf' });
       state = adagucReducer(state, { type: '@@@@@@@' });
-      expect(state).to.eql({ styles: 'asdf' });
+      expect(state).to.eql({ loggedIn: true, username: 'asdf' });
     });
   });
 
-  describe('(Action Creator) setSource', () => {
+  describe('(Action Creator) setCut', () => {
     it('Should be exported as a function.', () => {
-      expect(actions).to.have.property('setSource');
-      expect(actions.setSource).to.be.a('function');
+      expect(actions).to.have.property('setCut');
+      expect(actions.setCut).to.be.a('function');
     });
 
-    it('Should return an action with type "SET_SOURCE".', () => {
-      expect(actions.setSource()).to.have.property('type', 'SET_SOURCE');
+    it('Should return an action with type "SET_CUT".', () => {
+      expect(actions.setCut()).to.have.property('type', 'SET_CUT');
     });
 
     it('Should assign the first argument to the "payload" property.', () => {
-      expect(actions.setSource(5)).to.have.property('payload', 5);
+      expect(actions.setCut(5)).to.have.property('payload', 5);
     });
 
-    it('Should default the "payload" property to 0 if not provided.', () => {
-      expect(actions.setSource()).to.have.property('payload', 0);
+    it('Should default the "payload" property to NL bounding box if not provided.', () => {
+      const cut = actions.setCut();
+      expect(cut).to.have.property('payload');
+      expect(cut.payload.title).to.equal('Netherlands');
     });
   });
-  describe('(Action Handler) setSource', () => {
+  describe('(Action Handler) addLayer', () => {
     let _globalState;
     let _dispatchSpy;
     let _getStateSpy;
@@ -65,7 +67,7 @@ describe('(Redux Module) Adaguc', () => {
     });
 
     it('Should call dispatch and getState exactly once.', () => {
-      actions.setSource(_dispatchSpy, _getStateSpy);
+      actions.addLayer(_dispatchSpy, _getStateSpy);
       _dispatchSpy.should.have.been.calledOnce;
       _getStateSpy.should.have.been.calledOnce;
     });

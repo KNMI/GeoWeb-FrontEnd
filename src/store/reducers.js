@@ -5,7 +5,7 @@ const defaultReducer = require('./defaultReducer').default;
 export const makeRootReducer = () => {
   return combineReducers({
     adagucProperties: reducer,
-    header: defaultReducer,
+    header: reducer,
     rightSideBar: defaultReducer,
     leftSideBar: defaultReducer,
     mainViewport: defaultReducer
