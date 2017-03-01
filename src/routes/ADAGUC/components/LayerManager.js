@@ -53,10 +53,11 @@ export default class LayerManager extends React.Component {
 
   handleAddLayer (e) {
     const addItem = e[0];
+    console.log('selectedsource', this.state.selectedSource);
     if (!this.state.overlay) {
-      this.props.dispatch(this.props.actions.addLayer({ service: this.state.selectedSource.service, name: addItem.id, title: addItem.label }));
+      this.props.dispatch(this.props.actions.addLayer({ service: this.state.selectedSource.service, title: this.state.selectedSource.title, name: addItem.id, label: addItem.label }));
     } else {
-      this.props.dispatch(this.props.actions.addOverlayLayer({ service: this.state.selectedSource.service, name: addItem.id, title: addItem.label }));
+      this.props.dispatch(this.props.actions.addOverlayLayer({ service: this.state.selectedSource.service, title: this.state.selectedSource.title, name: addItem.id, label: addItem.label }));
     }
     this.setState({
       modal: false,
@@ -96,25 +97,24 @@ export default class LayerManager extends React.Component {
   }
   getLayerName (layer) {
     if (layer) {
-      const service = layer.service;
-      let retStr = '';
-      if (service.includes('adaguc')) {
-        if (service.includes('HARM')) {
-          retStr = 'HARMONIE';
-        } else if (service.includes('RAD')) {
-          retStr = 'Radar';
-        } else if (service.includes('OBS')) {
-          retStr = 'Observation';
-        } else if (service.includes('SAT')) {
-          retStr = 'Satellite';
-        } else if (service.includes('OVL')) {
-          retStr = 'Overlay';
-        }
-      } else {
-        retStr = 'Lightning';
+      switch (layer.title) {
+        case 'OBS':
+          return 'Observations';
+        case 'SAT':
+          return 'Satellite';
+        case 'LGT':
+          return 'Lightning';
+        case 'HARM_N25_EXT':
+          return 'HARMONIE (EXT)';
+        case 'HARM_N25':
+          return 'HARMONIE';
+        case 'OVL':
+          return 'Overlay';
+        case 'RADAR_EXT':
+          return 'Radar (EXT)';
+        default:
+          return 'Radar';
       }
-
-      return retStr;
     }
     return null;
   }
@@ -126,7 +126,7 @@ export default class LayerManager extends React.Component {
         return <ListGroupItem id='layerinfo' key={i}><Icon name='times' onClick={() => this.deleteLayer(type, i)} />
           <LayerName name={type === 'data' ? this.getLayerName(layer) : ''} />
           <Badge pill>
-            {layer.title}
+            {layer.label ? layer.label : layer.title}
             <Icon style={{ marginLeft: '5px' }} name='pencil' />
           </Badge>
           <LayerStyle style={layer.currentStyle} />
@@ -174,8 +174,8 @@ export default class LayerManager extends React.Component {
           <ModalBody>
             <TabContent activeTab={this.state.activeTab}>
               <TabPane tabId='1'>
-                { (sources.data) ? sources.data.map((src, i) => <Button id={src.name} key={i} onClick={this.handleCardClick}>{src.title}</Button>) : <div /> }
-                { (sources.data) ? sources.overlay.map((src, i) => <Button id={src.name} key={i} onClick={this.handleCardClick}>{src.title}</Button>) : <div /> }
+                { (sources.data) ? sources.data.map((src, i) => <Button id={src.name} key={i} onClick={this.handleCardClick}>{this.getLayerName(src)}</Button>) : <div /> }
+                { (sources.data) ? sources.overlay.map((src, i) => <Button id={src.name} key={i} onClick={this.handleCardClick}>{this.getLayerName(src)}</Button>) : <div /> }
               </TabPane>
               <TabPane tabId='2'>
                 <Typeahead onChange={this.handleAddLayer} options={this.state.layers ? this.state.layers : []} />

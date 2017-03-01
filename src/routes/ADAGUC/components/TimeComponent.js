@@ -30,22 +30,24 @@ const TimeComponent = React.createClass({
     this.eventOnDimChange();
   },
   eventOnDimChange () {
-    if (!this.props.webmapjs) return;
-    let timeDim = this.props.webmapjs.getDimension('time');
-
-    if (timeDim !== undefined) {
-      if (this.state.value === timeDim.currentValue) {
-        if (this.hoverDate === this.hoverDateDone) {
-          this.drawCanvas();
-        }
-      }
-      if (timeDim.currentValue !== this.state.value) {
-        this.setState({ value:timeDim.currentValue, width: this.state.width });
-      }
-    } else {
-      this.drawCanvas();
-    }
+    // if (!this.props.webmapjs) return;
     this.drawCanvas();
+
+    // let timeDim = this.props.webmapjs.getDimension('time');
+
+    // if (timeDim !== undefined) {
+    //   if (this.state.value === timeDim.currentValue) {
+    //     if (this.hoverDate === this.hoverDateDone) {
+    //       this.drawCanvas();
+    //     }
+    //   }
+    //   if (timeDim.currentValue !== this.state.value) {
+    //     this.setState({ value:timeDim.currentValue, width: this.state.width });
+    //   }
+    // } else {
+    //   this.drawCanvas();
+    // }
+    // this.drawCanvas();
   },
   drawCanvas () {
     if (!this.props.webmapjs) return;
