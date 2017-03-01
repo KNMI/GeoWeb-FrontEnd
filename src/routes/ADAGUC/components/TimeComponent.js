@@ -31,23 +31,23 @@ const TimeComponent = React.createClass({
   },
   eventOnDimChange () {
     // if (!this.props.webmapjs) return;
-    this.drawCanvas();
-
-    // let timeDim = this.props.webmapjs.getDimension('time');
-
-    // if (timeDim !== undefined) {
-    //   if (this.state.value === timeDim.currentValue) {
-    //     if (this.hoverDate === this.hoverDateDone) {
-    //       this.drawCanvas();
-    //     }
-    //   }
-    //   if (timeDim.currentValue !== this.state.value) {
-    //     this.setState({ value:timeDim.currentValue, width: this.state.width });
-    //   }
-    // } else {
-    //   this.drawCanvas();
-    // }
     // this.drawCanvas();
+
+    let timeDim = this.props.webmapjs.getDimension('time');
+
+    if (timeDim !== undefined) {
+      if (this.state.value === timeDim.currentValue) {
+        if (this.hoverDate === this.hoverDateDone) {
+          this.drawCanvas();
+        }
+      }
+      if (timeDim.currentValue !== this.state.value) {
+        this.setState({ value:timeDim.currentValue, width: this.state.width });
+      }
+    } else {
+      this.drawCanvas();
+    }
+    this.drawCanvas();
   },
   drawCanvas () {
     if (!this.props.webmapjs) return;
@@ -338,41 +338,40 @@ const TimeComponent = React.createClass({
     }
     let { year, month, day, hour, minute } = this.decomposeDateString(this.state.value);
 
-    return <div style={{ display:'flex', flex: '0 0 auto', border:'0px solid red' }}>
-      <div style={{ display:'flex', flex: '0 0 auto' }} >
-        <div style={{ display:'flex', flex: '0 0 auto' }}>
-          <ButtonPausePlayAnimation webmapjs={this.props.webmapjs} onChange={this.onChangeAnimation} />
+    return (
+      <div style={{ display:'flex', flex: '0 0 auto', border:'0px solid red' }}>
+        <div style={{ display:'flex', flex: '0 0 auto', marginTop: '81px' }} >
+          <div style={{ display:'flex', flex: '0 0 auto' }}>
+            <ButtonPausePlayAnimation webmapjs={this.props.webmapjs} onChange={this.onChangeAnimation} />
+          </div>
+          <div style={{ whiteSpace: 'nowrap' }}>
+            <NumberSpinner value={year} numDigits={'4'} width={60} onChange={this.changeYear} />
+            <NumberSpinner value={month} numDigits={'month'} width={65} onChange={this.changeMonth} />
+            <NumberSpinner value={day} numDigits={'2'} width={37} onChange={this.changeDay} />
+            <NumberSpinner value={hour} numDigits={'2'} width={37} onChange={this.changeHour} />
+            <NumberSpinner value={minute} numDigits={'2'} width={37} onChange={this.changeMinute} />
+          </div>
+          <div style={{ display:'flex', flex: '0 0 auto' }} >
+            <Button color='primary' size='large' style={{ padding:'20px', margin:' 0 5px' }} onClick={this.handleButtonClickNow}>Now</Button>
+          </div>
         </div>
-        <div style={{ whiteSpace: 'nowrap' }}>
-          <NumberSpinner value={year} numDigits={'4'} width={100} onChange={this.changeYear} />
-          <NumberSpinner value={month} numDigits={'month'} width={90} onChange={this.changeMonth} />
-          <NumberSpinner value={day} numDigits={'2'} width={60} onChange={this.changeDay} />
-          <NumberSpinner value={hour} numDigits={'2'} width={60} onChange={this.changeHour} />
-          <NumberSpinner value={minute} numDigits={'2'} width={60} onChange={this.changeMinute} />
-          { /* <NumberSpinner value={second} numDigits={2} width={60} onChange={this.changeSecond} /> */ }
-        </div >
-
-      </div>
-      <div style={{ display:'flex', flex: '0 0 auto' }} >
-        <Button color='primary' size='large' style={{ padding:'20px', margin:' 0 5px' }} onClick={this.handleButtonClickNow}>Now</Button>
-      </div>
-      <div style={{ display:'flex', flex: '0 0 auto' }}>
-        <Button color='primary' style={{ padding:'28px 5px 30px 5px', marginLeft:'1px', marginRight:'0px' }} onClick={this.handleButtonClickPrevPage}>
-          <Icon name='chevron-left' />
-        </Button>
-      </div>
-      <div style={{ display: 'flex', flex: '0 0 auto', border:'0px solid blue', margin: '0px 2px 0px 2px', padding: 0, background:'white' }}>
-        <CanvasComponent width={this.state.width - 1000} height={150}
-          onRenderCanvas={this.onRenderCanvas}
-          onClick={this.onClickCanvas}
-          onMouseMove={this.onMouseMoveCanvas} />
-      </div>
-      <div style={{ display: 'flex', flex: '0 0 auto' }}>
-        <Button color='primary' style={{ padding:'28px 5px 30px 5px' }} onClick={this.handleButtonClickNextPage}>
-          <Icon name='chevron-right' />
-        </Button>
-      </div>
-    </div>;
+        <div style={{ display:'flex', flex: '0 0 auto' }}>
+          <Button color='primary' style={{ padding:'28px 5px 30px 5px', marginLeft:'1px', marginRight:'0px' }} onClick={this.handleButtonClickPrevPage}>
+            <Icon name='chevron-left' />
+          </Button>
+        </div>
+        <div style={{ display: 'flex', flex: '0 0 auto', border:'0px solid blue', margin: '0px 2px 0px 2px', padding: 0, background:'white' }}>
+          <CanvasComponent width={this.state.width - 803} height={150}
+            onRenderCanvas={this.onRenderCanvas}
+            onClick={this.onClickCanvas}
+            onMouseMove={this.onMouseMoveCanvas} />
+        </div>
+        <div style={{ display: 'flex', flex: '0 0 auto' }}>
+          <Button color='primary' style={{ padding:'28px 5px 30px 5px' }} onClick={this.handleButtonClickNextPage}>
+            <Icon name='chevron-right' />
+          </Button>
+        </div>
+      </div>);
   }
 });
 
