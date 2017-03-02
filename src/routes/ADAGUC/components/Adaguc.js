@@ -162,9 +162,8 @@ export default class Adaguc extends React.Component {
       const newActiveLayer = (this.webMapJS.getLayers()[0]);
       if (newActiveLayer) {
         this.webMapJS.setActiveLayer(this.webMapJS.getLayers()[0]);
-      } else {
-        this.webMapJS.draw();
       }
+      this.webMapJS.draw();
     } else {
       console.log('???');
     }
