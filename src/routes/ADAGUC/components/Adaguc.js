@@ -382,7 +382,7 @@ class DropDownMenuItem extends React.Component {
   handleClick (e) {
     const { dataFunc, dispatch, id } = this.props;
     // Execute the appropriate data function passed as prop
-    dispatch(dataFunc(id));
+    dispatch(dataFunc(BOUNDING_BOXES[id]));
   }
   render () {
     const { item } = this.props;

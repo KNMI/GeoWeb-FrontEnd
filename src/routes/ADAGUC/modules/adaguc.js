@@ -13,6 +13,44 @@ const SET_MAP_STYLE = 'SET_MAP_STYLE';
 const SET_STYLE = 'SET_STYLE';
 const PREPARE_SIGMET = 'PREPARE_SIGMET';
 const COORDS = 'COORDS';
+
+// ------------------------------------
+// Helper functions
+// ------------------------------------
+Object.equals = function (x, y) {
+  if (x === y) return true;
+    // if both x and y are null or undefined and exactly the same
+
+  if (!(x instanceof Object) || !(y instanceof Object)) return false;
+    // if they are not strictly equal, they both need to be Objects
+
+  if (x.constructor !== y.constructor) return false;
+    // they must have the exact same prototype chain, the closest we can do is
+    // test there constructor.
+
+  for (var p in x) {
+    if (!x.hasOwnProperty(p)) continue;
+      // other properties were tested using x.constructor === y.constructor
+
+    if (!y.hasOwnProperty(p)) return false;
+      // allows to compare x[ p ] and y[ p ] when set to undefined
+
+    if (x[ p ] === y[ p ]) continue;
+      // if they have the same strict value or identity then they are equal
+
+    if (typeof (x[ p ]) !== 'object') return false;
+      // Numbers, Strings, Functions, Booleans must be strictly equal
+
+    if (!Object.equals(x[ p ], y[ p ])) return false;
+      // Objects and Arrays must be tested recursively
+  }
+
+  for (p in y) {
+    if (y.hasOwnProperty(p) && !x.hasOwnProperty(p)) return false;
+      // allows x[ p ] to be set to undefined
+  }
+  return true;
+};
 // ------------------------------------
 // Actions
 // ------------------------------------
@@ -63,7 +101,7 @@ function addOverlayLayer (layer) {
     payload: layer
   };
 }
-function prepareSIGMET (phenomenon) {
+function prepareSIGMET (phenomenon = 'OBSC TS') {
   return {
     type: PREPARE_SIGMET,
     payload: phenomenon
@@ -205,7 +243,6 @@ const initialState = {
 };
  */
 const newMapState = (state, payload) => {
-  console.log(payload);
   return Object.assign({}, state, { mapCreated: true },
     { sources: { data: payload.sources, overlay: [payload.overlays] } });
 };
@@ -213,7 +250,7 @@ const newMapStyle = (state, payload) => {
   return Object.assign({}, state, { mapType: MAP_STYLES[payload] });
 };
 const newCut = (state, payload) => {
-  return Object.assign({}, state, { boundingBox: BOUNDING_BOXES[payload] });
+  return Object.assign({}, state, { boundingBox: payload });
 };
 const newStyle = (state, payload) => {
   return Object.assign({}, state, { style: state.styles[payload].name });
@@ -247,21 +284,20 @@ const doLogin = (state, payload) => {
 };
 
 const setSigmet = (state, payload) => {
-  const sigmet = sigmetLayers(payload[0]);
+  const sigmet = sigmetLayers(payload);
   const newlayers = Object.assign({}, state.layers, sigmet.layers);
   return Object.assign({}, state, { layers: newlayers, boundingBox: sigmet.boundingBox });
 };
 
 const doDeleteLayer = (state, payload) => {
   const { removeLayer, type } = payload;
-  console.log(removeLayer);
   let fitleredLayers;
   switch (type) {
     case 'data':
-      fitleredLayers = Object.assign({}, state.layers, { datalayers: state.layers.datalayers.filter((layer) => layer !== removeLayer) });
+      fitleredLayers = Object.assign({}, state.layers, { datalayers: state.layers.datalayers.filter((layer) => !Object.equals(layer, removeLayer)) });
       break;
     case 'overlay':
-      fitleredLayers = Object.assign({}, state.layers, { overlays: state.layers.overlays.filter((layer) => layer !== removeLayer) });
+      fitleredLayers = Object.assign({}, state.layers, { overlays: state.layers.overlays.filter((layer) => !Object.equals(layer, removeLayer)) });
       break;
     default:
       fitleredLayers = state.layers;
@@ -295,6 +331,5 @@ const ACTION_HANDLERS = {
 // ------------------------------------
 export default function adagucReducer (state = {}, action) {
   const handler = ACTION_HANDLERS[action.type];
-
   return handler ? handler(state, action) : state;
 }
