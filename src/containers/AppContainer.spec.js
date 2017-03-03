@@ -1,29 +1,22 @@
-// import React from 'react';
+import React from 'react';
 // eslint-disable-next-line no-unused-vars
 import { default as AppContainer } from './AppContainer';
-// import { mount, shallow } from 'enzyme';
+import { shallow } from 'enzyme';
+import { Provider } from 'react-redux';
 
 describe('(Container) AppContainer', () => {
-  // const funcs = {
-  //   createMap: () => {},
-  //   setCut: () => {},
-  //   setMapStyle: () => {},
-  //   setSource: () => {},
-  //   setLayer: () => {},
-  //   setLayers: () => {},
-  //   setStyles: () => {},
-  //   setStyle: () => {},
-  //   setOverlay: () => {}
-  // };
-
-  // it('Renders a div', () => {
-  //   const _component = shallow(<Menu actions={funcs} adagucProperties={{}} dispatch={() => {}} />);
-  //   expect(_component.type()).to.eql('div');
-  // });
-
-  // it('Renders six buttons', () => {
-  //   const _component = mount(<Menu actions={funcs} adagucProperties={{}} dispatch={() => {}} />);
-  //   const buttons = _component.find('div.btn-group');
-  //   expect(buttons.length).to.equal(6);
-  // });
+  // These things are required....
+  const store = {
+    asyncReducers: {},
+    dispatch: () => {},
+    getState: () => {},
+    liftedStore: {},
+    replaceReducer: () => {},
+    subscribe: () => {},
+    unsubscribeHistory: () => {}
+  };
+  it('Renders a Redux Provider', () => {
+    const _component = shallow(<AppContainer routes={{}} store={store} />);
+    expect(_component.type()).to.eql(Provider);
+  });
 });

@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import Icon from 'react-fa';
 import GeoWebLogo from './assets/icon.svg';
 import axios from 'axios';
-import { Navbar, NavbarToggler, NavbarBrand, Collapse, Nav, NavItem, NavLink, Popover, PopoverTitle, PopoverContent } from 'reactstrap';
+import { Navbar, NavbarToggler, NavbarBrand, Collapse, Nav, NavItem, NavLink } from 'reactstrap';
 var moment = require('moment');
 class TitleBar extends Component {
   constructor (props) {
@@ -28,8 +28,8 @@ class TitleBar extends Component {
     clearInterval(this.state.currentTime);
   }
   componentDidMount () {
-    var currentTime = setInterval(this.setTime, 1000);
-    this.setState({ currentTime: currentTime });
+    setInterval(this.setTime, 1000);
+    this.setState({ currentTime: moment.utc().format('YYYY MMM DD - HH:mm:ss').toString() });
   }
 
   doLogin () {
@@ -46,7 +46,8 @@ class TitleBar extends Component {
     });
   }
   render () {
-    const { loggedIn, username } = this.props.adagucProperties;
+    const { adagucProperties } = this.props;
+    const { loggedIn, username } = adagucProperties;
     return (
       <div id='gw-navbar'>
         <Navbar color='faded' light toggleable>
@@ -66,7 +67,7 @@ class TitleBar extends Component {
           <Collapse isOpen={this.state.isOpen} navbar>
             <Nav className='ml-auto' navbar>
               <NavItem>
-                <NavLink><Icon name='user' onClick={this.doLogin} />{loggedIn ? username : ''}</NavLink>
+                <NavLink><Icon name='user' id='loginIcon' onClick={this.doLogin} />{loggedIn ? username : ''}</NavLink>
               </NavItem>
               <NavItem>
                 <NavLink><Icon name='cog' /></NavLink>
@@ -78,5 +79,11 @@ class TitleBar extends Component {
     );
   }
 }
+
+TitleBar.propTypes = {
+  adagucProperties: React.PropTypes.object,
+  dispatch: React.PropTypes.func,
+  actions: React.PropTypes.object
+};
 
 export default TitleBar;
