@@ -110,8 +110,6 @@ export default class Adaguc extends React.Component {
   componentDidMount () {
     this.initAdaguc(this.refs.adaguc);
   }
-  componentWillReceiveProps (nextProps) {
-  }
   componentWillMount () {
     /* Component will unmount, set flag that map is not created */
     const { adagucProperties } = this.props;
@@ -135,10 +133,8 @@ export default class Adaguc extends React.Component {
       this.webMapJS.draw();
     }
     if (layers !== prevProps.adagucProperties.layers) {
-      console.log('new layers!');
       const { baselayer, datalayers, overlays } = layers;
       if (baselayer !== prevProps.adagucProperties.layers.baselayer) {
-        console.log('newbaselayer!');
         // eslint-disable-next-line no-undef
         this.webMapJS.setBaseLayers([new WMJSLayer(baselayer)]);
         this.webMapJS.draw();
@@ -149,11 +145,9 @@ export default class Adaguc extends React.Component {
         const overlayers = overlays.map((overlay) => { const newOverlay = new WMJSLayer(overlay); newOverlay.keepOnTop = true; return newOverlay; });
         // eslint-disable-next-line no-undef
         const newBaselayers = [new WMJSLayer(baselayer)].concat(overlayers);
-        console.log(newBaselayers);
         this.webMapJS.setBaseLayers(newBaselayers);
         this.webMapJS.draw();
       }
-      console.log('new regular layers!');
       this.webMapJS.stopAnimating();
       // eslint-disable-next-line no-undef
       const newDatalayers = datalayers.map((datalayer) => { const newDataLayer = new WMJSLayer(datalayer); newDataLayer.onReady = this.animateLayer; return newDataLayer; });
@@ -164,13 +158,10 @@ export default class Adaguc extends React.Component {
         this.webMapJS.setActiveLayer(this.webMapJS.getLayers()[0]);
       }
       this.webMapJS.draw();
-    } else {
-      console.log('???');
     }
   }
 
   createSIGMET () {
-    console.log('createSIGMET');
     this.setState({
       inSigmetModus: !this.state.inSigmetModus
     });
@@ -246,7 +237,7 @@ export default class Adaguc extends React.Component {
                 <ListGroup style={{ margin: '2px' }}>
                   <ListGroupItem id='menuitem' onClick={this.toggle} className='justify-content-between' active>Create SIGMET</ListGroupItem>
                   <Label>Select phenomenon</Label>
-                  <Typeahead onChange={(p) => dispatch(actions.prepareSIGMET(p))} placeholder='Click or type' options={phenomena} />
+                  <Typeahead onChange={(p) => dispatch(actions.prepareSIGMET(p[0]))} placeholder='Click or type' options={phenomena} />
                   <Label>Coordinates</Label>
                   {
                     (coords && coords.features)
