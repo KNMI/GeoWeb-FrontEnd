@@ -1,29 +1,45 @@
-// import React from 'react';
-// eslint-disable-next-line no-unused-vars
+import React from 'react';
 import { default as NumberSpinner } from './NumberSpinner';
-// import { mount, shallow } from 'enzyme';
+import { mount, shallow } from 'enzyme';
 
 describe('(Component) NumberSpinner', () => {
-  // const funcs = {
-  //   createMap: () => {},
-  //   setCut: () => {},
-  //   setMapStyle: () => {},
-  //   setSource: () => {},
-  //   setLayer: () => {},
-  //   setLayers: () => {},
-  //   setStyles: () => {},
-  //   setStyle: () => {},
-  //   setOverlay: () => {}
-  // };
+  it('Renders a div', () => {
+    const _component = shallow(<NumberSpinner />);
+    expect(_component.type()).to.eql('div');
+  });
 
-  // it('Renders a div', () => {
-  //   const _component = shallow(<Menu actions={funcs} adagucProperties={{}} dispatch={() => {}} />);
-  //   expect(_component.type()).to.eql('div');
-  // });
+  it('Formats to at least two digits', () => {
+    let _component = mount(<NumberSpinner value={'2'} />);
+    expect(_component.find('input').first().props().value).to.have.length.of.at.least(2);
+    _component = mount(<NumberSpinner value={'200'} />);
+    expect(_component.find('input').first().props().value).to.have.length.of.at.least(2);
+  });
 
-  // it('Renders six buttons', () => {
-  //   const _component = mount(<Menu actions={funcs} adagucProperties={{}} dispatch={() => {}} />);
-  //   const buttons = _component.find('div.btn-group');
-  //   expect(buttons.length).to.equal(6);
-  // });
+  it('Returns a month string when given a valid month', () => {
+    const _component = mount(<NumberSpinner value={10} renderAsMonth />);
+    expect(_component.find('input').first().props().value).to.equal('OCT');
+  });
+
+  it('Returns 0 string when given an invalid month', () => {
+    const _component = mount(<NumberSpinner value={22} renderAsMonth />);
+    expect(_component.find('input').first().props().value).to.equal('0');
+  });
+
+  it('Increments when the up button is clicked', () => {
+    let _component = mount(<NumberSpinner value={10} renderAsMonth />);
+    _component.find('#incNumberspinner').simulate('click');
+    expect(_component.find('input').first().props().value).to.equal('NOV');
+    _component = mount(<NumberSpinner value={10} />);
+    _component.find('#incNumberspinner').simulate('click');
+    expect(_component.find('input').first().props().value).to.equal('11');
+  });
+
+  it('Decrements when the up button is clicked', () => {
+    let _component = mount(<NumberSpinner value={10} renderAsMonth />);
+    _component.find('#decNumberspinner').simulate('click');
+    expect(_component.find('input').first().props().value).to.equal('SEP');
+    _component = mount(<NumberSpinner value={10} />);
+    _component.find('#decNumberspinner').simulate('click');
+    expect(_component.find('input').first().props().value).to.equal('09');
+  });
 });

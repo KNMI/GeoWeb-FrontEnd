@@ -345,11 +345,11 @@ const TimeComponent = React.createClass({
             <ButtonPausePlayAnimation webmapjs={this.props.webmapjs} onChange={this.onChangeAnimation} />
           </div>
           <div style={{ whiteSpace: 'nowrap' }}>
-            <NumberSpinner value={year} numDigits={'4'} width={60} onChange={this.changeYear} />
-            <NumberSpinner value={month} numDigits={'month'} width={65} onChange={this.changeMonth} />
-            <NumberSpinner value={day} numDigits={'2'} width={37} onChange={this.changeDay} />
-            <NumberSpinner value={hour} numDigits={'2'} width={37} onChange={this.changeHour} />
-            <NumberSpinner value={minute} numDigits={'2'} width={37} onChange={this.changeMinute} />
+            <NumberSpinner value={year} numDigits={4} width={60} onChange={this.changeYear} />
+            <NumberSpinner value={month} renderAsMonth width={65} onChange={this.changeMonth} />
+            <NumberSpinner value={day} numDigits={2} width={37} onChange={this.changeDay} />
+            <NumberSpinner value={hour} numDigits={2} width={37} onChange={this.changeHour} />
+            <NumberSpinner value={minute} numDigits={2} width={37} onChange={this.changeMinute} />
           </div>
           <div style={{ display:'flex', flex: '0 0 auto' }} >
             <Button color='primary' size='large' style={{ padding:'20px', margin:' 0 5px' }} onClick={this.handleButtonClickNow}>Now</Button>

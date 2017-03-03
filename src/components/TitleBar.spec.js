@@ -5,13 +5,20 @@ import { mount } from 'enzyme';
 var moment = require('moment');
 import sinon from 'sinon';
 
+const emptyFunc = () => {
+  // This is intentional
+};
+const emptyObj = {
+  // This is intentional
+};
+
 describe('(Component) TitleBar', () => {
   let _component;
   beforeEach(() => {
-    _component = mount(<TitleBar actions={{}} adagucProperties={{}} dispatch={() => {}} />);
+    _component = mount(<TitleBar actions={emptyObj} adagucProperties={emptyObj} dispatch={emptyFunc} />);
   });
   it('Renders a TitleBar', () => {
-    const _component = mount(<TitleBar actions={{}} adagucProperties={{}} dispatch={() => {}} />);
+    const _component = mount(<TitleBar actions={emptyObj} adagucProperties={emptyObj} dispatch={emptyFunc} />);
     expect(_component.type()).to.eql(TitleBar);
   });
   it('Renders initially with the current time', () => {
