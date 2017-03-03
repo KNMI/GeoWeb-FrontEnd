@@ -6,7 +6,6 @@ class DataSelector extends Component {
     event.preventDefault();
   }
   render () {
-    const { title } = this.props;
     return (
       <Menu pageWrapId={'adagucWrapper'} outerContainerId='root' isOpen>
         <a id='home' className='menu-item' href='/'>Home</a>
@@ -15,6 +14,16 @@ class DataSelector extends Component {
       </Menu>
 
     );
+  }
+}
+
+DataSelector.propTypes = {
+  adagucProperties: PropTypes.object.isRequired,
+  menuItems: PropTypes.object,
+  dispatch: PropTypes.func.isRequired
+};
+
+export default DataSelector;
     // return (
     //   <div className='wrapper'>
     //     <div className='row row-offcanvas row-offcanvas-left'>
@@ -51,13 +60,3 @@ class DataSelector extends Component {
     //     </div>
     //   </div>
     // );
-  }
-}
-
-DataSelector.propTypes = {
-  adagucProperties: PropTypes.object.isRequired,
-  menuItems: PropTypes.object,
-  dispatch: PropTypes.func.isRequired
-};
-
-export default DataSelector;

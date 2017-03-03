@@ -155,7 +155,6 @@ describe('(Redux Module) Adaguc', () => {
       _dispatchSpy(actions.deleteLayer({ title: 'abc' }, 'data'));
 
       const newlayerstate = _getStateSpy();
-      console.log(newlayerstate.adagucProperties.layers);
       expect(newlayerstate.adagucProperties.layers.datalayers).to.have.length(0);
       expect(newlayerstate.adagucProperties.layers.overlays).to.have.length(1);
     });
