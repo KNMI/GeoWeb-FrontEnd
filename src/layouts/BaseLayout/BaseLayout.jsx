@@ -12,12 +12,15 @@ class BaseLayout extends Component {
           {header || 'Oops'}
         </Row>
         <Row>
+          <Col xs='3' className='RightSideBar'>
+            {leftSideBar || 'Oops'}
+          </Col>
           <Col xs='auto' className='MainViewport'>
             {mainViewport || 'Oops'}
           </Col>
-          {/* <Col xs='3' className='RightSideBar'>
+          <Col xs='3' className='RightSideBar'>
             {rightSideBar || 'Oops'}
-          </Col> */}
+          </Col>
         </Row>
       </Container>
     );

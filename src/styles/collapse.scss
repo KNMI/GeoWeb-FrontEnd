@@ -1,0 +1,42 @@
+.collapse {
+  height: auto;
+  width: auto;
+}
+
+.collapse.remain {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.collapsing.height {
+  position: relative;
+  height: 0;
+  width: auto;
+  overflow: hidden;
+  white-space: nowrap;
+  -webkit-transition: height 0.35s ease;
+  -moz-transition: height 0.35s ease;
+  -o-transition: height 0.35s ease;
+  transition: height 0.35s ease;
+}
+
+.collapsing.width {
+  position: relative;
+  width: 0;
+  height: auto;
+  overflow: hidden;
+  white-space: nowrap;
+  -webkit-transition: width 0.35s ease;
+  -moz-transition: width 0.35s ease;
+  -o-transition: width 0.35s ease;
+  transition: width 0.35s ease;
+}
+
+.collapse.show.height {
+  height: auto;
+}
+
+.collapse.show.width {
+  width: auto;
+}

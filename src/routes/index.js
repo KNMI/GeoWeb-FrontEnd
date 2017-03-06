@@ -2,6 +2,7 @@
 import BaseLayout from '../layouts/BaseLayout';
 import HomeRoute from './Home';
 import ApiDemo from './ApiDemo';
+import LayoutTestRoute from './LayoutTest';
 import FileNotFoundRoute from './FileNotFound';
 
 /*  Note: Instead of using JSX, we recommend using react-router
@@ -13,6 +14,7 @@ export const createRoutes = (store) => ({
   indexRoute: HomeRoute(store),
   childRoutes: [
     ApiDemo(),
+    LayoutTestRoute(),
     FileNotFoundRoute()
   ]
 });
