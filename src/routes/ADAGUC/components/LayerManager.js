@@ -53,7 +53,6 @@ export default class LayerManager extends React.Component {
 
   handleAddLayer (e) {
     const addItem = e[0];
-    console.log('selectedsource', this.state.selectedSource);
     if (!this.state.overlay) {
       this.props.dispatch(this.props.actions.addLayer({ service: this.state.selectedSource.service, title: this.state.selectedSource.title, name: addItem.id, label: addItem.label }));
     } else {
@@ -77,7 +76,6 @@ export default class LayerManager extends React.Component {
       layers: layerobjs,
       activeTab: '2'
     });
-    console.log(layerobjs);
   }
 
   handleCardClick (e) {
@@ -123,7 +121,7 @@ export default class LayerManager extends React.Component {
       return <div />;
     } else {
       return layers.map((layer, i) => {
-        return <ListGroupItem id='layerinfo' key={i}><Icon name='times' onClick={() => this.deleteLayer(type, i)} />
+        return <ListGroupItem id='layerinfo' key={i}><Icon id='deleteButton' name='times' onClick={() => this.deleteLayer(type, i)} />
           <LayerName name={type === 'data' ? this.getLayerName(layer) : ''} />
           <Badge pill>
             {layer.label ? layer.label : layer.title}
@@ -135,22 +133,19 @@ export default class LayerManager extends React.Component {
     }
   }
 
-  componentDidUpdate (prevProps, prevState) {
-    console.log('Didupdate!', this.props.layers);
-  }
-
   render () {
     const { layers, sources } = this.props;
-    console.log('layers', layers);
+    if (!layers || Object.keys(layers).length === 0) {
+      return <div />;
+    }
     const { datalayers, overlays } = layers;
-    console.log('layerset', datalayers);
     return (
       <div style={{ marginLeft: '5px' }} >
         {this.renderLayerSet(overlays, 'overlay')}
         {this.renderLayerSet(datalayers, 'data')}
         {/* this.renderLayerSet([baselayer], 'base') */}
-        <Button color='primary' onClick={this.toggleModal}>Add layer</Button>
-        <Modal isOpen={this.state.modal} toggle={this.toggleModal}>
+        <Button id='addLayerButton' color='primary' onClick={this.toggleModal}>Add layer</Button>
+        <Modal id='addLayerModal' isOpen={this.state.modal} toggle={this.toggleModal}>
           <ModalHeader toggle={this.toggleModal}>Add layer</ModalHeader>
           <Nav tabs>
             <NavItem>
@@ -174,8 +169,8 @@ export default class LayerManager extends React.Component {
           <ModalBody>
             <TabContent activeTab={this.state.activeTab}>
               <TabPane tabId='1'>
-                { (sources.data) ? sources.data.map((src, i) => <Button id={src.name} key={i} onClick={this.handleCardClick}>{this.getLayerName(src)}</Button>) : <div /> }
-                { (sources.data) ? sources.overlay.map((src, i) => <Button id={src.name} key={i} onClick={this.handleCardClick}>{this.getLayerName(src)}</Button>) : <div /> }
+                { (sources && sources.data) ? sources.data.map((src, i) => <Button id={src.name} key={i} onClick={this.handleCardClick}>{this.getLayerName(src)}</Button>) : <div /> }
+                { (sources && sources.overlay) ? sources.overlay.map((src, i) => <Button id={src.name} key={i} onClick={this.handleCardClick}>{this.getLayerName(src)}</Button>) : <div /> }
               </TabPane>
               <TabPane tabId='2'>
                 <Typeahead onChange={this.handleAddLayer} options={this.state.layers ? this.state.layers : []} />

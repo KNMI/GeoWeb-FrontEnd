@@ -12,18 +12,21 @@ const AdagucMeasureDistance = React.createClass({
     return { editMode: false, distance: 0, bearing: 0 };
   },
   handleStartEdit () {
+    /* istanbul ignore next */
     if (this.state.editMode === false) {
       this.setState({ editMode:true });
       console.log('handleStartEdit true');
     } else {
       this.setState({ editMode:false });
     }
+    /* istanbul ignore next */
     if (this.props.webmapjs) {
       this.props.webmapjs.draw();
     }
   },
   drawVertice (ctx, coord, selected, middle) {
     let w = 7;
+    /* istanbul ignore next */
     if (this.state.editMode === false) {
       /* Standard style, no editing, just display location of vertices */
       ctx.strokeStyle = '#000'; ctx.fillStyle = '#000'; ctx.lineWidth = 1.0; w = 5;
@@ -41,17 +44,27 @@ const AdagucMeasureDistance = React.createClass({
         ctx.strokeStyle = '#000'; ctx.fillStyle = '#FF0'; ctx.lineWidth = 1.0; w = 11;
       }
     }
+    /* istanbul ignore next */
     ctx.globalAlpha = 1.0;
+    /* istanbul ignore next */
     ctx.fillRect(coord.x - w / 2, coord.y - w / 2, w, w);
+    /* istanbul ignore next */
     ctx.strokeRect(coord.x - w / 2, coord.y - w / 2, w, w);
+    /* istanbul ignore next */
     ctx.strokeRect(coord.x - 0.5, coord.y - 0.5, 1, 1);
   },
   drawTextBG (ctx, txt, x, y, fontSize) {
+    /* istanbul ignore next */
     ctx.textBaseline = 'top';
+    /* istanbul ignore next */
     ctx.fillStyle = '#FFF';
+    /* istanbul ignore next */
     let width = ctx.measureText(txt).width;
+    /* istanbul ignore next */
     ctx.fillRect(x, y, width, parseInt(fontSize, 10));
+    /* istanbul ignore next */
     ctx.fillStyle = '#000';
+    /* istanbul ignore next */
     ctx.fillText(txt, x, y);
   },
   adagucBeforeDraw (ctx) {
@@ -59,8 +72,10 @@ const AdagucMeasureDistance = React.createClass({
      just before adagucviewer will flip the back canvas buffer to the front.
      You are free to draw anything you like on the canvas.
     */
+    /* istanbul ignore next */
     if (this.state.editMode === true) {
       /* Draw Line */
+      /* istanbul ignore next */
       if (this.showLine && this.lineStartLonLat !== undefined && this.lineStopLonLat !== undefined) {
         const { webmapjs } = this.props;
         let lineStart = webmapjs.getPixelCoordFromLatLong(this.lineStartLonLat);
@@ -87,53 +102,28 @@ const AdagucMeasureDistance = React.createClass({
       }
     }
   },
-  haverSine (point1, point2) {
-    /*
-       Function which calculates the distance between two points
-       Check  http://www.movable-type.co.uk/scripts/latlong.html
-    */
-    let toRadians = (deg) => {
-      return (deg / 180) * Math.PI;
-    };
-    let toDegrees = (rad) => {
-      return (((rad / Math.PI) * 180) + 360) % 360;
-    };
-
-    /* Haversine distance: */
-    let R = 6371e3; // metres
-    let φ1 = toRadians(point1.y);
-    let φ2 = toRadians(point2.y);
-    let λ1 = toRadians(point1.x);
-    let λ2 = toRadians(point2.x);
-    let Δφ = (φ2 - φ1);
-    let Δλ = (λ2 - λ1);
-    let a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
-            Math.cos(φ1) * Math.cos(φ2) *
-            Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
-    let c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    let distance = R * c;
-
-    // Haversine bearing
-    let y = Math.sin(λ2 - λ1) * Math.cos(φ2);
-    let x = Math.cos(φ1) * Math.sin(φ2) - Math.sin(φ1) * Math.cos(φ2) * Math.cos(λ2 - λ1);
-    let bearing = toDegrees(Math.atan2(y, x));
-    return { distance:distance, bearing:bearing };
-  },
   adagucMouseMove (event) {
     /* adagucMouseMove is an event callback function which is triggered when the mouse moves over the map
       This event is only triggered if the map is in hover state.
       E.g. when the map is dragging/panning, this event is not triggerd
     */
+    /* istanbul ignore next */
     let { mouseX, mouseY } = event;
+    /* istanbul ignore next */
     if (this.mouseX === mouseX && this.mouseY === mouseY) { return; }
+    /* istanbul ignore next */
     this.mouseX = mouseX; this.mouseY = mouseY;
+    /* istanbul ignore next */
     if (this.state.editMode === false) return;
+    /* istanbul ignore next */
     const { webmapjs } = this.props;
+    /* istanbul ignore next */
     this.mouseGeoCoord = webmapjs.getLatLongFromPixelCoord({ x:mouseX, y:mouseY });
 
+    /* istanbul ignore next */
     if (this.isMeasuring === true) {
       this.lineStopLonLat = webmapjs.getLatLongFromPixelCoord({ x:mouseX, y:mouseY });
-      let h = this.haverSine(this.lineStartLonLat, this.lineStopLonLat);
+      let h = haverSine(this.lineStartLonLat, this.lineStopLonLat);
       this.setState({ distance:h.distance, bearing: h.bearing });
       this.showLine = true;
     }
@@ -144,6 +134,7 @@ const AdagucMeasureDistance = React.createClass({
     if (this.state.editMode === false) return;
     let { mouseX, mouseY } = event;
     const { webmapjs } = this.props;
+    /* istanbul ignore next */
     if (!this.isMeasuring) {
       this.isMeasuring = true;
       this.lineStartX = mouseX;
@@ -163,6 +154,7 @@ const AdagucMeasureDistance = React.createClass({
     return false;
   },
   handleKeyDown (event) {
+    /* istanbul ignore next */
     switch (event.keyCode) {
       case 27: /* ESCAPE_KEY */
         this.setState({ editMode:false });
@@ -182,6 +174,7 @@ const AdagucMeasureDistance = React.createClass({
     console.log('componentWillUnMount');
     document.removeEventListener('keydown', this.handleKeyDown);
     const { webmapjs } = this.props;
+    /* istanbul ignore next */
     if (webmapjs !== undefined && this.listenersInitialized === true) {
       this.listenersInitialized = undefined;
       webmapjs.removeListener('beforecanvasdisplay', this.adagucBeforeDraw);
@@ -201,6 +194,7 @@ const AdagucMeasureDistance = React.createClass({
     if (this.disabled === undefined) {
       this.disabled = true;
     }
+    /* istanbul ignore next */
     if (webmapjs !== undefined) {
       if (this.listenersInitialized === undefined) {
         this.listenersInitialized = true;
@@ -224,3 +218,35 @@ const AdagucMeasureDistance = React.createClass({
 });
 
 export default AdagucMeasureDistance;
+export function haverSine (point1, point2) {
+  /*
+     Function which calculates the distance between two points
+     Check  http://www.movable-type.co.uk/scripts/latlong.html
+  */
+  let toRadians = (deg) => {
+    return (deg / 180) * Math.PI;
+  };
+  let toDegrees = (rad) => {
+    return (((rad / Math.PI) * 180) + 360) % 360;
+  };
+
+  /* Haversine distance: */
+  let R = 6371e3; // metres
+  let φ1 = toRadians(point1.y);
+  let φ2 = toRadians(point2.y);
+  let λ1 = toRadians(point1.x);
+  let λ2 = toRadians(point2.x);
+  let Δφ = (φ2 - φ1);
+  let Δλ = (λ2 - λ1);
+  let a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+          Math.cos(φ1) * Math.cos(φ2) *
+          Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+  let c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  let distance = R * c;
+
+  // Haversine bearing
+  let y = Math.sin(λ2 - λ1) * Math.cos(φ2);
+  let x = Math.cos(φ1) * Math.sin(φ2) - Math.sin(φ1) * Math.cos(φ2) * Math.cos(λ2 - λ1);
+  let bearing = toDegrees(Math.atan2(y, x));
+  return { distance:distance, bearing:bearing };
+}

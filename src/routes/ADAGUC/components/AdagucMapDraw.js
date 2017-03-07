@@ -21,6 +21,7 @@ import { Button } from 'reactstrap';
 //   ]
 // };
 
+/* istanbul ignore next */
 const AdagucMapDraw = React.createClass({
   propTypes: {
     webmapjs: React.PropTypes.object,
