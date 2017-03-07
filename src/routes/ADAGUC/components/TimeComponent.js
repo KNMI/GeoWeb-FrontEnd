@@ -9,7 +9,7 @@ export default class TimeComponent extends React.Component {
     super();
     this.state = {
       value: '2000-01-01T00:00:00Z',
-      width: 1500
+      width: 1483
     };
     this.onRenderCanvas = this.onRenderCanvas.bind(this);
     this.eventOnDimChange = this.eventOnDimChange.bind(this);

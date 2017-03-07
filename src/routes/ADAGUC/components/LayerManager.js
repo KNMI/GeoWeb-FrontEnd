@@ -13,6 +13,7 @@ export default class LayerManager extends React.Component {
     this.toggleTab = this.toggleTab.bind(this);
     this.handleAddLayer = this.handleAddLayer.bind(this);
     this.generateMap = this.generateMap.bind(this);
+    this.toggleLayer = this.toggleLayer.bind(this);
     this.state = {
       modal: false,
       activeTab: '1',
@@ -32,6 +33,22 @@ export default class LayerManager extends React.Component {
       this.setState({
         activeTab: tab
       });
+    }
+  }
+
+  toggleLayer (type, i) {
+    const { layers, dispatch, actions } = this.props;
+    const { datalayers, overlays } = layers;
+    switch (type) {
+      case 'overlay':
+        dispatch(actions.alterLayer(i, type, 'enabled', !overlays[i].enabled));
+        break;
+      case 'data':
+        dispatch(actions.alterLayer(i, type, 'enabled', !datalayers[i].enabled));
+        break;
+      default:
+        console.log('Reducer saw an unknown value');
+        break;
     }
   }
 
@@ -121,14 +138,18 @@ export default class LayerManager extends React.Component {
       return <div />;
     } else {
       return layers.map((layer, i) => {
-        return <ListGroupItem id='layerinfo' key={i}><Icon id='deleteButton' name='times' onClick={() => this.deleteLayer(type, i)} />
-          <LayerName name={type === 'data' ? this.getLayerName(layer) : ''} />
-          <Badge pill>
-            {layer.label ? layer.label : layer.title}
-            <Icon style={{ marginLeft: '5px' }} name='pencil' />
-          </Badge>
-          <LayerStyle style={layer.currentStyle} />
-        </ListGroupItem>;
+        console.log(layer);
+        return (
+          <ListGroupItem id='layerinfo' key={i}>
+            <Icon id='enableButton' name={layer.enabled ? 'check-square-o' : 'square-o'} onClick={() => this.toggleLayer(type, i)} />
+            <Icon id='deleteButton' name='times' onClick={() => this.deleteLayer(type, i)} />
+            <LayerName name={type === 'data' ? this.getLayerName(layer) : ''} />
+            <Badge pill>
+              {layer.label ? layer.label : layer.title}
+              <Icon style={{ marginLeft: '5px' }} name='pencil' />
+            </Badge>
+            <LayerStyle style={layer.currentStyle} />
+          </ListGroupItem>);
       });
     }
   }
