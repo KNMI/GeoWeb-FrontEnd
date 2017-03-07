@@ -1,6 +1,5 @@
 import React, { Component, PropTypes } from 'react';
 import { Container, Row, Col } from 'reactstrap';
-import 'bootstrap/dist/css/bootstrap.css';
 import '../../styles/core.scss';
 
 class BaseLayout extends Component {
@@ -11,14 +10,14 @@ class BaseLayout extends Component {
         <Row className='Header'>
           {header || 'Oops'}
         </Row>
-        <Row>
-          <Col xs='3' className='RightSideBar'>
+        <Row className='align-items-stretch'>
+          <Col xs='auto' className='LeftSideBar'>
             {leftSideBar || 'Oops'}
           </Col>
-          <Col xs='auto' className='MainViewport'>
+          <Col className='MainViewport'>
             {mainViewport || 'Oops'}
           </Col>
-          <Col xs='3' className='RightSideBar'>
+          <Col xs='auto' className='RightSideBar'>
             {rightSideBar || 'Oops'}
           </Col>
         </Row>

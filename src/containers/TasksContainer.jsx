@@ -22,12 +22,12 @@ class TasksContainer extends Component {
     const { title } = this.props;
     return (
       <div>
-        <Button color='primary' onClick={this.toggleHor} style={{ marginBottom: '0.5rem' }}>Toggle horizontal</Button>
-        <Button color='primary' onClick={this.toggleVer} style={{ marginBottom: '0.5rem' }}>Toggle vertical</Button>
-        <CollapseOmni isOpen={this.state.collapseHor} isHorizontal collapsedSize={20}>
+        <Button color='primary' onClick={this.toggleHor} style={{ margin: '0 0.5rem 0.5rem 0' }}>Toggle horizontal</Button>
+        <Button color='primary' onClick={this.toggleVer} style={{ margin: '0 0.5rem 0.5rem 0' }}>Toggle vertical</Button>
+        <CollapseOmni className='collapseOmni' isOpen={this.state.collapseHor} isHorizontal collapsedSize={20}>
           {title || 'Oops'}
         </CollapseOmni>
-        <CollapseOmni isOpen={this.state.collapseVer} collapsedSize={10} >
+        <CollapseOmni className='collapseOmni' isOpen={this.state.collapseVer} collapsedSize={10} >
           {title || 'Oops'}
         </CollapseOmni>
       </div>

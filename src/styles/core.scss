@@ -1,10 +1,12 @@
-@import 'base';
-@import '~normalize.css/normalize';
 @import '~bootstrap/scss/bootstrap';
 @import 'typeaheadjs';
 @import 'collapse';
-// Some best-practice CSS that's useful for most apps
-// Just remove them if they're not what you want
+
+$radius-size: 0.19rem;
+$shadow: 0px 3px 3px 0px rgba(0,0,0,0.3);
+$ux-interactive-color: #01699b;
+$ux-interactive-hover-color: #0292d7;
+
 html {
   box-sizing: border-box;
 }
@@ -13,8 +15,91 @@ html,
 body {
   margin: 0;
   padding: 0;
-  height: 100%;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
 }
+
+div.root {
+  height: inherit;
+  width: inherit;
+}
+
+.rounded {
+  border-radius: $radius-size
+}
+.rounded-top {
+  border-radius: $radius-size $radius-size 0 0;
+}
+.rounded-right {
+  border-radius: 0 $radius-size $radius-size 0;
+}
+.rounded-bottom {
+  border-radius: 0 0 $radius-size $radius-size;
+}
+.rounded-left {
+  border-radius: 0 $radius-size $radius-size 0;
+}
+
+.ux-interactive {
+  background-color: $ux-interactive-color;
+  border-color: $ux-interactive-color;
+  cursor: pointer;
+  @extend .rounded;
+}
+
+.ux-interactive:hover {
+  background-color: $ux-interactive-hover-color;
+}
+
+.btn {
+  @extend .ux-interactive;
+}
+
+.btn:hover {
+  @extend .ux-interactive:hover;
+}
+
+.navbar img.logo {
+  margin: 0 0.3rem 0.6rem;
+  width: 3.5rem;
+}
+
+.navbar {
+  background-color: #01547d;
+  border-bottom: 1px solid #01405e;
+  box-shadow: $shadow;
+  padding: 0.1rem 0.5rem;
+  margin-bottom: 0.3em;
+  width: 100%;
+  @extend .rounded-bottom
+}
+
+.nav-link {
+  cursor: pointer;
+}
+
+.navbar-text {
+  display: flex;
+  padding-top: 0.95rem;
+}
+
+.navbar-inverse .navbar-text {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.navbar-inverse .nav {
+  color: white;
+}
+
+.navbar .nav {
+  padding-top: 0.425rem;
+}
+
+.breadcrumb-item + .breadcrumb-item::before  {
+  content: '>';
+}
+
 // #adaguccontainer {
 //   display:inline-block;
 //   min-height: calc(100% - 133px);

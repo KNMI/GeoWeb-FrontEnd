@@ -1,7 +1,7 @@
 // We only need to import the modules necessary for initial render
 import BaseLayout from '../layouts/BaseLayout';
 import HomeRoute from './Home';
-import ApiDemo from './ApiDemo';
+import ApiDemoRoute from './ApiDemo';
 import LayoutTestRoute from './LayoutTest';
 import FileNotFoundRoute from './FileNotFound';
 
@@ -13,7 +13,7 @@ export const createRoutes = (store) => ({
   component: BaseLayout,
   indexRoute: HomeRoute(store),
   childRoutes: [
-    ApiDemo(),
+    ApiDemoRoute(),
     LayoutTestRoute(),
     FileNotFoundRoute()
   ]
