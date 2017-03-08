@@ -11,7 +11,7 @@ import Icon from 'react-fa';
 import { Typeahead } from 'react-bootstrap-typeahead';
 import { BOUNDING_BOXES } from '../constants/bounding_boxes';
 import $ from 'jquery';
-
+import LayerAdder from './LayerAdder';
 export default class Adaguc extends React.Component {
   constructor () {
     super();
@@ -131,8 +131,6 @@ export default class Adaguc extends React.Component {
     // The first time, the map needs to be created. This is when in the previous state the map creation boolean is false
     // Otherwise only change when a new dataset is selected
     const { adagucProperties } = this.props;
-    // const { setLayers, setStyles } = actions;
-    // const { source, layer, style, mapType, boundingBox, overlay } = adagucProperties;
     const { layers, boundingBox } = adagucProperties;
       // eslint-disable-next-line no-undef
     if (boundingBox !== prevProps.adagucProperties.boundingBox) {
@@ -156,8 +154,13 @@ export default class Adaguc extends React.Component {
         this.webMapJS.draw();
       }
       this.webMapJS.stopAnimating();
-      // eslint-disable-next-line no-undef
-      const newDatalayers = datalayers.map((datalayer) => { const newDataLayer = new WMJSLayer(datalayer); newDataLayer.onReady = this.animateLayer; return newDataLayer; });
+      const newDatalayers = datalayers.map((datalayer) => {
+        // eslint-disable-next-line no-undef
+        const newDataLayer = new WMJSLayer(datalayer);
+        newDataLayer.setAutoUpdate(true, 5 * 60 * 1000, this.animateLayer);
+        newDataLayer.onReady = this.animateLayer;
+        return newDataLayer;
+      });
       this.webMapJS.removeAllLayers();
       newDatalayers.reverse().forEach((layer) => this.webMapJS.addLayer(layer));
       const newActiveLayer = (this.webMapJS.getLayers()[0]);
@@ -269,7 +272,8 @@ export default class Adaguc extends React.Component {
           </div>
           <div id='infocontainer' style={{ margin: 0, display: 'flex', flex: '0 0 auto' }}>
             <TimeComponent ref='TimeComponent' webmapjs={this.webMapJS} width={timeComponentWidth} onChangeAnimation={this.onChangeAnimation} />
-            <LayerManager dispatch={dispatch} actions={actions} sources={sources} layers={layers} />
+            <LayerManager dispatch={dispatch} actions={actions} layers={layers} />
+            <LayerAdder dispatch={dispatch} actions={actions} sources={sources} />
           </div>
         </div>
       </div>

@@ -34,7 +34,7 @@ describe('(Component) LayerManager', () => {
   it('Renders a non-empty div with a layer', () => {
     const _component = mount(<LayerManager dispatch={() => {}} actions={{}} layers={layers} />);
     var inners = _component.find('span.badge').map((layer) => { return layer.text(); }).filter((text) => text !== '');
-    expect(inners).to.have.length(5);
+    expect(inners).to.have.length(8);
     expect(inners).to.include('HARMONIE');
     expect(inners).to.include('abc');
   });
@@ -66,11 +66,5 @@ describe('(Component) LayerManager', () => {
     const _component = mount(<LayerManager dispatch={_dispatchSpy} actions={{ deleteLayer: sinon.spy() }} layers={layers} />);
     _component.find('#deleteButton').at(2).simulate('click');
     _dispatchSpy.should.have.been.calledOnce;
-  });
-
-  it('Opens a menu when the add layer button is clicked', () => {
-    const _component = mount(<LayerManager dispatch={sinon.spy()} actions={{}} layers={layers} sources={{}} />);
-    _component.find('#addLayerButton').simulate('click');
-    expect(_component.state().modal).to.equal(true);
   });
 });

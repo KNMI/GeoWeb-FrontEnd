@@ -6,6 +6,8 @@
 WMJSEmptyLayerName = 'empty_layer';
 WMJSEmptyLayerTitle = 'empty layer';
 function WMJSLayer (options) {
+  this.autoupdate = false;
+  this.timer = undefined;
   // options.failure is called when failed.
   this.service = undefined; // URL of the WMS Service
   this.WMJSService = undefined; // Corresponding WMJSService
@@ -58,6 +60,35 @@ function WMJSLayer (options) {
     return this.name;
   };
 
+  this.toggleAutoUpdate = function () {
+    this.autoupdate = !this.autoupdate;
+    if (this.autoupdate) {
+      var numDeltaMS = 60000;
+      this.timer = setInterval(
+        (function (self) {
+          return function () {
+            self.parseLayer(undefined, true, "WMJSLayer::autoupdate");
+          };
+        })(this), numDeltaMS);
+    } else {
+      clearInterval(this.timer);
+    }
+  };
+  this.setAutoUpdate = function (val, interval, callback) {
+    if (val !== this.autoupdate) {
+      this.autoupdate = val;
+      if (!val) {
+        clearInterval(this.timer);
+      } else {
+        this.timer = setInterval((function (self) {
+          return function () {
+            self.parseLayer(callback, true, "WMJSLayer::autoupdate");
+          };
+        })(this), interval);
+      }
+    }
+  };
+
   this.setOpacity = function (opacityValue) {
     // console.log("setOpacity image");
     this.opacity = opacityValue;
@@ -73,6 +104,7 @@ function WMJSLayer (options) {
       this.parentMaps[j].deleteLayer(this);
       this.parentMaps[j].draw('WMJSLayer::remove');
     }
+    clearInterval(this.timer);
   };
 
   this.moveUp = function () {

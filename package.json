@@ -173,6 +173,7 @@
     "redux-devtools": "^3.3.2",
     "sinon": "^1.17.7",
     "sinon-chai": "^2.8.0",
+    "strip-loader": "^0.1.2",
     "transform-runtime": "0.0.0",
     "webpack-dev-middleware": "^1.10.1",
     "webpack-hot-middleware": "^2.17.0"

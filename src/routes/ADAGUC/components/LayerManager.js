@@ -1,39 +1,49 @@
 import React from 'react';
-import { TabContent, TabPane, Nav, NavItem, NavLink, ListGroupItem, Badge, Button, Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
+import { Popover,
+PopoverTitle,
+PopoverContent, ListGroupItem, Badge } from 'reactstrap';
 import { Icon } from 'react-fa';
-import { Typeahead } from 'react-bootstrap-typeahead';
-import classnames from 'classnames';
 
 export default class LayerManager extends React.Component {
   constructor () {
     super();
-    this.getLayerName = this.getLayerName.bind(this);
     this.deleteLayer = this.deleteLayer.bind(this);
-    this.toggleModal = this.toggleModal.bind(this);
-    this.toggleTab = this.toggleTab.bind(this);
-    this.handleAddLayer = this.handleAddLayer.bind(this);
-    this.generateMap = this.generateMap.bind(this);
     this.toggleLayer = this.toggleLayer.bind(this);
+    this.layerSelectList = this.layerSelectList.bind(this);
+    this.getLayerName = this.getLayerName.bind(this);
     this.state = {
-      modal: false,
-      activeTab: '1',
-      layers: null,
-
-      selectedSource: null
+      popoverOpen: [false, false, false, false, false, false]
     };
-    this.handleCardClick = this.handleCardClick.bind(this);
   }
-  toggleModal () {
-    this.setState({
-      modal: !this.state.modal
-    });
+
+  togglePopover (layer, i) {
+    let popOver = this.state.popoverOpen;
+    popOver[i] = !popOver[i];
+    this.setState({ popoverOpen: popOver });
+    this.layerSelectList(layer, i);
   }
-  toggleTab (tab) {
-    if (this.state.activeTab !== tab) {
-      this.setState({
-        activeTab: tab
-      });
+  getLayerName (layer) {
+    if (layer) {
+      switch (layer.title) {
+        case 'OBS':
+          return 'Observations';
+        case 'SAT':
+          return 'Satellite';
+        case 'LGT':
+          return 'Lightning';
+        case 'HARM_N25_EXT':
+          return 'HARMONIE (EXT)';
+        case 'HARM_N25':
+          return 'HARMONIE';
+        case 'OVL':
+          return 'Overlay';
+        case 'RADAR_EXT':
+          return 'Radar (EXT)';
+        default:
+          return 'Radar';
+      }
     }
+    return null;
   }
 
   toggleLayer (type, i) {
@@ -68,71 +78,13 @@ export default class LayerManager extends React.Component {
     }
   }
 
-  handleAddLayer (e) {
-    const addItem = e[0];
-    if (!this.state.overlay) {
-      this.props.dispatch(this.props.actions.addLayer({ service: this.state.selectedSource.service, title: this.state.selectedSource.title, name: addItem.id, label: addItem.label }));
-    } else {
-      this.props.dispatch(this.props.actions.addOverlayLayer({ service: this.state.selectedSource.service, title: this.state.selectedSource.title, name: addItem.id, label: addItem.label }));
-    }
-    this.setState({
-      modal: false,
-      activeTab: '1',
-      layers: null,
-      selectedSource: null,
-      overlay: false
-    });
-  }
-
-  generateMap (layers) {
-    let layerobjs = [];
-    for (var i = 0; i < layers.length; ++i) {
-      layerobjs.push({ id: layers[i].name, label: layers[i].text });
-    }
-    this.setState({
-      layers: layerobjs,
-      activeTab: '2'
-    });
-  }
-
-  handleCardClick (e) {
-    let selectedSource = this.props.sources.data.filter((source) => source.name === e.currentTarget.id);
-    if (!selectedSource || selectedSource.length === 0) {
-      selectedSource = this.props.sources.overlay.filter((source) => source.name === e.currentTarget.id);
-      this.setState({ overlay: true });
-    } else {
-      this.setState({ overlay: false });
-    }
-    const selectedService = selectedSource[0];
-
+  layerSelectList (layer, i) {
     // eslint-disable-next-line no-undef
-    var srv = WMJSgetServiceFromStore(selectedService.service);
-    this.setState({ selectedSource: selectedService });
-    srv.getLayerObjectsFlat((layers) => this.generateMap(layers), (err) => console.log(err));
+    var srv = WMJSgetServiceFromStore(layer.service);
+
+    srv.getLayerObjectsFlat((layers) => this.generateList(layers), (err) => console.log(err));
   }
-  getLayerName (layer) {
-    if (layer) {
-      switch (layer.title) {
-        case 'OBS':
-          return 'Observations';
-        case 'SAT':
-          return 'Satellite';
-        case 'LGT':
-          return 'Lightning';
-        case 'HARM_N25_EXT':
-          return 'HARMONIE (EXT)';
-        case 'HARM_N25':
-          return 'HARMONIE';
-        case 'OVL':
-          return 'Overlay';
-        case 'RADAR_EXT':
-          return 'Radar (EXT)';
-        default:
-          return 'Radar';
-      }
-    }
-    return null;
-  }
+
   renderLayerSet (layers, type) {
     if (!layers || layers.length === 0) {
       return <div />;
@@ -140,22 +92,25 @@ export default class LayerManager extends React.Component {
       return layers.map((layer, i) => {
         console.log(layer);
         return (
-          <ListGroupItem id='layerinfo' key={i}>
-            <Icon id='enableButton' name={layer.enabled ? 'check-square-o' : 'square-o'} onClick={() => this.toggleLayer(type, i)} />
-            <Icon id='deleteButton' name='times' onClick={() => this.deleteLayer(type, i)} />
-            <LayerName name={type === 'data' ? this.getLayerName(layer) : ''} />
-            <Badge pill>
-              {layer.label ? layer.label : layer.title}
-              <Icon style={{ marginLeft: '5px' }} name='pencil' />
-            </Badge>
-            <LayerStyle style={layer.currentStyle} />
-          </ListGroupItem>);
+          <div key={'layerdiv' + i}>
+            <Popover key={'popover' + i} placement='bottom' isOpen={this.state.popoverOpen[i]} target={'editLayer' + i} toggle={() => this.togglePopover(layer, i)}>
+              <PopoverTitle>Select layer</PopoverTitle>
+              <PopoverContent>{this.state.layers}</PopoverContent>
+            </Popover>
+            <ListGroupItem id='layerinfo' key={'lgi' + i}>
+              <Icon id='enableButton' name={layer.enabled ? 'check-square-o' : 'square-o'} onClick={() => this.toggleLayer(type, i)} />
+              <Icon id='deleteButton' name='times' onClick={() => this.deleteLayer(type, i)} />
+              <LayerSource name={type === 'data' ? this.getLayerName(layer) : ''} />
+              <LayerName name={layer.label ? layer.label : layer.title} />
+              <LayerStyle style={layer.currentStyle} />
+            </ListGroupItem>
+          </div>);
       });
     }
   }
 
   render () {
-    const { layers, sources } = this.props;
+    const { layers } = this.props;
     if (!layers || Object.keys(layers).length === 0) {
       return <div />;
     }
@@ -165,43 +120,6 @@ export default class LayerManager extends React.Component {
         {this.renderLayerSet(overlays, 'overlay')}
         {this.renderLayerSet(datalayers, 'data')}
         {/* this.renderLayerSet([baselayer], 'base') */}
-        <Button id='addLayerButton' color='primary' onClick={this.toggleModal}>Add layer</Button>
-        <Modal id='addLayerModal' isOpen={this.state.modal} toggle={this.toggleModal}>
-          <ModalHeader toggle={this.toggleModal}>Add layer</ModalHeader>
-          <Nav tabs>
-            <NavItem>
-              <NavLink
-                className={classnames({ active: this.state.activeTab === '1' })}
-                onClick={() => { this.toggleTab('1'); }}
-              >
-                (1) - Select Source
-              </NavLink>
-            </NavItem>
-            <NavItem>
-              <NavLink
-                className={classnames({ active: this.state.activeTab === '2' })}
-                onClick={() => { this.toggleTab('2'); }} disabled={this.state.layers === null}
-              >
-                (2) - Select { this.state.selectedSource ? this.getLayerName(this.state.selectedSource) : '' } Layer
-              </NavLink>
-            </NavItem>
-          </Nav>
-
-          <ModalBody>
-            <TabContent activeTab={this.state.activeTab}>
-              <TabPane tabId='1'>
-                { (sources && sources.data) ? sources.data.map((src, i) => <Button id={src.name} key={i} onClick={this.handleCardClick}>{this.getLayerName(src)}</Button>) : <div /> }
-                { (sources && sources.overlay) ? sources.overlay.map((src, i) => <Button id={src.name} key={i} onClick={this.handleCardClick}>{this.getLayerName(src)}</Button>) : <div /> }
-              </TabPane>
-              <TabPane tabId='2'>
-                <Typeahead onChange={this.handleAddLayer} options={this.state.layers ? this.state.layers : []} />
-              </TabPane>
-            </TabContent>
-          </ModalBody>
-          <ModalFooter>
-            <Button color='secondary' onClick={this.toggleModal}>Cancel</Button>
-          </ModalFooter>
-        </Modal>
       </div>
     );
   }
@@ -210,39 +128,48 @@ export default class LayerManager extends React.Component {
 LayerManager.propTypes = {
   dispatch: React.PropTypes.func.isRequired,
   actions: React.PropTypes.object.isRequired,
-  sources: React.PropTypes.object,
   layers: React.PropTypes.object,
   baselayers: React.PropTypes.array
 };
 
-class LayerName extends React.Component {
+// ----------------------------------------- \\
+// Rendering of the layersource with popover \\
+// ----------------------------------------- \\
+class LayerSource extends React.Component {
   render () {
-    if (this.props.name) {
-      return <Badge pill>
-        {this.props.name}
-        <Icon style={{ marginLeft: '5px' }} name='pencil' />
-      </Badge>;
-    } else {
-      return <Badge />;
-    }
+    return <Badge pill>{this.props.name}</Badge>;
   }
 }
+LayerSource.propTypes = {
+  name: React.PropTypes.string.isRequired
+};
 
+// --------------------------------------- \\
+// Rendering of the layername with popover \\
+// --------------------------------------- \\
+class LayerName extends React.Component {
+  render () {
+    return <Badge pill>
+      {this.props.name}
+      <Icon style={{ marginLeft: '5px' }} name='pencil' />
+    </Badge>;
+  }
+}
 LayerName.propTypes = {
   name: React.PropTypes.string.isRequired
 };
+
+// ---------------------------------------- \\
+// Rendering of the layerstyle with popover \\
+// ---------------------------------------- \\
 class LayerStyle extends React.Component {
   render () {
-    if (this.props.style) {
-      return (
-        <Badge pill>
-          {this.props.style}
-          <Icon style={{ marginLeft: '5px' }} name='pencil' />
-        </Badge>
-      );
-    } else {
-      return <Badge />;
-    }
+    return (
+      <Badge pill>
+        {this.props.style ? this.props.style : 'default'}
+        <Icon style={{ marginLeft: '5px' }} name='pencil' />
+      </Badge>
+    );
   }
 }
 LayerStyle.propTypes = {
