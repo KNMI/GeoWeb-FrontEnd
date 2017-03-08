@@ -389,6 +389,7 @@ const AdagucMapDraw = React.createClass({
     }
   },
   cancelEdit (cancelLastPoint) {
+    console.log('cancelEdit');
     if (this.props.isInEditMode === false) return;
     const { webmapjs } = this.props;
 
@@ -446,7 +447,7 @@ const AdagucMapDraw = React.createClass({
   },
   componentWillReceiveProps (nextProps) {
      /* Handle toggle edit */
-    if (nextProps.isInEditMode === false) {
+    if (nextProps.isInEditMode === false && this.editMode !== '') {
       this.cancelEdit(true); /* Throw away last vertice */
       if (this.editMode === 'deletefeatures') {
         this.editMode = '';

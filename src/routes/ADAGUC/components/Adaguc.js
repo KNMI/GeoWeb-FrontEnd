@@ -246,7 +246,7 @@ export default class Adaguc extends React.Component {
                   <Typeahead onChange={(p) => dispatch(actions.prepareSIGMET(p[0]))} placeholder='Click or type' options={phenomena} />
                   <Label>Coordinates</Label>
                   {
-                    (coords && coords.features && coords.features[0].geometry.coordinates && coords.features[0].geometry.coordinates[0])
+                    (coords && coords.features && coords.features[0].geometry.coordinates)
                       ? coords.features[0].geometry.coordinates[0].map((latlon) => {
                         return latlon[0].toString().substring(0, 7) + ' Lat, ' + latlon[1].toString().substring(0, 7) + ' Lon';
                       }).map((str, i) => <div key={i}>{str}</div>)
@@ -269,7 +269,8 @@ export default class Adaguc extends React.Component {
               <AdagucMeasureDistance
                 dispatch={this.props.dispatch}
                 webmapjs={this.webMapJS}
-                isInEditMode={adagucmeasuredistance.isInEditMode}
+                isInEditMode={adagucmeasuredistance
+                  .isInEditMode}
               />
               <DropdownButton dispatch={dispatch} dataFunc={setCut} items={BOUNDING_BOXES} title='View' isOpen={this.state.dropdownOpenView} toggle={this.toggleView} />
             </div>

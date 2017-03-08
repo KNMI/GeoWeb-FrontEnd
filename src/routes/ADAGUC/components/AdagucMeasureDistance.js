@@ -159,10 +159,12 @@ const AdagucMeasureDistance = React.createClass({
   handleKeyDown (event) {
     switch (event.keyCode) {
       case 27: /* ESCAPE_KEY */
-        this.props.dispatch({ type: ADAGUCMEASUREDISTANCE_EDITING, payload: { isInEditMode:false } });
-        this.isMeasuring = false;
-        this.showLine = false;
-        this.props.webmapjs.draw();
+        if (this.props.isInEditMode === true) {
+          this.props.dispatch({ type: ADAGUCMEASUREDISTANCE_EDITING, payload: { isInEditMode:false } });
+          this.isMeasuring = false;
+          this.showLine = false;
+          this.props.webmapjs.draw();
+        }
         break;
       default:
         break;
