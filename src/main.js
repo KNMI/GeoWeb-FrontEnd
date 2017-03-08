@@ -21,7 +21,12 @@ const initialState = {
     },
     boundingBox: BOUNDING_BOXES[0],
     projectionName: 'EPSG:3857',
-    mapCreated: false
+    mapCreated: false,
+    adagucmapdraw: {
+      isInEditMode: false,
+      isInDeleteMode: false,
+      editMode: ''
+    }
   },
   header: {
     title: 'hello Headers'

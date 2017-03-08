@@ -190,11 +190,7 @@ const AdagucMeasureDistance = React.createClass({
       webmapjs.removeListener('beforemouseup', this.adagucMouseUp);
     }
   },
-  featureHasChanged (text) {
-    console.log('Feature has changed: ' + text, this.props.geojson);
-  },
   componentDidMount () {
-    console.log('componentDidMount');
   },
   render () {
     const { webmapjs } = this.props;
@@ -209,7 +205,6 @@ const AdagucMeasureDistance = React.createClass({
         webmapjs.addListener('beforemousedown', this.adagucMouseDown, true);
         webmapjs.addListener('beforemouseup', this.adagucMouseUp, true);
         this.disabled = false;
-        console.log('webmapjs listeners added');
       }
       webmapjs.draw();
     }

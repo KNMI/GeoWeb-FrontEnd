@@ -1,7 +1,7 @@
 import React from 'react';
 import { Badge, ListGroup, ListGroupItem, Collapse,
   CardBlock, Card, ButtonDropdown, DropdownToggle, DropdownMenu, Label,
-  DropdownItem } from 'reactstrap';
+  DropdownItem, Button } from 'reactstrap';
 import TimeComponent from './TimeComponent.js';
 import AdagucMapDraw from './AdagucMapDraw.js';
 import LayerManager from './LayerManager.js';
@@ -110,6 +110,9 @@ export default class Adaguc extends React.Component {
   componentDidMount () {
     this.initAdaguc(this.refs.adaguc);
   }
+  componentWillReceiveProps (nextProps) {
+    // console.log('componentWillReceiveProps', nextProps);
+  }
   componentWillMount () {
     /* Component will unmount, set flag that map is not created */
     const { adagucProperties } = this.props;
@@ -177,6 +180,8 @@ export default class Adaguc extends React.Component {
     });
   }
   render () {
+    const { adagucProperties, dispatch, actions } = this.props;
+    const { adagucmapdraw } = adagucProperties;
     // eslint-disable-next-line no-undef
     let timeComponentWidth = $(window).width() - 400;
     const shiftTaskItems = [
@@ -218,7 +223,6 @@ export default class Adaguc extends React.Component {
         title: 'Analyses'
       }
     ];
-    const { dispatch, actions, adagucProperties } = this.props;
     const { setCut } = actions;
     const { sources, layers, coords } = adagucProperties;
     const phenomena = ['OBSC TS', 'EMBD TS', 'FRQ TS', 'SQL TS', 'OBSC TSGR', 'EMBD TSGR', 'FRQ TSGR',
@@ -254,10 +258,20 @@ export default class Adaguc extends React.Component {
           <div>
             <div ref='adaguc' />
             <div style={{ margin: '5px 10px 10px 5px ' }}>
-              <AdagucMapDraw dispatch={dispatch} actions={actions} webmapjs={this.webMapJS} />
+              <AdagucMapDraw dispatch={this.props.dispatch}
+                isInEditMode={adagucmapdraw.isInEditMode}
+                isInDeleteMode={adagucmapdraw.isInDeleteMode}
+                webmapjs={this.webMapJS}
+              />
               <AdagucMeasureDistance webmapjs={this.webMapJS} />
               <DropdownButton dispatch={dispatch} dataFunc={setCut} items={BOUNDING_BOXES} title='View' isOpen={this.state.dropdownOpenView} toggle={this.toggleView} />
             </div>
+            <Button color='primary' onClick={() => dispatch(actions.adagucmapdrawToggleEdit(adagucmapdraw))}
+              disabled={this.disabled}>{adagucmapdraw.isInEditMode === false ? 'Create / Edit' : 'Exit editing mode'}
+            </Button>
+            <Button color='primary' onClick={() => dispatch(actions.adagucmapdrawToggleDelete(adagucmapdraw))}
+              disabled={this.disabled}>{adagucmapdraw.isInDeleteMode === false ? 'Delete' : 'Click to delete'}
+            </Button>
           </div>
           <div id='infocontainer' style={{ margin: 0, display: 'flex', flex: '0 0 auto' }}>
             <TimeComponent ref='TimeComponent' webmapjs={this.webMapJS} width={timeComponentWidth} onChangeAnimation={this.onChangeAnimation} />

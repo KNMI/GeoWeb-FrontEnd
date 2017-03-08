@@ -3,6 +3,7 @@ import { BOUNDING_BOXES } from '../constants/bounding_boxes';
 // ------------------------------------
 // Constants
 // ------------------------------------
+
 const ADD_LAYER = 'ADD_LAYER';
 const ADD_OVERLAY_LAYER = 'ADD_OVERLAY_LAYER';
 const CREATE_MAP = 'CREATE_MAP';
@@ -13,6 +14,7 @@ const SET_MAP_STYLE = 'SET_MAP_STYLE';
 const SET_STYLE = 'SET_STYLE';
 const PREPARE_SIGMET = 'PREPARE_SIGMET';
 const COORDS = 'COORDS';
+import { ADAGUCMAPDRAW_EDITING, ADAGUCMAPDRAW_DELETE, ADAGUCMAPDRAW_UPDATEFEATURE } from '../components/AdagucMapDraw';
 
 // ------------------------------------
 // Helper functions
@@ -51,6 +53,7 @@ Object.equals = function (x, y) {
   }
   return true;
 };
+
 // ------------------------------------
 // Actions
 // ------------------------------------
@@ -120,6 +123,22 @@ function coords (newcoords) {
   return {
     type: COORDS,
     payload: newcoords
+  };
+}
+
+function adagucmapdrawToggleEdit (adagucmapdraw) {
+  console.log('adagucmapdrawToggleEdit', adagucmapdraw);
+  return {
+    type: 'ADAGUCMAPDRAW_EDITING',
+    payload: Object.assign({}, adagucmapdraw, { isInEditMode: !adagucmapdraw.isInEditMode })
+  };
+}
+
+function adagucmapdrawToggleDelete (adagucmapdraw) {
+  console.log('adagucmapdrawToggleDelete', adagucmapdraw);
+  return {
+    type: 'ADAGUCMAPDRAW_DELETE',
+    payload: Object.assign({}, adagucmapdraw, { isInDeleteMode: !adagucmapdraw.isInDeleteMode })
   };
 }
 /*  This is a thunk, meaning it is a function that immediately
@@ -209,7 +228,9 @@ export const actions = {
   setMapStyle,
   setStyle,
   prepareSIGMET,
-  coords
+  coords,
+  adagucmapdrawToggleEdit,
+  adagucmapdrawToggleDelete
 };
 
 /*
@@ -310,6 +331,25 @@ const setNewCoords = (state, payload) => {
   return Object.assign({}, state, { coords: payload });
 };
 
+const handleAdagucMapDrawEditing = (state, payload) => {
+  console.log('handleAdagucMapDrawEditing', state, payload);
+  let adagucmapdraw = Object.assign({}, state.adagucmapdraw, { isInEditMode : payload.isInEditMode });
+  return Object.assign({}, state, { adagucmapdraw: adagucmapdraw });
+};
+const handleAdagucMapDrawDelete = (state, payload) => {
+  console.log('handleAdagucMapDrawDelete', state, payload);
+  let adagucmapdraw = Object.assign({}, state.adagucmapdraw, { isInDeleteMode : payload.isInDeleteMode });
+  return Object.assign({}, state, { adagucmapdraw: adagucmapdraw });
+};
+const handleAdagucMapDrawUpdateFeature = (state, payload) => {
+  console.log(state);
+  console.log('handleAdagucMapDrawUpdateFeature', payload);
+  /* Returning new state is not strictly necessary,
+    as the geojson in AdagucMapDraw is the same and does not require rerendering of the AdagucMapDraw component
+  */
+  let adagucmapdraw = Object.assign({}, state.adagucmapdraw, { geojson : payload.geojson });
+  return Object.assign({}, state, { adagucmapdraw: adagucmapdraw });
+};
 // ------------------------------------
 // Action Handlers
 // ------------------------------------
@@ -323,7 +363,10 @@ const ACTION_HANDLERS = {
   [SET_MAP_STYLE]        : (state, action) => newMapStyle(state, action.payload),
   [SET_STYLE]            : (state, action) => newStyle(state, action.payload),
   [PREPARE_SIGMET]       : (state, action) => setSigmet(state, action.payload),
-  [COORDS]               : (state, action) => setNewCoords(state, action.payload)
+  [COORDS]               : (state, action) => setNewCoords(state, action.payload),
+  [ADAGUCMAPDRAW_EDITING] : (state, action) => handleAdagucMapDrawEditing(state, action.payload),
+  [ADAGUCMAPDRAW_DELETE] : (state, action) => handleAdagucMapDrawDelete(state, action.payload),
+  [ADAGUCMAPDRAW_UPDATEFEATURE] : (state, action) => handleAdagucMapDrawUpdateFeature(state, action.payload)
 };
 
 // ------------------------------------
