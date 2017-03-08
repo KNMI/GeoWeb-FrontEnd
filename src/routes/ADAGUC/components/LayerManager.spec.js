@@ -1,9 +1,9 @@
 // import React from 'react';
 // eslint-disable-next-line no-unused-vars
-import { default as MetaInfo } from './MetaInfo';
+import { default as LayerManager } from './LayerManager';
 // import { mount, shallow } from 'enzyme';
 
-describe('(Component) MetaInfo', () => {
+describe('(Component) LayerManager', () => {
   // const funcs = {
   //   createMap: () => {},
   //   setCut: () => {},

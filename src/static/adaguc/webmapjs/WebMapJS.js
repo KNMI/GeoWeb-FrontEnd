@@ -92,7 +92,7 @@
 
       // divMapPin.innerHTML        = '<img src=\''+mapPinImageSrc+'\'>';
 
-      xml2jsonrequestURL = base + '/php/xml2jsonrequest.php?';
+      // xml2jsonrequestURL = base + '/php/xml2jsonrequest.php?';
       // requestProxy=base+'/php/MakeRequest.php?';
     };
     this.setBaseURL(base);
@@ -101,9 +101,11 @@
     var mainElement = _element;
     // var baseDiv = document.createElement('div');
     try {
-      if (!isDefined(xml2jsonrequestURL)) {};
+      if (!isDefined(xml2jsonrequestURL)) {
+        xml2jsonrequest = 'http://birdexp07.knmi.nl:8080/XML2JSON?';
+      };
     } catch (e) {
-      xml2jsonrequestURL = base + '/php/xml2jsonrequest.php?';
+      xml2jsonrequest = 'http://birdexp07.knmi.nl:8080/XML2JSON?';
     }
     try {
       if (!isDefined(requestProxy)) {};
@@ -1840,6 +1842,7 @@
 
           // baseLayers[j].id=(-2)-j;;
         }
+        callBack.triggerEvent('onlayeradd');
       } else baseLayers = undefined;
     };
 
@@ -1855,6 +1858,8 @@
           }
           // baseLayers[j].id=(-2)-j;;
         }
+        console.log('log from adaguc: new baselayers');
+        callBack.triggerEvent('onlayeradd');
       } else baseLayers = undefined;
     };
 

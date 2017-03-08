@@ -1,5 +1,4 @@
 import {
-  SET_SOURCE,
   actions,
   default as adagucReducer
 } from 'routes/ADAGUC/modules/adaguc';
@@ -20,32 +19,84 @@ describe('(Redux Module) Adaguc', () => {
       expect(state).to.eql({});
       state = adagucReducer(state, { type: '@@@@@@@' });
       expect(state).to.eql({});
-      state = adagucReducer(state, { type: 'SET_STYLES', payload: 'asdf' });
-      expect(state).to.eql({ styles: 'asdf' });
+      state = adagucReducer(state, { type: 'LOGIN', payload: 'asdf' });
+      expect(state).to.eql({ loggedIn: true, username: 'asdf' });
       state = adagucReducer(state, { type: '@@@@@@@' });
-      expect(state).to.eql({ styles: 'asdf' });
+      expect(state).to.eql({ loggedIn: true, username: 'asdf' });
     });
   });
 
-  describe('(Action Creator) setSource', () => {
+  describe('(Action Creator) setCut', () => {
     it('Should be exported as a function.', () => {
-      expect(actions).to.have.property('setSource');
-      expect(actions.setSource).to.be.a('function');
+      expect(actions).to.have.property('setCut');
+      expect(actions.setCut).to.be.a('function');
     });
 
-    it('Should return an action with type "SET_SOURCE".', () => {
-      expect(actions.setSource()).to.have.property('type', SET_SOURCE);
+    it('Should return an action with type "SET_CUT".', () => {
+      expect(actions.setCut()).to.have.property('type', 'SET_CUT');
     });
 
     it('Should assign the first argument to the "payload" property.', () => {
-      expect(actions.setSource(5)).to.have.property('payload', 5);
+      expect(actions.setCut(5)).to.have.property('payload', 5);
     });
 
-    it('Should default the "payload" property to 0 if not provided.', () => {
-      expect(actions.setSource()).to.have.property('payload', 0);
+    it('Should default the "payload" property to NL bounding box if not provided.', () => {
+      const cut = actions.setCut();
+      expect(cut).to.have.property('payload');
+      expect(cut.payload.title).to.equal('Netherlands');
+    });
+
+    it('Should set the map state to have that bounding box', () => {
+      let _globalState = { adagucProperties: { } };
+      let _dispatchSpy = sinon.spy((action) => {
+        _globalState = {
+          ..._globalState,
+          adagucProperties : adagucReducer(_globalState.adagucProperties, action)
+        };
+      });
+      _dispatchSpy(actions.setCut());
+      expect(_globalState.adagucProperties.boundingBox.title).to.equal('Netherlands');
     });
   });
-  describe('(Action Handler) setSource', () => {
+
+  describe('(Action Handler) prepareSIGMET', () => {
+    let _globalState;
+    let _dispatchSpy;
+    let _getStateSpy;
+
+    beforeEach(() => {
+      _globalState = {
+        adagucProperties : { layers: {}, sources: {}, boundingBox: null, projectionName: 'EPSG:3857', mapCreated: false }
+      };
+      _dispatchSpy = sinon.spy((action) => {
+        _globalState = {
+          ..._globalState,
+          adagucProperties : adagucReducer(_globalState.adagucProperties, action)
+        };
+      });
+      _getStateSpy = sinon.spy(() => {
+        return _globalState;
+      });
+    });
+
+    it('SIGMET state should contain only the FIR overlay.', () => {
+      _dispatchSpy(actions.prepareSIGMET('OBSC TS'));
+      const sigmetState = _getStateSpy();
+      expect(sigmetState.adagucProperties.layers.overlays).to.have.length(1);
+      const overlay = sigmetState.adagucProperties.layers.overlays[0];
+      expect(overlay.label).to.equal('FIR areas');
+    });
+
+    it('SIGMET state should contain a lightning layer.', () => {
+      _dispatchSpy(actions.prepareSIGMET('OBSC TS'));
+      const sigmetState = _getStateSpy();
+      expect(sigmetState.adagucProperties.layers.datalayers).to.have.length.of.at.least(1);
+      const lightningLayer = sigmetState.adagucProperties.layers.datalayers.filter((layer) => layer.title === 'LGT');
+      expect(lightningLayer).to.have.length.of.at.least(1);
+    });
+  });
+
+  describe('(Action Handler) addLayer', () => {
     let _globalState;
     let _dispatchSpy;
     let _getStateSpy;
@@ -66,12 +117,48 @@ describe('(Redux Module) Adaguc', () => {
     });
 
     it('Should call dispatch and getState exactly once.', () => {
-      actions.setSource(_dispatchSpy, _getStateSpy);
+      actions.addLayer(_dispatchSpy, _getStateSpy);
       _dispatchSpy.should.have.been.calledOnce;
       _getStateSpy.should.have.been.calledOnce;
     });
   });
 
+  describe('(Action creator) deleteLayer', () => {
+    let _globalState;
+    let _dispatchSpy;
+    let _getStateSpy;
+
+    beforeEach(() => {
+      _globalState = {
+        adagucProperties : { layers: { datalayers: [{ title: 'abc' }], overlays: [{ title: 'overlay' }] }, sources: {}, boundingBox: null, projectionName: 'EPSG:3857', mapCreated: false }
+      };
+      _dispatchSpy = sinon.spy((action) => {
+        _globalState = {
+          ..._globalState,
+          adagucProperties : adagucReducer(_globalState.adagucProperties, action)
+        };
+      });
+      _getStateSpy = sinon.spy(() => {
+        return _globalState;
+      });
+    });
+
+    it('Should call dispatch and getState exactly once.', () => {
+      actions.deleteLayer(_dispatchSpy, _getStateSpy);
+      _dispatchSpy.should.have.been.calledOnce;
+      _getStateSpy.should.have.been.calledOnce;
+    });
+    it('Should remove only that layer from the state when called.', () => {
+      const layerstate = _getStateSpy();
+      expect(layerstate.adagucProperties.layers.datalayers).to.have.length(1);
+
+      _dispatchSpy(actions.deleteLayer({ title: 'abc' }, 'data'));
+
+      const newlayerstate = _getStateSpy();
+      expect(newlayerstate.adagucProperties.layers.datalayers).to.have.length(0);
+      expect(newlayerstate.adagucProperties.layers.overlays).to.have.length(1);
+    });
+  });
   // describe('(Action Creator) doubleAsync', () => {
   //   let _globalState;
   //   let _dispatchSpy;

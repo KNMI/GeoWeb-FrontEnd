@@ -30,20 +30,22 @@ const TimeComponent = React.createClass({
     this.eventOnDimChange();
   },
   eventOnDimChange () {
-    if (!this.props.webmapjs) return;
+    // if (!this.props.webmapjs) return;
+    // this.drawCanvas();
+
     let timeDim = this.props.webmapjs.getDimension('time');
 
     if (timeDim !== undefined) {
       if (this.state.value === timeDim.currentValue) {
         if (this.hoverDate === this.hoverDateDone) {
-          return;
+          this.drawCanvas();
         }
       }
       if (timeDim.currentValue !== this.state.value) {
         this.setState({ value:timeDim.currentValue, width: this.state.width });
       }
     } else {
-      return;
+      this.drawCanvas();
     }
     this.drawCanvas();
   },
@@ -56,6 +58,7 @@ const TimeComponent = React.createClass({
     this.hoverDateDone = this.hoverDate;
 
     let layers = this.props.webmapjs.getLayers();
+    let overlayers = this.props.webmapjs.getBaseLayers().filter((layer) => layer.keepOnTop === true);
     let ctx = this.ctx;
     let canvasWidth = ctx.canvas.clientWidth;
     let canvasHeight = ctx.canvas.clientHeight;
@@ -138,18 +141,17 @@ const TimeComponent = React.createClass({
       ctx.fillStyle = '#000';
       ctx.fillText(dateAtTimeStep.getUTCHours() + 'H', pos * scaleWidth + 3, canvasHeight - 3);
     }
-
     /* Draw blocks for layer */
-    for (let j = 0; j < layers.length; j++) {
-      let y = j * 25 + 1;
+    for (let j = 0; j < layers.length + 0; j++) {
+      let y = j * 20 + 1 + overlayers.length * 20;
       let h = 16;
       let layer = layers[j];
       let dim = layer.getDimension('time');
       ctx.lineWidth = 1;
       ctx.fillStyle = '#F66';
-      ctx.fillRect(0, 5 + y + 0.5, canvasWidth, h);
+      ctx.fillRect(0, y + 0.5, canvasWidth, h);
       ctx.strokeStyle = '#AAA';
-      ctx.strokeRect(-1, 5 + y + 0.5, canvasWidth + 2, h);
+      ctx.strokeRect(-1, y + 0.5, canvasWidth + 2, h);
       if (dim) {
         let layerStartIndex = dim.getIndexForValue(this.startDate, false);
         let layerStopIndex = dim.getIndexForValue(this.endDate, false);
@@ -167,13 +169,13 @@ const TimeComponent = React.createClass({
           let x = parseInt(pos * scaleWidth);
           let w = parseInt(posNext * scaleWidth) - x;
 
-          ctx.fillRect(x + 0.5, 5 + y + 0.5, w, h);
-          ctx.strokeRect(x + 0.5, 5 + y + 0.5, w, h);
+          ctx.fillRect(x + 0.5, y + 0.5, w, h);
+          ctx.strokeRect(x + 0.5, y + 0.5, w, h);
         }
       }
-      ctx.font = 'bold 10pt Arial';
-      ctx.fillStyle = '#000';
-      ctx.fillText(layer.title, 6, h + 2 + y);
+      // ctx.font = 'bold 10pt Arial';
+      // ctx.fillStyle = '#000';
+      // ctx.fillText(layer.title, 6, h + y - 3);
     }
 
     /* Draw current system time */
@@ -273,13 +275,11 @@ const TimeComponent = React.createClass({
     this.props.onChangeAnimation(value);
   },
   componentDidMount () {
-    console.log('mount');
   },
   componentDidUpdate () {
     this.drawCanvas();
   },
   componentWillUnmount () {
-    console.log('unmount');
   },
   onRenderCanvas (ctx) {
     this.ctx = ctx;
@@ -330,8 +330,6 @@ const TimeComponent = React.createClass({
     if (webmapjs !== undefined) {
       if (this.listenersInitialized === undefined) { // TODO mount/unmount
         this.listenersInitialized = true;
-        // console.log('initlistener');
-
         webmapjs.addListener('onlayeradd', this.eventOnMapDimUpdate, true);
         webmapjs.addListener('onmapdimupdate', this.eventOnMapDimUpdate, true);
         webmapjs.addListener('ondimchange', this.eventOnDimChange, true);
@@ -339,41 +337,40 @@ const TimeComponent = React.createClass({
     }
     let { year, month, day, hour, minute } = this.decomposeDateString(this.state.value);
 
-    return <div style={{ display:'flex', border:'0px solid red' }}>
-      <div style={{ display:'flex', flex: 1 }} >
-        <div>
-          <ButtonPausePlayAnimation webmapjs={this.props.webmapjs} onChange={this.onChangeAnimation} />
+    return (
+      <div style={{ display:'flex', flex: '0 0 auto', border:'0px solid red' }}>
+        <div style={{ display:'flex', flex: '0 0 auto', marginTop: '81px' }} >
+          <div style={{ display:'flex', flex: '0 0 auto' }}>
+            <ButtonPausePlayAnimation webmapjs={this.props.webmapjs} onChange={this.onChangeAnimation} />
+          </div>
+          <div style={{ whiteSpace: 'nowrap' }}>
+            <NumberSpinner value={year} numDigits={4} width={60} onChange={this.changeYear} />
+            <NumberSpinner value={month} renderAsMonth width={65} onChange={this.changeMonth} />
+            <NumberSpinner value={day} numDigits={2} width={37} onChange={this.changeDay} />
+            <NumberSpinner value={hour} numDigits={2} width={37} onChange={this.changeHour} />
+            <NumberSpinner value={minute} numDigits={2} width={37} onChange={this.changeMinute} />
+          </div>
+          <div style={{ display:'flex', flex: '0 0 auto' }} >
+            <Button color='primary' size='large' style={{ padding:'20px', margin:' 0 5px' }} onClick={this.handleButtonClickNow}>Now</Button>
+          </div>
         </div>
-        <div style={{ whiteSpace: 'nowrap' }}>
-          <NumberSpinner value={year} numDigits={'4'} width={100} onChange={this.changeYear} />
-          <NumberSpinner value={month} numDigits={'month'} width={90} onChange={this.changeMonth} />
-          <NumberSpinner value={day} numDigits={'2'} width={60} onChange={this.changeDay} />
-          <NumberSpinner value={hour} numDigits={'2'} width={60} onChange={this.changeHour} />
-          <NumberSpinner value={minute} numDigits={'2'} width={60} onChange={this.changeMinute} />
-          { /* <NumberSpinner value={second} numDigits={2} width={60} onChange={this.changeSecond} /> */ }
-        </div >
-
-      </div>
-      <div>
-        <Button color='primary' size='large' style={{ padding:'20px', margin:'5px' }} onClick={this.handleButtonClickNow}>Now</Button>
-      </div>
-      <div>
-        <Button color='primary' style={{ padding:'28px 5px 30px 5px', marginLeft:'1px', marginRight:'0px' }} onClick={this.handleButtonClickPrevPage}>
-          <Icon name='chevron-left' />
-        </Button>
-      </div>
-      <div style={{ border:'0px solid blue', margin: '0px 2px 0px 2px', padding: 0, background:'white', display: 'block' }}>
-        <CanvasComponent width={this.state.width - 580} height={78}
-          onRenderCanvas={this.onRenderCanvas}
-          onClick={this.onClickCanvas}
-          onMouseMove={this.onMouseMoveCanvas} />
-      </div >
-      <div>
-        <Button color='primary' style={{ padding:'28px 5px 30px 5px' }} onClick={this.handleButtonClickNextPage}>
-          <Icon name='chevron-right' />
-        </Button>
-      </div>
-    </div>;
+        <div style={{ display:'flex', flex: '0 0 auto' }}>
+          <Button color='primary' style={{ padding:'28px 5px 30px 5px', marginLeft:'1px', marginRight:'0px' }} onClick={this.handleButtonClickPrevPage}>
+            <Icon name='chevron-left' />
+          </Button>
+        </div>
+        <div style={{ display: 'flex', flex: '0 0 auto', border:'0px solid blue', margin: '0px 2px 0px 2px', padding: 0, background:'white' }}>
+          <CanvasComponent width={this.state.width - 803} height={150}
+            onRenderCanvas={this.onRenderCanvas}
+            onClick={this.onClickCanvas}
+            onMouseMove={this.onMouseMoveCanvas} />
+        </div>
+        <div style={{ display: 'flex', flex: '0 0 auto' }}>
+          <Button color='primary' style={{ padding:'28px 5px 30px 5px' }} onClick={this.handleButtonClickNextPage}>
+            <Icon name='chevron-right' />
+          </Button>
+        </div>
+      </div>);
   }
 });
 

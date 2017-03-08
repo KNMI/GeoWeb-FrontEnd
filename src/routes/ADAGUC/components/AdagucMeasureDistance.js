@@ -210,9 +210,9 @@ const AdagucMeasureDistance = React.createClass({
     }
     return (
       <div style={{ display:'inline-block', whiteSpace: 'nowrap' }} >
-        <Button onClick={this.handleStartEdit} disabled={this.disabled}>{this.state.editMode === false ? 'Measure distance' : 'Exit measuring mode'}</Button>
-        <Input style={{ display:'inline-block', width: '120px' }} type='text' value={Math.round(this.state.distance / 100) / 10 + ' km'} />
-        <Input style={{ display:'inline-block', width: '120px' }} type='text' value={Math.round(this.state.bearing * 10) / 10 + ' °'} />
+        <Button color='primary' onClick={this.handleStartEdit} disabled={this.disabled}>{this.state.editMode === false ? 'Measure distance' : 'Exit measuring mode'}</Button>
+        <Input style={{ marginLeft: '5px', display:'inline-block', width: '120px' }} type='text' value={Math.round(this.state.distance / 100) / 10 + ' km'} onChange={() => {}} />
+        <Input style={{ display:'inline-block', width: '120px' }} type='text' value={Math.round(this.state.bearing * 10) / 10 + ' °'} onChange={() => {}} />
       </div>
     );
   }

@@ -6,7 +6,8 @@ const NumberSpinner = React.createClass({
   propTypes: {
     onChange: React.PropTypes.func,
     value: React.PropTypes.number,
-    numDigits: React.PropTypes.string,
+    numDigits: React.PropTypes.number,
+    renderAsMonth: React.PropTypes.bool,
     width: React.PropTypes.number
   },
   getInitialState () {
@@ -17,14 +18,15 @@ const NumberSpinner = React.createClass({
       numDigits: 2,
       value:200,
       width:100,
+      renderAsMonth: false,
       onChange:function () {}
     };
   },
-  formatNumDigits (value, _numdigits) {
-    let numdigits = parseInt(_numdigits);
+  formatNumDigits (value) {
+    let { numDigits } = this.props;
     let v = '' + value;
-    while (v.length < numdigits) { v = '0' + v; }
-    while (v.length > numdigits) { v = v.substring(1); }
+    while (v.length < numDigits) { v = '0' + v; }
+    while (v.length > numDigits) { v = v.substring(1); }
     return v;
   },
   handleClickUp (event) {
@@ -46,7 +48,7 @@ const NumberSpinner = React.createClass({
   },
   render () {
     let value = this.state.value;
-    if (this.props.numDigits === 'month') {
+    if (this.props.renderAsMonth) {
       switch (this.state.value) {
         case 1: { value = 'JAN'; break; }
         case 2: { value = 'FEB'; break; }
@@ -60,19 +62,19 @@ const NumberSpinner = React.createClass({
         case 10: { value = 'OCT'; break; }
         case 11: { value = 'NOV'; break; }
         case 12: { value = 'DEC'; break; }
-        default:'0';
+        default: { value = '0'; break; }
       }
     } else {
-      value = this.formatNumDigits(this.state.value, this.props.numDigits);
+      value = this.formatNumDigits(this.state.value);
     }
     return <div style={{ width: this.props.width, display:'inline-block' }} >
-      <Button style={{ padding: 0 }} onClick={this.handleClickUp} block>
+      <Button id='incNumberspinner' style={{ padding: 0 }} onClick={this.handleClickUp} block>
         <Icon name='chevron-up' />
       </Button>
       <Input type='text' value={value}
         onChange={this.handleChange}
-        style={{ fontSize:25, height:42, textAlign:'center' }} />
-      <Button style={{ padding: 0 }} onClick={this.handleClickDown} block>
+        style={{ fontSize:22, height:25, padding: '5px', textAlign: 'center' }} />
+      <Button id='decNumberspinner' style={{ padding: 0 }} onClick={this.handleClickDown} block>
         <Icon name='chevron-down' />
       </Button>
     </div>;

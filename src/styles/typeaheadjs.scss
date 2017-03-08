@@ -1,0 +1,6 @@
+ .bootstrap-typeahead-menu > li {
+  @extend .dropdown-item;
+}
+.bootstrap-typeahead-menu > li.active {
+  @extend .dropdown-item.active;
+}

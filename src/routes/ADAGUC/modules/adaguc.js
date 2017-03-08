@@ -1,18 +1,59 @@
+import { MAP_STYLES } from '../constants/map_styles';
+import { BOUNDING_BOXES } from '../constants/bounding_boxes';
 // ------------------------------------
 // Constants
 // ------------------------------------
-export const CREATE_MAP = 'CREATE_MAP';
-export const SET_CUT = 'SET_CUT';
-export const SET_MAP_STYLE = 'SET_MAP_STYLE';
-export const SET_SOURCE = 'SET_SOURCE';
-export const SET_LAYER = 'SET_LAYER';
-export const SET_LAYERS = 'SET_LAYERS';
-export const SET_STYLE = 'SET_STYLE';
-export const SET_STYLES = 'SET_STYLES';
-export const SET_OVERLAY = 'SET_OVERLAY';
-import { MAP_STYLES } from '../constants/map_styles';
-import { BOUNDING_BOXES } from '../constants/bounding_boxes';
+
+const ADD_LAYER = 'ADD_LAYER';
+const ADD_OVERLAY_LAYER = 'ADD_OVERLAY_LAYER';
+const CREATE_MAP = 'CREATE_MAP';
+const DELETE_LAYER = 'DELETE_LAYER';
+const LOGIN = 'LOGIN';
+const SET_CUT = 'SET_CUT';
+const SET_MAP_STYLE = 'SET_MAP_STYLE';
+const SET_STYLE = 'SET_STYLE';
+const PREPARE_SIGMET = 'PREPARE_SIGMET';
+const COORDS = 'COORDS';
 import { ADAGUCMAPDRAW_EDITING, ADAGUCMAPDRAW_DELETE, ADAGUCMAPDRAW_UPDATEFEATURE } from '../components/AdagucMapDraw';
+
+// ------------------------------------
+// Helper functions
+// ------------------------------------
+Object.equals = function (x, y) {
+  if (x === y) return true;
+    // if both x and y are null or undefined and exactly the same
+
+  if (!(x instanceof Object) || !(y instanceof Object)) return false;
+    // if they are not strictly equal, they both need to be Objects
+
+  if (x.constructor !== y.constructor) return false;
+    // they must have the exact same prototype chain, the closest we can do is
+    // test there constructor.
+
+  for (var p in x) {
+    if (!x.hasOwnProperty(p)) continue;
+      // other properties were tested using x.constructor === y.constructor
+
+    if (!y.hasOwnProperty(p)) return false;
+      // allows to compare x[ p ] and y[ p ] when set to undefined
+
+    if (x[ p ] === y[ p ]) continue;
+      // if they have the same strict value or identity then they are equal
+
+    if (typeof (x[ p ]) !== 'object') return false;
+      // Numbers, Strings, Functions, Booleans must be strictly equal
+
+    if (!Object.equals(x[ p ], y[ p ])) return false;
+      // Objects and Arrays must be tested recursively
+  }
+
+  for (p in y) {
+    if (y.hasOwnProperty(p) && !x.hasOwnProperty(p)) return false;
+      // allows x[ p ] to be set to undefined
+  }
+  return true;
+};
+
 // ------------------------------------
 // Actions
 // ------------------------------------
@@ -23,6 +64,13 @@ function createMap (sources, overlays) {
       sources: sources,
       overlays: overlays
     }
+  };
+}
+
+function login (username) {
+  return {
+    type: LOGIN,
+    payload: username
   };
 }
 function setCut (boundingbox = BOUNDING_BOXES[0]) {
@@ -37,40 +85,44 @@ function setMapStyle (styleIdx = 0) {
     payload: styleIdx
   };
 }
-function setSource (dataIdx = 0) {
-  return {
-    type: SET_SOURCE,
-    payload: dataIdx
-  };
-}
-function setLayer (dataIdx = 0) {
-  return {
-    type: SET_LAYER,
-    payload: dataIdx
-  };
-}
-function setLayers (dataIdx = { }) {
-  return {
-    type: SET_LAYERS,
-    payload: dataIdx
-  };
-}
 function setStyle (style = 0) {
   return {
     type: SET_STYLE,
     payload: style
   };
 }
-function setStyles (styles = { }) {
+function addLayer (layer) {
   return {
-    type: SET_STYLES,
-    payload: styles
+    type: ADD_LAYER,
+    payload: layer
   };
 }
-function setOverlay (dataidx = 0) {
+
+function addOverlayLayer (layer) {
   return {
-    type: SET_OVERLAY,
-    payload: dataidx
+    type: ADD_OVERLAY_LAYER,
+    payload: layer
+  };
+}
+function prepareSIGMET (phenomenon = 'OBSC TS') {
+  return {
+    type: PREPARE_SIGMET,
+    payload: phenomenon
+  };
+}
+function deleteLayer (layerParams, layertype) {
+  return {
+    type: DELETE_LAYER,
+    payload: {
+      removeLayer: layerParams,
+      type : layertype
+    }
+  };
+}
+function coords (newcoords) {
+  return {
+    type: COORDS,
+    payload: newcoords
   };
 }
 
@@ -107,94 +159,211 @@ function adagucmapdrawToggleDelete (adagucmapdraw) {
 //   };
 // };
 
+const sigmetLayers = (p) => {
+  switch (p) {
+    case 'OBSC TS':
+    case 'EMBD TS':
+    case 'FRQ TS':
+    case 'SQL TS':
+    case 'OBSC TSGR':
+    case 'EMBD TSGR':
+    case 'FRQ TSGR':
+    case 'SQL TSGR':
+      return (
+      {
+        layers: {
+          datalayers: [
+            {
+              service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.OBS.cgi?',
+              title: 'OBS',
+              name: '10M/ww',
+              label: 'wawa Weather Code (ww)'
+            },
+            {
+              service: 'http://bvmlab-218-41.knmi.nl/cgi-bin/WWWRADAR3.cgi?',
+              title: 'LGT',
+              name: 'LGT_NL25_LAM_05M',
+              label: 'LGT_NL25_LAM_05M'
+            },
+            {
+              service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.RADAR.cgi?',
+              title: 'RADAR',
+              name: 'echotops',
+              label: 'Echotoppen'
+            },
+            {
+              service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.RADAR.cgi?',
+              title: 'RADAR',
+              name: 'precipitation',
+              label: 'Neerslag'
+            },
+            {
+              service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.SAT.cgi?',
+              title: 'SAT',
+              name: 'HRV-COMB',
+              label: 'RGB-HRV-COMB'
+            }
+          ],
+          overlays: [
+            {
+              service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.OVL.cgi?',
+              title: 'OVL',
+              name: 'FIR_DEC_2013_EU',
+              label: 'FIR areas'
+            }
+          ]
+        },
+        boundingBox: BOUNDING_BOXES[1]
+      });
+  }
+};
+
 export const actions = {
+  addLayer,
+  addOverlayLayer,
   createMap,
+  deleteLayer,
+  login,
   setCut,
   setMapStyle,
-  setSource,
-  setLayer,
-  setLayers,
-  setStyles,
   setStyle,
-  setOverlay,
+  prepareSIGMET,
+  coords,
   adagucmapdrawToggleEdit,
   adagucmapdrawToggleDelete
 };
 
+/*
+const initialState = {
+  adagucProperties: {
+    sources: {
+      data: null,
+      overlay: null
+    },
+    layers: {
+      baselayer: MAP_STYLES[1],
+      datalayers: [],
+      overlays: []
+    },
+    boundingBox: BOUNDING_BOXES[0],
+    projectionName: 'EPSG:3857',
+    mapCreated: false
+  },
+  header: {
+    title: 'hello Headers'
+  },
+  leftSideBar: {
+    title: 'hello LeftSideBar'
+  },
+  m.ainViewport: {
+    title: 'hello MainViewport'
+  },
+  rightSideBar: {
+    title: 'hello RightSideBar'
+  }
+};
+ */
 const newMapState = (state, payload) => {
-  console.log(payload);
   return Object.assign({}, state, { mapCreated: true },
-    { sources: payload.sources },
-    { overlayService: payload.overlays },
-    { overlayLayers: payload.overlays.layers.map((layer) => ({ title: layer })) });
-};
-
-const newSource = (state, payload) => {
-  return Object.assign({}, state, { source: state.sources[payload] }, { layer: null }, { style: null });
-};
-const newLayer = (state, payload) => {
-  return Object.assign({}, state, { layer: state.layers[payload].title });
-};
-const newLayers = (state, payload) => {
-  return Object.assign({}, state, { layers: payload.map((layer) => ({ title: layer })) });
-};
-const newStyles = (state, payload) => {
-  return Object.assign({}, state, { styles: payload });
+    { sources: { data: payload.sources, overlay: [payload.overlays] } });
 };
 const newMapStyle = (state, payload) => {
   return Object.assign({}, state, { mapType: MAP_STYLES[payload] });
 };
 const newCut = (state, payload) => {
-  return Object.assign({}, state, { boundingBox: BOUNDING_BOXES[payload] });
+  return Object.assign({}, state, { boundingBox: payload });
 };
 const newStyle = (state, payload) => {
   return Object.assign({}, state, { style: state.styles[payload].name });
 };
-const newOverlay = (state, payload) => {
-  console.log(state.overlay);
-  console.log(payload);
-  if (payload >= state.overlayLayers.length) {
-    return Object.assign({}, state, { overlay: null });
-  } else {
-    const overlayObject = Object.assign({}, state.overlayService, { name: state.overlayLayers[payload].title });
-    console.log(overlayObject);
-    return Object.assign({}, state, { overlay: overlayObject });
+const doAddLayer = (state, payload) => {
+  if (!state.layers) {
+    state.layers = { datalayers: [], overlays: [] };
   }
+  let oldlayers = [...state.layers.datalayers];
+  oldlayers.unshift(payload);
+  const newlayers = Object.assign({}, state.layers, { datalayers: oldlayers });
+
+  return Object.assign({}, state, { layers: newlayers });
 };
+
+const doAddOverlayLayer = (state, payload) => {
+  if (!state.layers) {
+    state.layers = { datalayers: [], overlays: [] };
+  }
+
+  let oldlayers = [...state.layers.overlays];
+  oldlayers.unshift(payload);
+
+  const newlayers = Object.assign({}, state.layers, { overlays: oldlayers });
+
+  return Object.assign({}, state, { layers: newlayers });
+};
+
+const doLogin = (state, payload) => {
+  return Object.assign({}, state, { loggedIn: true, username: payload });
+};
+
+const setSigmet = (state, payload) => {
+  const sigmet = sigmetLayers(payload);
+  const newlayers = Object.assign({}, state.layers, sigmet.layers);
+  return Object.assign({}, state, { layers: newlayers, boundingBox: sigmet.boundingBox });
+};
+
+const doDeleteLayer = (state, payload) => {
+  const { removeLayer, type } = payload;
+  let fitleredLayers;
+  switch (type) {
+    case 'data':
+      fitleredLayers = Object.assign({}, state.layers, { datalayers: state.layers.datalayers.filter((layer) => !Object.equals(layer, removeLayer)) });
+      break;
+    case 'overlay':
+      fitleredLayers = Object.assign({}, state.layers, { overlays: state.layers.overlays.filter((layer) => !Object.equals(layer, removeLayer)) });
+      break;
+    default:
+      fitleredLayers = state.layers;
+      break;
+  }
+  return Object.assign({}, state, { layers: fitleredLayers });
+};
+
+const setNewCoords = (state, payload) => {
+  return Object.assign({}, state, { coords: payload });
+};
+
 const handleAdagucMapDrawEditing = (state, payload) => {
-  console.log('handleAdagucMapDrawEditing', payload);
-  let newState = Object.assign({}, state);
-  newState.adagucmapdraw.isInEditMode = payload.isInEditMode;
-  return newState;
+  console.log('handleAdagucMapDrawEditing', state, payload);
+  let adagucmapdraw = Object.assign({}, state.adagucmapdraw, { isInEditMode : payload.isInEditMode });
+  return Object.assign({}, state, { adagucmapdraw: adagucmapdraw });
 };
 const handleAdagucMapDrawDelete = (state, payload) => {
-  console.log('handleAdagucMapDrawDelete', payload);
-  let newState = Object.assign({}, state);
-  newState.adagucmapdraw.isInDeleteMode = payload.isInDeleteMode;
-  return newState;
+  console.log('handleAdagucMapDrawDelete', state, payload);
+  let adagucmapdraw = Object.assign({}, state.adagucmapdraw, { isInDeleteMode : payload.isInDeleteMode });
+  return Object.assign({}, state, { adagucmapdraw: adagucmapdraw });
 };
 const handleAdagucMapDrawUpdateFeature = (state, payload) => {
+  console.log(state);
   console.log('handleAdagucMapDrawUpdateFeature', payload);
   /* Returning new state is not strictly necessary,
     as the geojson in AdagucMapDraw is the same and does not require rerendering of the AdagucMapDraw component
   */
-  let newState = Object.assign({}, state);
-  newState.adagucmapdraw.geojson = payload.geojson;
-  return newState;
+  let adagucmapdraw = Object.assign({}, state.adagucmapdraw, { geojson : payload.geojson });
+  return Object.assign({}, state, { adagucmapdraw: adagucmapdraw });
 };
 // ------------------------------------
 // Action Handlers
 // ------------------------------------
 const ACTION_HANDLERS = {
+  [ADD_LAYER]            : (state, action) => doAddLayer(state, action.payload),
+  [ADD_OVERLAY_LAYER]    : (state, action) => doAddOverlayLayer(state, action.payload),
   [CREATE_MAP]           : (state, action) => newMapState(state, action.payload),
-  [SET_SOURCE]           : (state, action) => newSource(state, action.payload),
-  [SET_LAYER]            : (state, action) => newLayer(state, action.payload),
-  [SET_LAYERS]           : (state, action) => newLayers(state, action.payload),
-  [SET_MAP_STYLE]        : (state, action) => newMapStyle(state, action.payload),
+  [DELETE_LAYER]         : (state, action) => doDeleteLayer(state, action.payload),
+  [LOGIN]                : (state, action) => doLogin(state, action.payload),
   [SET_CUT]              : (state, action) => newCut(state, action.payload),
+  [SET_MAP_STYLE]        : (state, action) => newMapStyle(state, action.payload),
   [SET_STYLE]            : (state, action) => newStyle(state, action.payload),
-  [SET_STYLES]           : (state, action) => newStyles(state, action.payload),
-  [SET_OVERLAY]          : (state, action) => newOverlay(state, action.payload),
+  [PREPARE_SIGMET]       : (state, action) => setSigmet(state, action.payload),
+  [COORDS]               : (state, action) => setNewCoords(state, action.payload),
   [ADAGUCMAPDRAW_EDITING] : (state, action) => handleAdagucMapDrawEditing(state, action.payload),
   [ADAGUCMAPDRAW_DELETE] : (state, action) => handleAdagucMapDrawDelete(state, action.payload),
   [ADAGUCMAPDRAW_UPDATEFEATURE] : (state, action) => handleAdagucMapDrawUpdateFeature(state, action.payload)
@@ -205,6 +374,5 @@ const ACTION_HANDLERS = {
 // ------------------------------------
 export default function adagucReducer (state = {}, action) {
   const handler = ACTION_HANDLERS[action.type];
-
   return handler ? handler(state, action) : state;
 }

@@ -1,29 +1,18 @@
-// import React from 'react';
+import React from 'react';
 // eslint-disable-next-line no-unused-vars
 import { default as DataSelector } from './DataSelector';
-// import { mount, shallow } from 'enzyme';
+import { shallow } from 'enzyme';
+import { push as Menu } from 'react-burger-menu';
 
+const emptyFunc = () => {
+  // This is intentional
+};
+const emptyObj = {
+  // This is intentional
+};
 describe('(Component) DataSelector', () => {
-  // const funcs = {
-  //   createMap: () => {},
-  //   setCut: () => {},
-  //   setMapStyle: () => {},
-  //   setSource: () => {},
-  //   setLayer: () => {},
-  //   setLayers: () => {},
-  //   setStyles: () => {},
-  //   setStyle: () => {},
-  //   setOverlay: () => {}
-  // };
-
-  // it('Renders a div', () => {
-  //   const _component = shallow(<Menu actions={funcs} adagucProperties={{}} dispatch={() => {}} />);
-  //   expect(_component.type()).to.eql('div');
-  // });
-
-  // it('Renders six buttons', () => {
-  //   const _component = mount(<Menu actions={funcs} adagucProperties={{}} dispatch={() => {}} />);
-  //   const buttons = _component.find('div.btn-group');
-  //   expect(buttons.length).to.equal(6);
-  // });
+  it('Renders a React Burger Menu', () => {
+    const _component = shallow(<DataSelector adagucProperties={emptyObj} menuItems={emptyObj} dispatch={emptyFunc} />);
+    expect(_component.type()).to.eql(Menu);
+  });
 });

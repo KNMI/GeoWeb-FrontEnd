@@ -1,11 +1,15 @@
 import React from 'react';
-import { default as Menu } from './Menu';
+import { Badge, ListGroup, ListGroupItem, Collapse,
+  CardBlock, Card, ButtonDropdown, DropdownToggle, DropdownMenu, Label,
+  DropdownItem, Button } from 'reactstrap';
 import TimeComponent from './TimeComponent.js';
 import AdagucMapDraw from './AdagucMapDraw.js';
+import LayerManager from './LayerManager.js';
 import AdagucMeasureDistance from './AdagucMeasureDistance.js';
-import { Button } from 'reactstrap';
-import MetaInfo from './MetaInfo.js';
 import axios from 'axios';
+import Icon from 'react-fa';
+import { Typeahead } from 'react-bootstrap-typeahead';
+import { BOUNDING_BOXES } from '../constants/bounding_boxes';
 export default class Adaguc extends React.Component {
   constructor () {
     super();
@@ -15,7 +19,17 @@ export default class Adaguc extends React.Component {
     this.updateAnimation = this.updateAnimation.bind(this);
     this.onChangeAnimation = this.onChangeAnimation.bind(this);
     this.isAnimating = false;
+    this.createSIGMET = this.createSIGMET.bind(this);
+    this.state = {
+      dropdownOpenView: false,
+      modal: false,
+      activeTab: '1',
+      inSigmetModus: false
+    };
+
+    this.toggleView = this.toggleView.bind(this);
   }
+
   currentLatestDate = undefined;
   currentBeginDate = undefined;
 
@@ -58,11 +72,11 @@ export default class Adaguc extends React.Component {
 
   resize () {
     // eslint-disable-next-line no-undef
-    this.webMapJS.setSize($(window).width(), $(window).height() - 300);
+    this.webMapJS.setSize($(window).width() - 400, $(window).height() - 300);
     this.webMapJS.draw();
     if (this.refs.TimeComponent) {
       // eslint-disable-next-line no-undef
-      let timeComponentWidth = $(window).width() - 20;
+      let timeComponentWidth = $(window).width() - 420;
       this.refs.TimeComponent.setState({ 'width':timeComponentWidth });
     }
   }
@@ -72,10 +86,7 @@ export default class Adaguc extends React.Component {
     if (adagucProperties.mapCreated) {
       return;
     }
-    // const rootURL = 'http://localhost/cgi-bin/';
-    // const url = 'http://localhost/adagucviewer/webmapjs';
-
-    const rootURL = 'http://birdexp07.knmi.nl/cgi-bin/geoweb';
+    const rootURL = 'http://birdexp07.knmi.nl:8080';
     const url = 'http://birdexp07.knmi.nl/geoweb/adagucviewer/webmapjs';
 
     // eslint-disable-next-line no-undef
@@ -84,50 +95,30 @@ export default class Adaguc extends React.Component {
     // eslint-disable-next-line no-undef
     $(window).resize(this.resize);
     // eslint-disable-next-line no-undef
-    this.webMapJS.setSize($(window).width(), $(window).height() - 300);
+    this.webMapJS.setSize($(window).width() - 400, $(window).height() - 300);
 
     // Set the initial projection
     this.webMapJS.setProjection(adagucProperties.projectionName);
     this.webMapJS.setBBOX(adagucProperties.boundingBox.bbox.join());
     // eslint-disable-next-line no-undef
-    this.webMapJS.setBaseLayers([new WMJSLayer(adagucProperties.mapType)]);
-    axios.get(rootURL + '/getServices.cgi').then(src => {
-      const sources = src.data;
-      axios.get(rootURL + '/getOverlayServices.cgi').then(res => {
-        const overlaySrc = res.data[0];
-        // eslint-disable-next-line no-undef
-        var service = WMJSgetServiceFromStore(overlaySrc.service);
-        service.getLayerNames(
-          (layernames) => {
-            dispatch(actions.createMap(sources, { ...overlaySrc, layers: layernames }));
-          },
-          (error) => {
-            console.log('Error!: ', error);
-          }
-        );
-        this.webMapJS.draw();
-      }).catch((error) => {
-        console.log(error);
-      });
-    }).catch((error) => {
-      console.log(error);
-    });
+    this.webMapJS.setBaseLayers([new WMJSLayer(adagucProperties.layers.baselayer)]);
+    axios.all(['getServices', 'getOverlayServices'].map((req) => axios.get(rootURL + '/' + req))).then(
+      axios.spread((services, overlays) => dispatch(actions.createMap(services.data, overlays.data[0])))
+    );
   }
+
   componentDidMount () {
-    console.log('componentDidMount', this.refs.maindiv);
     this.initAdaguc(this.refs.adaguc);
   }
   componentWillReceiveProps (nextProps) {
     // console.log('componentWillReceiveProps', nextProps);
   }
   componentWillMount () {
-    console.log('componentWillMount');
     /* Component will unmount, set flag that map is not created */
     const { adagucProperties } = this.props;
     adagucProperties.mapCreated = false;
   }
   componentWillUnmount () {
-    console.log('componentWillUnmount');
     if (this.webMapJS) {
       this.webMapJS.destroy();
     }
@@ -135,117 +126,278 @@ export default class Adaguc extends React.Component {
   componentDidUpdate (prevProps, prevState) {
     // The first time, the map needs to be created. This is when in the previous state the map creation boolean is false
     // Otherwise only change when a new dataset is selected
-    const { actions, adagucProperties, dispatch } = this.props;
-    const { setLayers, setStyles } = actions;
-    const { source, layer, style, mapType, boundingBox, overlay } = adagucProperties;
-    // console.log(prevProps);
+    const { adagucProperties } = this.props;
+    // const { setLayers, setStyles } = actions;
+    // const { source, layer, style, mapType, boundingBox, overlay } = adagucProperties;
+    const { layers, boundingBox } = adagucProperties;
       // eslint-disable-next-line no-undef
-    const baselayer = new WMJSLayer(mapType);
-    if (overlay !== prevProps.adagucProperties.overlay || mapType !== prevProps.adagucProperties.mapType) {
-      if (overlay) {
-        // eslint-disable-next-line no-undef
-        const overLayer = new WMJSLayer(overlay);
-        overLayer.keepOnTop = true;
-        const newBaselayers = [baselayer, overLayer];
-        this.webMapJS.setBaseLayers(newBaselayers);
-      } else {
-        // eslint-disable-next-line no-undef
-        this.webMapJS.setBaseLayers([baselayer]);
-      }
-      this.webMapJS.draw();
-    }
     if (boundingBox !== prevProps.adagucProperties.boundingBox) {
       this.webMapJS.setBBOX(boundingBox.bbox.join());
       this.webMapJS.draw();
-    } else {
-      if (source === null) {
-        return;
-      }
-      if (!prevProps.adagucProperties.source || (prevProps.adagucProperties.source.service !== source.service)) {
-        // eslint-disable-next-line no-undef
-        var service = WMJSgetServiceFromStore(source.service);
-        service.getLayerNames((layernames) => { dispatch(setLayers(layernames)); }, (error) => { console.log('Error!: ', error); });
-      }
-      if (layer === null) {
-        return;
-      }
-
-      if (!prevProps.adagucProperties.layer || (prevProps.adagucProperties.layer !== layer) || (prevProps.adagucProperties.style !== style)) {
-        const combined = Object.assign({}, source, { name: layer }, { style: style }, { opacity: 0.75 });
-        // eslint-disable-next-line no-undef
-        var newDataLayer = new WMJSLayer(combined);
-        // Stop the old animation
-        this.webMapJS.stopAnimating();
-        // Start the animation of th new layer
-        newDataLayer.onReady = this.animateLayer;
-        // Remove all present layers
-        this.webMapJS.removeAllLayers();
-        // And add the new layer
-        if (newDataLayer.name) {
-          this.webMapJS.addLayer(newDataLayer);
-        }
-        // eslint-disable-next-line
-        // var newDataLayer2 = new WMJSLayer({
-        //   service:'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.RADAR.cgi?',
-        //   name:'precipitation'
-        // });
-        // this.webMapJS.addLayer(newDataLayer2);
-        this.webMapJS.setActiveLayer(newDataLayer);
-        const styles = this.webMapJS.getActiveLayer().styles;
-        dispatch(setStyles(styles));
-      }
     }
-  };
+    if (layers !== prevProps.adagucProperties.layers) {
+      const { baselayer, datalayers, overlays } = layers;
+      if (baselayer !== prevProps.adagucProperties.layers.baselayer) {
+        // eslint-disable-next-line no-undef
+        this.webMapJS.setBaseLayers([new WMJSLayer(baselayer)]);
+        this.webMapJS.draw();
+      }
+      if (overlays !== prevProps.adagucProperties.layers.overlays) {
+        console.log('newoverlay!');
+        // eslint-disable-next-line no-undef
+        const overlayers = overlays.map((overlay) => { const newOverlay = new WMJSLayer(overlay); newOverlay.keepOnTop = true; return newOverlay; });
+        // eslint-disable-next-line no-undef
+        const newBaselayers = [new WMJSLayer(baselayer)].concat(overlayers);
+        this.webMapJS.setBaseLayers(newBaselayers);
+        this.webMapJS.draw();
+      }
+      this.webMapJS.stopAnimating();
+      // eslint-disable-next-line no-undef
+      const newDatalayers = datalayers.map((datalayer) => { const newDataLayer = new WMJSLayer(datalayer); newDataLayer.onReady = this.animateLayer; return newDataLayer; });
+      this.webMapJS.removeAllLayers();
+      newDatalayers.reverse().forEach((layer) => this.webMapJS.addLayer(layer));
+      const newActiveLayer = (this.webMapJS.getLayers()[0]);
+      if (newActiveLayer) {
+        this.webMapJS.setActiveLayer(this.webMapJS.getLayers()[0]);
+      }
+      this.webMapJS.draw();
+    }
+  }
+
+  createSIGMET () {
+    this.setState({
+      inSigmetModus: !this.state.inSigmetModus
+    });
+  }
 
   onChangeAnimation (value) {
     this.isAnimating = !value;
     this.updateAnimation(this.webMapJS.getActiveLayer());
   };
-
+  toggleView () {
+    this.setState({
+      dropdownOpenView: !this.state.dropdownOpenView
+    });
+  }
   render () {
     const { adagucProperties, dispatch, actions } = this.props;
     const { adagucmapdraw } = adagucProperties;
     // eslint-disable-next-line no-undef
-    let timeComponentWidth = $(window).width();
-    // console.log('timeComponentWidth=' + timeComponentWidth);
-    if (this.disabled === undefined) {
-      this.disabled = true;
-    }
-    if (this.webMapJS !== undefined) {
-      this.disabled = false;
-    }
-
-    // let timeComponentWidth = this.webMapJS ? this.webMapJS.getSize().width : $(window).width();
-    return (<div>
-      <Menu {...this.props} webmapjs={this.webMapJS} />
-      <div style={{ display:'inline-block', position:'relative' }}>
-        <div ref='adaguc' />
-      </div>
-      <div id='infocontainer' style={{ margin: 0 }}>
-        <AdagucMapDraw dispatch={this.props.dispatch}
-          isInEditMode={adagucmapdraw.isInEditMode}
-          isInDeleteMode={adagucmapdraw.isInDeleteMode}
-          webmapjs={this.webMapJS}
-        />
-        <div>
-          <Button onClick={() => dispatch(actions.adagucmapdrawToggleEdit(adagucmapdraw))}
-            disabled={this.disabled}>{adagucmapdraw.isInEditMode === false ? 'Create / Edit' : 'Exit editing mode'}
-          </Button>
-          <Button onClick={() => dispatch(actions.adagucmapdrawToggleDelete(adagucmapdraw))}
-            disabled={this.disabled}>{adagucmapdraw.isInDeleteMode === false ? 'Delete' : 'Click to delete'}
-          </Button>
+    let timeComponentWidth = $(window).width() - 400;
+    const shiftTaskItems = [
+      {
+        title: 'Basis forecast'
+      },
+      {
+        title: 'Guidance Model interpretation'
+      },
+      {
+        title: 'General Transfer'
+      },
+      {
+        title: 'Safety Shift Transfer'
+      },
+      {
+        title: 'Shift Report'
+      }
+    ];
+    const productItems = [
+      {
+        title: 'Today\'s all shift products'
+      },
+      {
+        title: 'Shared products'
+      },
+      {
+        title: 'Warnings'
+      },
+      {
+        title: 'Create SIGMET',
+        notificationCount: 4,
+        action: this.createSIGMET
+      },
+      {
+        title: 'Forecasts'
+      },
+      {
+        title: 'Analyses'
+      }
+    ];
+    const { setCut } = actions;
+    const { sources, layers, coords } = adagucProperties;
+    const phenomena = ['OBSC TS', 'EMBD TS', 'FRQ TS', 'SQL TS', 'OBSC TSGR', 'EMBD TSGR', 'FRQ TSGR',
+      'SQL TSGR', 'SEV TURB', 'SEV ICE', 'SEV ICE (FZRA)', 'SEV MTW', 'HVY DS', 'HVY SS', 'RDOACT CLD'];
+    return (
+      <div>
+        <Menu>
+          {
+            (!this.state.inSigmetModus)
+              ? <div>
+                <MenuItem title='Shift tasks' notification='3' subitems={shiftTaskItems} />
+                <MenuItem title='Products' subitems={productItems} />
+                <MenuItem title='Reports & Logs' subitems={[{ title: 'Basis forecast', notificationCount: 3 }]} />
+                <MenuItem title='Monitoring & Triggers' subitems={[{ title: 'Basis forecast', notificationCount: 3 }]} />
+              </div> : <div>
+                <ListGroup style={{ margin: '2px' }}>
+                  <ListGroupItem id='menuitem' onClick={this.toggle} className='justify-content-between' active>Create SIGMET</ListGroupItem>
+                  <Label>Select phenomenon</Label>
+                  <Typeahead onChange={(p) => dispatch(actions.prepareSIGMET(p[0]))} placeholder='Click or type' options={phenomena} />
+                  <Label>Coordinates</Label>
+                  {
+                    (coords && coords.features)
+                      ? coords.features[0].geometry.coordinates[0].map((latlon) => {
+                        return latlon[0].toString().substring(0, 7) + ' Lat, ' + latlon[1].toString().substring(0, 7) + ' Lon';
+                      }).map((str, i) => <div key={i}>{str}</div>)
+                      : ''
+                  }
+                </ListGroup>
+              </div>
+            }
+        </Menu>
+        <div id='adagucWrapper' style={{ display: 'inline-block' }}>
+          <div>
+            <div ref='adaguc' />
+            <div style={{ margin: '5px 10px 10px 5px ' }}>
+              <AdagucMapDraw dispatch={this.props.dispatch}
+                isInEditMode={adagucmapdraw.isInEditMode}
+                isInDeleteMode={adagucmapdraw.isInDeleteMode}
+                webmapjs={this.webMapJS}
+              />
+              <AdagucMeasureDistance webmapjs={this.webMapJS} />
+              <DropdownButton dispatch={dispatch} dataFunc={setCut} items={BOUNDING_BOXES} title='View' isOpen={this.state.dropdownOpenView} toggle={this.toggleView} />
+            </div>
+            <Button color='primary' onClick={() => dispatch(actions.adagucmapdrawToggleEdit(adagucmapdraw))}
+              disabled={this.disabled}>{adagucmapdraw.isInEditMode === false ? 'Create / Edit' : 'Exit editing mode'}
+            </Button>
+            <Button color='primary' onClick={() => dispatch(actions.adagucmapdrawToggleDelete(adagucmapdraw))}
+              disabled={this.disabled}>{adagucmapdraw.isInDeleteMode === false ? 'Delete' : 'Click to delete'}
+            </Button>
+          </div>
+          <div id='infocontainer' style={{ margin: 0, display: 'flex', flex: '0 0 auto' }}>
+            <TimeComponent ref='TimeComponent' webmapjs={this.webMapJS} width={timeComponentWidth} onChangeAnimation={this.onChangeAnimation} />
+            <LayerManager dispatch={dispatch} actions={actions} sources={sources} layers={layers} />
+          </div>
         </div>
-        <AdagucMeasureDistance webmapjs={this.webMapJS} />
-        <TimeComponent ref='TimeComponent' webmapjs={this.webMapJS} width={timeComponentWidth} onChangeAnimation={this.onChangeAnimation} />
-        <hr />
-        <MetaInfo webmapjs={this.webMapJS} />
       </div>
-    </div>);
+    );
   }
+};
+
+class MenuItem extends React.Component {
+  constructor () {
+    super();
+    this.toggle = this.toggle.bind(this);
+    this.state = { collapse: false };
+  }
+
+  toggle () {
+    this.setState({ collapse: !this.state.collapse });
+  }
+
+  render () {
+    const { title, notification, subitems } = this.props;
+    const numNotifications = parseInt(notification);
+    return (
+      <ListGroup style={{ margin: '2px' }}>
+        <ListGroupItem id='menuitem' onClick={this.toggle} className='justify-content-between' active>{title}
+          {numNotifications > 0 ? <Badge color='danger' pill>{numNotifications}</Badge> : null}</ListGroupItem>
+        <Collapse isOpen={this.state.collapse}>
+          <Card>
+            <CardBlock>
+              <ListGroup>
+                {subitems.map((subitemobj, i) =>
+                  <ListGroupItem id='submenuitem' className='justify-content-between' tag='button' key={i} onClick={subitemobj.action} >{subitemobj.title}
+                    <span>{subitemobj.notificationCount > 0 ? <Badge color='danger' pill>{subitemobj.notificationCount}</Badge> : null}
+                      {<Icon name='caret-right' />}</span>
+                  </ListGroupItem>)}
+              </ListGroup>
+            </CardBlock>
+          </Card>
+        </Collapse>
+      </ListGroup>
+    );
+  }
+}
+
+MenuItem.propTypes = {
+  title         : React.PropTypes.string.isRequired,
+  notification  : React.PropTypes.string,
+  subitems      : React.PropTypes.array.isRequired
 };
 
 Adaguc.propTypes = {
   adagucProperties : React.PropTypes.object.isRequired,
   actions          : React.PropTypes.object.isRequired,
   dispatch         : React.PropTypes.func.isRequired
+};
+
+class Menu extends React.Component {
+  render () {
+    return (
+      <div style={{ display: 'inline-block', height: '100%', maxHeight: '100%', minWidth: '400px', float: 'left' }}>
+        <div style={{ display: 'inline-block', height: '100%', maxHeight: '100%', width: '100%' }}>
+          {this.props.children}
+        </div>
+      </div>
+    );
+  }
+}
+Menu.propTypes = {
+  children: React.PropTypes.element.isRequired
+};
+
+class DropdownButton extends React.Component {
+  render () {
+    const { items, title, isOpen, toggle } = this.props;
+    if (items) {
+      return (
+        <ButtonDropdown style={{ float: 'right', marginRight: '333px' }} isOpen={isOpen} toggle={toggle} dropup>
+          <DropdownToggle color='primary' caret>
+            {title}
+          </DropdownToggle>
+          <DropdownMenu>
+            {items.map((item, i) => (<DropDownMenuItem {...this.props} item={item} id={i} key={i} />))}
+          </DropdownMenu>
+        </ButtonDropdown>
+      );
+    } else {
+      return (
+        <ButtonDropdown isOpen={false} toggle={(e) => { return e; }}>
+          <DropdownToggle color='primary' caret disabled>
+            {title}
+          </DropdownToggle>
+        </ButtonDropdown>);
+    }
+  }
+}
+
+DropdownButton.propTypes = {
+  items         : React.PropTypes.array,
+  title         : React.PropTypes.string.isRequired,
+  isOpen        : React.PropTypes.bool.isRequired,
+  toggle        : React.PropTypes.func.isRequired
+};
+
+class DropDownMenuItem extends React.Component {
+  constructor () {
+    super();
+    this.handleClick = this.handleClick.bind(this);
+  }
+
+  handleClick (e) {
+    const { dataFunc, dispatch, id } = this.props;
+    // Execute the appropriate data function passed as prop
+    dispatch(dataFunc(BOUNDING_BOXES[id]));
+  }
+  render () {
+    const { item } = this.props;
+    return <DropdownItem onClick={this.handleClick}>{item.title}</DropdownItem>;
+  }
+}
+
+DropDownMenuItem.propTypes = {
+  dataFunc        : React.PropTypes.func.isRequired,
+  dispatch        : React.PropTypes.func.isRequired,
+  id              : React.PropTypes.number.isRequired,
+  item            : React.PropTypes.object.isRequired
 };

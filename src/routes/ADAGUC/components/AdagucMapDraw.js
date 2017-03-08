@@ -10,7 +10,8 @@ const AdagucMapDraw = React.createClass({
     geojson   : React.PropTypes.object,
     dispatch  : React.PropTypes.func.isRequired,
     isInEditMode  : React.PropTypes.bool,
-    isInDeleteMode  : React.PropTypes.bool
+    isInDeleteMode  : React.PropTypes.bool,
+    actions: React.PropTypes.object
   },
   getDefaultProps () {
     return {
@@ -438,8 +439,7 @@ const AdagucMapDraw = React.createClass({
     }
   },
   featureHasChanged (text) {
-    const dispatch = this.props.dispatch;
-    dispatch({ type: ADAGUCMAPDRAW_UPDATEFEATURE, payload: { geojson: this.props.geojson } });
+    this.props.dispatch({ type: ADAGUCMAPDRAW_UPDATEFEATURE, payload: { geojson: this.props.geojson } });
   },
   componentDidMount () {
   },
