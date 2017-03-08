@@ -181,7 +181,7 @@ export default class Adaguc extends React.Component {
   }
   render () {
     const { adagucProperties, dispatch, actions } = this.props;
-    const { adagucmapdraw } = adagucProperties;
+    const { adagucmapdraw, adagucmeasuredistance } = adagucProperties;
     // eslint-disable-next-line no-undef
     let timeComponentWidth = $(window).width() - 400;
     const shiftTaskItems = [
@@ -246,7 +246,7 @@ export default class Adaguc extends React.Component {
                   <Typeahead onChange={(p) => dispatch(actions.prepareSIGMET(p[0]))} placeholder='Click or type' options={phenomena} />
                   <Label>Coordinates</Label>
                   {
-                    (coords && coords.features && coords.features[0].geometry.coordinates && coords.features[0].geometry.coordinates[0])
+                    (coords && coords.features && coords.features[0].geometry.coordinates)
                       ? coords.features[0].geometry.coordinates[0].map((latlon) => {
                         return latlon[0].toString().substring(0, 7) + ' Lat, ' + latlon[1].toString().substring(0, 7) + ' Lon';
                       }).map((str, i) => <div key={i}>{str}</div>)
@@ -260,12 +260,18 @@ export default class Adaguc extends React.Component {
           <div>
             <div ref='adaguc' />
             <div style={{ margin: '5px 10px 10px 5px ' }}>
-              <AdagucMapDraw dispatch={this.props.dispatch}
+              <AdagucMapDraw
+                dispatch={this.props.dispatch}
                 isInEditMode={adagucmapdraw.isInEditMode}
                 isInDeleteMode={adagucmapdraw.isInDeleteMode}
                 webmapjs={this.webMapJS}
               />
-              <AdagucMeasureDistance webmapjs={this.webMapJS} />
+              <AdagucMeasureDistance
+                dispatch={this.props.dispatch}
+                webmapjs={this.webMapJS}
+                isInEditMode={adagucmeasuredistance
+                  .isInEditMode}
+              />
               <DropdownButton dispatch={dispatch} dataFunc={setCut} items={BOUNDING_BOXES} title='View' isOpen={this.state.dropdownOpenView} toggle={this.toggleView} />
             </div>
             <Button color='primary' onClick={() => dispatch(actions.adagucmapdrawToggleEdit(adagucmapdraw))}
@@ -273,6 +279,9 @@ export default class Adaguc extends React.Component {
             </Button>
             <Button color='primary' onClick={() => dispatch(actions.adagucmapdrawToggleDelete(adagucmapdraw))}
               disabled={this.disabled}>{adagucmapdraw.isInDeleteMode === false ? 'Delete' : 'Click to delete'}
+            </Button>
+            <Button color='primary' onClick={() => dispatch(actions.adagucmeasuredistanceToggleEdit(adagucmeasuredistance))}
+              disabled={this.disabled}>{adagucmeasuredistance.isInEditMode === false ? 'Measure distance' : 'Exit measuring mode'}
             </Button>
           </div>
           <div id='infocontainer' style={{ margin: 0, display: 'flex', flex: '0 0 auto' }}>
