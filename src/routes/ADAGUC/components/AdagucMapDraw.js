@@ -404,6 +404,7 @@ const AdagucMapDraw = React.createClass({
           if (this.props.geojson.features[featureIndex].geometry.coordinates[this.snappedPolygonIndex].length < 3) {
             this.props.geojson.features[featureIndex].geometry.coordinates.pop();
           }
+          this.featureHasChanged('cancelEdit');
           webmapjs.draw();
         }
       }
@@ -417,7 +418,7 @@ const AdagucMapDraw = React.createClass({
   handleKeyDown (event) {
     switch (event.keyCode) {
       case 27: /* ESCAPE_KEY */
-        this.cancelEdit();
+        this.cancelEdit(true);
         break;
       default:
         break;
@@ -439,11 +440,23 @@ const AdagucMapDraw = React.createClass({
     }
   },
   featureHasChanged (text) {
-    this.props.dispatch({ type: ADAGUCMAPDRAW_UPDATEFEATURE, payload: { geojson: this.props.geojson } });
+    this.props.dispatch({ type: ADAGUCMAPDRAW_UPDATEFEATURE, payload: { geojson: this.props.geojson, text: text } });
   },
   componentDidMount () {
   },
   componentWillReceiveProps (nextProps) {
+     /* Handle toggle edit */
+    if (nextProps.isInEditMode === false) {
+      this.cancelEdit(true); /* Throw away last vertice */
+      if (this.editMode === 'deletefeatures') {
+        this.editMode = '';
+        if (nextProps.isInDeleteMode === true) {
+          this.props.dispatch({ type: ADAGUCMAPDRAW_DELETE, payload: { isInDeleteMode:false } });
+        }
+        return;
+      }
+    }
+
     /* Handle toggle delete */
     if (nextProps.isInDeleteMode === true) {
       this.editMode = 'deletefeatures';
@@ -455,10 +468,6 @@ const AdagucMapDraw = React.createClass({
       if (this.editMode === 'deletefeatures') {
         this.editMode = '';
       }
-    }
-    /* Handle toggle edit */
-    if (nextProps.isInEditMode === false) {
-      this.cancelEdit(true); /* Throw away last vertice */
     }
     if (this.props.webmapjs) {
       this.props.webmapjs.draw();

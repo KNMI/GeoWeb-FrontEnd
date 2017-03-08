@@ -13,7 +13,6 @@ const SET_CUT = 'SET_CUT';
 const SET_MAP_STYLE = 'SET_MAP_STYLE';
 const SET_STYLE = 'SET_STYLE';
 const PREPARE_SIGMET = 'PREPARE_SIGMET';
-const COORDS = 'COORDS';
 import { ADAGUCMAPDRAW_EDITING, ADAGUCMAPDRAW_DELETE, ADAGUCMAPDRAW_UPDATEFEATURE } from '../components/AdagucMapDraw';
 
 // ------------------------------------
@@ -119,12 +118,6 @@ function deleteLayer (layerParams, layertype) {
     }
   };
 }
-function coords (newcoords) {
-  return {
-    type: COORDS,
-    payload: newcoords
-  };
-}
 
 function adagucmapdrawToggleEdit (adagucmapdraw) {
   console.log('adagucmapdrawToggleEdit', adagucmapdraw);
@@ -228,7 +221,6 @@ export const actions = {
   setMapStyle,
   setStyle,
   prepareSIGMET,
-  coords,
   adagucmapdrawToggleEdit,
   adagucmapdrawToggleDelete
 };
@@ -327,10 +319,6 @@ const doDeleteLayer = (state, payload) => {
   return Object.assign({}, state, { layers: fitleredLayers });
 };
 
-const setNewCoords = (state, payload) => {
-  return Object.assign({}, state, { coords: payload });
-};
-
 const handleAdagucMapDrawEditing = (state, payload) => {
   console.log('handleAdagucMapDrawEditing', state, payload);
   let adagucmapdraw = Object.assign({}, state.adagucmapdraw, { isInEditMode : payload.isInEditMode });
@@ -363,7 +351,6 @@ const ACTION_HANDLERS = {
   [SET_MAP_STYLE]        : (state, action) => newMapStyle(state, action.payload),
   [SET_STYLE]            : (state, action) => newStyle(state, action.payload),
   [PREPARE_SIGMET]       : (state, action) => setSigmet(state, action.payload),
-  [COORDS]               : (state, action) => setNewCoords(state, action.payload),
   [ADAGUCMAPDRAW_EDITING] : (state, action) => handleAdagucMapDrawEditing(state, action.payload),
   [ADAGUCMAPDRAW_DELETE] : (state, action) => handleAdagucMapDrawDelete(state, action.payload),
   [ADAGUCMAPDRAW_UPDATEFEATURE] : (state, action) => handleAdagucMapDrawUpdateFeature(state, action.payload)
