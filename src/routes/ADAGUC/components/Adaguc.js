@@ -224,7 +224,9 @@ export default class Adaguc extends React.Component {
       }
     ];
     const { setCut } = actions;
-    const { sources, layers, coords } = adagucProperties;
+    const { sources, layers } = adagucProperties;
+    const { geojson } = adagucmapdraw;
+    const coords = geojson;
     const phenomena = ['OBSC TS', 'EMBD TS', 'FRQ TS', 'SQL TS', 'OBSC TSGR', 'EMBD TSGR', 'FRQ TSGR',
       'SQL TSGR', 'SEV TURB', 'SEV ICE', 'SEV ICE (FZRA)', 'SEV MTW', 'HVY DS', 'HVY SS', 'RDOACT CLD'];
     return (
@@ -244,7 +246,7 @@ export default class Adaguc extends React.Component {
                   <Typeahead onChange={(p) => dispatch(actions.prepareSIGMET(p[0]))} placeholder='Click or type' options={phenomena} />
                   <Label>Coordinates</Label>
                   {
-                    (coords && coords.features)
+                    (coords && coords.features && coords.features[0].geometry.coordinates && coords.features[0].geometry.coordinates[0])
                       ? coords.features[0].geometry.coordinates[0].map((latlon) => {
                         return latlon[0].toString().substring(0, 7) + ' Lat, ' + latlon[1].toString().substring(0, 7) + ' Lon';
                       }).map((str, i) => <div key={i}>{str}</div>)
