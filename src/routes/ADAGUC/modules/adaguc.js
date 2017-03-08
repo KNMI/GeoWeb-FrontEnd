@@ -13,7 +13,9 @@ const SET_CUT = 'SET_CUT';
 const SET_MAP_STYLE = 'SET_MAP_STYLE';
 const SET_STYLE = 'SET_STYLE';
 const PREPARE_SIGMET = 'PREPARE_SIGMET';
+
 import { ADAGUCMAPDRAW_EDITING, ADAGUCMAPDRAW_DELETE, ADAGUCMAPDRAW_UPDATEFEATURE } from '../components/AdagucMapDraw';
+import { ADAGUCMEASUREDISTANCE_EDITING, ADAGUCMEASUREDISTANCE_UPDATE } from '../components/AdagucMeasureDistance';
 
 // ------------------------------------
 // Helper functions
@@ -134,6 +136,14 @@ function adagucmapdrawToggleDelete (adagucmapdraw) {
     payload: Object.assign({}, adagucmapdraw, { isInDeleteMode: !adagucmapdraw.isInDeleteMode })
   };
 }
+
+function adagucmeasuredistanceToggleEdit (adagucmeasuredistance) {
+  console.log('adagucmeasuredistanceToggleEdit', adagucmeasuredistance);
+  return {
+    type: 'ADAGUCMEASUREDISTANCE_EDITING',
+    payload: Object.assign({}, adagucmeasuredistance, { isInEditMode: !adagucmeasuredistance.isInEditMode })
+  };
+}
 /*  This is a thunk, meaning it is a function that immediately
     returns a function for lazy evaluation. It is incredibly useful for
     creating async actions, especially when combined with redux-thunk! */
@@ -222,7 +232,8 @@ export const actions = {
   setStyle,
   prepareSIGMET,
   adagucmapdrawToggleEdit,
-  adagucmapdrawToggleDelete
+  adagucmapdrawToggleDelete,
+  adagucmeasuredistanceToggleEdit
 };
 
 /*
@@ -322,21 +333,37 @@ const doDeleteLayer = (state, payload) => {
 const handleAdagucMapDrawEditing = (state, payload) => {
   console.log('handleAdagucMapDrawEditing', state, payload);
   let adagucmapdraw = Object.assign({}, state.adagucmapdraw, { isInEditMode : payload.isInEditMode });
-  return Object.assign({}, state, { adagucmapdraw: adagucmapdraw });
+  let adagucmeasuredistance = Object.assign({}, state.adagucmeasuredistance, { isInEditMode : false });
+  return Object.assign({}, state, { adagucmeasuredistance: adagucmeasuredistance, adagucmapdraw: adagucmapdraw });
 };
 const handleAdagucMapDrawDelete = (state, payload) => {
   console.log('handleAdagucMapDrawDelete', state, payload);
   let adagucmapdraw = Object.assign({}, state.adagucmapdraw, { isInDeleteMode : payload.isInDeleteMode });
-  return Object.assign({}, state, { adagucmapdraw: adagucmapdraw });
+  let adagucmeasuredistance = Object.assign({}, state.adagucmeasuredistance, { isInEditMode : false });
+  return Object.assign({}, state, { adagucmeasuredistance: adagucmeasuredistance, adagucmapdraw: adagucmapdraw });
 };
 const handleAdagucMapDrawUpdateFeature = (state, payload) => {
-  console.log(state);
   console.log('handleAdagucMapDrawUpdateFeature', payload);
   /* Returning new state is not strictly necessary,
     as the geojson in AdagucMapDraw is the same and does not require rerendering of the AdagucMapDraw component
   */
   let adagucmapdraw = Object.assign({}, state.adagucmapdraw, { geojson : payload.geojson });
-  return Object.assign({}, state, { adagucmapdraw: adagucmapdraw });
+  let adagucmeasuredistance = Object.assign({}, state.adagucmeasuredistance, { isInEditMode : false });
+  return Object.assign({}, state, { adagucmeasuredistance: adagucmeasuredistance, adagucmapdraw: adagucmapdraw });
+};
+const handleAdagucMeasureDistanceEditing = (state, payload) => {
+  console.log('handleAdagucMeasureDistanceEditing', state, payload);
+  let adagucmapdraw = Object.assign({}, state.adagucmapdraw, { isInEditMode : false });
+  let adagucmeasuredistance = Object.assign({}, state.adagucmeasuredistance, { isInEditMode : payload.isInEditMode });
+  return Object.assign({}, state, { adagucmeasuredistance: adagucmeasuredistance, adagucmapdraw: adagucmapdraw });
+};
+const handleAdagucMeasureDistanceUpdate = (state, payload) => {
+  console.log('handleAdagucMeasureDistanceUpdate', payload);
+  let adagucmeasuredistance = Object.assign({}, state.adagucmeasuredistance,
+    { distance : payload.distance,
+      bearing : payload.bearing
+    });
+  return Object.assign({}, state, { adagucmeasuredistance: adagucmeasuredistance });
 };
 // ------------------------------------
 // Action Handlers
@@ -353,7 +380,9 @@ const ACTION_HANDLERS = {
   [PREPARE_SIGMET]       : (state, action) => setSigmet(state, action.payload),
   [ADAGUCMAPDRAW_EDITING] : (state, action) => handleAdagucMapDrawEditing(state, action.payload),
   [ADAGUCMAPDRAW_DELETE] : (state, action) => handleAdagucMapDrawDelete(state, action.payload),
-  [ADAGUCMAPDRAW_UPDATEFEATURE] : (state, action) => handleAdagucMapDrawUpdateFeature(state, action.payload)
+  [ADAGUCMAPDRAW_UPDATEFEATURE] : (state, action) => handleAdagucMapDrawUpdateFeature(state, action.payload),
+  [ADAGUCMEASUREDISTANCE_EDITING] : (state, action) => handleAdagucMeasureDistanceEditing(state, action.payload),
+  [ADAGUCMEASUREDISTANCE_UPDATE] : (state, action) => handleAdagucMeasureDistanceUpdate(state, action.payload)
 };
 
 // ------------------------------------

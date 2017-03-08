@@ -181,7 +181,7 @@ export default class Adaguc extends React.Component {
   }
   render () {
     const { adagucProperties, dispatch, actions } = this.props;
-    const { adagucmapdraw } = adagucProperties;
+    const { adagucmapdraw, adagucmeasuredistance } = adagucProperties;
     // eslint-disable-next-line no-undef
     let timeComponentWidth = $(window).width() - 400;
     const shiftTaskItems = [
@@ -260,12 +260,17 @@ export default class Adaguc extends React.Component {
           <div>
             <div ref='adaguc' />
             <div style={{ margin: '5px 10px 10px 5px ' }}>
-              <AdagucMapDraw dispatch={this.props.dispatch}
+              <AdagucMapDraw
+                dispatch={this.props.dispatch}
                 isInEditMode={adagucmapdraw.isInEditMode}
                 isInDeleteMode={adagucmapdraw.isInDeleteMode}
                 webmapjs={this.webMapJS}
               />
-              <AdagucMeasureDistance webmapjs={this.webMapJS} />
+              <AdagucMeasureDistance
+                dispatch={this.props.dispatch}
+                webmapjs={this.webMapJS}
+                isInEditMode={adagucmeasuredistance.isInEditMode}
+              />
               <DropdownButton dispatch={dispatch} dataFunc={setCut} items={BOUNDING_BOXES} title='View' isOpen={this.state.dropdownOpenView} toggle={this.toggleView} />
             </div>
             <Button color='primary' onClick={() => dispatch(actions.adagucmapdrawToggleEdit(adagucmapdraw))}
@@ -273,6 +278,9 @@ export default class Adaguc extends React.Component {
             </Button>
             <Button color='primary' onClick={() => dispatch(actions.adagucmapdrawToggleDelete(adagucmapdraw))}
               disabled={this.disabled}>{adagucmapdraw.isInDeleteMode === false ? 'Delete' : 'Click to delete'}
+            </Button>
+            <Button color='primary' onClick={() => dispatch(actions.adagucmeasuredistanceToggleEdit(adagucmeasuredistance))}
+              disabled={this.disabled}>{adagucmeasuredistance.isInEditMode === false ? 'Measure distance' : 'Exit measuring mode'}
             </Button>
           </div>
           <div id='infocontainer' style={{ margin: 0, display: 'flex', flex: '0 0 auto' }}>

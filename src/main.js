@@ -26,6 +26,9 @@ const initialState = {
       isInEditMode: false,
       isInDeleteMode: false,
       editMode: ''
+    },
+    adagucmeasuredistance: {
+      isInEditMode: false
     }
   },
   header: {
