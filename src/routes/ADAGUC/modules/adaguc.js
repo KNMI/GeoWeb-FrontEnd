@@ -74,16 +74,16 @@ function setOverlay (dataidx = 0) {
   };
 }
 
-function adagucmapdrawEditClicked (adagucmapdraw) {
-  console.log('adagucmapdrawEditClicked', adagucmapdraw);
+function adagucmapdrawToggleEdit (adagucmapdraw) {
+  console.log('adagucmapdrawToggleEdit', adagucmapdraw);
   return {
     type: 'ADAGUCMAPDRAW_EDITING',
     payload: Object.assign({}, adagucmapdraw, { isInEditMode: !adagucmapdraw.isInEditMode })
   };
 }
 
-function adagucmapdrawDeleteClicked (adagucmapdraw) {
-  console.log('adagucmapdrawDeleteClicked', adagucmapdraw);
+function adagucmapdrawToggleDelete (adagucmapdraw) {
+  console.log('adagucmapdrawToggleDelete', adagucmapdraw);
   return {
     type: 'ADAGUCMAPDRAW_DELETE',
     payload: Object.assign({}, adagucmapdraw, { isInDeleteMode: !adagucmapdraw.isInDeleteMode })
@@ -117,8 +117,8 @@ export const actions = {
   setStyles,
   setStyle,
   setOverlay,
-  adagucmapdrawEditClicked,
-  adagucmapdrawDeleteClicked
+  adagucmapdrawToggleEdit,
+  adagucmapdrawToggleDelete
 };
 
 const newMapState = (state, payload) => {
@@ -162,8 +162,25 @@ const newOverlay = (state, payload) => {
   }
 };
 const handleAdagucMapDrawEditing = (state, payload) => {
-  // console.log(payload);
-  return Object.assign({}, state, { adagucmapdraw:{ ...payload } });
+  console.log('handleAdagucMapDrawEditing', payload);
+  let newState = Object.assign({}, state);
+  newState.adagucmapdraw.isInEditMode = payload.isInEditMode;
+  return newState;
+};
+const handleAdagucMapDrawDelete = (state, payload) => {
+  console.log('handleAdagucMapDrawDelete', payload);
+  let newState = Object.assign({}, state);
+  newState.adagucmapdraw.isInDeleteMode = payload.isInDeleteMode;
+  return newState;
+};
+const handleAdagucMapDrawUpdateFeature = (state, payload) => {
+  console.log('handleAdagucMapDrawUpdateFeature', payload);
+  /* Returning new state is not strictly necessary,
+    as the geojson in AdagucMapDraw is the same and does not require rerendering of the AdagucMapDraw component
+  */
+  let newState = Object.assign({}, state);
+  newState.adagucmapdraw.geojson = payload.geojson;
+  return newState;
 };
 // ------------------------------------
 // Action Handlers
@@ -179,8 +196,8 @@ const ACTION_HANDLERS = {
   [SET_STYLES]           : (state, action) => newStyles(state, action.payload),
   [SET_OVERLAY]          : (state, action) => newOverlay(state, action.payload),
   [ADAGUCMAPDRAW_EDITING] : (state, action) => handleAdagucMapDrawEditing(state, action.payload),
-  [ADAGUCMAPDRAW_DELETE] : (state, action) => handleAdagucMapDrawEditing(state, action.payload),
-  [ADAGUCMAPDRAW_UPDATEFEATURE] : (state, action) => handleAdagucMapDrawEditing(state, action.payload)
+  [ADAGUCMAPDRAW_DELETE] : (state, action) => handleAdagucMapDrawDelete(state, action.payload),
+  [ADAGUCMAPDRAW_UPDATEFEATURE] : (state, action) => handleAdagucMapDrawUpdateFeature(state, action.payload)
 };
 
 // ------------------------------------

@@ -118,7 +118,7 @@ export default class Adaguc extends React.Component {
     this.initAdaguc(this.refs.adaguc);
   }
   componentWillReceiveProps (nextProps) {
-    console.log('componentWillReceiveProps', nextProps);
+    // console.log('componentWillReceiveProps', nextProps);
   }
   componentWillMount () {
     console.log('componentWillMount');
@@ -204,6 +204,7 @@ export default class Adaguc extends React.Component {
 
   render () {
     const { adagucProperties, dispatch, actions } = this.props;
+    const { adagucmapdraw } = adagucProperties;
     // eslint-disable-next-line no-undef
     let timeComponentWidth = $(window).width();
     // console.log('timeComponentWidth=' + timeComponentWidth);
@@ -222,16 +223,16 @@ export default class Adaguc extends React.Component {
       </div>
       <div id='infocontainer' style={{ margin: 0 }}>
         <AdagucMapDraw dispatch={this.props.dispatch}
-          editMode={adagucProperties.adagucmapdraw.editMode}
-          isInEditMode={adagucProperties.adagucmapdraw.isInEditMode}
+          isInEditMode={adagucmapdraw.isInEditMode}
+          isInDeleteMode={adagucmapdraw.isInDeleteMode}
           webmapjs={this.webMapJS}
         />
         <div>
-          <Button onClick={() => dispatch(actions.adagucmapdrawEditClicked(adagucProperties.adagucmapdraw))}
-            disabled={this.disabled}>{adagucProperties.adagucmapdraw.isInEditMode === false ? 'Create / Edit' : 'Exit editing mode'}
+          <Button onClick={() => dispatch(actions.adagucmapdrawToggleEdit(adagucmapdraw))}
+            disabled={this.disabled}>{adagucmapdraw.isInEditMode === false ? 'Create / Edit' : 'Exit editing mode'}
           </Button>
-          <Button onClick={() => dispatch(actions.adagucmapdrawDeleteClicked(adagucProperties.adagucmapdraw))}
-            disabled={this.disabled}>{adagucProperties.adagucmapdraw.isInDeleteMode === false ? 'Delete' : 'Click to delete'}
+          <Button onClick={() => dispatch(actions.adagucmapdrawToggleDelete(adagucmapdraw))}
+            disabled={this.disabled}>{adagucmapdraw.isInDeleteMode === false ? 'Delete' : 'Click to delete'}
           </Button>
         </div>
         <AdagucMeasureDistance webmapjs={this.webMapJS} />
