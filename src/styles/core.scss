@@ -1,9 +1,13 @@
+@import '~normalize.css/normalize';
 @import '~bootstrap/scss/bootstrap';
 @import 'typeaheadjs';
 @import 'collapse';
 
 $radius-size: 0.19rem;
-$shadow: 0px 3px 3px 0px rgba(0,0,0,0.3);
+$shadow: 0 0.125rem 0.125rem 0 rgba(0,0,0,0.3);
+$inverse-inactive-color: rgba(255, 255, 255, 0.7);
+$inverse-hover-color: orange;
+$inverse-active-color: white;
 $ux-interactive-color: #01699b;
 $ux-interactive-hover-color: #0292d7;
 
@@ -20,9 +24,10 @@ body {
   overflow: hidden;
 }
 
-div.root {
+#root {
   height: inherit;
   width: inherit;
+  background-color: #f2fbff;
 }
 
 .rounded {
@@ -81,23 +86,48 @@ div.root {
 
 .navbar-text {
   display: flex;
-  padding-top: 0.95rem;
+  padding-top: 0.925rem;
+}
+
+.navbar-inverse {
+  color: $inverse-inactive-color;
 }
 
 .navbar-inverse .navbar-text {
-  color: rgba(255, 255, 255, 0.7);
-}
-
-.navbar-inverse .nav {
-  color: white;
+  color: inherit;
 }
 
 .navbar .nav {
   padding-top: 0.425rem;
 }
 
-.breadcrumb-item + .breadcrumb-item::before  {
-  content: '>';
+.navbar-brand {
+  margin-left: 0.3rem;
+}
+
+.breadcrumb {
+  background: none;
+  padding-top: 0.925rem;
+  margin-bottom: 0;
+}
+
+.breadcrumb-item, a.nav-link {
+  cursor: not-allowed;
+}
+
+.breadcrumb-item::before, .breadcrumb-item + .breadcrumb-item::before  {
+  color: inherit;
+  content: '➜ ';
+}
+
+.navbar-inverse .breadcrumb-active, .navbar-inverse a.nav-link.active {
+  color: $inverse-active-color;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.breadcrumb-item:hover, .breadcrumb-active:hover, a.nav-link.active:hover {
+  color: $inverse-hover-color;
 }
 
 // #adaguccontainer {

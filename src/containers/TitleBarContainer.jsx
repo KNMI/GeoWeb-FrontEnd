@@ -18,6 +18,7 @@ class TitleBarContainer extends Component {
       currentTime: moment.utc().format(timeFormat).toString(),
       isOpen: false
     };
+    this.timer = -1;
   }
   toggle () {
     this.setState({
@@ -29,10 +30,10 @@ class TitleBarContainer extends Component {
     this.setState({ currentTime: time });
   }
   componentWillUnmount () {
-    clearInterval(this.state.currentTime);
+    clearInterval(this.timer);
   }
   componentDidMount () {
-    setInterval(this.setTime, 15000);
+    this.timer = setInterval(this.setTime, 15000);
     this.setState({ currentTime: moment.utc().format(timeFormat).toString() });
   }
 
@@ -51,28 +52,34 @@ class TitleBarContainer extends Component {
   }
   render () {
     const { isLoggedIn, userName, routes } = this.props;
-    const depth = routes.length;
+    let cumPath = '';
+    let depth = routes.length - 1;
+    console.log('routes', routes);
     return (
       <Navbar inverse>
         <Row>
           <Col xs='auto'>
-            <NavbarBrand href='/#/layouttest'>
-              <img
-                alt='Home of GeoWeb'
-                className='logo'
-                src={GeoWebLogo} />
-              <span>GeoWeb</span>
+            <NavbarBrand>
+              <Link activeClassName='breadcrumb-active' to='layouttest'>
+                <img alt='Home of GeoWeb' className='logo' src={GeoWebLogo} />
+                <span>GeoWeb</span>
+              </Link>
             </NavbarBrand>
           </Col>
-          <Col>
+          <Col xs='auto'>
             <Breadcrumb tag='nav'>
-              {routes.map((item, index) =>
-                <BreadcrumbItem key={index}>
-                  <Link onlyActiveOnIndex activeClassName='breadcrumb-active' to={item.path || ''}>
-                    {item.title}
+              {routes.filter((item, index) => {
+                return item.path && index > 0;
+              }).map((item, index) => {
+                cumPath += item.path;
+                if (index > 0) cumPath += '/';
+                if (index === depth - 1) cumPath = '';
+                return (<BreadcrumbItem key={index}>
+                  <Link activeClassName='breadcrumb-active' to={cumPath || ''}>
+                    {item.title || 'Untitled'}
                   </Link>
-                </BreadcrumbItem>
-              )}
+                </BreadcrumbItem>);
+              })}
             </Breadcrumb>
           </Col>
           <Col>
@@ -82,7 +89,7 @@ class TitleBarContainer extends Component {
           </Col>
           <Col xs='auto'>
             <Nav>
-              <NavLink><Icon name='user' id='loginIcon' onClick={this.doLogin} /> {isLoggedIn ? userName : 'Login'}</NavLink>
+              <NavLink className='active' onClick={this.doLogin}><Icon name='user' id='loginIcon' /> {isLoggedIn ? userName : 'Login'}</NavLink>
               <NavLink><Icon name='cog' /></NavLink>
             </Nav>
           </Col>

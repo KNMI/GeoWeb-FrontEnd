@@ -10,7 +10,7 @@ class BaseLayout extends Component {
         <Row className='Header'>
           {header || 'Oops'}
         </Row>
-        <Row className='align-items-stretch'>
+        <Row>
           <Col xs='auto' className='LeftSideBar'>
             {leftSideBar || 'Oops'}
           </Col>

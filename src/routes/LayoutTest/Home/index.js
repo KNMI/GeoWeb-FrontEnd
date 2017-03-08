@@ -25,7 +25,7 @@ const mapStateToRightSideBarProps = (state) => {
 
 // Sync route definition
 export default () => ({
-  title: 'LayoutTest',
+  title: 'Layout Tests',
   components : {
     header: connect(mapStateToHeaderProps)(TitleBarContainer),
     leftSideBar: connect(mapStateToLeftSideBarProps)(Inspector),
