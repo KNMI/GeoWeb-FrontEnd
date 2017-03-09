@@ -13,7 +13,7 @@ const SET_CUT = 'SET_CUT';
 const SET_MAP_STYLE = 'SET_MAP_STYLE';
 const SET_STYLE = 'SET_STYLE';
 const PREPARE_SIGMET = 'PREPARE_SIGMET';
-
+const ALTER_LAYER = 'ALTER_LAYER';
 import { ADAGUCMAPDRAW_EDITING, ADAGUCMAPDRAW_DELETE, ADAGUCMAPDRAW_UPDATEFEATURE } from '../components/AdagucMapDraw';
 import { ADAGUCMEASUREDISTANCE_EDITING, ADAGUCMEASUREDISTANCE_UPDATE } from '../components/AdagucMeasureDistance';
 
@@ -93,12 +93,23 @@ function setStyle (style = 0) {
   };
 }
 function addLayer (layer) {
+  let enabledLayer;
+  if (!layer.enabled) {
+    enabledLayer = Object.assign({}, layer, { enabled: true });
+  } else {
+    enabledLayer = Object.assign({}, layer);
+  }
   return {
     type: ADD_LAYER,
-    payload: layer
+    payload: enabledLayer
   };
 }
-
+function alterLayer (index, layerType, field, newValue) {
+  return {
+    type: ALTER_LAYER,
+    payload: { index, layerType, field, newValue }
+  };
+}
 function addOverlayLayer (layer) {
   return {
     type: ADD_OVERLAY_LAYER,
@@ -180,31 +191,36 @@ const sigmetLayers = (p) => {
               service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.OBS.cgi?',
               title: 'OBS',
               name: '10M/ww',
-              label: 'wawa Weather Code (ww)'
+              label: 'wawa Weather Code (ww)',
+              enabled: true
             },
             {
               service: 'http://bvmlab-218-41.knmi.nl/cgi-bin/WWWRADAR3.cgi?',
               title: 'LGT',
               name: 'LGT_NL25_LAM_05M',
-              label: 'LGT_NL25_LAM_05M'
+              label: 'LGT_NL25_LAM_05M',
+              enabled: true
             },
             {
               service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.RADAR.cgi?',
               title: 'RADAR',
               name: 'echotops',
-              label: 'Echotoppen'
+              label: 'Echotoppen',
+              enabled: true
             },
             {
               service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.RADAR.cgi?',
               title: 'RADAR',
               name: 'precipitation',
-              label: 'Neerslag'
+              label: 'Neerslag',
+              enabled: true
             },
             {
               service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.SAT.cgi?',
               title: 'SAT',
               name: 'HRV-COMB',
-              label: 'RGB-HRV-COMB'
+              label: 'RGB-HRV-COMB',
+              enabled: true
             }
           ],
           overlays: [
@@ -212,7 +228,8 @@ const sigmetLayers = (p) => {
               service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.OVL.cgi?',
               title: 'OVL',
               name: 'FIR_DEC_2013_EU',
-              label: 'FIR areas'
+              label: 'FIR areas',
+              enabled: true
             }
           ]
         },
@@ -231,6 +248,7 @@ export const actions = {
   setMapStyle,
   setStyle,
   prepareSIGMET,
+  alterLayer,
   adagucmapdrawToggleEdit,
   adagucmapdrawToggleDelete,
   adagucmeasuredistanceToggleEdit
@@ -296,6 +314,9 @@ const doAddOverlayLayer = (state, payload) => {
   }
 
   let oldlayers = [...state.layers.overlays];
+  if (!payload.enabled) {
+    payload.enabled = true;
+  }
   oldlayers.unshift(payload);
 
   const newlayers = Object.assign({}, state.layers, { overlays: oldlayers });
@@ -311,6 +332,27 @@ const setSigmet = (state, payload) => {
   const sigmet = sigmetLayers(payload);
   const newlayers = Object.assign({}, state.layers, sigmet.layers);
   return Object.assign({}, state, { layers: newlayers, boundingBox: sigmet.boundingBox });
+};
+
+const doAlterLayer = (state, payload) => {
+  let fitleredLayers;
+  const { index, layerType, field, newValue } = payload;
+  switch (layerType) {
+    case 'data':
+      let newDatalayers = state.layers.datalayers.map(a => Object.assign({}, a));
+      newDatalayers[index][field] = newValue;
+      fitleredLayers = Object.assign({}, state.layers, { datalayers: newDatalayers });
+      break;
+    case 'overlay':
+      let newOverlayers = state.layers.overlays.map(a => Object.assign({}, a));
+      newOverlayers[index][field] = newValue;
+      fitleredLayers = Object.assign({}, state.layers, { overlays: newOverlayers });
+      break;
+    default:
+      fitleredLayers = state.layers;
+      break;
+  }
+  return Object.assign({}, state, { layers: fitleredLayers });
 };
 
 const doDeleteLayer = (state, payload) => {
@@ -378,6 +420,7 @@ const ACTION_HANDLERS = {
   [SET_MAP_STYLE]        : (state, action) => newMapStyle(state, action.payload),
   [SET_STYLE]            : (state, action) => newStyle(state, action.payload),
   [PREPARE_SIGMET]       : (state, action) => setSigmet(state, action.payload),
+  [ALTER_LAYER]          : (state, action) => doAlterLayer(state, action.payload),
   [ADAGUCMAPDRAW_EDITING] : (state, action) => handleAdagucMapDrawEditing(state, action.payload),
   [ADAGUCMAPDRAW_DELETE] : (state, action) => handleAdagucMapDrawDelete(state, action.payload),
   [ADAGUCMAPDRAW_UPDATEFEATURE] : (state, action) => handleAdagucMapDrawUpdateFeature(state, action.payload),

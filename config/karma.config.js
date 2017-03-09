@@ -43,7 +43,6 @@ const karmaConfig = {
   },
   webpack  : {
     devtool: 'inline-source-map',
-
     resolve: Object.assign({}, webpackConfig.resolve, {
 
       // required for enzyme to work properly

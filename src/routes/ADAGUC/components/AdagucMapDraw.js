@@ -4,6 +4,7 @@ export const ADAGUCMAPDRAW_EDITING = 'ADAGUCMAPDRAW_EDITING';
 export const ADAGUCMAPDRAW_DELETE = 'ADAGUCMAPDRAW_DELETE';
 export const ADAGUCMAPDRAW_UPDATEFEATURE = 'ADAGUCMAPDRAW_UPDATEFEATURE';
 
+/* istanbul ignore next */
 const AdagucMapDraw = React.createClass({
   propTypes: {
     webmapjs  : React.PropTypes.object,
