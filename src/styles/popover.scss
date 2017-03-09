@@ -1,0 +1,7 @@
+.popover,.popover-content {
+  max-width: unset;
+  padding: 0;
+}
+.popover-content > li {
+  @extend .dropdown-item;
+}

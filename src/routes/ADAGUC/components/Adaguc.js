@@ -139,13 +139,7 @@ export default class Adaguc extends React.Component {
     }
     if (layers !== prevProps.adagucProperties.layers) {
       const { baselayer, datalayers, overlays } = layers;
-      if (baselayer !== prevProps.adagucProperties.layers.baselayer) {
-        // eslint-disable-next-line no-undef
-        this.webMapJS.setBaseLayers([new WMJSLayer(baselayer)]);
-        this.webMapJS.draw();
-      }
-      if (overlays !== prevProps.adagucProperties.layers.overlays) {
-        console.log('newoverlay!');
+      if (baselayer !== prevProps.adagucProperties.layers.baselayer || overlays !== prevProps.adagucProperties.layers.overlays) {
         // eslint-disable-next-line no-undef
         const overlayers = overlays.map((overlay) => { const newOverlay = new WMJSLayer(overlay); newOverlay.keepOnTop = true; return newOverlay; });
         // eslint-disable-next-line no-undef
@@ -153,19 +147,22 @@ export default class Adaguc extends React.Component {
         this.webMapJS.setBaseLayers(newBaselayers);
         this.webMapJS.draw();
       }
-      this.webMapJS.stopAnimating();
-      const newDatalayers = datalayers.map((datalayer) => {
-        // eslint-disable-next-line no-undef
-        const newDataLayer = new WMJSLayer(datalayer);
-        newDataLayer.setAutoUpdate(true, 5 * 60 * 1000, this.animateLayer);
-        newDataLayer.onReady = this.animateLayer;
-        return newDataLayer;
-      });
-      this.webMapJS.removeAllLayers();
-      newDatalayers.reverse().forEach((layer) => this.webMapJS.addLayer(layer));
-      const newActiveLayer = (this.webMapJS.getLayers()[0]);
-      if (newActiveLayer) {
-        this.webMapJS.setActiveLayer(this.webMapJS.getLayers()[0]);
+      if (datalayers !== prevProps.adagucProperties.datalayers) {
+        // TODO refactor this so we don't remove all layers and just update them if count and order remain the same
+        this.webMapJS.stopAnimating();
+        const newDatalayers = datalayers.map((datalayer) => {
+          // eslint-disable-next-line no-undef
+          const newDataLayer = new WMJSLayer(datalayer);
+          newDataLayer.setAutoUpdate(true, 5 * 60 * 1000, this.animateLayer);
+          newDataLayer.onReady = this.animateLayer;
+          return newDataLayer;
+        });
+        this.webMapJS.removeAllLayers();
+        newDatalayers.reverse().forEach((layer) => this.webMapJS.addLayer(layer));
+        const newActiveLayer = (this.webMapJS.getLayers()[0]);
+        if (newActiveLayer) {
+          this.webMapJS.setActiveLayer(this.webMapJS.getLayers()[0]);
+        }
       }
       this.webMapJS.draw();
     }
@@ -272,7 +269,7 @@ export default class Adaguc extends React.Component {
           </div>
           <div id='infocontainer' style={{ margin: 0, display: 'flex', flex: '0 0 auto' }}>
             <TimeComponent ref='TimeComponent' webmapjs={this.webMapJS} width={timeComponentWidth} onChangeAnimation={this.onChangeAnimation} />
-            <LayerManager dispatch={dispatch} actions={actions} layers={layers} />
+            <LayerManager webmapjs={this.webMapJS} dispatch={dispatch} actions={actions} layers={layers} />
             <LayerAdder dispatch={dispatch} actions={actions} sources={sources} />
           </div>
         </div>

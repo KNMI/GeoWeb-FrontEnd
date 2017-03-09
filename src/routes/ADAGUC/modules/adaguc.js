@@ -14,6 +14,7 @@ const SET_STYLE = 'SET_STYLE';
 const PREPARE_SIGMET = 'PREPARE_SIGMET';
 const COORDS = 'COORDS';
 const ALTER_LAYER = 'ALTER_LAYER';
+const REORDER_LAYER = 'REORDER_LAYER';
 
 // ------------------------------------
 // Helper functions
@@ -101,16 +102,22 @@ function addLayer (layer) {
     payload: enabledLayer
   };
 }
-function alterLayer (index, layerType, field, newValue) {
+function alterLayer (index, layerType, fieldsNewValuesObj) {
   return {
     type: ALTER_LAYER,
-    payload: { index, layerType, field, newValue }
+    payload: { index, layerType, fieldsNewValuesObj }
   };
 }
 function addOverlayLayer (layer) {
   return {
     type: ADD_OVERLAY_LAYER,
     payload: layer
+  };
+}
+function reorderLayer (direction, index) {
+  return {
+    type: REORDER_LAYER,
+    payload: { direction, index }
   };
 }
 function prepareSIGMET (phenomenon = 'OBSC TS') {
@@ -228,6 +235,7 @@ export const actions = {
   setStyle,
   prepareSIGMET,
   coords,
+  reorderLayer,
   alterLayer
 };
 
@@ -313,23 +321,44 @@ const setSigmet = (state, payload) => {
 
 const doAlterLayer = (state, payload) => {
   let fitleredLayers;
-  const { index, layerType, field, newValue } = payload;
+  const { index, layerType, fieldsNewValuesObj } = payload;
   switch (layerType) {
     case 'data':
       let newDatalayers = state.layers.datalayers.map(a => Object.assign({}, a));
-      newDatalayers[index][field] = newValue;
+      const oldLayer = state.layers.datalayers[index];
+      const newlayer = Object.assign({}, oldLayer, fieldsNewValuesObj);
+      newDatalayers[index] = newlayer;
       fitleredLayers = Object.assign({}, state.layers, { datalayers: newDatalayers });
       break;
     case 'overlay':
-      let newOverlayers = state.layers.overlays.map(a => Object.assign({}, a));
-      newOverlayers[index][field] = newValue;
-      fitleredLayers = Object.assign({}, state.layers, { overlays: newOverlayers });
+      let newOverlayLayers = state.layers.overlays.map(a => Object.assign({}, a));
+      const oldOverLayer = state.layers.overlays[index];
+      const newOverlayer = Object.assign({}, oldOverLayer, fieldsNewValuesObj);
+      newOverlayLayers[index] = newOverlayer;
+      fitleredLayers = Object.assign({}, state.layers, { overlays: newOverlayLayers });
+      break;
+    case 'base':
+      fitleredLayers = Object.assign({}, state.layers, { baselayer: Object.assign({}, state.layers.baselayer, fieldsNewValuesObj) });
       break;
     default:
       fitleredLayers = state.layers;
       break;
   }
   return Object.assign({}, state, { layers: fitleredLayers });
+};
+
+const doReorderLayer = (state, payload) => {
+  const direction = payload.direction === 'up' ? -1 : 1;
+  const idx = payload.index;
+  if (idx + direction < 0 || idx + direction >= state.layers.datalayers.length) {
+    return state;
+  }
+  console.log(idx, direction);
+  let newDatalayers = state.layers.datalayers.map(a => Object.assign({}, a));
+  const tmp = newDatalayers[idx];
+  newDatalayers[idx] = newDatalayers[idx + direction];
+  newDatalayers[idx + direction] = tmp;
+  return Object.assign({}, state, { layers: Object.assign({}, state.layers, { datalayers: newDatalayers }) });
 };
 
 const doDeleteLayer = (state, payload) => {
@@ -367,7 +396,8 @@ const ACTION_HANDLERS = {
   [SET_STYLE]            : (state, action) => newStyle(state, action.payload),
   [PREPARE_SIGMET]       : (state, action) => setSigmet(state, action.payload),
   [COORDS]               : (state, action) => setNewCoords(state, action.payload),
-  [ALTER_LAYER]          : (state, action) => doAlterLayer(state, action.payload)
+  [ALTER_LAYER]          : (state, action) => doAlterLayer(state, action.payload),
+  [REORDER_LAYER]        : (state, action) => doReorderLayer(state, action.payload)
 };
 
 // ------------------------------------
