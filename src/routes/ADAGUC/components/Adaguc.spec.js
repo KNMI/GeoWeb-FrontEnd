@@ -8,7 +8,14 @@ describe('(Component) Adaguc', () => {
   let _dispatchSpy;
   beforeEach(() => {
     _globalState = {
-      adagucProperties : { layers: {}, sources: {}, boundingBox: null, projectionName: 'EPSG:3857', mapCreated: false }
+      adagucProperties : { layers: {},
+        sources: {},
+        boundingBox: null,
+        projectionName: 'EPSG:3857',
+        mapCreated: false,
+        adagucmapdraw: { geojson: {}, isInEditMode: false, isInDeleteMode: false },
+        adagucmeasuredistance: { isInEditMode: false }
+      }
     };
     _dispatchSpy = sinon.spy((action) => {
       _globalState = {
@@ -20,6 +27,7 @@ describe('(Component) Adaguc', () => {
 
   it('Renders a div', () => {
     const _component = shallow(<Adaguc adagucProperties={_globalState.adagucProperties} dispatch={_dispatchSpy} actions={actions} />);
+    // console.log(_component);
     expect(_component.type()).to.eql('div');
   });
 });
