@@ -195,8 +195,7 @@ LayerManager.propTypes = {
   dispatch: React.PropTypes.func.isRequired,
   actions: React.PropTypes.object.isRequired,
   sources: React.PropTypes.object,
-  layers: React.PropTypes.object,
-  baselayers: React.PropTypes.array
+  layers: React.PropTypes.object
 };
 
 class LayerName extends React.Component {

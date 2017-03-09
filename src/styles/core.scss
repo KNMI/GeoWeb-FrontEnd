@@ -7,9 +7,9 @@ $shadow: 0.06rem 0.125rem 0.125rem rgba(0,0,0,0.3);
 $inverse-inactive-color: rgba(255, 255, 255, 0.7);
 $inverse-hover-color: #5bc0de;
 $inverse-active-color: white;
-$ux-interactive-color: #01699b;
-$ux-interactive-border-highlight-color: #017db9;
-$ux-interactive-border-shadow-color: #01547d;
+$ux-interactive-color: #017daf; /* #01699b; */
+$ux-interactive-border-highlight-color: #018cc8;
+$ux-interactive-border-shadow-color: #01729b;
 $ux-interactive-hover-color: #015f8c;
 
 html {
@@ -67,6 +67,9 @@ body {
 
   .ux-interactive:hover {
     background-color: $ux-interactive-hover-color;
+    border-color: $ux-interactive-hover-color;
+    border-right-color: #01405e;
+    border-bottom-color: #01405e;
   }
 
   .ux-interactive:active {
@@ -160,7 +163,17 @@ body {
     cursor: pointer;
     color: $inverse-hover-color;
   }
+}
 
+.panel {
+  box-sizing: border-box;
+  background: white;
+  border-bottom: 0.06rem solid $inverse-hover-color;
+  border-radius: $radius-size;
+  box-shadow: 0 0.5rem 0.5rem rgba(0,0,0,0.5);
+  margin: 0.25rem;
+  padding: 0.33rem;
+  height: 200px;
 }
 
 // #adaguccontainer {

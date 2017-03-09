@@ -10,8 +10,7 @@ const TimeComponent = React.createClass({
     onChangeAnimation: React.PropTypes.func,
     date: React.PropTypes.string,
     webmapjs: React.PropTypes.object,
-    width: React.PropTypes.number,
-    height: React.PropTypes.number
+    width: React.PropTypes.number
   },
   getInitialState () {
     return { value: this.props.date, width: this.props.width };
