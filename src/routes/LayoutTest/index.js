@@ -3,8 +3,7 @@ import CreateSigmetRoute from './CreateSigmet';
 
 // Sync route definition
 export default (store) => ({
-  path: 'layouttest',
-  title: 'Layout Test',
+  path: 'layout_test',
   indexRoute: HomeRoute(store),
   childRoutes: [
     CreateSigmetRoute()

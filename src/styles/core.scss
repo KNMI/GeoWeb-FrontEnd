@@ -1,15 +1,16 @@
-@import '~normalize.css/normalize';
 @import '~bootstrap/scss/bootstrap';
 @import 'typeaheadjs';
 @import 'collapse';
 
 $radius-size: 0.19rem;
-$shadow: 0 0.125rem 0.125rem 0 rgba(0,0,0,0.3);
+$shadow: 0.06rem 0.125rem 0.125rem rgba(0,0,0,0.3);
 $inverse-inactive-color: rgba(255, 255, 255, 0.7);
-$inverse-hover-color: orange;
+$inverse-hover-color: #5bc0de;
 $inverse-active-color: white;
 $ux-interactive-color: #01699b;
-$ux-interactive-hover-color: #0292d7;
+$ux-interactive-border-highlight-color: #017db9;
+$ux-interactive-border-shadow-color: #01547d;
+$ux-interactive-hover-color: #015f8c;
 
 html {
   box-sizing: border-box;
@@ -30,104 +31,136 @@ body {
   background-color: #f2fbff;
 }
 
-.rounded {
-  border-radius: $radius-size
-}
-.rounded-top {
-  border-radius: $radius-size $radius-size 0 0;
-}
-.rounded-right {
-  border-radius: 0 $radius-size $radius-size 0;
-}
-.rounded-bottom {
-  border-radius: 0 0 $radius-size $radius-size;
-}
-.rounded-left {
-  border-radius: 0 $radius-size $radius-size 0;
+.MainViewport > div {
+  margin-left: -15px;
+  margin-right: -15px;
 }
 
-.ux-interactive {
-  background-color: $ux-interactive-color;
-  border-color: $ux-interactive-color;
-  cursor: pointer;
-  @extend .rounded;
-}
+.test {
 
-.ux-interactive:hover {
-  background-color: $ux-interactive-hover-color;
-}
+  .rounded {
+    border-radius: $radius-size
+  }
+  .rounded-top {
+    border-radius: $radius-size $radius-size 0 0;
+  }
+  .rounded-right {
+    border-radius: 0 $radius-size $radius-size 0;
+  }
+  .rounded-bottom {
+    border-radius: 0 0 $radius-size $radius-size;
+  }
+  .rounded-left {
+    border-radius: 0 $radius-size $radius-size 0;
+  }
 
-.btn {
-  @extend .ux-interactive;
-}
+  .ux-interactive {
+    background-color: $ux-interactive-color;
+    border-color: $ux-interactive-border-highlight-color;
+    border-right-color: $ux-interactive-border-shadow-color;
+    border-bottom-color: $ux-interactive-border-shadow-color;
+    border-width: 0.125rem;
+    cursor: pointer;
+    @extend .rounded;
+    box-shadow: $shadow;
+  }
 
-.btn:hover {
-  @extend .ux-interactive:hover;
-}
+  .ux-interactive:hover {
+    background-color: $ux-interactive-hover-color;
+  }
 
-.navbar img.logo {
-  margin: 0 0.3rem 0.6rem;
-  width: 3.5rem;
-}
+  .ux-interactive:active {
+    background-color: $ux-interactive-color;
+    border-color: $ux-interactive-border-highlight-color;
+    border-left-color: $ux-interactive-border-shadow-color;
+    border-top-color: $ux-interactive-border-shadow-color;
+    box-shadow: unset;
+  }
 
-.navbar {
-  background-color: #01547d;
-  border-bottom: 1px solid #01405e;
-  box-shadow: $shadow;
-  padding: 0.1rem 0.5rem;
-  margin-bottom: 0.3em;
-  width: 100%;
-  @extend .rounded-bottom
-}
+  .btn {
+    @extend .ux-interactive;
+  }
 
-.nav-link {
-  cursor: pointer;
-}
+  .btn:hover {
+    @extend .ux-interactive:hover;
+  }
 
-.navbar-text {
-  display: flex;
-  padding-top: 0.925rem;
-}
+  .btn:active {
+    @extend .ux-interactive:active;
+  }
 
-.navbar-inverse {
-  color: $inverse-inactive-color;
-}
+  .navbar img.logo {
+    margin: 0 0.3rem 0.6rem;
+    width: 3.5rem;
+  }
 
-.navbar-inverse .navbar-text {
-  color: inherit;
-}
+  .navbar {
+    background-color: #01547d;
+    border-bottom: 1px solid #01405e;
+    box-shadow: $shadow;
+    padding: 0.1rem 0.5rem;
+    margin-bottom: 0.3em;
+    width: 100%;
+  }
 
-.navbar .nav {
-  padding-top: 0.425rem;
-}
+  .nav-link {
+    cursor: pointer;
+  }
 
-.navbar-brand {
-  margin-left: 0.3rem;
-}
+  .navbar-text {
+    display: flex;
+    padding-top: 0.925rem;
+  }
 
-.breadcrumb {
-  background: none;
-  padding-top: 0.925rem;
-  margin-bottom: 0;
-}
+  .navbar-inverse {
+    color: $inverse-inactive-color;
+  }
 
-.breadcrumb-item, a.nav-link {
-  cursor: not-allowed;
-}
+  .navbar-inverse .navbar-text {
+    color: inherit;
+  }
 
-.breadcrumb-item::before, .breadcrumb-item + .breadcrumb-item::before  {
-  color: inherit;
-  content: '➜ ';
-}
+  .navbar .nav {
+    padding-top: 0.425rem;
+  }
 
-.navbar-inverse .breadcrumb-active, .navbar-inverse a.nav-link.active {
-  color: $inverse-active-color;
-  cursor: pointer;
-  text-decoration: none;
-}
+  .navbar-brand {
+    margin-left: 0.3rem;
+  }
 
-.breadcrumb-item:hover, .breadcrumb-active:hover, a.nav-link.active:hover {
-  color: $inverse-hover-color;
+  .breadcrumb {
+    background: none;
+    padding-top: 0.925rem;
+    margin-bottom: 0;
+  }
+
+  .breadcrumb-item a, .breadcrumb-item a:hover {
+    color: inherit;
+    text-decoration: inherit;
+    cursor: inherit;
+  }
+
+  .breadcrumb-item, a.nav-link {
+    cursor: not-allowed;
+  }
+
+  .breadcrumb-item::before, .breadcrumb-item + .breadcrumb-item::before  {
+    color: inherit;
+    content: '➜ ';
+    cursor: auto;
+  }
+
+  .navbar-inverse .breadcrumb-active, .navbar-inverse a.nav-link.active {
+    color: $inverse-active-color;
+    cursor: pointer;
+    text-decoration: none;
+  }
+
+  a.breadcrumb-active:hover, a.nav-link.active:hover {
+    cursor: pointer;
+    color: $inverse-hover-color;
+  }
+
 }
 
 // #adaguccontainer {

@@ -24,8 +24,8 @@ const mapStateToRightSideBarProps = (state) => {
 
 // Sync route definition
 export default () => ({
-  path: 'createsigmet',
-  title: 'CreateSigmet',
+  path: 'create_sigmet',
+  title: 'Create SIGMET',
   components : {
     header: connect(mapStateToHeaderProps)(TitleBarContainer),
     leftSideBar: connect(mapStateToLeftSideBarProps)(Inspector),

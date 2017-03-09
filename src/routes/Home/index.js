@@ -18,7 +18,7 @@ const mapDispatchToMainViewportProps = function (dispatch) {
 
 export default (store) => {
   return {
-    title: 'Start here',
+    title: 'Geoweb',
     components: {
       header: connect(mapStateToMainViewportProps, mapDispatchToMainViewportProps)(TitleBar),
       leftSideBar: 'div',

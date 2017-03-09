@@ -16,7 +16,7 @@ const mapStateToLeftSideBarProps = (state) => {
 };
 
 const mapStateToMainViewportProps = (state) => {
-  return { title: 'layouttest' };
+  return { title: 'mainViewport' };
 };
 
 const mapStateToRightSideBarProps = (state) => {
@@ -25,11 +25,11 @@ const mapStateToRightSideBarProps = (state) => {
 
 // Sync route definition
 export default () => ({
-  title: 'Layout Tests',
+  title: 'Layout Test',
   components : {
     header: connect(mapStateToHeaderProps)(TitleBarContainer),
-    leftSideBar: connect(mapStateToLeftSideBarProps)(Inspector),
-    mainViewport: connect(mapStateToMainViewportProps)(TasksContainer),
+    leftSideBar: connect(mapStateToLeftSideBarProps)(TasksContainer),
+    mainViewport: connect(mapStateToMainViewportProps)(Inspector),
     rightSideBar: connect(mapStateToRightSideBarProps)(Inspector)
   }
 });

@@ -10,7 +10,6 @@ import FileNotFoundRoute from './FileNotFound';
 
 export const createRoutes = (store) => ({
   path: '/',
-  title: 'Home',
   component: BaseLayout,
   indexRoute: HomeRoute(store),
   childRoutes: [

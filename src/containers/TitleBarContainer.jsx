@@ -20,6 +20,20 @@ class TitleBarContainer extends Component {
     };
     this.timer = -1;
   }
+  getTitleForRoute (routeItem) {
+    return (routeItem.indexRoute ? routeItem.indexRoute.title : routeItem.title) || 'Untitled';
+  }
+  isRouteEnd (routes, index) {
+    const lastIndex = routes.length - 1;
+    if (index === lastIndex) {
+      return true;
+    }
+    if (index === lastIndex - 1 && routes[index].indexRoute &&
+        routes[index].indexRoute === routes[index + 1]) {
+      return true;
+    }
+    return false;
+  }
   toggle () {
     this.setState({
       isOpen: !this.state.isOpen
@@ -52,33 +66,31 @@ class TitleBarContainer extends Component {
   }
   render () {
     const { isLoggedIn, userName, routes } = this.props;
-    let cumPath = '';
-    let depth = routes.length - 1;
-    console.log('routes', routes);
+    let cumulativePath = '';
     return (
-      <Navbar inverse>
+      <Navbar inverse className='test'>
         <Row>
           <Col xs='auto'>
-            <NavbarBrand>
-              <Link activeClassName='breadcrumb-active' to='layouttest'>
+            <NavbarBrand tag='div'>
+              <Link activeClassName='breadcrumb-active' to={routes[0].path}>
                 <img alt='Home of GeoWeb' className='logo' src={GeoWebLogo} />
-                <span>GeoWeb</span>
+                <span>{this.getTitleForRoute(routes[0])}</span>
               </Link>
             </NavbarBrand>
           </Col>
           <Col xs='auto'>
             <Breadcrumb tag='nav'>
-              {routes.filter((item, index) => {
-                return item.path && index > 0;
-              }).map((item, index) => {
-                cumPath += item.path;
-                if (index > 0) cumPath += '/';
-                if (index === depth - 1) cumPath = '';
-                return (<BreadcrumbItem key={index}>
-                  <Link activeClassName='breadcrumb-active' to={cumPath || ''}>
-                    {item.title || 'Untitled'}
-                  </Link>
-                </BreadcrumbItem>);
+              {routes.map((item, index) => {
+                // Skip first one (already in NavbarBrand) and IndexRoutes
+                if (index > 0 && item.path) {
+                  cumulativePath += '/' + item.path;
+                  return (<BreadcrumbItem key={index}>
+                    <Link activeClassName='breadcrumb-active' to={this.isRouteEnd(routes, index) ? '' : cumulativePath || ''}>
+                      {this.getTitleForRoute(item)}
+                    </Link>
+                  </BreadcrumbItem>);
+                }
+                return '';
               })}
             </Breadcrumb>
           </Col>
