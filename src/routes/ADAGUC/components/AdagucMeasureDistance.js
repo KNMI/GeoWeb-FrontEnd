@@ -1,33 +1,21 @@
 import React from 'react';
-import { Button, Input } from 'reactstrap';
+
+export const ADAGUCMEASUREDISTANCE_EDITING = 'ADAGUCMEASUREDISTANCE_EDITING';
+export const ADAGUCMEASUREDISTANCE_UPDATE = 'ADAGUCMEASUREDISTANCE_UPDATE';
 
 const AdagucMeasureDistance = React.createClass({
   propTypes: {
     webmapjs: React.PropTypes.object,
-    geojson: React.PropTypes.object
+    isInEditMode: React.PropTypes.bool,
+    dispatch  : React.PropTypes.func.isRequired
   },
-  getDefaultProps () {
-  },
-  getInitialState: function () {
-    return { editMode: false, distance: 0, bearing: 0 };
-  },
-  handleStartEdit () {
-    /* istanbul ignore next */
-    if (this.state.editMode === false) {
-      this.setState({ editMode:true });
-      console.log('handleStartEdit true');
-    } else {
-      this.setState({ editMode:false });
-    }
-    /* istanbul ignore next */
-    if (this.props.webmapjs) {
-      this.props.webmapjs.draw();
-    }
+
+  getDefaultProps: function () {
+    return { isInEditMode: false, distance: 0, bearing: 0 };
   },
   drawVertice (ctx, coord, selected, middle) {
     let w = 7;
-    /* istanbul ignore next */
-    if (this.state.editMode === false) {
+    if (this.props.isInEditMode === false) {
       /* Standard style, no editing, just display location of vertices */
       ctx.strokeStyle = '#000'; ctx.fillStyle = '#000'; ctx.lineWidth = 1.0; w = 5;
     } else {
@@ -73,7 +61,7 @@ const AdagucMeasureDistance = React.createClass({
      You are free to draw anything you like on the canvas.
     */
     /* istanbul ignore next */
-    if (this.state.editMode === true) {
+    if (this.props.isInEditMode === true) {
       /* Draw Line */
       /* istanbul ignore next */
       if (this.showLine && this.lineStartLonLat !== undefined && this.lineStopLonLat !== undefined) {
@@ -93,8 +81,8 @@ const AdagucMeasureDistance = React.createClass({
         ctx.strokeStyle = '#000';
         ctx.fillStyle = '#000';
 
-        let distanceText = Math.round(this.state.distance / 100) / 10 + ' km';
-        let bearingText = Math.round(this.state.bearing * 10) / 10 + ' °';
+        let distanceText = Math.round(this.distance / 100) / 10 + ' km';
+        let bearingText = Math.round(this.bearing * 10) / 10 + ' °';
 
         ctx.font = 'bold 16px Arial';
         this.drawTextBG(ctx, distanceText, mx, my, 16);
@@ -114,8 +102,7 @@ const AdagucMeasureDistance = React.createClass({
     /* istanbul ignore next */
     this.mouseX = mouseX; this.mouseY = mouseY;
     /* istanbul ignore next */
-    if (this.state.editMode === false) return;
-    /* istanbul ignore next */
+    if (this.props.isInEditMode === false) return;
     const { webmapjs } = this.props;
     /* istanbul ignore next */
     this.mouseGeoCoord = webmapjs.getLatLongFromPixelCoord({ x:mouseX, y:mouseY });
@@ -124,14 +111,18 @@ const AdagucMeasureDistance = React.createClass({
     if (this.isMeasuring === true) {
       this.lineStopLonLat = webmapjs.getLatLongFromPixelCoord({ x:mouseX, y:mouseY });
       let h = haverSine(this.lineStartLonLat, this.lineStopLonLat);
-      this.setState({ distance:h.distance, bearing: h.bearing });
-      this.showLine = true;
+      if (h) {
+        this.bearing = h.bearing;
+        this.distance = h.distance;
+        this.props.dispatch({ type: ADAGUCMEASUREDISTANCE_UPDATE, payload: { distance:h.distance, bearing: h.bearing } });
+        this.showLine = true;
+      }
     }
     webmapjs.draw();
     return false;
   },
   adagucMouseDown (event) {
-    if (this.state.editMode === false) return;
+    if (this.props.isInEditMode === false) return;
     let { mouseX, mouseY } = event;
     const { webmapjs } = this.props;
     /* istanbul ignore next */
@@ -148,7 +139,7 @@ const AdagucMeasureDistance = React.createClass({
                      True means that it is still possible to pan and drag the map while editing */
   },
   adagucMouseUp (event) {
-    if (this.state.editMode === false) return;
+    if (this.props.isInEditMode === false) return;
     const { webmapjs } = this.props;
     webmapjs.draw();
     return false;
@@ -157,21 +148,26 @@ const AdagucMeasureDistance = React.createClass({
     /* istanbul ignore next */
     switch (event.keyCode) {
       case 27: /* ESCAPE_KEY */
-        this.setState({ editMode:false });
-        this.isMeasuring = false;
-        this.showLine = false;
-        this.props.webmapjs.draw();
+        if (this.props.isInEditMode === true) {
+          this.props.dispatch({ type: ADAGUCMEASUREDISTANCE_EDITING, payload: { isInEditMode:false } });
+          this.isMeasuring = false;
+          this.showLine = false;
+          this.props.webmapjs.draw();
+        }
         break;
       default:
         break;
     }
   },
+  componentWillReceiveProps (nextProps) {
+    if (this.props.webmapjs !== undefined) {
+      this.props.webmapjs.draw();
+    }
+  },
   componentWillMount () {
-    console.log('componentWillMount');
     document.addEventListener('keydown', this.handleKeyDown);
   },
   componentWillUnMount () {
-    console.log('componentWillUnMount');
     document.removeEventListener('keydown', this.handleKeyDown);
     const { webmapjs } = this.props;
     /* istanbul ignore next */
@@ -183,11 +179,7 @@ const AdagucMeasureDistance = React.createClass({
       webmapjs.removeListener('beforemouseup', this.adagucMouseUp);
     }
   },
-  featureHasChanged (text) {
-    console.log('Feature has changed: ' + text, this.props.geojson);
-  },
   componentDidMount () {
-    console.log('componentDidMount');
   },
   render () {
     const { webmapjs } = this.props;
@@ -203,17 +195,10 @@ const AdagucMeasureDistance = React.createClass({
         webmapjs.addListener('beforemousedown', this.adagucMouseDown, true);
         webmapjs.addListener('beforemouseup', this.adagucMouseUp, true);
         this.disabled = false;
-        console.log('webmapjs listeners added');
       }
       webmapjs.draw();
     }
-    return (
-      <div style={{ display:'inline-block', whiteSpace: 'nowrap' }} >
-        <Button color='primary' onClick={this.handleStartEdit} disabled={this.disabled}>{this.state.editMode === false ? 'Measure distance' : 'Exit measuring mode'}</Button>
-        <Input style={{ marginLeft: '5px', display:'inline-block', width: '120px' }} type='text' value={Math.round(this.state.distance / 100) / 10 + ' km'} onChange={() => {}} />
-        <Input style={{ display:'inline-block', width: '120px' }} type='text' value={Math.round(this.state.bearing * 10) / 10 + ' °'} onChange={() => {}} />
-      </div>
-    );
+    return <div />;
   }
 });
 
