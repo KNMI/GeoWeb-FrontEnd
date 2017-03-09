@@ -3,13 +3,15 @@ import { Badge, ListGroup, ListGroupItem, Collapse,
   CardBlock, Card, ButtonDropdown, DropdownToggle, DropdownMenu, Label,
   DropdownItem, Button } from 'reactstrap';
 import TimeComponent from './TimeComponent.js';
-import AdagucMapDraw from './AdagucMapDraw.js';
+import { default as AdagucMapDraw } from './AdagucMapDraw.js';
 import LayerManager from './LayerManager.js';
 import AdagucMeasureDistance from './AdagucMeasureDistance.js';
 import axios from 'axios';
 import Icon from 'react-fa';
 import { Typeahead } from 'react-bootstrap-typeahead';
 import { BOUNDING_BOXES } from '../constants/bounding_boxes';
+import $ from 'jquery';
+
 export default class Adaguc extends React.Component {
   constructor () {
     super();
@@ -33,6 +35,7 @@ export default class Adaguc extends React.Component {
   currentLatestDate = undefined;
   currentBeginDate = undefined;
 
+  /* istanbul ignore next */
   updateAnimation (layer) {
     if (!layer) {
       console.log('Layer not found');
@@ -64,12 +67,13 @@ export default class Adaguc extends React.Component {
     setTimeout(function () { layer.parseLayer(this.updateAnimation, true); }, 10000);
   }
 
+  /* istanbul ignore next */
   animateLayer (layer) {
     this.webMapJS.setAnimationDelay(200);
     this.updateAnimation(layer);
     layer.onReady = undefined;
   }
-
+  /* istanbul ignore next */
   resize () {
     // eslint-disable-next-line no-undef
     this.webMapJS.setSize($(window).width() - 400, $(window).height() - 300);
@@ -81,6 +85,7 @@ export default class Adaguc extends React.Component {
     }
   }
 
+  /* istanbul ignore next */
   initAdaguc (adagucMapRef) {
     const { adagucProperties, actions, dispatch } = this.props;
     if (adagucProperties.mapCreated) {
@@ -123,6 +128,8 @@ export default class Adaguc extends React.Component {
       this.webMapJS.destroy();
     }
   }
+
+  /* istanbul ignore next */
   componentDidUpdate (prevProps, prevState) {
     // The first time, the map needs to be created. This is when in the previous state the map creation boolean is false
     // Otherwise only change when a new dataset is selected
@@ -170,6 +177,7 @@ export default class Adaguc extends React.Component {
     });
   }
 
+  /* istanbul ignore next */
   onChangeAnimation (value) {
     this.isAnimating = !value;
     this.updateAnimation(this.webMapJS.getActiveLayer());
@@ -295,16 +303,19 @@ export default class Adaguc extends React.Component {
 };
 
 class MenuItem extends React.Component {
+  /* istanbul ignore next */
   constructor () {
     super();
     this.toggle = this.toggle.bind(this);
     this.state = { collapse: false };
   }
 
+  /* istanbul ignore next */
   toggle () {
     this.setState({ collapse: !this.state.collapse });
   }
 
+  /* istanbul ignore next */
   render () {
     const { title, notification, subitems } = this.props;
     const numNotifications = parseInt(notification);
@@ -343,6 +354,7 @@ Adaguc.propTypes = {
 };
 
 class Menu extends React.Component {
+  /* istanbul ignore next */
   render () {
     return (
       <div style={{ display: 'inline-block', height: '100%', maxHeight: '100%', minWidth: '400px', float: 'left' }}>
@@ -358,6 +370,7 @@ Menu.propTypes = {
 };
 
 class DropdownButton extends React.Component {
+  /* istanbul ignore next */
   render () {
     const { items, title, isOpen, toggle } = this.props;
     if (items) {
@@ -390,16 +403,19 @@ DropdownButton.propTypes = {
 };
 
 class DropDownMenuItem extends React.Component {
+  /* istanbul ignore next */
   constructor () {
     super();
     this.handleClick = this.handleClick.bind(this);
   }
 
+  /* istanbul ignore next */
   handleClick (e) {
     const { dataFunc, dispatch, id } = this.props;
     // Execute the appropriate data function passed as prop
     dispatch(dataFunc(BOUNDING_BOXES[id]));
   }
+  /* istanbul ignore next */
   render () {
     const { item } = this.props;
     return <DropdownItem onClick={this.handleClick}>{item.title}</DropdownItem>;
