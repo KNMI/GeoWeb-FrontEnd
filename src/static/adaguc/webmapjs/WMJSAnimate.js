@@ -161,9 +161,6 @@ var WMJSAnimate = function (_map) {
             }
           }
         }
-
-
-      // http://bhw485.knmi.nl:8080/adagucviewer/index.dev.html?srs=EPSG%3A4326&bbox=49.41506772034526,-27.289267215532217,171.950217903172,27.587258866345476&service=http%3A%2F%2Fbirdexp07.knmi.nl%2Fcgi-bin%2Fplieger%2Fhimawari.cgi%3F&layer=tiled%24image%2Fpng%24true%24auto%2Frgba%241%240&selected=0&dims=time$2016-11-14T07:50:00Z&baselayers=naturalearth2$ne_10m_admin_0_countries_simplified
       }
     }
 

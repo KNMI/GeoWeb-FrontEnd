@@ -3,6 +3,7 @@ import Icon from 'react-fa';
 import GeoWebLogo from './assets/icon.svg';
 import axios from 'axios';
 import { Navbar, NavbarToggler, NavbarBrand, Collapse, Nav, NavItem, NavLink } from 'reactstrap';
+import { BACKEND_SERVER_URL } from '../routes/ADAGUC/constants/backend';
 var moment = require('moment');
 class TitleBar extends Component {
   constructor (props) {
@@ -33,19 +34,17 @@ class TitleBar extends Component {
   }
 
   doLogin () {
-    const rootURL = 'http://birdexp07.knmi.nl:8080';
-    // const rootURL = 'http://bhw451.knmi.nl:8080';
     const { dispatch, actions } = this.props;
     axios({
       method: 'get',
-      url: rootURL + '/login?username=met1&password=met1',
+      url: BACKEND_SERVER_URL + '/login?username=met1&password=met1',
       withCredentials: true,
       responseType: 'json'
     }).then(src => {
       const data = src.data;
       if (data.username !== null) {
         dispatch(actions.login(data.username));
-        axios.all(['getServices', 'getOverlayServices'].map((req) => axios.get(rootURL + '/' + req, { withCredentials: true }))).then(
+        axios.all(['getServices', 'getOverlayServices'].map((req) => axios.get(BACKEND_SERVER_URL + '/' + req, { withCredentials: true }))).then(
           axios.spread((services, overlays) => dispatch(actions.createMap(services.data, overlays.data[0])))
         );
       }

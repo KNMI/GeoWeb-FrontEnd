@@ -11,6 +11,7 @@ import Icon from 'react-fa';
 import { Typeahead } from 'react-bootstrap-typeahead';
 import { BOUNDING_BOXES } from '../constants/bounding_boxes';
 import $ from 'jquery';
+import { BACKEND_SERVER_URL, BACKEND_SERVER_XML2JSON } from '../constants/backend';
 
 export default class Adaguc extends React.Component {
   constructor () {
@@ -91,12 +92,9 @@ export default class Adaguc extends React.Component {
     if (adagucProperties.mapCreated) {
       return;
     }
-    const rootURL = 'http://birdexp07.knmi.nl:8080';
-    const url = 'http://birdexp07.knmi.nl/geoweb/adagucviewer/webmapjs';
 
     // eslint-disable-next-line no-undef
-    this.webMapJS = new WMJSMap(adagucMapRef);
-    this.webMapJS.setBaseURL(url);
+    this.webMapJS = new WMJSMap(adagucMapRef, BACKEND_SERVER_XML2JSON);
     // eslint-disable-next-line no-undef
     $(window).resize(this.resize);
     // eslint-disable-next-line no-undef
@@ -107,7 +105,7 @@ export default class Adaguc extends React.Component {
     this.webMapJS.setBBOX(adagucProperties.boundingBox.bbox.join());
     // eslint-disable-next-line no-undef
     this.webMapJS.setBaseLayers([new WMJSLayer(adagucProperties.layers.baselayer)]);
-    axios.all(['getServices', 'getOverlayServices'].map((req) => axios.get(rootURL + '/' + req))).then(
+    axios.all(['getServices', 'getOverlayServices'].map((req) => axios.get(BACKEND_SERVER_URL + '/' + req))).then(
       axios.spread((services, overlays) => dispatch(actions.createMap(services.data, overlays.data[0])))
     );
   }
