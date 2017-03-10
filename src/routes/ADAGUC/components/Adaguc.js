@@ -11,6 +11,8 @@ import Icon from 'react-fa';
 import { Typeahead } from 'react-bootstrap-typeahead';
 import { BOUNDING_BOXES } from '../constants/bounding_boxes';
 import $ from 'jquery';
+import LayerAdder from './LayerAdder';
+var moment = require('moment');
 import { BACKEND_SERVER_URL, BACKEND_SERVER_XML2JSON } from '../constants/backend';
 
 export default class Adaguc extends React.Component {
@@ -72,6 +74,14 @@ export default class Adaguc extends React.Component {
   animateLayer (layer) {
     this.webMapJS.setAnimationDelay(200);
     this.updateAnimation(layer);
+    const timeDim = layer.getDimension('time');
+    const timeOne = moment(timeDim.get(0));
+    const timeTwo = moment(timeDim.get(1));
+    // const deltaMS = (moment.duration(timeTwo.diff(timeOne)).subtract(moment.duration('00:00:30'))).asMilliseconds();
+    // Difference between two timesteps as refresh difference
+    const deltaMS = moment.duration(timeTwo.diff(timeOne)).asMilliseconds() / 2.0;
+    layer.setAutoUpdate(true, deltaMS, this.updateAnimation);
+
     layer.onReady = undefined;
   }
   /* istanbul ignore next */
@@ -126,14 +136,22 @@ export default class Adaguc extends React.Component {
       this.webMapJS.destroy();
     }
   }
-
+  orderChanged (currLayers, prevLayers) {
+    if (currLayers.length !== prevLayers.length) {
+      return true;
+    }
+    for (var i = currLayers.length - 1; i >= 0; i--) {
+      if (currLayers[i].service !== prevLayers[i].service || currLayers[i].name !== prevLayers[i].name) {
+        return true;
+      }
+    }
+    return false;
+  }
   /* istanbul ignore next */
   componentDidUpdate (prevProps, prevState) {
     // The first time, the map needs to be created. This is when in the previous state the map creation boolean is false
     // Otherwise only change when a new dataset is selected
     const { adagucProperties } = this.props;
-    // const { setLayers, setStyles } = actions;
-    // const { source, layer, style, mapType, boundingBox, overlay } = adagucProperties;
     const { layers, boundingBox } = adagucProperties;
       // eslint-disable-next-line no-undef
     if (boundingBox !== prevProps.adagucProperties.boundingBox) {
@@ -142,13 +160,7 @@ export default class Adaguc extends React.Component {
     }
     if (layers !== prevProps.adagucProperties.layers) {
       const { baselayer, datalayers, overlays } = layers;
-      if (baselayer !== prevProps.adagucProperties.layers.baselayer) {
-        // eslint-disable-next-line no-undef
-        this.webMapJS.setBaseLayers([new WMJSLayer(baselayer)]);
-        this.webMapJS.draw();
-      }
-      if (overlays !== prevProps.adagucProperties.layers.overlays) {
-        console.log('newoverlay!');
+      if (baselayer !== prevProps.adagucProperties.layers.baselayer || overlays !== prevProps.adagucProperties.layers.overlays) {
         // eslint-disable-next-line no-undef
         const overlayers = overlays.map((overlay) => { const newOverlay = new WMJSLayer(overlay); newOverlay.keepOnTop = true; return newOverlay; });
         // eslint-disable-next-line no-undef
@@ -156,14 +168,36 @@ export default class Adaguc extends React.Component {
         this.webMapJS.setBaseLayers(newBaselayers);
         this.webMapJS.draw();
       }
-      this.webMapJS.stopAnimating();
-      // eslint-disable-next-line no-undef
-      const newDatalayers = datalayers.map((datalayer) => { const newDataLayer = new WMJSLayer(datalayer); newDataLayer.onReady = this.animateLayer; return newDataLayer; });
-      this.webMapJS.removeAllLayers();
-      newDatalayers.reverse().forEach((layer) => this.webMapJS.addLayer(layer));
-      const newActiveLayer = (this.webMapJS.getLayers()[0]);
-      if (newActiveLayer) {
-        this.webMapJS.setActiveLayer(this.webMapJS.getLayers()[0]);
+      if (datalayers !== prevProps.adagucProperties.layers.datalayers) {
+        // TODO refactor this so we don't remove all layers and just update them if count and order remain the same
+        if (datalayers.length !== prevProps.adagucProperties.layers.datalayers.length || this.orderChanged(datalayers, prevProps.adagucProperties.layers.datalayers)) {
+          this.webMapJS.stopAnimating();
+          const newDatalayers = datalayers.map((datalayer) => {
+            // eslint-disable-next-line no-undef
+            const newDataLayer = new WMJSLayer(datalayer);
+            newDataLayer.onReady = this.animateLayer;
+            return newDataLayer;
+          });
+          this.webMapJS.removeAllLayers();
+          newDatalayers.reverse().forEach((layer) => this.webMapJS.addLayer(layer));
+          const newActiveLayer = (this.webMapJS.getLayers()[0]);
+          if (newActiveLayer) {
+            this.webMapJS.setActiveLayer(this.webMapJS.getLayers()[0]);
+          }
+        } else {
+          let layers = this.webMapJS.getLayers();
+          for (var i = layers.length - 1; i >= 0; i--) {
+            layers[i].enabled = datalayers[i].enabled;
+            layers[i].opacity = datalayers[i].opacity;
+            layers[i].service = datalayers[i].service;
+            layers[i].name = datalayers[i].name;
+            layers[i].label = datalayers[i].label;
+            if (datalayers[i].style) {
+              layers[i].currentStyle = datalayers[i].style;
+            }
+            this.webMapJS.getListener().triggerEvent('onmapdimupdate');
+          }
+        }
       }
       this.webMapJS.draw();
     }
@@ -230,7 +264,7 @@ export default class Adaguc extends React.Component {
       }
     ];
     const { setCut } = actions;
-    const { sources, layers } = adagucProperties;
+    const { sources } = adagucProperties;
     const { geojson } = adagucmapdraw;
     const coords = geojson;
     const phenomena = ['OBSC TS', 'EMBD TS', 'FRQ TS', 'SQL TS', 'OBSC TSGR', 'EMBD TSGR', 'FRQ TSGR',
@@ -289,15 +323,60 @@ export default class Adaguc extends React.Component {
             <Button color='primary' onClick={() => dispatch(actions.adagucmeasuredistanceToggleEdit(adagucmeasuredistance))}
               disabled={this.disabled}>{adagucmeasuredistance.isInEditMode === false ? 'Measure distance' : 'Exit measuring mode'}
             </Button>
+            <ModelTime webmapjs={this.webMapJS} />
           </div>
           <div id='infocontainer' style={{ margin: 0, display: 'flex', flex: '0 0 auto' }}>
             <TimeComponent ref='TimeComponent' webmapjs={this.webMapJS} width={timeComponentWidth} onChangeAnimation={this.onChangeAnimation} />
-            <LayerManager dispatch={dispatch} actions={actions} sources={sources} layers={layers} />
+            <LayerManager webmapjs={this.webMapJS} dispatch={dispatch} actions={actions} />
+            <LayerAdder dispatch={dispatch} actions={actions} sources={sources} />
           </div>
         </div>
       </div>
     );
   }
+};
+
+class ModelTime extends React.Component {
+  constructor () {
+    super();
+    this.updateState = this.updateState.bind(this);
+    this.resetState = this.resetState.bind(this);
+    this.state = {
+      display: null
+    };
+  }
+  updateState () {
+    const adagucTime = moment.utc(this.props.webmapjs.getDimension('time').currentValue);
+    const now = moment(moment.utc().format('YYYY-MM-DDTHH:mm:ss'));
+    const hourDifference = Math.floor(moment.duration(adagucTime.diff(now)).asHours());
+    if (hourDifference > 1) {
+      this.setState({ display: adagucTime.format('ddd D HH:mm').toString() + ' (+' + (hourDifference - 1) + ')' });
+    } else if (hourDifference < -1) {
+      this.setState({ display: adagucTime.format('ddd D HH:mm').toString() + ' (' + (hourDifference) + ')' });
+    } else {
+      this.setState({ display: '' });
+    }
+  }
+  resetState () {
+    this.setState({ display: '' });
+  }
+  render () {
+    const { webmapjs } = this.props;
+    if (webmapjs !== undefined) {
+      if (this.listenersInitialized === undefined) { // TODO mount/unmount
+        this.listenersInitialized = true;
+        webmapjs.addListener('ondimchange', this.updateState, true);
+        webmapjs.addListener('onmapdimupdate', this.updateState, true);
+        webmapjs.addListener('onmapdimchange', this.updateState, true);
+      }
+      return <span>{this.state.display}</span>;
+    } else {
+      return <div />;
+    }
+  }
+}
+ModelTime.propTypes = {
+  webmapjs: React.PropTypes.object
 };
 
 class MenuItem extends React.Component {

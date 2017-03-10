@@ -1,5 +1,4 @@
 import React from 'react';
-import NumberSpinner from './NumberSpinner.js';
 import ButtonPausePlayAnimation from './ButtonPausePlayAnimation.js';
 import CanvasComponent from './CanvasComponent.js';
 import { Icon } from 'react-fa';
@@ -248,7 +247,7 @@ export default class TimeComponent extends React.Component {
     let isodate = this.toISO8601(value);
     // eslint-disable-next-line no-undef
     var date = parseISO8601DateToDate(isodate);
-    this.props.webmapjs.setDimension('time', date.toISO8601(), false);
+    this.props.webmapjs.setDimension('time', date.toISO8601(), true);
     this.props.webmapjs.draw();
     this.eventOnDimChange();
   }
@@ -292,6 +291,7 @@ export default class TimeComponent extends React.Component {
   }
   /* istanbul ignore next */
   componentDidMount () {
+    setInterval(this.drawCanvas, 60000);
   }
   componentDidUpdate () {
     this.drawCanvas();
@@ -311,7 +311,7 @@ export default class TimeComponent extends React.Component {
     /* istanbul ignore next */
     try {
       let newDate = this.canvasDateInterval.getDateAtTimeStep(newTimeStep, true);
-      this.props.webmapjs.setDimension('time', newDate.toISO8601(), false);
+      this.props.webmapjs.setDimension('time', newDate.toISO8601(), true);
       this.props.webmapjs.draw();
       this.eventOnDimChange();
     } catch (e) {
@@ -321,7 +321,7 @@ export default class TimeComponent extends React.Component {
   handleButtonClickNow () {
     // eslint-disable-next-line no-undef
     let currentDate = getCurrentDateIso8601();
-    this.props.webmapjs.setDimension('time', currentDate.toISO8601(), false);
+    this.props.webmapjs.setDimension('time', currentDate.toISO8601(), true);
     this.props.webmapjs.draw();
     this.eventOnDimChange();
   }
@@ -358,20 +358,12 @@ export default class TimeComponent extends React.Component {
         webmapjs.addListener('ondimchange', this.eventOnDimChange, true);
       }
     }
-    let { year, month, day, hour, minute } = this.decomposeDateString(this.state.value);
 
     return (
       <div style={{ display:'flex', flex: '0 0 auto', border:'0px solid red' }}>
         <div style={{ display:'flex', flex: '0 0 auto', marginTop: '81px' }} >
           <div style={{ display:'flex', flex: '0 0 auto' }}>
             <ButtonPausePlayAnimation webmapjs={this.props.webmapjs} onChange={this.onChangeAnimation} />
-          </div>
-          <div style={{ whiteSpace: 'nowrap' }}>
-            <NumberSpinner value={year} numDigits={4} width={60} onChange={this.changeYear} />
-            <NumberSpinner value={month} renderAsMonth width={65} onChange={this.changeMonth} />
-            <NumberSpinner value={day} numDigits={2} width={37} onChange={this.changeDay} />
-            <NumberSpinner value={hour} numDigits={2} width={37} onChange={this.changeHour} />
-            <NumberSpinner value={minute} numDigits={2} width={37} onChange={this.changeMinute} />
           </div>
           <div style={{ display:'flex', flex: '0 0 auto' }} >
             <Button color='primary' size='large' style={{ padding:'20px', margin:' 0 5px' }} onClick={this.handleButtonClickNow}>Now</Button>

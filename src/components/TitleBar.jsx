@@ -26,6 +26,7 @@ class TitleBar extends Component {
     // TODO REMOVE THIS WHEN /getuser SERVLET IS IMPLEMENTED IN THE BACKEND
     this.inputfieldUserName = 'met1';
     this.inputfieldPassword = 'met1';
+    this.timer;
   }
   toggle () {
     this.setState({
@@ -37,10 +38,10 @@ class TitleBar extends Component {
     this.setState({ currentTime: time });
   }
   componentWillUnmount () {
-    clearInterval(this.state.currentTime);
+    clearInterval(this.timer);
   }
   componentDidMount () {
-    setInterval(this.setTime, 1000);
+    this.timer = setInterval(this.setTime, 1000);
     this.setState({ currentTime: moment.utc().format('YYYY MMM DD - HH:mm:ss').toString() });
   }
 
@@ -202,7 +203,7 @@ class TitleBar extends Component {
             </FormText>
           </ModalBody>
           <ModalFooter>
-            <Button color='primary' onClick={this.doLogin}>{loggedIn ? 'Sign out' : 'Sign in'}</Button>{' '}
+            <Button color='primary' onClick={this.doLogin}>{loggedIn ? 'Sign out' : this.inputfieldUserName === 'met1' && this.inputfieldPassword === 'met1' ? 'Sign in with met1/met1' : 'Sign in'}</Button>{' '}
             <Button color='secondary' onClick={this.toggleLoginModal}>Cancel</Button>
           </ModalFooter>
         </Modal>

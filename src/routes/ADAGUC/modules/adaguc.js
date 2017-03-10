@@ -15,6 +15,7 @@ const SET_MAP_STYLE = 'SET_MAP_STYLE';
 const SET_STYLE = 'SET_STYLE';
 const PREPARE_SIGMET = 'PREPARE_SIGMET';
 const ALTER_LAYER = 'ALTER_LAYER';
+const REORDER_LAYER = 'REORDER_LAYER';
 import { ADAGUCMAPDRAW_EDITING, ADAGUCMAPDRAW_DELETE, ADAGUCMAPDRAW_UPDATEFEATURE } from '../components/AdagucMapDraw';
 import { ADAGUCMEASUREDISTANCE_EDITING, ADAGUCMEASUREDISTANCE_UPDATE } from '../components/AdagucMeasureDistance';
 
@@ -60,6 +61,7 @@ Object.equals = function (x, y) {
 // Actions
 // ------------------------------------
 function createMap (sources, overlays) {
+  console.log(sources);
   return {
     type: CREATE_MAP,
     payload: {
@@ -110,16 +112,22 @@ function addLayer (layer) {
     payload: enabledLayer
   };
 }
-function alterLayer (index, layerType, field, newValue) {
+function alterLayer (index, layerType, fieldsNewValuesObj) {
   return {
     type: ALTER_LAYER,
-    payload: { index, layerType, field, newValue }
+    payload: { index, layerType, fieldsNewValuesObj }
   };
 }
 function addOverlayLayer (layer) {
   return {
     type: ADD_OVERLAY_LAYER,
     payload: layer
+  };
+}
+function reorderLayer (direction, index) {
+  return {
+    type: REORDER_LAYER,
+    payload: { direction, index }
   };
 }
 function prepareSIGMET (phenomenon = 'OBSC TS') {
@@ -132,7 +140,7 @@ function deleteLayer (layerParams, layertype) {
   return {
     type: DELETE_LAYER,
     payload: {
-      removeLayer: layerParams,
+      idx: layerParams,
       type : layertype
     }
   };
@@ -256,6 +264,7 @@ export const actions = {
   setMapStyle,
   setStyle,
   prepareSIGMET,
+  reorderLayer,
   alterLayer,
   adagucmapdrawToggleEdit,
   adagucmapdrawToggleDelete,
@@ -348,17 +357,24 @@ const setSigmet = (state, payload) => {
 
 const doAlterLayer = (state, payload) => {
   let fitleredLayers;
-  const { index, layerType, field, newValue } = payload;
+  const { index, layerType, fieldsNewValuesObj } = payload;
   switch (layerType) {
     case 'data':
       let newDatalayers = state.layers.datalayers.map(a => Object.assign({}, a));
-      newDatalayers[index][field] = newValue;
+      const oldLayer = state.layers.datalayers[index];
+      const newlayer = Object.assign({}, oldLayer, fieldsNewValuesObj);
+      newDatalayers[index] = newlayer;
       fitleredLayers = Object.assign({}, state.layers, { datalayers: newDatalayers });
       break;
     case 'overlay':
-      let newOverlayers = state.layers.overlays.map(a => Object.assign({}, a));
-      newOverlayers[index][field] = newValue;
-      fitleredLayers = Object.assign({}, state.layers, { overlays: newOverlayers });
+      let newOverlayLayers = state.layers.overlays.map(a => Object.assign({}, a));
+      const oldOverLayer = state.layers.overlays[index];
+      const newOverlayer = Object.assign({}, oldOverLayer, fieldsNewValuesObj);
+      newOverlayLayers[index] = newOverlayer;
+      fitleredLayers = Object.assign({}, state.layers, { overlays: newOverlayLayers });
+      break;
+    case 'base':
+      fitleredLayers = Object.assign({}, state.layers, { baselayer: Object.assign({}, state.layers.baselayer, fieldsNewValuesObj) });
       break;
     default:
       fitleredLayers = state.layers;
@@ -367,15 +383,33 @@ const doAlterLayer = (state, payload) => {
   return Object.assign({}, state, { layers: fitleredLayers });
 };
 
+const doReorderLayer = (state, payload) => {
+  const direction = payload.direction === 'up' ? -1 : 1;
+  const idx = payload.index;
+  if (idx + direction < 0 || idx + direction >= state.layers.datalayers.length) {
+    return state;
+  }
+  console.log(idx, direction);
+  let newDatalayers = state.layers.datalayers.map(a => Object.assign({}, a));
+  const tmp = newDatalayers[idx];
+  newDatalayers[idx] = newDatalayers[idx + direction];
+  newDatalayers[idx + direction] = tmp;
+  return Object.assign({}, state, { layers: Object.assign({}, state.layers, { datalayers: newDatalayers }) });
+};
+
 const doDeleteLayer = (state, payload) => {
-  const { removeLayer, type } = payload;
+  const { idx, type } = payload;
   let fitleredLayers;
   switch (type) {
     case 'data':
-      fitleredLayers = Object.assign({}, state.layers, { datalayers: state.layers.datalayers.filter((layer) => !Object.equals(layer, removeLayer)) });
+      let datalayersCpy = state.layers.datalayers.map(a => Object.assign({}, a));
+      datalayersCpy.splice(idx, 1);
+      fitleredLayers = Object.assign({}, state.layers, { datalayers: datalayersCpy });
       break;
     case 'overlay':
-      fitleredLayers = Object.assign({}, state.layers, { overlays: state.layers.overlays.filter((layer) => !Object.equals(layer, removeLayer)) });
+      let overlaysCpy = state.layers.datalayers.map(a => Object.assign({}, a));
+      overlaysCpy.splice(idx, 1);
+      fitleredLayers = Object.assign({}, state.layers, { overlays: overlaysCpy });
       break;
     default:
       fitleredLayers = state.layers;
@@ -423,22 +457,23 @@ const handleAdagucMeasureDistanceUpdate = (state, payload) => {
 // Action Handlers
 // ------------------------------------
 const ACTION_HANDLERS = {
-  [ADD_LAYER]            : (state, action) => doAddLayer(state, action.payload),
-  [ADD_OVERLAY_LAYER]    : (state, action) => doAddOverlayLayer(state, action.payload),
-  [CREATE_MAP]           : (state, action) => newMapState(state, action.payload),
-  [DELETE_LAYER]         : (state, action) => doDeleteLayer(state, action.payload),
-  [LOGIN]                : (state, action) => doLogin(state, action.payload),
-  [LOGOUT]               : (state, action) => doLogout(state, action.payload),
-  [SET_CUT]              : (state, action) => newCut(state, action.payload),
-  [SET_MAP_STYLE]        : (state, action) => newMapStyle(state, action.payload),
-  [SET_STYLE]            : (state, action) => newStyle(state, action.payload),
-  [PREPARE_SIGMET]       : (state, action) => setSigmet(state, action.payload),
-  [ALTER_LAYER]          : (state, action) => doAlterLayer(state, action.payload),
-  [ADAGUCMAPDRAW_EDITING] : (state, action) => handleAdagucMapDrawEditing(state, action.payload),
-  [ADAGUCMAPDRAW_DELETE] : (state, action) => handleAdagucMapDrawDelete(state, action.payload),
-  [ADAGUCMAPDRAW_UPDATEFEATURE] : (state, action) => handleAdagucMapDrawUpdateFeature(state, action.payload),
+  [ADAGUCMAPDRAW_EDITING]         : (state, action) => handleAdagucMapDrawEditing(state, action.payload),
+  [ADAGUCMAPDRAW_DELETE]          : (state, action) => handleAdagucMapDrawDelete(state, action.payload),
+  [ADAGUCMAPDRAW_UPDATEFEATURE]   : (state, action) => handleAdagucMapDrawUpdateFeature(state, action.payload),
   [ADAGUCMEASUREDISTANCE_EDITING] : (state, action) => handleAdagucMeasureDistanceEditing(state, action.payload),
-  [ADAGUCMEASUREDISTANCE_UPDATE] : (state, action) => handleAdagucMeasureDistanceUpdate(state, action.payload)
+  [ADAGUCMEASUREDISTANCE_UPDATE]  : (state, action) => handleAdagucMeasureDistanceUpdate(state, action.payload),
+  [ADD_LAYER]                     : (state, action) => doAddLayer(state, action.payload),
+  [ADD_OVERLAY_LAYER]             : (state, action) => doAddOverlayLayer(state, action.payload),
+  [ALTER_LAYER]                   : (state, action) => doAlterLayer(state, action.payload),
+  [CREATE_MAP]                    : (state, action) => newMapState(state, action.payload),
+  [DELETE_LAYER]                  : (state, action) => doDeleteLayer(state, action.payload),
+  [LOGIN]                         : (state, action) => doLogin(state, action.payload),
+  [LOGOUT]                        : (state, action) => doLogout(state, action.payload),
+  [PREPARE_SIGMET]                : (state, action) => setSigmet(state, action.payload),
+  [REORDER_LAYER]                 : (state, action) => doReorderLayer(state, action.payload),
+  [SET_CUT]                       : (state, action) => newCut(state, action.payload),
+  [SET_MAP_STYLE]                 : (state, action) => newMapStyle(state, action.payload),
+  [SET_STYLE]                     : (state, action) => newStyle(state, action.payload)
 };
 
 // ------------------------------------
