@@ -181,6 +181,7 @@ function adagucmeasuredistanceToggleEdit (adagucmeasuredistance) {
 //   };
 // };
 
+// TODO: This info should be obtained form the backend
 const sigmetLayers = (p) => {
   switch (p) {
     case 'OBSC TS':

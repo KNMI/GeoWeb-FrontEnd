@@ -77,7 +77,7 @@
   /**
     * WMJSMap class
     */
-  function WMJSMap (_element) {
+  function WMJSMap (_element, _xml2jsonrequestURL) {
     this.setBaseURL = function (_baseURL) {
       base = _baseURL;
 
@@ -97,15 +97,18 @@
     };
     this.setBaseURL(base);
 
+    this.setXML2JSONURL = function (_xml2jsonrequest) {
+      xml2jsonrequest = _xml2jsonrequest;
+    };
     var enableConsoleDebugging = false;
     var mainElement = _element;
     // var baseDiv = document.createElement('div');
     try {
-      if (!isDefined(xml2jsonrequestURL)) {
-        xml2jsonrequest = 'http://birdexp07.knmi.nl:8080/XML2JSON?';
+      if (isDefined(_xml2jsonrequestURL)) {
+        xml2jsonrequestURL = _xml2jsonrequestURL;
       };
-    } catch (e) {
-      xml2jsonrequest = 'http://birdexp07.knmi.nl:8080/XML2JSON?';
+    } catch(e){
+      xml2jsonrequestURL = base + '/php/xml2jsonrequest.php?';
     }
     try {
       if (!isDefined(requestProxy)) {};
