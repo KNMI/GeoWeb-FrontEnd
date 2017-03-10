@@ -136,7 +136,17 @@ export default class Adaguc extends React.Component {
       this.webMapJS.destroy();
     }
   }
-
+  orderChanged (currLayers, prevLayers) {
+    if (currLayers.length !== prevLayers.length) {
+      return true;
+    }
+    for (var i = currLayers.length - 1; i >= 0; i--) {
+      if (currLayers[i].service !== prevLayers[i].service || currLayers[i].name !== prevLayers[i].name) {
+        return true;
+      }
+    }
+    return false;
+  }
   /* istanbul ignore next */
   componentDidUpdate (prevProps, prevState) {
     // The first time, the map needs to be created. This is when in the previous state the map creation boolean is false
@@ -158,20 +168,35 @@ export default class Adaguc extends React.Component {
         this.webMapJS.setBaseLayers(newBaselayers);
         this.webMapJS.draw();
       }
-      if (datalayers !== prevProps.adagucProperties.datalayers) {
+      if (datalayers !== prevProps.adagucProperties.layers.datalayers) {
         // TODO refactor this so we don't remove all layers and just update them if count and order remain the same
-        this.webMapJS.stopAnimating();
-        const newDatalayers = datalayers.map((datalayer) => {
-          // eslint-disable-next-line no-undef
-          const newDataLayer = new WMJSLayer(datalayer);
-          newDataLayer.onReady = this.animateLayer;
-          return newDataLayer;
-        });
-        this.webMapJS.removeAllLayers();
-        newDatalayers.reverse().forEach((layer) => this.webMapJS.addLayer(layer));
-        const newActiveLayer = (this.webMapJS.getLayers()[0]);
-        if (newActiveLayer) {
-          this.webMapJS.setActiveLayer(this.webMapJS.getLayers()[0]);
+        if (datalayers.length !== prevProps.adagucProperties.layers.datalayers.length || this.orderChanged(datalayers, prevProps.adagucProperties.layers.datalayers)) {
+          this.webMapJS.stopAnimating();
+          const newDatalayers = datalayers.map((datalayer) => {
+            // eslint-disable-next-line no-undef
+            const newDataLayer = new WMJSLayer(datalayer);
+            newDataLayer.onReady = this.animateLayer;
+            return newDataLayer;
+          });
+          this.webMapJS.removeAllLayers();
+          newDatalayers.reverse().forEach((layer) => this.webMapJS.addLayer(layer));
+          const newActiveLayer = (this.webMapJS.getLayers()[0]);
+          if (newActiveLayer) {
+            this.webMapJS.setActiveLayer(this.webMapJS.getLayers()[0]);
+          }
+        } else {
+          let layers = this.webMapJS.getLayers();
+          for (var i = layers.length - 1; i >= 0; i--) {
+            layers[i].enabled = datalayers[i].enabled;
+            layers[i].opacity = datalayers[i].opacity;
+            layers[i].service = datalayers[i].service;
+            layers[i].name = datalayers[i].name;
+            layers[i].label = datalayers[i].label;
+            if (datalayers[i].style) {
+              layers[i].currentStyle = datalayers[i].style;
+            }
+            this.webMapJS.getListener().triggerEvent('onmapdimupdate');
+          }
         }
       }
       this.webMapJS.draw();
@@ -323,8 +348,6 @@ class ModelTime extends React.Component {
   updateState () {
     const adagucTime = moment.utc(this.props.webmapjs.getDimension('time').currentValue);
     const now = moment(moment.utc().format('YYYY-MM-DDTHH:mm:ss'));
-    console.log(adagucTime);
-    console.log(now);
     const hourDifference = Math.floor(moment.duration(adagucTime.diff(now)).asHours());
     if (hourDifference > 1) {
       this.setState({ display: adagucTime.format('ddd D HH:mm').toString() + ' (+' + (hourDifference - 1) + ')' });
