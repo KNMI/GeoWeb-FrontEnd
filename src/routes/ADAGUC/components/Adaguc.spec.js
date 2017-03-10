@@ -8,7 +8,23 @@ describe('(Component) Adaguc', () => {
   let _dispatchSpy;
   beforeEach(() => {
     _globalState = {
-      adagucProperties : { layers: {}, sources: {}, boundingBox: null, projectionName: 'EPSG:3857', mapCreated: false }
+      adagucProperties : {
+        layers: {},
+        sources: {},
+        boundingBox: null,
+        projectionName: 'EPSG:3857',
+        mapCreated: false,
+        adagucmapdraw: {
+          geojson: {
+            coords: {}
+          },
+          isInEditMode: false,
+          isInDeleteMode: false
+        },
+        adagucmeasuredistance: {
+          isInEditMode: false
+        }
+      }
     };
     _dispatchSpy = sinon.spy((action) => {
       _globalState = {

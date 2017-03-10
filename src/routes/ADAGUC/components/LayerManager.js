@@ -1,6 +1,6 @@
 import React from 'react';
 import { Popover,
-PopoverTitle, Button, ButtonToolbar,
+PopoverTitle, Button,
 ButtonGroup,
 PopoverContent, ListGroupItem, Badge } from 'reactstrap';
 import { Icon } from 'react-fa';
@@ -74,8 +74,9 @@ export default class LayerManager extends React.Component {
       return layers.map((layer, i) => {
         return (
           <ListGroupItem id='layerinfo' key={'base' + i} style={{ marginLeft: '32px' }}>
-            <Icon style={{ marginRight: '13px' }} id='enableButton' name={layer.enabled ? 'check-square-o' : 'square-o'} onClick={() => this.toggleLayer('base', i)} />
-            <LayerName name={layer.label ? layer.label : layer.title} i={i} target={'baselayer' + i} layer={layer} dispatch={this.props.dispatch} actions={this.props.actions} />
+            <Icon style={{ marginRight: '13px' }} id='enableButton' name={layer && layer.enabled ? 'check-square-o' : 'square-o'} onClick={() => this.toggleLayer('base', i)} />
+            <LayerName name={layer ? (layer.label ? layer.label : (layer.title ? layer.title : '???')) : '???'}
+              i={i} target={'baselayer' + i} layer={layer} dispatch={this.props.dispatch} actions={this.props.actions} />
           </ListGroupItem>
         );
       });
@@ -112,7 +113,7 @@ export default class LayerManager extends React.Component {
             <LayerName name={layer.label ? layer.label : layer.title} i={i} target={'datalayer' + i} layer={layer} dispatch={this.props.dispatch} actions={this.props.actions} />
             <LayerStyle style={layer.styleTitle} layer={layer} target={'datalayerstyle' + i} i={i} dispatch={this.props.dispatch} actions={this.props.actions} />
             <LayerOpacity layer={layer} target={'datalayeropacity' + i} i={i} dispatch={this.props.dispatch} actions={this.props.actions} />
-            {layer.service.includes('HARM') ? <LayerModelRun layer={layer} /> : <div />}
+            {layer.service && layer.service.includes('HARM') ? <LayerModelRun layer={layer} /> : <div />}
           </ListGroupItem>);
       });
     }
@@ -189,7 +190,10 @@ class LayerName extends React.Component {
       }
     }
     const wantedLayer = this.state.layers[indexOfPossibleLayers];
-    this.props.dispatch(this.props.actions.alterLayer(indexInLayerList, this.props.target.includes('data') ? 'data' : 'base', { name: wantedLayer.name, label: wantedLayer.text, style: undefined, styleTitle: undefined }));
+    this.props.dispatch(this.props.actions.alterLayer(indexInLayerList,
+      this.props.target.includes('data')
+      ? 'data'
+      : 'base', { name: wantedLayer.name, label: wantedLayer.text, style: undefined, styleTitle: undefined }));
   }
   render () {
     const { i, layer, target } = this.props;
@@ -237,16 +241,25 @@ class LayerStyle extends React.Component {
     this.alterLayer = this.alterLayer.bind(this);
     this.togglePopover = this.togglePopover.bind(this);
   }
+  // istanbul ignore next
   componentWillMount () {
-    this.setState({ activeLayer: new WMJSLayer({ ...this.props.layer, onReady: (t) => this.setState({ styles: t.styles }) }) });
+    console.log();
+    // eslint-disable-next-line no-undef
+    if (typeof WMJSLayer === 'function') {
+      // eslint-disable-next-line no-undef
+      this.setState({ activeLayer: new WMJSLayer({ ...this.props.layer, onReady: (t) => this.setState({ styles: t.styles }) }) });
+    }
   }
+  // istanbul ignore next
   togglePopover (e, layer, i) {
     this.setState({ popoverOpen: !this.state.popoverOpen });
-    if (!this.state.layers || this.state.layer !== this.props.layer) {
-      // eslint-disable-next-line no-undef
-      this.setState({ activeLayer: new WMJSLayer({ ...this.props.layer, onReady: (t) => { console.log(this.state.activeLayer); this.setState({ styles: t.styles }); } }) });
+    // eslint-disable-next-line no-undef
+    if (typeof WMJSLayer === 'function') {
+      if (!this.state.layers || this.state.layer !== this.props.layer) {
+        // eslint-disable-next-line no-undef
+        this.setState({ activeLayer: new WMJSLayer({ ...this.props.layer, onReady: (t) => { console.log(this.state.activeLayer); this.setState({ styles: t.styles }); } }) });
+      }
     }
-
   }
   alterLayer (e) {
     // TODO .... this
@@ -283,6 +296,7 @@ class LayerStyle extends React.Component {
   }
 }
 LayerStyle.propTypes = {
+  style: React.PropTypes.string,
   layer: React.PropTypes.object.isRequired,
   i: React.PropTypes.number.isRequired,
   target: React.PropTypes.string.isRequired,
@@ -298,22 +312,30 @@ class LayerModelRun extends React.Component {
       refTime: null
     };
   }
-
+  // istanbul ignore next
   componentWillMount () {
-    this.layer = new WMJSLayer({
-      ...this.props.layer,
-      onReady: (t) => {
-        const refTime = t.getDimension('reference_time');
-        if (refTime) {
-          this.setState({ refTime: refTime.currentValue });
+    // eslint-disable-next-line no-undef
+    if (typeof WMJSLayer === 'function') {
+      // eslint-disable-next-line no-undef
+      this.layer = new WMJSLayer({
+        ...this.props.layer,
+        onReady: (t) => {
+          const refTime = t.getDimension('reference_time');
+          if (refTime) {
+            this.setState({ refTime: refTime.currentValue });
+          }
         }
-      }
-    });
+      });
+    }
   }
   render () {
     return this.state.refTime ? <Badge pill>{this.state.refTime}</Badge> : <div />;
   }
 }
+
+LayerModelRun.propTypes = {
+  layer: React.PropTypes.object
+};
 
 // ---------------------------------------- \\
 // Rendering of the layerstyle with popover \\

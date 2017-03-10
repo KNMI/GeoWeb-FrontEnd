@@ -34,7 +34,7 @@ describe('(Component) LayerManager', () => {
   it('Renders a non-empty div with a layer', () => {
     const _component = mount(<LayerManager dispatch={() => {}} actions={{}} layers={layers} />);
     var inners = _component.find('span.badge').map((layer) => { return layer.text(); }).filter((text) => text !== '');
-    expect(inners).to.have.length(8);
+    expect(inners).to.have.length(10);
     expect(inners).to.include('HARMONIE');
     expect(inners).to.include('abc');
   });

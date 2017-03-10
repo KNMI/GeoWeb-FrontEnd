@@ -1,7 +1,7 @@
 import React from 'react';
 import { Badge, ListGroup, ListGroupItem, Collapse,
   CardBlock, Card, ButtonDropdown, DropdownToggle, DropdownMenu, Label,
-  DropdownItem } from 'reactstrap';
+  DropdownItem, Button } from 'reactstrap';
 import TimeComponent from './TimeComponent.js';
 import { default as AdagucMapDraw } from './AdagucMapDraw.js';
 import LayerManager from './LayerManager.js';
@@ -115,6 +115,9 @@ export default class Adaguc extends React.Component {
   componentDidMount () {
     this.initAdaguc(this.refs.adaguc);
   }
+  componentWillReceiveProps (nextProps) {
+    // console.log('componentWillReceiveProps', nextProps);
+  }
   componentWillMount () {
     /* Component will unmount, set flag that map is not created */
     const { adagucProperties } = this.props;
@@ -185,6 +188,8 @@ export default class Adaguc extends React.Component {
     });
   }
   render () {
+    const { adagucProperties, dispatch, actions } = this.props;
+    const { adagucmapdraw, adagucmeasuredistance } = adagucProperties;
     // eslint-disable-next-line no-undef
     let timeComponentWidth = $(window).width() - 400;
     const shiftTaskItems = [
@@ -226,9 +231,10 @@ export default class Adaguc extends React.Component {
         title: 'Analyses'
       }
     ];
-    const { dispatch, actions, adagucProperties } = this.props;
     const { setCut } = actions;
-    const { sources, layers, coords } = adagucProperties;
+    const { sources, layers } = adagucProperties;
+    const { geojson } = adagucmapdraw;
+    const coords = geojson;
     const phenomena = ['OBSC TS', 'EMBD TS', 'FRQ TS', 'SQL TS', 'OBSC TSGR', 'EMBD TSGR', 'FRQ TSGR',
       'SQL TSGR', 'SEV TURB', 'SEV ICE', 'SEV ICE (FZRA)', 'SEV MTW', 'HVY DS', 'HVY SS', 'RDOACT CLD'];
     return (
@@ -248,7 +254,7 @@ export default class Adaguc extends React.Component {
                   <Typeahead onChange={(p) => dispatch(actions.prepareSIGMET(p[0]))} placeholder='Click or type' options={phenomena} />
                   <Label>Coordinates</Label>
                   {
-                    (coords && coords.features)
+                    (coords && coords.features && coords.features[0].geometry.coordinates)
                       ? coords.features[0].geometry.coordinates[0].map((latlon) => {
                         return latlon[0].toString().substring(0, 7) + ' Lat, ' + latlon[1].toString().substring(0, 7) + ' Lon';
                       }).map((str, i) => <div key={i}>{str}</div>)
@@ -262,10 +268,29 @@ export default class Adaguc extends React.Component {
           <div>
             <div ref='adaguc' />
             <div style={{ margin: '5px 10px 10px 5px ' }}>
-              <AdagucMapDraw dispatch={dispatch} actions={actions} webmapjs={this.webMapJS} />
-              <AdagucMeasureDistance webmapjs={this.webMapJS} />
+              <AdagucMapDraw
+                dispatch={this.props.dispatch}
+                isInEditMode={adagucmapdraw.isInEditMode}
+                isInDeleteMode={adagucmapdraw.isInDeleteMode}
+                webmapjs={this.webMapJS}
+              />
+              <AdagucMeasureDistance
+                dispatch={this.props.dispatch}
+                webmapjs={this.webMapJS}
+                isInEditMode={adagucmeasuredistance
+                  .isInEditMode}
+              />
               <DropdownButton dispatch={dispatch} dataFunc={setCut} items={BOUNDING_BOXES} title='View' isOpen={this.state.dropdownOpenView} toggle={this.toggleView} />
             </div>
+            <Button color='primary' onClick={() => dispatch(actions.adagucmapdrawToggleEdit(adagucmapdraw))}
+              disabled={this.disabled}>{adagucmapdraw.isInEditMode === false ? 'Create / Edit' : 'Exit editing mode'}
+            </Button>
+            <Button color='primary' onClick={() => dispatch(actions.adagucmapdrawToggleDelete(adagucmapdraw))}
+              disabled={this.disabled}>{adagucmapdraw.isInDeleteMode === false ? 'Delete' : 'Click to delete'}
+            </Button>
+            <Button color='primary' onClick={() => dispatch(actions.adagucmeasuredistanceToggleEdit(adagucmeasuredistance))}
+              disabled={this.disabled}>{adagucmeasuredistance.isInEditMode === false ? 'Measure distance' : 'Exit measuring mode'}
+            </Button>
           </div>
           <div id='infocontainer' style={{ margin: 0, display: 'flex', flex: '0 0 auto' }}>
             <TimeComponent ref='TimeComponent' webmapjs={this.webMapJS} width={timeComponentWidth} onChangeAnimation={this.onChangeAnimation} />

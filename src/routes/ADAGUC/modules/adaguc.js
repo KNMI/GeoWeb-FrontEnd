@@ -3,6 +3,7 @@ import { BOUNDING_BOXES } from '../constants/bounding_boxes';
 // ------------------------------------
 // Constants
 // ------------------------------------
+
 const ADD_LAYER = 'ADD_LAYER';
 const ADD_OVERLAY_LAYER = 'ADD_OVERLAY_LAYER';
 const CREATE_MAP = 'CREATE_MAP';
@@ -12,9 +13,10 @@ const SET_CUT = 'SET_CUT';
 const SET_MAP_STYLE = 'SET_MAP_STYLE';
 const SET_STYLE = 'SET_STYLE';
 const PREPARE_SIGMET = 'PREPARE_SIGMET';
-const COORDS = 'COORDS';
 const ALTER_LAYER = 'ALTER_LAYER';
 const REORDER_LAYER = 'REORDER_LAYER';
+import { ADAGUCMAPDRAW_EDITING, ADAGUCMAPDRAW_DELETE, ADAGUCMAPDRAW_UPDATEFEATURE } from '../components/AdagucMapDraw';
+import { ADAGUCMEASUREDISTANCE_EDITING, ADAGUCMEASUREDISTANCE_UPDATE } from '../components/AdagucMeasureDistance';
 
 // ------------------------------------
 // Helper functions
@@ -53,6 +55,7 @@ Object.equals = function (x, y) {
   }
   return true;
 };
+
 // ------------------------------------
 // Actions
 // ------------------------------------
@@ -135,10 +138,28 @@ function deleteLayer (layerParams, layertype) {
     }
   };
 }
-function coords (newcoords) {
+
+function adagucmapdrawToggleEdit (adagucmapdraw) {
+  console.log('adagucmapdrawToggleEdit', adagucmapdraw);
   return {
-    type: COORDS,
-    payload: newcoords
+    type: 'ADAGUCMAPDRAW_EDITING',
+    payload: Object.assign({}, adagucmapdraw, { isInEditMode: !adagucmapdraw.isInEditMode })
+  };
+}
+
+function adagucmapdrawToggleDelete (adagucmapdraw) {
+  console.log('adagucmapdrawToggleDelete', adagucmapdraw);
+  return {
+    type: 'ADAGUCMAPDRAW_DELETE',
+    payload: Object.assign({}, adagucmapdraw, { isInDeleteMode: !adagucmapdraw.isInDeleteMode })
+  };
+}
+
+function adagucmeasuredistanceToggleEdit (adagucmeasuredistance) {
+  console.log('adagucmeasuredistanceToggleEdit', adagucmeasuredistance);
+  return {
+    type: 'ADAGUCMEASUREDISTANCE_EDITING',
+    payload: Object.assign({}, adagucmeasuredistance, { isInEditMode: !adagucmeasuredistance.isInEditMode })
   };
 }
 /*  This is a thunk, meaning it is a function that immediately
@@ -234,9 +255,11 @@ export const actions = {
   setMapStyle,
   setStyle,
   prepareSIGMET,
-  coords,
   reorderLayer,
-  alterLayer
+  alterLayer,
+  adagucmapdrawToggleEdit,
+  adagucmapdrawToggleDelete,
+  adagucmeasuredistanceToggleEdit
 };
 
 /*
@@ -378,26 +401,61 @@ const doDeleteLayer = (state, payload) => {
   return Object.assign({}, state, { layers: fitleredLayers });
 };
 
-const setNewCoords = (state, payload) => {
-  return Object.assign({}, state, { coords: payload });
+const handleAdagucMapDrawEditing = (state, payload) => {
+  console.log('handleAdagucMapDrawEditing', state, payload);
+  let adagucmapdraw = Object.assign({}, state.adagucmapdraw, { isInEditMode : payload.isInEditMode });
+  let adagucmeasuredistance = Object.assign({}, state.adagucmeasuredistance, { isInEditMode : false });
+  return Object.assign({}, state, { adagucmeasuredistance: adagucmeasuredistance, adagucmapdraw: adagucmapdraw });
 };
-
+const handleAdagucMapDrawDelete = (state, payload) => {
+  console.log('handleAdagucMapDrawDelete', state, payload);
+  let adagucmapdraw = Object.assign({}, state.adagucmapdraw, { isInDeleteMode : payload.isInDeleteMode });
+  let adagucmeasuredistance = Object.assign({}, state.adagucmeasuredistance, { isInEditMode : false });
+  return Object.assign({}, state, { adagucmeasuredistance: adagucmeasuredistance, adagucmapdraw: adagucmapdraw });
+};
+const handleAdagucMapDrawUpdateFeature = (state, payload) => {
+  console.log('handleAdagucMapDrawUpdateFeature', payload);
+  /* Returning new state is not strictly necessary,
+    as the geojson in AdagucMapDraw is the same and does not require rerendering of the AdagucMapDraw component
+  */
+  let adagucmapdraw = Object.assign({}, state.adagucmapdraw, { geojson : payload.geojson });
+  let adagucmeasuredistance = Object.assign({}, state.adagucmeasuredistance, { isInEditMode : false });
+  return Object.assign({}, state, { adagucmeasuredistance: adagucmeasuredistance, adagucmapdraw: adagucmapdraw });
+};
+const handleAdagucMeasureDistanceEditing = (state, payload) => {
+  console.log('handleAdagucMeasureDistanceEditing', state, payload);
+  let adagucmapdraw = Object.assign({}, state.adagucmapdraw, { isInEditMode : false });
+  let adagucmeasuredistance = Object.assign({}, state.adagucmeasuredistance, { isInEditMode : payload.isInEditMode });
+  return Object.assign({}, state, { adagucmeasuredistance: adagucmeasuredistance, adagucmapdraw: adagucmapdraw });
+};
+const handleAdagucMeasureDistanceUpdate = (state, payload) => {
+  console.log('handleAdagucMeasureDistanceUpdate', payload);
+  let adagucmeasuredistance = Object.assign({}, state.adagucmeasuredistance,
+    { distance : payload.distance,
+      bearing : payload.bearing
+    });
+  return Object.assign({}, state, { adagucmeasuredistance: adagucmeasuredistance });
+};
 // ------------------------------------
 // Action Handlers
 // ------------------------------------
 const ACTION_HANDLERS = {
-  [ADD_LAYER]            : (state, action) => doAddLayer(state, action.payload),
-  [ADD_OVERLAY_LAYER]    : (state, action) => doAddOverlayLayer(state, action.payload),
-  [CREATE_MAP]           : (state, action) => newMapState(state, action.payload),
-  [DELETE_LAYER]         : (state, action) => doDeleteLayer(state, action.payload),
-  [LOGIN]                : (state, action) => doLogin(state, action.payload),
-  [SET_CUT]              : (state, action) => newCut(state, action.payload),
-  [SET_MAP_STYLE]        : (state, action) => newMapStyle(state, action.payload),
-  [SET_STYLE]            : (state, action) => newStyle(state, action.payload),
-  [PREPARE_SIGMET]       : (state, action) => setSigmet(state, action.payload),
-  [COORDS]               : (state, action) => setNewCoords(state, action.payload),
-  [ALTER_LAYER]          : (state, action) => doAlterLayer(state, action.payload),
-  [REORDER_LAYER]        : (state, action) => doReorderLayer(state, action.payload)
+  [ADAGUCMAPDRAW_EDITING]         : (state, action) => handleAdagucMapDrawEditing(state, action.payload),
+  [ADAGUCMAPDRAW_DELETE]          : (state, action) => handleAdagucMapDrawDelete(state, action.payload),
+  [ADAGUCMAPDRAW_UPDATEFEATURE]   : (state, action) => handleAdagucMapDrawUpdateFeature(state, action.payload),
+  [ADAGUCMEASUREDISTANCE_EDITING] : (state, action) => handleAdagucMeasureDistanceEditing(state, action.payload),
+  [ADAGUCMEASUREDISTANCE_UPDATE]  : (state, action) => handleAdagucMeasureDistanceUpdate(state, action.payload),
+  [ADD_LAYER]                     : (state, action) => doAddLayer(state, action.payload),
+  [ADD_OVERLAY_LAYER]             : (state, action) => doAddOverlayLayer(state, action.payload),
+  [ALTER_LAYER]                   : (state, action) => doAlterLayer(state, action.payload),
+  [CREATE_MAP]                    : (state, action) => newMapState(state, action.payload),
+  [DELETE_LAYER]                  : (state, action) => doDeleteLayer(state, action.payload),
+  [LOGIN]                         : (state, action) => doLogin(state, action.payload),
+  [PREPARE_SIGMET]                : (state, action) => setSigmet(state, action.payload),
+  [REORDER_LAYER]                 : (state, action) => doReorderLayer(state, action.payload),
+  [SET_CUT]                       : (state, action) => newCut(state, action.payload),
+  [SET_MAP_STYLE]                 : (state, action) => newMapStyle(state, action.payload),
+  [SET_STYLE]                     : (state, action) => newStyle(state, action.payload)
 };
 
 // ------------------------------------

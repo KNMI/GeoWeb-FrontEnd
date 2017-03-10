@@ -353,7 +353,6 @@ export default class TimeComponent extends React.Component {
     if (webmapjs !== undefined) {
       if (this.listenersInitialized === undefined) { // TODO mount/unmount
         this.listenersInitialized = true;
-
         webmapjs.addListener('onlayeradd', this.eventOnMapDimUpdate, true);
         webmapjs.addListener('onmapdimupdate', this.eventOnMapDimUpdate, true);
         webmapjs.addListener('ondimchange', this.eventOnDimChange, true);
