@@ -9,6 +9,7 @@ const ADD_OVERLAY_LAYER = 'ADD_OVERLAY_LAYER';
 const CREATE_MAP = 'CREATE_MAP';
 const DELETE_LAYER = 'DELETE_LAYER';
 const LOGIN = 'LOGIN';
+const LOGOUT = 'LOGOUT';
 const SET_CUT = 'SET_CUT';
 const SET_MAP_STYLE = 'SET_MAP_STYLE';
 const SET_STYLE = 'SET_STYLE';
@@ -72,6 +73,11 @@ function login (username) {
   return {
     type: LOGIN,
     payload: username
+  };
+}
+function logout (username) {
+  return {
+    type: LOGOUT
   };
 }
 function setCut (boundingbox = BOUNDING_BOXES[0]) {
@@ -245,6 +251,7 @@ export const actions = {
   createMap,
   deleteLayer,
   login,
+  logout,
   setCut,
   setMapStyle,
   setStyle,
@@ -327,6 +334,10 @@ const doAddOverlayLayer = (state, payload) => {
 
 const doLogin = (state, payload) => {
   return Object.assign({}, state, { loggedIn: true, username: payload });
+};
+
+const doLogout = (state, payload) => {
+  return Object.assign({}, state, { loggedIn: false, username: '' });
 };
 
 const setSigmet = (state, payload) => {
@@ -417,6 +428,7 @@ const ACTION_HANDLERS = {
   [CREATE_MAP]           : (state, action) => newMapState(state, action.payload),
   [DELETE_LAYER]         : (state, action) => doDeleteLayer(state, action.payload),
   [LOGIN]                : (state, action) => doLogin(state, action.payload),
+  [LOGOUT]               : (state, action) => doLogout(state, action.payload),
   [SET_CUT]              : (state, action) => newCut(state, action.payload),
   [SET_MAP_STYLE]        : (state, action) => newMapStyle(state, action.payload),
   [SET_STYLE]            : (state, action) => newStyle(state, action.payload),
