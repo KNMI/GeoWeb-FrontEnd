@@ -299,6 +299,7 @@ export default class Adaguc extends React.Component {
             <Button color='primary' onClick={() => dispatch(actions.adagucmeasuredistanceToggleEdit(adagucmeasuredistance))}
               disabled={this.disabled}>{adagucmeasuredistance.isInEditMode === false ? 'Measure distance' : 'Exit measuring mode'}
             </Button>
+            <ModelTime webmapjs={this.webMapJS} />
           </div>
           <div id='infocontainer' style={{ margin: 0, display: 'flex', flex: '0 0 auto' }}>
             <TimeComponent ref='TimeComponent' webmapjs={this.webMapJS} width={timeComponentWidth} onChangeAnimation={this.onChangeAnimation} />
@@ -309,6 +310,51 @@ export default class Adaguc extends React.Component {
       </div>
     );
   }
+};
+
+class ModelTime extends React.Component {
+  constructor () {
+    super();
+    this.updateState = this.updateState.bind(this);
+    this.resetState = this.resetState.bind(this);
+    this.state = {
+      display: null
+    };
+  }
+  updateState () {
+    const adagucTime = moment.utc(this.props.webmapjs.getDimension('time').currentValue);
+    const now = moment(moment.utc().format('YYYY-MM-DDTHH:mm:ss'));
+    console.log(adagucTime);
+    console.log(now);
+    const hourDifference = Math.floor(moment.duration(adagucTime.diff(now)).asHours());
+    if (hourDifference > 1) {
+      this.setState({ display: adagucTime.format('ddd D HH:mm').toString() + ' (+' + (hourDifference - 1) + ')' });
+    } else if (hourDifference < -1) {
+      this.setState({ display: adagucTime.format('ddd D HH:mm').toString() + ' (' + (hourDifference) + ')' });
+    } else {
+      this.setState({ display: '' });
+    }
+  }
+  resetState () {
+    this.setState({ display: '' });
+  }
+  render () {
+    const { webmapjs } = this.props;
+    if (webmapjs !== undefined) {
+      if (this.listenersInitialized === undefined) { // TODO mount/unmount
+        this.listenersInitialized = true;
+        webmapjs.addListener('ondimchange', this.updateState, true);
+        webmapjs.addListener('onmapdimupdate', this.updateState, true);
+        webmapjs.addListener('onmapdimchange', this.updateState, true);
+      }
+      return <span>{this.state.display}</span>;
+    } else {
+      return <div />;
+    }
+  }
+}
+ModelTime.propTypes = {
+  webmapjs: React.PropTypes.object
 };
 
 class MenuItem extends React.Component {

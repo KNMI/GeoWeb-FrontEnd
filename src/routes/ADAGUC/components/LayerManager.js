@@ -43,14 +43,13 @@ export default class LayerManager extends React.Component {
   }
 
   toggleLayer (type, i) {
-    const { layers, dispatch, actions } = this.props;
-    const { datalayers, overlays } = layers;
+    const { dispatch, actions } = this.props;
     switch (type) {
       case 'overlay':
-        dispatch(actions.alterLayer(i, type, { enabled: !overlays[i].enabled }));
+        dispatch(actions.alterLayer(i, type, { enabled: !this.state.overlays[i].enabled }));
         break;
       case 'data':
-        dispatch(actions.alterLayer(i, type, { enabled: !datalayers[i].enabled }));
+        dispatch(actions.alterLayer(i, type, { enabled: !this.state.layers[i].enabled }));
         break;
       default:
         console.log('Reducer saw an unknown value');
@@ -59,19 +58,18 @@ export default class LayerManager extends React.Component {
   }
 
   deleteLayer (type, i) {
-    const { layers, dispatch, actions } = this.props;
-    const { datalayers, overlays } = layers;
-    switch (type) {
-      case 'overlay':
-        dispatch(actions.deleteLayer(overlays[i], type));
-        break;
-      case 'data':
-        dispatch(actions.deleteLayer(datalayers[i], type));
-        break;
-      default:
-        console.log('Reducer saw an unknown value');
-        break;
-    }
+    const { dispatch, actions } = this.props;
+    dispatch(actions.deleteLayer(i, type));
+    // switch (type) {
+    //   case 'overlay':
+    //     break;
+    //   case 'data':
+    //     dispatch(actions.deleteLayer(i, type));
+    //     break;
+    //   default:
+    //     console.log('Reducer saw an unknown value');
+    //     break;
+    // }
   }
   getBaseLayerName (layer) {
     switch (layer.name) {
@@ -108,7 +106,6 @@ export default class LayerManager extends React.Component {
     }
   }
   renderBaseLayerSet (layers) {
-    console.log('baselayer: ': layers);
     if (!layers || layers.length === 0) {
       return <div />;
     } else {
@@ -124,7 +121,6 @@ export default class LayerManager extends React.Component {
     }
   }
   renderOverLayerSet (layers) {
-    console.log('overlay: ', layers);
     if (!layers || layers.length === 0) {
       return <div />;
     } else {
@@ -168,7 +164,6 @@ export default class LayerManager extends React.Component {
     });
   }
   updateState () {
-    console.log('newstate!', this.props.webmapjs.getLayers());
     this.setState({
       layers: this.props.webmapjs.getLayers(),
       baselayers: this.props.webmapjs.getBaseLayers().filter((layer) => !layer.keepOnTop),
@@ -186,7 +181,6 @@ export default class LayerManager extends React.Component {
         webmapjs.addListener('onlayerchange', this.updateState, true);
         this.updateState();
       }
-      console.log(this.state.layers);
       return (
         <div style={{ marginLeft: '5px' }} >
           {this.renderOverLayerSet(this.state.overlays)}

@@ -247,7 +247,7 @@ export default class TimeComponent extends React.Component {
     let isodate = this.toISO8601(value);
     // eslint-disable-next-line no-undef
     var date = parseISO8601DateToDate(isodate);
-    this.props.webmapjs.setDimension('time', date.toISO8601(), false);
+    this.props.webmapjs.setDimension('time', date.toISO8601(), true);
     this.props.webmapjs.draw();
     this.eventOnDimChange();
   }
@@ -311,7 +311,7 @@ export default class TimeComponent extends React.Component {
     /* istanbul ignore next */
     try {
       let newDate = this.canvasDateInterval.getDateAtTimeStep(newTimeStep, true);
-      this.props.webmapjs.setDimension('time', newDate.toISO8601(), false);
+      this.props.webmapjs.setDimension('time', newDate.toISO8601(), true);
       this.props.webmapjs.draw();
       this.eventOnDimChange();
     } catch (e) {
@@ -321,7 +321,7 @@ export default class TimeComponent extends React.Component {
   handleButtonClickNow () {
     // eslint-disable-next-line no-undef
     let currentDate = getCurrentDateIso8601();
-    this.props.webmapjs.setDimension('time', currentDate.toISO8601(), false);
+    this.props.webmapjs.setDimension('time', currentDate.toISO8601(), true);
     this.props.webmapjs.draw();
     this.eventOnDimChange();
   }

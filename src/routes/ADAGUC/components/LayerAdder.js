@@ -16,7 +16,11 @@ export default class LayerAdder extends React.Component {
     this.handleCardClick = this.handleCardClick.bind(this);
     this.toggleModal = this.toggleModal.bind(this);
     this.generateMap = this.generateMap.bind(this);
+    this.toggleTab = this.toggleTab.bind(this);
     this.handleAddLayer = this.handleAddLayer.bind(this);
+  }
+  toggleTab () {
+    this.setState({ activeTab: this.state.activeTab === '1' ? '2' : '1' });
   }
   handleAddLayer (e) {
     const addItem = e[0];
@@ -105,7 +109,7 @@ export default class LayerAdder extends React.Component {
           <NavItem>
             <NavLink
               className={classnames({ active: this.state.activeTab === '2' })}
-              onClick={() => { this.toggleTab('2'); }} disabled={this.state.layers === null}
+              onClick={() => { this.toggleTab('2'); }} disabled={this.state.selectedSource === null}
             >
               (2) - Select { this.state.selectedSource ? this.getLayerName(this.state.selectedSource) : '' } Layer
             </NavLink>

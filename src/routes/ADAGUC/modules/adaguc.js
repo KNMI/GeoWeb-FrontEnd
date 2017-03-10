@@ -134,7 +134,7 @@ function deleteLayer (layerParams, layertype) {
   return {
     type: DELETE_LAYER,
     payload: {
-      removeLayer: layerParams,
+      idx: layerParams,
       type : layertype
     }
   };
@@ -386,14 +386,18 @@ const doReorderLayer = (state, payload) => {
 };
 
 const doDeleteLayer = (state, payload) => {
-  const { removeLayer, type } = payload;
+  const { idx, type } = payload;
   let fitleredLayers;
   switch (type) {
     case 'data':
-      fitleredLayers = Object.assign({}, state.layers, { datalayers: state.layers.datalayers.filter((layer) => !Object.equals(layer, removeLayer)) });
+      let datalayersCpy = state.layers.datalayers.map(a => Object.assign({}, a));
+      datalayersCpy.splice(idx, 1);
+      fitleredLayers = Object.assign({}, state.layers, { datalayers: datalayersCpy });
       break;
     case 'overlay':
-      fitleredLayers = Object.assign({}, state.layers, { overlays: state.layers.overlays.filter((layer) => !Object.equals(layer, removeLayer)) });
+      let overlaysCpy = state.layers.datalayers.map(a => Object.assign({}, a));
+      overlaysCpy.splice(idx, 1);
+      fitleredLayers = Object.assign({}, state.layers, { overlays: overlaysCpy });
       break;
     default:
       fitleredLayers = state.layers;
