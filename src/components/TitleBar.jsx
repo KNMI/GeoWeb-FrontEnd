@@ -15,6 +15,7 @@ class TitleBar extends Component {
       currentTime: moment.utc().format('YYYY MMM DD - HH:mm:ss').toString(),
       isOpen: false
     };
+    this.timer;
   }
   toggle () {
     this.setState({
@@ -26,10 +27,10 @@ class TitleBar extends Component {
     this.setState({ currentTime: time });
   }
   componentWillUnmount () {
-    clearInterval(this.state.currentTime);
+    clearInterval(this.timer);
   }
   componentDidMount () {
-    setInterval(this.setTime, 1000);
+    this.timer = setInterval(this.setTime, 1000);
     this.setState({ currentTime: moment.utc().format('YYYY MMM DD - HH:mm:ss').toString() });
   }
 

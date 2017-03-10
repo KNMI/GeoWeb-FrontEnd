@@ -1010,12 +1010,17 @@
     }
 
     this.removeAllLayers = function () {
+      for (var i = 0; i < layers.length; ++i) {
+        layers[i].setAutoUpdate(false);
+      }
       layers = [];
       mapdimensions = [];
+      callBack.triggerEvent('onlayeradd');
     };
 
     this.deleteLayer = function (layerToDelete) {
       if (layers.length <= 0) return;
+      layerToDelete.setAutoUpdate(false);
       var layerIndex = getLayerIndex(layerToDelete);
       if (layerIndex >= 0) {
         // move everything up with id's higher than this layer
@@ -1035,6 +1040,7 @@
           }
         }
       }
+      callBack.triggerEvent('onlayerchange');
       _map.rebuildMapDimensions();
     };
     this.moveLayerDown = function (layerToMove) {
@@ -1861,8 +1867,7 @@
           }
           // baseLayers[j].id=(-2)-j;;
         }
-        console.log('log from adaguc: new baselayers');
-        callBack.triggerEvent('onlayeradd');
+        callBack.triggerEvent('onlayerchange');
       } else baseLayers = undefined;
     };
 
@@ -2011,6 +2016,9 @@
 
     _map.destroy = function () {
       _map.stopAnimating();
+      for (var i = layers.length - 1; i >= 0; i--) {
+        layers[i].setAutoUpdate(false);
+      }
       detachEvents();
     };
 
