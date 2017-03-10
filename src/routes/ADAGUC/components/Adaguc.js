@@ -78,7 +78,7 @@ export default class Adaguc extends React.Component {
     // const deltaMS = (moment.duration(timeTwo.diff(timeOne)).subtract(moment.duration('00:00:30'))).asMilliseconds();
     // Difference between two timesteps as refresh difference
     const deltaMS = moment.duration(timeTwo.diff(timeOne)).asMilliseconds() / 2.0;
-    layer.setAutoUpdate(true, deltaMS, this.animateLayer);
+    layer.setAutoUpdate(true, deltaMS, this.updateAnimation);
 
     layer.onReady = undefined;
   }
@@ -240,7 +240,7 @@ export default class Adaguc extends React.Component {
       }
     ];
     const { setCut } = actions;
-    const { sources, layers } = adagucProperties;
+    const { sources } = adagucProperties;
     const { geojson } = adagucmapdraw;
     const coords = geojson;
     const phenomena = ['OBSC TS', 'EMBD TS', 'FRQ TS', 'SQL TS', 'OBSC TSGR', 'EMBD TSGR', 'FRQ TSGR',
@@ -302,7 +302,7 @@ export default class Adaguc extends React.Component {
           </div>
           <div id='infocontainer' style={{ margin: 0, display: 'flex', flex: '0 0 auto' }}>
             <TimeComponent ref='TimeComponent' webmapjs={this.webMapJS} width={timeComponentWidth} onChangeAnimation={this.onChangeAnimation} />
-            <LayerManager webmapjs={this.webMapJS} dispatch={dispatch} actions={actions} layers={layers} />
+            <LayerManager webmapjs={this.webMapJS} dispatch={dispatch} actions={actions} />
             <LayerAdder dispatch={dispatch} actions={actions} sources={sources} />
           </div>
         </div>

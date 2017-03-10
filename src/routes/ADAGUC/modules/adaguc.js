@@ -60,6 +60,7 @@ Object.equals = function (x, y) {
 // Actions
 // ------------------------------------
 function createMap (sources, overlays) {
+  console.log(sources);
   return {
     type: CREATE_MAP,
     payload: {

@@ -78,8 +78,10 @@ function WMJSLayer (options) {
     if (val !== this.autoupdate) {
       this.autoupdate = val;
       if (!val) {
+        console.log('removing autoupdater');
         clearInterval(this.timer);
       } else {
+        console.log('setting autoupdater');
         this.timer = setInterval((function (self) {
           return function () {
             console.log('autoupdate layer');

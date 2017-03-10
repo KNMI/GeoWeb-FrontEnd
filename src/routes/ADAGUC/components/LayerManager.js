@@ -10,27 +10,33 @@ export default class LayerManager extends React.Component {
     super();
     this.deleteLayer = this.deleteLayer.bind(this);
     this.toggleLayer = this.toggleLayer.bind(this);
+    this.updateState = this.updateState.bind(this);
     this.getLayerName = this.getLayerName.bind(this);
+    this.state = {
+      layers: [],
+      baselayers: [],
+      overlays: []
+    };
   }
   getLayerName (layer) {
     if (layer) {
-      switch (layer.title) {
-        case 'OBS':
-          return 'Observations';
-        case 'SAT':
+      switch (layer.service) {
+        case 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.SAT.cgi?':
           return 'Satellite';
-        case 'LGT':
-          return 'Lightning';
-        case 'HARM_N25_EXT':
-          return 'HARMONIE (EXT)';
-        case 'HARM_N25':
-          return 'HARMONIE';
-        case 'OVL':
-          return 'Overlay';
-        case 'RADAR_EXT':
-          return 'Radar (EXT)';
-        default:
+        case 'http://geoservices.knmi.nl/cgi-bin/HARM_N25.cgi?':
+          return 'HARMONIE (Ext)';
+        case 'http://geoservices.knmi.nl/cgi-bin/RADNL_OPER_R___25PCPRR_L3.cgi?':
+          return 'Radar (Ext)';
+        case 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.RADAR.cgi?':
           return 'Radar';
+        case 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.HARM_N25.cgi?':
+          return 'HARMONIE';
+        case 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.OBS.cgi?':
+          return 'Observations';
+        case 'http://bvmlab-218-41.knmi.nl/cgi-bin/WWWRADAR3.cgi?':
+          return 'Lightning';
+        default:
+          return layer.serviceTitle;
       }
     }
     return null;
@@ -67,7 +73,42 @@ export default class LayerManager extends React.Component {
         break;
     }
   }
+  getBaseLayerName (layer) {
+    switch (layer.name) {
+      case 'streetmap':
+        return 'OpenStreetMap';
+      case 'naturalearth2':
+        return 'Natural Earth';
+      default:
+        return layer.name;
+    }
+  }
+  getOverLayerName (layer) {
+    switch (layer.name) {
+      case 'countries':
+        return 'Countries';
+      case 'neddis':
+        return 'Dutch districts';
+      case 'FIR_DEC_2013_EU':
+        return 'FIR areas';
+      case 'gemeenten':
+        return 'Gemeenten';
+      case 'northseadistricts':
+        return 'North Sea districts';
+      case 'nwblightP':
+        return 'Prov. wegen';
+      case 'provincies':
+        return 'Provincies';
+      case 'nwblightR':
+        return 'Rijkswegen';
+      case 'waterschappen':
+        return 'Waterschappen';
+      default:
+        return layer.name;
+    }
+  }
   renderBaseLayerSet (layers) {
+    console.log('baselayer: ': layers);
     if (!layers || layers.length === 0) {
       return <div />;
     } else {
@@ -75,7 +116,7 @@ export default class LayerManager extends React.Component {
         return (
           <ListGroupItem id='layerinfo' key={'base' + i} style={{ marginLeft: '32px' }}>
             <Icon style={{ marginRight: '13px' }} id='enableButton' name={layer && layer.enabled ? 'check-square-o' : 'square-o'} onClick={() => this.toggleLayer('base', i)} />
-            <LayerName name={layer ? (layer.label ? layer.label : (layer.title ? layer.title : '???')) : '???'}
+            <LayerName name={this.getBaseLayerName(layer)}
               i={i} target={'baselayer' + i} layer={layer} dispatch={this.props.dispatch} actions={this.props.actions} />
           </ListGroupItem>
         );
@@ -83,6 +124,7 @@ export default class LayerManager extends React.Component {
     }
   }
   renderOverLayerSet (layers) {
+    console.log('overlay: ', layers);
     if (!layers || layers.length === 0) {
       return <div />;
     } else {
@@ -91,7 +133,7 @@ export default class LayerManager extends React.Component {
           <ListGroupItem id='layerinfo' key={'over' + i} style={{ marginLeft: '32px' }}>
             <Icon id='enableButton' name={layer.enabled ? 'check-square-o' : 'square-o'} onClick={() => this.toggleLayer('overlay', i)} />
             <Icon id='deleteButton' name='times' onClick={() => this.deleteLayer('overlay', i)} />
-            <LayerSource name={layer.label ? layer.label : layer.title} />
+            <LayerSource name={this.getOverLayerName(layer)} />
           </ListGroupItem>
         );
       });
@@ -99,7 +141,7 @@ export default class LayerManager extends React.Component {
   }
 
   renderLayerSet (layers) {
-    if (!layers || layers.length === 0) {
+    if (!layers) {
       return <div />;
     } else {
       return layers.map((layer, i) => {
@@ -110,28 +152,51 @@ export default class LayerManager extends React.Component {
             <Icon id='enableButton' name={layer.enabled ? 'check-square-o' : 'square-o'} onClick={() => this.toggleLayer('data', i)} />
             <Icon id='deleteButton' name='times' onClick={() => this.deleteLayer('data', i)} />
             <LayerSource name={this.getLayerName(layer)} />
-            <LayerName name={layer.label ? layer.label : layer.title} i={i} target={'datalayer' + i} layer={layer} dispatch={this.props.dispatch} actions={this.props.actions} />
-            <LayerStyle style={layer.styleTitle} layer={layer} target={'datalayerstyle' + i} i={i} dispatch={this.props.dispatch} actions={this.props.actions} />
+            <LayerName name={layer.title} i={i} target={'datalayer' + i} layer={layer} dispatch={this.props.dispatch} actions={this.props.actions} />
+            <LayerStyle style={layer.currentStyle} layer={layer} target={'datalayerstyle' + i} i={i} dispatch={this.props.dispatch} actions={this.props.actions} />
             <LayerOpacity layer={layer} target={'datalayeropacity' + i} i={i} dispatch={this.props.dispatch} actions={this.props.actions} />
-            {layer.service && layer.service.includes('HARM') ? <LayerModelRun layer={layer} /> : <div />}
+            <LayerModelRun layer={layer} />
           </ListGroupItem>);
       });
     }
   }
-
+  componentWillUnmount () {
+    this.setState({
+      layers: [],
+      baselayers: [],
+      overlays: []
+    });
+  }
+  updateState () {
+    console.log('newstate!', this.props.webmapjs.getLayers());
+    this.setState({
+      layers: this.props.webmapjs.getLayers(),
+      baselayers: this.props.webmapjs.getBaseLayers().filter((layer) => !layer.keepOnTop),
+      overlays: this.props.webmapjs.getBaseLayers().filter((layer) => layer.keepOnTop)
+    });
+  }
   render () {
-    const { layers } = this.props;
-    if (!layers || Object.keys(layers).length === 0) {
+    const { webmapjs } = this.props;
+    if (webmapjs !== undefined) {
+      if (this.listenersInitialized === undefined) { // TODO mount/unmount
+        this.listenersInitialized = true;
+        webmapjs.addListener('onlayeradd', this.updateState, true);
+        webmapjs.addListener('onmapdimupdate', this.updateState, true);
+        webmapjs.addListener('ondimchange', this.updateState, true);
+        webmapjs.addListener('onlayerchange', this.updateState, true);
+        this.updateState();
+      }
+      console.log(this.state.layers);
+      return (
+        <div style={{ marginLeft: '5px' }} >
+          {this.renderOverLayerSet(this.state.overlays)}
+          {this.renderLayerSet(this.state.layers)}
+          {this.renderBaseLayerSet(this.state.baselayers)}
+        </div>
+      );
+    } else {
       return <div />;
     }
-    const { datalayers, overlays, baselayer } = layers;
-    return (
-      <div style={{ marginLeft: '5px' }} >
-        {this.renderOverLayerSet(overlays)}
-        {this.renderLayerSet(datalayers)}
-        {this.renderBaseLayerSet([baselayer], 'base')}
-      </div>
-    );
   }
 }
 
@@ -139,6 +204,7 @@ LayerManager.propTypes = {
   dispatch: React.PropTypes.func.isRequired,
   actions: React.PropTypes.object.isRequired,
   layers: React.PropTypes.object,
+  webmapjs: React.PropTypes.object,
   baselayers: React.PropTypes.array
 };
 
@@ -194,6 +260,7 @@ class LayerName extends React.Component {
       this.props.target.includes('data')
       ? 'data'
       : 'base', { name: wantedLayer.name, label: wantedLayer.text, style: undefined, styleTitle: undefined }));
+    this.setState({ popoverOpen: false });
   }
   render () {
     const { i, layer, target } = this.props;
@@ -234,65 +301,45 @@ class LayerStyle extends React.Component {
   constructor () {
     super();
     this.state = {
-      activeLayer: null,
-      styles: [],
       popoverOpen: false
     };
     this.alterLayer = this.alterLayer.bind(this);
     this.togglePopover = this.togglePopover.bind(this);
   }
-  // istanbul ignore next
-  componentWillMount () {
-    console.log();
-    // eslint-disable-next-line no-undef
-    if (typeof WMJSLayer === 'function') {
-      // eslint-disable-next-line no-undef
-      this.setState({ activeLayer: new WMJSLayer({ ...this.props.layer, onReady: (t) => this.setState({ styles: t.styles }) }) });
-    }
-  }
+
   // istanbul ignore next
   togglePopover (e, layer, i) {
     this.setState({ popoverOpen: !this.state.popoverOpen });
-    // eslint-disable-next-line no-undef
-    if (typeof WMJSLayer === 'function') {
-      if (!this.state.layers || this.state.layer !== this.props.layer) {
-        // eslint-disable-next-line no-undef
-        this.setState({ activeLayer: new WMJSLayer({ ...this.props.layer, onReady: (t) => { console.log(this.state.activeLayer); this.setState({ styles: t.styles }); } }) });
-      }
-    }
   }
+
   alterLayer (e) {
     // TODO .... this
     const indexInLayerList = e.currentTarget.id;
-    var indexOfPossibleLayers;
-    for (indexOfPossibleLayers = 0; indexOfPossibleLayers < this.state.styles.length; ++indexOfPossibleLayers) {
-      if (this.state.styles[indexOfPossibleLayers].title === e.currentTarget.innerHTML) {
-        break;
-      }
-    }
-    const wantedStyle = this.state.styles[indexOfPossibleLayers];
+    const wantedStyle = this.props.layer.styles.filter((style) => style.title === e.currentTarget.innerHTML)[0];
     this.props.dispatch(this.props.actions.alterLayer(indexInLayerList, this.props.target.includes('data') ? 'data' : 'base', { style: wantedStyle.name, styleTitle: wantedStyle.title }));
     this.setState({ popoverOpen: false });
   }
 
   render () {
     const { i, target, layer } = this.props;
+    if (this.props.layer) {
+      const styleObj = this.props.layer.getStyleObject(this.props.style);
+      return (
+        <div style={{ marginBottom: '-6px' }}>
+          <Popover width={'auto'} key={'stylepopover' + i} placement='bottom' isOpen={this.state.popoverOpen} target={target} toggle={() => this.togglePopover(layer, i)}>
+            <PopoverTitle>Select style</PopoverTitle>
+            <PopoverContent>{this.props.layer.styles ? this.props.layer.styles.map((style, q) => <li id={i} onClick={this.alterLayer} key={q}>{style.title}</li>) : <li />}</PopoverContent>
+          </Popover>
 
-    return (
-      <div style={{ marginBottom: '-6px' }}>
-        <Popover width={'auto'} key={'stylepopover' + i} placement='bottom' isOpen={this.state.popoverOpen} target={target}>
-          <PopoverTitle>Select style</PopoverTitle>
-          <PopoverContent>{this.state.styles ? this.state.styles.map((style, q) => <li id={i} onClick={this.alterLayer} key={q}>{style.title}</li>) : ''}</PopoverContent>
-        </Popover>
-
-        <Badge pill>
-          {this.props.style ? this.props.style : (this.state.activeLayer && this.state.activeLayer.currentStyle
-            ? this.state.activeLayer.getStyleObject(this.state.activeLayer.currentStyle).title
-            : 'default')}
-          <Icon style={{ marginLeft: '5px' }} id={target} name='pencil' onClick={() => this.togglePopover(layer, i)} />
-        </Badge>
-      </div>
-    );
+          <Badge pill>
+            {styleObj ? styleObj.title : 'default'}
+            <Icon style={{ marginLeft: '5px' }} id={target} name='pencil' onClick={() => this.togglePopover(layer, i)} />
+          </Badge>
+        </div>
+      );
+    } else {
+      return <div />;
+    }
   }
 }
 LayerStyle.propTypes = {
@@ -308,28 +355,13 @@ class LayerModelRun extends React.Component {
   constructor () {
     super();
     this.state = {
-      activeLayer: null,
       refTime: null
     };
   }
-  // istanbul ignore next
-  componentWillMount () {
-    // eslint-disable-next-line no-undef
-    if (typeof WMJSLayer === 'function') {
-      // eslint-disable-next-line no-undef
-      this.layer = new WMJSLayer({
-        ...this.props.layer,
-        onReady: (t) => {
-          const refTime = t.getDimension('reference_time');
-          if (refTime) {
-            this.setState({ refTime: refTime.currentValue });
-          }
-        }
-      });
-    }
-  }
+
   render () {
-    return this.state.refTime ? <Badge pill>{this.state.refTime}</Badge> : <div />;
+    const refTime = this.props.layer.getDimension('reference_time');
+    return refTime ? <Badge pill>{refTime.currentValue}</Badge> : <div />;
   }
 }
 
@@ -364,7 +396,7 @@ class LayerOpacity extends React.Component {
 
     return (
       <div style={{ marginBottom: '-6px' }}>
-        <Popover width={'auto'} key={'stylepopover' + i} placement='bottom' isOpen={this.state.popoverOpen} target={target}>
+        <Popover width={'auto'} key={'stylepopover' + i} placement='bottom' isOpen={this.state.popoverOpen} target={target} toggle={() => this.togglePopover(layer, i)}>
           <PopoverTitle style={{ paddingLeft: '9px', paddingRight: '8px' }}>Opacity</PopoverTitle>
           <PopoverContent>
             <ButtonGroup vertical>
