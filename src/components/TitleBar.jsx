@@ -35,15 +35,27 @@ class TitleBar extends Component {
 
   doLogin () {
     const rootURL = 'http://birdexp07.knmi.nl:8080';
+    // const rootURL = 'http://bhw451.knmi.nl:8080';
     const { dispatch, actions } = this.props;
-    axios.get(rootURL + '/login?username=met1&password=met1', { withCredentials: true }).then(src => {
+    axios({
+      method: 'get',
+      url: rootURL + '/login?username=met1&password=met1',
+      withCredentials: true,
+      responseType: 'json'
+    }).then(src => {
       const data = src.data;
-      if (data.userName !== null) {
-        dispatch(actions.login(data.userName));
+      if (data.username !== null) {
+        dispatch(actions.login(data.username));
         axios.all(['getServices', 'getOverlayServices'].map((req) => axios.get(rootURL + '/' + req, { withCredentials: true }))).then(
           axios.spread((services, overlays) => dispatch(actions.createMap(services.data, overlays.data[0])))
         );
       }
+    }).catch(error => {
+      dispatch(actions.login('Unauthorized'));
+      console.log(error.response.data.error);
+      console.log(error.response.data.message);
+      console.log(error.response.status);
+      console.log(error.response.headers);
     });
   }
   render () {

@@ -82,6 +82,7 @@ function WMJSLayer (options) {
       } else {
         this.timer = setInterval((function (self) {
           return function () {
+            console.log('autoupdate layer');
             self.parseLayer(callback, true, "WMJSLayer::autoupdate");
           };
         })(this), interval);

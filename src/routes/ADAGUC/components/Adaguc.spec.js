@@ -36,6 +36,7 @@ describe('(Component) Adaguc', () => {
 
   it('Renders a div', () => {
     const _component = shallow(<Adaguc adagucProperties={_globalState.adagucProperties} dispatch={_dispatchSpy} actions={actions} />);
+    // console.log(_component);
     expect(_component.type()).to.eql('div');
   });
 });
