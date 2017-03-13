@@ -11,8 +11,7 @@ const AdagucMapDraw = React.createClass({
     geojson   : React.PropTypes.object,
     dispatch  : React.PropTypes.func.isRequired,
     isInEditMode  : React.PropTypes.bool,
-    isInDeleteMode  : React.PropTypes.bool,
-    actions: React.PropTypes.object
+    isInDeleteMode  : React.PropTypes.bool
   },
   getDefaultProps () {
     return {

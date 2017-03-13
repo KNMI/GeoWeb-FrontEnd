@@ -188,9 +188,7 @@ export default class LayerManager extends React.Component {
 LayerManager.propTypes = {
   dispatch: React.PropTypes.func.isRequired,
   actions: React.PropTypes.object.isRequired,
-  layers: React.PropTypes.object,
-  webmapjs: React.PropTypes.object,
-  baselayers: React.PropTypes.array
+  webmapjs: React.PropTypes.object
 };
 
 // ----------------------------------------- \\

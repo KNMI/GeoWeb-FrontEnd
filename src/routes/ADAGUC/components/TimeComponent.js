@@ -390,8 +390,5 @@ export default class TimeComponent extends React.Component {
 }
 TimeComponent.propTypes = {
   onChangeAnimation: React.PropTypes.func,
-  date: React.PropTypes.string,
-  webmapjs: React.PropTypes.object,
-  width: React.PropTypes.number,
-  height: React.PropTypes.number
+  webmapjs: React.PropTypes.object
 };
