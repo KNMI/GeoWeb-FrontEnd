@@ -12,7 +12,7 @@ class AppContainer extends Component {
     const { routes, store } = this.props;
     return (
       <Provider store={store}>
-        <div style={{ height: '100%' }}>
+        <div style={{ height: 'inherit' }}>
           <Router history={hashHistory} children={routes} />
         </div>
       </Provider>
