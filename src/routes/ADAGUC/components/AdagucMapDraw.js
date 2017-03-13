@@ -480,7 +480,7 @@ const AdagucMapDraw = React.createClass({
   render () {
     const { webmapjs } = this.props;
     if (this.disabled === undefined) {
-      this.disabled = true;
+      this.disabled = this.props.isInDeleteMode;
     }
     if (webmapjs !== undefined) {
       if (this.listenersInitialized === undefined) {
