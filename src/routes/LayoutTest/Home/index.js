@@ -1,5 +1,6 @@
 import TasksContainer from '../../../containers/TasksContainer';
 import Inspector from '../../../components/Inspector';
+import Panel from '../../../components/Panel';
 import TitleBarContainer from '../../../containers/TitleBarContainer';
 import { connect } from 'react-redux';
 
@@ -29,7 +30,7 @@ export default () => ({
   components : {
     header: connect(mapStateToHeaderProps)(TitleBarContainer),
     leftSideBar: connect(mapStateToLeftSideBarProps)(TasksContainer),
-    mainViewport: connect(mapStateToMainViewportProps)(Inspector),
+    mainViewport: connect(mapStateToMainViewportProps)(Panel),
     rightSideBar: connect(mapStateToRightSideBarProps)(Inspector)
   }
 });

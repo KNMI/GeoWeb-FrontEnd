@@ -1,5 +1,5 @@
 import React, { Component, PropTypes } from 'react';
-import { Button } from 'reactstrap';
+import { Button, Row, Col } from 'reactstrap';
 import CollapseOmni from '../components/CollapseOmni';
 import Panel from '../components/Panel';
 
@@ -22,12 +22,15 @@ class TasksContainer extends Component {
   render () {
     const { title } = this.props;
     return (
-      <div>
-        <Button color='primary' onClick={this.toggleHor} style={{ margin: '0.5rem' }}>Toggle horizontal</Button>
-        <CollapseOmni className='collapseOmni' isOpen={this.state.collapseHor} isHorizontal collapsedSize={20}>
-          <Panel title={title || 'Oops'} />
+      <Col className='TasksContainer'>
+        <CollapseOmni className='CollapseOmni' isOpen={this.state.collapseHor} isHorizontal collapsedSize={68}>
+          <Panel className='Panel' title={title || 'Oops'}>
+            <Row>
+              <Button color='primary' onClick={this.toggleHor} style={{ margin: '0.5rem' }}>Toggle horizontal</Button>
+            </Row>
+          </Panel>
         </CollapseOmni>
-      </div>
+      </Col>
     );
   }
 }

@@ -4,14 +4,12 @@
 }
 
 .collapse.remain {
-  display: block;
+  display: inherit;
   white-space: nowrap;
   overflow: hidden;
 }
 
 .collapsing.height {
-  position: relative;
-  height: 0;
   width: auto;
   overflow: hidden;
   white-space: nowrap;
@@ -22,8 +20,6 @@
 }
 
 .collapsing.width {
-  position: relative;
-  width: 0;
   height: auto;
   overflow: hidden;
   white-space: nowrap;

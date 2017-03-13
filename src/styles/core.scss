@@ -102,7 +102,7 @@ body {
     border-bottom: 1px solid #01405e;
     box-shadow: $shadow;
     padding: 0.1rem 0.5rem;
-    margin-bottom: 0.3em;
+    margin-bottom: 0.2rem;
     width: 100%;
   }
 
@@ -165,15 +165,65 @@ body {
   }
 }
 
-.panel {
+.container-fluid {
+  height: inherit;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 0;
+}
+
+.container-fluid div:not(.collapse) {
+  display: inherit;
+}
+
+.row.Header {
+  margin: 0;
+}
+
+.MainSection {
+  flex: 1;
+  padding: 0;
+  margin: 0 0.2rem 0.2rem 0.2rem;
+}
+
+.TasksContainer {
+  flex: 1;
+  padding: 0;
+}
+
+.LeftSideBar {
+  flex-direction: column;
+}
+
+.Panel {
+  flex-direction: column;
+  width: 100%;
+}
+
+.Panel > .title {
+  box-sizing: border-box;
+  background: white; /* $inverse-hover-color; */
+  border-bottom: 0.06rem solid #4bb0ce;
+  @extend .rounded-top;
+  box-shadow: 0 0.05rem 0.25rem rgba(0,0,0,0.5);
+  margin: 0.25rem;
+  margin-bottom: 0;
+  padding: 0.33rem;
+  overflow: hidden;
+}
+
+.Panel > .content {
   box-sizing: border-box;
   background: white;
   border-bottom: 0.06rem solid $inverse-hover-color;
-  border-radius: $radius-size;
-  box-shadow: 0 0.5rem 0.5rem rgba(0,0,0,0.5);
+  @extend .rounded-bottom;
+  box-shadow: 0 0.15rem 0.25rem rgba(0,0,0,0.5);
   margin: 0.25rem;
+  margin-top: 0;
   padding: 0.33rem;
-  height: 200px;
+  overflow: hidden;
+  flex: 1;
 }
 
 // #adaguccontainer {

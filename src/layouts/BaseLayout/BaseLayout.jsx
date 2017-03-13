@@ -6,11 +6,11 @@ class BaseLayout extends Component {
   render () {
     const { header, leftSideBar, mainViewport, rightSideBar } = this.props;
     return (
-      <Container fluid style={{ minHeight: '100vh' }} className={this.props.routes[1] && this.props.routes[1].path === 'layout_test' ? 'test' : ''}>
+      <Container fluid className={this.props.routes[1] && this.props.routes[1].path === 'layout_test' ? 'test' : ''}>
         <Row className='Header'>
           {header || 'Oops'}
         </Row>
-        <Row>
+        <Row className='MainSection'>
           <Col xs='auto' className='LeftSideBar'>
             {leftSideBar || 'Oops'}
           </Col>

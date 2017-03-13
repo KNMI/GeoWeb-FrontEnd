@@ -7,7 +7,7 @@ const SHOWN = 'SHOWN';
 const HIDE = 'HIDE';
 const HIDDEN = 'HIDDEN';
 
-// a straight copy from reactstrap/utils.js:mapToCssModules
+// a copy, straight from reactstrap/utils.js:mapToCssModules
 const mapToCssModules = function (className, cssModule) {
   if (!cssModule) return className;
   return className.split(' ').map(c => cssModule[c] || c).join(' ');
