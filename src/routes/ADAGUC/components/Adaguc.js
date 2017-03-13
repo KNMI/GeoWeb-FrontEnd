@@ -41,12 +41,10 @@ export default class Adaguc extends React.Component {
   /* istanbul ignore next */
   updateAnimation (layer) {
     if (!layer) {
-      console.log('Layer not found');
       return;
     }
     var timeDim = layer.getDimension('time');
     if (!timeDim) {
-      console.log('Time dim not found');
       return;
     }
     var numTimeSteps = timeDim.size();
@@ -124,7 +122,6 @@ export default class Adaguc extends React.Component {
     this.initAdaguc(this.refs.adaguc);
   }
   componentWillReceiveProps (nextProps) {
-    // console.log('componentWillReceiveProps', nextProps);
   }
   componentWillMount () {
     /* Component will unmount, set flag that map is not created */
@@ -324,11 +321,11 @@ export default class Adaguc extends React.Component {
               disabled={this.disabled}>{adagucmeasuredistance.isInEditMode === false ? 'Measure distance' : 'Exit measuring mode'}
             </Button>
             <ModelTime webmapjs={this.webMapJS} />
-          </div>
-          <div id='infocontainer' style={{ margin: 0, display: 'flex', flex: '0 0 auto' }}>
-            <TimeComponent ref='TimeComponent' webmapjs={this.webMapJS} width={timeComponentWidth} onChangeAnimation={this.onChangeAnimation} />
-            <LayerManager webmapjs={this.webMapJS} dispatch={dispatch} actions={actions} />
-            <LayerAdder dispatch={dispatch} actions={actions} sources={sources} />
+            <div id='infocontainer' style={{ margin: 0, display: 'flex', flex: '0 0 auto' }}>
+              <TimeComponent ref='TimeComponent' webmapjs={this.webMapJS} width={timeComponentWidth} onChangeAnimation={this.onChangeAnimation} />
+              <LayerManager webmapjs={this.webMapJS} dispatch={dispatch} actions={actions} />
+              <LayerAdder dispatch={dispatch} actions={actions} sources={sources} />
+            </div>
           </div>
         </div>
       </div>

@@ -34,8 +34,8 @@ export default class TimeComponent extends React.Component {
   }
   /* istanbul ignore next */
   eventOnDimChange () {
-    // if (!this.props.webmapjs) return;
-    // this.drawCanvas();
+    if (!this.props.webmapjs) return;
+    this.drawCanvas();
 
     let timeDim = this.props.webmapjs.getDimension('time');
 
@@ -98,25 +98,21 @@ export default class TimeComponent extends React.Component {
     this.startDate.add(new DateInterval(0, 0, 0, 0, 0, 0));
     // eslint-disable-next-line no-undef
     this.endDate.add(new DateInterval(0, 0, 0, this.timeWidth, 0, 0));
-    // console.log(startDate.toISO8601());
     let canvasDateIntervalStr = this.startDate.toISO8601() + '/' + this.endDate.toISO8601() + '/PT1M';
-    // console.log(canvasDateIntervalStr);
     // eslint-disable-next-line
     this.canvasDateInterval = new parseISOTimeRangeDuration(canvasDateIntervalStr);
-    // console.log(canvasDateInterval);
     // let sliderStartIndex = canvasDateInterval.getTimeStepFromISODate(startDate.toISO8601());
     let sliderCurrentIndex = -1;
     try {
       sliderCurrentIndex = this.canvasDateInterval.getTimeStepFromISODate(currentDate.toISO8601(), true);
     } catch (e) {
-      // Current date is out of range
-      // console.log(e);
+      // ???????
+      // Apparantly we're reliant on exceptions
     }
     let sliderMapIndex = this.canvasDateInterval.getTimeStepFromISODate(timeDim.currentValue);
     let sliderStopIndex = this.canvasDateInterval.getTimeStepFromISODate(this.endDate.toISO8601());
 
     let canvasDateIntervalStrHour = this.startDate.toISO8601() + '/' + this.endDate.toISO8601() + '/PT1H';
-    // // console.log(canvasDateIntervalStr);
     // eslint-disable-next-line no-undef
     // eslint-disable-next-line
     let canvasDateIntervalHour = new parseISOTimeRangeDuration(canvasDateIntervalStrHour);
@@ -230,9 +226,8 @@ export default class TimeComponent extends React.Component {
       // print decimal with fixed length (preceding zero's)
       let string = input + '';
       let len = width - string.length;
-      let j = '';
       let zeros = '';
-      for (j = 0; j < len; j++) {
+      for (let j = 0; j < len; j++) {
         zeros += '0' + zeros;
       }
       string = zeros + string;
@@ -243,7 +238,6 @@ export default class TimeComponent extends React.Component {
   }
   /* istanbul ignore next */
   setNewDate (value) {
-    // console.log('update');
     let isodate = this.toISO8601(value);
     // eslint-disable-next-line no-undef
     var date = parseISO8601DateToDate(isodate);
@@ -315,7 +309,7 @@ export default class TimeComponent extends React.Component {
       this.props.webmapjs.draw();
       this.eventOnDimChange();
     } catch (e) {
-      console.log(e);
+      throw new Error('311: ', e);
     }
   }
   handleButtonClickNow () {
@@ -334,17 +328,6 @@ export default class TimeComponent extends React.Component {
     let date = this.decomposeDateString(this.state.value);
     date.hour += 1;
     this.setNewDate(date);
-  }
-  onMouseMoveCanvas (x, y) {
-    // let t = x / this.ctx.canvas.clientWidth;
-    // let s = this.canvasDateInterval.getTimeSteps() - 1;
-    // let newTimeStep = parseInt(t * s);
-    // try {
-    //   this.hoverDate = this.canvasDateInterval.getDateAtTimeStep(newTimeStep, true);
-    //   this.eventOnDimChange();
-    // } catch (e) {
-    //   console.log(e);
-    // }
   }
 
   render () {
@@ -377,8 +360,7 @@ export default class TimeComponent extends React.Component {
         <div style={{ display: 'flex', flex: '0 0 auto', border:'0px solid blue', margin: '0px 2px 0px 2px', padding: 0, background:'white' }}>
           <CanvasComponent width={this.state.width - 803} height={150}
             onRenderCanvas={this.onRenderCanvas}
-            onClick={this.onClickCanvas}
-            onMouseMove={this.onMouseMoveCanvas} />
+            onClick={this.onClickCanvas} />
         </div>
         <div style={{ display: 'flex', flex: '0 0 auto' }}>
           <Button color='primary' style={{ padding:'28px 5px 30px 5px' }} onClick={this.handleButtonClickNextPage}>
