@@ -396,7 +396,7 @@ const doDeleteLayer = (state, payload) => {
       fitleredLayers = Object.assign({}, state.layers, { datalayers: datalayersCpy });
       break;
     case 'overlay':
-      let overlaysCpy = state.layers.datalayers.map(a => Object.assign({}, a));
+      let overlaysCpy = state.layers.overlays.map(a => Object.assign({}, a));
       overlaysCpy.splice(idx, 1);
       fitleredLayers = Object.assign({}, state.layers, { overlays: overlaysCpy });
       break;
