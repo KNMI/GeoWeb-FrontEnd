@@ -7,7 +7,6 @@ class Panel extends Component {
     return (
       <div className='Panel'>
         <Row className='title'>
-          <span>Location for panel title:</span>
           {title || 'Oops'}
         </Row>
         <Row className='content'>
@@ -19,8 +18,8 @@ class Panel extends Component {
 }
 
 Panel.propTypes = {
-  title: PropTypes.string.isRequired,
-  children: PropTypes.element
+  title: PropTypes.oneOfType([PropTypes.string, PropTypes.object]).isRequired,
+  children: PropTypes.oneOfType([PropTypes.element, PropTypes.array])
 };
 
 export default Panel;

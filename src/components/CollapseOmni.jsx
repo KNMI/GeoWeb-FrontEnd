@@ -16,7 +16,8 @@ const mapToCssModules = function (className, cssModule) {
 const propTypes = {
   isOpen: PropTypes.bool,
   isHorizontal: PropTypes.bool,
-  collapsedSize: PropTypes.number,
+  minSize: PropTypes.number,
+  maxSize: PropTypes.number,
   className: PropTypes.node,
   tag: PropTypes.oneOfType([PropTypes.func, PropTypes.string]),
   cssModule: PropTypes.object,
@@ -37,7 +38,8 @@ const DEFAULT_DELAYS = {
 const defaultProps = {
   isOpen: false,
   isHorizontal: false,
-  collapsedSize: 0,
+  minSize: 0,
+  maxSize: 300,
   tag: 'div',
   delay: DEFAULT_DELAYS,
   onOpened: () => {},
@@ -50,7 +52,7 @@ class CollapseOmni extends Component {
 
     this.state = {
       collapse: props.isOpen ? SHOWN : HIDDEN,
-      size: this.getCollapsedSize()
+      size: this.getMinSize()
     };
     this.element = null;
   }
@@ -63,31 +65,19 @@ class CollapseOmni extends Component {
       // will open
       this.setState({ collapse: SHOW }, () => {
         // the size transition will work after class "collapsing" applied
-        this.setState({ size: this.getSize() });
+        this.setState({ size: nextProps.maxSize });
         this.transitionTag = setTimeout(() => {
-          this.setState({
-            collapse: SHOWN,
-            size: null
-          });
+          this.setState({ collapse: SHOWN });
         }, this.getDelay('show'));
       });
     } else if (!willOpen && collapse === SHOWN) {
       // will hide
-      this.setState({ size: this.getSize() }, () => {
-        this.setState({
-          collapse: HIDE,
-          size: this.getSize()
-        }, () => {
-          this.setState({ size: nextProps.collapsedSize });
-        });
+      this.setState({ collapse: HIDE }, () => {
+        this.setState({ size: nextProps.minSize });
+        this.transitionTag = setTimeout(() => {
+          this.setState({ collapse: HIDDEN });
+        }, this.getDelay('hide'));
       });
-
-      this.transitionTag = setTimeout(() => {
-        this.setState({
-          collapse: HIDDEN,
-          size: this.getCollapsedSize()
-        });
-      }, this.getDelay('hide'));
     }
     // else: do nothing.
   }
@@ -122,8 +112,8 @@ class CollapseOmni extends Component {
     return this.props.isHorizontal ? this.element.scrollWidth : this.element.scrollHeight;
   }
 
-  getCollapsedSize () {
-    return this.props.collapsedSize !== 0 ? this.props.collapsedSize : null;
+  getMinSize () {
+    return this.props.minSize !== 0 ? this.props.minSize : null;
   }
 
   getStyle () {
@@ -141,7 +131,7 @@ class CollapseOmni extends Component {
   }
 
   getRemainClass () {
-    return this.props.collapsedSize !== 0 ? 'remain' : null;
+    return this.props.minSize !== 0 ? 'remain' : null;
   }
 
   render () {
@@ -151,7 +141,7 @@ class CollapseOmni extends Component {
       cssModule,
       tag: Tag,
       ...attributes
-    } = omit(this.props, ['isOpen', 'isHorizontal', 'collapsedSize', 'delay', 'onOpened', 'onClosed']);
+    } = omit(this.props, ['isOpen', 'isHorizontal', 'minSize', 'maxSize', 'delay', 'onOpened', 'onClosed']);
     const { collapse, size } = this.state;
     let collapseClass;
     switch (collapse) {

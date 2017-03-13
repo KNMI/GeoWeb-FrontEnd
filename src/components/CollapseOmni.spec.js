@@ -11,28 +11,28 @@ describe('(Component) CollapseOmni', () => {
     expect(_component.type()).to.eql(CollapseOmni);
     expect(_component.props().isOpen).to.eql(false);
     expect(_component.props().isHorizontal).to.eql(false);
-    expect(_component.props().collapsedSize).to.eql(0);
+    expect(_component.props().minSize).to.eql(0);
   });
   it('Renders a unfolded CollapseOmni', () => {
     _component = mount(<CollapseOmni isOpen />);
     expect(_component.type()).to.eql(CollapseOmni);
     expect(_component.props().isOpen).to.eql(true);
     expect(_component.props().isHorizontal).to.eql(false);
-    expect(_component.props().collapsedSize).to.eql(0);
+    expect(_component.props().minSize).to.eql(0);
   });
   it('Renders a horizontal CollapseOmni', () => {
     _component = mount(<CollapseOmni isHorizontal />);
     expect(_component.type()).to.eql(CollapseOmni);
     expect(_component.props().isOpen).to.eql(false);
     expect(_component.props().isHorizontal).to.eql(true);
-    expect(_component.props().collapsedSize).to.eql(0);
+    expect(_component.props().minSize).to.eql(0);
   });
   it('Renders a CollapseOmni with remaining minimal size', () => {
-    _component = mount(<CollapseOmni collapsedSize={20} />);
+    _component = mount(<CollapseOmni minSize={20} />);
     expect(_component.type()).to.eql(CollapseOmni);
     expect(_component.props().isOpen).to.eql(false);
     expect(_component.props().isHorizontal).to.eql(false);
-    expect(_component.props().collapsedSize).to.eql(20);
+    expect(_component.props().minSize).to.eql(20);
   });
   it('Allows for setting the isOpen property', () => {
     _component = mount(<CollapseOmni />);
@@ -44,9 +44,9 @@ describe('(Component) CollapseOmni', () => {
     _component.setProps({ isHorizontal: true });
     expect(_component.props().isHorizontal).to.eql(true);
   });
-  it('Allows for setting the collapsedSize property', () => {
+  it('Allows for setting the minSize property', () => {
     _component = mount(<CollapseOmni />);
-    _component.setProps({ collapsedSize: 20 });
-    expect(_component.props().collapsedSize).to.eql(20);
+    _component.setProps({ minSize: 20 });
+    expect(_component.props().minSize).to.eql(20);
   });
 });

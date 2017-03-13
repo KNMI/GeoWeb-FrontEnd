@@ -1,5 +1,4 @@
 import TasksContainer from '../../../containers/TasksContainer';
-import Inspector from '../../../components/Inspector';
 import Panel from '../../../components/Panel';
 import TitleBarContainer from '../../../containers/TitleBarContainer';
 import { connect } from 'react-redux';
@@ -21,7 +20,9 @@ const mapStateToMainViewportProps = (state) => {
 };
 
 const mapStateToRightSideBarProps = (state) => {
-  return { title: 'rightSideBar' };
+  return {
+    title: 'rightSideBar'
+  };
 };
 
 // Sync route definition
@@ -31,6 +32,6 @@ export default () => ({
     header: connect(mapStateToHeaderProps)(TitleBarContainer),
     leftSideBar: connect(mapStateToLeftSideBarProps)(TasksContainer),
     mainViewport: connect(mapStateToMainViewportProps)(Panel),
-    rightSideBar: connect(mapStateToRightSideBarProps)(Inspector)
+    rightSideBar: connect(mapStateToRightSideBarProps)(Panel)
   }
 });

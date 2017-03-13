@@ -31,11 +31,6 @@ body {
   background-color: #f2fbff;
 }
 
-.MainViewport > div {
-  margin-left: -15px;
-  margin-right: -15px;
-}
-
 .test {
 
   .rounded {
@@ -80,15 +75,15 @@ body {
     box-shadow: unset;
   }
 
-  .btn {
+  .btn-primary {
     @extend .ux-interactive;
   }
 
-  .btn:hover {
+  .btn-primary:hover {
     @extend .ux-interactive:hover;
   }
 
-  .btn:active {
+  .btn-primary:active {
     @extend .ux-interactive:active;
   }
 
@@ -173,12 +168,16 @@ body {
   padding: 0;
 }
 
-.container-fluid div:not(.collapse) {
+.container-fluid div:not(.collapse):not(.dropdown-menu) {
   display: inherit;
 }
 
 .row.Header {
   margin: 0;
+}
+
+.MainViewport {
+  padding: 0;
 }
 
 .MainSection {
@@ -203,6 +202,7 @@ body {
 
 .Panel > .title {
   box-sizing: border-box;
+  max-height: 4.25rem;
   background: white; /* $inverse-hover-color; */
   border-bottom: 0.06rem solid #4bb0ce;
   @extend .rounded-top;
@@ -211,6 +211,18 @@ body {
   margin-bottom: 0;
   padding: 0.33rem;
   overflow: hidden;
+}
+
+.Panel > .title .form-inline {
+  flex-flow: row nowrap;
+}
+
+.Panel > .title .input-group {
+  margin-left: 0.8rem;
+}
+
+.Panel > .title .form-inline .form-control {
+  width: 100%;
 }
 
 .Panel > .content {

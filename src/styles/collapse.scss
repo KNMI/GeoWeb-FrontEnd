@@ -1,38 +1,37 @@
-.collapse {
+.CollapseOmni.collapse {
   height: auto;
   width: auto;
 }
 
-.collapse.remain {
+.CollapseOmni.collapse.remain {
   display: inherit;
   white-space: nowrap;
   overflow: hidden;
 }
 
-.collapsing.height {
+.CollapseOmni.collapsing.omni {
+  overflow: hidden;
+  white-space: nowrap;
+  -webkit-transition: all 0.35s ease;
+  -moz-transition: all 0.35s ease;
+  -o-transition: all 0.35s ease;
+  transition: all 0.35s ease;
+}
+
+.CollapseOmni.collapsing.height {
   width: auto;
-  overflow: hidden;
-  white-space: nowrap;
-  -webkit-transition: height 0.35s ease;
-  -moz-transition: height 0.35s ease;
-  -o-transition: height 0.35s ease;
-  transition: height 0.35s ease;
+  @extend .collapsing.omni
 }
 
-.collapsing.width {
-  height: auto;
-  overflow: hidden;
-  white-space: nowrap;
-  -webkit-transition: width 0.35s ease;
-  -moz-transition: width 0.35s ease;
-  -o-transition: width 0.35s ease;
-  transition: width 0.35s ease;
+.CollapseOmni.collapsing.width {
+  height: inherit;
+  @extend .collapsing.omni
 }
 
-.collapse.show.height {
+.CollapseOmni.collapse.show.height {
   height: auto;
 }
 
-.collapse.show.width {
+.CollapseOmni.collapse.show.width {
   width: auto;
 }
