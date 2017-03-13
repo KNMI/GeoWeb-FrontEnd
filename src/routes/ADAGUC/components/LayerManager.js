@@ -60,16 +60,6 @@ export default class LayerManager extends React.Component {
   deleteLayer (type, i) {
     const { dispatch, actions } = this.props;
     dispatch(actions.deleteLayer(i, type));
-    // switch (type) {
-    //   case 'overlay':
-    //     break;
-    //   case 'data':
-    //     dispatch(actions.deleteLayer(i, type));
-    //     break;
-    //   default:
-    //     console.log('Reducer saw an unknown value');
-    //     break;
-    // }
   }
   getBaseLayerName (layer) {
     switch (layer.name) {
@@ -172,6 +162,7 @@ export default class LayerManager extends React.Component {
   }
   render () {
     const { webmapjs } = this.props;
+    // istanbul ignore next
     if (webmapjs !== undefined) {
       if (this.listenersInitialized === undefined) { // TODO mount/unmount
         this.listenersInitialized = true;
