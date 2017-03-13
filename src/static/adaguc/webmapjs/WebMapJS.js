@@ -77,7 +77,7 @@
   /**
     * WMJSMap class
     */
-  function WMJSMap (_element) {
+  function WMJSMap (_element, _xml2jsonrequestURL) {
     this.setBaseURL = function (_baseURL) {
       base = _baseURL;
 
@@ -97,15 +97,18 @@
     };
     this.setBaseURL(base);
 
+    this.setXML2JSONURL = function (_xml2jsonrequest) {
+      xml2jsonrequest = _xml2jsonrequest;
+    };
     var enableConsoleDebugging = false;
     var mainElement = _element;
     // var baseDiv = document.createElement('div');
     try {
-      if (!isDefined(xml2jsonrequestURL)) {
-        xml2jsonrequest = 'http://birdexp07.knmi.nl:8080/XML2JSON?';
+      if (isDefined(_xml2jsonrequestURL)) {
+        xml2jsonrequestURL = _xml2jsonrequestURL;
       };
-    } catch (e) {
-      xml2jsonrequest = 'http://birdexp07.knmi.nl:8080/XML2JSON?';
+    } catch(e){
+      xml2jsonrequestURL = base + '/php/xml2jsonrequest.php?';
     }
     try {
       if (!isDefined(requestProxy)) {};
@@ -1007,12 +1010,17 @@
     }
 
     this.removeAllLayers = function () {
+      for (var i = 0; i < layers.length; ++i) {
+        layers[i].setAutoUpdate(false);
+      }
       layers = [];
       mapdimensions = [];
+      callBack.triggerEvent('onlayeradd');
     };
 
     this.deleteLayer = function (layerToDelete) {
       if (layers.length <= 0) return;
+      layerToDelete.setAutoUpdate(false);
       var layerIndex = getLayerIndex(layerToDelete);
       if (layerIndex >= 0) {
         // move everything up with id's higher than this layer
@@ -1032,6 +1040,7 @@
           }
         }
       }
+      callBack.triggerEvent('onlayerchange');
       _map.rebuildMapDimensions();
     };
     this.moveLayerDown = function (layerToMove) {
@@ -1858,8 +1867,7 @@
           }
           // baseLayers[j].id=(-2)-j;;
         }
-        console.log('log from adaguc: new baselayers');
-        callBack.triggerEvent('onlayeradd');
+        callBack.triggerEvent('onlayerchange');
       } else baseLayers = undefined;
     };
 
@@ -2008,6 +2016,9 @@
 
     _map.destroy = function () {
       _map.stopAnimating();
+      for (var i = layers.length - 1; i >= 0; i--) {
+        layers[i].setAutoUpdate(false);
+      }
       detachEvents();
     };
 

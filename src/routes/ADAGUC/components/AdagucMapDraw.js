@@ -1,35 +1,23 @@
 import React from 'react';
-import { Button } from 'reactstrap';
 
-// /* Static demo geojson for development purposes */
-// let poly = { 'type': 'FeatureCollection',
-//   'features': [
-//     { 'type': 'Feature',
-//       'geometry': {
-//         'type': 'Polygon',
-//         'coordinates': [[]
-//            [[4.0, 52.0], [5.0, 52.0], [6.0, 53.0], [5.0, 53.5], [4.0, 53.0]],
-//           [[6.6, 52.5], [7.6, 52.5], [8.6, 53.5], [8.2, 53.6], [6.6, 53.5]],
-//           [[4.9, 51.8], [5.2, 51.0], [3.6, 51.3]]
-//         ]
-//       },
-//       'properties': {
-//         'prop0': 'value0',
-//         'prop1': { 'this':  'that' }
-//       }
-//     }
-//   ]
-// };
+export const ADAGUCMAPDRAW_EDITING = 'ADAGUCMAPDRAW_EDITING';
+export const ADAGUCMAPDRAW_DELETE = 'ADAGUCMAPDRAW_DELETE';
+export const ADAGUCMAPDRAW_UPDATEFEATURE = 'ADAGUCMAPDRAW_UPDATEFEATURE';
 
+/* istanbul ignore next */
 const AdagucMapDraw = React.createClass({
   propTypes: {
-    webmapjs: React.PropTypes.object,
-    geojson: React.PropTypes.object,
-    dispatch: React.PropTypes.func,
-    actions: React.PropTypes.object
+    webmapjs  : React.PropTypes.object,
+    geojson   : React.PropTypes.object,
+    dispatch  : React.PropTypes.func.isRequired,
+    isInEditMode  : React.PropTypes.bool,
+    isInDeleteMode  : React.PropTypes.bool
   },
   getDefaultProps () {
     return {
+      isInEditMode:false,
+      isInDeleteMode:false,
+      webmapjs:undefined,
       geojson: { 'type': 'FeatureCollection',
         'features': [
           { 'type': 'Feature',
@@ -46,29 +34,6 @@ const AdagucMapDraw = React.createClass({
       }
     };
   },
-  getInitialState: function () {
-    return { editMode: false, setEditMode: '' };
-  },
-  handleStartEdit () {
-    console.log('handleStartEdit');
-    if (this.state.editMode === false) {
-      this.setState({ editMode:true });
-    } else {
-      this.cancelEdit(true); /* Throw away last vertice */
-      this.setState({ editMode:false, setEditMode: '' });
-    }
-    if (this.props.webmapjs) {
-      this.props.webmapjs.draw();
-    }
-  },
-  handleDeleteFeatures () {
-    if (this.state.setEditMode !== 'deletefeatures') {
-      this.setState({ editMode:true, setEditMode:'deletefeatures' });
-    } else {
-      this.setState({ setEditMode:'' });
-    }
-  },
-
   convertGeoCoordsToScreenCoords (featureCoords) {
     const { webmapjs } = this.props;
     let XYCoords = [];
@@ -108,7 +73,7 @@ const AdagucMapDraw = React.createClass({
         middle.x = parseInt(middle.x / XYCoords.length);
         middle.y = parseInt(middle.y / XYCoords.length);
 
-        if (this.state.editMode === true) {
+        if (this.props.isInEditMode === true) {
           /* Higlight selected edge of a polygon, previousely detected by mouseover event */
           if (this.snappedPolygonIndex === polygonIndex && this.selectedEdge !== -1) {
             ctx.strokeStyle = '#FF0';
@@ -125,7 +90,7 @@ const AdagucMapDraw = React.createClass({
         /* Function for drawing vertices with several styles */
         let drawVertice = (coord, selected, middle) => {
           let w = 7;
-          if (this.state.editMode === false) {
+          if (this.props.isInEditMode === false) {
             /* Standard style, no editing, just display location of vertices */
             ctx.strokeStyle = '#000'; ctx.fillStyle = '#000'; ctx.lineWidth = 1.0; w = 5;
           } else {
@@ -153,7 +118,7 @@ const AdagucMapDraw = React.createClass({
           drawVertice(XYCoords[j], this.snappedPolygonIndex === polygonIndex && this.mouseIsOverVertexNr === j);
         }
 
-        if (this.state.editMode === true) {
+        if (this.props.isInEditMode === true) {
           /* Draw middle vertice for the poly if poly covers an area, e.g. when it contains more than three points */
           if (XYCoords.length >= 3) {
             drawVertice(middle, this.snappedPolygonIndex === polygonIndex && this.mouseIsOverVertexNr === -2, true);
@@ -167,7 +132,7 @@ const AdagucMapDraw = React.createClass({
       This event is only triggered if the map is in hover state.
       E.g. when the map is dragging/panning, this event is not triggerd
     */
-    if (this.state.editMode === false) return;
+    if (this.props.isInEditMode === false) return;
     let featureIndex = 0;
     let feature = this.props.geojson.features[featureIndex];
     let featureCoords = feature.geometry.coordinates[this.snappedPolygonIndex];
@@ -177,13 +142,13 @@ const AdagucMapDraw = React.createClass({
     this.mouseGeoCoord = webmapjs.getLatLongFromPixelCoord({ x:mouseX, y:mouseY });
 
     /* The mouse is hovering a vertice, and the mousedown is into effect, move vertice accordingly */
-    if (featureCoords !== undefined && this.state.setEditMode !== 'deletefeatures') {
-      if ((mouseDown === true && this.mouseIsOverVertexNr !== -1) || this.state.setEditMode === 'addpolygon') {
+    if (featureCoords !== undefined && this.editMode !== 'deletefeatures') {
+      if ((mouseDown === true && this.mouseIsOverVertexNr !== -1) || this.editMode === 'addpolygon') {
         /* Transpose polygon vertex */
         if (this.mouseIsOverVertexNr >= 0) {
           featureCoords[this.mouseIsOverVertexNr][0] = this.mouseGeoCoord.x;
           featureCoords[this.mouseIsOverVertexNr][1] = this.mouseGeoCoord.y;
-          if (this.state.setEditMode !== 'addpolygon') {
+          if (this.editMode !== 'addpolygon') {
             this.somethingWasDragged = 'vertex';
           }
         }
@@ -198,7 +163,7 @@ const AdagucMapDraw = React.createClass({
               this.snappedGeoCoords.x = this.mouseGeoCoord.x;
               this.snappedGeoCoords.y = this.mouseGeoCoord.y;
             }
-            if (this.state.setEditMode !== 'addpolygon') {
+            if (this.editMode !== 'addpolygon') {
               this.somethingWasDragged = 'polygon';
             }
           }
@@ -273,7 +238,7 @@ const AdagucMapDraw = React.createClass({
 
     /* Check if the mouse hovers an edge of a polygon */
     this.selectedEdge = -1;
-    if (this.state.setEditMode !== 'deletefeatures') {
+    if (this.editMode !== 'deletefeatures') {
       for (let polygonIndex = feature.geometry.coordinates.length - 1; polygonIndex >= 0; polygonIndex--) {
         let featureCoords = feature.geometry.coordinates[polygonIndex];
         if (featureCoords !== undefined) {
@@ -297,7 +262,7 @@ const AdagucMapDraw = React.createClass({
       return false;
     }
 
-    if (this.state.setEditMode === 'addpolygon') {
+    if (this.editMode === 'addpolygon') {
       return false;
     }
 
@@ -311,16 +276,16 @@ const AdagucMapDraw = React.createClass({
     }
   },
   adagucMouseDown (event) {
-    if (this.state.editMode === false) return;
+    if (this.props.isInEditMode === false) return;
     this.somethingWasDragged = false;
     const { webmapjs } = this.props;
     let { mouseX, mouseY } = event;
 
-    if (this.mouseIsOverVertexNr !== -1 && this.state.setEditMode === '') {
+    if (this.mouseIsOverVertexNr !== -1 && this.editMode === '') {
       return false;
     }
     /* Insert a new vertex into an edge, e.g a line is clicked and a point is added */
-    if (this.selectedEdge !== -1 && this.state.setEditMode !== 'deletefeatures') {
+    if (this.selectedEdge !== -1 && this.editMode !== 'deletefeatures') {
       this.mouseGeoCoord = webmapjs.getLatLongFromPixelCoord({ x:mouseX, y:mouseY });
       let featureIndex = 0;
       let feature = this.props.geojson.features[featureIndex];
@@ -333,8 +298,8 @@ const AdagucMapDraw = React.createClass({
     }
 
     /* This is trigged when a new polygon is created. Two points are added at once */
-    if (this.state.setEditMode === '') {
-      this.setState({ setEditMode:'addpolygon' });
+    if (this.editMode === '') {
+      this.editMode = 'addpolygon';
       let featureIndex = 0;
       let feature = this.props.geojson.features[featureIndex];
       this.mouseGeoCoord = webmapjs.getLatLongFromPixelCoord({ x:mouseX, y:mouseY });
@@ -348,7 +313,6 @@ const AdagucMapDraw = React.createClass({
         feature.geometry.coordinates.push([]);
       }
       this.snappedPolygonIndex = feature.geometry.coordinates.length - 1;
-      console.log(this.snappedPolygonIndex);
       let featureCoords = feature.geometry.coordinates[this.snappedPolygonIndex];
       featureCoords.push([this.mouseGeoCoord.x, this.mouseGeoCoord.y]);
       featureCoords.push([this.mouseGeoCoord.x, this.mouseGeoCoord.y]);
@@ -359,7 +323,7 @@ const AdagucMapDraw = React.createClass({
     }
 
     /* This is triggered when new points are added during the addpolygon mode. One point is added per time */
-    if (this.state.setEditMode === 'addpolygon') {
+    if (this.editMode === 'addpolygon') {
       this.mouseGeoCoord = webmapjs.getLatLongFromPixelCoord({ x:mouseX, y:mouseY });
       let featureIndex = 0;
       let feature = this.props.geojson.features[featureIndex];
@@ -388,7 +352,6 @@ const AdagucMapDraw = React.createClass({
         /* Remove edge of polygon */
         if (featureCoords.length <= 3) {
           /* Remove the polygon completely if it can not have an area */
-          console.log('remove completely');
           feature.geometry.coordinates.splice(this.snappedPolygonIndex, 1);
         } else {
           /* Remove edge of polygon */
@@ -405,14 +368,14 @@ const AdagucMapDraw = React.createClass({
     }
   },
   adagucMouseUp (event) {
-    if (this.state.editMode === false) return;
+    if (this.props.isInEditMode === false) return;
 
     if (this.somethingWasDragged !== false) {
       this.featureHasChanged('A ' + this.somethingWasDragged + ' was dragged');
     }
 
     /* Delete a vertex or feature on mouseUp */
-    if (this.state.setEditMode === 'deletefeatures') {
+    if (this.editMode === 'deletefeatures') {
       this.deleteFeature();
       return false;
     }
@@ -421,17 +384,18 @@ const AdagucMapDraw = React.createClass({
       return false;
     }
 
-    if (this.state.setEditMode === 'addpolygon') {
+    if (this.editMode === 'addpolygon') {
       return false;
     }
   },
   cancelEdit (cancelLastPoint) {
-    if (this.state.editMode === false) return;
+    console.log('cancelEdit');
+    if (this.props.isInEditMode === false) return;
     const { webmapjs } = this.props;
 
     /* When in addpolygon mode, finish the polygon */
-    if (this.state.setEditMode === 'addpolygon') {
-      this.setState({ setEditMode:'' });
+    if (this.editMode === 'addpolygon') {
+      this.editMode = '';
       if (this.snappedPolygonIndex !== -1) {
         let featureIndex = 0;
         if (this.props.geojson.features[featureIndex].geometry.coordinates[this.snappedPolygonIndex].length > 0) {
@@ -441,12 +405,13 @@ const AdagucMapDraw = React.createClass({
           if (this.props.geojson.features[featureIndex].geometry.coordinates[this.snappedPolygonIndex].length < 3) {
             this.props.geojson.features[featureIndex].geometry.coordinates.pop();
           }
+          this.featureHasChanged('cancelEdit');
           webmapjs.draw();
         }
       }
     } else {
       /* When in standard mode or deletefeatures mode, remove any vertex under the mousecursor */
-      if (this.state.setEditMode === '' || this.state.setEditMode === 'deletefeatures') {
+      if (this.editMode === '' || this.editMode === 'deletefeatures') {
         this.deleteFeature();
       }
     }
@@ -454,18 +419,17 @@ const AdagucMapDraw = React.createClass({
   handleKeyDown (event) {
     switch (event.keyCode) {
       case 27: /* ESCAPE_KEY */
-        this.cancelEdit();
+        this.cancelEdit(true);
         break;
       default:
         break;
     }
   },
   componentWillMount () {
-    console.log('componentWillMount');
     document.addEventListener('keydown', this.handleKeyDown);
+    this.editMode = '';
   },
   componentWillUnMount () {
-    console.log('componentWillUnMount');
     document.removeEventListener('keydown', this.handleKeyDown);
     const { webmapjs } = this.props;
     if (webmapjs !== undefined && this.listenersInitialized === true) {
@@ -477,16 +441,46 @@ const AdagucMapDraw = React.createClass({
     }
   },
   featureHasChanged (text) {
-    console.log('Feature has changed: ' + text, this.props.geojson);
-    this.props.dispatch(this.props.actions.coords(this.props.geojson));
+    this.props.dispatch({ type: ADAGUCMAPDRAW_UPDATEFEATURE, payload: { geojson: this.props.geojson, text: text } });
   },
   componentDidMount () {
-    console.log('componentDidMount');
+  },
+  componentWillReceiveProps (nextProps) {
+     /* Handle toggle edit */
+    if (nextProps.isInEditMode === false && this.editMode !== '') {
+      this.cancelEdit(true); /* Throw away last vertice */
+      if (this.editMode === 'deletefeatures') {
+        this.editMode = '';
+        if (nextProps.isInDeleteMode === true) {
+          this.props.dispatch({ type: ADAGUCMAPDRAW_DELETE, payload: { isInDeleteMode:false } });
+        }
+        return;
+      }
+    }
+
+    /* Handle toggle delete */
+    if (nextProps.isInDeleteMode === true) {
+      this.editMode = 'deletefeatures';
+      if (nextProps.isInEditMode === false) {
+        /* Editmode should be switched on when deletemode is entered */
+        this.props.dispatch({ type: ADAGUCMAPDRAW_EDITING, payload: { isInEditMode:true } });
+      }
+    } else {
+      if (this.editMode === 'deletefeatures') {
+        this.editMode = '';
+      }
+    }
+    if (this.props.webmapjs) {
+      this.props.webmapjs.draw();
+    }
+    if (nextProps.isInEditMode === false && nextProps.isInDeleteMode === false) {
+      this.editMode = '';
+    }
   },
   render () {
     const { webmapjs } = this.props;
     if (this.disabled === undefined) {
-      this.disabled = true;
+      this.disabled = this.props.isInDeleteMode;
     }
     if (webmapjs !== undefined) {
       if (this.listenersInitialized === undefined) {
@@ -496,16 +490,10 @@ const AdagucMapDraw = React.createClass({
         webmapjs.addListener('beforemousedown', this.adagucMouseDown, true);
         webmapjs.addListener('beforemouseup', this.adagucMouseUp, true);
         this.disabled = false;
-        console.log('webmapjs listeners added');
       }
       webmapjs.draw();
     }
-    return (
-      <div style={{ display: 'inline-block', marginRight: '15px' }} >
-        <Button style={{ marginRight: '5px' }} color='primary' onClick={this.handleStartEdit} disabled={this.disabled}>{this.state.editMode === false ? 'Create / Edit' : 'Exit editing mode'}</Button>
-        <Button color='primary' onClick={this.handleDeleteFeatures} disabled={this.disabled}>{this.state.setEditMode !== 'deletefeatures' ? 'Delete' : 'Click to delete'}</Button>
-      </div>
-    );
+    return (<div />);
   }
 });
 

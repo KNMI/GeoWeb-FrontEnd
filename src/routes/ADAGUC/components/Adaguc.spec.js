@@ -1,29 +1,42 @@
-// import React from 'react';
-// eslint-disable-next-line no-unused-vars
+import React from 'react';
 import { default as Adaguc } from './Adaguc';
-// import { mount, shallow } from 'enzyme';
-
+import { default as adagucReducer, actions } from '../modules/adaguc';
+import { shallow } from 'enzyme';
+import sinon from 'sinon';
 describe('(Component) Adaguc', () => {
-  // const funcs = {
-  //   createMap: () => {},
-  //   setCut: () => {},
-  //   setMapStyle: () => {},
-  //   setSource: () => {},
-  //   setLayer: () => {},
-  //   setLayers: () => {},
-  //   setStyles: () => {},
-  //   setStyle: () => {},
-  //   setOverlay: () => {}
-  // };
+  let _globalState;
+  let _dispatchSpy;
+  beforeEach(() => {
+    _globalState = {
+      adagucProperties : {
+        layers: {},
+        sources: {},
+        boundingBox: null,
+        projectionName: 'EPSG:3857',
+        mapCreated: false,
+        adagucmapdraw: {
+          geojson: {
+            coords: {}
+          },
+          isInEditMode: false,
+          isInDeleteMode: false
+        },
+        adagucmeasuredistance: {
+          isInEditMode: false
+        }
+      }
+    };
+    _dispatchSpy = sinon.spy((action) => {
+      _globalState = {
+        ..._globalState,
+        adagucProperties : adagucReducer(_globalState.adagucProperties, action)
+      };
+    });
+  });
 
-  // it('Renders a div', () => {
-  //   const _component = shallow(<Menu actions={funcs} adagucProperties={{}} dispatch={() => {}} />);
-  //   expect(_component.type()).to.eql('div');
-  // });
-
-  // it('Renders six buttons', () => {
-  //   const _component = mount(<Menu actions={funcs} adagucProperties={{}} dispatch={() => {}} />);
-  //   const buttons = _component.find('div.btn-group');
-  //   expect(buttons.length).to.equal(6);
-  // });
+  it('Renders a div', () => {
+    const _component = shallow(<Adaguc adagucProperties={_globalState.adagucProperties} dispatch={_dispatchSpy} actions={actions} />);
+    // console.log(_component);
+    expect(_component.type()).to.eql('div');
+  });
 });

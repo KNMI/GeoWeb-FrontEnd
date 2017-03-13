@@ -3,6 +3,7 @@ import { BOUNDING_BOXES } from '../constants/bounding_boxes';
 // ------------------------------------
 // Constants
 // ------------------------------------
+
 const ADD_LAYER = 'ADD_LAYER';
 const ADD_OVERLAY_LAYER = 'ADD_OVERLAY_LAYER';
 const CREATE_MAP = 'CREATE_MAP';
@@ -12,7 +13,10 @@ const SET_CUT = 'SET_CUT';
 const SET_MAP_STYLE = 'SET_MAP_STYLE';
 const SET_STYLE = 'SET_STYLE';
 const PREPARE_SIGMET = 'PREPARE_SIGMET';
-const COORDS = 'COORDS';
+const ALTER_LAYER = 'ALTER_LAYER';
+const REORDER_LAYER = 'REORDER_LAYER';
+import { ADAGUCMAPDRAW_EDITING, ADAGUCMAPDRAW_DELETE, ADAGUCMAPDRAW_UPDATEFEATURE } from '../components/AdagucMapDraw';
+import { ADAGUCMEASUREDISTANCE_EDITING, ADAGUCMEASUREDISTANCE_UPDATE } from '../components/AdagucMeasureDistance';
 
 // ------------------------------------
 // Helper functions
@@ -51,10 +55,12 @@ Object.equals = function (x, y) {
   }
   return true;
 };
+
 // ------------------------------------
 // Actions
 // ------------------------------------
 function createMap (sources, overlays) {
+  console.log(sources);
   return {
     type: CREATE_MAP,
     payload: {
@@ -89,16 +95,33 @@ function setStyle (style = 0) {
   };
 }
 function addLayer (layer) {
+  let enabledLayer;
+  if (!layer.enabled) {
+    enabledLayer = Object.assign({}, layer, { enabled: true });
+  } else {
+    enabledLayer = Object.assign({}, layer);
+  }
   return {
     type: ADD_LAYER,
-    payload: layer
+    payload: enabledLayer
   };
 }
-
+function alterLayer (index, layerType, fieldsNewValuesObj) {
+  return {
+    type: ALTER_LAYER,
+    payload: { index, layerType, fieldsNewValuesObj }
+  };
+}
 function addOverlayLayer (layer) {
   return {
     type: ADD_OVERLAY_LAYER,
     payload: layer
+  };
+}
+function reorderLayer (direction, index) {
+  return {
+    type: REORDER_LAYER,
+    payload: { direction, index }
   };
 }
 function prepareSIGMET (phenomenon = 'OBSC TS') {
@@ -111,15 +134,33 @@ function deleteLayer (layerParams, layertype) {
   return {
     type: DELETE_LAYER,
     payload: {
-      removeLayer: layerParams,
+      idx: layerParams,
       type : layertype
     }
   };
 }
-function coords (newcoords) {
+
+function adagucmapdrawToggleEdit (adagucmapdraw) {
+  console.log('adagucmapdrawToggleEdit', adagucmapdraw);
   return {
-    type: COORDS,
-    payload: newcoords
+    type: 'ADAGUCMAPDRAW_EDITING',
+    payload: Object.assign({}, adagucmapdraw, { isInEditMode: !adagucmapdraw.isInEditMode })
+  };
+}
+
+function adagucmapdrawToggleDelete (adagucmapdraw) {
+  console.log('adagucmapdrawToggleDelete', adagucmapdraw);
+  return {
+    type: 'ADAGUCMAPDRAW_DELETE',
+    payload: Object.assign({}, adagucmapdraw, { isInDeleteMode: !adagucmapdraw.isInDeleteMode })
+  };
+}
+
+function adagucmeasuredistanceToggleEdit (adagucmeasuredistance) {
+  console.log('adagucmeasuredistanceToggleEdit', adagucmeasuredistance);
+  return {
+    type: 'ADAGUCMEASUREDISTANCE_EDITING',
+    payload: Object.assign({}, adagucmeasuredistance, { isInEditMode: !adagucmeasuredistance.isInEditMode })
   };
 }
 /*  This is a thunk, meaning it is a function that immediately
@@ -140,6 +181,7 @@ function coords (newcoords) {
 //   };
 // };
 
+// TODO: This info should be obtained form the backend
 const sigmetLayers = (p) => {
   switch (p) {
     case 'OBSC TS':
@@ -158,31 +200,36 @@ const sigmetLayers = (p) => {
               service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.OBS.cgi?',
               title: 'OBS',
               name: '10M/ww',
-              label: 'wawa Weather Code (ww)'
+              label: 'wawa Weather Code (ww)',
+              enabled: true
             },
             {
               service: 'http://bvmlab-218-41.knmi.nl/cgi-bin/WWWRADAR3.cgi?',
               title: 'LGT',
               name: 'LGT_NL25_LAM_05M',
-              label: 'LGT_NL25_LAM_05M'
+              label: 'LGT_NL25_LAM_05M',
+              enabled: true
             },
             {
               service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.RADAR.cgi?',
               title: 'RADAR',
               name: 'echotops',
-              label: 'Echotoppen'
+              label: 'Echotoppen',
+              enabled: true
             },
             {
               service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.RADAR.cgi?',
               title: 'RADAR',
               name: 'precipitation',
-              label: 'Neerslag'
+              label: 'Neerslag',
+              enabled: true
             },
             {
               service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.SAT.cgi?',
               title: 'SAT',
               name: 'HRV-COMB',
-              label: 'RGB-HRV-COMB'
+              label: 'RGB-HRV-COMB',
+              enabled: true
             }
           ],
           overlays: [
@@ -190,7 +237,8 @@ const sigmetLayers = (p) => {
               service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.OVL.cgi?',
               title: 'OVL',
               name: 'FIR_DEC_2013_EU',
-              label: 'FIR areas'
+              label: 'FIR areas',
+              enabled: true
             }
           ]
         },
@@ -209,7 +257,11 @@ export const actions = {
   setMapStyle,
   setStyle,
   prepareSIGMET,
-  coords
+  reorderLayer,
+  alterLayer,
+  adagucmapdrawToggleEdit,
+  adagucmapdrawToggleDelete,
+  adagucmeasuredistanceToggleEdit
 };
 
 /*
@@ -272,6 +324,9 @@ const doAddOverlayLayer = (state, payload) => {
   }
 
   let oldlayers = [...state.layers.overlays];
+  if (!payload.enabled) {
+    payload.enabled = true;
+  }
   oldlayers.unshift(payload);
 
   const newlayers = Object.assign({}, state.layers, { overlays: oldlayers });
@@ -289,15 +344,26 @@ const setSigmet = (state, payload) => {
   return Object.assign({}, state, { layers: newlayers, boundingBox: sigmet.boundingBox });
 };
 
-const doDeleteLayer = (state, payload) => {
-  const { removeLayer, type } = payload;
+const doAlterLayer = (state, payload) => {
   let fitleredLayers;
-  switch (type) {
+  const { index, layerType, fieldsNewValuesObj } = payload;
+  switch (layerType) {
     case 'data':
-      fitleredLayers = Object.assign({}, state.layers, { datalayers: state.layers.datalayers.filter((layer) => !Object.equals(layer, removeLayer)) });
+      let newDatalayers = state.layers.datalayers.map(a => Object.assign({}, a));
+      const oldLayer = state.layers.datalayers[index];
+      const newlayer = Object.assign({}, oldLayer, fieldsNewValuesObj);
+      newDatalayers[index] = newlayer;
+      fitleredLayers = Object.assign({}, state.layers, { datalayers: newDatalayers });
       break;
     case 'overlay':
-      fitleredLayers = Object.assign({}, state.layers, { overlays: state.layers.overlays.filter((layer) => !Object.equals(layer, removeLayer)) });
+      let newOverlayLayers = state.layers.overlays.map(a => Object.assign({}, a));
+      const oldOverLayer = state.layers.overlays[index];
+      const newOverlayer = Object.assign({}, oldOverLayer, fieldsNewValuesObj);
+      newOverlayLayers[index] = newOverlayer;
+      fitleredLayers = Object.assign({}, state.layers, { overlays: newOverlayLayers });
+      break;
+    case 'base':
+      fitleredLayers = Object.assign({}, state.layers, { baselayer: Object.assign({}, state.layers.baselayer, fieldsNewValuesObj) });
       break;
     default:
       fitleredLayers = state.layers;
@@ -306,24 +372,96 @@ const doDeleteLayer = (state, payload) => {
   return Object.assign({}, state, { layers: fitleredLayers });
 };
 
-const setNewCoords = (state, payload) => {
-  return Object.assign({}, state, { coords: payload });
+const doReorderLayer = (state, payload) => {
+  const direction = payload.direction === 'up' ? -1 : 1;
+  const idx = payload.index;
+  if (idx + direction < 0 || idx + direction >= state.layers.datalayers.length) {
+    return state;
+  }
+  console.log(idx, direction);
+  let newDatalayers = state.layers.datalayers.map(a => Object.assign({}, a));
+  const tmp = newDatalayers[idx];
+  newDatalayers[idx] = newDatalayers[idx + direction];
+  newDatalayers[idx + direction] = tmp;
+  return Object.assign({}, state, { layers: Object.assign({}, state.layers, { datalayers: newDatalayers }) });
 };
 
+const doDeleteLayer = (state, payload) => {
+  const { idx, type } = payload;
+  let fitleredLayers;
+  switch (type) {
+    case 'data':
+      let datalayersCpy = state.layers.datalayers.map(a => Object.assign({}, a));
+      datalayersCpy.splice(idx, 1);
+      fitleredLayers = Object.assign({}, state.layers, { datalayers: datalayersCpy });
+      break;
+    case 'overlay':
+      let overlaysCpy = state.layers.overlays.map(a => Object.assign({}, a));
+      overlaysCpy.splice(idx, 1);
+      fitleredLayers = Object.assign({}, state.layers, { overlays: overlaysCpy });
+      break;
+    default:
+      fitleredLayers = state.layers;
+      break;
+  }
+  return Object.assign({}, state, { layers: fitleredLayers });
+};
+
+const handleAdagucMapDrawEditing = (state, payload) => {
+  console.log('handleAdagucMapDrawEditing', state, payload);
+  let adagucmapdraw = Object.assign({}, state.adagucmapdraw, { isInEditMode : payload.isInEditMode });
+  let adagucmeasuredistance = Object.assign({}, state.adagucmeasuredistance, { isInEditMode : false });
+  return Object.assign({}, state, { adagucmeasuredistance: adagucmeasuredistance, adagucmapdraw: adagucmapdraw });
+};
+const handleAdagucMapDrawDelete = (state, payload) => {
+  console.log('handleAdagucMapDrawDelete', state, payload);
+  let adagucmapdraw = Object.assign({}, state.adagucmapdraw, { isInDeleteMode : payload.isInDeleteMode });
+  let adagucmeasuredistance = Object.assign({}, state.adagucmeasuredistance, { isInEditMode : false });
+  return Object.assign({}, state, { adagucmeasuredistance: adagucmeasuredistance, adagucmapdraw: adagucmapdraw });
+};
+const handleAdagucMapDrawUpdateFeature = (state, payload) => {
+  console.log('handleAdagucMapDrawUpdateFeature', payload);
+  /* Returning new state is not strictly necessary,
+    as the geojson in AdagucMapDraw is the same and does not require rerendering of the AdagucMapDraw component
+  */
+  let adagucmapdraw = Object.assign({}, state.adagucmapdraw, { geojson : payload.geojson });
+  let adagucmeasuredistance = Object.assign({}, state.adagucmeasuredistance, { isInEditMode : false });
+  return Object.assign({}, state, { adagucmeasuredistance: adagucmeasuredistance, adagucmapdraw: adagucmapdraw });
+};
+const handleAdagucMeasureDistanceEditing = (state, payload) => {
+  console.log('handleAdagucMeasureDistanceEditing', state, payload);
+  let adagucmapdraw = Object.assign({}, state.adagucmapdraw, { isInEditMode : false });
+  let adagucmeasuredistance = Object.assign({}, state.adagucmeasuredistance, { isInEditMode : payload.isInEditMode });
+  return Object.assign({}, state, { adagucmeasuredistance: adagucmeasuredistance, adagucmapdraw: adagucmapdraw });
+};
+const handleAdagucMeasureDistanceUpdate = (state, payload) => {
+  console.log('handleAdagucMeasureDistanceUpdate', payload);
+  let adagucmeasuredistance = Object.assign({}, state.adagucmeasuredistance,
+    { distance : payload.distance,
+      bearing : payload.bearing
+    });
+  return Object.assign({}, state, { adagucmeasuredistance: adagucmeasuredistance });
+};
 // ------------------------------------
 // Action Handlers
 // ------------------------------------
 const ACTION_HANDLERS = {
-  [ADD_LAYER]            : (state, action) => doAddLayer(state, action.payload),
-  [ADD_OVERLAY_LAYER]    : (state, action) => doAddOverlayLayer(state, action.payload),
-  [CREATE_MAP]           : (state, action) => newMapState(state, action.payload),
-  [DELETE_LAYER]         : (state, action) => doDeleteLayer(state, action.payload),
-  [LOGIN]                : (state, action) => doLogin(state, action.payload),
-  [SET_CUT]              : (state, action) => newCut(state, action.payload),
-  [SET_MAP_STYLE]        : (state, action) => newMapStyle(state, action.payload),
-  [SET_STYLE]            : (state, action) => newStyle(state, action.payload),
-  [PREPARE_SIGMET]       : (state, action) => setSigmet(state, action.payload),
-  [COORDS]               : (state, action) => setNewCoords(state, action.payload)
+  [ADAGUCMAPDRAW_EDITING]         : (state, action) => handleAdagucMapDrawEditing(state, action.payload),
+  [ADAGUCMAPDRAW_DELETE]          : (state, action) => handleAdagucMapDrawDelete(state, action.payload),
+  [ADAGUCMAPDRAW_UPDATEFEATURE]   : (state, action) => handleAdagucMapDrawUpdateFeature(state, action.payload),
+  [ADAGUCMEASUREDISTANCE_EDITING] : (state, action) => handleAdagucMeasureDistanceEditing(state, action.payload),
+  [ADAGUCMEASUREDISTANCE_UPDATE]  : (state, action) => handleAdagucMeasureDistanceUpdate(state, action.payload),
+  [ADD_LAYER]                     : (state, action) => doAddLayer(state, action.payload),
+  [ADD_OVERLAY_LAYER]             : (state, action) => doAddOverlayLayer(state, action.payload),
+  [ALTER_LAYER]                   : (state, action) => doAlterLayer(state, action.payload),
+  [CREATE_MAP]                    : (state, action) => newMapState(state, action.payload),
+  [DELETE_LAYER]                  : (state, action) => doDeleteLayer(state, action.payload),
+  [LOGIN]                         : (state, action) => doLogin(state, action.payload),
+  [PREPARE_SIGMET]                : (state, action) => setSigmet(state, action.payload),
+  [REORDER_LAYER]                 : (state, action) => doReorderLayer(state, action.payload),
+  [SET_CUT]                       : (state, action) => newCut(state, action.payload),
+  [SET_MAP_STYLE]                 : (state, action) => newMapStyle(state, action.payload),
+  [SET_STYLE]                     : (state, action) => newStyle(state, action.payload)
 };
 
 // ------------------------------------

@@ -1,6 +1,7 @@
 @import '~bootstrap/scss/bootstrap';
 @import 'typeaheadjs';
 @import 'collapse';
+@import 'popover';
 
 $radius-size: 0.19rem;
 $shadow: 0.06rem 0.125rem 0.125rem rgba(0,0,0,0.3);
@@ -337,7 +338,7 @@ body {
   background: rgba(0, 0, 0, 0.3);
 }
 span {
-  max-width: 250px;
+  max-width: 500px;
 }
 span.badge {
   white-space: nowrap;

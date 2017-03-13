@@ -3,7 +3,6 @@ import {
 } from 'store/createStore';
 import { MAP_STYLES } from '../routes/ADAGUC/constants/map_styles';
 import { BOUNDING_BOXES } from '../routes/ADAGUC/constants/bounding_boxes';
-
 describe('(Store) createStore', () => {
   let store;
   const initialState = {

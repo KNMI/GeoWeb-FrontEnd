@@ -1,5 +1,6 @@
 import React from 'react';
 
+/* istanbul ignore next */
 const CanvasComponent = React.createClass({
   propTypes: {
     onRenderCanvas: React.PropTypes.func,

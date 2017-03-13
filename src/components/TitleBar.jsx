@@ -3,6 +3,7 @@ import Icon from 'react-fa';
 import GeoWebLogo from './assets/icon.svg';
 import axios from 'axios';
 import { Navbar, NavbarToggler, NavbarBrand, Collapse, Nav, NavItem, NavLink } from 'reactstrap';
+import { BACKEND_SERVER_URL } from '../routes/ADAGUC/constants/backend';
 var moment = require('moment');
 class TitleBar extends Component {
   constructor (props) {
@@ -14,6 +15,7 @@ class TitleBar extends Component {
       currentTime: moment.utc().format('YYYY MMM DD - HH:mm:ss').toString(),
       isOpen: false
     };
+    this.timer;
   }
   toggle () {
     this.setState({
@@ -25,24 +27,34 @@ class TitleBar extends Component {
     this.setState({ currentTime: time });
   }
   componentWillUnmount () {
-    clearInterval(this.state.currentTime);
+    clearInterval(this.timer);
   }
   componentDidMount () {
-    setInterval(this.setTime, 1000);
+    this.timer = setInterval(this.setTime, 1000);
     this.setState({ currentTime: moment.utc().format('YYYY MMM DD - HH:mm:ss').toString() });
   }
 
   doLogin () {
-    const rootURL = 'http://birdexp07.knmi.nl:8080';
     const { dispatch, actions } = this.props;
-    axios.get(rootURL + '/login?username=met1&password=met1', { withCredentials: true }).then(src => {
+    axios({
+      method: 'get',
+      url: BACKEND_SERVER_URL + '/login?username=met1&password=met1',
+      withCredentials: true,
+      responseType: 'json'
+    }).then(src => {
       const data = src.data;
-      if (data.userName !== null) {
-        dispatch(actions.login(data.userName));
-        axios.all(['getServices', 'getOverlayServices'].map((req) => axios.get(rootURL + '/' + req, { withCredentials: true }))).then(
+      if (data.username !== null) {
+        dispatch(actions.login(data.username));
+        axios.all(['getServices', 'getOverlayServices'].map((req) => axios.get(BACKEND_SERVER_URL + '/' + req, { withCredentials: true }))).then(
           axios.spread((services, overlays) => dispatch(actions.createMap(services.data, overlays.data[0])))
         );
       }
+    }).catch(error => {
+      dispatch(actions.login('Unauthorized'));
+      console.log(error.response.data.error);
+      console.log(error.response.data.message);
+      console.log(error.response.status);
+      console.log(error.response.headers);
     });
   }
   render () {
