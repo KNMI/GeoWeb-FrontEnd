@@ -60,12 +60,15 @@ class CollapseOmni extends Component {
   componentWillReceiveProps (nextProps) {
     const willOpen = nextProps.isOpen;
     const collapse = this.state.collapse;
+    console.log('size', this.getSize());
 
     if (willOpen && collapse === HIDDEN) {
       // will open
       this.setState({ collapse: SHOW }, () => {
         // the size transition will work after class "collapsing" applied
-        this.setState({ size: nextProps.maxSize });
+        this.transitionTag = setTimeout(() => {
+          this.setState({ size: nextProps.maxSize });
+        }, 5);
         this.transitionTag = setTimeout(() => {
           this.setState({ collapse: SHOWN });
         }, this.getDelay('show'));
@@ -113,16 +116,16 @@ class CollapseOmni extends Component {
   }
 
   getMinSize () {
-    return this.props.minSize !== 0 ? this.props.minSize : null;
+    return this.props.minSize; // !== 0 ? this.props.minSize : null;
   }
 
   getStyle () {
     if (this.props.isHorizontal) {
-      const width = this.state.size;
-      return { width };
+      const maxWidth = this.state.size;
+      return { maxWidth };
     } else {
-      const height = this.state.size;
-      return { height };
+      const maxHeight = this.state.size;
+      return { maxHeight };
     }
   }
 

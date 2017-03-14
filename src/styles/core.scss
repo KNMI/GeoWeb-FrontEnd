@@ -38,6 +38,14 @@ body {
 }
 .test {
 
+  .row {
+    margin: 0;
+  }
+
+  .col {
+    padding: 0;
+  }
+
   .rounded {
     border-radius: $radius-size
   }
@@ -163,6 +171,45 @@ body {
     cursor: pointer;
     color: $inverse-hover-color;
   }
+
+  .card {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .card-header {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+    cursor: pointer;
+  }
+
+  .accordion.card {
+    border: none;
+    border-bottom: 0.1rem solid transparent;
+    border-radius: 0.19rem;
+  }
+
+  .accordion .card-header {
+    z-index: 2;
+    color: $inverse-active-color;
+    background-color: $ux-interactive-color;
+    border: none;
+    @extend .rounded-top;
+  }
+
+  .accordion .card-block .btn-group-vertical > .btn:first-child {
+    border-radius: 0;
+  }
+
+  .card-block {
+    padding: 0;
+  }
+
+  .card-block .row {
+    flex: 1;
+  }
 }
 
 .container-fluid {
@@ -173,35 +220,20 @@ body {
   padding: 0;
 }
 
-.container-fluid div:not(.collapse):not(.dropdown-menu) {
+.container-fluid div:not(.collapse):not(.dropdown-menu):not(.btn-group-vertical) {
   display: inherit;
 }
 
-.row.Header {
-  margin: 0;
-}
-
-.MainViewport {
-  padding: 0;
-  flex-direction: column;
-  overflow: hidden;
-  .row {
-    margin: 0;
-  }
-  .map {
-    flex: 1;
-  }
-}
-
-.MainSection {
+.MainViewport.map {
   flex: 1;
-  padding: 0;
+}
+.row.MainSection {
+  flex: 1;
   margin: 0 0.2rem 0.2rem 0.2rem;
 }
 
 .TasksContainer {
   flex: 1;
-  padding: 0;
 }
 
 .LeftSideBar {
@@ -252,21 +284,11 @@ body {
   margin: 0.25rem;
   margin-top: 0;
   padding: 0.33rem;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
   flex: 1;
+  flex-direction: column;
 }
-
-// #adaguccontainer {
-//   display:inline-block;
-//   min-height: calc(100% - 133px);
-// }
-// #innermenu {
-//   display: block;
-// }
-
-// .dropdown{
-//   margin: 5px;
-// }
 
 *,
 *:before,
@@ -281,79 +303,6 @@ body {
   padding: 0;
 }
 
-// #submenuitem:hover{
-//   background-color: #e2e2e2 !important;
-// }
-// #infocontainer {
-//   margin: auto;
-//   margin-right: 250px;
-// }
-// #timecomponent {
-//   float: left;
-// }
-// #layerproperties {
-//   float: right;
-//   flex-grow: 1;
-// }
-// #layerproperties td,
-// #layerproperties th {
-//   padding-right: 25px;
-//   font-size: 18pt;
-// }
-// #layerproperties td:last-child,
-// #layerproperties th:last-child {
-//   font-size: 18pt;
-// }
-/* Position and sizing of burger button */
-.bm-burger-button {
-  position: fixed;
-  width: 36px;
-  height: 30px;
-  left: 16px;
-  top: 75px;
-}
-
-/* Color/shape of burger icon bars */
-.bm-burger-bars {
-  background: #373a47;
-}
-
-/* Position and sizing of clickable cross button */
-.bm-cross-button {
-  height: 24px;
-  width: 24px;
-}
-
-/* Color/shape of close button cross */
-.bm-cross {
-  background: #373a47;
-}
-
-/* General sidebar styles */
-.bm-menu {
-  background: #eeeeee;
-  padding: 0em 1em 0em 0em;
-  font-size: 1.15em;
-  min-width: 100px;
-  border:1px solid rgba(0, 0, 0, 0.5);
-
-}
-
-/* Morph shape necessary with bubble or elastic */
-.bm-morph-shape {
-  fill: #373a47;
-}
-
-/* Wrapper for item list */
-.bm-item-list {
-  color: #b8b7ad;
-  padding: 0.8em;
-}
-
-/* Styling of overlay */
-.bm-overlay {
-  background: rgba(0, 0, 0, 0.3);
-}
 span {
   max-width: 500px;
 }
