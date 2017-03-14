@@ -224,8 +224,13 @@ body {
   display: inherit;
 }
 
-.MainViewport.map {
+.MainViewport {
+  .map {
+    flex: 1;
+  }
   flex: 1;
+  flex-direction: column;
+  overflow: hidden;
 }
 .row.MainSection {
   flex: 1;

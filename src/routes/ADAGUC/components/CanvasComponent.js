@@ -1,13 +1,12 @@
 import React from 'react';
+import omit from 'lodash.omit';
 
 /* istanbul ignore next */
 const CanvasComponent = React.createClass({
   propTypes: {
     onRenderCanvas: React.PropTypes.func,
     onClick: React.PropTypes.func,
-    onMouseMove: React.PropTypes.func,
-    width: React.PropTypes.number,
-    height: React.PropTypes.number
+    onMouseMove: React.PropTypes.func
   },
   getDefaultProps () {
     return {
@@ -42,7 +41,7 @@ const CanvasComponent = React.createClass({
     this.props.onRenderCanvas(this.refs.canvas.getContext('2d'));
   },
   render () {
-    const { ...attributes } = this.props;
+    const { ...attributes } = omit(this.props, 'onRenderCanvas');
     return (
       <canvas ref='canvas' {...attributes} />
     );
