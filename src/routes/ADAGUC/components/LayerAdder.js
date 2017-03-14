@@ -69,7 +69,6 @@ export default class LayerAdder extends React.Component {
     for (var i = 0; i < layers.length; ++i) {
       layerobjs.push({ id: layers[i].name, label: layers[i].text });
     }
-    console.log(layerobjs);
     this.setState({
       layers: layerobjs,
       activeTab: '2'
@@ -88,7 +87,7 @@ export default class LayerAdder extends React.Component {
     // eslint-disable-next-line no-undef
     var srv = WMJSgetServiceFromStore(selectedService.service);
     this.setState({ selectedSource: selectedService });
-    srv.getLayerObjectsFlat((layers) => this.generateMap(layers), (err) => console.log(err));
+    srv.getLayerObjectsFlat((layers) => this.generateMap(layers), (err) => { throw new Error(err); });
   }
 
   render () {
@@ -101,7 +100,7 @@ export default class LayerAdder extends React.Component {
           <NavItem>
             <NavLink
               className={classnames({ active: this.state.activeTab === '1' })}
-              onClick={() => { this.toggleTab('1'); }}
+              onClick={() => { this.toggleTab(); }}
             >
               (1) - Select Source
             </NavLink>
@@ -109,7 +108,7 @@ export default class LayerAdder extends React.Component {
           <NavItem>
             <NavLink
               className={classnames({ active: this.state.activeTab === '2' })}
-              onClick={() => { this.toggleTab('2'); }} disabled={this.state.selectedSource === null}
+              onClick={() => { this.toggleTab(); }} disabled={this.state.selectedSource === null}
             >
               (2) - Select { this.state.selectedSource ? this.getLayerName(this.state.selectedSource) : '' } Layer
             </NavLink>

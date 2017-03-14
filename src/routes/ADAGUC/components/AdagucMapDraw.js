@@ -389,7 +389,6 @@ const AdagucMapDraw = React.createClass({
     }
   },
   cancelEdit (cancelLastPoint) {
-    console.log('cancelEdit');
     if (this.props.isInEditMode === false) return;
     const { webmapjs } = this.props;
 

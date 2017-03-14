@@ -30,18 +30,6 @@ const initialState = {
     adagucmeasuredistance: {
       isInEditMode: false
     }
-  },
-  header: {
-    title: 'hello Headers'
-  },
-  leftSideBar: {
-    title: 'hello LeftSideBar'
-  },
-  mainViewport: {
-    title: 'hello MainViewport'
-  },
-  rightSideBar: {
-    title: 'hello RightSideBar'
   }
 };
 

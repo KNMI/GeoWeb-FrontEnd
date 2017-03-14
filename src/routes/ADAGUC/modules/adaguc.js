@@ -15,52 +15,14 @@ const SET_STYLE = 'SET_STYLE';
 const PREPARE_SIGMET = 'PREPARE_SIGMET';
 const ALTER_LAYER = 'ALTER_LAYER';
 const REORDER_LAYER = 'REORDER_LAYER';
+const SET_WMJSLAYERS = 'SET_WMJSLAYERS';
 import { ADAGUCMAPDRAW_EDITING, ADAGUCMAPDRAW_DELETE, ADAGUCMAPDRAW_UPDATEFEATURE } from '../components/AdagucMapDraw';
 import { ADAGUCMEASUREDISTANCE_EDITING, ADAGUCMEASUREDISTANCE_UPDATE } from '../components/AdagucMeasureDistance';
-
-// ------------------------------------
-// Helper functions
-// ------------------------------------
-Object.equals = function (x, y) {
-  if (x === y) return true;
-    // if both x and y are null or undefined and exactly the same
-
-  if (!(x instanceof Object) || !(y instanceof Object)) return false;
-    // if they are not strictly equal, they both need to be Objects
-
-  if (x.constructor !== y.constructor) return false;
-    // they must have the exact same prototype chain, the closest we can do is
-    // test there constructor.
-
-  for (var p in x) {
-    if (!x.hasOwnProperty(p)) continue;
-      // other properties were tested using x.constructor === y.constructor
-
-    if (!y.hasOwnProperty(p)) return false;
-      // allows to compare x[ p ] and y[ p ] when set to undefined
-
-    if (x[ p ] === y[ p ]) continue;
-      // if they have the same strict value or identity then they are equal
-
-    if (typeof (x[ p ]) !== 'object') return false;
-      // Numbers, Strings, Functions, Booleans must be strictly equal
-
-    if (!Object.equals(x[ p ], y[ p ])) return false;
-      // Objects and Arrays must be tested recursively
-  }
-
-  for (p in y) {
-    if (y.hasOwnProperty(p) && !x.hasOwnProperty(p)) return false;
-      // allows x[ p ] to be set to undefined
-  }
-  return true;
-};
 
 // ------------------------------------
 // Actions
 // ------------------------------------
 function createMap (sources, overlays) {
-  console.log(sources);
   return {
     type: CREATE_MAP,
     payload: {
@@ -69,7 +31,12 @@ function createMap (sources, overlays) {
     }
   };
 }
-
+function setWMJSLayers (layers) {
+  return {
+    type: SET_WMJSLAYERS,
+    payload: layers
+  };
+}
 function login (username) {
   return {
     type: LOGIN,
@@ -95,15 +62,9 @@ function setStyle (style = 0) {
   };
 }
 function addLayer (layer) {
-  let enabledLayer;
-  if (!layer.enabled) {
-    enabledLayer = Object.assign({}, layer, { enabled: true });
-  } else {
-    enabledLayer = Object.assign({}, layer);
-  }
   return {
     type: ADD_LAYER,
-    payload: enabledLayer
+    payload: Object.assign({}, layer, { enabled: true })
   };
 }
 function alterLayer (index, layerType, fieldsNewValuesObj) {
@@ -141,7 +102,6 @@ function deleteLayer (layerParams, layertype) {
 }
 
 function adagucmapdrawToggleEdit (adagucmapdraw) {
-  console.log('adagucmapdrawToggleEdit', adagucmapdraw);
   return {
     type: 'ADAGUCMAPDRAW_EDITING',
     payload: Object.assign({}, adagucmapdraw, { isInEditMode: !adagucmapdraw.isInEditMode })
@@ -149,7 +109,6 @@ function adagucmapdrawToggleEdit (adagucmapdraw) {
 }
 
 function adagucmapdrawToggleDelete (adagucmapdraw) {
-  console.log('adagucmapdrawToggleDelete', adagucmapdraw);
   return {
     type: 'ADAGUCMAPDRAW_DELETE',
     payload: Object.assign({}, adagucmapdraw, { isInDeleteMode: !adagucmapdraw.isInDeleteMode })
@@ -157,7 +116,6 @@ function adagucmapdrawToggleDelete (adagucmapdraw) {
 }
 
 function adagucmeasuredistanceToggleEdit (adagucmeasuredistance) {
-  console.log('adagucmeasuredistanceToggleEdit', adagucmeasuredistance);
   return {
     type: 'ADAGUCMEASUREDISTANCE_EDITING',
     payload: Object.assign({}, adagucmeasuredistance, { isInEditMode: !adagucmeasuredistance.isInEditMode })
@@ -258,6 +216,7 @@ export const actions = {
   setStyle,
   prepareSIGMET,
   reorderLayer,
+  setWMJSLayers,
   alterLayer,
   adagucmapdrawToggleEdit,
   adagucmapdrawToggleDelete,
@@ -378,7 +337,7 @@ const doReorderLayer = (state, payload) => {
   if (idx + direction < 0 || idx + direction >= state.layers.datalayers.length) {
     return state;
   }
-  console.log(idx, direction);
+
   let newDatalayers = state.layers.datalayers.map(a => Object.assign({}, a));
   const tmp = newDatalayers[idx];
   newDatalayers[idx] = newDatalayers[idx + direction];
@@ -408,19 +367,16 @@ const doDeleteLayer = (state, payload) => {
 };
 
 const handleAdagucMapDrawEditing = (state, payload) => {
-  console.log('handleAdagucMapDrawEditing', state, payload);
   let adagucmapdraw = Object.assign({}, state.adagucmapdraw, { isInEditMode : payload.isInEditMode });
   let adagucmeasuredistance = Object.assign({}, state.adagucmeasuredistance, { isInEditMode : false });
   return Object.assign({}, state, { adagucmeasuredistance: adagucmeasuredistance, adagucmapdraw: adagucmapdraw });
 };
 const handleAdagucMapDrawDelete = (state, payload) => {
-  console.log('handleAdagucMapDrawDelete', state, payload);
   let adagucmapdraw = Object.assign({}, state.adagucmapdraw, { isInDeleteMode : payload.isInDeleteMode });
   let adagucmeasuredistance = Object.assign({}, state.adagucmeasuredistance, { isInEditMode : false });
   return Object.assign({}, state, { adagucmeasuredistance: adagucmeasuredistance, adagucmapdraw: adagucmapdraw });
 };
 const handleAdagucMapDrawUpdateFeature = (state, payload) => {
-  console.log('handleAdagucMapDrawUpdateFeature', payload);
   /* Returning new state is not strictly necessary,
     as the geojson in AdagucMapDraw is the same and does not require rerendering of the AdagucMapDraw component
   */
@@ -429,18 +385,19 @@ const handleAdagucMapDrawUpdateFeature = (state, payload) => {
   return Object.assign({}, state, { adagucmeasuredistance: adagucmeasuredistance, adagucmapdraw: adagucmapdraw });
 };
 const handleAdagucMeasureDistanceEditing = (state, payload) => {
-  console.log('handleAdagucMeasureDistanceEditing', state, payload);
   let adagucmapdraw = Object.assign({}, state.adagucmapdraw, { isInEditMode : false });
   let adagucmeasuredistance = Object.assign({}, state.adagucmeasuredistance, { isInEditMode : payload.isInEditMode });
   return Object.assign({}, state, { adagucmeasuredistance: adagucmeasuredistance, adagucmapdraw: adagucmapdraw });
 };
 const handleAdagucMeasureDistanceUpdate = (state, payload) => {
-  console.log('handleAdagucMeasureDistanceUpdate', payload);
   let adagucmeasuredistance = Object.assign({}, state.adagucmeasuredistance,
     { distance : payload.distance,
       bearing : payload.bearing
     });
   return Object.assign({}, state, { adagucmeasuredistance: adagucmeasuredistance });
+};
+const doSetWMJSLayers = (state, payload) => {
+  return Object.assign({}, state, { wmjslayers: payload });
 };
 // ------------------------------------
 // Action Handlers
@@ -461,7 +418,8 @@ const ACTION_HANDLERS = {
   [REORDER_LAYER]                 : (state, action) => doReorderLayer(state, action.payload),
   [SET_CUT]                       : (state, action) => newCut(state, action.payload),
   [SET_MAP_STYLE]                 : (state, action) => newMapStyle(state, action.payload),
-  [SET_STYLE]                     : (state, action) => newStyle(state, action.payload)
+  [SET_STYLE]                     : (state, action) => newStyle(state, action.payload),
+  [SET_WMJSLAYERS]                : (state, action) => doSetWMJSLayers(state, action.payload)
 };
 
 // ------------------------------------

@@ -1,8 +1,10 @@
 import TasksContainer from '../../../containers/TasksContainer';
 import Panel from '../../../components/Panel';
+import MapPanel from '../../../components/MapPanel';
+import LayerManagerPanel from '../../../components/LayerManagerPanel';
 import TitleBarContainer from '../../../containers/TitleBarContainer';
 import { connect } from 'react-redux';
-
+import { actions } from '../../ADAGUC/modules/adaguc';
 const mapStateToHeaderProps = (state) => {
   return {
     title: 'header',
@@ -12,11 +14,21 @@ const mapStateToHeaderProps = (state) => {
 };
 
 const mapStateToLeftSideBarProps = (state) => {
-  return { title: 'leftSideBar' };
+  return { };
 };
 
-const mapStateToMainViewportProps = (state) => {
-  return { title: 'mainViewport' };
+const mapStateToMapProps = (state) => {
+  return { adagucProperties: state.adagucProperties };
+};
+
+const mapStateToLayerManagerProps = (state) => {
+  return { adagucProperties: state.adagucProperties };
+};
+const mapDispatchToMainViewportProps = function (dispatch) {
+  return ({
+    dispatch: dispatch,
+    actions: actions
+  });
 };
 
 const mapStateToRightSideBarProps = (state) => {
@@ -31,7 +43,8 @@ export default () => ({
   components : {
     header: connect(mapStateToHeaderProps)(TitleBarContainer),
     leftSideBar: connect(mapStateToLeftSideBarProps)(TasksContainer),
-    mainViewport: connect(mapStateToMainViewportProps)(Panel),
+    map: connect(mapStateToMapProps, mapDispatchToMainViewportProps)(MapPanel),
+    layerManager: connect(mapStateToLayerManagerProps, mapDispatchToMainViewportProps)(LayerManagerPanel),
     rightSideBar: connect(mapStateToRightSideBarProps)(Panel)
   }
 });

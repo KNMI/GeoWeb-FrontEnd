@@ -4,7 +4,7 @@ import '../../styles/core.scss';
 
 class BaseLayout extends Component {
   render () {
-    const { header, leftSideBar, mainViewport, rightSideBar } = this.props;
+    const { header, leftSideBar, map, layerManager, rightSideBar } = this.props;
     return (
       <Container fluid className={this.props.routes[1] && this.props.routes[1].path === 'layout_test' ? 'test' : ''}>
         <Row className='Header'>
@@ -15,7 +15,12 @@ class BaseLayout extends Component {
             {leftSideBar || 'Oops'}
           </Col>
           <Col className='MainViewport'>
-            {mainViewport || 'Oops'}
+            <Row className='map'>
+              {map || 'Oops'}
+            </Row>
+            <Row className='layerManager'>
+              {layerManager || 'Oops'}
+            </Row>
           </Col>
           <Col xs='auto' className='RightSideBar'>
             {rightSideBar || 'Oops'}
@@ -28,7 +33,8 @@ class BaseLayout extends Component {
 BaseLayout.propTypes = {
   header: PropTypes.element,
   leftSideBar: PropTypes.element,
-  mainViewport: PropTypes.element,
+  map: PropTypes.element,
+  layerManager: PropTypes.element,
   rightSideBar: PropTypes.element,
   routes: PropTypes.array
 };
