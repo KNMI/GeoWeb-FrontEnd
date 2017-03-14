@@ -60,7 +60,6 @@ class CollapseOmni extends Component {
   componentWillReceiveProps (nextProps) {
     const willOpen = nextProps.isOpen;
     const collapse = this.state.collapse;
-    console.log('size', this.getSize());
 
     if (willOpen && collapse === HIDDEN) {
       // will open

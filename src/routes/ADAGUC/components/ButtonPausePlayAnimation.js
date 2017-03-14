@@ -4,7 +4,8 @@ import { Icon } from 'react-fa';
 const ButtonPausePlayAnimation = React.createClass({
   propTypes: {
     onChange: React.PropTypes.func,
-    webmapjs: React.PropTypes.object
+    actions: React.PropTypes.object,
+    dispatch: React.PropTypes.func
   },
   getInitialState () {
     return {
@@ -28,6 +29,7 @@ const ButtonPausePlayAnimation = React.createClass({
     /* istanbul ignore next */
     this.setState({ pauseorplay:newpauseorplay, icon:this.getIcon(newpauseorplay) });
     /* istanbul ignore next */
+    this.props.dispatch(this.props.actions.toggleAnimation());
     this.props.onChange(newpauseorplay);
   },
   componentWillReceiveProps (nextProps) {
@@ -43,14 +45,6 @@ const ButtonPausePlayAnimation = React.createClass({
     this.setState({ pauseorplay:false, icon:this.getIcon(false) });
   },
   render () {
-    /* istanbul ignore next */
-    if (this.props.webmapjs !== undefined) {
-      if (this.listenersInitialized === undefined) {
-        this.listenersInitialized = true;
-        this.props.webmapjs.addListener('onstopanimation', this.onstopanimation, true);
-        this.props.webmapjs.addListener('onstartanimation', this.onstartanimation, true);
-      }
-    }
     return (
       <Button color='primary' size='large' onClick={this.handleClick}>
         <Icon name={this.state.icon} />

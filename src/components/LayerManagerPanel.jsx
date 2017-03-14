@@ -10,7 +10,7 @@ class MapPanel extends Component {
     return (
       <Panel title={title} className='mapPanel'>
         <Row style={{ flex: 1 }}>
-          <TimeComponent wmjslayers={adagucProperties.wmjslayers} dispatch={dispatch} actions={actions} />
+          <TimeComponent timedim={adagucProperties.timedim} wmjslayers={adagucProperties.wmjslayers} dispatch={dispatch} actions={actions} />
           <LayerManager wmjslayers={adagucProperties.wmjslayers} dispatch={dispatch} actions={actions} />
         </Row>
       </Panel>
@@ -20,7 +20,6 @@ class MapPanel extends Component {
 
 MapPanel.propTypes = {
   title: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
-  // adagucProperties: PropTypes.object.isRequired,
   dispatch: PropTypes.func.isRequired,
   actions: PropTypes.object.isRequired,
   adagucProperties: PropTypes.object
