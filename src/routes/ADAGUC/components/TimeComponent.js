@@ -3,6 +3,8 @@ import ButtonPausePlayAnimation from './ButtonPausePlayAnimation.js';
 import CanvasComponent from './CanvasComponent.js';
 import { Icon } from 'react-fa';
 import { Button, Col, Row } from 'reactstrap';
+var elementResizeEvent = require('element-resize-event');
+
 export default class TimeComponent extends React.Component {
   constructor () {
     super();
@@ -19,12 +21,13 @@ export default class TimeComponent extends React.Component {
     this.handleButtonClickNextPage = this.handleButtonClickNextPage.bind(this);
     this.handleButtonClickNow = this.handleButtonClickNow.bind(this);
     this.handleChange = this.handleChange.bind(this);
-    this.onChangeAnimation = this.onChangeAnimation.bind(this);
+    // this.onChangeAnimation = this.onChangeAnimation.bind(this);
     this.changeYear = this.changeYear.bind(this);
     this.changeMonth = this.changeMonth.bind(this);
     this.changeDay = this.changeDay.bind(this);
     this.changeHour = this.changeHour.bind(this);
     this.changeMinute = this.changeMinute.bind(this);
+    this.element = document.querySelector('.map .content');
   }
   handleChange (event) {
   }
@@ -33,19 +36,18 @@ export default class TimeComponent extends React.Component {
   }
   /* istanbul ignore next */
   eventOnDimChange () {
-    if (!this.props.webmapjs) return;
     this.drawCanvas();
 
-    let timeDim = this.props.webmapjs.getDimension('time');
+    let timeDim = this.props.timedim;
 
     if (timeDim !== undefined) {
-      if (this.state.value === timeDim.currentValue) {
+      if (this.state.value === timeDim) {
         if (this.hoverDate === this.hoverDateDone) {
           this.drawCanvas();
         }
       }
-      if (timeDim.currentValue !== this.state.value) {
-        this.setState({ value:timeDim.currentValue });
+      if (timeDim !== this.state.value) {
+        this.setState({ value:timeDim });
       }
     } else {
       this.drawCanvas();
@@ -54,18 +56,20 @@ export default class TimeComponent extends React.Component {
   }
   /* istanbul ignore next */
   drawCanvas () {
-    if (!this.props.webmapjs) return;
-    let timeDim = this.props.webmapjs.getDimension('time');
+    let timeDim = this.props.timedim;
     if (timeDim === undefined) {
       return;
     }
     this.hoverDateDone = this.hoverDate;
-
-    let layers = this.props.webmapjs.getLayers();
-    let overlayers = this.props.webmapjs.getBaseLayers().filter((layer) => layer.keepOnTop === true);
+    let layers = this.props.wmjslayers.layers;
+    let overlayers = this.props.wmjslayers.baselayers.filter((layer) => layer.keepOnTop === true);
     let ctx = this.ctx;
-    let canvasWidth = ctx.canvas.clientWidth;
-    let canvasHeight = ctx.canvas.clientHeight;
+    // let canvasWidth = ctx.canvas.clientWidth;
+    // let canvasHeight = ctx.canvas.clientHeight;
+    // eslint-disable-next-line no-undef
+    const canvasWidth = $(ctx.canvas).width();
+    // eslint-disable-next-line no-undef
+    const canvasHeight = $(ctx.canvas).height();
     ctx.fillStyle = '#CCC';
     ctx.fillRect(0, 0, canvasWidth, canvasHeight);
     ctx.strokeStyle = '#FF0000';
@@ -76,9 +80,9 @@ export default class TimeComponent extends React.Component {
     // eslint-disable-next-line no-undef
     let currentDate = getCurrentDateIso8601();
     // eslint-disable-next-line no-undef
-    this.startDate = parseISO8601DateToDate(timeDim.currentValue); // getCurrentDateIso8601();
+    this.startDate = parseISO8601DateToDate(timeDim); // getCurrentDateIso8601();
     // eslint-disable-next-line no-undef
-    this.endDate = parseISO8601DateToDate(timeDim.currentValue); // getCurrentDateIso8601();
+    this.endDate = parseISO8601DateToDate(timeDim); // getCurrentDateIso8601();
 
     this.timeWidth = 24 / 2;
     let hours = this.startDate.getUTCHours();
@@ -108,7 +112,7 @@ export default class TimeComponent extends React.Component {
       // ???????
       // Apparantly we're reliant on exceptions
     }
-    let sliderMapIndex = this.canvasDateInterval.getTimeStepFromISODate(timeDim.currentValue);
+    let sliderMapIndex = this.canvasDateInterval.getTimeStepFromISODate(timeDim);
     let sliderStopIndex = this.canvasDateInterval.getTimeStepFromISODate(this.endDate.toISO8601());
 
     let canvasDateIntervalStrHour = this.startDate.toISO8601() + '/' + this.endDate.toISO8601() + '/PT1H';
@@ -217,7 +221,11 @@ export default class TimeComponent extends React.Component {
     ctx.fillRect(x - 26, canvasHeight - 15, 52, 14);
     // ctx.strokeRect(x - 20.5, canvasHeight - 15.5, 40, 16);
     ctx.fillStyle = '#000000';
-    ctx.fillText(timeDim.currentValue.substring(11, 16), x - 15, canvasHeight - 3);
+    ctx.fillText(timeDim.substring(11, 16), x - 15, canvasHeight - 3);
+    if (!this.element) {
+      this.element = document.querySelector('.map .content');
+      elementResizeEvent(this.element, this.drawCanvas);
+    }
   }
   /* istanbul ignore next */
   toISO8601 (value) {
@@ -240,8 +248,9 @@ export default class TimeComponent extends React.Component {
     let isodate = this.toISO8601(value);
     // eslint-disable-next-line no-undef
     var date = parseISO8601DateToDate(isodate);
-    this.props.webmapjs.setDimension('time', date.toISO8601(), true);
-    this.props.webmapjs.draw();
+    this.props.dispatch(this.props.actions.setTimeDimension(date.toISO8601()));
+    // this.props.webmapjs.setDimension('time', date.toISO8601(), true);
+    // this.props.webmapjs.draw();
     this.eventOnDimChange();
   }
   /* istanbul ignore next */
@@ -279,10 +288,6 @@ export default class TimeComponent extends React.Component {
     let date = this.decomposeDateString(this.state.value); date.second = value; this.setNewDate(date);
   }
   /* istanbul ignore next */
-  onChangeAnimation (value) {
-    this.props.onChangeAnimation(value);
-  }
-  /* istanbul ignore next */
   componentDidMount () {
     setInterval(this.drawCanvas, 60000);
   }
@@ -291,6 +296,7 @@ export default class TimeComponent extends React.Component {
   }
   /* istanbul ignore next */
   componentWillUnmount () {
+    this.element = undefined;
   }
   /* istanbul ignore next */
   onRenderCanvas (ctx) {
@@ -304,8 +310,9 @@ export default class TimeComponent extends React.Component {
     /* istanbul ignore next */
     try {
       let newDate = this.canvasDateInterval.getDateAtTimeStep(newTimeStep, true);
-      this.props.webmapjs.setDimension('time', newDate.toISO8601(), true);
-      this.props.webmapjs.draw();
+      this.props.dispatch(this.props.actions.setTimeDimension(newDate.toISO8601()));
+      // this.props.webmapjs.setDimension('time', newDate.toISO8601(), true);
+      // this.props.webmapjs.draw();
       this.eventOnDimChange();
     } catch (e) {
       throw new Error('311: ', e);
@@ -314,8 +321,9 @@ export default class TimeComponent extends React.Component {
   handleButtonClickNow () {
     // eslint-disable-next-line no-undef
     let currentDate = getCurrentDateIso8601();
-    this.props.webmapjs.setDimension('time', currentDate.toISO8601(), true);
-    this.props.webmapjs.draw();
+    this.props.dispatch(this.props.actions.setTimeDimension(currentDate.toISO8601()));
+    // this.props.webmapjs.setDimension('time', currentDate.toISO8601(), true);
+    // this.props.webmapjs.draw();
     this.eventOnDimChange();
   }
   handleButtonClickPrevPage () {
@@ -330,21 +338,13 @@ export default class TimeComponent extends React.Component {
   }
 
   render () {
-    const { webmapjs } = this.props;
     /* istanbul ignore next */
-    if (webmapjs !== undefined) {
-      if (this.listenersInitialized === undefined) { // TODO mount/unmount
-        this.listenersInitialized = true;
-        webmapjs.addListener('onlayeradd', this.eventOnMapDimUpdate, true);
-        webmapjs.addListener('onmapdimupdate', this.eventOnMapDimUpdate, true);
-        webmapjs.addListener('ondimchange', this.eventOnDimChange, true);
-      }
-    }
+
     return (
       <Col>
         <Row style={{ flex: 1 }}>
           <Col xs='auto'>
-            <ButtonPausePlayAnimation webmapjs={this.props.webmapjs} onChange={this.onChangeAnimation} />
+            <ButtonPausePlayAnimation dispatch={this.props.dispatch} actions={this.props.actions} />
           </Col>
           <Col xs='auto'>
             <Button color='primary' size='large' onClick={this.handleButtonClickNow}>Now</Button>
@@ -368,6 +368,8 @@ export default class TimeComponent extends React.Component {
   }
 }
 TimeComponent.propTypes = {
-  onChangeAnimation: React.PropTypes.func,
-  webmapjs: React.PropTypes.object
+  timedim: React.PropTypes.string,
+  wmjslayers: React.PropTypes.object,
+  dispatch: React.PropTypes.func,
+  actions: React.PropTypes.object
 };
