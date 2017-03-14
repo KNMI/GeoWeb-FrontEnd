@@ -1,6 +1,5 @@
 import React, { Component, PropTypes } from 'react';
-import { Button, Col, Row, ButtonGroup, Form, InputGroupButton, InputGroup, Input, Badge, Collapse,
-  Card, CardHeader, CardBlock } from 'reactstrap';
+import { Button, Col, Row, Form, InputGroupButton, InputGroup, Input, Badge, Card, CardHeader, CardBlock } from 'reactstrap';
 import Icon from 'react-fa';
 import CollapseOmni from '../components/CollapseOmni';
 import Panel from '../components/Panel';

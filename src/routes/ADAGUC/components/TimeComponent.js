@@ -350,7 +350,7 @@ export default class TimeComponent extends React.Component {
             <Button color='primary' size='large' onClick={this.handleButtonClickNow}>Now</Button>
           </Col>
           <Col xs='auto'>
-            <Button color='primary' onClick={this.handleButtonClickPrevPage}>
+            <Button outline color='info' onClick={this.handleButtonClickPrevPage}>
               <Icon name='chevron-left' />
             </Button>
           </Col>
@@ -358,7 +358,7 @@ export default class TimeComponent extends React.Component {
             <CanvasComponent id='timeline' onRenderCanvas={this.onRenderCanvas} onClick={this.onClickCanvas} />
           </Col>
           <Col xs='auto'>
-            <Button color='primary' onClick={this.handleButtonClickNextPage}>
+            <Button outline color='info' onClick={this.handleButtonClickNextPage}>
               <Icon name='chevron-right' />
             </Button>
           </Col>
