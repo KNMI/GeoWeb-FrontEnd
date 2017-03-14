@@ -121,10 +121,10 @@ class TaskCategory extends React.Component {
   }
 }
 
-MenuItem.propTypes = {
-  title         : React.PropTypes.string,
-  notification  : React.PropTypes.number,
-  subitems      : React.PropTypes.array.isRequired
+TaskCategory.propTypes = {
+  title         : React.PropTypes.string.isRequired,
+  notifications : React.PropTypes.number,
+  tasks         : React.PropTypes.array.isRequired
 };
 
 export default TasksContainer;
