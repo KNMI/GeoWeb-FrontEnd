@@ -11,8 +11,6 @@ const CanvasComponent = React.createClass({
   },
   getDefaultProps () {
     return {
-      width:300,
-      height:300,
       onRenderCanvas:function () {},
       onClick:function () {},
       onMouseMove:function () {}
@@ -44,8 +42,9 @@ const CanvasComponent = React.createClass({
     this.props.onRenderCanvas(this.refs.canvas.getContext('2d'));
   },
   render () {
+    const { ...attributes } = this.props;
     return (
-      <canvas ref='canvas' width={this.props.width} height={this.props.height} />
+      <canvas ref='canvas' {...attributes} />
     );
   }
 });

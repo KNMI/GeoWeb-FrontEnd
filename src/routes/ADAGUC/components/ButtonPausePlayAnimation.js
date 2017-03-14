@@ -51,11 +51,10 @@ const ButtonPausePlayAnimation = React.createClass({
         this.props.webmapjs.addListener('onstartanimation', this.onstartanimation, true);
       }
     }
-    return <div style={{ display:'flex', flex: '0 0 auto' }}>
-      <Button color='primary' size='large' style={{ padding:'20px', margin:' 0 5px' }} onClick={this.handleClick}>
+    return (
+      <Button color='primary' size='large' onClick={this.handleClick}>
         <Icon name={this.state.icon} />
-      </Button>
-    </div>;
+      </Button>);
   }
 });
 

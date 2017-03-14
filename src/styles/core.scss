@@ -32,6 +32,10 @@ body {
   background-color: #f2fbff;
 }
 
+#timeline {
+  max-height: 40rem;
+  width: 100%;
+}
 .test {
 
   .rounded {
@@ -179,6 +183,14 @@ body {
 
 .MainViewport {
   padding: 0;
+  flex-direction: column;
+  overflow: hidden;
+  .row {
+    margin: 0;
+  }
+  .map {
+    flex: 1;
+  }
 }
 
 .MainSection {
@@ -212,6 +224,11 @@ body {
   margin-bottom: 0;
   padding: 0.33rem;
   overflow: hidden;
+}
+
+.Panel > div.notitle {
+  border: none;
+  padding-top: 0;
 }
 
 .Panel > .title .form-inline {

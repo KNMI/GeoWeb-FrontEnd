@@ -80,7 +80,7 @@ class TasksContainer extends Component {
 }
 
 TasksContainer.propTypes = {
-  title: PropTypes.string.isRequired
+  title: PropTypes.string
 };
 
 class MenuItem extends React.Component {
@@ -120,7 +120,7 @@ class MenuItem extends React.Component {
 }
 
 MenuItem.propTypes = {
-  title         : React.PropTypes.string.isRequired,
+  title         : React.PropTypes.string,
   notification  : React.PropTypes.number,
   subitems      : React.PropTypes.array.isRequired
 };

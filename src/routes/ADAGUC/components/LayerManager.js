@@ -2,9 +2,8 @@ import React from 'react';
 import { Popover,
 PopoverTitle, Button,
 ButtonGroup,
-PopoverContent, ListGroupItem, Badge } from 'reactstrap';
+PopoverContent, ListGroupItem, Badge, Col } from 'reactstrap';
 import { Icon } from 'react-fa';
-
 // ----------------------------------------- \\
 // Rendering of the layersource with popover \\
 // ----------------------------------------- \\
@@ -377,40 +376,37 @@ export default class LayerManager extends React.Component {
       overlays: []
     });
   }
-  updateState () {
-    this.setState({
-      layers: this.props.webmapjs.getLayers(),
-      baselayers: this.props.webmapjs.getBaseLayers().filter((layer) => !layer.keepOnTop),
-      overlays: this.props.webmapjs.getBaseLayers().filter((layer) => layer.keepOnTop)
-    });
+  componentWillMount () {
+    this.updateState(this.props.wmjslayers);
   }
-  render () {
-    const { webmapjs } = this.props;
-    // istanbul ignore next
-    if (webmapjs !== undefined) {
-      if (this.listenersInitialized === undefined) { // TODO mount/unmount
-        this.listenersInitialized = true;
-        webmapjs.addListener('onlayeradd', this.updateState, true);
-        webmapjs.addListener('onmapdimupdate', this.updateState, true);
-        webmapjs.addListener('ondimchange', this.updateState, true);
-        webmapjs.addListener('onlayerchange', this.updateState, true);
-        this.updateState();
-      }
-      return (
-        <div style={{ marginLeft: '5px' }} >
-          {this.renderOverLayerSet(this.state.overlays)}
-          {this.renderLayerSet(this.state.layers)}
-          {this.renderBaseLayerSet(this.state.baselayers)}
-        </div>
-      );
-    } else {
-      return <div />;
+  componentWillUpdate (nextProps, nextState) {
+    if (this.props.wmjslayers !== nextProps.wmjslayers) {
+      this.updateState(nextProps.wmjslayers);
     }
+  }
+  updateState (newlayers) {
+    if (newlayers) {
+      this.setState({
+        layers: newlayers.layers,
+        baselayers: newlayers.baselayers.filter((layer) => !layer.keepOnTop),
+        overlays: newlayers.baselayers.filter((layer) => layer.keepOnTop)
+      });
+    }
+  }
+
+  render () {
+    return (
+      <Col xs='auto'>
+        {this.renderOverLayerSet(this.state.overlays)}
+        {this.renderLayerSet(this.state.layers)}
+        {this.renderBaseLayerSet(this.state.baselayers)}
+      </Col>
+    );
   }
 }
 
 LayerManager.propTypes = {
   dispatch: React.PropTypes.func.isRequired,
   actions: React.PropTypes.object.isRequired,
-  webmapjs: React.PropTypes.object
+  wmjslayers: React.PropTypes.object
 };

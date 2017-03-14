@@ -2,13 +2,12 @@ import React from 'react';
 import ButtonPausePlayAnimation from './ButtonPausePlayAnimation.js';
 import CanvasComponent from './CanvasComponent.js';
 import { Icon } from 'react-fa';
-import { Button } from 'reactstrap';
+import { Button, Col, Row } from 'reactstrap';
 export default class TimeComponent extends React.Component {
   constructor () {
     super();
     this.state = {
-      value: '2000-01-01T00:00:00Z',
-      width: 1483
+      value: '2000-01-01T00:00:00Z'
     };
     this.onRenderCanvas = this.onRenderCanvas.bind(this);
     this.eventOnDimChange = this.eventOnDimChange.bind(this);
@@ -46,7 +45,7 @@ export default class TimeComponent extends React.Component {
         }
       }
       if (timeDim.currentValue !== this.state.value) {
-        this.setState({ value:timeDim.currentValue, width: this.state.width });
+        this.setState({ value:timeDim.currentValue });
       }
     } else {
       this.drawCanvas();
@@ -341,33 +340,31 @@ export default class TimeComponent extends React.Component {
         webmapjs.addListener('ondimchange', this.eventOnDimChange, true);
       }
     }
-
     return (
-      <div style={{ display:'flex', flex: '0 0 auto', border:'0px solid red' }}>
-        <div style={{ display:'flex', flex: '0 0 auto', marginTop: '81px' }} >
-          <div style={{ display:'flex', flex: '0 0 auto' }}>
+      <Col>
+        <Row style={{ flex: 1 }}>
+          <Col xs='auto'>
             <ButtonPausePlayAnimation webmapjs={this.props.webmapjs} onChange={this.onChangeAnimation} />
-          </div>
-          <div style={{ display:'flex', flex: '0 0 auto' }} >
-            <Button color='primary' size='large' style={{ padding:'20px', margin:' 0 5px' }} onClick={this.handleButtonClickNow}>Now</Button>
-          </div>
-        </div>
-        <div style={{ display:'flex', flex: '0 0 auto' }}>
-          <Button color='primary' style={{ padding:'28px 5px 30px 5px', marginLeft:'1px', marginRight:'0px' }} onClick={this.handleButtonClickPrevPage}>
-            <Icon name='chevron-left' />
-          </Button>
-        </div>
-        <div style={{ display: 'flex', flex: '0 0 auto', border:'0px solid blue', margin: '0px 2px 0px 2px', padding: 0, background:'white' }}>
-          <CanvasComponent width={this.state.width - 803} height={150}
-            onRenderCanvas={this.onRenderCanvas}
-            onClick={this.onClickCanvas} />
-        </div>
-        <div style={{ display: 'flex', flex: '0 0 auto' }}>
-          <Button color='primary' style={{ padding:'28px 5px 30px 5px' }} onClick={this.handleButtonClickNextPage}>
-            <Icon name='chevron-right' />
-          </Button>
-        </div>
-      </div>);
+          </Col>
+          <Col xs='auto'>
+            <Button color='primary' size='large' onClick={this.handleButtonClickNow}>Now</Button>
+          </Col>
+          <Col xs='auto'>
+            <Button color='primary' onClick={this.handleButtonClickPrevPage}>
+              <Icon name='chevron-left' />
+            </Button>
+          </Col>
+          <Col>
+            <CanvasComponent id='timeline' onRenderCanvas={this.onRenderCanvas} onClick={this.onClickCanvas} />
+          </Col>
+          <Col xs='auto'>
+            <Button color='primary' onClick={this.handleButtonClickNextPage}>
+              <Icon name='chevron-right' />
+            </Button>
+          </Col>
+        </Row>
+      </Col>
+    );
   }
 }
 TimeComponent.propTypes = {

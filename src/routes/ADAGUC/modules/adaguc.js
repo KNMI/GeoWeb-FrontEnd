@@ -15,6 +15,7 @@ const SET_STYLE = 'SET_STYLE';
 const PREPARE_SIGMET = 'PREPARE_SIGMET';
 const ALTER_LAYER = 'ALTER_LAYER';
 const REORDER_LAYER = 'REORDER_LAYER';
+const SET_WMJSLAYERS = 'SET_WMJSLAYERS';
 import { ADAGUCMAPDRAW_EDITING, ADAGUCMAPDRAW_DELETE, ADAGUCMAPDRAW_UPDATEFEATURE } from '../components/AdagucMapDraw';
 import { ADAGUCMEASUREDISTANCE_EDITING, ADAGUCMEASUREDISTANCE_UPDATE } from '../components/AdagucMeasureDistance';
 
@@ -30,7 +31,12 @@ function createMap (sources, overlays) {
     }
   };
 }
-
+function setWMJSLayers (layers) {
+  return {
+    type: SET_WMJSLAYERS,
+    payload: layers
+  };
+}
 function login (username) {
   return {
     type: LOGIN,
@@ -210,6 +216,7 @@ export const actions = {
   setStyle,
   prepareSIGMET,
   reorderLayer,
+  setWMJSLayers,
   alterLayer,
   adagucmapdrawToggleEdit,
   adagucmapdrawToggleDelete,
@@ -389,6 +396,9 @@ const handleAdagucMeasureDistanceUpdate = (state, payload) => {
     });
   return Object.assign({}, state, { adagucmeasuredistance: adagucmeasuredistance });
 };
+const doSetWMJSLayers = (state, payload) => {
+  return Object.assign({}, state, { wmjslayers: payload });
+};
 // ------------------------------------
 // Action Handlers
 // ------------------------------------
@@ -408,7 +418,8 @@ const ACTION_HANDLERS = {
   [REORDER_LAYER]                 : (state, action) => doReorderLayer(state, action.payload),
   [SET_CUT]                       : (state, action) => newCut(state, action.payload),
   [SET_MAP_STYLE]                 : (state, action) => newMapStyle(state, action.payload),
-  [SET_STYLE]                     : (state, action) => newStyle(state, action.payload)
+  [SET_STYLE]                     : (state, action) => newStyle(state, action.payload),
+  [SET_WMJSLAYERS]                : (state, action) => doSetWMJSLayers(state, action.payload)
 };
 
 // ------------------------------------
