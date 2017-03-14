@@ -1,37 +1,21 @@
 .CollapseOmni.collapse {
-  height: auto;
-  width: auto;
-}
-
-.CollapseOmni.collapse.remain {
   display: inherit;
-  white-space: nowrap;
-  overflow: hidden;
+  width: unset;
+  height: unset;
 }
 
-.CollapseOmni.collapsing.omni {
+.CollapseOmni.collapse.show {
+  display: inherit;
+}
+
+.CollapseOmni.collapsing {
+  display: inherit;
+  width: unset;
+  height: unset;
   overflow: hidden;
   white-space: nowrap;
   -webkit-transition: all 0.35s ease;
   -moz-transition: all 0.35s ease;
   -o-transition: all 0.35s ease;
   transition: all 0.35s ease;
-}
-
-.CollapseOmni.collapsing.height {
-  width: auto;
-  @extend .collapsing.omni
-}
-
-.CollapseOmni.collapsing.width {
-  height: inherit;
-  @extend .collapsing.omni
-}
-
-.CollapseOmni.collapse.show.height {
-  height: auto;
-}
-
-.CollapseOmni.collapse.show.width {
-  width: auto;
 }
