@@ -33,7 +33,7 @@ const mapDispatchToMainViewportProps = function (dispatch) {
 };
 
 const mapStateToRightSideBarProps = (state) => {
-  return { };
+  return { adagucProperties: state.adagucProperties };
 };
 
 // Sync route definition
@@ -44,6 +44,6 @@ export default () => ({
     leftSideBar: connect(mapStateToLeftSideBarProps)(TasksContainer),
     map: connect(mapStateToMapProps, mapDispatchToMainViewportProps)(MapPanel),
     layerManager: connect(mapStateToLayerManagerProps, mapDispatchToMainViewportProps)(LayerManagerPanel),
-    rightSideBar: connect(mapStateToRightSideBarProps)(MapActionsContainer)
+    rightSideBar: connect(mapStateToRightSideBarProps, mapDispatchToMainViewportProps)(MapActionsContainer)
   }
 });

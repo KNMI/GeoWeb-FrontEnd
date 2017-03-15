@@ -121,19 +121,26 @@ class LayerStyle extends React.Component {
     const { i, target, layer } = this.props;
     if (this.props.layer) {
       const styleObj = this.props.layer.getStyleObject(this.props.style);
-      return (
-        <div>
-          <Popover width={'auto'} key={'stylepopover' + i} placement='bottom' isOpen={this.state.popoverOpen} target={target}>
-            <PopoverTitle>Select style</PopoverTitle>
-            <PopoverContent>{this.props.layer.styles ? this.props.layer.styles.map((style, q) => <li id={i} onClick={this.alterLayer} key={q}>{style.title}</li>) : <li />}</PopoverContent>
-          </Popover>
+      if (this.state.popoverOpen) {
+        return (
+          <div>
+            <Popover width={'auto'} key={'stylepopover' + i} isOpen={this.state.popoverOpen} target={target} toggle={() => this.togglePopover(layer, i)}>
+              <PopoverTitle>Select style</PopoverTitle>
+              <PopoverContent>{this.props.layer.styles ? this.props.layer.styles.map((style, q) => <li id={i} onClick={this.alterLayer} key={q}>{style.title}</li>) : <li />}</PopoverContent>
+            </Popover>
 
-          <Badge pill onClick={() => this.togglePopover(layer, i)}>
-            {styleObj ? styleObj.title : 'default'}
-            <Icon style={{ marginLeft: '0.25rem' }} id={target} name='pencil' />
-          </Badge>
-        </div>
-      );
+            <Badge pill onClick={() => this.togglePopover(layer, i)}>
+              {styleObj ? styleObj.title : 'default'}
+              <Icon style={{ marginLeft: '0.25rem' }} id={target} name='pencil' />
+            </Badge>
+          </div>
+        );
+      } else {
+        return (<Badge pill onClick={this.togglePopover}>
+          {styleObj ? styleObj.title : 'default'}
+          <Icon style={{ marginLeft: '0.25rem' }} id={target} name='pencil' />
+        </Badge>);
+      }
     } else {
       return <div />;
     }
@@ -190,36 +197,44 @@ class LayerOpacity extends React.Component {
 
   render () {
     const { i, target, layer } = this.props;
+    if (this.state.popoverOpen) {
+      return (
+        <div>
+          <Popover width={'auto'} key={'opacitypopover' + i} isOpen={this.state.popoverOpen} target={target} toggle={() => this.togglePopover(layer, i)}>
+            <PopoverTitle>Opacity</PopoverTitle>
+            <PopoverContent>
+              <ButtonGroup vertical>
+                <Button onClick={this.alterLayer} id='0'>0%</Button>
+                <Button onClick={this.alterLayer} id='10'>10%</Button>
+                <Button onClick={this.alterLayer} id='20'>20%</Button>
+                <Button onClick={this.alterLayer} id='30'>30%</Button>
+                <Button onClick={this.alterLayer} id='40'>40%</Button>
+                <Button onClick={this.alterLayer} id='50'>50%</Button>
+                <Button onClick={this.alterLayer} id='60'>60%</Button>
+                <Button onClick={this.alterLayer} id='70'>70%</Button>
+                <Button onClick={this.alterLayer} id='80'>80%</Button>
+                <Button onClick={this.alterLayer} id='90'>90%</Button>
+                <Button onClick={this.alterLayer} id='100'>100%</Button>
+              </ButtonGroup>
+            </PopoverContent>
+          </Popover>
 
-    return (
-      <div>
-        <Popover width={'auto'} key={'stylepopover' + i} placement='bottom' isOpen={this.state.popoverOpen} target={target}>
-          <PopoverTitle>Opacity</PopoverTitle>
-          <PopoverContent>
-            <ButtonGroup vertical>
-              <Button onClick={this.alterLayer} id='0'>0%</Button>
-              <Button onClick={this.alterLayer} id='10'>10%</Button>
-              <Button onClick={this.alterLayer} id='20'>20%</Button>
-              <Button onClick={this.alterLayer} id='30'>30%</Button>
-              <Button onClick={this.alterLayer} id='40'>40%</Button>
-              <Button onClick={this.alterLayer} id='50'>50%</Button>
-              <Button onClick={this.alterLayer} id='60'>60%</Button>
-              <Button onClick={this.alterLayer} id='70'>70%</Button>
-              <Button onClick={this.alterLayer} id='80'>80%</Button>
-              <Button onClick={this.alterLayer} id='90'>90%</Button>
-              <Button onClick={this.alterLayer} id='100'>100%</Button>
-            </ButtonGroup>
-          </PopoverContent>
-        </Popover>
-
-        <Badge pill onClick={() => this.togglePopover(layer, i)}>
-          {layer.opacity
-            ? layer.opacity * 100 + ' %'
-            : '100 %'}
-          <Icon style={{ marginLeft: '0.25rem' }} id={target} name='pencil' />
-        </Badge>
-      </div>
-    );
+          <Badge pill onClick={() => this.togglePopover(layer, i)}>
+            {layer.opacity
+              ? layer.opacity * 100 + ' %'
+              : '100 %'}
+            <Icon style={{ marginLeft: '0.25rem' }} id={target} name='pencil' />
+          </Badge>
+        </div>
+      );
+    } else {
+      return (<Badge pill onClick={() => this.togglePopover(layer, i)}>
+        {layer.opacity
+          ? layer.opacity * 100 + ' %'
+          : '100 %'}
+        <Icon style={{ marginLeft: '0.25rem' }} id={target} name='pencil' />
+      </Badge>);
+    }
   }
 }
 LayerOpacity.propTypes = {
@@ -326,9 +341,15 @@ export default class LayerManager extends React.Component {
       return layers.map((layer, i) => {
         return (
           <Row id='layerinfo' key={'base' + i}>
-            <Col style={{ marginLeft: '2rem' }}><Icon id='enableButton' name={layer && layer.enabled ? 'check-square-o' : 'square-o'} onClick={() => this.toggleLayer('base', i)} /></Col>
+            <Col xs='auto'><Icon style={{ color: 'transparent' }} name='chevron-up' /></Col>
+            <Col xs='auto'><Icon style={{ color: 'transparent' }} name='chevron-up' /></Col>
+            <Col xs='auto'><Icon style={{ minWidth: '1rem' }} id='enableButton' name={layer && layer.enabled ? 'check-square-o' : 'square-o'} onClick={() => this.toggleLayer('base', i)} /></Col>
+            <Col xs='auto'><Icon style={{ color: 'transparent' }} name='times' /></Col>
             <LayerName name={this.getBaseLayerName(layer)}
               i={i} target={'baselayer' + i} layer={layer} dispatch={this.props.dispatch} actions={this.props.actions} placement='top' />
+            <Col />
+            <Col />
+            <Col />
           </Row>
         );
       });
@@ -340,10 +361,16 @@ export default class LayerManager extends React.Component {
     } else {
       return layers.map((layer, i) => {
         return (
-          <Row id='layerinfo' key={'over' + i}>
-            <Col><Icon id='enableButton' name={layer.enabled ? 'check-square-o' : 'square-o'} onClick={() => this.toggleLayer('overlay', i)} /></Col>
-            <Col><Icon id='deleteButton' name='times' onClick={() => this.deleteLayer('overlay', i)} /></Col>
+          <Row id='layerinfo' key={'over' + i} style={{ marginBottom: '0.1rem' }}>
+            <Col xs='auto'><Icon style={{ color: 'transparent' }} name='chevron-up' /></Col>
+            <Col xs='auto'><Icon style={{ color: 'transparent' }} name='chevron-up' /></Col>
+            <Col xs='auto'><Icon style={{ minWidth: '1rem' }} id='enableButton' name={layer.enabled ? 'check-square-o' : 'square-o'} onClick={() => this.toggleLayer('overlay', i)} /></Col>
+            <Col xs='auto'><Icon id='deleteButton' name='times' onClick={() => this.deleteLayer('overlay', i)} /></Col>
             <LayerSource name={this.getOverLayerName(layer)} />
+            <Col />
+            <Col />
+            <Col />
+            <Col />
           </Row>
         );
       });
@@ -357,10 +384,10 @@ export default class LayerManager extends React.Component {
       return layers.map((layer, i) => {
         return (
           <Row id='layerinfo' key={'lgi' + i} style={{ marginBottom: '0.1rem' }}>
-            <Col><Icon name='chevron-up' onClick={() => this.props.dispatch(this.props.actions.reorderLayer('up', i))} /></Col>
-            <Col><Icon name='chevron-down' onClick={() => this.props.dispatch(this.props.actions.reorderLayer('down', i))} /></Col>
-            <Col><Icon id='enableButton' name={layer.enabled ? 'check-square-o' : 'square-o'} onClick={() => this.toggleLayer('data', i)} /></Col>
-            <Col><Icon id='deleteButton' name='times' onClick={() => this.deleteLayer('data', i)} /></Col>
+            <Col xs='auto'><Icon name='chevron-up' onClick={() => this.props.dispatch(this.props.actions.reorderLayer('up', i))} /></Col>
+            <Col xs='auto'><Icon name='chevron-down' onClick={() => this.props.dispatch(this.props.actions.reorderLayer('down', i))} /></Col>
+            <Col xs='auto'><Icon style={{ minWidth: '1rem' }} id='enableButton' name={layer.enabled ? 'check-square-o' : 'square-o'} onClick={() => this.toggleLayer('data', i)} /></Col>
+            <Col xs='auto'><Icon id='deleteButton' name='times' onClick={() => this.deleteLayer('data', i)} /></Col>
             <LayerSource name={this.getLayerName(layer)} />
             <LayerName name={layer.title} i={i} target={'datalayer' + i} layer={layer} dispatch={this.props.dispatch} actions={this.props.actions} />
             <LayerStyle style={layer.currentStyle} layer={layer} target={'datalayerstyle' + i} i={i} dispatch={this.props.dispatch} actions={this.props.actions} />
@@ -397,7 +424,7 @@ export default class LayerManager extends React.Component {
 
   render () {
     return (
-      <Col xs='auto' style={{ flexDirection: 'column' }}>
+      <Col xs='auto' style={{ minWidth: '40rem', flexDirection: 'column' }}>
         {this.renderOverLayerSet(this.state.overlays)}
         {this.renderLayerSet(this.state.layers)}
         {this.renderBaseLayerSet(this.state.baselayers)}

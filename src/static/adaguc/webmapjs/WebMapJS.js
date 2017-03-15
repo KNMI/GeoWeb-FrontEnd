@@ -152,7 +152,7 @@
     var divDimInfo = document.createElement('div');
 
     var displayLegendInMap = true;
-
+    var messageDiv;
     var bbox = new WMJSBBOX(); // Boundingbox that will be used for map loading
     var updateBBOX = new WMJSBBOX(); // Boundingbox to move map without loading anything
     var loadedBBOX = new WMJSBBOX(); // Boundingbox that is used for current map
@@ -331,6 +331,22 @@
       callBack.triggerEvent('onlegendready');
     };
 
+    this.setMessage = function (message) {
+      if(!message || message == '') {
+        messageDiv.css({zIndex:100,
+          display: 'none'
+        });
+      } else {
+        messageDiv.css({zIndex:100,
+          display: 'inline-block',
+          backgroundColor: 'rgba(255, 255, 255, 0.75',
+          float: 'right',
+          padding: '1rem'
+        });
+
+      }
+      messageDiv.html(message);
+    };
     // Is called when the WebMapJS object is created
     function constructor () {
       var baseDivId = makeComponentId('baseDiv');
@@ -376,6 +392,14 @@
 
       overlayDiv = $('#' + overlayDivId);
 
+      var messageDivId = makeComponentId('messageDiv');
+      jQuery('<div/>', {
+        id:messageDivId,
+        css:{
+          display: 'none'
+        }
+      }).appendTo(overlayDiv);
+      messageDiv = $('#' + messageDivId);
       baseDiv.css('cursor', 'default');
       // _map.setMapModePan();
 
@@ -551,80 +575,80 @@
 //         }
 //       }).appendTo(baseDiv);
 
-      jQuery('<div/>', {
-        id: makeComponentId('buttonzoomin'),
-        css:{
-          position:'absolute',
-          right:'30px',
-          top:'-8px',
-          width:'48px',
-          height:'48px',
-          margin:'0px',
-          padding:'0px',
-          zIndex:3000
-        },
-        mousedown:function (event) {
-          event.stopPropagation();
-          preventdefault_event(event);
-        },
-        click:function () {
-          _map.zoomIn();
-        }
+      // jQuery('<div/>', {
+      //   id: makeComponentId('buttonzoomin'),
+      //   css:{
+      //     position:'absolute',
+      //     right:'30px',
+      //     top:'-8px',
+      //     width:'48px',
+      //     height:'48px',
+      //     margin:'0px',
+      //     padding:'0px',
+      //     zIndex:3000
+      //   },
+      //   mousedown:function (event) {
+      //     event.stopPropagation();
+      //     preventdefault_event(event);
+      //   },
+      //   click:function () {
+      //     _map.zoomIn();
+      //   }
 
-      }).appendTo(baseDiv);
+      // }).appendTo(baseDiv);
 
-      var buttonZoomBox = jQuery('<div/>', {
-        id: makeComponentId('buttonzoombox'),
-        css:{
-          position:'absolute',
-          right:'30px',
-          top:'42px',
-          width:'48px',
-          height:'48px',
-          margin:'0px',
-          padding:'0px',
-          zIndex:3000
-        },
-        mousedown:function (event) {
-          event.stopPropagation();
-          preventdefault_event(event);
-        },
-        click:function () {
-          _map.setMapModeZoomBoxIn();
-          buttonZoomBox.iconbutton({ icons: { primary: 'wmjs-icon-zoombox-activated' } });
-          buttonDragMap.iconbutton({ icons: { primary: 'wmjs-icon-dragpan' } });
-          // if(mapMode=='zoom'){
-            // buttonZoomBox.iconbutton({icons: {primary: 'wmjs-icon-zoombox-activated'}});
+      // var buttonZoomBox = jQuery('<div/>', {
+      //   id: makeComponentId('buttonzoombox'),
+      //   css:{
+      //     position:'absolute',
+      //     right:'30px',
+      //     top:'42px',
+      //     width:'48px',
+      //     height:'48px',
+      //     margin:'0px',
+      //     padding:'0px',
+      //     zIndex:3000
+      //   },
+      //   mousedown:function (event) {
+      //     event.stopPropagation();
+      //     preventdefault_event(event);
+      //   },
+      //   click:function () {
+      //     _map.setMapModeZoomBoxIn();
+      //     buttonZoomBox.iconbutton({ icons: { primary: 'wmjs-icon-zoombox-activated' } });
+      //     buttonDragMap.iconbutton({ icons: { primary: 'wmjs-icon-dragpan' } });
+      //     // if(mapMode=='zoom'){
+      //       // buttonZoomBox.iconbutton({icons: {primary: 'wmjs-icon-zoombox-activated'}});
 
-          // }else{
-            // buttonZoomBox.iconbutton({icons: {primary: 'wmjs-icon-zoombox'}});
+      //     // }else{
+      //       // buttonZoomBox.iconbutton({icons: {primary: 'wmjs-icon-zoombox'}});
 
-           // }
-        }
+      //      // }
+      //   }
 
-      }).appendTo(baseDiv);
+      // }).appendTo(baseDiv);
 
-      jQuery('<div/>', {
-        id: makeComponentId('buttonzoomhome'),
-        css:{
-          position:'absolute',
-          right:'30px',
-          top:'87px',
-          width:'48px',
-          height:'48px',
-          margin:'0px',
-          padding:'0px',
-          zIndex:3000
-        },
-        mousedown:function (event) {
-          event.stopPropagation();
-          preventdefault_event(event);
-        },
-        click:function () {
-          _map.zoomToLayer();
-        }
+      // jQuery('<div/>', {
+      //   id: makeComponentId('buttonzoomhome'),
+      //   css:{
+      //     position:'absolute',
+      //     right:'30px',
+      //     top:'87px',
+      //     width:'48px',
+      //     height:'48px',
+      //     margin:'0px',
+      //     padding:'0px',
+      //     zIndex:3000
+      //   },
+      //   mousedown:function (event) {
+      //     event.stopPropagation();
+      //     preventdefault_event(event);
+      //   },
+      //   click:function () {
+      //     _map.zoomToLayer();
+      //   }
 
-      }).appendTo(baseDiv);
+      // }).appendTo(baseDiv);
 
       /* ONLY VISIBLE IF USERNAME FOR GEONAMES API IS SET */
       if (typeof (defaultUsernameSearch) !== 'undefined') {
@@ -659,61 +683,61 @@
         });
       }
 
-      var buttonDragMap = jQuery('<div/>', {
-        id: makeComponentId('buttondragmap'),
-        css:{
-          position:'absolute',
-          right:'30px',
-          top:'135px',
-          width:'48px',
-          height:'48px',
-          margin:'0px',
-          padding:'0px',
-          zIndex:3000
-        },
-        mousedown:function (event) {
-          event.stopPropagation();
-          preventdefault_event(event);
-        },
-        click:function () {
-          _map.setMapModePan();
-           // if(mapMode=='pan'){
-          buttonDragMap.iconbutton({ icons: { primary: 'wmjs-icon-dragpan-activated' } });
-          buttonZoomBox.iconbutton({ icons: { primary: 'wmjs-icon-zoombox' } });
-           // }else{
-            // buttonDragMap.iconbutton({icons: {primary: 'wmjs-icon-dragpan'}});
-           // }
-        }
+      // var buttonDragMap = jQuery('<div/>', {
+      //   id: makeComponentId('buttondragmap'),
+      //   css:{
+      //     position:'absolute',
+      //     right:'30px',
+      //     top:'135px',
+      //     width:'48px',
+      //     height:'48px',
+      //     margin:'0px',
+      //     padding:'0px',
+      //     zIndex:3000
+      //   },
+      //   mousedown:function (event) {
+      //     event.stopPropagation();
+      //     preventdefault_event(event);
+      //   },
+      //   click:function () {
+      //     _map.setMapModePan();
+      //      // if(mapMode=='pan'){
+      //     buttonDragMap.iconbutton({ icons: { primary: 'wmjs-icon-dragpan-activated' } });
+      //     buttonZoomBox.iconbutton({ icons: { primary: 'wmjs-icon-zoombox' } });
+      //      // }else{
+      //       // buttonDragMap.iconbutton({icons: {primary: 'wmjs-icon-dragpan'}});
+      //      // }
+      //   }
 
-      }).appendTo(baseDiv);
+      // }).appendTo(baseDiv);
 
-      jQuery('<div/>', {
-        id: makeComponentId('buttonzoomout'),
-        css:{
-          position:'absolute',
-          right:'30px',
-          top:'181px',
-          width:'48px',
-          height:'48px',
-          margin:'0px',
-          padding:'0px',
-          zIndex:2000
-        },
-        mousedown:function (event) {
-          event.stopPropagation();
-          preventdefault_event(event);
-        },
-        mouseup:function (event) {
-          event.stopPropagation();
-          preventdefault_event(event);
-        },
-        click:function (event) {
-          event.stopPropagation();
-          preventdefault_event(event);
-          _map.zoomOut();
-        }
+      // jQuery('<div/>', {
+      //   id: makeComponentId('buttonzoomout'),
+      //   css:{
+      //     position:'absolute',
+      //     right:'30px',
+      //     top:'181px',
+      //     width:'48px',
+      //     height:'48px',
+      //     margin:'0px',
+      //     padding:'0px',
+      //     zIndex:2000
+      //   },
+      //   mousedown:function (event) {
+      //     event.stopPropagation();
+      //     preventdefault_event(event);
+      //   },
+      //   mouseup:function (event) {
+      //     event.stopPropagation();
+      //     preventdefault_event(event);
+      //   },
+      //   click:function (event) {
+      //     event.stopPropagation();
+      //     preventdefault_event(event);
+      //     _map.zoomOut();
+      //   }
 
-      }).appendTo(baseDiv);
+      // }).appendTo(baseDiv);
       $('#' + makeComponentId('buttonzoomout')).click(function (event) {
         event.stopPropagation();
 // do something
@@ -2143,7 +2167,9 @@
     var mouseDownPressed = 0;
     var elementPosition;
     var mapMode = 'pan';// pan,zoom,zoomout,info
-
+    this.getMapMode = function () {
+      return mapMode;
+    };
     /* GetMetaData handling */
     this.getWMSMetaDataRequestURL = function (layer) {
       var request = layer.service;
