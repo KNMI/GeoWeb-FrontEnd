@@ -5,7 +5,7 @@ import { shallow } from 'enzyme';
 
 describe('(Container) MapActionsContainer', () => {
   it('Renders a ReactStrap Col', () => {
-    const _component = shallow(<MapActionsContainer />);
+    const _component = shallow(<MapActionsContainer adagucProperties={{ mapMode: 'pan' }} />);
     expect(_component.type()).to.eql(Col);
   });
 });
