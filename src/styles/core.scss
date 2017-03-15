@@ -253,14 +253,6 @@ body {
     text-overflow: ellipsis;
   }
 
-  .card-header {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    width: 100%;
-    cursor: pointer;
-  }
-
   .accordion.card {
     border: none;
     border-bottom: 0.1rem solid transparent;
@@ -268,6 +260,12 @@ body {
   }
 
   .accordion .card-header {
+    padding: 0.75rem 1rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+    cursor: pointer;
     z-index: 2;
     color: $inverse-active-color;
     background-color: $ux-interactive-color;
@@ -279,12 +277,21 @@ body {
     border-radius: 0;
   }
 
-  .card-block {
+  .accordion .card-block {
     padding: 0;
   }
 
-  .card-block .row {
+  .accordion .card-block .row {
     flex: 1;
+  }
+
+  .accordion .card-block .row.btn {
+    display: flex;
+    flex-flow: row nowrap;
+  }
+
+  .accordion .badge {
+    padding: 0.4rem 0.8rem;
   }
 }
 
