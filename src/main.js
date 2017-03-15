@@ -29,6 +29,10 @@ const initialState = {
     },
     adagucmeasuredistance: {
       isInEditMode: false
+    },
+    user: {
+      isLoggedIn: false,
+      userName: ''
     }
   }
 };

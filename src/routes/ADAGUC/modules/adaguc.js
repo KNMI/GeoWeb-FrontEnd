@@ -138,7 +138,7 @@ function setTimeDimension (timedim) {
 function toggleAnimation () {
   return {
     type: TOGGLE_ANIMATION
-  }
+  };
 }
 /*  This is a thunk, meaning it is a function that immediately
     returns a function for lazy evaluation. It is incredibly useful for
@@ -316,11 +316,12 @@ const doAddOverlayLayer = (state, payload) => {
 };
 
 const doLogin = (state, payload) => {
-  return Object.assign({}, state, { loggedIn: true, username: payload });
+  console.log('doLogin');
+  return Object.assign({}, state, { user: { isLoggedIn: true, userName: payload } });
 };
 
 const doLogout = (state, payload) => {
-  return Object.assign({}, state, { loggedIn: false, username: '' });
+  return Object.assign({}, state, { user: { isLoggedIn: false, userName: '' } });
 };
 
 const setSigmet = (state, payload) => {

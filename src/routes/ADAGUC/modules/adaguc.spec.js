@@ -19,10 +19,16 @@ describe('(Redux Module) Adaguc', () => {
       expect(state).to.eql({});
       state = adagucReducer(state, { type: '@@@@@@@' });
       expect(state).to.eql({});
+    });
+
+    it('Check if sign in and sign out actions work.', () => {
+      let state = adagucReducer(undefined, {});
       state = adagucReducer(state, { type: 'LOGIN', payload: 'asdf' });
-      expect(state).to.eql({ loggedIn: true, username: 'asdf' });
+      expect(state).to.eql({ user: { isLoggedIn: true, userName: 'asdf' } });
       state = adagucReducer(state, { type: '@@@@@@@' });
-      expect(state).to.eql({ loggedIn: true, username: 'asdf' });
+      expect(state).to.eql({ user: { isLoggedIn: true, userName: 'asdf' } });
+      state = adagucReducer(state, { type: 'LOGOUT', payload: '' });
+      expect(state).to.eql({ user: { isLoggedIn: false, userName: '' } });
     });
   });
 
