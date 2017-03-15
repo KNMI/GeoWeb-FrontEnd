@@ -3,25 +3,19 @@ import React from 'react';
 import CanvasComponent from './CanvasComponent.js';
 import { Icon } from 'react-fa';
 import { Button, Col, Row } from 'reactstrap';
-let elementResizeEvent = require('element-resize-event');
+var elementResizeEvent = require('element-resize-event');
 
 export default class TimeComponent extends React.Component {
   constructor () {
     super();
-    this.state = {
-      value: '2000-01-01T00:00:00Z'
-    };
     this.onRenderCanvas = this.onRenderCanvas.bind(this);
     this.eventOnDimChange = this.eventOnDimChange.bind(this);
     this.eventOnMapDimUpdate = this.eventOnMapDimUpdate.bind(this);
     this.drawCanvas = this.drawCanvas.bind(this);
     this.onClickCanvas = this.onClickCanvas.bind(this);
-    this.onClickCanvas = this.onClickCanvas.bind(this);
     this.handleButtonClickPrevPage = this.handleButtonClickPrevPage.bind(this);
     this.handleButtonClickNextPage = this.handleButtonClickNextPage.bind(this);
     this.handleButtonClickNow = this.handleButtonClickNow.bind(this);
-    this.handleChange = this.handleChange.bind(this);
-    // this.onChangeAnimation = this.onChangeAnimation.bind(this);
     this.changeYear = this.changeYear.bind(this);
     this.changeMonth = this.changeMonth.bind(this);
     this.changeDay = this.changeDay.bind(this);
@@ -29,29 +23,11 @@ export default class TimeComponent extends React.Component {
     this.changeMinute = this.changeMinute.bind(this);
     this.element = document.querySelector('.map .content');
   }
-  handleChange (event) {
-  }
   eventOnMapDimUpdate () {
     this.eventOnDimChange();
   }
   /* istanbul ignore next */
   eventOnDimChange () {
-    this.drawCanvas();
-
-    let timeDim = this.props.timedim;
-
-    if (timeDim !== undefined) {
-      if (this.state.value === timeDim) {
-        if (this.hoverDate === this.hoverDateDone) {
-          this.drawCanvas();
-        }
-      }
-      if (timeDim !== this.state.value) {
-        this.setState({ value:timeDim });
-      }
-    } else {
-      this.drawCanvas();
-    }
     this.drawCanvas();
   }
   /* istanbul ignore next */
@@ -222,10 +198,6 @@ export default class TimeComponent extends React.Component {
     // ctx.strokeRect(x - 20.5, canvasHeight - 15.5, 40, 16);
     ctx.fillStyle = '#000000';
     ctx.fillText(timeDim.substring(11, 16), x - 15, canvasHeight - 3);
-    if (!this.element) {
-      this.element = document.querySelector('.map .content');
-      elementResizeEvent(this.element, this.drawCanvas);
-    }
   }
   /* istanbul ignore next */
   toISO8601 (value) {
@@ -240,6 +212,9 @@ export default class TimeComponent extends React.Component {
       string = zeros + string;
       return string;
     }
+    if (typeof value === 'string') {
+      return value;
+    }
     let iso = prf(value.year, 4) + '-' + prf(value.month, 2) + '-' + prf(value.day, 2) + 'T' + prf(value.hour, 2) + ':' + prf(value.minute, 2) + ':' + prf(value.second, 2) + 'Z';
     return iso;
   }
@@ -249,46 +224,48 @@ export default class TimeComponent extends React.Component {
     // eslint-disable-next-line no-undef
     var date = parseISO8601DateToDate(isodate);
     this.props.dispatch(this.props.actions.setTimeDimension(date.toISO8601()));
-    // this.props.webmapjs.setDimension('time', date.toISO8601(), true);
-    // this.props.webmapjs.draw();
     this.eventOnDimChange();
   }
   /* istanbul ignore next */
   decomposeDateString (value) {
-    return { year:parseInt(this.state.value.substring(0, 4)),
-      month : parseInt(this.state.value.substring(5, 7)),
-      day : parseInt(this.state.value.substring(8, 10)),
-      hour : parseInt(this.state.value.substring(11, 13)),
-      minute : parseInt(this.state.value.substring(14, 16)),
-      second : parseInt(this.state.value.substring(17, 19))
+    return { year:parseInt(value.substring(0, 4)),
+      month : parseInt(value.substring(5, 7)),
+      day : parseInt(value.substring(8, 10)),
+      hour : parseInt(value.substring(11, 13)),
+      minute : parseInt(value.substring(14, 16)),
+      second : parseInt(value.substring(17, 19))
     };
   }
   /* istanbul ignore next */
   changeYear (value) {
-    let date = this.decomposeDateString(this.state.value); date.year = value; this.setNewDate(date);
+    let date = this.decomposeDateString(this.props.timedim); date.year = value; this.setNewDate(date);
   }
   /* istanbul ignore next */
   changeMonth (value) {
-    let date = this.decomposeDateString(this.state.value); date.month = value; this.setNewDate(date);
+    let date = this.decomposeDateString(this.props.timedim); date.month = value; this.setNewDate(date);
   }
   /* istanbul ignore next */
   changeDay (value) {
-    let date = this.decomposeDateString(this.state.value); date.day = value; this.setNewDate(date);
+    let date = this.decomposeDateString(this.props.timedim); date.day = value; this.setNewDate(date);
   }
   /* istanbul ignore next */
   changeHour (value) {
-    let date = this.decomposeDateString(this.state.value); date.hour = value; this.setNewDate(date);
+    let date = this.decomposeDateString(this.props.timedim); date.hour = value; this.setNewDate(date);
   }
   /* istanbul ignore next */
   changeMinute (value) {
-    let date = this.decomposeDateString(this.state.value); date.minute = value; this.setNewDate(date);
+    let date = this.decomposeDateString(this.props.timedim); date.minute = value; this.setNewDate(date);
   }
   /* istanbul ignore next */
   changeSecond (value) {
-    let date = this.decomposeDateString(this.state.value); date.second = value; this.setNewDate(date);
+    let date = this.decomposeDateString(this.props.timedim); date.second = value; this.setNewDate(date);
   }
   /* istanbul ignore next */
   componentDidMount () {
+    console.log('resizeListener');
+    let element = document.querySelector('#timelineParent');
+    console.log(element);
+    elementResizeEvent(element, () => { this.setState({ }); });
     setInterval(this.drawCanvas, 60000);
   }
   componentDidUpdate () {
@@ -310,10 +287,7 @@ export default class TimeComponent extends React.Component {
     /* istanbul ignore next */
     try {
       let newDate = this.canvasDateInterval.getDateAtTimeStep(newTimeStep, true);
-      this.props.dispatch(this.props.actions.setTimeDimension(newDate.toISO8601()));
-      // this.props.webmapjs.setDimension('time', newDate.toISO8601(), true);
-      // this.props.webmapjs.draw();
-      this.eventOnDimChange();
+      this.setNewDate(newDate.toISO8601());
     } catch (e) {
       throw new Error('311: ', e);
     }
@@ -322,40 +296,31 @@ export default class TimeComponent extends React.Component {
     // eslint-disable-next-line no-undef
     let currentDate = getCurrentDateIso8601();
     this.props.dispatch(this.props.actions.setTimeDimension(currentDate.toISO8601()));
-    // this.props.webmapjs.setDimension('time', currentDate.toISO8601(), true);
-    // this.props.webmapjs.draw();
     this.eventOnDimChange();
   }
   handleButtonClickPrevPage () {
-    let date = this.decomposeDateString(this.state.value);
+    let date = this.decomposeDateString(this.props.timedim);
     date.hour -= 1;
     this.setNewDate(date);
   }
   handleButtonClickNextPage () {
-    let date = this.decomposeDateString(this.state.value);
+    let date = this.decomposeDateString(this.props.timedim);
     date.hour += 1;
     this.setNewDate(date);
   }
 
   render () {
     /* istanbul ignore next */
-
     return (
       <Col>
         <Row style={{ flex: 1 }}>
-          {/* <Col xs='auto'>
-            <ButtonPausePlayAnimation dispatch={this.props.dispatch} actions={this.props.actions} />
-          </Col>
-          <Col xs='auto'>
-            <Button color='primary' size='large' onClick={this.handleButtonClickNow}>Now</Button>
-          </Col> */}
           <Col xs='auto'>
             <Button outline color='info' onClick={this.handleButtonClickPrevPage}>
               <Icon name='chevron-left' />
             </Button>
           </Col>
-          <Col>
-            <CanvasComponent id='timeline' onRenderCanvas={this.onRenderCanvas} onClick={this.onClickCanvas} />
+          <Col id='timelineParent'>
+            <CanvasComponent id='timeline' onRenderCanvas={this.onRenderCanvas} onClickB={this.onClickCanvas} />
           </Col>
           <Col xs='auto'>
             <Button outline color='info' onClick={this.handleButtonClickNextPage}>

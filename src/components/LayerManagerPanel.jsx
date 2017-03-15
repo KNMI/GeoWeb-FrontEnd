@@ -6,7 +6,7 @@ import { Row } from 'reactstrap';
 class MapPanel extends Component {
   render () {
     const { title, dispatch, actions, adagucProperties } = this.props;
-    console.log(adagucProperties);
+    // console.log(adagucProperties);
     return (
       <Panel title={title} className='mapPanel'>
         <Row style={{ flex: 1 }}>

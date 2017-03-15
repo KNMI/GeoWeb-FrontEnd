@@ -1,17 +1,18 @@
 import React from 'react';
-import omit from 'lodash.omit';
+// import omit from 'lodash.omit';
 
 /* istanbul ignore next */
 const CanvasComponent = React.createClass({
   propTypes: {
     onRenderCanvas: React.PropTypes.func,
-    onClick: React.PropTypes.func,
+    onClickB: React.PropTypes.func,
+    id: React.PropTypes.string,
     onMouseMove: React.PropTypes.func
   },
   getDefaultProps () {
     return {
       onRenderCanvas:function () {},
-      onClick:function () {},
+      onClickB:function () {},
       onMouseMove:function () {}
     };
   },
@@ -22,28 +23,42 @@ const CanvasComponent = React.createClass({
     if (!this.refs) return;
     if (!this.refs.canvas) return;
     let canvas = this.refs.canvas;
-    let onClickCanvas = this.props.onClick;
+    // eslint-disable-next-line no-undef
+    const parentWidth = $(canvas).parent().width();
+    // eslint-disable-next-line no-undef
+    const parentHeight = $(canvas).parent().height();
+    if (this.width === parentWidth && this.height === parentHeight) {
+      return;
+    }
+    this.width = parentWidth;
+    this.height = parentHeight;
+    let onClickCanvas = this.props.onClickB;
     let mousemove = this.props.onMouseMove;
-
-    this.refs.canvas.addEventListener('mousemove', function (event) {
-      let x = event.clientX - canvas.offsetLeft;
-      let y = event.clientY - canvas.offsetTop;
-      if (event.buttons === 1) {
+    if (!this.initialized) {
+      this.refs.canvas.addEventListener('mousemove', function (event) {
+        let x = event.layerX;
+        let y = event.layerY;
+        if (event.buttons === 1) {
+          onClickCanvas(x, y);
+        }
+        mousemove(x, y);
+      });
+      this.refs.canvas.addEventListener('click', function (event) {
+        let x = event.layerX;
+        let y = event.layerY;
         onClickCanvas(x, y);
-      }
-      mousemove(x, y);
-    });
-    this.refs.canvas.addEventListener('click', function (event) {
-      let x = event.clientX - canvas.offsetLeft;
-      let y = event.clientY - canvas.offsetTop;
-      onClickCanvas(x, y);
-    });
-    this.props.onRenderCanvas(this.refs.canvas.getContext('2d'));
+      });
+      this.initialized = true;
+    }
+    const ctx = this.refs.canvas.getContext('2d');
+    ctx.canvas.width = parentWidth;
+    ctx.canvas.height = parentHeight;
+    this.props.onRenderCanvas(ctx);
   },
   render () {
-    const { ...attributes } = omit(this.props, 'onRenderCanvas');
+    this.updateCanvas();
     return (
-      <canvas ref='canvas' {...attributes} />
+      <canvas ref='canvas' id={this.props.id} />
     );
   }
 });

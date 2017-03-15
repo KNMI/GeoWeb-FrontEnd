@@ -396,11 +396,11 @@ export default class LayerManager extends React.Component {
             <Col xs='auto'><Icon name='chevron-down' onClick={() => this.props.dispatch(this.props.actions.reorderLayer('down', i))} /></Col>
             <Col xs='auto'><Icon style={{ minWidth: '1rem' }} id='enableButton' name={layer.enabled ? 'check-square-o' : 'square-o'} onClick={() => this.toggleLayer('data', i)} /></Col>
             <Col xs='auto'><Icon id='deleteButton' name='times' onClick={() => this.deleteLayer('data', i)} /></Col>
-            <LayerSource color='warning' name={this.getLayerName(layer)} />
-            <LayerName color='warning' editable name={layer.title} i={i} target={'datalayer' + i} layer={layer} dispatch={this.props.dispatch} actions={this.props.actions} />
-            <LayerStyle color='warning' editable style={layer.currentStyle} layer={layer} target={'datalayerstyle' + i} i={i} dispatch={this.props.dispatch} actions={this.props.actions} />
-            <LayerOpacity color='warning' editable layer={layer} target={'datalayeropacity' + i} i={i} dispatch={this.props.dispatch} actions={this.props.actions} />
-            <LayerModelRun color='warning' layer={layer} />
+            <LayerSource color='info' name={this.getLayerName(layer)} />
+            <LayerName color='info' editable name={layer.title} i={i} target={'datalayer' + i} layer={layer} dispatch={this.props.dispatch} actions={this.props.actions} />
+            <LayerStyle color='info' editable style={layer.currentStyle} layer={layer} target={'datalayerstyle' + i} i={i} dispatch={this.props.dispatch} actions={this.props.actions} />
+            <LayerOpacity color='info' editable layer={layer} target={'datalayeropacity' + i} i={i} dispatch={this.props.dispatch} actions={this.props.actions} />
+            <LayerModelRun color='info' layer={layer} />
           </Row>);
       });
     }
