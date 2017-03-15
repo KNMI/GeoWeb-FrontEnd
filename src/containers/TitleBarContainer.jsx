@@ -130,6 +130,7 @@ class TitleBarContainer extends Component {
       loginModalMessage: message
     });
     dispatch(actions.logout());
+    this.getServices();
   };
 
   checkCredentialsOKCallback (data) {
