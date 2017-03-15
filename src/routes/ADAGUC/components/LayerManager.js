@@ -9,11 +9,12 @@ import { Icon } from 'react-fa';
 // ----------------------------------------- \\
 class LayerSource extends React.Component {
   render () {
-    return <Badge pill>{this.props.name}</Badge>;
+    return <Badge pill className={'alert-' + this.props.color}>{this.props.name}</Badge>;
   }
 }
 LayerSource.propTypes = {
-  name: React.PropTypes.string.isRequired
+  name: React.PropTypes.string.isRequired,
+  color: React.PropTypes.string.isRequired
 };
 
 // --------------------------------------- \\
@@ -67,14 +68,14 @@ class LayerName extends React.Component {
             <PopoverTitle>Select layer</PopoverTitle>
             <PopoverContent>{this.state.layers ? this.state.layers.map((layer, q) => <li id={i} onClick={this.alterLayer} key={q}>{layer.text}</li>) : ''}</PopoverContent>
           </Popover>
-          <Badge pill onClick={() => this.togglePopover(layer, i)}>
+          <Badge pill color={this.props.color} className={'alert-' + this.props.color + (this.props.editable ? ' editable' : '')} onClick={() => this.togglePopover(layer, i)}>
             {this.props.name}
             <Icon id={target} style={{ marginLeft: '0.25rem' }} name='pencil' />
           </Badge>
         </div>);
     } else {
       return (
-        <Badge pill onClick={this.togglePopover}>
+        <Badge pill color={this.props.color} className={'alert-' + this.props.color + (this.props.editable ? ' editable' : '')} onClick={this.togglePopover}>
           {this.props.name}
           <Icon style={{ marginLeft: '0.25rem' }} id={target} name='pencil' />
         </Badge>);
@@ -88,7 +89,9 @@ LayerName.propTypes = {
   actions: React.PropTypes.object.isRequired,
   name: React.PropTypes.string.isRequired,
   i: React.PropTypes.number.isRequired,
-  layer: React.PropTypes.object.isRequired
+  layer: React.PropTypes.object.isRequired,
+  color: React.PropTypes.string.isRequired,
+  editable: React.PropTypes.bool
 };
 
 // ---------------------------------------- \\
@@ -129,14 +132,14 @@ class LayerStyle extends React.Component {
               <PopoverContent>{this.props.layer.styles ? this.props.layer.styles.map((style, q) => <li id={i} onClick={this.alterLayer} key={q}>{style.title}</li>) : <li />}</PopoverContent>
             </Popover>
 
-            <Badge pill onClick={() => this.togglePopover(layer, i)}>
+            <Badge pill color={this.props.color} className={'alert-' + this.props.color + (this.props.editable ? ' editable' : '')} onClick={() => this.togglePopover(layer, i)}>
               {styleObj ? styleObj.title : 'default'}
               <Icon style={{ marginLeft: '0.25rem' }} id={target} name='pencil' />
             </Badge>
           </div>
         );
       } else {
-        return (<Badge pill onClick={this.togglePopover}>
+        return (<Badge pill color={this.props.color} className={'alert-' + this.props.color + (this.props.editable ? ' editable' : '')} onClick={this.togglePopover}>
           {styleObj ? styleObj.title : 'default'}
           <Icon style={{ marginLeft: '0.25rem' }} id={target} name='pencil' />
         </Badge>);
@@ -152,7 +155,9 @@ LayerStyle.propTypes = {
   i: React.PropTypes.number.isRequired,
   target: React.PropTypes.string.isRequired,
   dispatch: React.PropTypes.func.isRequired,
-  actions: React.PropTypes.object.isRequired
+  actions: React.PropTypes.object.isRequired,
+  color: React.PropTypes.string.isRequired,
+  editable: React.PropTypes.bool
 };
 
 class LayerModelRun extends React.Component {
@@ -165,12 +170,13 @@ class LayerModelRun extends React.Component {
 
   render () {
     const refTime = this.props.layer.getDimension('reference_time');
-    return refTime ? <Badge pill>{refTime.currentValue}</Badge> : <div />;
+    return refTime ? <Badge pill className={'alert-' + this.props.color}>{refTime.currentValue}</Badge> : <div />;
   }
 }
 
 LayerModelRun.propTypes = {
-  layer: React.PropTypes.object
+  layer: React.PropTypes.object,
+  color: React.PropTypes.string.isRequired
 };
 
 // ---------------------------------------- \\
@@ -219,7 +225,7 @@ class LayerOpacity extends React.Component {
             </PopoverContent>
           </Popover>
 
-          <Badge pill onClick={() => this.togglePopover(layer, i)}>
+          <Badge pill className={'alert-' + this.props.color + (this.props.editable ? ' editable' : '')} onClick={() => this.togglePopover(layer, i)}>
             {layer.opacity
               ? layer.opacity * 100 + ' %'
               : '100 %'}
@@ -228,7 +234,7 @@ class LayerOpacity extends React.Component {
         </div>
       );
     } else {
-      return (<Badge pill onClick={() => this.togglePopover(layer, i)}>
+      return (<Badge pill className={'alert-' + this.props.color + (this.props.editable ? ' editable' : '')} onClick={() => this.togglePopover(layer, i)}>
         {layer.opacity
           ? layer.opacity * 100 + ' %'
           : '100 %'}
@@ -242,7 +248,9 @@ LayerOpacity.propTypes = {
   i: React.PropTypes.number.isRequired,
   target: React.PropTypes.string.isRequired,
   dispatch: React.PropTypes.func.isRequired,
-  actions: React.PropTypes.object.isRequired
+  actions: React.PropTypes.object.isRequired,
+  color: React.PropTypes.string.isRequired,
+  editable: React.PropTypes.bool
 };
 
 export default class LayerManager extends React.Component {
@@ -340,12 +348,12 @@ export default class LayerManager extends React.Component {
     } else {
       return layers.map((layer, i) => {
         return (
-          <Row id='layerinfo' key={'base' + i}>
+          <Row className='layerinfo' key={'base' + i}>
             <Col xs='auto'><Icon style={{ color: 'transparent' }} name='chevron-up' /></Col>
             <Col xs='auto'><Icon style={{ color: 'transparent' }} name='chevron-up' /></Col>
             <Col xs='auto'><Icon style={{ minWidth: '1rem' }} id='enableButton' name={layer && layer.enabled ? 'check-square-o' : 'square-o'} onClick={() => this.toggleLayer('base', i)} /></Col>
             <Col xs='auto'><Icon style={{ color: 'transparent' }} name='times' /></Col>
-            <LayerName name={this.getBaseLayerName(layer)}
+            <LayerName color='success' editable name={this.getBaseLayerName(layer)}
               i={i} target={'baselayer' + i} layer={layer} dispatch={this.props.dispatch} actions={this.props.actions} placement='top' />
             <Col />
             <Col />
@@ -361,12 +369,12 @@ export default class LayerManager extends React.Component {
     } else {
       return layers.map((layer, i) => {
         return (
-          <Row id='layerinfo' key={'over' + i} style={{ marginBottom: '0.1rem' }}>
+          <Row className='layerinfo' key={'over' + i} style={{ marginBottom: '0.1rem' }}>
             <Col xs='auto'><Icon style={{ color: 'transparent' }} name='chevron-up' /></Col>
             <Col xs='auto'><Icon style={{ color: 'transparent' }} name='chevron-up' /></Col>
             <Col xs='auto'><Icon style={{ minWidth: '1rem' }} id='enableButton' name={layer.enabled ? 'check-square-o' : 'square-o'} onClick={() => this.toggleLayer('overlay', i)} /></Col>
             <Col xs='auto'><Icon id='deleteButton' name='times' onClick={() => this.deleteLayer('overlay', i)} /></Col>
-            <LayerSource name={this.getOverLayerName(layer)} />
+            <LayerSource color='danger' name={this.getOverLayerName(layer)} />
             <Col />
             <Col />
             <Col />
@@ -383,16 +391,16 @@ export default class LayerManager extends React.Component {
     } else {
       return layers.map((layer, i) => {
         return (
-          <Row id='layerinfo' key={'lgi' + i} style={{ marginBottom: '0.1rem' }}>
+          <Row className='layerinfo' key={'lgi' + i} style={{ marginBottom: '0.1rem' }}>
             <Col xs='auto'><Icon name='chevron-up' onClick={() => this.props.dispatch(this.props.actions.reorderLayer('up', i))} /></Col>
             <Col xs='auto'><Icon name='chevron-down' onClick={() => this.props.dispatch(this.props.actions.reorderLayer('down', i))} /></Col>
             <Col xs='auto'><Icon style={{ minWidth: '1rem' }} id='enableButton' name={layer.enabled ? 'check-square-o' : 'square-o'} onClick={() => this.toggleLayer('data', i)} /></Col>
             <Col xs='auto'><Icon id='deleteButton' name='times' onClick={() => this.deleteLayer('data', i)} /></Col>
-            <LayerSource name={this.getLayerName(layer)} />
-            <LayerName name={layer.title} i={i} target={'datalayer' + i} layer={layer} dispatch={this.props.dispatch} actions={this.props.actions} />
-            <LayerStyle style={layer.currentStyle} layer={layer} target={'datalayerstyle' + i} i={i} dispatch={this.props.dispatch} actions={this.props.actions} />
-            <LayerOpacity layer={layer} target={'datalayeropacity' + i} i={i} dispatch={this.props.dispatch} actions={this.props.actions} />
-            <LayerModelRun layer={layer} />
+            <LayerSource color='warning' name={this.getLayerName(layer)} />
+            <LayerName color='warning' editable name={layer.title} i={i} target={'datalayer' + i} layer={layer} dispatch={this.props.dispatch} actions={this.props.actions} />
+            <LayerStyle color='warning' editable style={layer.currentStyle} layer={layer} target={'datalayerstyle' + i} i={i} dispatch={this.props.dispatch} actions={this.props.actions} />
+            <LayerOpacity color='warning' editable layer={layer} target={'datalayeropacity' + i} i={i} dispatch={this.props.dispatch} actions={this.props.actions} />
+            <LayerModelRun color='warning' layer={layer} />
           </Row>);
       });
     }

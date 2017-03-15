@@ -39,6 +39,13 @@ body {
   max-height: 40rem;
   width: 100%;
 }
+.layerinfo > span:not(.editable) {
+  cursor: not-allowed;
+}
+
+.layerinfo > span.editable {
+  cursor: pointer;
+}
 .test {
 
   .row {
