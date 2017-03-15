@@ -1,9 +1,9 @@
 import React from 'react';
-import ButtonPausePlayAnimation from './ButtonPausePlayAnimation.js';
+// import ButtonPausePlayAnimation from './ButtonPausePlayAnimation.js';
 import CanvasComponent from './CanvasComponent.js';
 import { Icon } from 'react-fa';
 import { Button, Col, Row } from 'reactstrap';
-var elementResizeEvent = require('element-resize-event');
+let elementResizeEvent = require('element-resize-event');
 
 export default class TimeComponent extends React.Component {
   constructor () {
@@ -343,14 +343,14 @@ export default class TimeComponent extends React.Component {
     return (
       <Col>
         <Row style={{ flex: 1 }}>
-          <Col xs='auto'>
+          {/* <Col xs='auto'>
             <ButtonPausePlayAnimation dispatch={this.props.dispatch} actions={this.props.actions} />
           </Col>
           <Col xs='auto'>
             <Button color='primary' size='large' onClick={this.handleButtonClickNow}>Now</Button>
-          </Col>
+          </Col> */}
           <Col xs='auto'>
-            <Button color='primary' onClick={this.handleButtonClickPrevPage}>
+            <Button outline color='info' onClick={this.handleButtonClickPrevPage}>
               <Icon name='chevron-left' />
             </Button>
           </Col>
@@ -358,7 +358,7 @@ export default class TimeComponent extends React.Component {
             <CanvasComponent id='timeline' onRenderCanvas={this.onRenderCanvas} onClick={this.onClickCanvas} />
           </Col>
           <Col xs='auto'>
-            <Button color='primary' onClick={this.handleButtonClickNextPage}>
+            <Button outline color='info' onClick={this.handleButtonClickNextPage}>
               <Icon name='chevron-right' />
             </Button>
           </Col>

@@ -1,5 +1,5 @@
 import TasksContainer from '../../../containers/TasksContainer';
-import Panel from '../../../components/Panel';
+import MapActionsContainer from '../../../containers/MapActionsContainer';
 import MapPanel from '../../../components/MapPanel';
 import LayerManagerPanel from '../../../components/LayerManagerPanel';
 import TitleBarContainer from '../../../containers/TitleBarContainer';
@@ -32,9 +32,7 @@ const mapDispatchToMainViewportProps = function (dispatch) {
 };
 
 const mapStateToRightSideBarProps = (state) => {
-  return {
-    title: 'rightSideBar'
-  };
+  return { };
 };
 
 // Sync route definition
@@ -45,6 +43,6 @@ export default () => ({
     leftSideBar: connect(mapStateToLeftSideBarProps)(TasksContainer),
     map: connect(mapStateToMapProps, mapDispatchToMainViewportProps)(MapPanel),
     layerManager: connect(mapStateToLayerManagerProps, mapDispatchToMainViewportProps)(LayerManagerPanel),
-    rightSideBar: connect(mapStateToRightSideBarProps)(Panel)
+    rightSideBar: connect(mapStateToRightSideBarProps)(MapActionsContainer)
   }
 });

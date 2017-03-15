@@ -8,7 +8,10 @@ $shadow: 0.06rem 0.125rem 0.125rem rgba(0,0,0,0.3);
 $inverse-inactive-color: rgba(255, 255, 255, 0.7);
 $inverse-hover-color: #5bc0de;
 $inverse-active-color: white;
-$ux-interactive-color: #017daf; /* #01699b; */
+$inverse-inactive-color: #cef;
+$ux-interactive-color: #017daf;
+$ux-interactive-color-checked: #3299cb;
+$ux-interactive-color-active: #017daf;
 $ux-interactive-border-highlight-color: #018cc8;
 $ux-interactive-border-shadow-color: #01729b;
 $ux-interactive-hover-color: #015f8c;
@@ -81,11 +84,29 @@ body {
   }
 
   .ux-interactive:active {
-    background-color: $ux-interactive-color;
+    background-color: $ux-interactive-color-active;
     border-color: $ux-interactive-border-highlight-color;
     border-left-color: $ux-interactive-border-shadow-color;
     border-top-color: $ux-interactive-border-shadow-color;
     box-shadow: unset;
+  }
+
+  .ux-interactive:checked {
+    color: $inverse-active-color;
+    text-shadow: 0 0 0.2rem #333;
+    background-color: $ux-interactive-color-checked;
+    border-color: $ux-interactive-border-highlight-color;
+    border-left-color: $ux-interactive-border-shadow-color;
+    border-top-color: $ux-interactive-border-shadow-color;
+    box-shadow: unset;
+  }
+
+  .ux-interactive:disabled {
+    @extend .ux-interactive;
+    color: $inverse-inactive-color;
+    border-color: $ux-interactive-border-highlight-color;
+    cursor: not-allowed;
+    opacity: 0.6;
   }
 
   .btn-primary {
@@ -98,6 +119,29 @@ body {
 
   .btn-primary:active {
     @extend .ux-interactive:active;
+  }
+
+  .btn-primary.active {
+    @extend .ux-interactive:checked;
+  }
+
+  .btn-primary.disabled, .btn-primary.disabled:hover {
+    @extend .ux-interactive:disabled;
+  }
+
+  .btn-outline-info {
+    color: $ux-interactive-color-checked;
+    border-color: $ux-interactive-color-checked;
+  }
+
+  .btn-outline-info:hover {
+    color: $inverse-active-color;
+    border-color: $ux-interactive-color-checked;
+    background-color: $ux-interactive-color-checked;
+  }
+
+  .form-control:focus {
+    border-color: $ux-interactive-color-checked;
   }
 
   .navbar img.logo {
@@ -239,6 +283,14 @@ body {
 
 .TasksContainer {
   flex: 1;
+}
+
+.MapActionContainer .content .btn:not(:last-child) {
+  margin-bottom: 0.33rem;
+}
+
+.MapActionContainer .content .btn, .MapActionContainer .title .btn {
+  padding: 0.5rem 0.7rem;
 }
 
 .LeftSideBar {
