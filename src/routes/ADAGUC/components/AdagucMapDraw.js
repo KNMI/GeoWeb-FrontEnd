@@ -11,8 +11,7 @@ const AdagucMapDraw = React.createClass({
     geojson   : React.PropTypes.object,
     dispatch  : React.PropTypes.func.isRequired,
     isInEditMode  : React.PropTypes.bool,
-    isInDeleteMode  : React.PropTypes.bool,
-    actions: React.PropTypes.object
+    isInDeleteMode  : React.PropTypes.bool
   },
   getDefaultProps () {
     return {
@@ -390,7 +389,6 @@ const AdagucMapDraw = React.createClass({
     }
   },
   cancelEdit (cancelLastPoint) {
-    console.log('cancelEdit');
     if (this.props.isInEditMode === false) return;
     const { webmapjs } = this.props;
 
@@ -481,7 +479,7 @@ const AdagucMapDraw = React.createClass({
   render () {
     const { webmapjs } = this.props;
     if (this.disabled === undefined) {
-      this.disabled = true;
+      this.disabled = this.props.isInDeleteMode;
     }
     if (webmapjs !== undefined) {
       if (this.listenersInitialized === undefined) {

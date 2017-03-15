@@ -148,88 +148,84 @@ describe('(Redux Module) Adaguc', () => {
       _dispatchSpy.should.have.been.calledOnce;
       _getStateSpy.should.have.been.calledOnce;
     });
-    it('Should remove only that layer from the state when called.', () => {
+    it('Should remove nothing when an unknown layer is attempted to be deleted.', () => {
       const layerstate = _getStateSpy();
       expect(layerstate.adagucProperties.layers.datalayers).to.have.length(1);
+      expect(layerstate.adagucProperties.layers.overlays).to.have.length(1);
+      _dispatchSpy(actions.deleteLayer(0, '@@@@'));
+      const newlayerstate = _getStateSpy();
+      expect(newlayerstate.adagucProperties.layers.datalayers).to.have.length(1);
+      expect(newlayerstate.adagucProperties.layers.overlays).to.have.length(1);
+    });
+    it('Should remove only a datalayer from the state when called.', () => {
+      const layerstate = _getStateSpy();
+      expect(layerstate.adagucProperties.layers.datalayers).to.have.length(1);
+      expect(layerstate.adagucProperties.layers.overlays).to.have.length(1);
 
-      _dispatchSpy(actions.deleteLayer({ title: 'abc' }, 'data'));
+      _dispatchSpy(actions.deleteLayer(0, 'data'));
 
       const newlayerstate = _getStateSpy();
       expect(newlayerstate.adagucProperties.layers.datalayers).to.have.length(0);
       expect(newlayerstate.adagucProperties.layers.overlays).to.have.length(1);
     });
+    it('Should remove only an overlay layer from the state when called.', () => {
+      const layerstate = _getStateSpy();
+      expect(layerstate.adagucProperties.layers.datalayers).to.have.length(1);
+      expect(layerstate.adagucProperties.layers.overlays).to.have.length(1);
+
+      _dispatchSpy(actions.deleteLayer(0, 'overlay'));
+
+      const newlayerstate = _getStateSpy();
+      expect(newlayerstate.adagucProperties.layers.datalayers).to.have.length(1);
+      expect(newlayerstate.adagucProperties.layers.overlays).to.have.length(0);
+    });
   });
-  // describe('(Action Creator) doubleAsync', () => {
-  //   let _globalState;
-  //   let _dispatchSpy;
-  //   let _getStateSpy;
 
-  //   beforeEach(() => {
-  //     _globalState = {
-  //       counter : adagucReducer(undefined, {})
-  //     };
-  //     _dispatchSpy = sinon.spy((action) => {
-  //       _globalState = {
-  //         ..._globalState,
-  //         counter : adagucReducer(_globalState.counter, action)
-  //       };
-  //     });
-  //     _getStateSpy = sinon.spy(() => {
-  //       return _globalState;
-  //     });
-  //   });
+  describe('(Action creator) reorderLayer', () => {
+    let _globalState;
+    let _dispatchSpy;
+    let _getStateSpy;
 
-  //   it('Should be exported as a function.', () => {
-  //     expect(doubleAsync).to.be.a('function');
-  //   });
+    beforeEach(() => {
+      _globalState = {
+        adagucProperties : {
+          layers: {
+            datalayers: [
+            { title: 'abc' },
+            { title: 'def' }
+            ],
+            overlays:
+            [{ title: 'overlay' }]
+          },
+          sources: {},
+          boundingBox: null,
+          projectionName: 'EPSG:3857',
+          mapCreated: false
+        }
+      };
+      _dispatchSpy = sinon.spy((action) => {
+        _globalState = {
+          ..._globalState,
+          adagucProperties : adagucReducer(_globalState.adagucProperties, action)
+        };
+      });
+      _getStateSpy = sinon.spy(() => {
+        return _globalState;
+      });
+    });
 
-  //   it('Should return a function (is a thunk).', () => {
-  //     expect(doubleAsync()).to.be.a('function');
-  //   });
+    it('Reordering layers should work.', () => {
+      const layerstate = _getStateSpy();
+      expect(layerstate.adagucProperties.layers.datalayers).to.have.length(2);
+      expect(layerstate.adagucProperties.layers.datalayers[0].title).to.eql('abc');
+      expect(layerstate.adagucProperties.layers.overlays).to.have.length(1);
 
-  //   it('Should return a promise from that thunk that gets fulfilled.', () => {
-  //     return doubleAsync()(_dispatchSpy, _getStateSpy).should.be.fulfilled;
-  //   });
+      _dispatchSpy(actions.reorderLayer('down', 0));
 
-  //   it('Should call dispatch and getState exactly once.', () => {
-  //     return doubleAsync()(_dispatchSpy, _getStateSpy)
-  //       .then(() => {
-  //         _dispatchSpy.should.have.been.calledOnce;
-  //         _getStateSpy.should.have.been.calledOnce;
-  //       });
-  //   });
-
-  //   it('Should produce a state that is double the previous state.', () => {
-  //     _globalState = { counter: 2 };
-
-  //     return doubleAsync()(_dispatchSpy, _getStateSpy)
-  //       .then(() => {
-  //         _dispatchSpy.should.have.been.calledOnce;
-  //         _getStateSpy.should.have.been.calledOnce;
-  //         expect(_globalState.counter).to.equal(4);
-  //         return doubleAsync()(_dispatchSpy, _getStateSpy);
-  //       })
-  //       .then(() => {
-  //         _dispatchSpy.should.have.been.calledTwice;
-  //         _getStateSpy.should.have.been.calledTwice;
-  //         expect(_globalState.counter).to.equal(8);
-  //       });
-  //   });
-  // });
-
-  // // NOTE: if you have a more complex state, you will probably want to verify
-  // // that you did not mutate the state. In this case our state is just a number
-  // // (which cannot be mutated).
-  // describe('(Action Handler) COUNTER_INCREMENT', () => {
-  //   it('Should increment the state by the action payload\'s "value" property.', () => {
-  //     let state = adagucReducer(undefined, {});
-  //     expect(state).to.equal(0);
-  //     state = adagucReducer(state, increment(1));
-  //     expect(state).to.equal(1);
-  //     state = adagucReducer(state, increment(2));
-  //     expect(state).to.equal(3);
-  //     state = adagucReducer(state, increment(-3));
-  //     expect(state).to.equal(0);
-  //   });
-  // });
+      const newlayerstate = _getStateSpy();
+      expect(newlayerstate.adagucProperties.layers.datalayers).to.have.length(2);
+      expect(newlayerstate.adagucProperties.layers.datalayers[0].title).to.eql('def');
+      expect(newlayerstate.adagucProperties.layers.overlays).to.have.length(1);
+    });
+  });
 });

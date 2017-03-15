@@ -1,10 +1,21 @@
-@import 'base';
-@import '~normalize.css/normalize';
 @import '~bootstrap/scss/bootstrap';
 @import 'typeaheadjs';
+@import 'collapse';
 @import 'popover';
-// Some best-practice CSS that's useful for most apps
-// Just remove them if they're not what you want
+
+$radius-size: 0.19rem;
+$shadow: 0.06rem 0.125rem 0.125rem rgba(0,0,0,0.3);
+$inverse-inactive-color: rgba(255, 255, 255, 0.7);
+$inverse-hover-color: #5bc0de;
+$inverse-active-color: white;
+$inverse-inactive-color: #cef;
+$ux-interactive-color: #017daf;
+$ux-interactive-color-checked: #3299cb;
+$ux-interactive-color-active: #017daf;
+$ux-interactive-border-highlight-color: #018cc8;
+$ux-interactive-border-shadow-color: #01729b;
+$ux-interactive-hover-color: #015f8c;
+
 html {
   box-sizing: border-box;
 }
@@ -13,19 +24,328 @@ html,
 body {
   margin: 0;
   padding: 0;
-  height: 100%;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
 }
-// #adaguccontainer {
-//   display:inline-block;
-//   min-height: calc(100% - 133px);
-// }
-// #innermenu {
-//   display: block;
-// }
 
-// .dropdown{
-//   margin: 5px;
-// }
+#root {
+  height: inherit;
+  width: inherit;
+  background-color: #f2fbff;
+}
+
+#timeline {
+  max-height: 40rem;
+  width: 100%;
+}
+.test {
+
+  .row {
+    margin: 0;
+  }
+
+  .col {
+    padding: 0;
+  }
+
+  .rounded {
+    border-radius: $radius-size
+  }
+  .rounded-top {
+    border-radius: $radius-size $radius-size 0 0;
+  }
+  .rounded-right {
+    border-radius: 0 $radius-size $radius-size 0;
+  }
+  .rounded-bottom {
+    border-radius: 0 0 $radius-size $radius-size;
+  }
+  .rounded-left {
+    border-radius: 0 $radius-size $radius-size 0;
+  }
+
+  .ux-interactive {
+    background-color: $ux-interactive-color;
+    border-color: $ux-interactive-border-highlight-color;
+    border-right-color: $ux-interactive-border-shadow-color;
+    border-bottom-color: $ux-interactive-border-shadow-color;
+    border-width: 0.125rem;
+    cursor: pointer;
+    @extend .rounded;
+    box-shadow: $shadow;
+  }
+
+  .ux-interactive:hover {
+    background-color: $ux-interactive-hover-color;
+    border-color: $ux-interactive-hover-color;
+    border-right-color: #01405e;
+    border-bottom-color: #01405e;
+  }
+
+  .ux-interactive:active {
+    background-color: $ux-interactive-color-active;
+    border-color: $ux-interactive-border-highlight-color;
+    border-left-color: $ux-interactive-border-shadow-color;
+    border-top-color: $ux-interactive-border-shadow-color;
+    box-shadow: unset;
+  }
+
+  .ux-interactive:checked {
+    color: $inverse-active-color;
+    text-shadow: 0 0 0.2rem #333;
+    background-color: $ux-interactive-color-checked;
+    border-color: $ux-interactive-border-highlight-color;
+    border-left-color: $ux-interactive-border-shadow-color;
+    border-top-color: $ux-interactive-border-shadow-color;
+    box-shadow: unset;
+  }
+
+  .ux-interactive:disabled {
+    @extend .ux-interactive;
+    color: $inverse-inactive-color;
+    border-color: $ux-interactive-border-highlight-color;
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+
+  .btn-primary {
+    @extend .ux-interactive;
+  }
+
+  .btn-primary:hover {
+    @extend .ux-interactive:hover;
+  }
+
+  .btn-primary:active {
+    @extend .ux-interactive:active;
+  }
+
+  .btn-primary.active {
+    @extend .ux-interactive:checked;
+  }
+
+  .btn-primary.disabled, .btn-primary.disabled:hover {
+    @extend .ux-interactive:disabled;
+  }
+
+  .btn-outline-info {
+    color: $ux-interactive-color-checked;
+    border-color: $ux-interactive-color-checked;
+  }
+
+  .btn-outline-info:hover {
+    color: $inverse-active-color;
+    border-color: $ux-interactive-color-checked;
+    background-color: $ux-interactive-color-checked;
+  }
+
+  .form-control:focus {
+    border-color: $ux-interactive-color-checked;
+  }
+
+  .navbar img.logo {
+    margin: 0 0.3rem 0.6rem;
+    width: 3.5rem;
+  }
+
+  .navbar {
+    background-color: #01547d;
+    border-bottom: 1px solid #01405e;
+    box-shadow: $shadow;
+    padding: 0.1rem 0.5rem;
+    margin-bottom: 0.2rem;
+    width: 100%;
+  }
+
+  .nav-link {
+    cursor: pointer;
+  }
+
+  .navbar-text {
+    display: flex;
+    padding-top: 0.925rem;
+  }
+
+  .navbar-inverse {
+    color: $inverse-inactive-color;
+  }
+
+  .navbar-inverse .navbar-text {
+    color: inherit;
+  }
+
+  .navbar .nav {
+    padding-top: 0.425rem;
+  }
+
+  .navbar-brand {
+    margin-left: 0.3rem;
+  }
+
+  .breadcrumb {
+    background: none;
+    padding-top: 0.925rem;
+    margin-bottom: 0;
+  }
+
+  .breadcrumb-item a, .breadcrumb-item a:hover {
+    color: inherit;
+    text-decoration: inherit;
+    cursor: inherit;
+  }
+
+  .breadcrumb-item, a.nav-link {
+    cursor: not-allowed;
+  }
+
+  .breadcrumb-item::before, .breadcrumb-item + .breadcrumb-item::before  {
+    color: inherit;
+    content: '➜ ';
+    cursor: auto;
+  }
+
+  .navbar-inverse .breadcrumb-active, .navbar-inverse a.nav-link.active {
+    color: $inverse-active-color;
+    cursor: pointer;
+    text-decoration: none;
+  }
+
+  a.breadcrumb-active:hover, a.nav-link.active:hover {
+    cursor: pointer;
+    color: $inverse-hover-color;
+  }
+
+  .card {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .card-header {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+    cursor: pointer;
+  }
+
+  .accordion.card {
+    border: none;
+    border-bottom: 0.1rem solid transparent;
+    border-radius: 0.19rem;
+  }
+
+  .accordion .card-header {
+    z-index: 2;
+    color: $inverse-active-color;
+    background-color: $ux-interactive-color;
+    border: none;
+    @extend .rounded-top;
+  }
+
+  .accordion .card-block .btn-group-vertical > .btn:first-child {
+    border-radius: 0;
+  }
+
+  .card-block {
+    padding: 0;
+  }
+
+  .card-block .row {
+    flex: 1;
+  }
+}
+
+.container-fluid {
+  height: inherit;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 0;
+}
+
+.container-fluid div:not(.collapse):not(.dropdown-menu):not(.btn-group-vertical) {
+  display: inherit;
+}
+
+.MainViewport {
+  .map {
+    flex: 1;
+  }
+  flex: 1;
+  flex-direction: column;
+  overflow: hidden;
+}
+.row.MainSection {
+  flex: 1;
+  margin: 0 0.2rem 0.2rem 0.2rem;
+}
+
+.TasksContainer {
+  flex: 1;
+}
+
+.MapActionContainer .content .btn:not(:last-child) {
+  margin-bottom: 0.33rem;
+}
+
+.MapActionContainer .content .btn, .MapActionContainer .title .btn {
+  padding: 0.5rem 0.7rem;
+}
+
+.LeftSideBar {
+  flex-direction: column;
+}
+
+.Panel {
+  flex-direction: column;
+  width: 100%;
+}
+
+.Panel > .title {
+  box-sizing: border-box;
+  max-height: 4.25rem;
+  background: white; /* $inverse-hover-color; */
+  border-bottom: 0.06rem solid #4bb0ce;
+  @extend .rounded-top;
+  box-shadow: 0 0.05rem 0.25rem rgba(0,0,0,0.5);
+  margin: 0.25rem;
+  margin-bottom: 0;
+  padding: 0.33rem;
+  overflow: hidden;
+}
+
+.Panel > div.notitle {
+  border: none;
+  padding-top: 0;
+}
+
+.Panel > .title .form-inline {
+  flex-flow: row nowrap;
+}
+
+.Panel > .title .input-group {
+  margin-left: 0.8rem;
+}
+
+.Panel > .title .form-inline .form-control {
+  width: 100%;
+}
+
+.Panel > .content {
+  box-sizing: border-box;
+  background: white;
+  border-bottom: 0.06rem solid $inverse-hover-color;
+  @extend .rounded-bottom;
+  box-shadow: 0 0.15rem 0.25rem rgba(0,0,0,0.5);
+  margin: 0.25rem;
+  margin-top: 0;
+  padding: 0.33rem;
+  overflow-y: auto;
+  overflow-x: hidden;
+  flex: 1;
+  flex-direction: column;
+}
 
 *,
 *:before,
@@ -40,79 +360,6 @@ body {
   padding: 0;
 }
 
-// #submenuitem:hover{
-//   background-color: #e2e2e2 !important;
-// }
-// #infocontainer {
-//   margin: auto;
-//   margin-right: 250px;
-// }
-// #timecomponent {
-//   float: left;
-// }
-// #layerproperties {
-//   float: right;
-//   flex-grow: 1;
-// }
-// #layerproperties td,
-// #layerproperties th {
-//   padding-right: 25px;
-//   font-size: 18pt;
-// }
-// #layerproperties td:last-child,
-// #layerproperties th:last-child {
-//   font-size: 18pt;
-// }
-/* Position and sizing of burger button */
-.bm-burger-button {
-  position: fixed;
-  width: 36px;
-  height: 30px;
-  left: 16px;
-  top: 75px;
-}
-
-/* Color/shape of burger icon bars */
-.bm-burger-bars {
-  background: #373a47;
-}
-
-/* Position and sizing of clickable cross button */
-.bm-cross-button {
-  height: 24px;
-  width: 24px;
-}
-
-/* Color/shape of close button cross */
-.bm-cross {
-  background: #373a47;
-}
-
-/* General sidebar styles */
-.bm-menu {
-  background: #eeeeee;
-  padding: 0em 1em 0em 0em;
-  font-size: 1.15em;
-  min-width: 100px;
-  border:1px solid rgba(0, 0, 0, 0.5);
-
-}
-
-/* Morph shape necessary with bubble or elastic */
-.bm-morph-shape {
-  fill: #373a47;
-}
-
-/* Wrapper for item list */
-.bm-item-list {
-  color: #b8b7ad;
-  padding: 0.8em;
-}
-
-/* Styling of overlay */
-.bm-overlay {
-  background: rgba(0, 0, 0, 0.3);
-}
 span {
   max-width: 500px;
 }

@@ -1,10 +1,10 @@
 import React from 'react';
 import { default as ButtonPausePlayAnimation } from './ButtonPausePlayAnimation';
 import { shallow } from 'enzyme';
-
+import { Button } from 'reactstrap';
 describe('(Component) ButtonPausePlayAnimation', () => {
-  it('Renders a div', () => {
+  it('Renders a Button', () => {
     const _component = shallow(<ButtonPausePlayAnimation />);
-    expect(_component.type()).to.eql('div');
+    expect(_component.type()).to.eql(Button);
   });
 });

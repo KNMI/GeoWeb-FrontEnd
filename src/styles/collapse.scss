@@ -1,0 +1,21 @@
+.CollapseOmni.collapse {
+  display: inherit;
+  width: unset;
+  height: unset;
+}
+
+.CollapseOmni.collapse.show {
+  display: inherit;
+}
+
+.CollapseOmni.collapsing {
+  display: inherit;
+  width: unset;
+  height: unset;
+  overflow: hidden;
+  white-space: nowrap;
+  -webkit-transition: all 0.35s ease;
+  -moz-transition: all 0.35s ease;
+  -o-transition: all 0.35s ease;
+  transition: all 0.35s ease;
+}

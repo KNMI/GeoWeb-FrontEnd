@@ -3311,7 +3311,7 @@
             triggerEvent = true;
           }
           if (triggerEvent === true) {
-            callBack.triggerEvent('ondimchange');
+            callBack.triggerEvent('ondimchange', name);
           }
         // }
 

@@ -6,7 +6,7 @@ import { Container } from 'reactstrap';
 
 describe('(Layout) BaseLayout', () => {
   it('Renders a Reactstrap Container', () => {
-    const _component = shallow(<BaseLayout />);
+    const _component = shallow(<BaseLayout routes={[ { title: 'title' } ]} />);
     expect(_component.type()).to.eql(Container);
   });
 });

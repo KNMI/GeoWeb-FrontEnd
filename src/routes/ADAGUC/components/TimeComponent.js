@@ -1,14 +1,15 @@
 import React from 'react';
-import ButtonPausePlayAnimation from './ButtonPausePlayAnimation.js';
+// import ButtonPausePlayAnimation from './ButtonPausePlayAnimation.js';
 import CanvasComponent from './CanvasComponent.js';
 import { Icon } from 'react-fa';
-import { Button } from 'reactstrap';
+import { Button, Col, Row } from 'reactstrap';
+let elementResizeEvent = require('element-resize-event');
+
 export default class TimeComponent extends React.Component {
   constructor () {
     super();
     this.state = {
-      value: '2000-01-01T00:00:00Z',
-      width: 1483
+      value: '2000-01-01T00:00:00Z'
     };
     this.onRenderCanvas = this.onRenderCanvas.bind(this);
     this.eventOnDimChange = this.eventOnDimChange.bind(this);
@@ -20,12 +21,13 @@ export default class TimeComponent extends React.Component {
     this.handleButtonClickNextPage = this.handleButtonClickNextPage.bind(this);
     this.handleButtonClickNow = this.handleButtonClickNow.bind(this);
     this.handleChange = this.handleChange.bind(this);
-    this.onChangeAnimation = this.onChangeAnimation.bind(this);
+    // this.onChangeAnimation = this.onChangeAnimation.bind(this);
     this.changeYear = this.changeYear.bind(this);
     this.changeMonth = this.changeMonth.bind(this);
     this.changeDay = this.changeDay.bind(this);
     this.changeHour = this.changeHour.bind(this);
     this.changeMinute = this.changeMinute.bind(this);
+    this.element = document.querySelector('.map .content');
   }
   handleChange (event) {
   }
@@ -34,19 +36,18 @@ export default class TimeComponent extends React.Component {
   }
   /* istanbul ignore next */
   eventOnDimChange () {
-    // if (!this.props.webmapjs) return;
-    // this.drawCanvas();
+    this.drawCanvas();
 
-    let timeDim = this.props.webmapjs.getDimension('time');
+    let timeDim = this.props.timedim;
 
     if (timeDim !== undefined) {
-      if (this.state.value === timeDim.currentValue) {
+      if (this.state.value === timeDim) {
         if (this.hoverDate === this.hoverDateDone) {
           this.drawCanvas();
         }
       }
-      if (timeDim.currentValue !== this.state.value) {
-        this.setState({ value:timeDim.currentValue, width: this.state.width });
+      if (timeDim !== this.state.value) {
+        this.setState({ value:timeDim });
       }
     } else {
       this.drawCanvas();
@@ -55,18 +56,20 @@ export default class TimeComponent extends React.Component {
   }
   /* istanbul ignore next */
   drawCanvas () {
-    if (!this.props.webmapjs) return;
-    let timeDim = this.props.webmapjs.getDimension('time');
+    let timeDim = this.props.timedim;
     if (timeDim === undefined) {
       return;
     }
     this.hoverDateDone = this.hoverDate;
-
-    let layers = this.props.webmapjs.getLayers();
-    let overlayers = this.props.webmapjs.getBaseLayers().filter((layer) => layer.keepOnTop === true);
+    let layers = this.props.wmjslayers.layers;
+    let overlayers = this.props.wmjslayers.baselayers.filter((layer) => layer.keepOnTop === true);
     let ctx = this.ctx;
-    let canvasWidth = ctx.canvas.clientWidth;
-    let canvasHeight = ctx.canvas.clientHeight;
+    // let canvasWidth = ctx.canvas.clientWidth;
+    // let canvasHeight = ctx.canvas.clientHeight;
+    // eslint-disable-next-line no-undef
+    const canvasWidth = $(ctx.canvas).width();
+    // eslint-disable-next-line no-undef
+    const canvasHeight = $(ctx.canvas).height();
     ctx.fillStyle = '#CCC';
     ctx.fillRect(0, 0, canvasWidth, canvasHeight);
     ctx.strokeStyle = '#FF0000';
@@ -77,9 +80,9 @@ export default class TimeComponent extends React.Component {
     // eslint-disable-next-line no-undef
     let currentDate = getCurrentDateIso8601();
     // eslint-disable-next-line no-undef
-    this.startDate = parseISO8601DateToDate(timeDim.currentValue); // getCurrentDateIso8601();
+    this.startDate = parseISO8601DateToDate(timeDim); // getCurrentDateIso8601();
     // eslint-disable-next-line no-undef
-    this.endDate = parseISO8601DateToDate(timeDim.currentValue); // getCurrentDateIso8601();
+    this.endDate = parseISO8601DateToDate(timeDim); // getCurrentDateIso8601();
 
     this.timeWidth = 24 / 2;
     let hours = this.startDate.getUTCHours();
@@ -98,25 +101,21 @@ export default class TimeComponent extends React.Component {
     this.startDate.add(new DateInterval(0, 0, 0, 0, 0, 0));
     // eslint-disable-next-line no-undef
     this.endDate.add(new DateInterval(0, 0, 0, this.timeWidth, 0, 0));
-    // console.log(startDate.toISO8601());
     let canvasDateIntervalStr = this.startDate.toISO8601() + '/' + this.endDate.toISO8601() + '/PT1M';
-    // console.log(canvasDateIntervalStr);
     // eslint-disable-next-line
     this.canvasDateInterval = new parseISOTimeRangeDuration(canvasDateIntervalStr);
-    // console.log(canvasDateInterval);
     // let sliderStartIndex = canvasDateInterval.getTimeStepFromISODate(startDate.toISO8601());
     let sliderCurrentIndex = -1;
     try {
       sliderCurrentIndex = this.canvasDateInterval.getTimeStepFromISODate(currentDate.toISO8601(), true);
     } catch (e) {
-      // Current date is out of range
-      // console.log(e);
+      // ???????
+      // Apparantly we're reliant on exceptions
     }
-    let sliderMapIndex = this.canvasDateInterval.getTimeStepFromISODate(timeDim.currentValue);
+    let sliderMapIndex = this.canvasDateInterval.getTimeStepFromISODate(timeDim);
     let sliderStopIndex = this.canvasDateInterval.getTimeStepFromISODate(this.endDate.toISO8601());
 
     let canvasDateIntervalStrHour = this.startDate.toISO8601() + '/' + this.endDate.toISO8601() + '/PT1H';
-    // // console.log(canvasDateIntervalStr);
     // eslint-disable-next-line no-undef
     // eslint-disable-next-line
     let canvasDateIntervalHour = new parseISOTimeRangeDuration(canvasDateIntervalStrHour);
@@ -222,7 +221,11 @@ export default class TimeComponent extends React.Component {
     ctx.fillRect(x - 26, canvasHeight - 15, 52, 14);
     // ctx.strokeRect(x - 20.5, canvasHeight - 15.5, 40, 16);
     ctx.fillStyle = '#000000';
-    ctx.fillText(timeDim.currentValue.substring(11, 16), x - 15, canvasHeight - 3);
+    ctx.fillText(timeDim.substring(11, 16), x - 15, canvasHeight - 3);
+    if (!this.element) {
+      this.element = document.querySelector('.map .content');
+      elementResizeEvent(this.element, this.drawCanvas);
+    }
   }
   /* istanbul ignore next */
   toISO8601 (value) {
@@ -230,9 +233,8 @@ export default class TimeComponent extends React.Component {
       // print decimal with fixed length (preceding zero's)
       let string = input + '';
       let len = width - string.length;
-      let j = '';
       let zeros = '';
-      for (j = 0; j < len; j++) {
+      for (let j = 0; j < len; j++) {
         zeros += '0' + zeros;
       }
       string = zeros + string;
@@ -243,12 +245,12 @@ export default class TimeComponent extends React.Component {
   }
   /* istanbul ignore next */
   setNewDate (value) {
-    // console.log('update');
     let isodate = this.toISO8601(value);
     // eslint-disable-next-line no-undef
     var date = parseISO8601DateToDate(isodate);
-    this.props.webmapjs.setDimension('time', date.toISO8601(), true);
-    this.props.webmapjs.draw();
+    this.props.dispatch(this.props.actions.setTimeDimension(date.toISO8601()));
+    // this.props.webmapjs.setDimension('time', date.toISO8601(), true);
+    // this.props.webmapjs.draw();
     this.eventOnDimChange();
   }
   /* istanbul ignore next */
@@ -286,10 +288,6 @@ export default class TimeComponent extends React.Component {
     let date = this.decomposeDateString(this.state.value); date.second = value; this.setNewDate(date);
   }
   /* istanbul ignore next */
-  onChangeAnimation (value) {
-    this.props.onChangeAnimation(value);
-  }
-  /* istanbul ignore next */
   componentDidMount () {
     setInterval(this.drawCanvas, 60000);
   }
@@ -298,6 +296,7 @@ export default class TimeComponent extends React.Component {
   }
   /* istanbul ignore next */
   componentWillUnmount () {
+    this.element = undefined;
   }
   /* istanbul ignore next */
   onRenderCanvas (ctx) {
@@ -311,18 +310,20 @@ export default class TimeComponent extends React.Component {
     /* istanbul ignore next */
     try {
       let newDate = this.canvasDateInterval.getDateAtTimeStep(newTimeStep, true);
-      this.props.webmapjs.setDimension('time', newDate.toISO8601(), true);
-      this.props.webmapjs.draw();
+      this.props.dispatch(this.props.actions.setTimeDimension(newDate.toISO8601()));
+      // this.props.webmapjs.setDimension('time', newDate.toISO8601(), true);
+      // this.props.webmapjs.draw();
       this.eventOnDimChange();
     } catch (e) {
-      console.log(e);
+      throw new Error('311: ', e);
     }
   }
   handleButtonClickNow () {
     // eslint-disable-next-line no-undef
     let currentDate = getCurrentDateIso8601();
-    this.props.webmapjs.setDimension('time', currentDate.toISO8601(), true);
-    this.props.webmapjs.draw();
+    this.props.dispatch(this.props.actions.setTimeDimension(currentDate.toISO8601()));
+    // this.props.webmapjs.setDimension('time', currentDate.toISO8601(), true);
+    // this.props.webmapjs.draw();
     this.eventOnDimChange();
   }
   handleButtonClickPrevPage () {
@@ -335,63 +336,40 @@ export default class TimeComponent extends React.Component {
     date.hour += 1;
     this.setNewDate(date);
   }
-  onMouseMoveCanvas (x, y) {
-    // let t = x / this.ctx.canvas.clientWidth;
-    // let s = this.canvasDateInterval.getTimeSteps() - 1;
-    // let newTimeStep = parseInt(t * s);
-    // try {
-    //   this.hoverDate = this.canvasDateInterval.getDateAtTimeStep(newTimeStep, true);
-    //   this.eventOnDimChange();
-    // } catch (e) {
-    //   console.log(e);
-    // }
-  }
 
   render () {
-    const { webmapjs } = this.props;
     /* istanbul ignore next */
-    if (webmapjs !== undefined) {
-      if (this.listenersInitialized === undefined) { // TODO mount/unmount
-        this.listenersInitialized = true;
-        webmapjs.addListener('onlayeradd', this.eventOnMapDimUpdate, true);
-        webmapjs.addListener('onmapdimupdate', this.eventOnMapDimUpdate, true);
-        webmapjs.addListener('ondimchange', this.eventOnDimChange, true);
-      }
-    }
 
     return (
-      <div style={{ display:'flex', flex: '0 0 auto', border:'0px solid red' }}>
-        <div style={{ display:'flex', flex: '0 0 auto', marginTop: '81px' }} >
-          <div style={{ display:'flex', flex: '0 0 auto' }}>
-            <ButtonPausePlayAnimation webmapjs={this.props.webmapjs} onChange={this.onChangeAnimation} />
-          </div>
-          <div style={{ display:'flex', flex: '0 0 auto' }} >
-            <Button color='primary' size='large' style={{ padding:'20px', margin:' 0 5px' }} onClick={this.handleButtonClickNow}>Now</Button>
-          </div>
-        </div>
-        <div style={{ display:'flex', flex: '0 0 auto' }}>
-          <Button color='primary' style={{ padding:'28px 5px 30px 5px', marginLeft:'1px', marginRight:'0px' }} onClick={this.handleButtonClickPrevPage}>
-            <Icon name='chevron-left' />
-          </Button>
-        </div>
-        <div style={{ display: 'flex', flex: '0 0 auto', border:'0px solid blue', margin: '0px 2px 0px 2px', padding: 0, background:'white' }}>
-          <CanvasComponent width={this.state.width - 803} height={150}
-            onRenderCanvas={this.onRenderCanvas}
-            onClick={this.onClickCanvas}
-            onMouseMove={this.onMouseMoveCanvas} />
-        </div>
-        <div style={{ display: 'flex', flex: '0 0 auto' }}>
-          <Button color='primary' style={{ padding:'28px 5px 30px 5px' }} onClick={this.handleButtonClickNextPage}>
-            <Icon name='chevron-right' />
-          </Button>
-        </div>
-      </div>);
+      <Col>
+        <Row style={{ flex: 1 }}>
+          {/* <Col xs='auto'>
+            <ButtonPausePlayAnimation dispatch={this.props.dispatch} actions={this.props.actions} />
+          </Col>
+          <Col xs='auto'>
+            <Button color='primary' size='large' onClick={this.handleButtonClickNow}>Now</Button>
+          </Col> */}
+          <Col xs='auto'>
+            <Button outline color='info' onClick={this.handleButtonClickPrevPage}>
+              <Icon name='chevron-left' />
+            </Button>
+          </Col>
+          <Col>
+            <CanvasComponent id='timeline' onRenderCanvas={this.onRenderCanvas} onClick={this.onClickCanvas} />
+          </Col>
+          <Col xs='auto'>
+            <Button outline color='info' onClick={this.handleButtonClickNextPage}>
+              <Icon name='chevron-right' />
+            </Button>
+          </Col>
+        </Row>
+      </Col>
+    );
   }
 }
 TimeComponent.propTypes = {
-  onChangeAnimation: React.PropTypes.func,
-  date: React.PropTypes.string,
-  webmapjs: React.PropTypes.object,
-  width: React.PropTypes.number,
-  height: React.PropTypes.number
+  timedim: React.PropTypes.string,
+  wmjslayers: React.PropTypes.object,
+  dispatch: React.PropTypes.func,
+  actions: React.PropTypes.object
 };

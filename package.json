@@ -138,6 +138,7 @@
     "chai-enzyme": "^0.6.1",
     "cheerio": "^0.22.0",
     "copy-webpack-plugin": "^4.0.1",
+    "element-resize-event": "^2.0.7",
     "enzyme": "^2.7.1",
     "eslint": "^3.16.0",
     "eslint-config-standard": "^6.2.1",

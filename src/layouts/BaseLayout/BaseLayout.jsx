@@ -1,23 +1,30 @@
 import React, { Component, PropTypes } from 'react';
 import { Container, Row, Col } from 'reactstrap';
-import 'bootstrap/dist/css/bootstrap.css';
 import '../../styles/core.scss';
 
 class BaseLayout extends Component {
   render () {
-    const { header, leftSideBar, mainViewport, rightSideBar } = this.props;
+    const { header, leftSideBar, map, layerManager, rightSideBar } = this.props;
     return (
-      <Container fluid style={{ minHeight: '100vh' }}>
+      <Container fluid className={this.props.routes[1] && this.props.routes[1].path === 'layout_test' ? 'test' : ''}>
         <Row className='Header'>
           {header || 'Oops'}
         </Row>
-        <Row>
-          <Col xs='auto' className='MainViewport'>
-            {mainViewport || 'Oops'}
+        <Row className='MainSection'>
+          <Col xs='auto' className='LeftSideBar'>
+            {leftSideBar || 'Oops'}
           </Col>
-          {/* <Col xs='3' className='RightSideBar'>
+          <Col className='MainViewport'>
+            <Row className='map'>
+              {map || 'Oops'}
+            </Row>
+            <Row className='layerManager'>
+              {layerManager || 'Oops'}
+            </Row>
+          </Col>
+          <Col xs='auto' className='RightSideBar'>
             {rightSideBar || 'Oops'}
-          </Col> */}
+          </Col>
         </Row>
       </Container>
     );
@@ -26,8 +33,10 @@ class BaseLayout extends Component {
 BaseLayout.propTypes = {
   header: PropTypes.element,
   leftSideBar: PropTypes.element,
-  mainViewport: PropTypes.element,
-  rightSideBar: PropTypes.element
+  map: PropTypes.element,
+  layerManager: PropTypes.element,
+  rightSideBar: PropTypes.element,
+  routes: PropTypes.array
 };
 
 export default BaseLayout;

@@ -22,7 +22,9 @@
     "__COVERAGE__" : false,
     "expect" : false,
     "should" : false,
-    "sinon"  : false
+    "sinon"  : false,
+    "windows": false,
+    "document": false
   },
   "rules": {
     "semi"                 : [1, "always"],
