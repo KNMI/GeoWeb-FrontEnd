@@ -150,13 +150,12 @@ class MapActionContainer extends Component {
       {sources.overlay.map((src, i) => <Button id={src.name} key={i} onClick={this.handleSourceClick}>{this.getLayerName(src)}</Button>)}</div>;
   }
   renderPresetSelector () {
-    return <Button onClick={() => this.setState({ presetUnit: 'sigmet', activeTab: '3' })}>SIGMET</Button>;
+    return <Button onClick={this.setPreset}>SIGMET Thunderstorm</Button>;
   }
 
-  setPreset (e) {
-    const thing = e[0];
+  setPreset () {
     const { dispatch, actions } = this.props;
-    dispatch(actions.prepareSIGMET(thing));
+    dispatch(actions.prepareSIGMET());
     this.setState({
       layerChooserOpen: false,
       activeTab: '1',
@@ -169,10 +168,7 @@ class MapActionContainer extends Component {
   }
 
   renderLayerChooser () {
-    const phenomena = ['OBSC TS', 'EMBD TS', 'FRQ TS', 'SQL TS', 'OBSC TSGR', 'EMBD TSGR', 'FRQ TSGR',
-      'SQL TSGR', 'SEV TURB', 'SEV ICE', 'SEV ICE (FZRA)', 'SEV MTW', 'HVY DS', 'HVY SS', 'RDOACT CLD'];
-      console.log(this.state);
-    return (<Modal id='addLayerModal' isOpen={this.state.layerChooserOpen}>
+    return (<Modal id='addLayerModal' isOpen={this.state.layerChooserOpen} toggle={this.toggleLayerChooser}>
       <ModalHeader>Choose Layer</ModalHeader>
       <Nav tabs>
         <NavItem>
@@ -182,12 +178,12 @@ class MapActionContainer extends Component {
         </NavItem>
         <NavItem>
           <NavLink id='tab2' className={classnames({ active: this.state.activeTab === '2' })} onClick={(e) => { this.toggleTab(e); }} disabled={!this.state.selectedSource}>
-            (2) - Select Source
+            {this.state.action ? (this.state.action === 'addLayer' ? '(2) - Select Source' : '(2) - Select Preset') : ''}
           </NavLink>
         </NavItem>
         <NavItem>
           <NavLink id='tab3' className={classnames({ active: this.state.activeTab === '3' })} onClick={(e) => { this.toggleTab(e); }} disabled={!this.state.selectedSource}>
-            {this.state.action ? (this.state.action === 'selectPreset' ? '(3) - Select Phenomenon' : '(3) - Select ' + this.getLayerName(this.state.selectedSource) + ' Layer') : '(3)'}
+            {this.state.action ? (this.state.action === 'selectPreset' ? '' : '(3) - Select ' + this.getLayerName(this.state.selectedSource) + ' Layer') : ''}
           </NavLink>
         </NavItem>
       </Nav>
@@ -205,9 +201,7 @@ class MapActionContainer extends Component {
               : this.renderPresetSelector()}
           </TabPane>
           <TabPane tabId='3'>
-            {this.state.action === 'addLayer'
-            ? <Typeahead onChange={this.handleAddLayer} options={this.state.layers ? this.state.layers : []} />
-            : <Typeahead onChange={this.setPreset} options={phenomena} />}
+            <Typeahead onChange={this.handleAddLayer} options={this.state.layers ? this.state.layers : []} />
           </TabPane>
         </TabContent>
       </ModalBody>
@@ -217,23 +211,32 @@ class MapActionContainer extends Component {
     </Modal>);
   }
   render () {
-    const { title } = this.props;
+    const { title, adagucProperties, dispatch, actions } = this.props;
     const items = [
       {
         title: 'Pan / zoom',
-        icon: '✋',
-        active: true
+        action: 'pan',
+        icon: '✋'
       },
       {
         title: 'Zoom to rectangle',
+        action: 'zoom',
         icon: '🔍'
       },
       {
         title: 'Draw polygon',
+        action: 'draw',
         icon: '☈'
       },
       {
+        title: 'Delete point',
+        action: 'delete',
+        // icon: '↶'
+        icon: '↺'
+      },
+      {
         title: 'Measure distance',
+        action: 'measure',
         icon: '↦'
       },
       {
@@ -248,8 +251,8 @@ class MapActionContainer extends Component {
         {this.renderPopOver()}
         <Panel className='Panel' title={title}>
           {items.map((item, index) =>
-            <Button color='primary' key={index} active={item.active || null} disabled={item.disabled || null}
-              className='row' title={item.title}>{item.icon}</Button>)}
+            <Button color='primary' key={index} active={adagucProperties.mapMode === item.action} disabled={item.disabled || null}
+              className='row' title={item.title} onClick={() => dispatch(actions.setMapMode(item.action))}>{item.icon}</Button>)}
           <Row style={{ flex: 1 }} />
           <Button onClick={this.togglePopside} id='setAreaButton' color='primary' className='row' title='Set area'>⚑</Button>
           <Button onClick={this.toggleLayerChooser} color='primary' className='row' title='Choose layers'>☰</Button>

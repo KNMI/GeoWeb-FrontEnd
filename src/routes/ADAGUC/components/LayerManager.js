@@ -341,11 +341,10 @@ export default class LayerManager extends React.Component {
       return layers.map((layer, i) => {
         return (
           <Row id='layerinfo' key={'base' + i}>
-            <Col />
-            <Col />
-            <Col xs='auto'><Icon id='enableButton' name={layer && layer.enabled ? 'check-square-o' : 'square-o'} onClick={() => this.toggleLayer('base', i)} /></Col>
-            <Col />
-            <Col />
+            <Col xs='auto'><Icon style={{ color: 'transparent' }} name='chevron-up' /></Col>
+            <Col xs='auto'><Icon style={{ color: 'transparent' }} name='chevron-up' /></Col>
+            <Col xs='auto'><Icon style={{ minWidth: '1rem' }} id='enableButton' name={layer && layer.enabled ? 'check-square-o' : 'square-o'} onClick={() => this.toggleLayer('base', i)} /></Col>
+            <Col xs='auto'><Icon style={{ color: 'transparent' }} name='times' /></Col>
             <LayerName name={this.getBaseLayerName(layer)}
               i={i} target={'baselayer' + i} layer={layer} dispatch={this.props.dispatch} actions={this.props.actions} placement='top' />
             <Col />
@@ -362,10 +361,10 @@ export default class LayerManager extends React.Component {
     } else {
       return layers.map((layer, i) => {
         return (
-          <Row id='layerinfo' key={'over' + i}>
-            <Col />
-            <Col />
-            <Col xs='auto'><Icon id='enableButton' name={layer.enabled ? 'check-square-o' : 'square-o'} onClick={() => this.toggleLayer('overlay', i)} /></Col>
+          <Row id='layerinfo' key={'over' + i} style={{ marginBottom: '0.1rem' }}>
+            <Col xs='auto'><Icon style={{ color: 'transparent' }} name='chevron-up' /></Col>
+            <Col xs='auto'><Icon style={{ color: 'transparent' }} name='chevron-up' /></Col>
+            <Col xs='auto'><Icon style={{ minWidth: '1rem' }} id='enableButton' name={layer.enabled ? 'check-square-o' : 'square-o'} onClick={() => this.toggleLayer('overlay', i)} /></Col>
             <Col xs='auto'><Icon id='deleteButton' name='times' onClick={() => this.deleteLayer('overlay', i)} /></Col>
             <LayerSource name={this.getOverLayerName(layer)} />
             <Col />
@@ -425,7 +424,7 @@ export default class LayerManager extends React.Component {
 
   render () {
     return (
-      <Col xs='auto' style={{ flexDirection: 'column' }}>
+      <Col xs='auto' style={{ minWidth: '40rem', flexDirection: 'column' }}>
         {this.renderOverLayerSet(this.state.overlays)}
         {this.renderLayerSet(this.state.layers)}
         {this.renderBaseLayerSet(this.state.baselayers)}

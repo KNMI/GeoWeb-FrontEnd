@@ -22,14 +22,7 @@ const initialState = {
     boundingBox: BOUNDING_BOXES[0],
     projectionName: 'EPSG:3857',
     mapCreated: false,
-    adagucmapdraw: {
-      isInEditMode: false,
-      isInDeleteMode: false,
-      editMode: ''
-    },
-    adagucmeasuredistance: {
-      isInEditMode: false
-    }
+    mapMode: 'pan'
   }
 };
 
