@@ -127,7 +127,10 @@ export default class Adaguc extends React.Component {
     if (newActiveLayer) {
       this.webMapJS.setActiveLayer(this.webMapJS.getLayers()[0]);
     }
-    this.props.dispatch(this.props.actions.setWMJSLayers({ layers: this.webMapJS.getLayers(), baselayers: this.webMapJS.getBaseLayers() }));
+    // eslint-disable-next-line no-undef
+    let currentDate = getCurrentDateIso8601();
+    dispatch(actions.setTimeDimension(currentDate.toISO8601()));
+    dispatch(actions.setWMJSLayers({ layers: this.webMapJS.getLayers(), baselayers: this.webMapJS.getBaseLayers() }));
     this.webMapJS.draw();
   }
 
