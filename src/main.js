@@ -16,7 +16,7 @@ const initialState = {
     },
     layers: {
       baselayer: MAP_STYLES[1],
-      datalayers: [],
+      datalayers: [{ service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.RADAR.cgi?', name: 'precipitation' }],
       overlays: []
     },
     boundingBox: BOUNDING_BOXES[0],

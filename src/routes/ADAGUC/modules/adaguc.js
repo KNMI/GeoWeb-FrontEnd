@@ -16,6 +16,8 @@ const PREPARE_SIGMET = 'PREPARE_SIGMET';
 const ALTER_LAYER = 'ALTER_LAYER';
 const REORDER_LAYER = 'REORDER_LAYER';
 const SET_WMJSLAYERS = 'SET_WMJSLAYERS';
+const SET_TIME_DIMENSION = 'SET_TIME_DIMENSION';
+const TOGGLE_ANIMATION = 'TOGGLE_ANIMATION';
 import { ADAGUCMAPDRAW_EDITING, ADAGUCMAPDRAW_DELETE, ADAGUCMAPDRAW_UPDATEFEATURE } from '../components/AdagucMapDraw';
 import { ADAGUCMEASUREDISTANCE_EDITING, ADAGUCMEASUREDISTANCE_UPDATE } from '../components/AdagucMeasureDistance';
 
@@ -103,23 +105,34 @@ function deleteLayer (layerParams, layertype) {
 
 function adagucmapdrawToggleEdit (adagucmapdraw) {
   return {
-    type: 'ADAGUCMAPDRAW_EDITING',
+    type: ADAGUCMAPDRAW_EDITING,
     payload: Object.assign({}, adagucmapdraw, { isInEditMode: !adagucmapdraw.isInEditMode })
   };
 }
 
 function adagucmapdrawToggleDelete (adagucmapdraw) {
   return {
-    type: 'ADAGUCMAPDRAW_DELETE',
+    type: ADAGUCMAPDRAW_DELETE,
     payload: Object.assign({}, adagucmapdraw, { isInDeleteMode: !adagucmapdraw.isInDeleteMode })
   };
 }
 
 function adagucmeasuredistanceToggleEdit (adagucmeasuredistance) {
   return {
-    type: 'ADAGUCMEASUREDISTANCE_EDITING',
+    type: ADAGUCMEASUREDISTANCE_EDITING,
     payload: Object.assign({}, adagucmeasuredistance, { isInEditMode: !adagucmeasuredistance.isInEditMode })
   };
+}
+function setTimeDimension (timedim) {
+  return {
+    type: SET_TIME_DIMENSION,
+    payload: timedim
+  };
+}
+function toggleAnimation () {
+  return {
+    type: TOGGLE_ANIMATION
+  }
 }
 /*  This is a thunk, meaning it is a function that immediately
     returns a function for lazy evaluation. It is incredibly useful for
@@ -218,6 +231,8 @@ export const actions = {
   reorderLayer,
   setWMJSLayers,
   alterLayer,
+  toggleAnimation,
+  setTimeDimension,
   adagucmapdrawToggleEdit,
   adagucmapdrawToggleDelete,
   adagucmeasuredistanceToggleEdit
@@ -399,6 +414,12 @@ const handleAdagucMeasureDistanceUpdate = (state, payload) => {
 const doSetWMJSLayers = (state, payload) => {
   return Object.assign({}, state, { wmjslayers: payload });
 };
+const doSetTimeDim = (state, payload) => {
+  return Object.assign({}, state, { timedim: payload });
+};
+const doToggleAnimation = (state) => {
+  return Object.assign({}, state, { animate: !state.animate });
+};
 // ------------------------------------
 // Action Handlers
 // ------------------------------------
@@ -419,7 +440,9 @@ const ACTION_HANDLERS = {
   [SET_CUT]                       : (state, action) => newCut(state, action.payload),
   [SET_MAP_STYLE]                 : (state, action) => newMapStyle(state, action.payload),
   [SET_STYLE]                     : (state, action) => newStyle(state, action.payload),
-  [SET_WMJSLAYERS]                : (state, action) => doSetWMJSLayers(state, action.payload)
+  [SET_WMJSLAYERS]                : (state, action) => doSetWMJSLayers(state, action.payload),
+  [SET_TIME_DIMENSION]            : (state, action) => doSetTimeDim(state, action.payload),
+  [TOGGLE_ANIMATION]              : (state, action) => doToggleAnimation(state)
 };
 
 // ------------------------------------

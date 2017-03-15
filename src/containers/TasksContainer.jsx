@@ -57,9 +57,10 @@ class TasksContainer extends Component {
     this.setState({ collapse: !this.state.collapse, filter: this.state.filter });
     evt.preventDefault();
   }
-  filter () {
+  filter (evt) {
     const filter = new RegExp(document.querySelector('.filter').value, 'i');
     this.setState({ collapse: this.state.collapse, filter: filter });
+    evt.preventDefault();
   }
 
   render () {
