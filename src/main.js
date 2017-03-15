@@ -16,20 +16,13 @@ const initialState = {
     },
     layers: {
       baselayer: MAP_STYLES[1],
-      datalayers: [{ service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.RADAR.cgi?', name: 'precipitation' }],
+      datalayers: [],
       overlays: []
     },
     boundingBox: BOUNDING_BOXES[0],
     projectionName: 'EPSG:3857',
     mapCreated: false,
-    adagucmapdraw: {
-      isInEditMode: false,
-      isInDeleteMode: false,
-      editMode: ''
-    },
-    adagucmeasuredistance: {
-      isInEditMode: false
-    }
+    mapMode: 'pan'
   }
 };
 

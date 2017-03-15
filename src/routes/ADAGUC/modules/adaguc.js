@@ -18,8 +18,9 @@ const REORDER_LAYER = 'REORDER_LAYER';
 const SET_WMJSLAYERS = 'SET_WMJSLAYERS';
 const SET_TIME_DIMENSION = 'SET_TIME_DIMENSION';
 const TOGGLE_ANIMATION = 'TOGGLE_ANIMATION';
-import { ADAGUCMAPDRAW_EDITING, ADAGUCMAPDRAW_DELETE, ADAGUCMAPDRAW_UPDATEFEATURE } from '../components/AdagucMapDraw';
-import { ADAGUCMEASUREDISTANCE_EDITING, ADAGUCMEASUREDISTANCE_UPDATE } from '../components/AdagucMeasureDistance';
+const SET_MAP_MODE = 'SET_MAP_MODE';
+import { ADAGUCMAPDRAW_UPDATEFEATURE } from '../components/AdagucMapDraw';
+import { ADAGUCMEASUREDISTANCE_UPDATE } from '../components/AdagucMeasureDistance';
 
 // ------------------------------------
 // Actions
@@ -31,6 +32,12 @@ function createMap (sources, overlays) {
       sources: sources,
       overlays: overlays
     }
+  };
+}
+function setMapMode (mode) {
+  return {
+    type: SET_MAP_MODE,
+    payload: mode
   };
 }
 function setWMJSLayers (layers) {
@@ -102,27 +109,6 @@ function deleteLayer (layerParams, layertype) {
     }
   };
 }
-
-function adagucmapdrawToggleEdit (adagucmapdraw) {
-  return {
-    type: ADAGUCMAPDRAW_EDITING,
-    payload: Object.assign({}, adagucmapdraw, { isInEditMode: !adagucmapdraw.isInEditMode })
-  };
-}
-
-function adagucmapdrawToggleDelete (adagucmapdraw) {
-  return {
-    type: ADAGUCMAPDRAW_DELETE,
-    payload: Object.assign({}, adagucmapdraw, { isInDeleteMode: !adagucmapdraw.isInDeleteMode })
-  };
-}
-
-function adagucmeasuredistanceToggleEdit (adagucmeasuredistance) {
-  return {
-    type: ADAGUCMEASUREDISTANCE_EDITING,
-    payload: Object.assign({}, adagucmeasuredistance, { isInEditMode: !adagucmeasuredistance.isInEditMode })
-  };
-}
 function setTimeDimension (timedim) {
   return {
     type: SET_TIME_DIMENSION,
@@ -132,7 +118,7 @@ function setTimeDimension (timedim) {
 function toggleAnimation () {
   return {
     type: TOGGLE_ANIMATION
-  }
+  };
 }
 /*  This is a thunk, meaning it is a function that immediately
     returns a function for lazy evaluation. It is incredibly useful for
@@ -231,11 +217,9 @@ export const actions = {
   reorderLayer,
   setWMJSLayers,
   alterLayer,
+  setMapMode,
   toggleAnimation,
-  setTimeDimension,
-  adagucmapdrawToggleEdit,
-  adagucmapdrawToggleDelete,
-  adagucmeasuredistanceToggleEdit
+  setTimeDimension
 };
 
 /*
@@ -381,27 +365,12 @@ const doDeleteLayer = (state, payload) => {
   return Object.assign({}, state, { layers: fitleredLayers });
 };
 
-const handleAdagucMapDrawEditing = (state, payload) => {
-  let adagucmapdraw = Object.assign({}, state.adagucmapdraw, { isInEditMode : payload.isInEditMode });
-  let adagucmeasuredistance = Object.assign({}, state.adagucmeasuredistance, { isInEditMode : false });
-  return Object.assign({}, state, { adagucmeasuredistance: adagucmeasuredistance, adagucmapdraw: adagucmapdraw });
-};
-const handleAdagucMapDrawDelete = (state, payload) => {
-  let adagucmapdraw = Object.assign({}, state.adagucmapdraw, { isInDeleteMode : payload.isInDeleteMode });
-  let adagucmeasuredistance = Object.assign({}, state.adagucmeasuredistance, { isInEditMode : false });
-  return Object.assign({}, state, { adagucmeasuredistance: adagucmeasuredistance, adagucmapdraw: adagucmapdraw });
-};
 const handleAdagucMapDrawUpdateFeature = (state, payload) => {
   /* Returning new state is not strictly necessary,
     as the geojson in AdagucMapDraw is the same and does not require rerendering of the AdagucMapDraw component
   */
   let adagucmapdraw = Object.assign({}, state.adagucmapdraw, { geojson : payload.geojson });
   let adagucmeasuredistance = Object.assign({}, state.adagucmeasuredistance, { isInEditMode : false });
-  return Object.assign({}, state, { adagucmeasuredistance: adagucmeasuredistance, adagucmapdraw: adagucmapdraw });
-};
-const handleAdagucMeasureDistanceEditing = (state, payload) => {
-  let adagucmapdraw = Object.assign({}, state.adagucmapdraw, { isInEditMode : false });
-  let adagucmeasuredistance = Object.assign({}, state.adagucmeasuredistance, { isInEditMode : payload.isInEditMode });
   return Object.assign({}, state, { adagucmeasuredistance: adagucmeasuredistance, adagucmapdraw: adagucmapdraw });
 };
 const handleAdagucMeasureDistanceUpdate = (state, payload) => {
@@ -420,14 +389,14 @@ const doSetTimeDim = (state, payload) => {
 const doToggleAnimation = (state) => {
   return Object.assign({}, state, { animate: !state.animate });
 };
+const newMapMode = (state, payload) => {
+  return Object.assign({}, state, { mapMode: payload });
+};
 // ------------------------------------
 // Action Handlers
 // ------------------------------------
 const ACTION_HANDLERS = {
-  [ADAGUCMAPDRAW_EDITING]         : (state, action) => handleAdagucMapDrawEditing(state, action.payload),
-  [ADAGUCMAPDRAW_DELETE]          : (state, action) => handleAdagucMapDrawDelete(state, action.payload),
   [ADAGUCMAPDRAW_UPDATEFEATURE]   : (state, action) => handleAdagucMapDrawUpdateFeature(state, action.payload),
-  [ADAGUCMEASUREDISTANCE_EDITING] : (state, action) => handleAdagucMeasureDistanceEditing(state, action.payload),
   [ADAGUCMEASUREDISTANCE_UPDATE]  : (state, action) => handleAdagucMeasureDistanceUpdate(state, action.payload),
   [ADD_LAYER]                     : (state, action) => doAddLayer(state, action.payload),
   [ADD_OVERLAY_LAYER]             : (state, action) => doAddOverlayLayer(state, action.payload),
@@ -442,7 +411,8 @@ const ACTION_HANDLERS = {
   [SET_STYLE]                     : (state, action) => newStyle(state, action.payload),
   [SET_WMJSLAYERS]                : (state, action) => doSetWMJSLayers(state, action.payload),
   [SET_TIME_DIMENSION]            : (state, action) => doSetTimeDim(state, action.payload),
-  [TOGGLE_ANIMATION]              : (state, action) => doToggleAnimation(state)
+  [TOGGLE_ANIMATION]              : (state, action) => doToggleAnimation(state),
+  [SET_MAP_MODE]                  : (state, action) => newMapMode(state, action.payload)
 };
 
 // ------------------------------------

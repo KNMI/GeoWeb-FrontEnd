@@ -450,9 +450,9 @@ const AdagucMapDraw = React.createClass({
       this.cancelEdit(true); /* Throw away last vertice */
       if (this.editMode === 'deletefeatures') {
         this.editMode = '';
-        if (nextProps.isInDeleteMode === true) {
-          this.props.dispatch({ type: ADAGUCMAPDRAW_DELETE, payload: { isInDeleteMode:false } });
-        }
+        // if (nextProps.isInDeleteMode === true) {
+        //   this.props.dispatch({ type: ADAGUCMAPDRAW_DELETE, payload: { isInDeleteMode:false } });
+        // }
         return;
       }
     }
@@ -460,10 +460,10 @@ const AdagucMapDraw = React.createClass({
     /* Handle toggle delete */
     if (nextProps.isInDeleteMode === true) {
       this.editMode = 'deletefeatures';
-      if (nextProps.isInEditMode === false) {
-        /* Editmode should be switched on when deletemode is entered */
-        this.props.dispatch({ type: ADAGUCMAPDRAW_EDITING, payload: { isInEditMode:true } });
-      }
+      // if (nextProps.isInEditMode === false) {
+      //   /* Editmode should be switched on when deletemode is entered */
+      //   this.props.dispatch({ type: ADAGUCMAPDRAW_EDITING, payload: { isInEditMode:true } });
+      // }
     } else {
       if (this.editMode === 'deletefeatures') {
         this.editMode = '';

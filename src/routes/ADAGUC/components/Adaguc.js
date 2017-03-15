@@ -127,6 +127,8 @@ export default class Adaguc extends React.Component {
     if (newActiveLayer) {
       this.webMapJS.setActiveLayer(this.webMapJS.getLayers()[0]);
     }
+    this.props.dispatch(this.props.actions.setWMJSLayers({ layers: this.webMapJS.getLayers(), baselayers: this.webMapJS.getBaseLayers() }));
+    this.webMapJS.draw();
   }
 
   componentDidMount () {
@@ -158,7 +160,7 @@ export default class Adaguc extends React.Component {
     // The first time, the map needs to be created. This is when in the previous state the map creation boolean is false
     // Otherwise only change when a new dataset is selected
     const { adagucProperties } = this.props;
-    const { layers, boundingBox, timedim, animate } = adagucProperties;
+    const { layers, boundingBox, timedim, animate, mapMode } = adagucProperties;
       // eslint-disable-next-line no-undef
     if (boundingBox !== prevProps.adagucProperties.boundingBox) {
       this.webMapJS.setBBOX(boundingBox.bbox.join());
@@ -213,6 +215,28 @@ export default class Adaguc extends React.Component {
     if (animate !== prevProps.adagucProperties.animate) {
       this.onChangeAnimation(animate);
     }
+    if (mapMode !== prevProps.adagucProperties.mapMode) {
+      switch (mapMode) {
+        case 'zoom':
+          this.webMapJS.setMapModeZoomBoxIn();
+          break;
+        case 'pan':
+          this.webMapJS.setMapModePan();
+          break;
+        case 'draw':
+          this.webMapJS.setMessage('Press [Esc] to close the polygon.');
+          break;
+        case 'measure':
+          this.webMapJS.setMessage('Click to end measuring. Press [Esc] to delete the measurement.');
+          break;
+        default:
+          this.webMapJS.setMapModeNone();
+          break;
+      }
+      if (!(mapMode === 'draw' || mapMode === 'measure')) {
+        this.webMapJS.setMessage('');
+      }
+    }
     this.webMapJS.draw();
   }
 
@@ -228,21 +252,19 @@ export default class Adaguc extends React.Component {
   }
   render () {
     const { adagucProperties, dispatch } = this.props;
-    const { adagucmapdraw, adagucmeasuredistance } = adagucProperties;
     return (
       <div id='adagucwrapper'>
         <div ref='adaguc' />
         <div style={{ margin: '5px 10px 10px 5px ' }}>
           <AdagucMapDraw
             dispatch={dispatch}
-            isInEditMode={adagucmapdraw.isInEditMode}
-            isInDeleteMode={adagucmapdraw.isInDeleteMode}
+            isInEditMode={adagucProperties.mapMode === 'draw' || adagucProperties.mapMode === 'delete'}
+            isInDeleteMode={adagucProperties.mapMode === 'delete'}
             webmapjs={this.webMapJS} />
           <AdagucMeasureDistance
             dispatch={dispatch}
             webmapjs={this.webMapJS}
-            isInEditMode={adagucmeasuredistance
-            .isInEditMode} />
+            isInEditMode={adagucProperties.mapMode === 'measure'} />
         </div>
       </div>
     );
