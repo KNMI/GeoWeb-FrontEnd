@@ -132,7 +132,7 @@ function setTimeDimension (timedim) {
 function toggleAnimation () {
   return {
     type: TOGGLE_ANIMATION
-  }
+  };
 }
 /*  This is a thunk, meaning it is a function that immediately
     returns a function for lazy evaluation. It is incredibly useful for
