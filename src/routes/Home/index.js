@@ -1,5 +1,5 @@
 import { connect } from 'react-redux';
-import TitleBar from '../../components/TitleBar';
+import TitleBar from '../../containers/TitleBarContainer';
 import ADAGUC from '../ADAGUC/components/Adaguc';
 import { actions } from '../ADAGUC/modules/adaguc';
 

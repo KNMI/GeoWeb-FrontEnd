@@ -1,4 +1,4 @@
-import TitleBar from '../../components/TitleBar';
+import TitleBar from '../../containers/TitleBarContainer';
 import { connect } from 'react-redux';
 
 const mapStateToMainViewportProps = (state) => {

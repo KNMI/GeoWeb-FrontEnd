@@ -1590,7 +1590,7 @@
               _map.mouseHoverAnimationBox = false;
               for (var j = 0; j < animationList.length; j++) {
                 var animationListObject = { name:animationList[j].name, value:animationList[j].value };
-                _map.setDimension(animationList[j].name, animationList[j].value,false);
+                _map.setDimension(animationList[j].name, animationList[j].value, false);
                 animationListObject.requests = _map.getWMSRequests();
                 _map.animationList.push(animationListObject);
               }

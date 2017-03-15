@@ -22,6 +22,10 @@ const initialState = {
     boundingBox: BOUNDING_BOXES[0],
     projectionName: 'EPSG:3857',
     mapCreated: false,
+    user: {
+      isLoggedIn: false,
+      userName: ''
+    },
     mapMode: 'pan'
   }
 };

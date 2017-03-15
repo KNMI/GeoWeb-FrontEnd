@@ -6,10 +6,11 @@ import TitleBarContainer from '../../../containers/TitleBarContainer';
 import { connect } from 'react-redux';
 import { actions } from '../../ADAGUC/modules/adaguc';
 const mapStateToHeaderProps = (state) => {
+  console.log(state);
   return {
     title: 'header',
-    isLoggedIn: true,
-    userName: 'Wim'
+    isLoggedIn: state.adagucProperties.user.isLoggedIn,
+    userName: state.adagucProperties.user.userName
   };
 };
 
@@ -39,7 +40,7 @@ const mapStateToRightSideBarProps = (state) => {
 export default () => ({
   title: 'Layout Test',
   components : {
-    header: connect(mapStateToHeaderProps)(TitleBarContainer),
+    header: connect(mapStateToHeaderProps, mapDispatchToMainViewportProps)(TitleBarContainer),
     leftSideBar: connect(mapStateToLeftSideBarProps)(TasksContainer),
     map: connect(mapStateToMapProps, mapDispatchToMainViewportProps)(MapPanel),
     layerManager: connect(mapStateToLayerManagerProps, mapDispatchToMainViewportProps)(LayerManagerPanel),
