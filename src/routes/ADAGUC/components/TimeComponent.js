@@ -1,5 +1,5 @@
 import React from 'react';
-import ButtonPausePlayAnimation from './ButtonPausePlayAnimation.js';
+// import ButtonPausePlayAnimation from './ButtonPausePlayAnimation.js';
 import CanvasComponent from './CanvasComponent.js';
 import { Icon } from 'react-fa';
 import { Button, Col, Row } from 'reactstrap';
@@ -343,12 +343,12 @@ export default class TimeComponent extends React.Component {
     return (
       <Col>
         <Row style={{ flex: 1 }}>
-          <Col xs='auto'>
+          {/* <Col xs='auto'>
             <ButtonPausePlayAnimation webmapjs={this.props.webmapjs} onChange={this.onChangeAnimation} />
           </Col>
           <Col xs='auto'>
             <Button color='primary' size='large' onClick={this.handleButtonClickNow}>Now</Button>
-          </Col>
+          </Col> */}
           <Col xs='auto'>
             <Button outline color='info' onClick={this.handleButtonClickPrevPage}>
               <Icon name='chevron-left' />

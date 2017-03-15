@@ -49,7 +49,8 @@ class MapActionContainer extends Component {
             <Button color='primary' key={index} active={item.active || null} disabled={item.disabled || null}
               className='row' title={item.title}>{item.icon}</Button>)}
           <Row style={{ flex: 1 }} />
-          <Button color='primary' className='row' title='Add layer'>☰</Button>
+          <Button color='primary' className='row' title='Set area'>⚑</Button>
+          <Button color='primary' className='row' title='Choose layers'>☰</Button>
           <Button color='primary' className='row' title='Play animation'>▶</Button>
           <Button color='primary' className='row' title='Go to current time'>🕜</Button>
         </Panel>

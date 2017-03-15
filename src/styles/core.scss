@@ -9,7 +9,6 @@ $inverse-inactive-color: rgba(255, 255, 255, 0.7);
 $inverse-hover-color: #5bc0de;
 $inverse-active-color: white;
 $inverse-inactive-color: #cef;
-$active-color: #333;
 $ux-interactive-color: #017daf;
 $ux-interactive-color-checked: #3299cb;
 $ux-interactive-color-active: #017daf;
@@ -93,7 +92,8 @@ body {
   }
 
   .ux-interactive:checked {
-    color: $active-color;
+    color: $inverse-active-color;
+    text-shadow: 0 0 0.2rem #333;
     background-color: $ux-interactive-color-checked;
     border-color: $ux-interactive-border-highlight-color;
     border-left-color: $ux-interactive-border-shadow-color;
@@ -106,7 +106,7 @@ body {
     color: $inverse-inactive-color;
     border-color: $ux-interactive-border-highlight-color;
     cursor: not-allowed;
-    opacity: .65;
+    opacity: 0.6;
   }
 
   .btn-primary {

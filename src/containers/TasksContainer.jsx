@@ -53,22 +53,22 @@ class TasksContainer extends Component {
     this.state = { collapse: false, filter: undefined };
   }
 
-  toggle () {
+  toggle (evt) {
     this.setState({ collapse: !this.state.collapse, filter: this.state.filter });
+    evt.preventDefault();
   }
   filter () {
     const filter = new RegExp(document.querySelector('.filter').value, 'i');
-    console.log('filter', document.querySelector('.filter').value);
     this.setState({ collapse: this.state.collapse, filter: filter });
   }
 
   render () {
     let title = <Form inline>
-      <Button color='primary' onClick={this.toggle}>{this.state.collapse ? '«' : '»'}</Button>
+      <Button color='primary' type='button' onClick={this.toggle}>{this.state.collapse ? '«' : '»'}</Button>
       <InputGroup>
         <Input className='filter' placeholder='search term&hellip;' />
         <InputGroupButton>
-          <Button className='btn-outline-info' onClick={this.filter}>Search</Button>
+          <Button className='btn-outline-info' type='submit' onClick={this.filter}>Search</Button>
         </InputGroupButton>
       </InputGroup>
     </Form>;
