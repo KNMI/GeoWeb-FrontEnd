@@ -42,8 +42,7 @@ const items = [
       { title: 'Warnings' },
       {
         title: 'Create SIGMET',
-        notifications: 4,
-        action: this.createSIGMET
+        notifications: 4
       },
       { title: 'Forecasts' },
       { title: 'Analyses' }
