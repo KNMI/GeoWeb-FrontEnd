@@ -1,11 +1,17 @@
 import React from 'react';
 import { default as MapActionsContainer } from './MapActionsContainer';
-import { Col } from 'reactstrap';
-import { shallow } from 'enzyme';
+import { mount } from 'enzyme';
+
+const dispatch = () => {};
+const actions = () => {};
 
 describe('(Container) MapActionsContainer', () => {
   it('Renders a ReactStrap Col', () => {
-    const _component = shallow(<MapActionsContainer adagucProperties={{ mapMode: 'pan' }} />);
-    expect(_component.type()).to.eql(Col);
+    const _component = mount(<MapActionsContainer adagucProperties={{ mapMode: 'pan' }} dispatch={dispatch} actions={actions} />);
+    expect(_component.type()).to.eql(MapActionsContainer);
+  });
+  it('Adds a data layer', () => {
+    const _component = mount(<MapActionsContainer adagucProperties={{ mapMode: 'pan' }} dispatch={dispatch} actions={actions} />);
+    expect(_component.type()).to.eql(MapActionsContainer);
   });
 });

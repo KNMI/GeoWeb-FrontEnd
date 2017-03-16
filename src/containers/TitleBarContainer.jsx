@@ -222,7 +222,7 @@ class TitleBarContainer extends Component {
           </Col>
         </Row>
         <Modal isOpen={this.state.loginModal} toggle={this.toggleLoginModal}>
-          <ModalHeader toggle={this.toggleLoginModal}>{isLoggedIn ? 'You are signed in.' : 'Sign out'}</ModalHeader>
+          <ModalHeader toggle={this.toggleLoginModal}>{isLoggedIn ? 'You are signed in.' : 'Sign in'}</ModalHeader>
           <ModalBody>
             <Collapse isOpen={!isLoggedIn}>
               <InputGroup>
