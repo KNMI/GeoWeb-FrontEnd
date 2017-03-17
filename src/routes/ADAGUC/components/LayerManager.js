@@ -353,7 +353,7 @@ export default class LayerManager extends React.Component {
             <Col xs='auto'><Icon style={{ color: 'transparent' }} name='chevron-up' /></Col>
             <Col xs='auto'><Icon style={{ minWidth: '1rem' }} id='enableButton' name={layer && layer.enabled ? 'check-square-o' : 'square-o'} onClick={() => this.toggleLayer('base', i)} /></Col>
             <Col xs='auto'><Icon style={{ color: 'transparent' }} name='times' /></Col>
-            <LayerName color='success' editable name={this.getBaseLayerName(layer)}
+            <LayerName i={i} color='success' editable name={this.getBaseLayerName(layer)}
               target={'baselayer' + i} layer={layer} dispatch={this.props.dispatch} actions={this.props.actions} placement='top' />
             <Col />
             <Col />

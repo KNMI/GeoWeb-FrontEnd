@@ -31,7 +31,6 @@
 */
 
   var WebMapJSMapNo = 0;
-
   var logging = false;
 
   var base = './';
@@ -1537,6 +1536,37 @@
 
     var zoomBeforeLoadBBOX;
     var srsBeforeLoadBBOX;
+    // Animate between start and end dates with the smallest available resolution
+    this.drawAutomatic = function (start, end) {
+      if (layers.length === 0) {
+        return;
+      }
+      var currentTime = start.format('YYYY-MM-DD:HH:mm:ss');
+      var drawDates = [];
+      while (moment(currentTime) <= end) {
+        var closestNextTime = null;
+        for (var i = layers.length - 1; i >= 0; i--) {
+          var timeDim = layers[i].getDimension('time');
+        }
+        // var smallestTime = null;
+        // var currentTimeStr = currentTime.format('YYYY-MM-DDTHH:mm:ss')+'Z';
+        //   var closestLayerTime = moment(layers[i].getDimension('time').getClosestValue(currentTimeStr), 'YYYY-MM-DDTHH:mm:ss');
+        //   console.log('closestLayerTime: ', closestLayerTime);
+        //   console.log('Smallest Time: ', smallestTime);
+        //   if (!smallestTime || closestLayerTime < moment(smallestTime)) {
+        //     console.log('here');
+        //     smallestTime = closestLayerTime.format('YYYY-MM-DDTHH:mm:ss');
+        //   }
+        // }
+        // if (!smallestTime) {
+        //   break;
+        // }
+        // drawDates.push(smallestTime.format('YYYY-MM-DDTHH:MM:ss') + 'Z');
+        // currentTime = smallestTime;
+      }
+      console.log('drawdates: ', drawDates)
+      _map.draw(drawDates);
+    };
     /**
      * API Function called to draw the layers, fires getmap request and shows the layers on the screen
      */

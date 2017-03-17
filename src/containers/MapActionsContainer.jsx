@@ -246,8 +246,8 @@ class MapActionContainer extends Component {
       },
       {
         title: 'Show progtemp',
-        icon: '🎈',
-        disabled: true
+        action: 'progtemp',
+        icon: '🎈'
       }
     ];
     return (
