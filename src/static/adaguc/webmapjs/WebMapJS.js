@@ -153,6 +153,7 @@
 
     var displayLegendInMap = true;
     var messageDiv;
+    var timeoffsetDiv;
     var bbox = new WMJSBBOX(); // Boundingbox that will be used for map loading
     var updateBBOX = new WMJSBBOX(); // Boundingbox to move map without loading anything
     var loadedBBOX = new WMJSBBOX(); // Boundingbox that is used for current map
@@ -332,20 +333,29 @@
     };
 
     this.setMessage = function (message) {
-      if(!message || message == '') {
-        messageDiv.css({zIndex:100,
+      if (!message || message === '') {
+        messageDiv.css({
+          zIndex:100,
           display: 'none'
         });
       } else {
-        messageDiv.css({zIndex:100,
+        messageDiv.css({
+          zIndex:100,
           display: 'inline-block',
           backgroundColor: 'rgba(255, 255, 255, 0.75',
           float: 'right',
           padding: '1rem'
         });
-
       }
       messageDiv.html(message);
+    };
+    this.setTimeOffset = function (message) {
+      if(!message || message === '')
+        timeoffsetDiv.css({display: 'none'});
+      else
+        timeoffsetDiv.css({display: 'unset'});
+
+      timeoffsetDiv.html(message);
     };
     // Is called when the WebMapJS object is created
     function constructor () {
@@ -400,6 +410,20 @@
         }
       }).appendTo(overlayDiv);
       messageDiv = $('#' + messageDivId);
+      var timeoffsetDivId = makeComponentId('timeoffsetDiv');
+      jQuery('<div/>', {
+        id:timeoffsetDivId,
+        css: {zIndex:100,
+          backgroundColor: 'rgba(255, 255, 255, 0.75',
+          padding: '1rem',
+          position: 'absolute',
+          bottom: '0',
+          left: '50%',
+          fontSize: '1.3rem'
+        }
+      }).appendTo(overlayDiv);
+      timeoffsetDiv = $('#' + timeoffsetDivId);
+
       baseDiv.css('cursor', 'default');
       // _map.setMapModePan();
 
