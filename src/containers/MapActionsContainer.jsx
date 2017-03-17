@@ -243,6 +243,11 @@ class MapActionContainer extends Component {
         title: 'Show time series',
         icon: '📈',
         disabled: true
+      },
+      {
+        title: 'Show progtemp',
+        action: 'progtemp',
+        icon: '🎈'
       }
     ];
     return (
@@ -254,10 +259,10 @@ class MapActionContainer extends Component {
             <Button color='primary' key={index} active={adagucProperties.mapMode === item.action} disabled={item.disabled || null}
               className='row' title={item.title} onClick={() => dispatch(actions.setMapMode(item.action))}>{item.icon}</Button>)}
           <Row style={{ flex: 1 }} />
-          <Button onClick={this.togglePopside} id='setAreaButton' color='primary' className='row' title='Set area'>⚑</Button>
           <Button onClick={this.toggleLayerChooser} color='primary' className='row' title='Choose layers'>☰</Button>
           <Button onClick={this.toggleAnimation} color='primary' className='row' title='Play animation'>{this.props.adagucProperties.animate ? <Icon name='pause' /> : <Icon name='play' />}</Button>
           <Button onClick={this.goToNow} color='primary' className='row' title='Go to current time'>🕜</Button>
+          <Button onClick={this.togglePopside} id='setAreaButton' color='primary' className='row' title='Set area'>⚑</Button>
         </Panel>
       </Col>
     );

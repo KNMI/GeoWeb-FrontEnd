@@ -40,12 +40,16 @@ body {
   width: 100%;
 }
 .layerinfo > span:not(.editable) {
-  cursor: not-allowed;
+  cursor: default;
 }
 
 .layerinfo > span.editable {
   cursor: pointer;
 }
+.popover-content > li,.btn-group-vertical > .btn {
+  cursor: pointer;
+}
+
 .test {
 
   .row {

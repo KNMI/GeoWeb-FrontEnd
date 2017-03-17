@@ -31,7 +31,6 @@
 */
 
   var WebMapJSMapNo = 0;
-
   var logging = false;
 
   var base = './';
@@ -153,6 +152,7 @@
 
     var displayLegendInMap = true;
     var messageDiv;
+    var timeoffsetDiv;
     var bbox = new WMJSBBOX(); // Boundingbox that will be used for map loading
     var updateBBOX = new WMJSBBOX(); // Boundingbox to move map without loading anything
     var loadedBBOX = new WMJSBBOX(); // Boundingbox that is used for current map
@@ -332,20 +332,29 @@
     };
 
     this.setMessage = function (message) {
-      if(!message || message == '') {
-        messageDiv.css({zIndex:100,
+      if (!message || message === '') {
+        messageDiv.css({
+          zIndex:100,
           display: 'none'
         });
       } else {
-        messageDiv.css({zIndex:100,
+        messageDiv.css({
+          zIndex:100,
           display: 'inline-block',
           backgroundColor: 'rgba(255, 255, 255, 0.75',
           float: 'right',
           padding: '1rem'
         });
-
       }
       messageDiv.html(message);
+    };
+    this.setTimeOffset = function (message) {
+      if(!message || message === '')
+        timeoffsetDiv.css({display: 'none'});
+      else
+        timeoffsetDiv.css({display: 'unset'});
+
+      timeoffsetDiv.html(message);
     };
     // Is called when the WebMapJS object is created
     function constructor () {
@@ -400,6 +409,20 @@
         }
       }).appendTo(overlayDiv);
       messageDiv = $('#' + messageDivId);
+      var timeoffsetDivId = makeComponentId('timeoffsetDiv');
+      jQuery('<div/>', {
+        id:timeoffsetDivId,
+        css: {zIndex:100,
+          backgroundColor: 'rgba(255, 255, 255, 0.75',
+          padding: '1rem',
+          position: 'absolute',
+          bottom: '0',
+          left: '50%',
+          fontSize: '1.3rem'
+        }
+      }).appendTo(overlayDiv);
+      timeoffsetDiv = $('#' + timeoffsetDivId);
+
       baseDiv.css('cursor', 'default');
       // _map.setMapModePan();
 
@@ -1513,6 +1536,37 @@
 
     var zoomBeforeLoadBBOX;
     var srsBeforeLoadBBOX;
+    // Animate between start and end dates with the smallest available resolution
+    this.drawAutomatic = function (start, end) {
+      if (layers.length === 0) {
+        return;
+      }
+      var currentTime = start.format('YYYY-MM-DD:HH:mm:ss');
+      var drawDates = [];
+      while (moment(currentTime) <= end) {
+        var closestNextTime = null;
+        for (var i = layers.length - 1; i >= 0; i--) {
+          var timeDim = layers[i].getDimension('time');
+        }
+        // var smallestTime = null;
+        // var currentTimeStr = currentTime.format('YYYY-MM-DDTHH:mm:ss')+'Z';
+        //   var closestLayerTime = moment(layers[i].getDimension('time').getClosestValue(currentTimeStr), 'YYYY-MM-DDTHH:mm:ss');
+        //   console.log('closestLayerTime: ', closestLayerTime);
+        //   console.log('Smallest Time: ', smallestTime);
+        //   if (!smallestTime || closestLayerTime < moment(smallestTime)) {
+        //     console.log('here');
+        //     smallestTime = closestLayerTime.format('YYYY-MM-DDTHH:mm:ss');
+        //   }
+        // }
+        // if (!smallestTime) {
+        //   break;
+        // }
+        // drawDates.push(smallestTime.format('YYYY-MM-DDTHH:MM:ss') + 'Z');
+        // currentTime = smallestTime;
+      }
+      console.log('drawdates: ', drawDates)
+      _map.draw(drawDates);
+    };
     /**
      * API Function called to draw the layers, fires getmap request and shows the layers on the screen
      */
