@@ -262,9 +262,7 @@ export default class TimeComponent extends React.Component {
   }
   /* istanbul ignore next */
   componentDidMount () {
-    console.log('resizeListener');
     let element = document.querySelector('#timelineParent');
-    console.log(element);
     elementResizeEvent(element, () => { this.setState({ }); });
     setInterval(this.drawCanvas, 60000);
   }

@@ -133,7 +133,7 @@
     var layers = Array();
     var busy = 0;
     var mapdimensions = [];// Array of Dimension;
-    var maxAnimationSteps = 72;
+    var maxAnimationSteps = 100;
 
     var baseLayers = '';
     var numBaseLayers = 0;
@@ -1541,31 +1541,30 @@
       if (layers.length === 0) {
         return;
       }
-      var currentTime = start.format('YYYY-MM-DD:HH:mm:ss');
+      var currentTime = start.format('YYYY-MM-DDTHH:mm:ss');
       var drawDates = [];
-      while (moment(currentTime) <= end) {
-        var closestNextTime = null;
+      var iter = 0;
+      while (moment(currentTime) <= end && iter < 1000) {
+        iter++;
+        var smallestTime = null;
         for (var i = layers.length - 1; i >= 0; i--) {
           var timeDim = layers[i].getDimension('time');
+          var layerTime = timeDim.getNextClosestValue(currentTime);
+          if (!layerTime || layerTime === 'date too early') {
+            continue;
+          }
+          if (smallestTime === null || moment(layerTime) < moment(smallestTime)) {
+            smallestTime = layerTime;
+          }
         }
-        // var smallestTime = null;
-        // var currentTimeStr = currentTime.format('YYYY-MM-DDTHH:mm:ss')+'Z';
-        //   var closestLayerTime = moment(layers[i].getDimension('time').getClosestValue(currentTimeStr), 'YYYY-MM-DDTHH:mm:ss');
-        //   console.log('closestLayerTime: ', closestLayerTime);
-        //   console.log('Smallest Time: ', smallestTime);
-        //   if (!smallestTime || closestLayerTime < moment(smallestTime)) {
-        //     console.log('here');
-        //     smallestTime = closestLayerTime.format('YYYY-MM-DDTHH:mm:ss');
-        //   }
-        // }
-        // if (!smallestTime) {
-        //   break;
-        // }
-        // drawDates.push(smallestTime.format('YYYY-MM-DDTHH:MM:ss') + 'Z');
-        // currentTime = smallestTime;
+        if (smallestTime === null) {
+          break;
+        }
+        var smallestTimeObj = { name: 'time', value: smallestTime };
+        drawDates.push(smallestTimeObj);
+        currentTime = smallestTime;
       }
-      console.log('drawdates: ', drawDates)
-      _map.draw(drawDates);
+      this.draw(drawDates);
     };
     /**
      * API Function called to draw the layers, fires getmap request and shows the layers on the screen

@@ -107,6 +107,16 @@ function WMJSDimension (config) {
     this.currentValue = this.getClosestValue(newValue);
   };
 
+  this.getNextClosestValue = function (newValue) {
+    var closestValue = this.getClosestValue(newValue);
+    var index = this.getIndexForValue(closestValue);
+    var nextValue = this.getValueForIndex(index + 1);
+    // Only return future dates
+    if (moment(newValue) >= moment(nextValue)) {
+      return null;
+    }
+    return nextValue;
+  };
   this.getClosestValue = function (newValue) {
     var index = -1;
     var _value = WMJSDateOutSideRange;
