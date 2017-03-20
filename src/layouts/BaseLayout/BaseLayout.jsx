@@ -7,22 +7,22 @@ class BaseLayout extends Component {
     const { header, leftSideBar, map, layerManager, rightSideBar } = this.props;
     return (
       <Container fluid className={this.props.routes[1] && this.props.routes[1].path === 'layout_test' ? 'test' : ''}>
-        <Row className='Header'>
+        <Row className='Header' tag='header'>
           {header || 'Oops'}
         </Row>
         <Row className='MainSection'>
-          <Col xs='auto' className='LeftSideBar'>
+          <Col xs='auto' className='LeftSideBar' tag='aside'>
             {leftSideBar || 'Oops'}
           </Col>
-          <Col className='MainViewport'>
+          <Col className='MainViewport' tag='main'>
             <Row className='map'>
               {map || 'Oops'}
             </Row>
-            <Row className='layerManager'>
+            <Row className='LayerManager'>
               {layerManager || 'Oops'}
             </Row>
           </Col>
-          <Col xs='auto' className='RightSideBar'>
+          <Col xs='auto' className='RightSideBar' tag='aside'>
             {rightSideBar || 'Oops'}
           </Col>
         </Row>

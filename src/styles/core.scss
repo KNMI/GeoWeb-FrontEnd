@@ -39,6 +39,7 @@ body {
   max-height: 40rem;
   width: 100%;
 }
+
 .layerinfo > span:not(.editable) {
   cursor: default;
 }
@@ -46,257 +47,287 @@ body {
 .layerinfo > span.editable {
   cursor: pointer;
 }
+
 .popover-content > li,.btn-group-vertical > .btn {
   cursor: pointer;
 }
 
-.test {
+.row {
+  margin: 0;
+}
 
-  .row {
-    margin: 0;
-  }
+.col {
+  padding: 0;
+}
 
-  .col {
-    padding: 0;
-  }
+.rounded {
+  border-radius: $radius-size
+}
+.rounded-top {
+  border-radius: $radius-size $radius-size 0 0;
+}
+.rounded-right {
+  border-radius: 0 $radius-size $radius-size 0;
+}
+.rounded-bottom {
+  border-radius: 0 0 $radius-size $radius-size;
+}
+.rounded-left {
+  border-radius: $radius-size 0 0 $radius-size;
+}
 
-  .rounded {
-    border-radius: $radius-size
-  }
-  .rounded-top {
-    border-radius: $radius-size $radius-size 0 0;
-  }
-  .rounded-right {
-    border-radius: 0 $radius-size $radius-size 0;
-  }
-  .rounded-bottom {
-    border-radius: 0 0 $radius-size $radius-size;
-  }
-  .rounded-left {
-    border-radius: 0 $radius-size $radius-size 0;
-  }
+.ux-interactive {
+  background-color: $ux-interactive-color;
+  border-color: $ux-interactive-border-highlight-color;
+  border-right-color: $ux-interactive-border-shadow-color;
+  border-bottom-color: $ux-interactive-border-shadow-color;
+  border-width: 0.125rem;
+  cursor: pointer;
+  @extend .rounded;
+  box-shadow: $shadow;
+}
 
-  .ux-interactive {
-    background-color: $ux-interactive-color;
-    border-color: $ux-interactive-border-highlight-color;
-    border-right-color: $ux-interactive-border-shadow-color;
-    border-bottom-color: $ux-interactive-border-shadow-color;
-    border-width: 0.125rem;
-    cursor: pointer;
-    @extend .rounded;
-    box-shadow: $shadow;
-  }
+.ux-interactive:hover {
+  background-color: $ux-interactive-hover-color;
+  border-color: $ux-interactive-hover-color;
+  border-right-color: #01405e;
+  border-bottom-color: #01405e;
+}
 
-  .ux-interactive:hover {
-    background-color: $ux-interactive-hover-color;
-    border-color: $ux-interactive-hover-color;
-    border-right-color: #01405e;
-    border-bottom-color: #01405e;
-  }
+.ux-interactive:active {
+  background-color: $ux-interactive-color-active;
+  border-color: $ux-interactive-border-highlight-color;
+  border-left-color: $ux-interactive-border-shadow-color;
+  border-top-color: $ux-interactive-border-shadow-color;
+  box-shadow: unset;
+}
 
-  .ux-interactive:active {
-    background-color: $ux-interactive-color-active;
-    border-color: $ux-interactive-border-highlight-color;
-    border-left-color: $ux-interactive-border-shadow-color;
-    border-top-color: $ux-interactive-border-shadow-color;
-    box-shadow: unset;
-  }
+.ux-interactive:checked {
+  color: $inverse-active-color;
+  text-shadow: 0 0 0.2rem #333;
+  background-color: $ux-interactive-color-checked;
+  border-color: $ux-interactive-border-highlight-color;
+  border-left-color: $ux-interactive-border-shadow-color;
+  border-top-color: $ux-interactive-border-shadow-color;
+  box-shadow: unset;
+}
 
-  .ux-interactive:checked {
-    color: $inverse-active-color;
-    text-shadow: 0 0 0.2rem #333;
-    background-color: $ux-interactive-color-checked;
-    border-color: $ux-interactive-border-highlight-color;
-    border-left-color: $ux-interactive-border-shadow-color;
-    border-top-color: $ux-interactive-border-shadow-color;
-    box-shadow: unset;
-  }
+.ux-interactive:disabled {
+  @extend .ux-interactive;
+  color: $inverse-inactive-color;
+  border-color: $ux-interactive-border-highlight-color;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
 
-  .ux-interactive:disabled {
-    @extend .ux-interactive;
-    color: $inverse-inactive-color;
-    border-color: $ux-interactive-border-highlight-color;
-    cursor: not-allowed;
-    opacity: 0.6;
-  }
+.btn-primary {
+  @extend .ux-interactive;
+}
 
-  .btn-primary {
-    @extend .ux-interactive;
-  }
+.btn-primary:hover {
+  @extend .ux-interactive:hover;
+}
 
-  .btn-primary:hover {
-    @extend .ux-interactive:hover;
-  }
+.btn-primary:focus {
+  box-shadow: $shadow;
+}
 
-  .btn-primary:active {
-    @extend .ux-interactive:active;
-  }
+.btn-primary:active {
+  @extend .ux-interactive:active;
+}
 
-  .btn-primary.active {
-    @extend .ux-interactive:checked;
-  }
+.btn-primary.active {
+  @extend .ux-interactive:checked;
+}
 
-  .btn-primary.disabled, .btn-primary.disabled:hover {
-    @extend .ux-interactive:disabled;
-  }
+.btn-primary.disabled, .btn-primary.disabled:hover {
+  @extend .ux-interactive:disabled;
+}
 
-  .btn-outline-info {
-    color: $ux-interactive-color-checked;
-    border-color: $ux-interactive-color-checked;
-  }
+.btn-outline-info {
+  color: $ux-interactive-color-checked;
+  border-color: $ux-interactive-color-checked;
+}
 
-  .btn-outline-info:hover {
-    color: $inverse-active-color;
-    border-color: $ux-interactive-color-checked;
-    background-color: $ux-interactive-color-checked;
-  }
+.btn-outline-info:hover {
+  color: $inverse-active-color;
+  border-color: $ux-interactive-color-checked;
+  background-color: $ux-interactive-color-checked;
+}
 
-  .btn-outline-info:focus {
-    box-shadow: unset;
-  }
-  .search-input {
-    border-right: none;
-  }
+.btn-outline-info:focus {
+  box-shadow: unset;
+}
 
-  .search-clear, .search-clear:hover, .search-clear:focus {
-    color: rgba(0, 0, 0, 0.149);
-    background: none;
-    border: 0.063rem solid rgba(0, 0, 0, 0.149);
-    border-left: none;
-    border-right: none;
-    box-shadow: unset;
-    padding: 0.5rem 0.2rem;
-  }
+.search-input {
+  border-right: none;
+}
 
-  .search-clear.focus {
-    border-color: $ux-interactive-color-checked;
-  }
+.search-clear, .search-clear:hover, .search-clear:focus {
+  color: rgba(0, 0, 0, 0.149);
+  background: none;
+  border: 0.063rem solid rgba(0, 0, 0, 0.149);
+  border-left: none;
+  border-right: none;
+  box-shadow: unset;
+  padding: 0.5rem 0.2rem;
+}
 
-  .search-clear.active {
-    color: $ux-interactive-color-checked;
-  }
+.search-clear.focus {
+  border-color: $ux-interactive-color-checked;
+}
 
-  .form-control:focus {
-    border-color: $ux-interactive-color-checked;
-  }
+.search-clear.active {
+  color: $ux-interactive-color-checked;
+}
 
-  .navbar img.logo {
-    margin: 0 0.3rem 0.6rem;
-    width: 3.5rem;
-  }
+.form-control:focus {
+  border-color: $ux-interactive-color-checked;
+}
 
-  .navbar {
-    background-color: #01547d;
-    border-bottom: 1px solid #01405e;
-    box-shadow: $shadow;
-    padding: 0.1rem 0.5rem;
-    margin-bottom: 0.2rem;
-    width: 100%;
-  }
+.navbar img.logo {
+  margin: 0 0.3rem 0.6rem;
+  width: 3.5rem;
+}
 
-  .nav-link {
-    cursor: pointer;
-  }
+.navbar {
+  background-color: #01547d;
+  border-bottom: 1px solid #01405e;
+  box-shadow: $shadow;
+  padding: 0.1rem 0.5rem;
+  margin-bottom: 0.2rem;
+  width: 100%;
+}
 
-  .navbar-text {
-    display: flex;
-    padding-top: 0.925rem;
-  }
+.nav-link {
+  cursor: pointer;
+}
 
-  .navbar-inverse {
-    color: $inverse-inactive-color;
-  }
+.navbar-text {
+  display: flex;
+  padding-top: 0.925rem;
+}
 
-  .navbar-inverse .navbar-text {
-    color: inherit;
-  }
+.navbar-inverse {
+  color: $inverse-inactive-color;
+}
 
-  .navbar .nav {
-    padding-top: 0.425rem;
-  }
+.navbar-inverse .navbar-text {
+  color: inherit;
+}
 
-  .navbar-brand {
-    margin-left: 0.3rem;
-  }
+.navbar .nav {
+  padding-top: 0.425rem;
+}
 
-  .breadcrumb {
-    background: none;
-    padding-top: 0.925rem;
-    margin-bottom: 0;
-  }
+.navbar-brand {
+  margin-left: 0.3rem;
+}
 
-  .breadcrumb-item a, .breadcrumb-item a:hover {
-    color: inherit;
-    text-decoration: inherit;
-    cursor: inherit;
-  }
+.breadcrumb {
+  background: none;
+  padding-top: 0.925rem;
+  margin-bottom: 0;
+}
 
-  .breadcrumb-item, a.nav-link {
-    cursor: not-allowed;
-  }
+.breadcrumb-item a, .breadcrumb-item a:hover {
+  color: inherit;
+  text-decoration: inherit;
+  cursor: inherit;
+}
 
-  .breadcrumb-item::before, .breadcrumb-item + .breadcrumb-item::before  {
-    color: inherit;
-    content: '➜ ';
-    cursor: auto;
-  }
+.breadcrumb-item, a.nav-link {
+  cursor: not-allowed;
+}
 
-  .navbar-inverse .breadcrumb-active, .navbar-inverse a.nav-link.active {
-    color: $inverse-active-color;
-    cursor: pointer;
-    text-decoration: none;
-  }
+.breadcrumb-item::before, .breadcrumb-item + .breadcrumb-item::before  {
+  color: inherit;
+  content: '➜ ';
+  cursor: auto;
+}
 
-  a.breadcrumb-active:hover, a.nav-link.active:hover {
-    cursor: pointer;
-    color: $inverse-hover-color;
-  }
+.navbar-inverse .breadcrumb-active, .navbar-inverse a.nav-link.active {
+  color: $inverse-active-color;
+  cursor: pointer;
+  text-decoration: none;
+}
 
-  .card {
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
+a.breadcrumb-active:hover, a.nav-link.active:hover {
+  cursor: pointer;
+  color: $inverse-hover-color;
+}
 
-  .accordion.card {
-    border: none;
-    border-bottom: 0.1rem solid transparent;
-    border-radius: 0.19rem;
-  }
+.card {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
-  .accordion .card-header {
-    padding: 0.75rem 1rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    width: 100%;
-    cursor: pointer;
-    z-index: 2;
-    color: $inverse-active-color;
-    background-color: $ux-interactive-color;
-    border: none;
-    @extend .rounded-top;
-  }
+.accordion.card {
+  border: none;
+  border-bottom: 0.1rem solid transparent;
+  border-radius: 0.19rem;
+}
 
-  .accordion .card-block .btn-group-vertical > .btn:first-child {
-    border-radius: 0;
-  }
+.accordion .card-header {
+  padding: 0.75rem 1rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+  cursor: pointer;
+  z-index: 2;
+  color: $inverse-active-color;
+  background-color: $ux-interactive-color;
+  border: none;
+  @extend .rounded-top;
+}
 
-  .accordion .card-block {
-    padding: 0;
-  }
+.accordion a {
+  color: inherit;
+  text-decoration: inherit;
+  cursor: inherit;
+}
 
-  .accordion .card-block .row {
-    flex: 1;
-  }
+.accordion .card-block .btn:disabled {
+  cursor: not-allowed;
+}
 
-  .accordion .card-block .row.btn {
-    display: flex;
-    flex-flow: row nowrap;
-  }
+.accordion .card-header .btn-outline-info {
+  border: none;
+  color: inherit;
+  padding: 0 0.5rem;
+  margin-left: 0.5rem;
+  cursor: pointer;
+}
 
-  .accordion .badge {
-    padding: 0.4rem 0.8rem;
-  }
+.accordion .card-block .btn-group-vertical > .btn:first-child {
+  border-radius: 0;
+}
+
+.accordion .card-block {
+  padding: 0;
+}
+
+.accordion .card-block .row {
+  flex: 1;
+}
+
+.accordion .card-block .row.btn {
+  display: flex;
+  flex-flow: row nowrap;
+}
+
+.accordion .badge {
+  padding: 0.4rem 0.8rem;
+}
+
+.accordion .card-block .icon {
+  padding: 0 0.5rem;
+  margin-left: 0.5rem;
+}
+
+.accordion .card-block .btn:focus {
+  box-shadow: unset;
 }
 
 .container-fluid {
@@ -308,6 +339,14 @@ body {
 }
 
 .container-fluid div:not(.collapse):not(.dropdown-menu):not(.btn-group-vertical) {
+  display: inherit;
+}
+
+.btn > .icon:first-child {
+  margin-right: 0.4rem;
+}
+
+aside, header, main {
   display: inherit;
 }
 
@@ -388,6 +427,14 @@ body {
   overflow-x: hidden;
   flex: 1;
   flex-direction: column;
+}
+
+.LayerManager .col-auto:first-child .btn-outline-info {
+  @extend .rounded-left;
+}
+
+.LayerManager .col-auto:last-child .btn-outline-info {
+  @extend .rounded-right;
 }
 
 *,

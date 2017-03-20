@@ -216,38 +216,37 @@ class MapActionContainer extends Component {
       {
         title: 'Pan / zoom',
         action: 'pan',
-        icon: '✋'
+        icon: 'hand-stop-o'
       },
       {
         title: 'Zoom to rectangle',
         action: 'zoom',
-        icon: '🔍'
+        icon: 'search-plus'
       },
       {
         title: 'Draw polygon',
         action: 'draw',
-        icon: '☈'
+        icon: 'pencil'
       },
       {
-        title: 'Delete point',
+        title: 'Delete drawing point',
         action: 'delete',
-        // icon: '↶'
-        icon: '↺'
+        icon: 'trash'
       },
       {
         title: 'Measure distance',
         action: 'measure',
-        icon: '↦'
+        icon: 'arrows-h'
       },
       {
         title: 'Show time series',
-        icon: '📈',
+        icon: 'line-chart',
         disabled: true
       },
       {
         title: 'Show progtemp',
         action: 'progtemp',
-        icon: '🎈'
+        icon: 'bolt'
       }
     ];
     return (
@@ -257,12 +256,22 @@ class MapActionContainer extends Component {
         <Panel className='Panel' title={title}>
           {items.map((item, index) =>
             <Button color='primary' key={index} active={adagucProperties.mapMode === item.action} disabled={item.disabled || null}
-              className='row' title={item.title} onClick={() => dispatch(actions.setMapMode(item.action))}>{item.icon}</Button>)}
+              className='row' title={item.title} onClick={() => dispatch(actions.setMapMode(item.action))}>
+              <Icon name={item.icon} />
+            </Button>)}
           <Row style={{ flex: 1 }} />
-          <Button onClick={this.toggleLayerChooser} color='primary' className='row' title='Choose layers'>☰</Button>
-          <Button onClick={this.toggleAnimation} color='primary' className='row' title='Play animation'>{this.props.adagucProperties.animate ? <Icon name='pause' /> : <Icon name='play' />}</Button>
-          <Button onClick={this.goToNow} color='primary' className='row' title='Go to current time'>🕜</Button>
-          <Button onClick={this.togglePopside} id='setAreaButton' color='primary' className='row' title='Set area'>⚑</Button>
+          <Button onClick={this.toggleLayerChooser} color='primary' className='row' title='Choose layers'>
+            <Icon name='bars' />
+          </Button>
+          <Button onClick={this.toggleAnimation} color='primary' className='row' title='Play animation'>
+            <Icon name={this.props.adagucProperties.animate ? 'pause' : 'play'} />
+          </Button>
+          <Button onClick={this.goToNow} color='primary' className='row' title='Go to current time'>
+            <Icon name='clock-o' />
+          </Button>
+          <Button onClick={this.togglePopside} id='setAreaButton' color='primary' className='row' title='Set area'>
+            <Icon name='flag' />
+          </Button>
         </Panel>
       </Col>
     );
