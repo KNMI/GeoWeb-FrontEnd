@@ -12,9 +12,9 @@ export default class Adaguc extends React.Component {
   constructor () {
     super();
     this.initAdaguc = this.initAdaguc.bind(this);
-    this.animateLayer = this.animateLayer.bind(this);
+    // this.animateLayer = this.animateLayer.bind(this);
     this.resize = this.resize.bind(this);
-    this.updateAnimation = this.updateAnimation.bind(this);
+    this.updateLayer = this.updateLayer.bind(this);
     this.onChangeAnimation = this.onChangeAnimation.bind(this);
     this.timeHandler = this.timeHandler.bind(this);
     this.isAnimating = false;
@@ -32,7 +32,8 @@ export default class Adaguc extends React.Component {
   currentBeginDate = undefined;
 
   /* istanbul ignore next */
-  updateAnimation (layer) {
+  updateLayer (layer) {
+    this.webMapJS.setAnimationDelay(200);
     if (!layer) {
       return;
     }
@@ -40,28 +41,26 @@ export default class Adaguc extends React.Component {
     if (!timeDim) {
       return;
     }
-    var numTimeSteps = timeDim.size();
-
-    var numStepsBack = Math.min(timeDim.size(), 25);
-    this.currentLatestDate = timeDim.getValueForIndex(numTimeSteps - 1);
-    this.currentBeginDate = timeDim.getValueForIndex(numTimeSteps - numStepsBack);
-
-    var dates = [];
-    for (var j = numTimeSteps - numStepsBack; j < numTimeSteps; ++j) {
-      dates.push({ name:timeDim.name, value:timeDim.getValueForIndex(j) });
+    if (!this.isAnimating) {
+      this.webMapJS.stopAnimating();
     }
-    this.webMapJS.stopAnimating();
-    // const lowerAnimBound = moment().utc().subtract(4, 'hours');
-    // const upperAnimBound = moment().utc().add(4, 'hours');
+    const timeOne = moment(timeDim.get(0));
+    const timeTwo = moment(timeDim.get(1));
+
+    const deltaMS = Math.min(moment.duration(timeTwo.diff(timeOne)).asMilliseconds() / 2.0, moment.duration(2, 'minutes').asMilliseconds());
+
+    layer.setAutoUpdate(true, deltaMS, this.updateLayer);
+    this.props.dispatch(this.props.actions.setWMJSLayers({ layers: this.webMapJS.getLayers(), baselayers: this.webMapJS.getBaseLayers() }));
+    layer.onReady = undefined;
+
+    this.webMapJS.setDimension('time', timeDim.currentValue, true);
     if (this.isAnimating) {
-      this.webMapJS.draw(dates);
-      // this.webMapJS.drawAutomatic(lowerAnimBound, upperAnimBound);
+      this.webMapJS.drawAutomatic(moment().utc().subtract(4, 'hours'), moment().utc().add(4, 'hours'));
     } else {
-      this.webMapJS.setDimension('time', dates[dates.length - 1].value, false);
       this.webMapJS.draw();
     }
 
-    setTimeout(function () { layer.parseLayer(this.updateAnimation, true); }, 10000);
+    setTimeout(function () { layer.parseLayer(this.updateLayer, true); }, 10000);
   }
   timeHandler (e) {
     const wmjstime = this.webMapJS.getDimension('time').currentValue;
@@ -72,21 +71,6 @@ export default class Adaguc extends React.Component {
       this.prevTime = wmjstime;
       this.props.dispatch(this.props.actions.setTimeDimension(wmjstime));
     }
-  }
-  /* istanbul ignore next */
-  animateLayer (layer) {
-    this.webMapJS.setAnimationDelay(200);
-    this.updateAnimation(layer);
-    const timeDim = layer.getDimension('time');
-    const timeOne = moment(timeDim.get(0));
-    const timeTwo = moment(timeDim.get(1));
-    // const deltaMS = (moment.duration(timeTwo.diff(timeOne)).subtract(moment.duration('00:00:30'))).asMilliseconds();
-    // Difference between two timesteps as refresh difference
-    const deltaMS = Math.min(moment.duration(timeTwo.diff(timeOne)).asMilliseconds() / 2.0, moment.duration(2, 'minutes').asMilliseconds());
-    layer.setAutoUpdate(true, deltaMS, this.updateAnimation);
-    this.props.dispatch(this.props.actions.setWMJSLayers({ layers: this.webMapJS.getLayers(), baselayers: this.webMapJS.getBaseLayers() }));
-    this.props.dispatch(this.props.actions.setTimeDimension(this.webMapJS.getDimension('time').currentValue));
-    layer.onReady = undefined;
   }
   /* istanbul ignore next */
   resize () {
@@ -121,7 +105,7 @@ export default class Adaguc extends React.Component {
     const newDatalayers = adagucProperties.layers.datalayers.map((datalayer) => {
       // eslint-disable-next-line no-undef
       const newDataLayer = new WMJSLayer(datalayer);
-      newDataLayer.onReady = this.animateLayer;
+      newDataLayer.onReady = this.updateLayer;
       return newDataLayer;
     });
     this.webMapJS.removeAllLayers();
@@ -189,7 +173,7 @@ export default class Adaguc extends React.Component {
           const newDatalayers = datalayers.map((datalayer) => {
             // eslint-disable-next-line no-undef
             const newDataLayer = new WMJSLayer(datalayer);
-            newDataLayer.onReady = this.animateLayer;
+            newDataLayer.onReady = this.updateLayer;
             return newDataLayer;
           });
           this.webMapJS.removeAllLayers();
@@ -250,7 +234,11 @@ export default class Adaguc extends React.Component {
   /* istanbul ignore next */
   onChangeAnimation (value) {
     this.isAnimating = value;
-    this.updateAnimation(this.webMapJS.getActiveLayer());
+    if (this.isAnimating) {
+      this.webMapJS.drawAutomatic(moment().utc().subtract(4, 'hours'), moment().utc().add(4, 'hours'));
+    } else {
+      this.webMapJS.stopAnimating();
+    }
   };
   toggleView () {
     this.setState({
