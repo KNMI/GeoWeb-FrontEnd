@@ -161,21 +161,13 @@ LayerStyle.propTypes = {
 };
 
 class LayerModelRun extends React.Component {
-  constructor () {
-    super();
-    this.state = {
-      refTime: null
-    };
-  }
-
   render () {
-    const refTime = this.props.layer.getDimension('reference_time');
-    return refTime ? <Badge pill className={'alert-' + this.props.color}>{refTime.currentValue}</Badge> : <div />;
+    return <Badge pill className={'alert-' + this.props.color}>{this.props.refTime}</Badge>;
   }
 }
 
 LayerModelRun.propTypes = {
-  layer: React.PropTypes.object,
+  refTime: React.PropTypes.string.isRequired,
   color: React.PropTypes.string.isRequired
 };
 
@@ -390,6 +382,7 @@ export default class LayerManager extends React.Component {
       return <div />;
     } else {
       return layers.map((layer, i) => {
+        const refTime = layer.getDimension('reference_time');
         return (
           <Row className='layerinfo' key={'lgi' + i} style={{ marginBottom: '0.1rem' }}>
             <Col xs='auto'><Icon name='chevron-up' onClick={() => this.props.dispatch(this.props.actions.reorderLayer('up', i))} /></Col>
@@ -400,7 +393,7 @@ export default class LayerManager extends React.Component {
             <LayerName color='info' editable name={layer.title} i={i} target={'datalayer' + i} layer={layer} dispatch={this.props.dispatch} actions={this.props.actions} />
             <LayerStyle color='info' editable style={layer.currentStyle} layer={layer} target={'datalayerstyle' + i} i={i} dispatch={this.props.dispatch} actions={this.props.actions} />
             <LayerOpacity color='info' editable layer={layer} target={'datalayeropacity' + i} i={i} dispatch={this.props.dispatch} actions={this.props.actions} />
-            <LayerModelRun color='info' layer={layer} />
+            {refTime ? <LayerModelRun color='info' refTime={refTime.currentValue} /> : <div />}
           </Row>);
       });
     }

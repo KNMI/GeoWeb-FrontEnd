@@ -41,18 +41,12 @@ export default class Adaguc extends React.Component {
     if (!timeDim) {
       return;
     }
-    if (!this.isAnimating) {
-      this.webMapJS.stopAnimating();
-    }
-    const timeOne = moment(timeDim.get(0));
-    const timeTwo = moment(timeDim.get(1));
-
-    const deltaMS = Math.min(moment.duration(timeTwo.diff(timeOne)).asMilliseconds() / 2.0, moment.duration(2, 'minutes').asMilliseconds());
-
-    layer.setAutoUpdate(true, deltaMS, this.updateLayer);
+    this.webMapJS.stopAnimating();
     this.props.dispatch(this.props.actions.setWMJSLayers({ layers: this.webMapJS.getLayers(), baselayers: this.webMapJS.getBaseLayers() }));
     layer.onReady = undefined;
-
+    if (layer.getDimension('reference_time')) {
+      layer.setDimension('reference_time', layer.getDimension('reference_time').getValueForIndex(layer.getDimension('reference_time').size() - 1), false);
+    }
     this.webMapJS.setDimension('time', timeDim.currentValue, true);
     if (this.isAnimating) {
       this.webMapJS.drawAutomatic(moment().utc().subtract(4, 'hours'), moment().utc().add(4, 'hours'));
@@ -85,6 +79,7 @@ export default class Adaguc extends React.Component {
     if (adagucProperties.mapCreated) {
       return;
     }
+    localStorage.setItem('geoweb', JSON.stringify({ 'personal_urls': [] }));
     // eslint-disable-next-line no-undef
     this.webMapJS = new WMJSMap(adagucMapRef, BACKEND_SERVER_XML2JSON);
     var element = document.querySelector('.map .content');
@@ -98,13 +93,16 @@ export default class Adaguc extends React.Component {
     this.webMapJS.setBBOX(adagucProperties.boundingBox.bbox.join());
     // eslint-disable-next-line no-undef
     this.webMapJS.setBaseLayers([new WMJSLayer(adagucProperties.layers.baselayer)]);
-    axios.all(['getServices', 'getOverlayServices'].map((req) => axios.get(BACKEND_SERVER_URL + '/' + req))).then(
-      axios.spread((services, overlays) => dispatch(actions.createMap(services.data, overlays.data[0])))
+    const defaultURLs = ['getServices', 'getOverlayServices'].map((url) => BACKEND_SERVER_URL + '/' + url);
+    const allURLs = [...defaultURLs];
+    axios.all(allURLs.map((req) => axios.get(req))).then(
+      axios.spread((services, overlays) => dispatch(actions.createMap([...services.data, ...JSON.parse(localStorage.getItem('geoweb')).personal_urls], overlays.data[0])))
     );
     this.webMapJS.stopAnimating();
     const newDatalayers = adagucProperties.layers.datalayers.map((datalayer) => {
       // eslint-disable-next-line no-undef
       const newDataLayer = new WMJSLayer(datalayer);
+      newDataLayer.setAutoUpdate(true, moment.duration(2, 'minutes').asMilliseconds(), this.updateLayer);
       newDataLayer.onReady = this.updateLayer;
       return newDataLayer;
     });
@@ -173,6 +171,7 @@ export default class Adaguc extends React.Component {
           const newDatalayers = datalayers.map((datalayer) => {
             // eslint-disable-next-line no-undef
             const newDataLayer = new WMJSLayer(datalayer);
+            newDataLayer.setAutoUpdate(true, moment.duration(2, 'minutes').asMilliseconds(), this.updateLayer);
             newDataLayer.onReady = this.updateLayer;
             return newDataLayer;
           });

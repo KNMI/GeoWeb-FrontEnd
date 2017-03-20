@@ -2,7 +2,7 @@ import React, { Component, PropTypes } from 'react';
 import Icon from 'react-fa';
 import GeoWebLogo from '../components/assets/icon.svg';
 import axios from 'axios';
-import { Navbar, NavbarBrand, Row, Col, Nav, NavLink, Breadcrumb, BreadcrumbItem, Collapse, Modal, ModalHeader, ModalBody, ModalFooter, Button, InputGroup, Input, FormText } from 'reactstrap';
+import { Navbar, NavbarBrand, Row, Col, Nav, NavLink, Breadcrumb, BreadcrumbItem, Collapse, Modal, ModalHeader, ModalBody, ModalFooter, Button, InputGroupButton, InputGroup, Input, FormText } from 'reactstrap';
 import { Link } from 'react-router';
 import { BACKEND_SERVER_URL } from '../routes/ADAGUC/constants/backend';
 let moment = require('moment');
@@ -12,6 +12,7 @@ const timeFormat = 'YYYY MMM DD - HH:mm';
 class TitleBarContainer extends Component {
   constructor (props) {
     super(props);
+    this.handleAddSource = this.handleAddSource.bind(this);
     this.setTime = this.setTime.bind(this);
     this.doLogin = this.doLogin.bind(this);
     this.doLogout = this.doLogout.bind(this);
@@ -34,7 +35,6 @@ class TitleBarContainer extends Component {
       loginModal: this.props.loginModal,
       loginModalMessage: ''
     };
-    console.log('this.state.loginModal == ' + this.state.loginModal);
   }
 
   getTitleForRoute (routeItem) {
@@ -65,9 +65,11 @@ class TitleBarContainer extends Component {
 
   getServices () {
     const { dispatch, actions } = this.props;
-    axios.all(['getServices', 'getOverlayServices'].map((req) => axios.get(BACKEND_SERVER_URL + '/' + req, { withCredentials: true }))).then(
-      axios.spread((services, overlays) => dispatch(actions.createMap(services.data, overlays.data[0])))
-    );
+    const defaultURLs = ['getServices', 'getOverlayServices'].map((url) => BACKEND_SERVER_URL + '/' + url);
+    const allURLs = [...defaultURLs];
+    axios.all(allURLs.map((req) => axios.get(req, { withCredentials: true }))).then(
+      axios.spread((services, overlays) => dispatch(actions.createMap([...services.data, ...JSON.parse(localStorage.getItem('geoweb')).personal_urls], overlays.data[0])))
+    ).catch((e) => console.log('Error!: ', e.response));
   }
 
   doLogin () {
@@ -179,6 +181,30 @@ class TitleBarContainer extends Component {
     }
   }
 
+  handleAddSource (e) {
+    var url = document.querySelector('#sourceurlinput').value;
+    let items = JSON.parse(localStorage.getItem('geoweb'));
+    // eslint-disable-next-line no-undef
+    var getCap = WMJSgetServiceFromStore(url);
+    getCap.getCapabilities((e) => {
+      const newServiceObj = {
+        name: getCap.name ? getCap.name : getCap.title,
+        title: getCap.title,
+        service: getCap.service,
+        abstract: getCap.abstract
+      };
+      if (!items['personal_urls']) {
+        items['personal_urls'] = [newServiceObj];
+      } else {
+        items['personal_urls'].push(newServiceObj);
+      }
+      localStorage.setItem('geoweb', JSON.stringify(items));
+      this.getServices();
+      getCap.getLayerObjectsFlat((layers) => this.props.dispatch(this.props.actions.addLayer({ ...layers[0], service: getCap.service })));
+      this.toggleLoginModal();
+    });
+  }
+
   render () {
     const { isLoggedIn, userName, routes } = this.props;
     let cumulativePath = '';
@@ -233,7 +259,14 @@ class TitleBarContainer extends Component {
               </InputGroup>
             </Collapse>
             <FormText color='muted'>
-              { this.state.loginModalMessage }
+              { isLoggedIn
+                ? <InputGroup>
+                  <Input id='sourceurlinput' placeholder='Add your own source' />
+                  <InputGroupButton>
+                    <Button color='primary' onClick={this.handleAddSource}>Add</Button>
+                  </InputGroupButton>
+                </InputGroup>
+                : this.state.loginModalMessage}
             </FormText>
           </ModalBody>
           <ModalFooter>

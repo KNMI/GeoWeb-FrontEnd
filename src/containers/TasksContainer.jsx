@@ -138,7 +138,6 @@ class TasksContainer extends Component {
       </InputGroup>
     </Row>;
     const hasFilter = this.state.filter instanceof RegExp;
-    console.log('hasFilter', hasFilter);
     let filteredItems = cloneDeep(items).filter(category => {
       if (hasFilter) {
         category.tasks = category.tasks.filter(item => this.state.filter.test(item.title));
