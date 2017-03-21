@@ -1,4 +1,5 @@
 import MapPanel from '../../../components/MapPanel';
+import Empty from '../../../components/Empty';
 import TitleBarContainer from '../../../containers/TitleBarContainer';
 import { connect } from 'react-redux';
 import { actions } from '../../ADAGUC/modules/adaguc';
@@ -21,14 +22,18 @@ const mapDispatchToMainViewportProps = function (dispatch) {
   });
 };
 
+const mapStateToEmptyProps = (state) => {
+  return {};
+};
+
 // Sync route definition
 export default () => ({
   title: 'Full screen',
   components : {
     header: connect(mapStateToHeaderProps, mapDispatchToMainViewportProps)(TitleBarContainer),
-    leftSideBar: 'div',
+    leftSideBar: connect(mapStateToEmptyProps)(Empty),
     map: connect(mapStateToMapProps, mapDispatchToMainViewportProps)(MapPanel),
-    layerManager: 'div',
-    rightSideBar: 'div'
+    layerManager: connect(mapStateToEmptyProps)(Empty),
+    rightSideBar: connect(mapStateToEmptyProps)(Empty)
   }
 });

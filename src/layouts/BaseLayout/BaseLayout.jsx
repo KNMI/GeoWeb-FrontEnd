@@ -2,7 +2,42 @@ import React, { Component, PropTypes } from 'react';
 import { Container, Row, Col } from 'reactstrap';
 import '../../styles/core.scss';
 
+const browserFullScreenRequests = [
+  'mozRequestFullScreen',
+  'msRequestFullscreen',
+  'webkitRequestFullScreen'
+];
+
 class BaseLayout extends Component {
+  constructor (props) {
+    super(props);
+    this.elementToFullScreen = this.elementToFullScreen.bind(this);
+  }
+
+  elementToFullScreen (evt) {
+    if (evt.key === 'F11') {
+      evt.preventDefault();
+      const fullScreenPath = 'full_screen';
+      const tag = this.props.routes.some((routeElmt) => routeElmt.path === fullScreenPath) ? 'body' : 'main';
+      const elmt = document.querySelector(tag);
+      let requestFullScreenFunc = elmt.requestFullscreen;
+      if (!requestFullScreenFunc) {
+        browserFullScreenRequests.forEach((request) => {
+          requestFullScreenFunc = requestFullScreenFunc || elmt[request];
+        });
+      }
+      requestFullScreenFunc.call(elmt);
+    }
+  }
+
+  componentWillMount () {
+    document.addEventListener('keydown', this.elementToFullScreen);
+  }
+
+  componentWillUnmount () {
+    document.removeEventListener('keydown', this.elementToFullScreen);
+  }
+
   render () {
     const { header, leftSideBar, map, layerManager, rightSideBar } = this.props;
     return (
@@ -14,8 +49,8 @@ class BaseLayout extends Component {
           <Col xs='auto' className='LeftSideBar' tag='aside'>
             {leftSideBar || 'Oops'}
           </Col>
-          <Col className='MainViewport' tag='main'>
-            <Row className='map'>
+          <Col className='MainViewport'>
+            <Row className='map' tag='main'>
               {map || 'Oops'}
             </Row>
             <Row className='LayerManager'>

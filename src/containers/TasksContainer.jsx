@@ -100,8 +100,9 @@ class TasksContainer extends Component {
   }
   handleClickClear (evt) {
     const filterElmt = document.querySelector('#task-filter');
+    const clearElmt = document.querySelector('.search-clear');
     filterElmt.value = '';
-    evt.target.classList.remove('active');
+    clearElmt.classList.remove('active');
     this.setFilter();
   }
   handleKeyPress (evt) {
@@ -139,7 +140,9 @@ class TasksContainer extends Component {
       <InputGroup>
         <Input id='task-filter' className='search-input' placeholder='search term&hellip;'
           onKeyPress={this.handleKeyPress} onKeyUp={this.handleKeyUp} onFocus={this.handleFocus} onBlur={this.handleBlur} />
-        <InputGroupButton className='search-clear'onClick={this.handleClickClear}>❌</InputGroupButton>
+        <InputGroupButton className='search-clear'onClick={this.handleClickClear}>
+          <Icon name='times' />
+        </InputGroupButton>
         <InputGroupButton>
           <Button outline color='info' onClick={this.handleClickFilter}>Search</Button>
         </InputGroupButton>
