@@ -210,6 +210,7 @@ export default class Adaguc extends React.Component {
         case 'zoom':
           this.webMapJS.setMapModeZoomBoxIn();
           break;
+        case 'progtemp':
         case 'pan':
           this.webMapJS.setMapModePan();
           break;

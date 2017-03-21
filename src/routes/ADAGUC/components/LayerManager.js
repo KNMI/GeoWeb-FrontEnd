@@ -32,9 +32,11 @@ class LayerName extends React.Component {
       layer: undefined
     };
   }
+  // istanbul ignore next
   generateList (inLayers) {
     this.setState({ layers: inLayers, layer: this.props.layer });
   }
+  // istanbul ignore next
   togglePopover (e, layer, i) {
     this.setState({ popoverOpen: !this.state.popoverOpen });
     if (!this.state.layers || this.state.layer !== this.props.layer) {
@@ -43,6 +45,7 @@ class LayerName extends React.Component {
       srv.getLayerObjectsFlat((layers) => this.generateList(layers), (err) => { throw new Error(err); });
     }
   }
+  // istanbul ignore next
   alterLayer (e) {
     // TODO .... this
     const indexInLayerList = e.currentTarget.id;
@@ -123,7 +126,7 @@ class LayerStyle extends React.Component {
   render () {
     const { i, target, layer } = this.props;
     if (this.props.layer) {
-      const styleObj = this.props.layer.getStyleObject(this.props.style);
+      const styleObj = this.props.layer.getStyleObject ? this.props.layer.getStyleObject(this.props.style) : null;
       if (this.state.popoverOpen) {
         return (
           <div>
@@ -382,7 +385,7 @@ export default class LayerManager extends React.Component {
       return <div />;
     } else {
       return layers.map((layer, i) => {
-        const refTime = layer.getDimension('reference_time');
+        const refTime = layer.getDimension ? layer.getDimension('reference_time') : null;
         return (
           <Row className='layerinfo' key={'lgi' + i} style={{ marginBottom: '0.1rem' }}>
             <Col xs='auto'><Icon name='chevron-up' onClick={() => this.props.dispatch(this.props.actions.reorderLayer('up', i))} /></Col>
@@ -408,6 +411,7 @@ export default class LayerManager extends React.Component {
   componentWillMount () {
     this.updateState(this.props.wmjslayers);
   }
+  // istanbul ignore next
   componentWillUpdate (nextProps, nextState) {
     if (this.props.wmjslayers !== nextProps.wmjslayers) {
       this.updateState(nextProps.wmjslayers);
