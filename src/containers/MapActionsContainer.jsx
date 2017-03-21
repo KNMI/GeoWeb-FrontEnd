@@ -11,11 +11,13 @@ class MapActionContainer extends Component {
     super(props);
     // Toggles
     this.togglePopside = this.togglePopside.bind(this);
+    this.toggleProgtempPopover = this.toggleProgtempPopover.bind(this);
     // Button handlers
     this.toggleAnimation = this.toggleAnimation.bind(this);
     this.toggleLayerChooser = this.toggleLayerChooser.bind(this);
     this.goToNow = this.goToNow.bind(this);
     this.setView = this.setView.bind(this);
+    this.handleActionClick = this.handleActionClick.bind(this);
     // Render functions
     this.renderPopOver = this.renderPopOver.bind(this);
     this.renderLayerChooser = this.renderLayerChooser.bind(this);
@@ -35,6 +37,14 @@ class MapActionContainer extends Component {
       layerChooserOpen: false,
       activeTab: '1'
     };
+  }
+  handleActionClick (action) {
+    if (action === 'progtemp') {
+      this.setState({ progTempPopOverOpen: true });
+    } else {
+      this.setState({ progTempPopOverOpen: false });
+    }
+    this.props.dispatch(this.props.actions.setMapMode(action));
   }
   handleAddLayer (e) {
     const addItem = e[0];
@@ -91,6 +101,9 @@ class MapActionContainer extends Component {
   togglePopside () {
     this.setState({ popoverOpen: !this.state.popoverOpen });
   }
+  toggleProgtempPopover () {
+    this.setState({ progTempPopOverOpen: !this.state.progTempPopOverOpen });
+  }
   goToNow () {
     const { dispatch, actions } = this.props;
     // eslint-disable-next-line no-undef
@@ -131,7 +144,7 @@ class MapActionContainer extends Component {
         case 'RADAR_EXT':
           return 'Radar (EXT)';
         default:
-          return 'Radar';
+          return layer.title;
       }
     }
     return '';
@@ -165,6 +178,16 @@ class MapActionContainer extends Component {
       layers: null,
       presetUnit: null
     });
+  }
+
+  renderProgtempPopover () {
+    return (
+      <Popover placement='left' isOpen={this.state.progTempPopOverOpen} target='progtemp_button' toggle={this.toggleProgtempPopover}>
+        <PopoverContent>
+          poopover
+        </PopoverContent>
+      </Popover>
+    );
   }
 
   renderLayerChooser () {
@@ -246,17 +269,19 @@ class MapActionContainer extends Component {
       {
         title: 'Show progtemp',
         action: 'progtemp',
-        icon: 'bolt'
+        icon: 'bolt',
+        onClick: 'progtemp'
       }
     ];
     return (
       <Col className='MapActionContainer'>
         {this.renderLayerChooser()}
         {this.renderPopOver()}
+        {this.renderProgtempPopover()}
         <Panel className='Panel' title={title}>
           {items.map((item, index) =>
             <Button color='primary' key={index} active={adagucProperties.mapMode === item.action} disabled={item.disabled || null}
-              className='row' title={item.title} onClick={() => dispatch(actions.setMapMode(item.action))}>
+              className='row' id={item.action + '_button'} title={item.title} onClick={() => this.handleActionClick(item.action)}>
               <Icon name={item.icon} />
             </Button>)}
           <Row style={{ flex: 1 }} />
