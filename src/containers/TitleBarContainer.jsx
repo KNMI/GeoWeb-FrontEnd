@@ -236,9 +236,7 @@ class TitleBarContainer extends Component {
             </Breadcrumb>
           </Col>
           <Col>
-            <span className='navbar-text mx-auto'>
-              {this.state.currentTime} UTC
-            </span>
+            <span className='navbar-text mx-auto'>{this.state.currentTime} UTC</span>
           </Col>
           <Col xs='auto'>
             <Nav>
@@ -271,6 +269,7 @@ class TitleBarContainer extends Component {
           </ModalBody>
           <ModalFooter>
             <Button color='primary' onClick={this.doLogin} className='signInOut'>
+              <Icon className='icon' name={isLoggedIn ? 'sign-out' : 'sign-in'} />
               {isLoggedIn ? 'Sign out' : 'Sign in'}
             </Button>{' '}
             <Button color='secondary' onClick={this.toggleLoginModal}>Cancel</Button>
