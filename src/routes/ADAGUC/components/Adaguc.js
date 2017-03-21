@@ -49,7 +49,7 @@ export default class Adaguc extends React.Component {
     }
     this.webMapJS.setDimension('time', timeDim.currentValue, true);
     if (this.isAnimating) {
-      this.webMapJS.drawAutomatic(moment().utc().subtract(4, 'hours'), moment().utc().add(4, 'hours'));
+      this.webMapJS.drawAutomatic(moment().utc().subtract(4, 'hours'), moment().utc().add(48, 'hours'));
     } else {
       this.webMapJS.draw();
     }
@@ -234,7 +234,7 @@ export default class Adaguc extends React.Component {
   onChangeAnimation (value) {
     this.isAnimating = value;
     if (this.isAnimating) {
-      this.webMapJS.drawAutomatic(moment().utc().subtract(4, 'hours'), moment().utc().add(4, 'hours'));
+      this.webMapJS.drawAutomatic(moment().utc().subtract(4, 'hours'), moment().utc().add(48, 'hours'));
     } else {
       this.webMapJS.stopAnimating();
     }
