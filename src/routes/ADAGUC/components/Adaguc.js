@@ -260,23 +260,11 @@ export default class Adaguc extends React.Component {
             webmapjs={this.webMapJS}
             isInEditMode={adagucProperties.mapMode === 'measure'} />
           <ModelTime webmapjs={this.webMapJS} />
-          {/* <ProgTemp webmapjs={this.webmapjs} isOpen={adagucProperties.mapMode === 'progtemp'} /> */}
         </div>
       </div>
     );
   }
 };
-
-// class ProgTemp extends React.Component {
-//   render () {
-//     const { webmapjs, isOpen } = this.props;
-//     if (isOpen) {
-//       return <Popout url='progtemp'><span>Hi</span></Popout>;
-//     } else {
-//       return <div />;
-//     }
-//   }
-// }
 
 class ModelTime extends React.Component {
   constructor () {
