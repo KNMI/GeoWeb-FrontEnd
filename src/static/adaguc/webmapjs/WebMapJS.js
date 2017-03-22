@@ -133,7 +133,7 @@
     var layers = Array();
     var busy = 0;
     var mapdimensions = [];// Array of Dimension;
-    var maxAnimationSteps = 100;
+    var maxAnimationSteps = 1000;
 
     var baseLayers = '';
     var numBaseLayers = 0;

@@ -49,7 +49,7 @@ export default class Adaguc extends React.Component {
     }
     this.webMapJS.setDimension('time', timeDim.currentValue, true);
     if (this.isAnimating) {
-      this.webMapJS.drawAutomatic(moment().utc().subtract(4, 'hours'), moment().utc().add(4, 'hours'));
+      this.webMapJS.drawAutomatic(moment().utc().subtract(4, 'hours'), moment().utc().add(48, 'hours'));
     } else {
       this.webMapJS.draw();
     }
@@ -234,7 +234,7 @@ export default class Adaguc extends React.Component {
   onChangeAnimation (value) {
     this.isAnimating = value;
     if (this.isAnimating) {
-      this.webMapJS.drawAutomatic(moment().utc().subtract(4, 'hours'), moment().utc().add(4, 'hours'));
+      this.webMapJS.drawAutomatic(moment().utc().subtract(4, 'hours'), moment().utc().add(48, 'hours'));
     } else {
       this.webMapJS.stopAnimating();
     }
@@ -260,23 +260,11 @@ export default class Adaguc extends React.Component {
             webmapjs={this.webMapJS}
             isInEditMode={adagucProperties.mapMode === 'measure'} />
           <ModelTime webmapjs={this.webMapJS} />
-          {/* <ProgTemp webmapjs={this.webmapjs} isOpen={adagucProperties.mapMode === 'progtemp'} /> */}
         </div>
       </div>
     );
   }
 };
-
-// class ProgTemp extends React.Component {
-//   render () {
-//     const { webmapjs, isOpen } = this.props;
-//     if (isOpen) {
-//       return <Popout url='progtemp'><span>Hi</span></Popout>;
-//     } else {
-//       return <div />;
-//     }
-//   }
-// }
 
 class ModelTime extends React.Component {
   constructor () {

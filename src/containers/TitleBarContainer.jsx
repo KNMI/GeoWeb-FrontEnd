@@ -12,7 +12,6 @@ const timeFormat = 'YYYY MMM DD - HH:mm';
 class TitleBarContainer extends Component {
   constructor (props) {
     super(props);
-    this.handleAddSource = this.handleAddSource.bind(this);
     this.setTime = this.setTime.bind(this);
     this.doLogin = this.doLogin.bind(this);
     this.doLogout = this.doLogout.bind(this);
@@ -20,10 +19,10 @@ class TitleBarContainer extends Component {
     this.handleOnChange = this.handleOnChange.bind(this);
     this.handleKeyPressPassword = this.handleKeyPressPassword.bind(this);
     this.checkCredentials = this.checkCredentials.bind(this);
-    this.getServices = this.getServices.bind(this);
     this.setLoggedOutCallback = this.setLoggedOutCallback.bind(this);
     this.checkCredentialsOKCallback = this.checkCredentialsOKCallback.bind(this);
     this.checkCredentialsBadCallback = this.checkCredentialsBadCallback.bind(this);
+    this.getServices = this.getServices.bind(this);
 
     // TODO REMOVE THIS WHEN /getuser SERVLET IS IMPLEMENTED IN THE BACKEND
     this.inputfieldUserName = 'met1';
@@ -35,6 +34,14 @@ class TitleBarContainer extends Component {
       loginModal: this.props.loginModal,
       loginModalMessage: ''
     };
+  }
+  getServices () {
+    const { dispatch, actions } = this.props;
+    const defaultURLs = ['getServices', 'getOverlayServices'].map((url) => BACKEND_SERVER_URL + '/' + url);
+    const allURLs = [...defaultURLs];
+    axios.all(allURLs.map((req) => axios.get(req, { withCredentials: true }))).then(
+      axios.spread((services, overlays) => dispatch(actions.createMap([...services.data, ...JSON.parse(localStorage.getItem('geoweb')).personal_urls], overlays.data[0])))
+    ).catch((e) => console.log('Error!: ', e.response));
   }
 
   getTitleForRoute (routeItem) {
@@ -61,15 +68,6 @@ class TitleBarContainer extends Component {
   componentDidMount () {
     this.timer = setInterval(this.setTime, 15000);
     this.setState({ currentTime: moment.utc().format(timeFormat).toString() });
-  }
-
-  getServices () {
-    const { dispatch, actions } = this.props;
-    const defaultURLs = ['getServices', 'getOverlayServices'].map((url) => BACKEND_SERVER_URL + '/' + url);
-    const allURLs = [...defaultURLs];
-    axios.all(allURLs.map((req) => axios.get(req, { withCredentials: true }))).then(
-      axios.spread((services, overlays) => dispatch(actions.createMap([...services.data, ...JSON.parse(localStorage.getItem('geoweb')).personal_urls], overlays.data[0])))
-    ).catch((e) => console.log('Error!: ', e.response));
   }
 
   doLogin () {
@@ -181,30 +179,6 @@ class TitleBarContainer extends Component {
     }
   }
 
-  handleAddSource (e) {
-    var url = document.querySelector('#sourceurlinput').value;
-    let items = JSON.parse(localStorage.getItem('geoweb'));
-    // eslint-disable-next-line no-undef
-    var getCap = WMJSgetServiceFromStore(url);
-    getCap.getCapabilities((e) => {
-      const newServiceObj = {
-        name: getCap.name ? getCap.name : getCap.title,
-        title: getCap.title,
-        service: getCap.service,
-        abstract: getCap.abstract
-      };
-      if (!items['personal_urls']) {
-        items['personal_urls'] = [newServiceObj];
-      } else {
-        items['personal_urls'].push(newServiceObj);
-      }
-      localStorage.setItem('geoweb', JSON.stringify(items));
-      this.getServices();
-      getCap.getLayerObjectsFlat((layers) => this.props.dispatch(this.props.actions.addLayer({ ...layers[0], service: getCap.service })));
-      this.toggleLoginModal();
-    });
-  }
-
   render () {
     const { isLoggedIn, userName, routes } = this.props;
     let cumulativePath = '';
@@ -257,14 +231,7 @@ class TitleBarContainer extends Component {
               </InputGroup>
             </Collapse>
             <FormText color='muted'>
-              { isLoggedIn
-                ? <InputGroup>
-                  <Input id='sourceurlinput' placeholder='Add your own source' />
-                  <InputGroupButton>
-                    <Button color='primary' onClick={this.handleAddSource}>Add</Button>
-                  </InputGroupButton>
-                </InputGroup>
-                : this.state.loginModalMessage}
+              {this.state.loginModalMessage}
             </FormText>
           </ModalBody>
           <ModalFooter>
