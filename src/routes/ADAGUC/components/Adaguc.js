@@ -139,7 +139,7 @@ export default class Adaguc extends React.Component {
       return true;
     }
     for (var i = currLayers.length - 1; i >= 0; i--) {
-      if (currLayers[i].service !== prevLayers[i].service) { // || currLayers[i].name !== prevLayers[i].name) {
+      if (currLayers[i].service !== prevLayers[i].service || currLayers[i].name !== prevLayers[i].name) {
         return true;
       }
     }
@@ -287,6 +287,7 @@ export default class Adaguc extends React.Component {
         }
       }
       // this.onChangeAnimation(animate);
+
       this.props.dispatch(this.props.actions.setWMJSLayers({ layers: this.webMapJS.getLayers(), baselayers: this.webMapJS.getBaseLayers() }));
     }
     if (timedim !== prevProps.adagucProperties.timedim) {
