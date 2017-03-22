@@ -1,5 +1,6 @@
 import React, { Component, PropTypes } from 'react';
 import { Button, Col, Row, InputGroupButton, InputGroup, Input, Badge, Card, CardHeader, CardBlock } from 'reactstrap';
+import { Link } from 'react-router';
 import Icon from 'react-fa';
 import cloneDeep from 'lodash/cloneDeep';
 import CollapseOmni from '../components/CollapseOmni';
@@ -10,6 +11,7 @@ const items = [
     title: 'Checklist shift',
     notifications: 3,
     icon: 'calendar-check-o',
+    link: 'checklist',
     tasks: [
       {
         title: 'Basis forecast',
@@ -36,13 +38,15 @@ const items = [
   {
     title: 'Products',
     icon: 'gift',
+    link: 'products',
     tasks: [
       { title: 'Today\'s all shift products' },
       { title: 'Shared products' },
       { title: 'Warnings' },
       {
         title: 'Create SIGMET',
-        notifications: 4
+        notifications: 4,
+        link: 'products/sigmets/create_sigmet'
       },
       { title: 'Forecasts' },
       { title: 'Analyses' }
@@ -51,6 +55,7 @@ const items = [
   {
     title: 'Reports & Logs',
     icon: 'file-text-o',
+    link: 'reports_and_logs',
     tasks: [
       { title: 'Shift report' },
       { title: 'Telephone records' }
@@ -59,6 +64,7 @@ const items = [
   {
     title: 'Monitoring & Triggers',
     icon: 'bell-o',
+    link: 'monitoring_and_triggers',
     tasks: [
       { title: 'Extremes' },
       { title: 'Alarms' }
@@ -94,8 +100,9 @@ class TasksContainer extends Component {
   }
   handleClickClear (evt) {
     const filterElmt = document.querySelector('#task-filter');
+    const clearElmt = document.querySelector('.search-clear');
     filterElmt.value = '';
-    evt.target.classList.remove('active');
+    clearElmt.classList.remove('active');
     this.setFilter();
   }
   handleKeyPress (evt) {
@@ -127,18 +134,21 @@ class TasksContainer extends Component {
 
   render () {
     let title = <Row>
-      <Button color='primary' onClick={this.toggle}>{this.state.collapse ? '«' : '»'}</Button>
+      <Button color='primary' onClick={this.toggle}>
+        <Icon name={this.state.collapse ? 'angle-double-left' : 'angle-double-right'} />
+      </Button>
       <InputGroup>
         <Input id='task-filter' className='search-input' placeholder='search term&hellip;'
           onKeyPress={this.handleKeyPress} onKeyUp={this.handleKeyUp} onFocus={this.handleFocus} onBlur={this.handleBlur} />
-        <InputGroupButton className='search-clear'onClick={this.handleClickClear}>❌</InputGroupButton>
+        <InputGroupButton className='search-clear'onClick={this.handleClickClear}>
+          <Icon name='times' />
+        </InputGroupButton>
         <InputGroupButton>
-          <Button className='btn-outline-info' onClick={this.handleClickFilter}>Search</Button>
+          <Button outline color='info' onClick={this.handleClickFilter}>Search</Button>
         </InputGroupButton>
       </InputGroup>
     </Row>;
     const hasFilter = this.state.filter instanceof RegExp;
-    console.log('hasFilter', hasFilter);
     let filteredItems = cloneDeep(items).filter(category => {
       if (hasFilter) {
         category.tasks = category.tasks.filter(item => this.state.filter.test(item.title));
@@ -150,7 +160,9 @@ class TasksContainer extends Component {
       <Col className='TasksContainer'>
         <CollapseOmni className='CollapseOmni' isOpen={this.state.collapse} isHorizontal minSize={64} maxSize={300}>
           <Panel className='Panel' title={title}>
-            {filteredItems.map((item, index) => <TaskCategory key={index} title={item.title} isOpen={hasFilter} icon={item.icon} notifications={item.notifications} tasks={item.tasks} />)}
+            {filteredItems.map((item, index) =>
+              <TaskCategory key={index} title={item.title} isOpen={hasFilter}
+                icon={item.icon} notifications={item.notifications} link={item.link} tasks={item.tasks} />)}
           </Panel>
         </CollapseOmni>
       </Col>
@@ -178,7 +190,7 @@ class TaskCategory extends React.Component {
   }
 
   render () {
-    const { title, notifications, tasks, icon } = this.props;
+    const { title, notifications, tasks, icon, link } = this.props;
     return (
       <Card className='row accordion'>
         <CardHeader onClick={this.toggle}>
@@ -189,7 +201,14 @@ class TaskCategory extends React.Component {
             {title}
           </Col>
           <Col xs='auto'>
-            {notifications > 0 ? <Badge color='danger' pill style={{ padding: '0.4rem 0.8rem' }}>{notifications}</Badge> : null}
+            {notifications > 0 ? <Badge color='danger'>{notifications}</Badge> : null}
+          </Col>
+          <Col xs='auto'>
+            <Link to={link} className='row'>
+              <Button outline color='info'>
+                <Icon name='caret-right' />
+              </Button>
+            </Link>
           </Col>
         </CardHeader>
         <CollapseOmni className='CollapseOmni' isOpen={this.state.collapse} minSize={0} maxSize={40 * tasks.length}>
@@ -197,19 +216,21 @@ class TaskCategory extends React.Component {
             <Row>
               <Col className='btn-group-vertical'>
                 {tasks.map((item, i) =>
-                  <Button className='row' tag='button' key={i} onClick={item.action} >
-                    <Col xs='auto' style={{ paddingRight: '0.4rem' }}>
-                      {item.eta}
-                    </Col>
-                    <Col>
-                      {item.title}
-                    </Col>
-                    <Col xs='auto'>
-                      {item.notifications > 0 ? <Badge color='danger' pill>{item.notifications}</Badge> : null}
-                    </Col>
-                    <Col xs='auto'>
-                      <Icon name='caret-right' style={{ paddingLeft: '0.4rem' }} />
-                    </Col>
+                  <Button tag='button' className='row' key={i} disabled={!item.link} >
+                    <Link to={item.link} className='row'>
+                      <Col xs='auto' style={{ paddingRight: '0.4rem' }}>
+                        {item.eta}
+                      </Col>
+                      <Col>
+                        {item.title}
+                      </Col>
+                      <Col xs='auto'>
+                        {item.notifications > 0 ? <Badge color='danger'>{item.notifications}</Badge> : null}
+                      </Col>
+                      <Col xs='auto'>
+                        <Icon name='caret-right' className='icon' />
+                      </Col>
+                    </Link>
                   </Button>)}
               </Col>
             </Row>
@@ -225,6 +246,7 @@ TaskCategory.propTypes = {
   title         : React.PropTypes.string.isRequired,
   notifications : React.PropTypes.number,
   icon          : React.PropTypes.string,
+  link          : React.PropTypes.string,
   tasks         : React.PropTypes.array.isRequired
 };
 

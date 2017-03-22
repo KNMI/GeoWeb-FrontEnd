@@ -161,21 +161,13 @@ LayerStyle.propTypes = {
 };
 
 class LayerModelRun extends React.Component {
-  constructor () {
-    super();
-    this.state = {
-      refTime: null
-    };
-  }
-
   render () {
-    const refTime = this.props.layer.getDimension('reference_time');
-    return refTime ? <Badge pill className={'alert-' + this.props.color}>{refTime.currentValue}</Badge> : <div />;
+    return <Badge pill className={'alert-' + this.props.color}>{this.props.refTime}</Badge>;
   }
 }
 
 LayerModelRun.propTypes = {
-  layer: React.PropTypes.object,
+  refTime: React.PropTypes.string.isRequired,
   color: React.PropTypes.string.isRequired
 };
 
@@ -353,8 +345,8 @@ export default class LayerManager extends React.Component {
             <Col xs='auto'><Icon style={{ color: 'transparent' }} name='chevron-up' /></Col>
             <Col xs='auto'><Icon style={{ minWidth: '1rem' }} id='enableButton' name={layer && layer.enabled ? 'check-square-o' : 'square-o'} onClick={() => this.toggleLayer('base', i)} /></Col>
             <Col xs='auto'><Icon style={{ color: 'transparent' }} name='times' /></Col>
-            <LayerName color='success' editable name={this.getBaseLayerName(layer)}
-              i={i} target={'baselayer' + i} layer={layer} dispatch={this.props.dispatch} actions={this.props.actions} placement='top' />
+            <LayerName i={i} color='success' editable name={this.getBaseLayerName(layer)}
+              target={'baselayer' + i} layer={layer} dispatch={this.props.dispatch} actions={this.props.actions} placement='top' />
             <Col />
             <Col />
             <Col />
@@ -390,6 +382,7 @@ export default class LayerManager extends React.Component {
       return <div />;
     } else {
       return layers.map((layer, i) => {
+        const refTime = layer.getDimension('reference_time');
         return (
           <Row className='layerinfo' key={'lgi' + i} style={{ marginBottom: '0.1rem' }}>
             <Col xs='auto'><Icon name='chevron-up' onClick={() => this.props.dispatch(this.props.actions.reorderLayer('up', i))} /></Col>
@@ -400,7 +393,7 @@ export default class LayerManager extends React.Component {
             <LayerName color='info' editable name={layer.title} i={i} target={'datalayer' + i} layer={layer} dispatch={this.props.dispatch} actions={this.props.actions} />
             <LayerStyle color='info' editable style={layer.currentStyle} layer={layer} target={'datalayerstyle' + i} i={i} dispatch={this.props.dispatch} actions={this.props.actions} />
             <LayerOpacity color='info' editable layer={layer} target={'datalayeropacity' + i} i={i} dispatch={this.props.dispatch} actions={this.props.actions} />
-            <LayerModelRun color='info' layer={layer} />
+            {refTime ? <LayerModelRun color='info' refTime={refTime.currentValue} /> : <div />}
           </Row>);
       });
     }

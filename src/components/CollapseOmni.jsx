@@ -110,10 +110,6 @@ class CollapseOmni extends Component {
     return delay;
   }
 
-  getSize () {
-    return this.props.isHorizontal ? this.element.scrollWidth : this.element.scrollHeight;
-  }
-
   getMinSize () {
     return this.props.minSize; // !== 0 ? this.props.minSize : null;
   }

@@ -7,7 +7,10 @@ const CanvasComponent = React.createClass({
     onRenderCanvas: React.PropTypes.func,
     onClickB: React.PropTypes.func,
     id: React.PropTypes.string,
-    onMouseMove: React.PropTypes.func
+    onMouseMove: React.PropTypes.func,
+    width: React.PropTypes.number,
+    height: React.PropTypes.number,
+    style: React.PropTypes.object
   },
   getDefaultProps () {
     return {
@@ -57,9 +60,15 @@ const CanvasComponent = React.createClass({
   },
   render () {
     this.updateCanvas();
-    return (
-      <canvas ref='canvas' id={this.props.id} />
-    );
+    if (this.props.width && this.props.height && this.props.style) {
+      return <canvas ref='canvas' style={this.props.style} width={this.props.width} height={this.props.height} id={this.props.id} />;
+    } else if (this.props.width && this.props.height) {
+      return <canvas ref='canvas' width={this.props.width} height={this.props.height} id={this.props.id} />;
+    } else {
+      return (
+        <canvas ref='canvas' id={this.props.id} />
+      );
+    }
   }
 });
 

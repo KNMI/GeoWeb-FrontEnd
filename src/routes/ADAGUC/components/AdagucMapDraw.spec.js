@@ -2,9 +2,11 @@ import React from 'react';
 import { default as AdagucMapDraw } from './AdagucMapDraw';
 import { shallow } from 'enzyme';
 
+const dispatch = () => {};
+
 describe('(Component) AdagucMapDraw', () => {
   it('Renders a div', () => {
-    const _component = shallow(<AdagucMapDraw />);
+    const _component = shallow(<AdagucMapDraw dispatch={dispatch} />);
     expect(_component.type()).to.eql('div');
   });
 });

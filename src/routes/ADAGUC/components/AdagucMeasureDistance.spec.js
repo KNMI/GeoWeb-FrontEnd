@@ -2,9 +2,11 @@ import React from 'react';
 import { default as AdagucMeasureDistance, haverSine } from './AdagucMeasureDistance';
 import { shallow } from 'enzyme';
 
+const dispatch = () => {};
+
 describe('(Component) AdagucMeasureDistance', () => {
   it('Renders a div', () => {
-    const _component = shallow(<AdagucMeasureDistance />);
+    const _component = shallow(<AdagucMeasureDistance dispatch={dispatch} />);
     expect(_component.type()).to.eql('div');
   });
 

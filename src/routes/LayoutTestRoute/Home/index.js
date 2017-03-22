@@ -6,7 +6,6 @@ import TitleBarContainer from '../../../containers/TitleBarContainer';
 import { connect } from 'react-redux';
 import { actions } from '../../ADAGUC/modules/adaguc';
 const mapStateToHeaderProps = (state) => {
-  // console.log(state);
   return {
     title: 'header',
     isLoggedIn: state.adagucProperties.user.isLoggedIn,

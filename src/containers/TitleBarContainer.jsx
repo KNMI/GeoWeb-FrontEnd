@@ -2,7 +2,7 @@ import React, { Component, PropTypes } from 'react';
 import Icon from 'react-fa';
 import GeoWebLogo from '../components/assets/icon.svg';
 import axios from 'axios';
-import { Navbar, NavbarBrand, Row, Col, Nav, NavLink, Breadcrumb, BreadcrumbItem, Collapse, Modal, ModalHeader, ModalBody, ModalFooter, Button, InputGroup, Input, FormText } from 'reactstrap';
+import { Navbar, NavbarBrand, Row, Col, Nav, NavLink, Breadcrumb, BreadcrumbItem, Collapse, Modal, ModalHeader, ModalBody, ModalFooter, Button, InputGroupButton, InputGroup, Input, FormText } from 'reactstrap';
 import { Link } from 'react-router';
 import { BACKEND_SERVER_URL } from '../routes/ADAGUC/constants/backend';
 let moment = require('moment');
@@ -19,10 +19,10 @@ class TitleBarContainer extends Component {
     this.handleOnChange = this.handleOnChange.bind(this);
     this.handleKeyPressPassword = this.handleKeyPressPassword.bind(this);
     this.checkCredentials = this.checkCredentials.bind(this);
-    this.getServices = this.getServices.bind(this);
     this.setLoggedOutCallback = this.setLoggedOutCallback.bind(this);
     this.checkCredentialsOKCallback = this.checkCredentialsOKCallback.bind(this);
     this.checkCredentialsBadCallback = this.checkCredentialsBadCallback.bind(this);
+    this.getServices = this.getServices.bind(this);
 
     // TODO REMOVE THIS WHEN /getuser SERVLET IS IMPLEMENTED IN THE BACKEND
     this.inputfieldUserName = 'met1';
@@ -34,7 +34,14 @@ class TitleBarContainer extends Component {
       loginModal: this.props.loginModal,
       loginModalMessage: ''
     };
-    console.log('this.state.loginModal == ' + this.state.loginModal);
+  }
+  getServices () {
+    const { dispatch, actions } = this.props;
+    const defaultURLs = ['getServices', 'getOverlayServices'].map((url) => BACKEND_SERVER_URL + '/' + url);
+    const allURLs = [...defaultURLs];
+    axios.all(allURLs.map((req) => axios.get(req, { withCredentials: true }))).then(
+      axios.spread((services, overlays) => dispatch(actions.createMap([...services.data, ...JSON.parse(localStorage.getItem('geoweb')).personal_urls], overlays.data[0])))
+    ).catch((e) => console.log('Error!: ', e.response));
   }
 
   getTitleForRoute (routeItem) {
@@ -61,13 +68,6 @@ class TitleBarContainer extends Component {
   componentDidMount () {
     this.timer = setInterval(this.setTime, 15000);
     this.setState({ currentTime: moment.utc().format(timeFormat).toString() });
-  }
-
-  getServices () {
-    const { dispatch, actions } = this.props;
-    axios.all(['getServices', 'getOverlayServices'].map((req) => axios.get(BACKEND_SERVER_URL + '/' + req, { withCredentials: true }))).then(
-      axios.spread((services, overlays) => dispatch(actions.createMap(services.data, overlays.data[0])))
-    );
   }
 
   doLogin () {
@@ -211,9 +211,7 @@ class TitleBarContainer extends Component {
             </Breadcrumb>
           </Col>
           <Col>
-            <span className='navbar-text mx-auto'>
-              {this.state.currentTime} UTC
-            </span>
+            <span className='navbar-text mx-auto'>{this.state.currentTime} UTC</span>
           </Col>
           <Col xs='auto'>
             <Nav>
@@ -223,7 +221,7 @@ class TitleBarContainer extends Component {
           </Col>
         </Row>
         <Modal isOpen={this.state.loginModal} toggle={this.toggleLoginModal}>
-          <ModalHeader toggle={this.toggleLoginModal}>{isLoggedIn ? 'You are signed in.' : 'Sign out'}</ModalHeader>
+          <ModalHeader toggle={this.toggleLoginModal}>{isLoggedIn ? 'You are signed in.' : 'Sign in'}</ModalHeader>
           <ModalBody>
             <Collapse isOpen={!isLoggedIn}>
               <InputGroup>
@@ -234,11 +232,12 @@ class TitleBarContainer extends Component {
               </InputGroup>
             </Collapse>
             <FormText color='muted'>
-              { this.state.loginModalMessage }
+              {this.state.loginModalMessage}
             </FormText>
           </ModalBody>
           <ModalFooter>
             <Button color='primary' onClick={this.doLogin} className='signInOut'>
+              <Icon className='icon' name={isLoggedIn ? 'sign-out' : 'sign-in'} />
               {isLoggedIn ? 'Sign out' : 'Sign in'}
             </Button>{' '}
             <Button color='secondary' onClick={this.toggleLoginModal}>Cancel</Button>

@@ -79,7 +79,7 @@ function setStyle (style = 0) {
 function addLayer (layer) {
   return {
     type: ADD_LAYER,
-    payload: Object.assign({}, layer, { enabled: true })
+    payload: Object.assign({}, layer, { enabled: true, opacity: 1 })
   };
 }
 function alterLayer (index, layerType, fieldsNewValuesObj) {
@@ -164,35 +164,40 @@ const sigmetLayers = (p) => {
               title: 'OBS',
               name: '10M/ww',
               label: 'wawa Weather Code (ww)',
-              enabled: true
+              enabled: true,
+              opacity: 1
             },
             {
               service: 'http://bvmlab-218-41.knmi.nl/cgi-bin/WWWRADAR3.cgi?',
               title: 'LGT',
               name: 'LGT_NL25_LAM_05M',
               label: 'LGT_NL25_LAM_05M',
-              enabled: true
+              enabled: true,
+              opacity: 1
             },
             {
               service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.RADAR.cgi?',
               title: 'RADAR',
               name: 'echotops',
               label: 'Echotoppen',
-              enabled: true
+              enabled: true,
+              opacity: 1
             },
             {
               service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.RADAR.cgi?',
               title: 'RADAR',
               name: 'precipitation',
               label: 'Neerslag',
-              enabled: true
+              enabled: true,
+              opacity: 1
             },
             {
               service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.SAT.cgi?',
               title: 'SAT',
               name: 'HRV-COMB',
               label: 'RGB-HRV-COMB',
-              enabled: true
+              enabled: true,
+              opacity: 1
             }
           ],
           overlays: [
@@ -300,7 +305,6 @@ const doAddOverlayLayer = (state, payload) => {
 };
 
 const doLogin = (state, payload) => {
-  console.log('doLogin');
   return Object.assign({}, state, { user: { isLoggedIn: true, userName: payload } });
 };
 
