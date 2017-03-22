@@ -38,20 +38,20 @@ export default class Adaguc extends React.Component {
     if (!layer) {
       return;
     }
-    var timeDim = layer.getDimension('time');
-    if (!timeDim) {
-      return;
-    }
     this.webMapJS.stopAnimating();
     this.props.dispatch(this.props.actions.setWMJSLayers({ layers: this.webMapJS.getLayers(), baselayers: this.webMapJS.getBaseLayers() }));
     layer.onReady = undefined;
     if (layer.getDimension('reference_time')) {
       layer.setDimension('reference_time', layer.getDimension('reference_time').getValueForIndex(layer.getDimension('reference_time').size() - 1), false);
     }
-    this.webMapJS.setDimension('time', timeDim.currentValue, true);
+
     if (this.isAnimating) {
       this.webMapJS.drawAutomatic(moment().utc().subtract(4, 'hours'), moment().utc().add(48, 'hours'));
     } else {
+      const { adagucProperties } = this.props;
+      if (adagucProperties.timedim) {
+        this.webMapJS.setDimension('time', adagucProperties.timedim, true);
+      }
       this.webMapJS.draw();
     }
 
@@ -139,7 +139,7 @@ export default class Adaguc extends React.Component {
       return true;
     }
     for (var i = currLayers.length - 1; i >= 0; i--) {
-      if (currLayers[i].service !== prevLayers[i].service || currLayers[i].name !== prevLayers[i].name) {
+      if (currLayers[i].service !== prevLayers[i].service) { // || currLayers[i].name !== prevLayers[i].name) {
         return true;
       }
     }
@@ -255,6 +255,7 @@ export default class Adaguc extends React.Component {
       if (datalayers !== prevProps.adagucProperties.layers.datalayers) {
         // TODO refactor this so we don't remove all layers and just update them if count and order remain the same
         if (datalayers.length !== prevProps.adagucProperties.layers.datalayers.length || this.orderChanged(datalayers, prevProps.adagucProperties.layers.datalayers)) {
+          console.log('Resubmitting ADAGUC Layers');
           this.webMapJS.stopAnimating();
           const newDatalayers = datalayers.map((datalayer) => {
             // eslint-disable-next-line no-undef
@@ -270,6 +271,7 @@ export default class Adaguc extends React.Component {
             this.webMapJS.setActiveLayer(this.webMapJS.getLayers()[0]);
           }
         } else {
+          console.log('Updating WEBMAPJS LAYER STATE');
           let layers = this.webMapJS.getLayers();
           for (var i = layers.length - 1; i >= 0; i--) {
             layers[i].enabled = datalayers[i].enabled;
@@ -376,6 +378,7 @@ class ModelTime extends React.Component {
       console.log('Warning: webmapjs has no time dim');
       return;
     }
+
     const adagucTime = moment.utc(this.props.webmapjs.getDimension('time').currentValue);
     const now = moment(moment.utc().format('YYYY-MM-DDTHH:mm:ss'));
     const hourDifference = Math.floor(moment.duration(adagucTime.diff(now)).asHours());
