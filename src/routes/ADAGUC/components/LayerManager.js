@@ -255,6 +255,7 @@ export default class LayerManager extends React.Component {
     this.toggleLayer = this.toggleLayer.bind(this);
     this.updateState = this.updateState.bind(this);
     this.getLayerName = this.getLayerName.bind(this);
+    this.jumpToLatestTime = this.jumpToLatestTime.bind(this);
     this.state = {
       layers: [],
       baselayers: [],
@@ -337,6 +338,14 @@ export default class LayerManager extends React.Component {
         return layer.name;
     }
   }
+  jumpToLatestTime (i) {
+    const layer = this.state.layers[i];
+    if (!layer.getDimension('time')) {
+      return;
+    }
+    const timedim = layer.getDimension('time');
+    this.props.dispatch(this.props.actions.setTimeDimension(timedim.get(timedim.size() - 1)));
+  }
   renderBaseLayerSet (layers) {
     if (!layers || layers.length === 0) {
       return <div />;
@@ -347,6 +356,7 @@ export default class LayerManager extends React.Component {
             <Col xs='auto'><Icon style={{ color: 'transparent' }} name='chevron-up' /></Col>
             <Col xs='auto'><Icon style={{ color: 'transparent' }} name='chevron-up' /></Col>
             <Col xs='auto'><Icon style={{ minWidth: '1rem' }} id='enableButton' name={layer && layer.enabled ? 'check-square-o' : 'square-o'} onClick={() => this.toggleLayer('base', i)} /></Col>
+            <Col xs='auto'><Icon style={{ color: 'transparent' }} name='times' /></Col>
             <Col xs='auto'><Icon style={{ color: 'transparent' }} name='times' /></Col>
             <LayerName i={i} color='success' editable name={this.getBaseLayerName(layer)}
               target={'baselayer' + i} layer={layer} dispatch={this.props.dispatch} actions={this.props.actions} placement='top' />
@@ -369,6 +379,7 @@ export default class LayerManager extends React.Component {
             <Col xs='auto'><Icon style={{ color: 'transparent' }} name='chevron-up' /></Col>
             <Col xs='auto'><Icon style={{ minWidth: '1rem' }} id='enableButton' name={layer.enabled ? 'check-square-o' : 'square-o'} onClick={() => this.toggleLayer('overlay', i)} /></Col>
             <Col xs='auto'><Icon id='deleteButton' name='times' onClick={() => this.deleteLayer('overlay', i)} /></Col>
+            <Col xs='auto'><Icon style={{ color: 'transparent' }} name='chevron-up' /></Col>
             <LayerSource color='danger' name={this.getOverLayerName(layer)} />
             <Col />
             <Col />
@@ -392,6 +403,7 @@ export default class LayerManager extends React.Component {
             <Col xs='auto'><Icon name='chevron-down' onClick={() => this.props.dispatch(this.props.actions.reorderLayer('down', i))} /></Col>
             <Col xs='auto'><Icon style={{ minWidth: '1rem' }} id='enableButton' name={layer.enabled ? 'check-square-o' : 'square-o'} onClick={() => this.toggleLayer('data', i)} /></Col>
             <Col xs='auto'><Icon id='deleteButton' name='times' onClick={() => this.deleteLayer('data', i)} /></Col>
+            <Col xs='auto'><Icon title='Jump to latest time in layer' name='clock-o' onClick={() => this.jumpToLatestTime(i)} /></Col>
             <LayerSource color='info' name={this.getLayerName(layer)} />
             <LayerName color='info' editable name={layer.title} i={i} target={'datalayer' + i} layer={layer} dispatch={this.props.dispatch} actions={this.props.actions} />
             <LayerStyle color='info' editable style={layer.currentStyle} layer={layer} target={'datalayerstyle' + i} i={i} dispatch={this.props.dispatch} actions={this.props.actions} />
