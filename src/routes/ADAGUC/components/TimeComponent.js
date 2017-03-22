@@ -36,6 +36,10 @@ export default class TimeComponent extends React.Component {
     if (timeDim === undefined) {
       return;
     }
+    if (timeDim.length !== 20 || timeDim[19] !== 'Z' || timeDim[10] !== 'T') {
+      console.log('TimeDim is not valid: [' + timeDim + ']');
+      return;
+    }
     this.hoverDateDone = this.hoverDate;
     let layers = this.props.wmjslayers.layers;
     let overlayers = this.props.wmjslayers.baselayers.filter((layer) => layer.keepOnTop === true);
@@ -224,6 +228,10 @@ export default class TimeComponent extends React.Component {
   }
   /* istanbul ignore next */
   setNewDate (value) {
+    if (!value) {
+      console.log('Warning: setNewDate set with undefined: ignoring');
+      return;
+    }
     let isodate = this.toISO8601(value);
     // eslint-disable-next-line no-undef
     var date = parseISO8601DateToDate(isodate);
