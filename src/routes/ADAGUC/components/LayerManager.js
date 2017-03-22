@@ -46,16 +46,8 @@ class LayerName extends React.Component {
     }
   }
   // istanbul ignore next
-  alterLayer (e) {
-    // TODO .... this
+  alterLayer (e, wantedLayer) {
     const indexInLayerList = e.currentTarget.id;
-    var indexOfPossibleLayers;
-    for (indexOfPossibleLayers = 0; indexOfPossibleLayers < this.state.layers.length; ++indexOfPossibleLayers) {
-      if (this.state.layers[indexOfPossibleLayers].text === e.currentTarget.innerHTML) {
-        break;
-      }
-    }
-    const wantedLayer = this.state.layers[indexOfPossibleLayers];
     this.props.dispatch(this.props.actions.alterLayer(indexInLayerList,
       this.props.target.includes('data')
       ? 'data'
@@ -69,7 +61,7 @@ class LayerName extends React.Component {
         <div>
           <Popover placement={placement} width={'auto'} key={'popover' + i} isOpen={this.state.popoverOpen} target={target} toggle={() => this.togglePopover(layer, i)}>
             <PopoverTitle>Select layer</PopoverTitle>
-            <PopoverContent>{this.state.layers ? this.state.layers.map((layer, q) => <li id={i} onClick={this.alterLayer} key={q}>{layer.text}</li>) : ''}</PopoverContent>
+            <PopoverContent>{this.state.layers ? this.state.layers.map((layer, q) => <li id={i} onClick={(e) => this.alterLayer(e, layer)} key={q}>{layer.text}</li>) : ''}</PopoverContent>
           </Popover>
           <Badge pill color={this.props.color} className={'alert-' + this.props.color + (this.props.editable ? ' editable' : '')} onClick={() => this.togglePopover(layer, i)}>
             {this.props.name}
@@ -115,10 +107,9 @@ class LayerStyle extends React.Component {
     this.setState({ popoverOpen: !this.state.popoverOpen });
   }
 
-  alterLayer (e) {
-    // TODO .... this
+  alterLayer (e, wantedStyle) {
     const indexInLayerList = e.currentTarget.id;
-    const wantedStyle = this.props.layer.styles.filter((style) => style.title === e.currentTarget.innerHTML)[0];
+    console.log(e.currentTarget, wantedStyle);
     this.props.dispatch(this.props.actions.alterLayer(indexInLayerList, this.props.target.includes('data') ? 'data' : 'base', { style: wantedStyle.name, styleTitle: wantedStyle.title }));
     this.setState({ popoverOpen: false });
   }
@@ -132,10 +123,16 @@ class LayerStyle extends React.Component {
           <div>
             <Popover width={'auto'} key={'stylepopover' + i} isOpen={this.state.popoverOpen} target={target} toggle={() => this.togglePopover(layer, i)}>
               <PopoverTitle>Select style</PopoverTitle>
-              <PopoverContent>{this.props.layer.styles ? this.props.layer.styles.map((style, q) => <li id={i} onClick={this.alterLayer} key={q}>{style.title}</li>) : <li />}</PopoverContent>
+              <PopoverContent>{this.props.layer.styles ? this.props.layer.styles.map((style, q) => <li id={i}
+                onClick={(e) => this.alterLayer(e, style)} key={q}>{style.title}</li>) : <li />}
+              </PopoverContent>
             </Popover>
 
-            <Badge pill color={this.props.color} className={'alert-' + this.props.color + (this.props.editable ? ' editable' : '')} onClick={() => this.togglePopover(layer, i)}>
+            <Badge
+              pill
+              color={this.props.color}
+              className={'alert-' + this.props.color + (this.props.editable ? ' editable' : '')}
+              onClick={() => this.togglePopover(layer, i)}>
               {styleObj ? styleObj.title : 'default'}
               <Icon style={{ marginLeft: '0.25rem' }} id={target} name='pencil' />
             </Badge>
