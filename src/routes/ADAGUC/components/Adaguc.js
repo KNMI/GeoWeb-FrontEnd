@@ -372,6 +372,10 @@ class ModelTime extends React.Component {
     };
   }
   updateState () {
+    if (!this.props.webmapjs.getDimension('time')) {
+      console.log('Warning: webmapjs has no time dim');
+      return;
+    }
     const adagucTime = moment.utc(this.props.webmapjs.getDimension('time').currentValue);
     const now = moment(moment.utc().format('YYYY-MM-DDTHH:mm:ss'));
     const hourDifference = Math.floor(moment.duration(adagucTime.diff(now)).asHours());
