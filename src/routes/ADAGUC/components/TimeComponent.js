@@ -136,21 +136,25 @@ export default class TimeComponent extends React.Component {
         let layerStartIndex = dim.getIndexForValue(this.startDate, false);
         let layerStopIndex = dim.getIndexForValue(this.endDate, false);
         for (let j = layerStartIndex - 1; j < layerStopIndex + 1; j++) {
-          let layerTimeIndex = this.canvasDateInterval.getTimeStepFromISODate(dim.getValueForIndex(j));
-          let layerTimeIndexNext = this.canvasDateInterval.getTimeStepFromISODate(dim.getValueForIndex(j + 1));
-          let pos = layerTimeIndex / sliderStopIndex;
-          let posNext = layerTimeIndexNext / sliderStopIndex;
-          // let width = (layerTimeIndexNext - layerTimeIndex) / sliderStopIndex;
-          ctx.fillStyle = '#BBB';
-          if (sliderMapIndex >= layerTimeIndex && sliderMapIndex < layerTimeIndexNext) {
-            ctx.fillStyle = '#FFFF60';
-          }
-          ctx.strokeStyle = '#888';
-          let x = parseInt(pos * scaleWidth);
-          let w = parseInt(posNext * scaleWidth) - x;
+          try {
+            let layerTimeIndex = this.canvasDateInterval.getTimeStepFromISODate(dim.getValueForIndex(j));
+            let layerTimeIndexNext = this.canvasDateInterval.getTimeStepFromISODate(dim.getValueForIndex(j + 1));
+            let pos = layerTimeIndex / sliderStopIndex;
+            let posNext = layerTimeIndexNext / sliderStopIndex;
+            // let width = (layerTimeIndexNext - layerTimeIndex) / sliderStopIndex;
+            ctx.fillStyle = '#BBB';
+            if (sliderMapIndex >= layerTimeIndex && sliderMapIndex < layerTimeIndexNext) {
+              ctx.fillStyle = '#FFFF60';
+            }
+            ctx.strokeStyle = '#888';
+            let x = parseInt(pos * scaleWidth);
+            let w = parseInt(posNext * scaleWidth) - x;
 
-          ctx.fillRect(x + 0.5, y + 0.5, w, h);
-          ctx.strokeRect(x + 0.5, y + 0.5, w, h);
+            ctx.fillRect(x + 0.5, y + 0.5, w, h);
+            ctx.strokeRect(x + 0.5, y + 0.5, w, h);
+          } catch (error) {
+            console.log('Layer probably does not have a time dimension');
+          }
         }
       }
       // ctx.font = 'bold 10pt Arial';
