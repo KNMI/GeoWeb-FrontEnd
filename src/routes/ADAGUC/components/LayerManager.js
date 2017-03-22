@@ -424,6 +424,7 @@ export default class LayerManager extends React.Component {
   componentWillUpdate (nextProps, nextState) {
     if (this.props.wmjslayers !== nextProps.wmjslayers) {
       this.updateState(nextProps.wmjslayers);
+      console.log(this.state);
     }
   }
   updateState (newlayers) {
