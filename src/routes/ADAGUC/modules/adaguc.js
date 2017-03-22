@@ -20,6 +20,7 @@ const SET_WMJSLAYERS = 'SET_WMJSLAYERS';
 const SET_TIME_DIMENSION = 'SET_TIME_DIMENSION';
 const TOGGLE_ANIMATION = 'TOGGLE_ANIMATION';
 const SET_MAP_MODE = 'SET_MAP_MODE';
+const PROGTEMP_LOCATION = 'PROGTEMP_LOCATION';
 import { ADAGUCMAPDRAW_UPDATEFEATURE } from '../components/AdagucMapDraw';
 import { ADAGUCMEASUREDISTANCE_UPDATE } from '../components/AdagucMeasureDistance';
 
@@ -33,6 +34,12 @@ function createMap (sources, overlays) {
       sources: sources,
       overlays: overlays
     }
+  };
+}
+function progtempLocation (closest) {
+  return {
+    type: PROGTEMP_LOCATION,
+    payload: closest
   };
 }
 function setMapMode (mode) {
@@ -231,7 +238,8 @@ export const actions = {
   alterLayer,
   setMapMode,
   toggleAnimation,
-  setTimeDimension
+  setTimeDimension,
+  progtempLocation
 };
 
 /*
@@ -408,6 +416,10 @@ const doToggleAnimation = (state) => {
 const newMapMode = (state, payload) => {
   return Object.assign({}, state, { mapMode: payload });
 };
+const setProgtempLocation = (state, payload) => {
+  const loc = { location: payload };
+  return Object.assign({}, state, { progtemp: loc });
+};
 // ------------------------------------
 // Action Handlers
 // ------------------------------------
@@ -429,7 +441,8 @@ const ACTION_HANDLERS = {
   [SET_WMJSLAYERS]                : (state, action) => doSetWMJSLayers(state, action.payload),
   [SET_TIME_DIMENSION]            : (state, action) => doSetTimeDim(state, action.payload),
   [TOGGLE_ANIMATION]              : (state, action) => doToggleAnimation(state),
-  [SET_MAP_MODE]                  : (state, action) => newMapMode(state, action.payload)
+  [SET_MAP_MODE]                  : (state, action) => newMapMode(state, action.payload),
+  [PROGTEMP_LOCATION]             : (state, action) => setProgtempLocation(state, action.payload)
 };
 
 // ------------------------------------
