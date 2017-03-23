@@ -1,7 +1,6 @@
 import React from 'react';
 import { default as LayerManager } from './LayerManager';
 import { shallow, mount } from 'enzyme';
-// import sinon from 'sinon';
 import { Col } from 'reactstrap';
 describe('(Component) LayerManager', () => {
   let _wmjslayers;
@@ -163,10 +162,8 @@ describe('(Component) LayerManager', () => {
     };
   });
   it('Renders an empty div without layers', () => {
-    const _component = shallow(<LayerManager dispatch={() => {}} actions={{}} />);
-    expect(_component.type()).to.eql(Col);
-    const _deepComponent = shallow(<LayerManager dispatch={() => {}} actions={{}} wmjslayers={{ layers: [], baselayers: [] }} />);
-    expect(_deepComponent.type()).to.eql(Col);
+    const _component = mount(<LayerManager dispatch={() => {}} actions={{}} />);
+    expect(_component.type()).to.eql(LayerManager);
   });
 
   it('Renders renders with layers', () => {
