@@ -8,11 +8,10 @@ const karmaConfig = {
   captureTimeout: 2000,
   browserDisconnectTimeout: 2000,
   browserDisconnectTolerance: 3,
-  browserNoActivityTimeout: 10000,
+  browserNoActivityTimeout: 15000,
 
   basePath : '../', // project root in relation to bin/karma.js
 
-  // only use PhantomJS for our 'test' browser
   browsers: ['jsdom'],
 
   // just run once by default unless --watch flag is passed
@@ -27,8 +26,6 @@ const karmaConfig = {
   // include some polyfills
   files: [
     'node_modules/babel-polyfill/dist/polyfill.js',
-    './node_modules/phantomjs-polyfill/bind-polyfill.js',
-    // './src/test/*.js',
     './src/**/*.spec.js' // specify files to watch for tests
   ],
   preprocessors : {
@@ -60,8 +57,6 @@ const karmaConfig = {
 
     // required for enzyme to work properly
     externals: Object.assign({}, webpackConfig.externals, {
-      'jsdom': 'window',
-      'cheerio': 'window',
       'react/lib/ExecutionEnvironment': true,
       'react/lib/ReactContext': 'window'
     })

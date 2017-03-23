@@ -1549,10 +1549,14 @@
         var smallestTime = null;
         for (var i = layers.length - 1; i >= 0; i--) {
           var timeDim = layers[i].getDimension('time');
+          if (!timeDim) {
+            continue
+          }
           var layerTime = timeDim.getNextClosestValue(currentTime);
           if (!layerTime || layerTime === 'date too early') {
             continue;
           }
+
           if (smallestTime === null || moment(layerTime) < moment(smallestTime)) {
             smallestTime = layerTime;
           }

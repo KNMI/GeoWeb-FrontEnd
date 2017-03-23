@@ -79,92 +79,94 @@ function parseISO8601DateToDate (_isotime) {
     - clone() creates a copy of this object
   */
   var isotime = _isotime;
-  try {
-    // var isotime = "2009--03-27T13:-5:00Z"
-    // console.log(isotime);
-
-    var splittedOnT = isotime.split('T');
-
-    splittedOnT[0] = splittedOnT[0].replace(/-/g, ':');
-    splittedOnT[0] = splittedOnT[0].replace(/::/g, ':-');
-    var left = splittedOnT[0].split(':');
-    var right = splittedOnT[1].split(':');
-    var date = new Date(Date.UTC(left[0], left[1] - 1, left[2], right[0], right[1], right[2].split('Z')[0]));
-
-    date.add = function (dateInterval) {
-      if (dateInterval.isRegularInterval == false) {
-        if (dateInterval.year != 0) this.setUTCFullYear(this.getUTCFullYear() + dateInterval.year);
-        if (dateInterval.month != 0) this.setUTCMonth(this.getUTCMonth() + dateInterval.month);
-        if (dateInterval.day != 0) this.setUTCDate(this.getUTCDate() + dateInterval.day);
-        if (dateInterval.hour != 0) this.setUTCHours(this.getUTCHours() + dateInterval.hour);
-        if (dateInterval.minute != 0) this.setUTCMinutes(this.getUTCMinutes() + dateInterval.minute);
-        if (dateInterval.second != 0) this.setUTCSeconds(this.getUTCSeconds() + dateInterval.second);
-      } else {
-        this.setTime(this.getTime() + dateInterval.getTime());
-      }
-    };
-    date.substract = function (dateInterval) {
-      if (dateInterval.isRegularInterval == false) {
-        if (dateInterval.year != 0) this.setUTCFullYear(this.getUTCFullYear() - dateInterval.year);
-        if (dateInterval.month != 0) this.setUTCMonth(this.getUTCMonth() - dateInterval.month);
-        if (dateInterval.day != 0) this.setUTCDate(this.getUTCDate() - dateInterval.day);
-        if (dateInterval.hour != 0) this.setUTCHours(this.getUTCHours() - dateInterval.hour);
-        if (dateInterval.minute != 0) this.setUTCMinutes(this.getUTCMinutes() - dateInterval.minute);
-        if (dateInterval.second != 0) this.setUTCSeconds(this.getUTCSeconds() - dateInterval.second);
-      } else {
-        this.setTime(this.getTime() - dateInterval.getTime());
-      }
-    };
-    date.addMultipleTimes = function (dateInterval, numberOfSteps) {
-      if (dateInterval.isRegularInterval == false) {
-        if (dateInterval.year != 0) this.setUTCFullYear(this.getUTCFullYear() + dateInterval.year * numberOfSteps);
-        if (dateInterval.month != 0) this.setUTCMonth(this.getUTCMonth() + dateInterval.month * numberOfSteps);
-        if (dateInterval.day != 0) this.setUTCDate(this.getUTCDate() + dateInterval.day * numberOfSteps);
-        if (dateInterval.hour != 0) this.setUTCHours(this.getUTCHours() + dateInterval.hour * numberOfSteps);
-        if (dateInterval.minute != 0) this.setUTCMinutes(this.getUTCMinutes() + dateInterval.minute * numberOfSteps);
-        if (dateInterval.second != 0) this.setUTCSeconds(this.getUTCSeconds() + dateInterval.second * numberOfSteps);
-      } else {
-        this.setTime(this.getTime() + dateInterval.getTime() * numberOfSteps);
-      }
-    };
-    date.substractMultipleTimes = function (dateInterval, numberOfSteps) {
-      if (dateInterval.isRegularInterval == false) {
-        if (dateInterval.year != 0) this.setUTCFullYear(this.getUTCFullYear() - dateInterval.year * numberOfSteps);
-        if (dateInterval.month != 0) this.setUTCMonth(this.getUTCMonth() - dateInterval.month * numberOfSteps);
-        if (dateInterval.day != 0) this.setUTCDate(this.getUTCDate() - dateInterval.day * numberOfSteps);
-        if (dateInterval.hour != 0) this.setUTCHours(this.getUTCHours() - dateInterval.hour * numberOfSteps);
-        if (dateInterval.minute != 0) this.setUTCMinutes(this.getUTCMinutes() - dateInterval.minute * numberOfSteps);
-        if (dateInterval.second != 0) this.setUTCSeconds(this.getUTCSeconds() - dateInterval.second * numberOfSteps);
-      } else {
-        this.setTime(this.getTime() - dateInterval.getTime() * numberOfSteps);
-      }
-    };
-
-    date.toISO8601 = function () {
-      function prf (input, width) {
-        // print decimal with fixed length (preceding zero's)
-        var string = input + '';
-        var len = width - string.length;
-        var j, zeros = '';
-        for (j = 0; j < len; j++)zeros += '0' + zeros;
-        string = zeros + string;
-        return string;
-      }
-      var iso = prf(this.getUTCFullYear(), 4) +
-          '-' + prf(this.getUTCMonth() + 1, 2) +
-              '-' + prf(this.getUTCDate(), 2) +
-                  'T' + prf(this.getUTCHours(), 2) +
-                      ':' + prf(this.getUTCMinutes(), 2) +
-                          ':' + prf(this.getUTCSeconds(), 2) + 'Z';
-      return iso;
-    };
-    date.clone = function () {
-      return parseISO8601DateToDate(date.toISO8601());
-    };
-    return date;
-  } catch (e) {
-    throw ('In parseISO8601DateToDate:' + e);
+  if (!isotime) {
+    console.log('Warning: no date given to parseISO8601DateToDate');
+    return;
   }
+
+  // var isotime = "2009--03-27T13:-5:00Z"
+  // console.log(isotime);
+
+  var splittedOnT = isotime.split('T');
+
+  splittedOnT[0] = splittedOnT[0].replace(/-/g, ':');
+  splittedOnT[0] = splittedOnT[0].replace(/::/g, ':-');
+  var left = splittedOnT[0].split(':');
+  var right = splittedOnT[1].split(':');
+  var date = new Date(Date.UTC(left[0], left[1] - 1, left[2], right[0], right[1], right[2].split('Z')[0]));
+
+  date.add = function (dateInterval) {
+    if (dateInterval.isRegularInterval == false) {
+      if (dateInterval.year != 0) this.setUTCFullYear(this.getUTCFullYear() + dateInterval.year);
+      if (dateInterval.month != 0) this.setUTCMonth(this.getUTCMonth() + dateInterval.month);
+      if (dateInterval.day != 0) this.setUTCDate(this.getUTCDate() + dateInterval.day);
+      if (dateInterval.hour != 0) this.setUTCHours(this.getUTCHours() + dateInterval.hour);
+      if (dateInterval.minute != 0) this.setUTCMinutes(this.getUTCMinutes() + dateInterval.minute);
+      if (dateInterval.second != 0) this.setUTCSeconds(this.getUTCSeconds() + dateInterval.second);
+    } else {
+      this.setTime(this.getTime() + dateInterval.getTime());
+    }
+  };
+  date.substract = function (dateInterval) {
+    if (dateInterval.isRegularInterval == false) {
+      if (dateInterval.year != 0) this.setUTCFullYear(this.getUTCFullYear() - dateInterval.year);
+      if (dateInterval.month != 0) this.setUTCMonth(this.getUTCMonth() - dateInterval.month);
+      if (dateInterval.day != 0) this.setUTCDate(this.getUTCDate() - dateInterval.day);
+      if (dateInterval.hour != 0) this.setUTCHours(this.getUTCHours() - dateInterval.hour);
+      if (dateInterval.minute != 0) this.setUTCMinutes(this.getUTCMinutes() - dateInterval.minute);
+      if (dateInterval.second != 0) this.setUTCSeconds(this.getUTCSeconds() - dateInterval.second);
+    } else {
+      this.setTime(this.getTime() - dateInterval.getTime());
+    }
+  };
+  date.addMultipleTimes = function (dateInterval, numberOfSteps) {
+    if (dateInterval.isRegularInterval == false) {
+      if (dateInterval.year != 0) this.setUTCFullYear(this.getUTCFullYear() + dateInterval.year * numberOfSteps);
+      if (dateInterval.month != 0) this.setUTCMonth(this.getUTCMonth() + dateInterval.month * numberOfSteps);
+      if (dateInterval.day != 0) this.setUTCDate(this.getUTCDate() + dateInterval.day * numberOfSteps);
+      if (dateInterval.hour != 0) this.setUTCHours(this.getUTCHours() + dateInterval.hour * numberOfSteps);
+      if (dateInterval.minute != 0) this.setUTCMinutes(this.getUTCMinutes() + dateInterval.minute * numberOfSteps);
+      if (dateInterval.second != 0) this.setUTCSeconds(this.getUTCSeconds() + dateInterval.second * numberOfSteps);
+    } else {
+      this.setTime(this.getTime() + dateInterval.getTime() * numberOfSteps);
+    }
+  };
+  date.substractMultipleTimes = function (dateInterval, numberOfSteps) {
+    if (dateInterval.isRegularInterval == false) {
+      if (dateInterval.year != 0) this.setUTCFullYear(this.getUTCFullYear() - dateInterval.year * numberOfSteps);
+      if (dateInterval.month != 0) this.setUTCMonth(this.getUTCMonth() - dateInterval.month * numberOfSteps);
+      if (dateInterval.day != 0) this.setUTCDate(this.getUTCDate() - dateInterval.day * numberOfSteps);
+      if (dateInterval.hour != 0) this.setUTCHours(this.getUTCHours() - dateInterval.hour * numberOfSteps);
+      if (dateInterval.minute != 0) this.setUTCMinutes(this.getUTCMinutes() - dateInterval.minute * numberOfSteps);
+      if (dateInterval.second != 0) this.setUTCSeconds(this.getUTCSeconds() - dateInterval.second * numberOfSteps);
+    } else {
+      this.setTime(this.getTime() - dateInterval.getTime() * numberOfSteps);
+    }
+  };
+
+  date.toISO8601 = function () {
+    function prf (input, width) {
+      // print decimal with fixed length (preceding zero's)
+      var string = input + '';
+      var len = width - string.length;
+      var j, zeros = '';
+      for (j = 0; j < len; j++)zeros += '0' + zeros;
+      string = zeros + string;
+      return string;
+    }
+    var iso = prf(this.getUTCFullYear(), 4) +
+        '-' + prf(this.getUTCMonth() + 1, 2) +
+            '-' + prf(this.getUTCDate(), 2) +
+                'T' + prf(this.getUTCHours(), 2) +
+                    ':' + prf(this.getUTCMinutes(), 2) +
+                        ':' + prf(this.getUTCSeconds(), 2) + 'Z';
+    return iso;
+  };
+  date.clone = function () {
+    return parseISO8601DateToDate(date.toISO8601());
+  };
+  return date;
+
 }
 
 /*********************************************************/

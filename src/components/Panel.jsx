@@ -3,12 +3,12 @@ import { Row } from 'reactstrap';
 
 class Panel extends Component {
   render () {
-    const { title } = this.props;
+    const { title, style } = this.props;
     if (!title) {
       return (
         <div className='Panel'>
-          <Row className='title notitle' />
-          <Row className='content notitle'>
+          <Row className='title notitle' style={style} />
+          <Row className='content notitle' style={style}>
             {this.props.children}
           </Row>
         </div>
@@ -16,10 +16,10 @@ class Panel extends Component {
     } else {
       return (
         <div className='Panel'>
-          <Row className='title'>
+          <Row className='title' style={style}>
             {title || 'Oops'}
           </Row>
-          <Row className='content'>
+          <Row className='content' style={style}>
             {this.props.children}
           </Row>
         </div>
@@ -30,7 +30,8 @@ class Panel extends Component {
 
 Panel.propTypes = {
   title: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
-  children: PropTypes.oneOfType([PropTypes.element, PropTypes.array])
+  children: PropTypes.oneOfType([PropTypes.element, PropTypes.array]),
+  style: PropTypes.object
 };
 
 export default Panel;
