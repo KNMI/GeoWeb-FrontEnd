@@ -26,7 +26,9 @@ class BaseLayout extends Component {
           requestFullScreenFunc = requestFullScreenFunc || elmt[request];
         });
       }
-      requestFullScreenFunc.call(elmt);
+      if (typeof requestFullScreenFunc !== 'undefined') {
+        requestFullScreenFunc.call(elmt);
+      }
     }
   }
 
@@ -53,7 +55,7 @@ class BaseLayout extends Component {
             <Row className='map' tag='main'>
               {map || 'Oops'}
             </Row>
-            <Row className='LayerManager'>
+            <Row className='Footer'>
               {layerManager || 'Oops'}
             </Row>
           </Col>

@@ -6,7 +6,7 @@ class MapPanel extends Component {
   render () {
     const { title, adagucProperties, dispatch, actions } = this.props;
     return (
-      <Panel title={title} className='mapPanel'>
+      <Panel title={title}>
         <Adaguc adagucProperties={adagucProperties} dispatch={dispatch} actions={actions} />
       </Panel>
     );

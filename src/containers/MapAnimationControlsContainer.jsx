@@ -1,23 +1,20 @@
 import React, { Component, PropTypes } from 'react';
-import { Button, Col, Row, Popover, PopoverContent, ButtonGroup, TabContent, TabPane, Nav, NavItem, NavLink, Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
-import Panel from '../components/Panel';
+import { Button, Col, Popover, PopoverContent, ButtonGroup, TabContent, TabPane, Nav, NavItem, NavLink, Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
 import { BOUNDING_BOXES } from '../routes/ADAGUC/constants/bounding_boxes';
 import { Icon } from 'react-fa';
 import classnames from 'classnames';
 import { Typeahead } from 'react-bootstrap-typeahead';
 
-class MapActionContainer extends Component {
+class MapAnimationControlsContainer extends Component {
   constructor (props) {
     super(props);
     // Toggles
     this.togglePopside = this.togglePopside.bind(this);
-    this.toggleProgtempPopover = this.toggleProgtempPopover.bind(this);
     // Button handlers
     this.toggleAnimation = this.toggleAnimation.bind(this);
     this.toggleLayerChooser = this.toggleLayerChooser.bind(this);
     this.goToNow = this.goToNow.bind(this);
     this.setView = this.setView.bind(this);
-    this.handleActionClick = this.handleActionClick.bind(this);
     // Render functions
     this.renderPopOver = this.renderPopOver.bind(this);
     this.renderLayerChooser = this.renderLayerChooser.bind(this);
@@ -38,14 +35,7 @@ class MapActionContainer extends Component {
       activeTab: '1'
     };
   }
-  handleActionClick (action) {
-    if (action === 'progtemp') {
-      this.setState({ progTempPopOverOpen: true });
-    } else {
-      this.setState({ progTempPopOverOpen: false });
-    }
-    this.props.dispatch(this.props.actions.setMapMode(action));
-  }
+
   handleAddLayer (e) {
     const addItem = e[0];
     if (!this.state.overlay) {
@@ -101,9 +91,6 @@ class MapActionContainer extends Component {
   togglePopside () {
     this.setState({ popoverOpen: !this.state.popoverOpen });
   }
-  toggleProgtempPopover () {
-    this.setState({ progTempPopOverOpen: !this.state.progTempPopOverOpen });
-  }
   goToNow () {
     const { dispatch, actions } = this.props;
     // eslint-disable-next-line no-undef
@@ -117,7 +104,7 @@ class MapActionContainer extends Component {
   }
   renderPopOver () {
     return (
-      <Popover placement='left' isOpen={this.state.popoverOpen} target='setAreaButton' toggle={this.togglePopside}>
+      <Popover placement='top' isOpen={this.state.popoverOpen} target='setAreaButton' toggle={this.togglePopside}>
         <PopoverContent style={{ height: '15rem', overflow: 'hidden', overflowY: 'scroll' }}>
           <ButtonGroup vertical>
             {BOUNDING_BOXES.map((bbox, i) => <Button key={i} id={i} onClick={this.setView}>{bbox.title}</Button>)}
@@ -180,16 +167,6 @@ class MapActionContainer extends Component {
     });
   }
 
-  renderProgtempPopover () {
-    return (
-      <Popover placement='left' isOpen={this.state.progTempPopOverOpen} target='progtemp_button' toggle={this.toggleProgtempPopover}>
-        <PopoverContent>
-          poopover
-        </PopoverContent>
-      </Popover>
-    );
-  }
-
   renderLayerChooser () {
     return (<Modal id='addLayerModal' isOpen={this.state.layerChooserOpen} toggle={this.toggleLayerChooser}>
       <ModalHeader>Choose Layer</ModalHeader>
@@ -234,80 +211,32 @@ class MapActionContainer extends Component {
     </Modal>);
   }
   render () {
-    const { title, adagucProperties } = this.props;
-    const items = [
-      {
-        title: 'Pan / zoom',
-        action: 'pan',
-        icon: 'hand-stop-o'
-      },
-      {
-        title: 'Zoom to rectangle',
-        action: 'zoom',
-        icon: 'search-plus'
-      },
-      {
-        title: 'Draw polygon',
-        action: 'draw',
-        icon: 'pencil'
-      },
-      {
-        title: 'Delete drawing point',
-        action: 'delete',
-        icon: 'trash'
-      },
-      {
-        title: 'Measure distance',
-        action: 'measure',
-        icon: 'arrows-h'
-      },
-      {
-        title: 'Show time series',
-        icon: 'line-chart',
-        disabled: true
-      },
-      {
-        title: 'Show progtemp',
-        action: 'progtemp',
-        icon: 'bolt',
-        onClick: 'progtemp'
-      }
-    ];
+    const { adagucProperties } = this.props;
     return (
-      <Col className='MapActionContainer'>
+      <Col xs='auto' className='MapAnimationControlsContainer'>
         {this.renderLayerChooser()}
         {this.renderPopOver()}
-        {this.renderProgtempPopover()}
-        <Panel className='Panel' title={title}>
-          {items.map((item, index) =>
-            <Button color='primary' key={index} active={adagucProperties.mapMode === item.action} disabled={item.disabled || null}
-              className='row' id={item.action + '_button'} title={item.title} onClick={() => this.handleActionClick(item.action)}>
-              <Icon name={item.icon} />
-            </Button>)}
-          <Row style={{ flex: 1 }} />
-          <Button onClick={this.toggleLayerChooser} color='primary' className='row' title='Choose layers'>
-            <Icon name='bars' />
-          </Button>
-          <Button onClick={this.toggleAnimation} color='primary' className='row' title='Play animation'>
-            <Icon name={this.props.adagucProperties.animate ? 'pause' : 'play'} />
-          </Button>
-          <Button onClick={this.goToNow} color='primary' className='row' title='Go to current time'>
-            <Icon name='clock-o' />
-          </Button>
-          <Button onClick={this.togglePopside} id='setAreaButton' color='primary' className='row' title='Set area'>
-            <Icon name='flag' />
-          </Button>
-        </Panel>
+        <Button onClick={this.toggleLayerChooser} color='primary' title='Choose layers'>
+          <Icon name='bars' />
+        </Button>
+        <Button onClick={this.togglePopside} id='setAreaButton' color='primary' title='Set area'>
+          <Icon name='flag' />
+        </Button>
+        <Button onClick={this.toggleAnimation} color='primary' title='Play animation'>
+          <Icon name={adagucProperties.animate ? 'pause' : 'play'} />
+        </Button>
+        <Button onClick={this.goToNow} color='primary' title='Go to current time'>
+          <Icon name='clock-o' />
+        </Button>
       </Col>
     );
   }
 }
 
-MapActionContainer.propTypes = {
-  title: PropTypes.string,
+MapAnimationControlsContainer.propTypes = {
   dispatch: PropTypes.func.isRequired,
   actions: PropTypes.object.isRequired,
   adagucProperties: PropTypes.object
 };
 
-export default MapActionContainer;
+export default MapAnimationControlsContainer;

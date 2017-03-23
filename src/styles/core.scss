@@ -412,12 +412,13 @@ main:fullscreen {
 .Panel {
   flex-direction: column;
   width: 100%;
+  background: white;
 }
 
 .Panel > .title {
   box-sizing: border-box;
   max-height: 4.25rem;
-  background: white; /* $inverse-hover-color; */
+  background: inherit;
   border-bottom: 0.06rem solid #4bb0ce;
   @extend .rounded-top;
   box-shadow: 0 0.05rem 0.25rem rgba(0,0,0,0.5);
@@ -446,7 +447,7 @@ main:fullscreen {
 
 .Panel > .content {
   box-sizing: border-box;
-  background: white;
+  background: inherit;
   border-bottom: 0.06rem solid $inverse-hover-color;
   @extend .rounded-bottom;
   box-shadow: 0 0.15rem 0.25rem rgba(0,0,0,0.5);
@@ -459,12 +460,16 @@ main:fullscreen {
   flex-direction: column;
 }
 
-.LayerManager .col-auto:first-child .btn-outline-info {
+.Footer .col-auto:first-child .btn-outline-info {
   @extend .rounded-left;
 }
 
-.LayerManager .col-auto:last-child .btn-outline-info {
+.Footer .col-auto:last-child .btn-outline-info {
   @extend .rounded-right;
+}
+
+.MapAnimationControlsContainer .btn:not(:last-child) {
+  margin-right: 0.33rem;
 }
 
 *,

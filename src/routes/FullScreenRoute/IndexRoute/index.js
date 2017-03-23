@@ -1,17 +1,14 @@
 import MapPanel from '../../../components/MapPanel';
 import Empty from '../../../components/Empty';
-import TitleBarContainer from '../../../containers/TitleBarContainer';
+import SmallLayerManagerPanel from '../../../components/SmallLayerManagerPanel';
 import { connect } from 'react-redux';
 import { actions } from '../../ADAGUC/modules/adaguc';
-const mapStateToHeaderProps = (state) => {
-  return {
-    title: 'header',
-    isLoggedIn: state.adagucProperties.user.isLoggedIn,
-    userName: state.adagucProperties.user.userName
-  };
-};
 
 const mapStateToMapProps = (state) => {
+  return { adagucProperties: state.adagucProperties };
+};
+
+const mapStateToLayerManagerProps = (state) => {
   return { adagucProperties: state.adagucProperties };
 };
 
@@ -30,10 +27,10 @@ const mapStateToEmptyProps = (state) => {
 export default () => ({
   title: 'Full screen',
   components : {
-    header: connect(mapStateToHeaderProps, mapDispatchToMainViewportProps)(TitleBarContainer),
+    header: connect(mapStateToEmptyProps)(Empty),
     leftSideBar: connect(mapStateToEmptyProps)(Empty),
     map: connect(mapStateToMapProps, mapDispatchToMainViewportProps)(MapPanel),
-    layerManager: connect(mapStateToEmptyProps)(Empty),
+    layerManager: connect(mapStateToLayerManagerProps, mapDispatchToMainViewportProps)(SmallLayerManagerPanel),
     rightSideBar: connect(mapStateToEmptyProps)(Empty)
   }
 });
