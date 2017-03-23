@@ -1,6 +1,6 @@
 import React from 'react';
 import { default as AdagucMapDraw } from './AdagucMapDraw.js';
-import { haverSine, default as AdagucMeasureDistance } from './AdagucMeasureDistance.js';
+import AdagucMeasureDistance from './AdagucMeasureDistance.js';
 import axios from 'axios';
 import $ from 'jquery';
 
@@ -18,6 +18,7 @@ export default class Adaguc extends React.Component {
     this.updateLayer = this.updateLayer.bind(this);
     this.onChangeAnimation = this.onChangeAnimation.bind(this);
     this.timeHandler = this.timeHandler.bind(this);
+    this.drawLocations = this.drawLocations.bind(this);
     this.isAnimating = false;
     this.state = {
       dropdownOpenView: false,
@@ -27,11 +28,97 @@ export default class Adaguc extends React.Component {
       time: undefined
     };
     this.toggleView = this.toggleView.bind(this);
+    this.progtempLocations = [
+      {
+        name: 'EHAM',
+        x: 4.77,
+        y: 52.30
+      }, {
+        name: 'EHRD',
+        x: 4.42,
+        y: 51.95
+      }, {
+        name: 'EHTW',
+        x: 6.98,
+        y: 52.28
+      }, {
+        name: 'EHBK',
+        x: 5.76,
+        y: 50.95
+      }, {
+        name: 'EHFS',
+        x: 3.68,
+        y: 51.46
+      }, {
+        name: 'EHDB',
+        x: 5.18,
+        y: 52.12
+      }, {
+        name: 'EHGG',
+        x: 6.57,
+        y: 53.10
+      }, {
+        name: 'EHKD',
+        x: 4.74,
+        y: 52.93
+      }, {
+        name: 'EHAK',
+        x: 3.81,
+        y: 55.399
+      }, {
+        name: 'EHDV',
+        x: 2.28,
+        y: 53.36
+      }, {
+        name: 'EHFZ',
+        x: 3.94,
+        y: 54.12
+      }, {
+        name: 'EHFD',
+        x: 4.67,
+        y: 54.83
+      }, {
+        name: 'EHHW',
+        x: 6.04,
+        y: 52.037
+      }, {
+        name: 'EHKV',
+        x: 3.68,
+        y: 53.23
+      }, {
+        name: 'EHMG',
+        x: 4.93,
+        y: 53.63
+      }, {
+        name: 'EHMA',
+        x: 5.94,
+        y: 53.54
+      }, {
+        name: 'EHQE',
+        x: 4.15,
+        y: 52.92
+      }, {
+        name: 'EHPG',
+        x: 3.3416,
+        y: 52.36
+      }
+    ];
   }
 
   currentLatestDate = undefined;
   currentBeginDate = undefined;
-
+  /* istanbul ignore next */
+  drawLocations (ctx) {
+    ctx.strokeStyle = '#000'; ctx.fillStyle = '#BADA55'; ctx.lineWidth = 1.0;
+    let w = 7;
+    ctx.globalAlpha = 1.0;
+    this.progtempLocations.map((location) => {
+      const coord = this.webMapJS.getPixelCoordFromLatLong(location);
+      ctx.fillRect(coord.x - w / 2, coord.y - w / 2, w, w);
+      ctx.strokeRect(coord.x - w / 2, coord.y - w / 2, w, w);
+      ctx.strokeRect(coord.x - 0.5, coord.y - 0.5, 1, 1);
+    });
+  }
   /* istanbul ignore next */
   updateLayer (layer) {
     this.webMapJS.setAnimationDelay(200);
@@ -147,91 +234,9 @@ export default class Adaguc extends React.Component {
     return false;
   }
   findClosestProgtempLoc (event) {
-    const locs = [
-      {
-        name: 'EHAM',
-        x: 4.77,
-        y: 52.30
-      }, {
-        name: 'EHRD',
-        x: 4.42,
-        y: 51.95
-      }, {
-        name: 'EHTW',
-        x: 6.98,
-        y: 52.28
-      }, {
-        name: 'EHBK',
-        x: 5.76,
-        y: 50.95
-      }, {
-        name: 'EHFS',
-        x: 3.68,
-        y: 51.46
-      }, {
-        name: 'EHDB',
-        x: 5.18,
-        y: 52.12
-      }, {
-        name: 'EHGG',
-        x: 6.57,
-        y: 53.10
-      }, {
-        name: 'EHKD',
-        x: 4.74,
-        y: 52.93
-      }, {
-        name: 'EHAK',
-        x: 3.81,
-        y: 55.399
-      }, {
-        name: 'EHDV',
-        x: 2.28,
-        y: 53.36
-      }, {
-        name: 'EHFZ',
-        x: 3.94,
-        y: 54.12
-      }, {
-        name: 'EHFD',
-        x: 4.67,
-        y: 54.83
-      }, {
-        name: 'EHHW',
-        x: 6.04,
-        y: 52.037
-      }, {
-        name: 'EHKV',
-        x: 3.68,
-        y: 53.23
-      }, {
-        name: 'EHMG',
-        x: 4.93,
-        y: 53.63
-      }, {
-        name: 'EHMA',
-        x: 5.94,
-        y: 53.54
-      }, {
-        name: 'EHQE',
-        x: 4.15,
-        y: 52.92
-      }, {
-        name: 'EHPG',
-        x: 3.3416,
-        y: 52.36
-      }
-    ];
     // Find the latlong from the pixel coordinate
     const latlong = this.webMapJS.getLatLongFromPixelCoord({ x: event.x, y: event.y });
-    // Compute the haversine distance from each known point to the clicked location
-    const alldists = locs.map((loc) => { return { name: loc.name, distance: haverSine(latlong, { x: loc.x, y: loc.y }).distance }; });
-    // Sort by distance
-    alldists.sort((a, b) => { return (a.distance > b.distance) ? 1 : ((b.distance > a.distance) ? -1 : 0); });
-    // Find the closest and move the pixel to that, also broadcast the station
-    const closestElem = locs.filter((loc) => loc.name === alldists[0].name)[0];
-    this.webMapJS.positionMapPinByLatLon({ x: closestElem.x, y: closestElem.y });
-    this.props.dispatch(this.props.actions.progtempLocation(closestElem));
+    this.props.dispatch(this.props.actions.progtempLocation(latlong));
   }
   /* istanbul ignore next */
   componentDidUpdate (prevProps, prevState) {
@@ -300,16 +305,16 @@ export default class Adaguc extends React.Component {
     if (mapMode !== prevProps.adagucProperties.mapMode) {
       if (prevProps.adagucProperties.mapMode === 'progtemp' && mapMode !== 'progtemp') {
         this.webMapJS.removeListener('mouseclicked');
-        this.webMapJS.enableInlineGetFeatureInfo(true);
+      }
+
+      if (prevProps.adagucProperties.mapMode !== 'progtemp' && mapMode === 'progtemp') {
+        this.webMapJS.addListener('mouseclicked', (e) => this.findClosestProgtempLoc(e), true);
       }
       switch (mapMode) {
         case 'zoom':
           this.webMapJS.setMapModeZoomBoxIn();
           break;
         case 'progtemp':
-          this.webMapJS.enableInlineGetFeatureInfo(false);
-          this.webMapJS.addListener('mouseclicked', (e) => this.findClosestProgtempLoc(e), true);
-          // falls through
         case 'pan':
           this.webMapJS.setMapModePan();
           break;

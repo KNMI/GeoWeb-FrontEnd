@@ -49,11 +49,13 @@ function WMJSListener () {
     return true;
   };
 
-  this.removeEvents = function (name) {
+  this.removeEvents = function (name, f) {
     for (var j = 0; j < numCallBacks; j++) {
       if (callBacks[j].finished === 0) {
         if (callBacks[j].name === name) {
-          if (callBacks[j].keepOnCall === false) {
+          if (!f) {
+            callBacks[j].finished = 1;
+          } else if (callBacks[j].functionpointer === f) {
             callBacks[j].finished = 1;
           }
         }
