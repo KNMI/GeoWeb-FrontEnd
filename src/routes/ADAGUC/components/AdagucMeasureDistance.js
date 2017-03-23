@@ -259,7 +259,6 @@ export function Vincenty (point1, point2) {
   var fwdAz = toDegrees(Math.atan2(cosU2 * sinλ, cosU1 * sinU2 - sinU1 * cosU2 * cosλ));
   return { distance: s, bearing: fwdAz };
 }
-// Possible todo: https://en.wikipedia.org/wiki/Vincenty%27s_formulae
 export function haverSine (point1, point2) {
   /*
      Function which calculates the distance between two points
