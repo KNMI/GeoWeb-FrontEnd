@@ -80,7 +80,6 @@ export default class Adaguc extends React.Component {
     if (adagucProperties.mapCreated) {
       return;
     }
-    console.log('localStorage', localStorage);
     localStorage.setItem('geoweb', JSON.stringify({ 'personal_urls': [] }));
     // eslint-disable-next-line no-undef
     this.webMapJS = new WMJSMap(adagucMapRef, BACKEND_SERVER_XML2JSON);

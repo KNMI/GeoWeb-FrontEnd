@@ -2,12 +2,20 @@ import React, { Component, PropTypes } from 'react';
 import Icon from 'react-fa';
 import GeoWebLogo from '../components/assets/icon.svg';
 import axios from 'axios';
-import { Navbar, NavbarBrand, Row, Col, Nav, NavLink, Breadcrumb, BreadcrumbItem, Collapse, Modal, ModalHeader, ModalBody, ModalFooter, Button, InputGroupButton, InputGroup, Input, FormText } from 'reactstrap';
+import { Navbar, NavbarBrand, Row, Col, Nav, NavLink, Breadcrumb, BreadcrumbItem, Collapse,
+  Modal, ModalHeader, ModalBody, ModalFooter, Button, InputGroup, Input, FormText } from 'reactstrap';
 import { Link } from 'react-router';
+import { hashHistory } from 'react-router';
 import { BACKEND_SERVER_URL } from '../routes/ADAGUC/constants/backend';
 let moment = require('moment');
 
 const timeFormat = 'YYYY MMM DD - HH:mm';
+
+const browserFullScreenRequests = [
+  'mozRequestFullScreen',
+  'msRequestFullscreen',
+  'webkitRequestFullScreen'
+];
 
 class TitleBarContainer extends Component {
   constructor (props) {
@@ -165,6 +173,20 @@ class TitleBarContainer extends Component {
     });
   }
 
+  toggleFullscreen () {
+    const elmt = document.querySelector('body');
+    let requestFullScreenFunc = elmt.requestFullscreen;
+    if (!requestFullScreenFunc) {
+      browserFullScreenRequests.forEach((request) => {
+        requestFullScreenFunc = requestFullScreenFunc || elmt[request];
+      });
+    }
+    if (typeof requestFullScreenFunc !== 'undefined') {
+      requestFullScreenFunc.call(elmt);
+    }
+    setTimeout(() => hashHistory.push('/full_screen'), 100);
+  }
+
   handleKeyPressPassword (target) {
     if (target.charCode === 13) {
       this.doLogin();
@@ -216,7 +238,7 @@ class TitleBarContainer extends Component {
           <Col xs='auto'>
             <Nav>
               <NavLink className='active' onClick={this.toggleLoginModal} ><Icon name='user' id='loginIcon' />{isLoggedIn ? ' ' + userName : ' Sign in'}</NavLink>
-              <NavLink><Icon name='cog' /></NavLink>
+              <NavLink className='active' onClick={this.toggleFullscreen} ><Icon name='expand' /></NavLink>
             </Nav>
           </Col>
         </Row>

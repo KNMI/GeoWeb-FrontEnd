@@ -4,6 +4,8 @@ import { default as MapAnimationControlsContainer } from '../containers/MapAnima
 import { default as Panel } from './Panel';
 import { Row, Col, Button } from 'reactstrap';
 import { Icon } from 'react-fa';
+import { hashHistory } from 'react-router';
+
 class SmallLayerManagerPanel extends Component {
   constructor (props) {
     super(props);
@@ -17,7 +19,12 @@ class SmallLayerManagerPanel extends Component {
   }
 
   toggleFullscreen (evt) {
-    evt.preventDefault();
+    if (document.mozCancelFullscreen) {
+      document.mozCancelFullScreen();
+    } else {
+      document.webkitCancelFullScreen();
+    }
+    hashHistory.goBack();
   };
 
   render () {
