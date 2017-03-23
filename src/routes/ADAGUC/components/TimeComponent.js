@@ -36,6 +36,10 @@ export default class TimeComponent extends React.Component {
     if (timeDim === undefined) {
       return;
     }
+    if (timeDim.length !== 20 || timeDim[19] !== 'Z' || timeDim[10] !== 'T') {
+      console.log('TimeDim is not valid: [' + timeDim + ']');
+      return;
+    }
     this.hoverDateDone = this.hoverDate;
     let layers = this.props.wmjslayers.layers;
     let overlayers = this.props.wmjslayers.baselayers.filter((layer) => layer.keepOnTop === true);
@@ -136,21 +140,25 @@ export default class TimeComponent extends React.Component {
         let layerStartIndex = dim.getIndexForValue(this.startDate, false);
         let layerStopIndex = dim.getIndexForValue(this.endDate, false);
         for (let j = layerStartIndex - 1; j < layerStopIndex + 1; j++) {
-          let layerTimeIndex = this.canvasDateInterval.getTimeStepFromISODate(dim.getValueForIndex(j));
-          let layerTimeIndexNext = this.canvasDateInterval.getTimeStepFromISODate(dim.getValueForIndex(j + 1));
-          let pos = layerTimeIndex / sliderStopIndex;
-          let posNext = layerTimeIndexNext / sliderStopIndex;
-          // let width = (layerTimeIndexNext - layerTimeIndex) / sliderStopIndex;
-          ctx.fillStyle = '#BBB';
-          if (sliderMapIndex >= layerTimeIndex && sliderMapIndex < layerTimeIndexNext) {
-            ctx.fillStyle = '#FFFF60';
-          }
-          ctx.strokeStyle = '#888';
-          let x = parseInt(pos * scaleWidth);
-          let w = parseInt(posNext * scaleWidth) - x;
+          try {
+            let layerTimeIndex = this.canvasDateInterval.getTimeStepFromISODate(dim.getValueForIndex(j));
+            let layerTimeIndexNext = this.canvasDateInterval.getTimeStepFromISODate(dim.getValueForIndex(j + 1));
+            let pos = layerTimeIndex / sliderStopIndex;
+            let posNext = layerTimeIndexNext / sliderStopIndex;
+            // let width = (layerTimeIndexNext - layerTimeIndex) / sliderStopIndex;
+            ctx.fillStyle = '#BBB';
+            if (sliderMapIndex >= layerTimeIndex && sliderMapIndex < layerTimeIndexNext) {
+              ctx.fillStyle = '#FFFF60';
+            }
+            ctx.strokeStyle = '#888';
+            let x = parseInt(pos * scaleWidth);
+            let w = parseInt(posNext * scaleWidth) - x;
 
-          ctx.fillRect(x + 0.5, y + 0.5, w, h);
-          ctx.strokeRect(x + 0.5, y + 0.5, w, h);
+            ctx.fillRect(x + 0.5, y + 0.5, w, h);
+            ctx.strokeRect(x + 0.5, y + 0.5, w, h);
+          } catch (error) {
+            console.log('Layer probably does not have a time dimension');
+          }
         }
       }
       // ctx.font = 'bold 10pt Arial';
@@ -220,6 +228,10 @@ export default class TimeComponent extends React.Component {
   }
   /* istanbul ignore next */
   setNewDate (value) {
+    if (!value) {
+      console.log('Warning: setNewDate set with undefined: ignoring');
+      return;
+    }
     let isodate = this.toISO8601(value);
     // eslint-disable-next-line no-undef
     var date = parseISO8601DateToDate(isodate);

@@ -79,13 +79,13 @@
   function WMJSMap (_element, _xml2jsonrequestURL) {
     this.setBaseURL = function (_baseURL) {
       base = _baseURL;
-
-      noimage = base + '/img/blank.gif?';
-      loadingImageSrc = base + '/img/ajax-loader.gif';
-      WMSControlsImageSrc = base + '/img/mapcontrols.gif';
-      mapPinImageSrc = base + '/img/dot.gif';
+      base_plus_dir = base + 'adaguc/webmapjs';
+      noimage = base_plus_dir + '/img/blank.gif?';
+      loadingImageSrc = base_plus_dir + '/img/ajax-loader.gif';
+      WMSControlsImageSrc = base_plus_dir + '/img/mapcontrols.gif';
+      mapPinImageSrc = base_plus_dir + '/img/dot.gif';
       if (!isDefined(scaleBarURL)) {
-        scaleBarURL = base + '/php/makeScaleBar.php?';
+        scaleBarURL = base_plus_dir + '/php/makeScaleBar.php?';
       }
       // mapPinImageSrc = base+'/img/punaise_info.png';
 
@@ -133,7 +133,7 @@
     var layers = Array();
     var busy = 0;
     var mapdimensions = [];// Array of Dimension;
-    var maxAnimationSteps = 100;
+    var maxAnimationSteps = 1000;
 
     var baseLayers = '';
     var numBaseLayers = 0;
@@ -1549,10 +1549,14 @@
         var smallestTime = null;
         for (var i = layers.length - 1; i >= 0; i--) {
           var timeDim = layers[i].getDimension('time');
+          if (!timeDim) {
+            continue
+          }
           var layerTime = timeDim.getNextClosestValue(currentTime);
           if (!layerTime || layerTime === 'date too early') {
             continue;
           }
+
           if (smallestTime === null || moment(layerTime) < moment(smallestTime)) {
             smallestTime = layerTime;
           }
@@ -2488,13 +2492,14 @@
       }
       if (!x || !y) return;
 
-      // debug("setMapPin ("+x+";"+y+")");
+      debug("setMapPin ("+x+";"+y+")");
       divMapPin.x = parseInt(x);
       divMapPin.y = parseInt(y);
 
       divMapPin.exactX = parseFloat(x);
       divMapPin.exactY = parseFloat(y);
-
+      debug('Input coords: ' + _x + ', ' + _y);
+      debug('Exact coords: ' + divMapPin.exactX + ', ' + divMapPin.exactY);
       var geopos = _map.getGeoCoordFromPixelCoord({ x:divMapPin.exactX, y:divMapPin.exactY });
       divMapPin.geoPosX = geopos.x;
       divMapPin.geoPosY = geopos.y;
@@ -2611,6 +2616,7 @@
       callBack.triggerEvent('mousedown', { map:_map, x:mouseDownX, y:mouseDownY });
 
       if (mapMode == 'info') {
+        debug('GetFeatureInfo');
         _map.setMapPin(mouseDownX, mouseDownY);
         _map.showMapPin();
 
@@ -2830,6 +2836,7 @@
                 callBack.triggerEvent('mouseclicked', { map:_map, x:mouseUpX, y:mouseUpY, shiftKeyPressed: (e.shiftKey == true) });
               }
               if (inlineGetFeatureInfo == true) {
+              // if(false){
                 // _map.closeAllDialogs(gfiDialogList)
                 var dialog;
 
@@ -2858,11 +2865,11 @@
                 };
 
                 _map.addListener('ongetfeatureinfoready', ongetfeatureinfoready, true);
+                _map.setMapPin(mouseDownX, mouseDownY);
+                _map.showMapPin();
+                callBack.triggerEvent('beforegetfeatureinfo');
+                _map.getFeatureInfo(mouseDownX, mouseDownY);
               }
-              _map.setMapPin(mouseDownX, mouseDownY);
-              _map.showMapPin();
-              callBack.triggerEvent('beforegetfeatureinfo');
-              _map.getFeatureInfo(mouseDownX, mouseDownY);
             }
           }
         }
@@ -3313,7 +3320,8 @@
 
       var x = (w * (coordinates.x - b.left)) / (b.right - b.left);
       var y = (h * (coordinates.y - b.top)) / (b.bottom - b.top);
-      return { x:parseInt(x), y:parseInt(y) };
+      // Was parseInt, but we require sub-pixel precision
+      return { x:parseFloat(x), y:parseFloat(y) };
     };
 
     // listeners:
