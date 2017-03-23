@@ -16,6 +16,10 @@ class SmallLayerManagerPanel extends Component {
     evt.preventDefault();
   }
 
+  toggleFullscreen (evt) {
+    evt.preventDefault();
+  };
+
   render () {
     const { title, dispatch, actions, adagucProperties } = this.props;
     return (
@@ -23,10 +27,15 @@ class SmallLayerManagerPanel extends Component {
         <Row style={{ flex: 1 }}>
           <LayerManager wmjslayers={adagucProperties.wmjslayers} dispatch={dispatch} actions={actions} />
           <Col />
-          <Col xs='auto' style={{ flexDirection: 'column' }}>
-            <Row style={{ flexDirection: 'row-reverse', paddingBottom: '0.33rem' }}>
+          <Col xs='auto' className='SmallLayerManagerPanel' style={{ flexDirection: 'column' }}>
+            <Row style={{ flexDirection: 'row', paddingBottom: '0.33rem' }}>
+              <Col />
+              <Col />
               <Button onClick={this.toggle} color='primary' title={this.state.showControls ? 'Hide controls' : 'Show controls'}>
                 <Icon name={this.state.showControls ? 'eye-slash' : 'eye'} />
+              </Button>
+              <Button onClick={this.toggleFullscreen} color='primary' title='Exit full screen mode'>
+                <Icon name='compress' />
               </Button>
             </Row>
             <Row style={{ flex: 1 }} />
