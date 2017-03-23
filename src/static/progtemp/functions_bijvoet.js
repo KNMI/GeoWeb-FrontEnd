@@ -361,7 +361,7 @@ function drawRotatedText (ctx, canvasWidth, canvasHeight) {
 }
 
 function plotWindbarbs (ctx, PSounding, ddSounding, ffSounding, color, imgx, imgy) {
-  for (var i = 0; i < PSounding.length; i = i + 2) {
+  for (var i = 0; i < PSounding.length; i++) {
     if ((i / 2) % 2 == 0) { plotTemp = 309.15; }    else { plotTemp = 311.70; }
     coords = thetas_p2plot(plotTemp, PSounding[i], imgx, imgy);
     barb2image(ctx, coords[0], coords[1], ffSounding[i], ddSounding[i], 18, color);
