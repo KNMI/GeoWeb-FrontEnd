@@ -3325,8 +3325,8 @@
       return callBack.addToCallback(name, f, keep);
     };
 
-    this.removeListener = function (name) {
-      return callBack.removeEvents(name);
+    this.removeListener = function (name, f) {
+      return callBack.removeEvents(name, f);
     };
 
     this.getListener = function (name) {
