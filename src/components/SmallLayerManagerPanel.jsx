@@ -4,6 +4,8 @@ import { default as MapAnimationControlsContainer } from '../containers/MapAnima
 import { default as Panel } from './Panel';
 import { Row, Col, Button } from 'reactstrap';
 import { Icon } from 'react-fa';
+import { hashHistory } from 'react-router';
+
 class SmallLayerManagerPanel extends Component {
   constructor (props) {
     super(props);
@@ -16,6 +18,15 @@ class SmallLayerManagerPanel extends Component {
     evt.preventDefault();
   }
 
+  toggleFullscreen (evt) {
+    if (document.mozCancelFullscreen) {
+      document.mozCancelFullScreen();
+    } else {
+      document.webkitCancelFullScreen();
+    }
+    hashHistory.goBack();
+  };
+
   render () {
     const { title, dispatch, actions, adagucProperties } = this.props;
     return (
@@ -23,10 +34,15 @@ class SmallLayerManagerPanel extends Component {
         <Row style={{ flex: 1 }}>
           <LayerManager wmjslayers={adagucProperties.wmjslayers} dispatch={dispatch} actions={actions} />
           <Col />
-          <Col xs='auto' style={{ flexDirection: 'column' }}>
-            <Row style={{ flexDirection: 'row-reverse', paddingBottom: '0.33rem' }}>
+          <Col xs='auto' className='SmallLayerManagerPanel' style={{ flexDirection: 'column' }}>
+            <Row style={{ flexDirection: 'row', paddingBottom: '0.33rem' }}>
+              <Col />
+              <Col />
               <Button onClick={this.toggle} color='primary' title={this.state.showControls ? 'Hide controls' : 'Show controls'}>
                 <Icon name={this.state.showControls ? 'eye-slash' : 'eye'} />
+              </Button>
+              <Button onClick={this.toggleFullscreen} color='primary' title='Exit full screen mode'>
+                <Icon name='compress' />
               </Button>
             </Row>
             <Row style={{ flex: 1 }} />

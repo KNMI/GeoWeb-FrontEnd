@@ -201,7 +201,7 @@ class MapAnimationControlsContainer extends Component {
               : this.renderPresetSelector()}
           </TabPane>
           <TabPane tabId='3'>
-            <Typeahead onChange={this.handleAddLayer} options={this.state.layers ? this.state.layers : []} />
+            <Typeahead onChange={this.handleAddLayer} options={this.state.layers ? this.state.layers : []} autofocus />
           </TabPane>
         </TabContent>
       </ModalBody>
