@@ -102,4 +102,34 @@ describe('(Container) MapActionsContainer', () => {
     _component.setState({ layerChooserOpen: true });
     expect('everything').to.be.ok;
   });
+  // it('Allows for creating a progtemp config', () => {
+  //   const _component = mount(<MapActionsContainer adagucProperties={adagucProperties} dispatch={emptyDispatch} actions={emptyActions} />);
+  //   const newAdaguc = {
+  //     layers: {
+  //       datalayers: [
+  //         { title: 'HARM', getDimension: () => '2017-03-24T06:00:00' }
+  //       ]
+  //     },
+  //     wmjslayers: {
+  //       layers: [{ title: 'HARM', service: 'HARM', getDimension: () => '2017-03-24T06:00:00' }],
+  //       baselayers: [],
+  //       overlays: []
+  //     },
+  //     sources: {
+  //       data: [ { name: 'testName', title: 'testTitle' } ],
+  //       overlay: [ { name: 'testName', title: 'testTitle' } ]
+  //     },
+  //     progtemp: {
+  //       location: {
+  //         name: 'EHDB',
+  //         x: 5.18,
+  //         y: 52.12
+  //       }
+  //     },
+  //     mapMode: 'progtemp'
+  //   };
+  //   // _component.setState({ progTempPopOverOpen: true });
+  //   _component.setProps({ adagucProperties: newAdaguc });
+  //   expect('everything').to.be.ok;
+  // });
 });

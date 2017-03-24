@@ -49,7 +49,8 @@ class MapActionContainer extends Component {
       layerChooserOpen: false,
       activeTab: '1',
       canvasWidth: 480,
-      canvasHeight: 670
+      canvasHeight: 670,
+      getCapBusy: false
     };
     this.progtempLocations = [
       {
@@ -145,7 +146,9 @@ class MapActionContainer extends Component {
     let items = JSON.parse(localStorage.getItem('geoweb'));
     // eslint-disable-next-line no-undef
     var getCap = WMJSgetServiceFromStore(url);
+    this.setState({ getCapBusy: true });
     getCap.getCapabilities((e) => {
+      this.setState({ getCapBusy: false });
       const newServiceObj = {
         name: getCap.name ? getCap.name : getCap.title,
         title: getCap.title,
@@ -161,6 +164,9 @@ class MapActionContainer extends Component {
       this.getServices();
       getCap.getLayerObjectsFlat((layers) => this.props.dispatch(this.props.actions.addLayer({ ...layers[0], service: getCap.service })));
       this.toggleLayerChooser();
+    }, (error) => {
+      this.setState({ getCapBusy: false });
+      alert(error);
     });
   }
 
@@ -293,11 +299,22 @@ class MapActionContainer extends Component {
   }
 
   renderURLInput () {
+    var unit = document.getElementById('sourceurlinput');
+    if (unit && !this.urlinputhandlerinit) {
+      this.urlinputhandlerinit = true;
+      unit.addEventListener('keyup', function (event) {
+        event.preventDefault();
+        if (event.keyCode === 13) {
+          this.handleAddSource();
+        }
+      }.bind(this));
+    }
+
     return (
       <InputGroup>
-        <Input id='sourceurlinput' placeholder='Add your own source' />
+        <Input id='sourceurlinput' placeholder='Add your own source' disabled={this.state.getCapBusy} />
         <InputGroupButton>
-          <Button color='primary' onClick={this.handleAddSource}>Add</Button>
+          <Button color='primary' onClick={this.handleAddSource} disabled={this.state.getCapBusy}>Add</Button>
         </InputGroupButton>
       </InputGroup>
     );
@@ -324,7 +341,6 @@ class MapActionContainer extends Component {
   }
 
   modifyData (data, referenceTime, timeOffset) {
-    console.log(timeOffset);
     function fetchData (data, referenceTime, timeOffset, name) {
       let selectedData = data.filter((obj) => obj.name === name)[0].data;
       selectedData = (selectedData[Object.keys(selectedData)[timeOffset]]);
@@ -421,7 +437,7 @@ class MapActionContainer extends Component {
             width={this.state.canvasWidth} height={this.state.canvasHeight}
             onRenderCanvas={() => this.renderProgtempData(this.state.canvasWidth, this.state.canvasHeight, timeOffset)} />
           <div className='canvasLoadingOverlay' ref='canvasLoadingOverlay' />
-          <Typeahead onChange={this.setChosenLocation} options={this.progtempLocations} labelKey='name' />
+          <Typeahead onChange={this.setChosenLocation} options={this.progtempLocations} labelKey='name' placeholder='Type to select default location' submitFormOnEnter/>
         </PopoverContent>
       </Popover>
     );
@@ -478,7 +494,6 @@ class MapActionContainer extends Component {
   toggleCanvas () {
     var canvas = this.refs.canvasLoadingOverlay;
     const attribute = canvas.getAttribute('class');
-    console.log(attribute);
     if (!attribute || attribute === 'canvasLoadingOverlay') {
       canvas.setAttribute('class', 'canvasLoadingOverlay canvasDisabled');
     } else {
@@ -488,23 +503,25 @@ class MapActionContainer extends Component {
   componentWillReceiveProps (nextProps) {
     const { adagucProperties } = nextProps;
     const { layers, wmjslayers, progtemp } = adagucProperties;
-    if (wmjslayers.layers.length > 0 && layers.datalayers.filter((layer) => layer.title.includes('HARM')).length > 0) {
-      const harmlayer = wmjslayers.layers.filter((layer) => layer.service.includes('HARM'))[0];
+    if (!wmjslayers || !wmjslayers.layers || adagucProperties.mapMode !== 'progtemp') {
+      return;
+    }
+    if (wmjslayers.layers.length > 0 && layers.datalayers.filter((layer) => layer.title && layer.title.includes('HARM')).length > 0) {
+      const harmlayer = wmjslayers.layers.filter((layer) => layer.service && layer.service.includes('HARM'))[0];
+      if (!harmlayer) return;
       this.referenceTime = harmlayer.getDimension('reference_time').currentValue;
-      // this.referenceTime = '2017-03-23T09:00:00';
     }
     if (progtemp && this.props.adagucProperties.progtemp !== progtemp) {
       const { location } = progtemp;
       const harmlayer = wmjslayers.layers.filter((layer) => layer.service.includes('HARM'))[0];
+      if (!harmlayer) return;
       const refTime = harmlayer.getDimension('reference_time').currentValue;
       if (location && (refTime !== this.referenceTime || !this.props.adagucProperties.progtemp ||
         !this.props.adagucProperties.location || location !== this.props.adagucProperties.progtemp.location)) {
         this.referenceTime = refTime;
-        // this.referenceTime = '2017-03-23T09:00:00';
         const url = `http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.HARM_N25_ML.cgi?SERVICE=WMS&&SERVICE=WMS&VERSION=1.3.0
 &REQUEST=GetPointValue&LAYERS=&QUERY_LAYERS=air_pressure__at_ml,y_wind__at_ml,x_wind__at_ml,dewpoint_temperature__at_ml,air_temperature__at_ml
 &CRS=EPSG%3A4326&INFO_FORMAT=application/json&time=*&DIM_reference_time=` + this.referenceTime + `&x=` + location.x + `&y=` + location.y + `&DIM_modellevel=*`;
-        console.log(url);
         this.toggleCanvas();
         axios.get(url).then((res) => {
           if (res.data.includes('No data available')) {
@@ -512,7 +529,6 @@ class MapActionContainer extends Component {
             this.toggleCanvas();
             return;
           }
-          console.log(res.data);
           this.toggleCanvas();
           this.progtempData = res.data;
           this.renderProgtempData(this.state.canvasWidth, this.state.canvasHeight, Math.floor(moment.duration(moment.utc(adagucProperties.timedim).diff(moment.utc(this.referenceTime))).asHours()));

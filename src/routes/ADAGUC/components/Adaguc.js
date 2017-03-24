@@ -302,7 +302,9 @@ export default class Adaguc extends React.Component {
       this.onChangeAnimation(animate);
     }
     if (progtemp !== prevProps.adagucProperties.progtemp) {
-      this.webMapJS.positionMapPinByLatLon({ x: progtemp.location.x, y: progtemp.location.y });
+      if (progtemp && progtemp.location) {
+        this.webMapJS.positionMapPinByLatLon({ x: progtemp.location.x, y: progtemp.location.y });
+      }
     }
     if (mapMode !== prevProps.adagucProperties.mapMode) {
       if (prevProps.adagucProperties.mapMode === 'progtemp' && mapMode !== 'progtemp') {
