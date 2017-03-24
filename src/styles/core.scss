@@ -28,7 +28,17 @@ body {
   width: 100vw;
   overflow: hidden;
 }
-
+.canvasLoadingOverlay.canvasDisabled {
+  background-color: rgba(50, 50, 50, 0.4);
+}
+.canvasLoadingOverlay {
+  margin-top: -670px;
+  display: block;
+  background-color: rgba(50, 50, 50, 0);
+  width: 480px;
+  height: 670px;
+  z-index: 10000;
+}
 #root {
   height: inherit;
   width: inherit;

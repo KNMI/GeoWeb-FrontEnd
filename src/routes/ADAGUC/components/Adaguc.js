@@ -242,7 +242,7 @@ export default class Adaguc extends React.Component {
     // The first time, the map needs to be created. This is when in the previous state the map creation boolean is false
     // Otherwise only change when a new dataset is selected
     const { adagucProperties } = this.props;
-    const { layers, boundingBox, timedim, animate, mapMode } = adagucProperties;
+    const { layers, boundingBox, timedim, animate, mapMode, progtemp } = adagucProperties;
       // eslint-disable-next-line no-undef
     if (boundingBox !== prevProps.adagucProperties.boundingBox) {
       this.webMapJS.setBBOX(boundingBox.bbox.join());
@@ -301,12 +301,17 @@ export default class Adaguc extends React.Component {
     if (animate !== prevProps.adagucProperties.animate) {
       this.onChangeAnimation(animate);
     }
+    if (progtemp !== prevProps.adagucProperties.progtemp) {
+      this.webMapJS.positionMapPinByLatLon({ x: progtemp.location.x, y: progtemp.location.y });
+    }
     if (mapMode !== prevProps.adagucProperties.mapMode) {
       if (prevProps.adagucProperties.mapMode === 'progtemp' && mapMode !== 'progtemp') {
         this.webMapJS.removeListener('mouseclicked');
+        this.webMapJS.enableInlineGetFeatureInfo(true);
       }
 
       if (prevProps.adagucProperties.mapMode !== 'progtemp' && mapMode === 'progtemp') {
+        this.webMapJS.enableInlineGetFeatureInfo(false);
         this.webMapJS.addListener('mouseclicked', (e) => this.findClosestProgtempLoc(e), true);
       }
       switch (mapMode) {
