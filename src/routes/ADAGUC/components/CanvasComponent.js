@@ -26,10 +26,8 @@ const CanvasComponent = React.createClass({
     if (!this.refs) return;
     if (!this.refs.canvas) return;
     let canvas = this.refs.canvas;
-    // eslint-disable-next-line no-undef
-    const parentWidth = $(canvas).parent().width();
-    // eslint-disable-next-line no-undef
-    const parentHeight = $(canvas).parent().height();
+    const parentWidth = canvas.parentElement.getBoundingClientRect().width;
+    const parentHeight = canvas.parentElement.getBoundingClientRect().height;
     if (this.width === parentWidth && this.height === parentHeight) {
       return;
     }
@@ -54,6 +52,7 @@ const CanvasComponent = React.createClass({
       this.initialized = true;
     }
     const ctx = this.refs.canvas.getContext('2d');
+    if (!ctx) return;
     ctx.canvas.width = parentWidth;
     ctx.canvas.height = parentHeight;
     this.props.onRenderCanvas(ctx);
