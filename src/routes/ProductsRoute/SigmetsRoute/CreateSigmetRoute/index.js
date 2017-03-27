@@ -1,30 +1,41 @@
 import TasksContainer from '../../../../containers/TasksContainer';
-import Inspector from '../../../../components/Inspector';
-import Empty from '../../../../components/Empty';
+import SigmetsContainer from '../../../../containers/SigmetsContainer';
+import MapActionsContainer from '../../../../containers/MapActionsContainer';
+import MapPanel from '../../../../components/MapPanel';
+import LayerManagerPanel from '../../../../components/LayerManagerPanel';
 import TitleBarContainer from '../../../../containers/TitleBarContainer';
 import { connect } from 'react-redux';
+import { actions } from '../../../ADAGUC/modules/adaguc';
 
 const mapStateToHeaderProps = (state) => {
   return {
     title: 'header',
-    isLoggedIn: false
+    isLoggedIn: state.adagucProperties.user.isLoggedIn,
+    userName: state.adagucProperties.user.userName
   };
-};
-
-const mapStateToLeftSideBarProps = (state) => {
-  return { title: 'leftSideBar Create SIGMET' };
 };
 
 const mapStateToEmptyProps = (state) => {
   return {};
 };
 
-const mapStateToMainViewportProps = (state) => {
-  return { title: 'main Create SIGMET' };
+const mapStateToMapProps = (state) => {
+  return { adagucProperties: state.adagucProperties };
+};
+
+const mapStateToLayerManagerProps = (state) => {
+  return { adagucProperties: state.adagucProperties };
+};
+
+const mapDispatchToMainViewportProps = function (dispatch) {
+  return ({
+    dispatch: dispatch,
+    actions: actions
+  });
 };
 
 const mapStateToRightSideBarProps = (state) => {
-  return { title: 'rightSideBar Create SIGMET' };
+  return { adagucProperties: state.adagucProperties };
 };
 
 // Sync route definition
@@ -32,10 +43,11 @@ export default () => ({
   path: 'create_sigmet',
   title: 'Create SIGMET',
   components : {
-    header: connect(mapStateToHeaderProps)(TitleBarContainer),
-    leftSideBar: connect(mapStateToLeftSideBarProps)(Inspector),
-    secondLeftSideBar: connect(mapStateToEmptyProps)(Empty),
-    mainViewport: connect(mapStateToMainViewportProps)(TasksContainer),
-    rightSideBar: connect(mapStateToRightSideBarProps)(Inspector)
+    header: connect(mapStateToHeaderProps, mapDispatchToMainViewportProps)(TitleBarContainer),
+    leftSideBar: connect(mapStateToEmptyProps)(TasksContainer),
+    secondLeftSideBar: connect(mapStateToEmptyProps)(SigmetsContainer),
+    map: connect(mapStateToMapProps, mapDispatchToMainViewportProps)(MapPanel),
+    layerManager: connect(mapStateToLayerManagerProps, mapDispatchToMainViewportProps)(LayerManagerPanel),
+    rightSideBar: connect(mapStateToRightSideBarProps, mapDispatchToMainViewportProps)(MapActionsContainer)
   }
 });

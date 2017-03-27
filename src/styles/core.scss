@@ -288,8 +288,12 @@ a.breadcrumb-active:hover, a.nav-link.active:hover {
   border-radius: 0.19rem;
 }
 
+.accordion.card > a {
+  display: inherit
+}
+
 .accordion .card-header {
-  padding: 0.75rem 1rem;
+  padding: 0.5rem 0.7rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -320,6 +324,18 @@ a.breadcrumb-active:hover, a.nav-link.active:hover {
   cursor: pointer;
 }
 
+.accordion .card-header .btn-outline-info:disabled {
+  border: none;
+  color: transparent;
+  padding: 0 0.5rem;
+  margin-left: 0.5rem;
+  cursor: inherit;
+}
+
+.accordion .card-header .btn-outline-info:disabled:hover {
+  background: inherit;
+}
+
 .accordion .card-block .btn-group-vertical > .btn:first-child {
   border-radius: 0;
 }
@@ -338,7 +354,7 @@ a.breadcrumb-active:hover, a.nav-link.active:hover {
 }
 
 .accordion .badge {
-  padding: 0.4rem 0.8rem;
+  padding: 0.3rem 0.5rem;
 }
 
 .accordion .card-block .icon {
@@ -403,7 +419,7 @@ main:fullscreen {
   margin: 0 0.2rem 0.2rem 0.2rem;
 }
 
-.TasksContainer {
+.TasksContainer, .SigmetsContainer {
   flex: 1;
 }
 
@@ -502,4 +518,8 @@ span.badge {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+span.fa {
+  padding-top: 0.1rem;
 }
