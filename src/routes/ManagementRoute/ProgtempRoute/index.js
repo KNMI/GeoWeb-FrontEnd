@@ -29,6 +29,7 @@ export default () => ({
   components : {
     header: connect(mapStateToHeaderProps, mapDispatchToMainViewportProps)(TitleBarContainer),
     leftSideBar: Empty,
+    secondLeftSideBar: Empty,
     map: connect(mapStateToMapProps, mapDispatchToMainViewportProps)(ProgtempManagementPanel),
     layerManager: Empty,
     rightSideBar: Empty
