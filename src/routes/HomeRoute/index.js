@@ -3,6 +3,7 @@ import MapActionsContainer from '../../containers/MapActionsContainer';
 import MapPanel from '../../components/MapPanel';
 import LayerManagerPanel from '../../components/LayerManagerPanel';
 import TitleBarContainer from '../../containers/TitleBarContainer';
+import Empty from '../../components/Empty';
 import { connect } from 'react-redux';
 import { actions } from '../ADAGUC/modules/adaguc';
 const mapStateToHeaderProps = (state) => {
@@ -15,6 +16,10 @@ const mapStateToHeaderProps = (state) => {
 
 const mapStateToLeftSideBarProps = (state) => {
   return { };
+};
+
+const mapStateToEmptyProps = (state) => {
+  return {};
 };
 
 const mapStateToMapProps = (state) => {
@@ -41,6 +46,7 @@ export default () => ({
   components : {
     header: connect(mapStateToHeaderProps, mapDispatchToMainViewportProps)(TitleBarContainer),
     leftSideBar: connect(mapStateToLeftSideBarProps)(TasksContainer),
+    secondLeftSideBar: connect(mapStateToEmptyProps)(Empty),
     map: connect(mapStateToMapProps, mapDispatchToMainViewportProps)(MapPanel),
     layerManager: connect(mapStateToLayerManagerProps, mapDispatchToMainViewportProps)(LayerManagerPanel),
     rightSideBar: connect(mapStateToRightSideBarProps, mapDispatchToMainViewportProps)(MapActionsContainer)
