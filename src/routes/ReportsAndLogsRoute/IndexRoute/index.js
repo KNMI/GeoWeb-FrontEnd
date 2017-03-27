@@ -1,5 +1,6 @@
 import TasksContainer from '../../../containers/TasksContainer';
 import Inspector from '../../../components/Inspector';
+import Empty from '../../../components/Empty';
 import TitleBarContainer from '../../../containers/TitleBarContainer';
 import { connect } from 'react-redux';
 
@@ -12,6 +13,10 @@ const mapStateToHeaderProps = (state) => {
 
 const mapStateToLeftSideBarProps = (state) => {
   return { title: 'leftSideBar Reports & Logs' };
+};
+
+const mapStateToEmptyProps = (state) => {
+  return {};
 };
 
 const mapStateToMainViewportProps = (state) => {
@@ -28,6 +33,7 @@ export default () => ({
   components : {
     header: connect(mapStateToHeaderProps)(TitleBarContainer),
     leftSideBar: connect(mapStateToLeftSideBarProps)(Inspector),
+    secondLeftSideBar: connect(mapStateToEmptyProps)(Empty),
     mainViewport: connect(mapStateToMainViewportProps)(TasksContainer),
     rightSideBar: connect(mapStateToRightSideBarProps)(Inspector)
   }
