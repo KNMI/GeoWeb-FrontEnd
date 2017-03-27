@@ -437,7 +437,7 @@ class MapActionContainer extends Component {
             width={this.state.canvasWidth} height={this.state.canvasHeight}
             onRenderCanvas={() => this.renderProgtempData(this.state.canvasWidth, this.state.canvasHeight, timeOffset)} />
           <div className='canvasLoadingOverlay' ref='canvasLoadingOverlay' />
-          <Typeahead onChange={this.setChosenLocation} options={this.progtempLocations} labelKey='name' placeholder='Type to select default location' submitFormOnEnter/>
+          <Typeahead onChange={this.setChosenLocation} options={this.progtempLocations} labelKey='name' placeholder='Type to select default location' submitFormOnEnter />
         </PopoverContent>
       </Popover>
     );

@@ -3,10 +3,10 @@ import { Row } from 'reactstrap';
 
 class Panel extends Component {
   render () {
-    const { title, style } = this.props;
+    const { title, style, className } = this.props;
     if (!title) {
       return (
-        <div className='Panel'>
+        <div className={className ? 'Panel ' + className : 'Panel'}>
           <Row className='title notitle' style={style} />
           <Row className='content notitle' style={style}>
             {this.props.children}
@@ -15,7 +15,7 @@ class Panel extends Component {
       );
     } else {
       return (
-        <div className='Panel'>
+        <div className={'Panel ' + className}>
           <Row className='title' style={style}>
             {title || 'Oops'}
           </Row>
@@ -31,7 +31,8 @@ class Panel extends Component {
 Panel.propTypes = {
   title: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
   children: PropTypes.oneOfType([PropTypes.element, PropTypes.array]),
-  style: PropTypes.object
+  style: PropTypes.object,
+  className: PropTypes.string
 };
 
 export default Panel;

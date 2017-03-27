@@ -49,7 +49,6 @@ body {
   max-height: 40rem;
   width: 100%;
 }
-
 .layerinfo > span:not(.editable) {
   cursor: default;
 }
@@ -61,7 +60,6 @@ body {
 .popover-content > li,.btn-group-vertical > .btn {
   cursor: pointer;
 }
-
 .row {
   margin: 0;
 }
@@ -358,8 +356,16 @@ a.breadcrumb-active:hover, a.nav-link.active:hover {
   padding: 0;
 }
 
-.container-fluid div:not(.collapse):not(.dropdown-menu):not(.btn-group-vertical) {
+.container-fluid div:not(.collapse):not(.dropdown-menu):not(.btn-group-vertical):not(.managementPanel) {
   display: inherit;
+}
+
+.container-fluid .MainSection .MainViewport .map .managementPanel .content .tab-content > .tab-pane {
+    display: none;
+}
+
+.container-fluid .MainSection .MainViewport .map .managementPanel .content .tab-content > .active {
+    display: block;
 }
 
 .btn > .icon:first-child {
