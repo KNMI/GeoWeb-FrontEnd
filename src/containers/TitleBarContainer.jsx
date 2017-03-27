@@ -238,6 +238,7 @@ class TitleBarContainer extends Component {
           <Col xs='auto'>
             <Nav>
               <NavLink className='active' onClick={this.toggleLoginModal} ><Icon name='user' id='loginIcon' />{isLoggedIn ? ' ' + userName : ' Sign in'}</NavLink>
+              {isLoggedIn ? <Link to='manage' className='active nav-link'><Icon name='cog' /></Link> : '' }
               <NavLink className='active' onClick={this.toggleFullscreen} ><Icon name='expand' /></NavLink>
             </Nav>
           </Col>

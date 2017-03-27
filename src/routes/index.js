@@ -8,6 +8,7 @@ import MonitoringAndTriggersRoute from './MonitoringAndTriggersRoute';
 import FullScreenRoute from './FullScreenRoute';
 import LayoutTestRoute from './LayoutTestRoute';
 import FileNotFoundRoute from './FileNotFoundRoute';
+import ManagementRoute from './ManagementRoute';
 
 /*  Note: Instead of using JSX, we recommend using react-router
     PlainRoute objects to build route definitions.   */
@@ -23,6 +24,7 @@ export const createRoutes = (store) => ({
     MonitoringAndTriggersRoute(),
     FullScreenRoute(),
     LayoutTestRoute(),
+    ManagementRoute(),
     FileNotFoundRoute()
   ]
 });
