@@ -61,14 +61,14 @@ class SigmetCategory extends Component {
   constructor (props) {
     super(props);
     this.toggle = this.toggle.bind(this);
-    this.getHRS4code = this.getHRS4code.bind(this);
+    this.getHRS4code = this.getHRT4code.bind(this);
     this.getExistingSigmets = this.getExistingSigmets.bind(this);
     this.gotExistingSigmetsCallback = this.gotExistingSigmetsCallback.bind(this);
     this.state = { isOpen: props.isOpen, list: [] };
   }
 
-  // get Human Readable String for Code
-  getHRS4code (code) {
+  // get Human Readable Text for Code
+  getHRT4code (code) {
     const codeFragments = code.split('_');
     let variantIndex;
     let additionIndex;
@@ -89,7 +89,7 @@ class SigmetCategory extends Component {
       } else {
         return true;
       }
-    }).map((item) => {
+    });/*.map((item) => {
       if (item.additions.length > 0) {
         additionIndex = item.additions.findIndex((addition) => codeFragments[1].endsWith(addition.code));
         if (additionIndex > -1) {
@@ -99,8 +99,9 @@ class SigmetCategory extends Component {
       } else {
         return item;
       }
-    }).filter((item) => typeof item !== 'undefined');
+    }).filter((item) => typeof item !== 'undefined');*/
     console.log('Mapped', effectiveMapping);
+    return effectiveMapping[0].variants[0].name + ' ' + effectiveMapping[0].phenomenon.name.toLowerCase();
   }
 
   toggle () {
@@ -123,7 +124,7 @@ class SigmetCategory extends Component {
   gotExistingSigmetsCallback (message) {
     this.setState({ list: message && message.data ? message.data : [] });
     if (this.state.list.length > 0) {
-      this.getHRS4code(this.state.list[0].phenomenon);
+      this.getHRT4code(this.state.list[0].phenomenon);
     } else {
       console.log('No list');
     }
