@@ -97,7 +97,7 @@ export default class LocationManagementPanel extends React.Component {
   }
 }
 
-class LocationMapper extends React.Component {
+export class LocationMapper extends React.Component {
   constructor () {
     super();
     this.addCard = this.addCard.bind(this);
@@ -122,7 +122,6 @@ class LocationMapper extends React.Component {
     this.setState({ locations: arrayCpy });
   }
   setEditMode (i) {
-    console.log('call');
     let arrayCpy = this.state.locations.map((a) => Object.assign(a));
     arrayCpy[i].edit = true;
     this.setState({ locations: arrayCpy });
@@ -139,7 +138,6 @@ class LocationMapper extends React.Component {
     this.setState({ locations: nextprops.locations });
   }
   render () {
-    console.log(this.props.locations);
     return (
       <Panel style={{ overflowX: 'hidden', overflowY: 'auto' }}>
         <Row style={{ flex: 1 }}>
