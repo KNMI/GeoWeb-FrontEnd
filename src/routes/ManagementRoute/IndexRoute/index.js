@@ -7,6 +7,7 @@ import { actions } from '../../ADAGUC/modules/adaguc';
 const mapStateToMapProps = (state) => {
   return { adagucProperties: state.adagucProperties };
 };
+
 const mapStateToHeaderProps = (state) => {
   return {
     title: 'header',
