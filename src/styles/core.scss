@@ -355,6 +355,16 @@ a.breadcrumb-active:hover, a.nav-link.active:hover {
 
 .accordion .badge {
   padding: 0.3rem 0.5rem;
+  border: 0.12rem solid white;
+}
+
+.accordion .badge.collapsed {
+  font-size: 68%;
+  padding: 0.23rem 0.3rem;
+  margin-left: -0.6rem;
+  margin-right: 0.6rem;
+  margin-top: -0.2rem;
+  margin-bottom: 0.5rem;
 }
 
 .accordion .card-block .icon {

@@ -158,10 +158,10 @@ class TasksContainer extends Component {
     });
     return (
       <Col className='TasksContainer'>
-        <CollapseOmni className='CollapseOmni' isOpen={this.state.isOpen} isHorizontal minSize={80} maxSize={300}>
+        <CollapseOmni className='CollapseOmni' isOpen={this.state.isOpen} isHorizontal minSize={64} maxSize={300}>
           <Panel className='Panel' title={title}>
             {filteredItems.map((item, index) =>
-              <TaskCategory key={index} title={item.title} isOpen={hasFilter} parentCollapsed={!this.state.isOpen}
+              <TaskCategory key={index} title={item.title} isOpen={this.state.isOpen && hasFilter} parentCollapsed={!this.state.isOpen}
                 icon={item.icon} notifications={item.notifications} link={item.link} tasks={item.tasks} />)
               }
           </Panel>
@@ -200,7 +200,7 @@ class TaskCategory extends Component {
           </Col>
           <Col xs='auto'>&nbsp;</Col>
           <Col xs='auto'>
-            {notifications > 0 ? <Badge color='danger' >{notifications}</Badge> : null}
+            {notifications > 0 ? <Badge color='danger' pill className='collapsed'>{notifications}</Badge> : null}
           </Col>
         </CardHeader></Link>
         : <CardHeader onClick={this.toggle} title={title}>
@@ -211,7 +211,7 @@ class TaskCategory extends Component {
             {title}
           </Col>
           <Col xs='auto'>
-            {notifications > 0 ? <Badge color='danger'>{notifications}</Badge> : null}
+            {notifications > 0 ? <Badge color='danger' pill>{notifications}</Badge> : null}
           </Col>
           <Col xs='auto'>
             <Link to={link} className='row'>
@@ -235,7 +235,7 @@ class TaskCategory extends Component {
                         {item.title}
                       </Col>
                       <Col xs='auto'>
-                        {item.notifications > 0 ? <Badge color='danger'>{item.notifications}</Badge> : null}
+                        {item.notifications > 0 ? <Badge pill color='danger'>{item.notifications}</Badge> : null}
                       </Col>
                       <Col xs='auto'>
                         <Icon name='caret-right' className='icon' />
