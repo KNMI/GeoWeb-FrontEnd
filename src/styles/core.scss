@@ -348,6 +348,13 @@ a.breadcrumb-active:hover, a.nav-link.active:hover {
   box-shadow: unset;
 }
 
+.loc-card {
+  margin: 1rem;
+  height: 11rem;
+  max-height: 11rem;
+  min-width: 14rem;
+}
+
 .container-fluid {
   height: inherit;
   display: flex;
@@ -356,7 +363,7 @@ a.breadcrumb-active:hover, a.nav-link.active:hover {
   padding: 0;
 }
 
-.container-fluid div:not(.collapse):not(.dropdown-menu):not(.btn-group-vertical):not(.managementPanel) {
+.container-fluid div:not(.collapse):not(.dropdown-menu):not(.btn-group-vertical):not(.managementPanel):not(.loc-card):not(.managementRow) {
   display: inherit;
 }
 

@@ -181,7 +181,7 @@ LocationCard.propTypes = {
 class EditCard extends React.Component {
   render () {
     const { name, x, y, i, doneEditing } = this.props;
-    return <Card className='col-auto' key={i} style={{ margin: '1rem', height: '11rem', maxHeight: '11rem', minWidth: '14rem' }} block>
+    return <Card className='col-auto loc-card' key={i} block>
       <CardTitle><Input style={{ margin: 0 }} id={'nameinput' + i} placeholder='Location name' defaultValue={name} required /></CardTitle>
       <CardText>
         <table style={{ display: 'table', width: '100%' }}>
@@ -206,13 +206,13 @@ EditCard.propTypes = {
   x: React.PropTypes.number.isRequired,
   y: React.PropTypes.number.isRequired,
   i: React.PropTypes.number.isRequired,
-  doneEditing: React.PropTypes.func.isRequired,
+  doneEditing: React.PropTypes.func.isRequired
 };
 
 class StaticCard extends React.Component {
   render () {
     const { name, x, y, i, setEditMode, deleteLocation } = this.props;
-    return <Card className='col-auto' key={i} style={{ margin: '1rem', height: '11rem', maxHeight: '11rem', minWidth: '14rem' }} block>
+    return <Card className='col-auto loc-card' key={i} block>
       <CardTitle>{name}</CardTitle>
       <CardText>
         <table style={{ display: 'table', width: '100%' }}>
