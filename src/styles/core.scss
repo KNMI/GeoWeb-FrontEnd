@@ -64,7 +64,7 @@ body {
   margin: 0;
 }
 
-.col {
+.col, .col-6 {
   padding: 0;
 }
 
@@ -435,13 +435,12 @@ main:fullscreen {
 .Panel {
   flex-direction: column;
   width: 100%;
-  background: white;
 }
 
 .Panel > .title {
   box-sizing: border-box;
   max-height: 4.25rem;
-  background: inherit;
+  background: white;
   border-bottom: 0.06rem solid #4bb0ce;
   @extend .rounded-top;
   box-shadow: 0 0.05rem 0.25rem rgba(0,0,0,0.5);
@@ -470,7 +469,7 @@ main:fullscreen {
 
 .Panel > .content {
   box-sizing: border-box;
-  background: inherit;
+  background: white;
   border-bottom: 0.06rem solid $inverse-hover-color;
   @extend .rounded-bottom;
   box-shadow: 0 0.15rem 0.25rem rgba(0,0,0,0.5);

@@ -26,7 +26,8 @@ const initialState = {
       isLoggedIn: false,
       userName: ''
     },
-    mapMode: 'pan'
+    mapMode: 'pan',
+    layout: 'single'
   }
 };
 
