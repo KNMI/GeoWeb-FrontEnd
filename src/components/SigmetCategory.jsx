@@ -240,7 +240,7 @@ class SigmetCategory extends Component {
 
   gotExistingSigmetsCallback (message) {
     console.log('Got SIGMETs list feedback', message);
-    let sigmetsList = message && message.data ? message.data : [];
+    let sigmetsList = message && message.data && message.data.sigmets ? message.data.sigmets : [];
     console.log('List 1', sigmetsList);
     sigmetsList.forEach((sigmet) => {
       sigmet.phenomenonHRT = this.getHRT4code(sigmet.phenomenon);

@@ -31,6 +31,10 @@
 */
 
   var WebMapJSMapNo = 0;
+
+  var legendImageStore; // GLOBAL LEGEND IMAGE STORE
+  var imageStore; // GLOBAL IMAGE STORE
+
   var logging = false;
 
   var base = './';
@@ -161,13 +165,13 @@
     var updateSRS = '';
 
     var legendDivBuffer = [];
-    var legendImageStore = new WMJSImageStore(maxAnimationSteps * 5, undefined, 'wmjslegendbuffer');//, imageLoadComplete);
+    legendImageStore = new WMJSImageStore(maxAnimationSteps * 5, undefined, 'wmjslegendbuffer');//, imageLoadComplete);
     _map.getLegendStore = function () {
       return legendImageStore;
     };
 
     var divBuffer = [];
-    var imageStore = new WMJSImageStore(maxAnimationSteps * 5, undefined, 'wmjsimagebuffer');//, imageLoadComplete);
+    imageStore = new WMJSImageStore(maxAnimationSteps * 5, undefined, 'wmjsimagebuffer');//, imageLoadComplete);
     var loadingDiv = $('<div class="WMJSDivBuffer-loading"/>', {});
     var initialized = 0;
     var newSwapBuffer = 0;
