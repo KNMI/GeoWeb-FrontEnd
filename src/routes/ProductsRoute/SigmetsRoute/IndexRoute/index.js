@@ -44,7 +44,7 @@ export default () => ({
   components : {
     header: connect(mapStateToHeaderProps, mapDispatchToMainViewportProps)(TitleBarContainer),
     leftSideBar: connect(mapStateToEmptyProps)(TasksContainer),
-    secondLeftSideBar: connect(mapStateToEmptyProps)(SigmetsContainer),
+    secondLeftSideBar: connect(mapStateToMapProps, mapDispatchToMainViewportProps)(SigmetsContainer),
     map: connect(mapStateToMapProps, mapDispatchToMainViewportProps)(MapPanel),
     layerManager: connect(mapStateToLayerManagerProps, mapDispatchToMainViewportProps)(LayerManagerPanel),
     rightSideBar: connect(mapStateToRightSideBarProps, mapDispatchToMainViewportProps)(MapActionsContainer)

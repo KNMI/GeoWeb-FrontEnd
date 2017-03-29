@@ -66,7 +66,7 @@ body {
   margin: 0;
 }
 
-.col {
+.col, .col-6, .col-2, .col-3, .col-4, .col-10 {
   padding: 0;
 }
 
@@ -514,6 +514,44 @@ main:fullscreen {
 
 .SmallLayerManagerPanel .btn:not(:last-child) {
   margin-right: 0.33rem;
+}
+
+.Sigmet {
+  @extend .row;
+  padding: 0;
+}
+
+.Sigmet .row {
+  width: 100%;
+}
+
+.Sigmet .col.alert {
+  padding: 0.3rem;
+  margin: 0;
+}
+
+.Sigmet.btn {
+  width: 100%;
+}
+
+.Sigmet input.level {
+  background: yellow;
+}
+
+.SigmetsContainer .content {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.SigmetsContainer .accordion .btn.row {
+  padding: 0;
+  min-height: 13rem;
+}
+
+.card-block {
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-height: 20rem;
 }
 
 *,

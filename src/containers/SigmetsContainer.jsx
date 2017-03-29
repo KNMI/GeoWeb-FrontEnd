@@ -7,21 +7,32 @@ import SigmetCategory from '../components/SigmetCategory';
 import Panel from '../components/Panel';
 import { BACKEND_SERVER_URL } from '../routes/ADAGUC/constants/backend';
 
-const sigmetsUrl = BACKEND_SERVER_URL + '/sigmet/getsigmetlist?';
+const getSigmetsUrl = BACKEND_SERVER_URL + '/sigmet/getsigmetlist?';
+const setSigmetUrl = BACKEND_SERVER_URL + '/sigmet/storesigmet';
 const items = [
   {
     title: 'Open issued SIGMETs',
     icon: 'folder-open',
-    source: sigmetsUrl + 'active=true'
+    source: getSigmetsUrl + 'active=true',
+    editable: false
+  },
+  {
+    title: 'Open archived SIGMETs',
+    icon: 'archive',
+    source: getSigmetsUrl + 'active=false&status=CANCELLED',
+    editable: false
   },
   {
     title: 'Open concept SIGMETs',
     icon: 'folder-open-o',
-    source: sigmetsUrl + 'active=false&status=production'
+    source: getSigmetsUrl + 'active=false&status=PRODUCTION',
+    editable: false
   },
   {
     title: 'Create new SIGMET',
-    icon: 'star-o'
+    icon: 'star-o',
+    source: setSigmetUrl,
+    editable: true
   }
 ];
 
@@ -53,11 +64,12 @@ class SigmetsContainer extends Component {
     });
     return (
       <Col className='SigmetsContainer'>
-        <CollapseOmni className='CollapseOmni' isOpen={this.state.isOpen} isHorizontal minSize={64} maxSize={500}>
+        <CollapseOmni className='CollapseOmni' isOpen={this.state.isOpen} isHorizontal minSize={64} maxSize={400}>
           <Panel className='Panel' title={title}>
             {filteredItems.map((item, index) =>
-              <SigmetCategory key={index} title={item.title} isOpen={hasFilter} parentCollapsed={!this.state.isOpen}
-                icon={item.icon} source={item.source} />)}
+              <SigmetCategory adagucProperties={this.props.adagucProperties}
+                dispatch={this.props.dispatch} actions={this.props.actions} key={index} title={item.title} isOpen={hasFilter} parentCollapsed={!this.state.isOpen}
+                icon={item.icon} source={item.source} editable={item.editable} />)}
           </Panel>
         </CollapseOmni>
       </Col>

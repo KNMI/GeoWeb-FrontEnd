@@ -1,12 +1,15 @@
 import React, { Component, PropTypes } from 'react';
-import { Button, Col, Row, Badge, Card, CardHeader, CardBlock } from 'reactstrap';
-import { Link } from 'react-router';
+import { Button, Col, Row, Badge, Card, CardHeader, CardBlock, Alert, ButtonGroup, Input } from 'reactstrap';
+import { Typeahead } from 'react-bootstrap-typeahead';
 import Moment from 'react-moment';
 import Icon from 'react-fa';
 import axios from 'axios';
+import cloneDeep from 'lodash/cloneDeep';
 import CollapseOmni from '../components/CollapseOmni';
+
 const timeFormat = 'YYYY MMM DD - HH:mm';
-const shortTimeFormat = 'HH:mm';
+// const shortTimeFormat = 'HH:mm';
+const SEPARATOR = '_';
 const phenomenonMapping = [
   {
     'phenomenon': { 'name': 'Thunderstorm', 'code': 'TS' },
@@ -17,7 +20,7 @@ const phenomenonMapping = [
       { 'name': 'Squall line', 'code': 'SQL' }
     ],
     'additions': [
-      { 'name': 'With hail', 'code': 'GR' }
+      { 'name': 'with hail', 'code': 'GR' }
     ]
   },
   {
@@ -33,7 +36,7 @@ const phenomenonMapping = [
       { 'name': 'Severe', 'code': 'SEV' }
     ],
     'additions': [
-      { 'name': 'due to freezing rain', 'code': ' (FZRA)' }
+      { 'name': 'due to freezing rain', 'code': '(FZRA)' }
     ]
   },
   {
@@ -61,6 +64,10 @@ class SigmetCategory extends Component {
   constructor (props) {
     super(props);
     this.toggle = this.toggle.bind(this);
+    this.onObsOrFcstClick = this.onObsOrFcstClick.bind(this);
+    this.setPhenomenon = this.setPhenomenon.bind(this);
+    this.saveSigmet = this.saveSigmet.bind(this);
+    this.savedSigmetCallback = this.savedSigmetCallback.bind(this);
     this.getHRS4code = this.getHRT4code.bind(this);
     this.getExistingSigmets = this.getExistingSigmets.bind(this);
     this.gotExistingSigmetsCallback = this.gotExistingSigmetsCallback.bind(this);
@@ -69,11 +76,21 @@ class SigmetCategory extends Component {
 
   // get Human Readable Text for Code
   getHRT4code (code) {
-    const codeFragments = code.split('_');
+    console.log('HRT requested', code);
+    if (typeof code === 'undefined') {
+      console.log('Oeps');
+      return UNKNOWN;
+    }
+    const UNKNOWN = 'Unknown';
+    const codeFragments = code.split(SEPARATOR);
+    if (codeFragments.length < 2) {
+      return UNKNOWN;
+    }
+    let result = '';
     let variantIndex;
     let additionIndex;
 
-    const effectiveMapping = phenomenonMapping.map((item) => {
+    const effectiveMapping = cloneDeep(phenomenonMapping).map((item) => {
       if (item.variants.length > 0) {
         variantIndex = item.variants.findIndex((variant) => codeFragments[0].startsWith(variant.code));
         if (variantIndex > -1) {
@@ -89,29 +106,95 @@ class SigmetCategory extends Component {
       } else {
         return true;
       }
-    });/*.map((item) => {
+    }).map((item) => {
       if (item.additions.length > 0) {
         additionIndex = item.additions.findIndex((addition) => codeFragments[1].endsWith(addition.code));
         if (additionIndex > -1) {
-          item.matchedAddition = item.additions[additionIndex];
+          item.additions = [item.additions[additionIndex]];
           return item;
+        } else if (codeFragments.length > 2) {
+          additionIndex = item.additions.findIndex((addition) => codeFragments[2].endsWith(addition.code));
+          if (additionIndex > -1) {
+            item.additions = [item.additions[additionIndex]];
+            return item;
+          }
         }
-      } else {
-        return item;
       }
-    }).filter((item) => typeof item !== 'undefined');*/
-    console.log('Mapped', effectiveMapping);
-    return effectiveMapping[0].variants[0].name + ' ' + effectiveMapping[0].phenomenon.name.toLowerCase();
+      item.additions = [];
+      return item;
+    });
+    if (effectiveMapping.length === 1) {
+      if (effectiveMapping[0].variants.length === 1) {
+        result = effectiveMapping[0].variants[0].name + ' ' + effectiveMapping[0].phenomenon.name.toLowerCase();
+      } else if (effectiveMapping[0].variants.length === 0) {
+        result = effectiveMapping[0].phenomenon.name;
+      } else {
+        result = UNKNOWN;
+      }
+      if (effectiveMapping[0].additions.length === 1) {
+        result += ' ' + effectiveMapping[0].additions[0].name;
+      }
+      return result;
+    }
+    return UNKNOWN;
+  }
+
+  getPhenomena () {
+    let result = [];
+    phenomenonMapping.forEach((item) => {
+      item.variants.forEach((variant) => {
+        result.push({
+          name: variant.name + ' ' + item.phenomenon.name.toLowerCase(),
+          code: variant.code + SEPARATOR + item.phenomenon.code
+        });
+      });
+    });
+    return result;
   }
 
   toggle () {
     this.setState({ isOpen: !this.state.isOpen });
   }
 
-  getExistingSigmets (sourceUrl) {
+  onObsOrFcstClick (obsSelected) {
+    const newList = cloneDeep(this.state.list);
+    newList[0].obs_or_forecast.obs = obsSelected;
+    this.setState({ list: newList });
+  }
+
+  setPhenomenon (phenomenon) {
+    if (typeof phenomenon === 'undefined') {
+      return;
+    }
+    const newList = cloneDeep(this.state.list);
+    newList[0].phenomenon = phenomenon[0].code;
+    this.setState({ list: newList });
+    // TODO: also get the presets for this phenomenon
+  }
+
+  saveSigmet () {
+    const newList = cloneDeep(this.state.list);
+    newList[0].geojson = this.props.adagucProperties.adagucmapdraw.geojson;
+    console.log(this.props.adagucProperties.adagucmapdraw.geojson);
+    console.log(newList[0].geojson);
+    this.setState({ list: newList });
+    axios({
+      method: 'post',
+      url: this.props.source,
+      withCredentials: true,
+      responseType: 'json',
+      data: JSON.stringify(newList[0])
+    }).then(src => {
+      this.savedSigmetCallback(src);
+    }).catch(error => {
+      this.savedSigmetCallback(error.response);
+    });
+  }
+
+  getExistingSigmets () {
     axios({
       method: 'get',
-      url: sourceUrl,
+      url: this.props.source,
       withCredentials: true,
       responseType: 'json'
     }).then(src => {
@@ -121,26 +204,142 @@ class SigmetCategory extends Component {
     });
   }
 
+  setEmptySigmet () {
+    this.setState({
+      list: [{
+        geojson                   : {
+          type                    : 'FeatureCollection',
+          features                :[]
+        },
+        phenomenon                : '',
+        obs_or_forecast           : {
+          obs                     : true
+        },
+        level                     : {
+          lev1                    : {
+            value                 : 100.0,
+            unit                  : 'FL'
+          }
+        },
+        movement                  : {
+          stationary              : true
+        },
+        change                    : 'NC',
+        forecast_position         : '',
+        issuedate                 : '',
+        validdate                 : '',
+        firname                   : '',
+        location_indicator_icao   : 'EHAA',
+        // icao_location_indicator   : 'EHAA',
+        location_indicator_mwo    : 'EHDB',
+        uuid                      : '00000000-0000-0000-0000-000000000000',
+        status                    : 'PRODUCTION'
+      }]
+    });
+  }
+
   gotExistingSigmetsCallback (message) {
-    this.setState({ list: message && message.data ? message.data : [] });
-    if (this.state.list.length > 0) {
-      this.getHRT4code(this.state.list[0].phenomenon);
-    } else {
-      console.log('No list');
-    }
+    console.log('Got SIGMETs list feedback', message);
+    let sigmetsList = message && message.data ? message.data : [];
+    console.log('List 1', sigmetsList);
+    sigmetsList.forEach((sigmet) => {
+      sigmet.phenomenonHRT = this.getHRT4code(sigmet.phenomenon);
+    });
+    console.log('List length 2', sigmetsList.length);
+    console.log('List 2', sigmetsList);
+    this.setState({ list: sigmetsList });
+  }
+
+  savedSigmetCallback (message) {
+    console.log('Saved SIGMET feedback', message);
   }
 
   componentWillMount () {
-    this.getExistingSigmets(this.props.source);
+    if (this.props.editable) {
+      this.setEmptySigmet();
+    } else {
+      this.getExistingSigmets(this.props.source);
+    }
   }
 
   componentWillReceiveProps (nextProps) {
     this.setState({ isOpen: nextProps.isOpen });
   }
-
+  drawSIGMET (geojson) {
+    this.props.dispatch(this.props.actions.setGeoJSON(geojson));
+  }
+  renderWhatBlock (editable, item) {
+    console.log('What?: ', item);
+    console.log('What?: ', editable);
+    return (
+      <Row>
+        <Col xs='2'>
+          <Badge color='success' style={{ width: '100%' }}>What</Badge>
+        </Col>
+        {editable ? <Typeahead className='col' onChange={this.setPhenomenon} options={this.getPhenomena()} labelKey='name' />
+        : <Alert color='success' className='col'>
+          {item.phenomenonHRT}
+        </Alert>}
+        {editable ? <ButtonGroup className='col'>
+          <Button color='primary' onClick={() => this.onObsOrFcstClick(true)} active={this.state.list[0].obs_or_forecast.obs}>Observed</Button>
+          <Button color='primary' onClick={() => this.onObsOrFcstClick(false)} active={!this.state.list[0].obs_or_forecast.obs}>Forecast</Button>
+        </ButtonGroup>
+        : <Col xs='auto'>{item.obs_or_forecast.obs ? 'Observed' : 'Forecast'}</Col>}
+      </Row>);
+  }
+  renderWhenBlock (editable, item) {
+    return (
+      <Row>
+        <Col xs='2'>
+          <Badge color='success' style={{ width: '100%' }}>When</Badge>
+        </Col>
+        <Col xs='4'>
+          <Badge color='warning'>Issue date</Badge>
+        </Col>
+        <Col xs='auto'>
+          {editable ? <div>
+            <Input defaultValue='2017 Mar 30' />
+            <Input defaultValue='13:37 UTC' />
+          </div>
+          : <Moment format={timeFormat} date={item.issuedate} />}
+        </Col>
+      </Row>);
+  }
+  renderWhereBlock (editable, item) {
+    return (
+      <Row>
+        <Col xs='2'>
+          <Badge color='success' style={{ width: '100%' }}>Where</Badge>
+        </Col>
+        {editable ? <Input />
+        : <Alert className='col'>
+          {item.level.lev1 ? item.level.lev1.value + item.level.lev1.unit : ''}
+        </Alert>}
+        {editable ? <Col />
+        : <Col xs='auto'><Button color='primary' onClick={() => this.drawSIGMET({ geojson: item.geojson })}>Show</Button></Col>}
+      </Row>);
+  }
+  renderBlock (editable, item) {
+    return <Row className='btn' style={{ flexDirection: 'column' }}>
+      <Row>{this.renderWhatBlock(editable, item)}</Row>
+      <Row>{this.renderWhenBlock(editable, item)}</Row>
+      <Row>{this.renderWhereBlock(editable, item)}</Row>
+      {editable ? <Row>
+        <Col />
+        <Col xs='auto'>
+          <Button color='primary' onClick={this.saveSigmet}>Save</Button>
+        </Col>
+      </Row> : ''}
+      <Row>
+        <Col>FIR name</Col>
+        <Col>Amsterdam FIR</Col>
+      </Row>
+    </Row>;
+  }
   render () {
-    const { title, icon, parentCollapsed } = this.props;
-    const notifications = this.state.list.length;
+    const { title, icon, parentCollapsed, editable } = this.props;
+    const notifications = !editable ? this.state.list.length : 0;
+    const maxSize = editable ? 800 : this.state.list ? Math.min(250 * this.state.list.length, 600) : 0;
     return (
       <Card className='row accordion'>
         {parentCollapsed ? <CardHeader>
@@ -163,38 +362,14 @@ class SigmetCategory extends Component {
             {notifications > 0 ? <Badge color='danger' pill>{notifications}</Badge> : null}
           </Col>
         </CardHeader>}
-        <CollapseOmni className='CollapseOmni' isOpen={this.state.isOpen} minSize={0} maxSize={this.state.list ? 80 * this.state.list.length : 0}>
-          <CardBlock>
-            <Row>
-              <Col className='btn-group-vertical'>
-                {this.state.list ? this.state.list.map((item, i) =>
-                  <Button tag='button' className='row' key={item.uuid}>
-                    <Col xs='auto' style={{ paddingRight: '0.4rem' }}>
-                      <Moment format={timeFormat} date={item.issuedate} />
-                      <Icon name='angle-right' style={{ padding: '0 0.3rem' }} />
-                      <Moment format={shortTimeFormat} date={item.validdate} />&nbsp;UTC
-                    </Col>
-                    <Col>
-                      {item.phenomenon}
-                    </Col>
-                    <Col xs='auto'>
-                      <Icon name='caret-right' className='icon' />
-                    </Col>
-                  </Button>) : ''}
-              </Col>
-{/*            {this.state.list ? this.state.list.map((item, i) =>
-              <Row key={item.uuid} style={{ flexDirection: 'row' }}>
-                <Col xs='auto'>{item.phenomenon}</Col>
-                <Col xs='auto'>{item.firname}</Col>
-                <Col xs='auto'>{item.validdate}</Col>
-                <Col xs='auto'>{item.issuedate}</Col>
-              </Row>
-            ) : ''}*/}
-            </Row>
+        <CollapseOmni className='CollapseOmni' isOpen={this.state.isOpen} minSize={0} maxSize={maxSize}>
+          <CardBlock style={{ flexDirection: 'column' }}>
+            {
+              this.state.list.map((item, i) => { return <Row style={{ width: '100%' }}>{this.renderBlock(editable, item)}</Row>; })
+            }
           </CardBlock>
         </CollapseOmni>
-      </Card>
-    );
+      </Card>);
   }
 }
 
@@ -203,7 +378,9 @@ SigmetCategory.propTypes = {
   title         : PropTypes.string.isRequired,
   icon          : PropTypes.string,
   source        : PropTypes.string,
-  parentCollapsed : PropTypes.bool
+  parentCollapsed : PropTypes.bool,
+  editable      : PropTypes.bool,
+  adagucProperties: PropTypes.object
 };
 
 export default SigmetCategory;
