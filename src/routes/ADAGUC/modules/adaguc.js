@@ -22,6 +22,7 @@ const TOGGLE_ANIMATION = 'TOGGLE_ANIMATION';
 const SET_MAP_MODE = 'SET_MAP_MODE';
 const SET_LAYOUT = 'SET_LAYOUT';
 const PROGTEMP_LOCATION = 'PROGTEMP_LOCATION';
+const SET_GEOJSON = 'SET_GEOJSON';
 import { ADAGUCMAPDRAW_UPDATEFEATURE } from '../components/AdagucMapDraw';
 import { ADAGUCMEASUREDISTANCE_UPDATE } from '../components/AdagucMeasureDistance';
 
@@ -247,7 +248,8 @@ export const actions = {
   toggleAnimation,
   setTimeDimension,
   progtempLocation,
-  setLayout
+  setLayout,
+  setGeoJSON
 };
 
 /*
@@ -397,6 +399,18 @@ const doDeleteLayer = (state, payload) => {
   return Object.assign({}, state, { layers: fitleredLayers });
 };
 
+function setGeoJSON (json) {
+  return {
+    type: SET_GEOJSON,
+    payload: json
+  };
+}
+
+const newGeoJSON = (state, payload) => {
+  console.log(payload);
+  return Object.assign({}, state, { adagucmapdraw: payload });
+};
+
 const handleAdagucMapDrawUpdateFeature = (state, payload) => {
   /* Returning new state is not strictly necessary,
     as the geojson in AdagucMapDraw is the same and does not require rerendering of the AdagucMapDraw component
@@ -454,7 +468,8 @@ const ACTION_HANDLERS = {
   [TOGGLE_ANIMATION]              : (state, action) => doToggleAnimation(state),
   [SET_MAP_MODE]                  : (state, action) => newMapMode(state, action.payload),
   [PROGTEMP_LOCATION]             : (state, action) => setProgtempLocation(state, action.payload),
-  [SET_LAYOUT]                    : (state, action) => newLayout(state, action.payload)
+  [SET_LAYOUT]                    : (state, action) => newLayout(state, action.payload),
+  [SET_GEOJSON]                   : (state, action) => newGeoJSON(state, action.payload)
 };
 
 // ------------------------------------

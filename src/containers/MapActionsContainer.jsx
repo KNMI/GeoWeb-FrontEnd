@@ -576,7 +576,7 @@ class MapActionContainer extends Component {
       {
         title: 'Show progtemp',
         action: 'progtemp',
-        icon: 'bolt',
+        icon: 'bullseye',
         onClick: 'progtemp'
       }
     ];

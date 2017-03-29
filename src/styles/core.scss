@@ -49,6 +49,7 @@ body {
   max-height: 40rem;
   width: 100%;
 }
+
 .layerinfo > span:not(.editable) {
   cursor: default;
 }
@@ -60,11 +61,12 @@ body {
 .popover-content > li,.btn-group-vertical > .btn {
   cursor: pointer;
 }
+
 .row {
   margin: 0;
 }
 
-.col, .col-6 {
+.col, .col-6, .col-2, .col-3, .col-4, .col-10 {
   padding: 0;
 }
 
@@ -286,8 +288,12 @@ a.breadcrumb-active:hover, a.nav-link.active:hover {
   border-radius: 0.19rem;
 }
 
+.accordion.card > a {
+  display: inherit
+}
+
 .accordion .card-header {
-  padding: 0.75rem 1rem;
+  padding: 0.5rem 0.7rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -318,6 +324,18 @@ a.breadcrumb-active:hover, a.nav-link.active:hover {
   cursor: pointer;
 }
 
+.accordion .card-header .btn-outline-info:disabled {
+  border: none;
+  color: transparent;
+  padding: 0 0.5rem;
+  margin-left: 0.5rem;
+  cursor: inherit;
+}
+
+.accordion .card-header .btn-outline-info:disabled:hover {
+  background: inherit;
+}
+
 .accordion .card-block .btn-group-vertical > .btn:first-child {
   border-radius: 0;
 }
@@ -336,7 +354,17 @@ a.breadcrumb-active:hover, a.nav-link.active:hover {
 }
 
 .accordion .badge {
-  padding: 0.4rem 0.8rem;
+  padding: 0.3rem 0.5rem;
+  border: 0.12rem solid white;
+}
+
+.accordion .badge.collapsed {
+  font-size: 68%;
+  padding: 0.23rem 0.3rem;
+  margin-left: -0.6rem;
+  margin-right: 0.6rem;
+  margin-top: -0.2rem;
+  margin-bottom: 0.5rem;
 }
 
 .accordion .card-block .icon {
@@ -416,7 +444,7 @@ main:fullscreen {
   margin: 0 0.2rem 0.2rem 0.2rem;
 }
 
-.TasksContainer {
+.TasksContainer, .SigmetsContainer {
   flex: 1;
 }
 
@@ -494,6 +522,44 @@ main:fullscreen {
   margin-right: 0.33rem;
 }
 
+.Sigmet {
+  @extend .row;
+  padding: 0;
+}
+
+.Sigmet .row {
+  width: 100%;
+}
+
+.Sigmet .col.alert {
+  padding: 0.3rem;
+  margin: 0;
+}
+
+.Sigmet.btn {
+  width: 100%;
+}
+
+.Sigmet input.level {
+  background: yellow;
+}
+
+.SigmetsContainer .content {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.SigmetsContainer .accordion .btn.row {
+  padding: 0;
+  min-height: 13rem;
+}
+
+.card-block {
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-height: 20rem;
+}
+
 *,
 *:before,
 *:after {
@@ -514,4 +580,8 @@ span.badge {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+span.fa {
+  padding-top: 0.1rem;
 }

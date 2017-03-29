@@ -17,21 +17,7 @@ const AdagucMapDraw = React.createClass({
     return {
       isInEditMode:false,
       isInDeleteMode:false,
-      webmapjs:undefined,
-      geojson: { 'type': 'FeatureCollection',
-        'features': [
-          { 'type': 'Feature',
-            'geometry': {
-              'type': 'Polygon',
-              'coordinates': []
-            },
-            'properties': {
-              'prop0': 'value0',
-              'prop1': { 'this':  'that' }
-            }
-          }
-        ]
-      }
+      webmapjs:undefined
     };
   },
   convertGeoCoordsToScreenCoords (featureCoords) {
