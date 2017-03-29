@@ -362,6 +362,7 @@ export default class Adaguc extends React.Component {
         <div ref='adaguc' />
         <div style={{ margin: '5px 10px 10px 5px ' }}>
           <AdagucMapDraw
+            geojson={adagucProperties.adagucmapdraw.geojson}
             dispatch={dispatch}
             isInEditMode={adagucProperties.mapMode === 'draw' || adagucProperties.mapMode === 'delete'}
             isInDeleteMode={adagucProperties.mapMode === 'delete'}

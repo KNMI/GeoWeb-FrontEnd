@@ -6,16 +6,13 @@ import TitleBarContainer from '../../containers/TitleBarContainer';
 import Empty from '../../components/Empty';
 import { connect } from 'react-redux';
 import { actions } from '../ADAGUC/modules/adaguc';
+
 const mapStateToHeaderProps = (state) => {
   return {
     title: 'header',
     isLoggedIn: state.adagucProperties.user.isLoggedIn,
     userName: state.adagucProperties.user.userName
   };
-};
-
-const mapStateToLeftSideBarProps = (state) => {
-  return { };
 };
 
 const mapStateToEmptyProps = (state) => {
@@ -45,7 +42,7 @@ export default () => ({
   title: 'GeoWeb',
   components : {
     header: connect(mapStateToHeaderProps, mapDispatchToMainViewportProps)(TitleBarContainer),
-    leftSideBar: connect(mapStateToLeftSideBarProps)(TasksContainer),
+    leftSideBar: connect(mapStateToEmptyProps)(TasksContainer),
     secondLeftSideBar: connect(mapStateToEmptyProps)(Empty),
     map: connect(mapStateToMapProps, mapDispatchToMainViewportProps)(MapPanel),
     layerManager: connect(mapStateToLayerManagerProps, mapDispatchToMainViewportProps)(LayerManagerPanel),

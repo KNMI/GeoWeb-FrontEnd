@@ -26,7 +26,23 @@ const initialState = {
       isLoggedIn: false,
       userName: ''
     },
-    mapMode: 'pan'
+    mapMode: 'pan',
+    adagucmapdraw: {
+      geojson: { 'type': 'FeatureCollection',
+        'features': [
+          { 'type': 'Feature',
+            'geometry': {
+              'type': 'Polygon',
+              'coordinates': []
+            },
+            'properties': {
+              'prop0': 'value0',
+              'prop1': { 'this':  'that' }
+            }
+          }
+        ]
+      }
+    }
   }
 };
 

@@ -10,7 +10,7 @@ describe('(Container) TasksContainer', () => {
 
   it('Allows setting collapse state', () => {
     const _component = mount(<TasksContainer />);
-    expect(_component.state().collapse).to.eql(false);
+    expect(_component.state().isOpen).to.eql(false);
     _component.setState({ collapse: true });
     expect('everything').to.be.ok;
   });
@@ -24,7 +24,7 @@ describe('(Container) TasksContainer', () => {
 
   it('Allows triggering the toggle function', () => {
     const _component = mount(<TasksContainer />);
-    expect(_component.state().collapse).to.eql(false);
+    expect(_component.state().isOpen).to.eql(false);
     let evt = new KeyboardEvent('keydown', {
       bubbles: true,
       cancelable: true,
@@ -32,6 +32,6 @@ describe('(Container) TasksContainer', () => {
       keyCode: 122
     });
     _component.instance().toggle(evt);
-    expect(_component.state().collapse).to.eql(true);
+    expect(_component.state().isOpen).to.eql(true);
   });
 });
