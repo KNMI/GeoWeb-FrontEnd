@@ -3,6 +3,8 @@ import Icon from 'react-fa';
 import GeoWebLogo from '../components/assets/icon.svg';
 import axios from 'axios';
 import { Navbar, NavbarBrand, Row, Col, Nav, NavLink, Breadcrumb, BreadcrumbItem, Collapse,
+ButtonGroup, Popover,
+PopoverContent,
   Modal, ModalHeader, ModalBody, ModalFooter, Button, InputGroup, Input, FormText } from 'reactstrap';
 import { Link, hashHistory } from 'react-router';
 import { BACKEND_SERVER_URL } from '../routes/ADAGUC/constants/backend';
@@ -31,9 +33,8 @@ class TitleBarContainer extends Component {
     this.checkCredentialsBadCallback = this.checkCredentialsBadCallback.bind(this);
     this.getServices = this.getServices.bind(this);
 
-    // TODO REMOVE THIS WHEN /getuser SERVLET IS IMPLEMENTED IN THE BACKEND
-    this.inputfieldUserName = 'met1';
-    this.inputfieldPassword = 'met1';
+    this.inputfieldUserName = '';
+    this.inputfieldPassword = '';
     this.timer = -1;
 
     this.state = {
@@ -75,6 +76,7 @@ class TitleBarContainer extends Component {
   componentDidMount () {
     this.timer = setInterval(this.setTime, 15000);
     this.setState({ currentTime: moment.utc().format(timeFormat).toString() });
+    this.checkCredentials();
   }
 
   doLogin () {
@@ -110,15 +112,14 @@ class TitleBarContainer extends Component {
   }
 
   checkCredentials () {
-    if (this.inputfieldUserName === '') return;
+    console.log('checkCredentials', BACKEND_SERVER_URL + '/getuser');
+    // if (this.inputfieldUserName === '') return;
     this.setState({
       loginModalMessage: 'Checking...'
     });
-
-    // TODO make use of /getuser instead of /login when available
     axios({
       method: 'get',
-      url: BACKEND_SERVER_URL + '/login?type=checklogin&username=' + this.inputfieldUserName + '&password=' + this.inputfieldPassword,
+      url: BACKEND_SERVER_URL + '/getuser',
       withCredentials: true,
       responseType: 'json'
     }).then(src => {
@@ -141,9 +142,16 @@ class TitleBarContainer extends Component {
   };
 
   checkCredentialsOKCallback (data) {
+    console.log('checkCredentialsOKCallback');
     const { dispatch, actions } = this.props;
     const username = data.username ? data.username : data.userName;
     if (username && username.length > 0) {
+      if (username === 'guest') {
+        this.setState({
+          loginModalMessage: ''
+        });
+        return;
+      }
       dispatch(actions.login(username));
       this.setState({
         loginModal: false,
@@ -158,6 +166,7 @@ class TitleBarContainer extends Component {
   }
 
   checkCredentialsBadCallback (error) {
+    console.log('checkCredentialsBadCallback');
     const { dispatch, actions } = this.props;
     dispatch(actions.logout());
     this.setState({
@@ -238,6 +247,7 @@ class TitleBarContainer extends Component {
             <Nav>
               <NavLink className='active' onClick={this.toggleLoginModal} ><Icon name='user' id='loginIcon' />{isLoggedIn ? ' ' + userName : ' Sign in'}</NavLink>
               {isLoggedIn ? <Link to='manage' className='active nav-link'><Icon name='cog' /></Link> : '' }
+              {isLoggedIn ? <LayoutDropDown dispatch={this.props.dispatch} actions={this.props.actions} /> : '' }
               <NavLink className='active' onClick={this.toggleFullscreen} ><Icon name='expand' /></NavLink>
             </Nav>
           </Col>
@@ -270,6 +280,41 @@ class TitleBarContainer extends Component {
     );
   }
 }
+
+class LayoutDropDown extends Component {
+  constructor () {
+    super();
+    this.postLayout = this.postLayout.bind(this);
+    this.state = {
+      popoverOpen: false
+    };
+  }
+  postLayout (layout) {
+    this.props.dispatch(this.props.actions.setLayout(layout));
+    this.setState({ popoverOpen: false });
+  }
+  render () {
+    return <NavLink className='active' onClick={() => this.setState({ popoverOpen: !this.state.popoverOpen })} >
+      <Icon id='layoutbutton' name='desktop' />
+      <Popover isOpen={this.state.popoverOpen} target='layoutbutton'>
+        <PopoverContent>
+          <ButtonGroup vertical>
+            <Button onClick={() => this.postLayout('single')}>Single</Button>
+            <Button onClick={() => this.postLayout('dual')}>Dual column</Button>
+            <Button onClick={() => this.postLayout('quaduneven')}>Uneven quad</Button>
+            <Button onClick={() => this.postLayout('quadcol')}>Four columns</Button>
+          </ButtonGroup>
+
+        </PopoverContent>
+      </Popover>
+    </NavLink>;
+  }
+}
+
+LayoutDropDown.propTypes = {
+  dispatch: PropTypes.func.isRequired,
+  actions: PropTypes.object.isRequired
+};
 
 TitleBarContainer.propTypes = {
   isLoggedIn: PropTypes.bool,

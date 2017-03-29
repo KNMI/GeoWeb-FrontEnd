@@ -2035,6 +2035,7 @@
       mouseWheelBusy = 0;
       _map.zoomTo(updateBBOX);
       mouseWheelBusyDelayTimer.init(250, function () { controlsBusy = false; _map.draw('mouseWheelEvent'); });
+      callBack.triggerEvent('onscroll', updateBBOX);
       // _map.zoomTo(bbox);_map.draw("mouseWheelEvent");
     };
 
@@ -2898,6 +2899,7 @@
       if (mouseDragging == 0) return; mouseDragging = 0;
       if (mapMode == 'pan')mapPanEnd(x, y);
       if (mapMode == 'zoom')mapZoomEnd(x, y);
+      callBack.triggerEvent('mapdragend', { map:_map, x:mouseUpX, y:mouseUpY });
     };
 
     // Map zoom and pan functions

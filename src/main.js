@@ -27,6 +27,7 @@ const initialState = {
       userName: ''
     },
     mapMode: 'pan',
+    layout: 'single',
     adagucmapdraw: {
       geojson: { 'type': 'FeatureCollection',
         'features': [

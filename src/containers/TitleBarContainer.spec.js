@@ -102,6 +102,7 @@ describe('(Component) TitleBarContainer', () => {
         routes={[ { path: 'testpath' } ]}
       />
      );
+    _component.instance().inputfieldUserName = 'someuser';
     _component.instance().checkCredentialsOKCallback({ userName:'' });
     expect(_component.state().loginModalMessage).to.equal('Unauthorized');
   });

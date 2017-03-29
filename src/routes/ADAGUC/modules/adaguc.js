@@ -20,6 +20,7 @@ const SET_WMJSLAYERS = 'SET_WMJSLAYERS';
 const SET_TIME_DIMENSION = 'SET_TIME_DIMENSION';
 const TOGGLE_ANIMATION = 'TOGGLE_ANIMATION';
 const SET_MAP_MODE = 'SET_MAP_MODE';
+const SET_LAYOUT = 'SET_LAYOUT';
 const PROGTEMP_LOCATION = 'PROGTEMP_LOCATION';
 const SET_GEOJSON = 'SET_GEOJSON';
 import { ADAGUCMAPDRAW_UPDATEFEATURE } from '../components/AdagucMapDraw';
@@ -35,6 +36,12 @@ function createMap (sources, overlays) {
       sources: sources,
       overlays: overlays
     }
+  };
+}
+function setLayout (layout) {
+  return {
+    type: SET_LAYOUT,
+    payload: layout
   };
 }
 function progtempLocation (closest) {
@@ -241,6 +248,7 @@ export const actions = {
   toggleAnimation,
   setTimeDimension,
   progtempLocation,
+  setLayout,
   setGeoJSON
 };
 
@@ -434,6 +442,9 @@ const setProgtempLocation = (state, payload) => {
   const loc = { location: payload };
   return Object.assign({}, state, { progtemp: loc });
 };
+const newLayout = (state, payload) => {
+  return Object.assign({}, state, { layout: payload });
+};
 // ------------------------------------
 // Action Handlers
 // ------------------------------------
@@ -457,6 +468,7 @@ const ACTION_HANDLERS = {
   [TOGGLE_ANIMATION]              : (state, action) => doToggleAnimation(state),
   [SET_MAP_MODE]                  : (state, action) => newMapMode(state, action.payload),
   [PROGTEMP_LOCATION]             : (state, action) => setProgtempLocation(state, action.payload),
+  [SET_LAYOUT]                    : (state, action) => newLayout(state, action.payload),
   [SET_GEOJSON]                   : (state, action) => newGeoJSON(state, action.payload)
 };
 
