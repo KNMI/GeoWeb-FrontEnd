@@ -19,6 +19,7 @@ export default class Adaguc extends React.Component {
     this.onChangeAnimation = this.onChangeAnimation.bind(this);
     this.timeHandler = this.timeHandler.bind(this);
     this.drawLocations = this.drawLocations.bind(this);
+    this.updateBBOX = this.updateBBOX.bind(this);
     this.isAnimating = false;
     this.state = {
       dropdownOpenView: false,
@@ -126,7 +127,9 @@ export default class Adaguc extends React.Component {
       return;
     }
     this.webMapJS.stopAnimating();
-    this.props.dispatch(this.props.actions.setWMJSLayers({ layers: this.webMapJS.getLayers(), baselayers: this.webMapJS.getBaseLayers() }));
+    if (this.props.master) {
+      this.props.dispatch(this.props.actions.setWMJSLayers({ layers: this.webMapJS.getLayers(), baselayers: this.webMapJS.getBaseLayers() }));
+    }
     layer.onReady = undefined;
     if (layer.getDimension('reference_time')) {
       layer.setDimension('reference_time', layer.getDimension('reference_time').getValueForIndex(layer.getDimension('reference_time').size() - 1), false);
@@ -151,7 +154,9 @@ export default class Adaguc extends React.Component {
     }
     if (wmjstime !== this.prevTime) {
       this.prevTime = wmjstime;
-      this.props.dispatch(this.props.actions.setTimeDimension(wmjstime));
+      if (this.props.master) {
+        this.props.dispatch(this.props.actions.setTimeDimension(wmjstime));
+      }
     }
   }
   /* istanbul ignore next */
@@ -160,7 +165,11 @@ export default class Adaguc extends React.Component {
     this.webMapJS.setSize($(element).width(), $(element).height());
     this.webMapJS.draw();
   }
-
+  updateBBOX () {
+    const { dispatch, actions } = this.props;
+    const bbox = this.webMapJS.getBBOX();
+    dispatch(actions.setCut({ title: 'Custom', bbox: [bbox.left, bbox.bottom, bbox.right, bbox.top] }));
+  }
   /* istanbul ignore next */
   initAdaguc (adagucMapRef) {
     const { adagucProperties, actions, dispatch } = this.props;
@@ -179,6 +188,9 @@ export default class Adaguc extends React.Component {
     // Set the initial projection
     this.webMapJS.setProjection(adagucProperties.projectionName);
     this.webMapJS.setBBOX(adagucProperties.boundingBox.bbox.join());
+    this.webMapJS.addListener('onscroll', this.updateBBOX, true);
+    this.webMapJS.addListener('mapdragend', this.updateBBOX, true);
+
     // eslint-disable-next-line no-undef
     this.webMapJS.setBaseLayers([new WMJSLayer(adagucProperties.layers.baselayer)]);
     const defaultURLs = ['getServices', 'getOverlayServices'].map((url) => BACKEND_SERVER_URL + '/' + url);
@@ -203,8 +215,10 @@ export default class Adaguc extends React.Component {
     }
     // eslint-disable-next-line no-undef
     let currentDate = getCurrentDateIso8601();
-    dispatch(actions.setTimeDimension(currentDate.toISO8601()));
-    dispatch(actions.setWMJSLayers({ layers: this.webMapJS.getLayers(), baselayers: this.webMapJS.getBaseLayers() }));
+    if (this.props.master) {
+      dispatch(actions.setTimeDimension(currentDate.toISO8601()));
+      dispatch(actions.setWMJSLayers({ layers: this.webMapJS.getLayers(), baselayers: this.webMapJS.getBaseLayers() }));
+    }
     this.webMapJS.draw();
   }
 
@@ -292,8 +306,9 @@ export default class Adaguc extends React.Component {
         }
       }
       // this.onChangeAnimation(animate);
-
-      this.props.dispatch(this.props.actions.setWMJSLayers({ layers: this.webMapJS.getLayers(), baselayers: this.webMapJS.getBaseLayers() }));
+      if (this.props.master) {
+        this.props.dispatch(this.props.actions.setWMJSLayers({ layers: this.webMapJS.getLayers(), baselayers: this.webMapJS.getBaseLayers() }));
+      }
     }
     if (timedim !== prevProps.adagucProperties.timedim) {
       this.webMapJS.setDimension('time', timedim, true);
@@ -426,5 +441,6 @@ ModelTime.propTypes = {
 Adaguc.propTypes = {
   adagucProperties : React.PropTypes.object.isRequired,
   actions          : React.PropTypes.object.isRequired,
-  dispatch         : React.PropTypes.func.isRequired
+  dispatch         : React.PropTypes.func.isRequired,
+  master           : React.PropTypes.bool
 };
