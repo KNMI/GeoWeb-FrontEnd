@@ -1,7 +1,6 @@
 import React from 'react';
 import Panel from '../Panel';
 import { Input, Card, Button, CardTitle, CardText, Row, Col, FormGroup, Label } from 'reactstrap';
-import { Icon } from 'react-fa';
 export default class ProgtempManagementPanel extends React.Component {
   constructor (props) {
     super(props);
@@ -117,7 +116,7 @@ export default class ProgtempManagementPanel extends React.Component {
       <Panel style={{ overflowX: 'hidden', overflowY: 'auto' }}>
         <Row style={{ flex: 1 }}>
           {this.state.locations.map((loc, i) =>
-            <Card className='col-auto' key={i} style={{ margin: '1rem', height: '11rem', maxHeight: '11rem', minWidth: '14rem' }} block>
+            <Card className='col-auto loc-card' key={i} block>
               <CardTitle>{loc.name}</CardTitle>
               <CardText>
                 <table style={{ display: 'table', width: '100%' }}>

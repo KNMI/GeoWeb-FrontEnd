@@ -44,8 +44,8 @@ export default class ManagementPanel extends React.Component {
         </Nav>
         <TabContent activeTab={this.state.activeTab}>
           <TabPane tabId='1'>
-            <Row>
-              <Card block>
+            <Row className='managementRow'>
+              <Card className='col-auto loc-card' block>
                 <CardTitle>Locaties</CardTitle>
                 <CardText>De lijst met vaste locaties.</CardText>
                 <Link to='manage/locations' className='row'>
@@ -55,9 +55,9 @@ export default class ManagementPanel extends React.Component {
             </Row>
           </TabPane>
           <TabPane tabId='2'>
-            <Row>
+            <Row className='managementRow'>
               <Col sm='6'>
-                <Card block>
+                <Card className='col-auto loc-card' block>
                   <CardTitle>Bijvoet Diagram</CardTitle>
                   <CardText>Selecteer de locaties die beschikbaar moeten zijn voor het Bijvoetdiagram.</CardText>
                   <Link to='manage/product/progtemp' className='row'>
@@ -67,7 +67,7 @@ export default class ManagementPanel extends React.Component {
                 </Card>
               </Col>
               <Col sm='6'>
-                <Card block>
+                <Card className='col-auto loc-card' block>
                   <CardTitle>SIGMET</CardTitle>
                   <CardText>Selecteer de standaardlagen en uitsnede voor het maken van een SIGMET.</CardText>
                   <Link to='manage/product/sigmet' className='row'>
