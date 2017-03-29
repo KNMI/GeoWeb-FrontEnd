@@ -32,9 +32,8 @@ class TitleBarContainer extends Component {
     this.checkCredentialsBadCallback = this.checkCredentialsBadCallback.bind(this);
     this.getServices = this.getServices.bind(this);
 
-    // TODO REMOVE THIS WHEN /getuser SERVLET IS IMPLEMENTED IN THE BACKEND
-    this.inputfieldUserName = 'met1';
-    this.inputfieldPassword = 'met1';
+    this.inputfieldUserName = '';
+    this.inputfieldPassword = '';
     this.timer = -1;
 
     this.state = {
@@ -76,6 +75,7 @@ class TitleBarContainer extends Component {
   componentDidMount () {
     this.timer = setInterval(this.setTime, 15000);
     this.setState({ currentTime: moment.utc().format(timeFormat).toString() });
+    this.checkCredentials();
   }
 
   doLogin () {
@@ -111,15 +111,14 @@ class TitleBarContainer extends Component {
   }
 
   checkCredentials () {
-    if (this.inputfieldUserName === '') return;
+    console.log('checkCredentials', BACKEND_SERVER_URL + '/getuser');
+    // if (this.inputfieldUserName === '') return;
     this.setState({
       loginModalMessage: 'Checking...'
     });
-
-    // TODO make use of /getuser instead of /login when available
     axios({
       method: 'get',
-      url: BACKEND_SERVER_URL + '/login?type=checklogin&username=' + this.inputfieldUserName + '&password=' + this.inputfieldPassword,
+      url: BACKEND_SERVER_URL + '/getuser',
       withCredentials: true,
       responseType: 'json'
     }).then(src => {
@@ -142,9 +141,16 @@ class TitleBarContainer extends Component {
   };
 
   checkCredentialsOKCallback (data) {
+    console.log('checkCredentialsOKCallback');
     const { dispatch, actions } = this.props;
     const username = data.username ? data.username : data.userName;
     if (username && username.length > 0) {
+      if (username === 'guest') {
+        this.setState({
+          loginModalMessage: ''
+        });
+        return;
+      }
       dispatch(actions.login(username));
       this.setState({
         loginModal: false,
@@ -159,6 +165,7 @@ class TitleBarContainer extends Component {
   }
 
   checkCredentialsBadCallback (error) {
+    console.log('checkCredentialsBadCallback');
     const { dispatch, actions } = this.props;
     dispatch(actions.logout());
     this.setState({
