@@ -52,7 +52,7 @@ class CollapseOmni extends Component {
 
     this.state = {
       collapse: props.isOpen ? SHOWN : HIDDEN,
-      size: this.getMinSize()
+      size: props.isOpen ? props.maxSize : props.minSize
     };
     this.element = null;
   }
@@ -108,10 +108,6 @@ class CollapseOmni extends Component {
       return isNaN(delay[key]) ? DEFAULT_DELAYS[key] : delay[key];
     }
     return delay;
-  }
-
-  getMinSize () {
-    return this.props.minSize; // !== 0 ? this.props.minSize : null;
   }
 
   getStyle () {

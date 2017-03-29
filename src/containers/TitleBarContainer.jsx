@@ -4,8 +4,7 @@ import GeoWebLogo from '../components/assets/icon.svg';
 import axios from 'axios';
 import { Navbar, NavbarBrand, Row, Col, Nav, NavLink, Breadcrumb, BreadcrumbItem, Collapse,
   Modal, ModalHeader, ModalBody, ModalFooter, Button, InputGroup, Input, FormText } from 'reactstrap';
-import { Link } from 'react-router';
-import { hashHistory } from 'react-router';
+import { Link, hashHistory } from 'react-router';
 import { BACKEND_SERVER_URL } from '../routes/ADAGUC/constants/backend';
 let moment = require('moment');
 
