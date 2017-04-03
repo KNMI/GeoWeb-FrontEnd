@@ -1,5 +1,5 @@
 
-var WMJSImageStore = function (maxNumberOfImages, _loadEventCallback, _type) {
+var WMJSImageStore = function (maxNumberOfImages, _type) {
   // console.log("Creating new Imagestore");
   this.images = [];
   this.imagesbysrc = {};
@@ -7,7 +7,13 @@ var WMJSImageStore = function (maxNumberOfImages, _loadEventCallback, _type) {
   var imageLifeCounter = 0;
   var _this = this;
   var type = _type;
-  var loadEventCallback = _loadEventCallback;
+  var loadEventCallbackList = []; // Array of callbacks, as multiple instances can register listeners
+
+  var imageLoadEventCallback = function (_img) {
+    for (var j = 0; j < loadEventCallbackList.length; j++) {
+      loadEventCallbackList[j](_img);
+    }
+  };
 
   /**
    * Check if we have similar images with the same source in the pipeline
@@ -25,8 +31,8 @@ var WMJSImageStore = function (maxNumberOfImages, _loadEventCallback, _type) {
     }
   };
 
-  _this.setLoadEventCallback = function (callback) {
-    loadEventCallback = callback;
+  _this.addLoadEventCallback = function (callback) {
+    loadEventCallbackList.push(callback);
 //     for(var j=0;j<_this.images.length;j++){
 //       _this.images[j].setLoadEventCallback(callback);
 //     }
@@ -53,7 +59,7 @@ var WMJSImageStore = function (maxNumberOfImages, _loadEventCallback, _type) {
     if (_this.images.length < maxNumberOfImages) {
       // console.log("Creating new image: "+this.images.length);
       // console.log(type);
-      var image = new WMJSImage(src, loadEventCallback, type);
+      var image = new WMJSImage(src, imageLoadEventCallback, type);
       image.setSource(src);
       image.KVP = WMJSKVP(src);
       _this.imagesbysrc[src] = image;

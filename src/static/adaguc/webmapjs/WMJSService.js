@@ -50,7 +50,7 @@ var WMJSGetCapabilities = function (service, forceReload, succes, fail) {
       succes(d);
     }).fail(function() {
       errormessage({ "error":"Request failed for " + getcapreq });
-    })
+    });
   } catch (e) {
     console.log('catch: ', e);
   }
