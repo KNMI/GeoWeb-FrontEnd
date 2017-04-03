@@ -43,6 +43,7 @@ class TitleBarContainer extends Component {
     };
   }
   getServices () {
+    console.log('getServices');
     const { dispatch, actions } = this.props;
     const defaultURLs = ['getServices', 'getOverlayServices'].map((url) => BACKEND_SERVER_URL + '/' + url);
     const allURLs = [...defaultURLs];
@@ -79,6 +80,7 @@ class TitleBarContainer extends Component {
   }
 
   doLogin () {
+    console.log('Start doLogin');
     const { isLoggedIn } = this.props;
     if (!isLoggedIn) {
       axios({
@@ -87,6 +89,7 @@ class TitleBarContainer extends Component {
         withCredentials: true,
         responseType: 'json'
       }).then(src => {
+        console.log('AJAX OK from doLogin, now go to checkCredentials');
         this.checkCredentials();
       }).catch(error => {
         this.checkCredentialsBadCallback(error);
@@ -111,9 +114,14 @@ class TitleBarContainer extends Component {
   }
 
   checkCredentials () {
-    this.setState({
-      loginModalMessage: 'Checking...'
-    });
+    console.log('Start checkCredentials');
+    try {
+      this.setState({
+        loginModalMessage: 'Checking...'
+      });
+    } catch (e) {
+      console.log(e);
+    }
     axios({
       method: 'get',
       url: BACKEND_SERVER_URL + '/getuser',
@@ -139,9 +147,12 @@ class TitleBarContainer extends Component {
   };
 
   checkCredentialsOKCallback (data) {
+    console.log('checkCredentialsOKCallback, now start getServices');
     const { dispatch, actions } = this.props;
     const username = data.username ? data.username : data.userName;
+    this.getServices();
     if (username && username.length > 0) {
+      console.log('username: '+username);
       if (username === 'guest') {
         this.setState({
           loginModalMessage: ''
@@ -158,7 +169,7 @@ class TitleBarContainer extends Component {
         loginModalMessage: (this.inputfieldUserName && this.inputfieldUserName.length > 0) ? 'Unauthorized' : ''
       });
     }
-    this.getServices();
+
   }
 
   checkCredentialsBadCallback (error) {

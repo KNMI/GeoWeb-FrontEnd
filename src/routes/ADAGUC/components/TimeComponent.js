@@ -32,7 +32,7 @@ export default class TimeComponent extends React.Component {
   }
   /* istanbul ignore next */
   drawCanvas () {
-    console.log('drawCanvas');
+    // console.log('drawCanvas');
     let timeDim = this.props.timedim;
     if (timeDim === undefined) {
       return;
