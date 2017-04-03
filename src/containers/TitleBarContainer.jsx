@@ -112,8 +112,6 @@ class TitleBarContainer extends Component {
   }
 
   checkCredentials () {
-    console.log('checkCredentials', BACKEND_SERVER_URL + '/getuser');
-    // if (this.inputfieldUserName === '') return;
     this.setState({
       loginModalMessage: 'Checking...'
     });
@@ -142,7 +140,6 @@ class TitleBarContainer extends Component {
   };
 
   checkCredentialsOKCallback (data) {
-    console.log('checkCredentialsOKCallback');
     const { dispatch, actions } = this.props;
     const username = data.username ? data.username : data.userName;
     if (username && username.length > 0) {
