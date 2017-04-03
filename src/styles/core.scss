@@ -286,6 +286,8 @@ a.breadcrumb-active:hover, a.nav-link.active:hover {
   border: none;
   border-bottom: 0.1rem solid transparent;
   border-radius: 0.19rem;
+  min-width: 100%;
+  flex: none;
 }
 
 .accordion.card > a {
@@ -510,6 +512,16 @@ main:fullscreen {
   flex-direction: column;
 }
 
+.CollapseOmni .Panel > .content {
+  flex-direction: row;
+}
+
+.Panel .accordionsWrapper {
+  flex-direction: column;
+  min-width: 100%;
+  max-width: 100%;
+}
+
 .Footer .col-auto:first-child .btn-outline-info {
   @extend .rounded-left;
 }
@@ -522,6 +534,7 @@ main:fullscreen {
   margin-right: 0.33rem;
 }
 
+/*
 .Sigmet {
   @extend .row;
   padding: 0;
@@ -553,12 +566,7 @@ main:fullscreen {
   padding: 0;
   min-height: 13rem;
 }
-
-.card-block {
-  overflow-y: auto;
-  overflow-x: hidden;
-  max-height: 20rem;
-}
+*/
 
 *,
 *:before,

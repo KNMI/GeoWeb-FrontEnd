@@ -66,10 +66,13 @@ class SigmetsContainer extends Component {
       <Col className='SigmetsContainer'>
         <CollapseOmni className='CollapseOmni' isOpen={this.state.isOpen} isHorizontal minSize={64} maxSize={400}>
           <Panel className='Panel' title={title}>
-            {filteredItems.map((item, index) =>
-              <SigmetCategory adagucProperties={this.props.adagucProperties}
-                dispatch={this.props.dispatch} actions={this.props.actions} key={index} title={item.title} isOpen={hasFilter} parentCollapsed={!this.state.isOpen}
-                icon={item.icon} source={item.source} editable={item.editable} />)}
+            <Col xs='auto' className='accordionsWrapper'>
+              {filteredItems.map((item, index) =>
+                <SigmetCategory adagucProperties={this.props.adagucProperties}
+                  dispatch={this.props.dispatch} actions={this.props.actions} key={index} title={item.title} isOpen={hasFilter} parentCollapsed={!this.state.isOpen}
+                  icon={item.icon} source={item.source} editable={item.editable} />
+              )}
+            </Col>
           </Panel>
         </CollapseOmni>
       </Col>
@@ -78,7 +81,9 @@ class SigmetsContainer extends Component {
 }
 
 SigmetsContainer.propTypes = {
-  title: PropTypes.string
+  adagucProperties: PropTypes.object,
+  dispatch: PropTypes.func,
+  actions: PropTypes.object
 };
 
 export default SigmetsContainer;

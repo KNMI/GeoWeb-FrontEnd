@@ -160,10 +160,12 @@ class TasksContainer extends Component {
       <Col className='TasksContainer'>
         <CollapseOmni className='CollapseOmni' isOpen={this.state.isOpen} isHorizontal minSize={64} maxSize={300}>
           <Panel className='Panel' title={title}>
-            {filteredItems.map((item, index) =>
-              <TaskCategory key={index} title={item.title} isOpen={this.state.isOpen && hasFilter} parentCollapsed={!this.state.isOpen}
-                icon={item.icon} notifications={item.notifications} link={item.link} tasks={item.tasks} />)
-              }
+            <Col xs='auto' className='accordionsWrapper'>
+              {filteredItems.map((item, index) =>
+                <TaskCategory key={index} title={item.title} isOpen={this.state.isOpen && hasFilter} parentCollapsed={!this.state.isOpen}
+                  icon={item.icon} notifications={item.notifications} link={item.link} tasks={item.tasks} />
+              )}
+            </Col>
           </Panel>
         </CollapseOmni>
       </Col>
