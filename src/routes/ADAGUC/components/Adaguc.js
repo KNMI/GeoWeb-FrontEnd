@@ -246,17 +246,17 @@ export default class Adaguc extends React.Component {
     }
     return false;
   }
-  findClosestProgtempLoc (event) {
+  findClosestCursorLoc (event) {
     // Find the latlong from the pixel coordinate
     const latlong = this.webMapJS.getLatLongFromPixelCoord({ x: event.x, y: event.y });
-    this.props.dispatch(this.props.actions.progtempLocation(latlong));
+    this.props.dispatch(this.props.actions.cursorLocation(latlong));
   }
   /* istanbul ignore next */
   componentDidUpdate (prevProps, prevState) {
     // The first time, the map needs to be created. This is when in the previous state the map creation boolean is false
     // Otherwise only change when a new dataset is selected
     const { adagucProperties } = this.props;
-    const { layers, boundingBox, timedim, animate, mapMode, progtemp } = adagucProperties;
+    const { layers, boundingBox, timedim, animate, mapMode, cursor } = adagucProperties;
       // eslint-disable-next-line no-undef
     if (boundingBox !== prevProps.adagucProperties.boundingBox) {
       this.webMapJS.setBBOX(boundingBox.bbox.join());
@@ -316,20 +316,22 @@ export default class Adaguc extends React.Component {
     if (animate !== prevProps.adagucProperties.animate) {
       this.onChangeAnimation(animate);
     }
-    if (progtemp !== prevProps.adagucProperties.progtemp) {
-      if (progtemp && progtemp.location) {
-        this.webMapJS.positionMapPinByLatLon({ x: progtemp.location.x, y: progtemp.location.y });
+    if (cursor !== prevProps.adagucProperties.cursor) {
+      if (cursor && cursor.location) {
+        this.webMapJS.positionMapPinByLatLon({ x: cursor.location.x, y: cursor.location.y });
       }
     }
     if (mapMode !== prevProps.adagucProperties.mapMode) {
-      if (prevProps.adagucProperties.mapMode === 'progtemp' && mapMode !== 'progtemp') {
+      if ((prevProps.adagucProperties.mapMode === 'progtemp' && mapMode !== 'progtemp') ||
+          (prevProps.adagucProperties.mapMode === 'timeseries' && mapMode !== 'timeseries')) {
         this.webMapJS.removeListener('mouseclicked');
         this.webMapJS.enableInlineGetFeatureInfo(true);
       }
 
-      if (prevProps.adagucProperties.mapMode !== 'progtemp' && mapMode === 'progtemp') {
+      if ((prevProps.adagucProperties.mapMode !== 'progtemp' && mapMode === 'progtemp') ||
+          (prevProps.adagucProperties.mapMode !== 'timeseries' && mapMode === 'timeseries')) {
         this.webMapJS.enableInlineGetFeatureInfo(false);
-        this.webMapJS.addListener('mouseclicked', (e) => this.findClosestProgtempLoc(e), true);
+        this.webMapJS.addListener('mouseclicked', (e) => this.findClosestCursorLoc(e), true);
       }
       switch (mapMode) {
         case 'zoom':

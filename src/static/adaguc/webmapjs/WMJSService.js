@@ -41,25 +41,19 @@ var WMJSGetCapabilities = function (service, forceReload, succes, fail) {
     console.log('errormesasge');
     fail(I18n.unable_to_do_getcapabilities.text + ':\n' + getcapreq + '\n' + I18n.result.text + ':\n' + message);
   };
-  console.log('starting request');
   try {
     $.ajax({
       url: getcapreq,
       crossDomain:true,
       dataType:"jsonp"
     }).done(function(d) {
-      console.log("success: " + getcapreq);
       succes(d);
     }).fail(function() {
-      console.log("Ajax call failed: " + getcapreq);
       errormessage({ "error":"Request failed for " + getcapreq });
-    }).always(function() {
-      console.log('hi');
-    });
+    })
   } catch (e) {
     console.log('catch: ', e);
   }
-  console.log('asdf');
   // try{
   //   $.ajax({
   //     dataType: 'jsonp',
@@ -212,7 +206,6 @@ function WMJSService (options) {
     if (!_this.getcapabilitiesDoc || forceReload == true) {
       _this.busy = true;
       var fail = function (jsonData) {
-        console.log('getCap: fail');
         _this.busy = false;
         for (var j = 0; j < functionCallbackList.length; j++) {
           functionCallbackList[j].fail(jsonData);
@@ -221,7 +214,6 @@ function WMJSService (options) {
         functionCallbackList = [];
       };
       var succes = function (jsonData) {
-        console.log('getCap: success');
         _this.busy = false;
         _this.getcapabilitiesDoc = jsonData;
 

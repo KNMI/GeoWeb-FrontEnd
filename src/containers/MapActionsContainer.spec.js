@@ -72,11 +72,6 @@ describe('(Container) MapActionsContainer', () => {
     expect(obs).to.eql('Radar (EXT)');
     expect('everything').to.be.ok;
   });
-  it('Allows for triggering padLeft', () => {
-    const _component = mount(<MapActionsContainer adagucProperties={adagucProperties} dispatch={emptyDispatch} actions={emptyActions} />);
-    const result = _component.instance().padLeft('23', 5, '0');
-    expect(result).to.eql('00023');
-  });
   it('Allows for setting addLayer action state', () => {
     const _component = mount(<MapActionsContainer adagucProperties={adagucProperties} dispatch={emptyDispatch} actions={emptyActions} />);
     _component.setState({ action: 'addLayer' });
