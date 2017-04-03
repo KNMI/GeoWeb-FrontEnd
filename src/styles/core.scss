@@ -500,7 +500,6 @@ main:fullscreen {
 .Panel > .content {
   box-sizing: border-box;
   background: white;
-  border-bottom: 0.06rem solid $inverse-hover-color;
   @extend .rounded-bottom;
   box-shadow: 0 0.15rem 0.25rem rgba(0,0,0,0.5);
   margin: 0.25rem;
@@ -534,39 +533,14 @@ main:fullscreen {
   margin-right: 0.33rem;
 }
 
-/*
-.Sigmet {
-  @extend .row;
-  padding: 0;
+.accordion .card-block .Sigmet.row.btn {
+  flex-direction: column;
+  padding: 0.5rem;
 }
 
-.Sigmet .row {
-  width: 100%;
+.accordion .card-block .Sigmet.row.btn .row {
+  flex-direction: row;
 }
-
-.Sigmet .col.alert {
-  padding: 0.3rem;
-  margin: 0;
-}
-
-.Sigmet.btn {
-  width: 100%;
-}
-
-.Sigmet input.level {
-  background: yellow;
-}
-
-.SigmetsContainer .content {
-  overflow-x: hidden;
-  overflow-y: auto;
-}
-
-.SigmetsContainer .accordion .btn.row {
-  padding: 0;
-  min-height: 13rem;
-}
-*/
 
 *,
 *:before,

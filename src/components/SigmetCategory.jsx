@@ -230,7 +230,6 @@ class SigmetCategory extends Component {
         validdate                 : '',
         firname                   : '',
         location_indicator_icao   : 'EHAA',
-        // icao_location_indicator   : 'EHAA',
         location_indicator_mwo    : 'EHDB',
         uuid                      : '00000000-0000-0000-0000-000000000000',
         status                    : 'PRODUCTION'
@@ -268,7 +267,7 @@ class SigmetCategory extends Component {
   drawSIGMET (geojson) {
     this.props.dispatch(this.props.actions.setGeoJSON(geojson));
   }
-  renderWhatBlock (editable, item) {
+   /*renderWhatBlock (editable, item) {
     console.log('What?: ', item);
     console.log('What?: ', editable);
     return (
@@ -287,7 +286,7 @@ class SigmetCategory extends Component {
         : <Col xs='auto'>{item.obs_or_forecast.obs ? 'Observed' : 'Forecast'}</Col>}
       </Row>);
   }
-  renderWhenBlock (editable, item) {
+ renderWhenBlock (editable, item) {
     return (
       <Row>
         <Col xs='2'>
@@ -335,11 +334,12 @@ class SigmetCategory extends Component {
         <Col>Amsterdam FIR</Col>
       </Row>
     </Row>;
-  }
+  }*/
   render () {
     const { title, icon, parentCollapsed, editable } = this.props;
     const notifications = !editable ? this.state.list.length : 0;
-    const maxSize = editable ? 800 : this.state.list ? Math.min(250 * this.state.list.length, 600) : 0;
+    const maxSize = this.state.list ? 200 * this.state.list.length : 0;
+    // const maxSize = editable ? 800 : this.state.list ? Math.min(250 * this.state.list.length, 600) : 0;
     return (
       <Card className='row accordion'>
         {parentCollapsed ? <CardHeader>
@@ -363,10 +363,44 @@ class SigmetCategory extends Component {
           </Col>
         </CardHeader>}
         <CollapseOmni className='CollapseOmni' isOpen={this.state.isOpen} minSize={0} maxSize={maxSize}>
-          <CardBlock style={{ flexDirection: 'column' }}>
-            {
-              this.state.list.map((item, i) => { return <Row style={{ width: '100%' }}>{this.renderBlock(editable, item)}</Row>; })
-            }
+          <CardBlock>
+            <Row>
+              <Col className='btn-group-vertical'>
+                {this.state.list.map((item, i) =>
+                  <Button tag='div' className='Sigmet row' key={i} onClick={(evt) => { evt.stopPropagation(); this.drawSIGMET({ geojson: item.geojson }); }}>
+                    <Row>
+                      <Col xs='auto'>
+                        <Badge color='success' style={{ width: '100%' }}>What</Badge>
+                      </Col>
+                      <Col>
+                        {item.phenomenonHRT}
+                      </Col>
+                      <Col xs='auto'>
+                        {item.obs_or_forecast.obs ? 'Observed' : 'Forecast'}
+                      </Col>
+                    </Row>
+                    <Row>
+                      <Col xs='auto'>
+                        <Badge color='success' style={{ width: '100%' }}>When</Badge>
+                      </Col>
+                      <Col>
+                        <Moment format={timeFormat} date={item.issuedate} />&nbsp;UTC
+                      </Col>
+                    </Row>
+                    <Row>
+                      <Col xs={{ offset: 2 }}>
+                        <Moment format={timeFormat} date={item.validdate} />&nbsp;UTC
+                      </Col>
+                    </Row>
+                    <Row>
+                      <Col xs='auto'>
+                        <Badge color='success' style={{ width: '100%' }}>Where</Badge>
+                      </Col>
+                    </Row>
+                  </Button>
+                )}
+              </Col>
+            </Row>
           </CardBlock>
         </CollapseOmni>
       </Card>);
@@ -380,7 +414,9 @@ SigmetCategory.propTypes = {
   source        : PropTypes.string,
   parentCollapsed : PropTypes.bool,
   editable      : PropTypes.bool,
-  adagucProperties: PropTypes.object
+  adagucProperties: PropTypes.object,
+  dispatch: PropTypes.func,
+  actions: PropTypes.object
 };
 
 export default SigmetCategory;

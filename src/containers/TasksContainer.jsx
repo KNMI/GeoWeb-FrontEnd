@@ -243,7 +243,8 @@ class TaskCategory extends Component {
                         <Icon name='caret-right' className='icon' />
                       </Col>
                     </Link>
-                  </Button>)}
+                  </Button>
+                )}
               </Col>
             </Row>
           </CardBlock>
