@@ -32,6 +32,7 @@ export default class TimeComponent extends React.Component {
   }
   /* istanbul ignore next */
   drawCanvas () {
+    console.log('drawCanvas');
     let timeDim = this.props.timedim;
     if (timeDim === undefined) {
       return;
@@ -274,9 +275,17 @@ export default class TimeComponent extends React.Component {
   }
   /* istanbul ignore next */
   componentDidMount () {
+    console.log('componentDidMount');
     let element = document.querySelector('#timelineParent');
-    elementResizeEvent(element, () => { this.setState({ }); });
-    setInterval(this.drawCanvas, 60000);
+    elementResizeEvent(element, () => {
+      console.log('resize van TimeComponent', element);
+      this.setState({ });
+    });
+
+    if (this.timer) {
+      clearInterval(this.timer);
+    }
+    this.timer = setInterval(function () { console.log('set interval draw canvas'); this.drawCanvas(); }, 60000);
   }
   componentDidUpdate () {
     this.drawCanvas();
@@ -284,6 +293,9 @@ export default class TimeComponent extends React.Component {
   /* istanbul ignore next */
   componentWillUnmount () {
     this.element = undefined;
+    if (this.timer) {
+      clearInterval(this.timer);
+    }
   }
   /* istanbul ignore next */
   onRenderCanvas (ctx) {

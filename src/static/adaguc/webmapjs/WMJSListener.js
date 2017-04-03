@@ -79,6 +79,7 @@ function WMJSListener () {
       return;
     }
     let returnList = [];
+    var no = 0;
     for (var j = 0; j < numCallBacks; j++) {
       if (callBacks[j].finished === 0) {
         if (callBacks[j].name === name) {
@@ -86,6 +87,8 @@ function WMJSListener () {
             callBacks[j].finished = 1;
           }
           try {
+            // console.log('triggering '+callBacks[j].name+' nr '+no);
+            no++;
             returnList.push(callBacks[j].functionpointer(param, _this));
           } catch (e) {
             console.log('Error for event ' + name + ' with ' + param);

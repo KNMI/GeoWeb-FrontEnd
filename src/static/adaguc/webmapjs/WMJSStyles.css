@@ -2,25 +2,25 @@
     background-image:url(./img/adagucviewerlogos.png) !important;
     width:16px;
     height:16px;
-    background-position: -16px -16px; 
+    background-position: -16px -16px;
 }
 .button_info {
     background-image:url(./img/adagucviewerlogos.png) !important;
     width:16px;
     height:16px;
-    background-position: -16px -32px !important; 
+    background-position: -16px -32px !important;
 }
 .button_getfeatureinfo {
     background-image:url(./img/adagucviewerlogos.png) !important;
     width:16px;
     height:16px;
-    background-position: -0px -32px !important; 
+    background-position: -0px -32px !important;
 }
 .button_pointinterest {
     background-image:url(./img/map_marker.png) !important;
     width:16px;
     height:16px;
-    background-position: -0px -32px !important; 
+    background-position: -0px -32px !important;
 }
 .webmapjs_searchboxdiv {
     position: absolute;
@@ -103,100 +103,100 @@
     left: 10px;
 }
 .webmapjs_locationbutton:hover {
-    background-color: #B2B2B2;  
+    background-color: #B2B2B2;
     color: #fafafa;
 }
 .button_metadata {
     background-image:url(./img/adagucviewerlogos.png) !important;
     width:16px;
     height:16px;
-    background-position: -80px -32px !important; 
+    background-position: -80px -32px !important;
 }
 .button_duplicate {
     background-image:url(./img/adagucviewerlogos.png) !important;
     width:16px;
     height:16px;
-    background-position: -48px -16px; 
+    background-position: -48px -16px;
 }
 .button_refresh {
     background-image:url(./img/adagucviewerlogos.png) !important;
     width:16px;
     height:16px;
-    background-position: -48px 0px; 
+    background-position: -48px 0px;
 }
 .button_layer_visible {
     background-image:url(./img/adagucviewerlogos.png) !important;
     width:16px;
     height:16px;
-    background-position: -80px -16px; 
+    background-position: -80px -16px;
 }
 .button_layer_hidden {
     background-image:url(./img/adagucviewerlogos.png) !important;
     width:16px;
     height:16px;
-    background-position: -96px -16px; 
+    background-position: -96px -16px;
 }
 .button_play_animation {
     background-image:url(./img/adagucviewerlogos.png) !important;
     width:16px;
     height:16px;
-    background-position: -16px 0px; 
+    background-position: -16px 0px;
 }
 .button_stop_animation {
     background-image:url(./img/adagucviewerlogos.png) !important;
     width:16px;
     height:16px;
-    background-position: -32px 0px; 
+    background-position: -32px 0px;
 }
 .button_stoploading{
     background-image:url(./img/adagucviewerlogos.png) !important;
     width:16px;
     height:16px;
-    background-position: -96px 0px; 
+    background-position: -96px 0px;
 }
 .button_undo {
   background-image:url(./img/adagucviewerlogos.png) !important;
   width:16px;
   height:16px;
-  background-position: -32px -32px !important; 
+  background-position: -32px -32px !important;
 }
 .button_redo {
   background-image:url(./img/adagucviewerlogos.png) !important;
   width:16px;
   height:16px;
-  background-position: -48px -32px !important; 
+  background-position: -48px -32px !important;
 }
 .button_makeLink {
   background-image:url(./img/adagucviewerlogos.png) !important;
   width:16px;
   height:16px;
-  background-position: -64px -32px !important; 
+  background-position: -64px -32px !important;
 }
 .button_layerlist_layerup {
     background-image:url(./img/adagucviewerlogos.png) !important;
     width:16px;
     height:16px;
-    background-position: -80px 0px; 
+    background-position: -80px 0px;
 }
 .button_layerlist_layerdown {
     background-image:url(./img/adagucviewerlogos.png) !important;
     width:16px;
     height:16px;
-    background-position: -64px 0px; 
+    background-position: -64px 0px;
 
 }
 .button_layerlist_layernew {
     background-image:url(./img/adagucviewerlogos.png) !important;
     width:16px;
     height:16px;
-    background-position: -64px -16px !important; 
+    background-position: -64px -16px !important;
 
 }
 .button_layerlist_layerdelete {
     background-image:url(./img/adagucviewerlogos.png) !important;
     width:16px;
     height:16px;
-    background-position: -96px -32px; 
+    background-position: -96px -32px;
 }
 .button_nobackground{
   background-image:none;
@@ -206,25 +206,25 @@
     background-image:url(./img/adagucviewerlogos.png) !important;
     width:16px;
     height:16px;
-    background-position: -32px -16px; 
+    background-position: -32px -16px;
 }
 .button_settings_icon {
     background-image:url(./img/adagucviewerlogos.png) !important;
     width:16px;
     height:16px;
-    background-position: -112px 0px !important;  
+    background-position: -112px 0px !important;
 }
 .button_legend_icon {
   background-image:url(./img/adagucviewerlogos.png) !important;
   width:16px;
   height:16px;
-  background-position: -80px 32px !important;  
+  background-position: -80px 32px !important;
 }
 
 
 .checkbox_legend_icon{
   background-image:url(./img/legend_icon.gif) !important;
-  background-repeat:no-repeat; 
+  background-repeat:no-repeat;
   padding-left:20px;
   margin-left:5px;
 }
@@ -233,21 +233,21 @@
   background-image:url(./img/adagucviewerlogos.png) !important;
   width:16px;
   height:16px;
-  background-position: -16px -16px !important;  
+  background-position: -16px -16px !important;
 }
 
 .button_link{
     background-image:url(./img/adagucviewerlogos.png) !important;
   width:16px;
   height:16px;
-  background-position: -64px -32px !important;  
+  background-position: -64px -32px !important;
 }
 
 .button_combobox {
   background-image:url(./img/adagucviewerlogos.png) !important;
   width:16px;
   height:16px;
-  background-position: -112px -32px !important; 
+  background-position: -112px -32px !important;
 }
 
 
@@ -255,42 +255,42 @@
   background-image:url(./img/adagucviewerlogos.png) !important;
   width:16px;
   height:16px;
-  background-position: -16px -48px !important; 
+  background-position: -16px -48px !important;
 }
 
 .button_down {
   background-image:url(./img/adagucviewerlogos.png) !important;
   width:16px;
   height:16px;
-  background-position: 0px -48px !important; 
+  background-position: 0px -48px !important;
 }
 
 .button_adddata32 {
   background-image:url(./img/adagucviewerlogos.png) !important;
   width:32px;
   height:32px;
-  background-position: 0px -64px !important; 
+  background-position: 0px -64px !important;
 }
 
 .button_settings32 {
   background-image:url(./img/adagucviewerlogos.png) !important;
   width:32px;
   height:32px;
-  background-position: -32px -64px !important; 
+  background-position: -32px -64px !important;
 }
 
 .button_maptype32 {
   background-image:url(./img/adagucviewerlogos.png) !important;
   width:32px;
   height:32px;
-  background-position: -64px -64px !important; 
+  background-position: -64px -64px !important;
 }
 
 .button_layers32 {
   background-image:url(./img/adagucviewerlogos.png) !important;
   width:32px;
   height:32px;
-  background-position: -96px -64px !important; 
+  background-position: -96px -64px !important;
 }
 
 
@@ -298,14 +298,14 @@
   background-image:url(./img/adagucviewerlogos.png) !important;
   width:32px;
   height:32px;
-  background-position: 0px -96px !important; 
+  background-position: 0px -96px !important;
 }
 
 .button_time32 {
   background-image:url(./img/adagucviewerlogos.png) !important;
   width:32px;
   height:32px;
-  background-position: -32px -96px !important; 
+  background-position: -32px -96px !important;
 }
 
 
@@ -338,7 +338,7 @@
     background-image:url(./img/adagucviewerlogos.png) !important;
     width:16px;
     height:16px;
-    background-position: -112px -16px !important; 
+    background-position: -112px -16px !important;
 }
 
 
@@ -353,7 +353,7 @@
 
 
 
-table.myTable { 
+table.myTable {
   font-family: sans-serif;
   font-style: normal;
   font-variant: normal;
@@ -367,12 +367,12 @@ table.myTable {
   text-align: left;
   text-indent: 0ex;
   white-space:nowrap;
-  padding: 0px; 
- 
+  padding: 0px;
+
   border: 1px solid gray;
-  
+
   border-collapse:collapse;
-  
+
   border-spacing:0px;
   margin:0px;
   /*background-color:white;*/
@@ -380,15 +380,15 @@ table.myTable {
   width:100%;
 }
 
-table.myTable td{ 
+table.myTable td{
   margin:0px;
   padding: 1px 3px 1px 3px;
   border-left: 1px solid gray;
   white-space:nowrap;
-  
+
 }
 
-table.myTable th{ 
+table.myTable th{
   margin:0px;
   padding: 1px 3px 1px 3px;
   border-left: 1px solid gray;
@@ -396,19 +396,19 @@ table.myTable th{
   font-weight:bold;
 }
 
-table.myTable tr{ 
-  padding: 0px; 
+table.myTable tr{
+  padding: 0px;
    border-bottom: 1px solid gray;
   white-space:nowrap;
 }
 
-div.webmapjs_coordinates { 
+div.webmapjs_coordinates {
   background-color:white;
-  
+
   padding:4px;
 }
 
-table.webmapjs_coordinates { 
+table.webmapjs_coordinates {
   font-family: sans-serif;
   font-style: normal;
   font-variant: normal;
@@ -422,12 +422,12 @@ table.webmapjs_coordinates {
   text-align: left;
   text-indent: 0ex;
   white-space:nowrap;
-  padding: 0px; 
- 
- 
-  
+  padding: 0px;
+
+
+
   border-collapse:collapse;
-  
+
   border-spacing:0px;
   margin:0px;
   /*background-color:white;*/
@@ -435,14 +435,14 @@ table.webmapjs_coordinates {
 
 }
 
-table.webmapjs_coordinates td{ 
+table.webmapjs_coordinates td{
   margin:0px;
   padding: 0px;
   white-space:nowrap;
 }
 
-table.webmapjs_coordinates tr{ 
-  padding: 0px; 
+table.webmapjs_coordinates tr{
+  padding: 0px;
   white-space:nowrap;
 }
 
@@ -459,7 +459,7 @@ table.webmapjs_coordinates tr{
 
 /*Slider*/
 .ui-slider .ui-slider-handle{
-  width:8px; 
+  width:8px;
   height:17px;
   margin-left:-4px;
 }
@@ -489,45 +489,45 @@ table.webmapjs_coordinates tr{
   margin:0px;
   padding:0px;
 }
- 
+
 .ui-button .ui-icon.wmjs-icon-zoomout {
   background-image: url('img/wmjs_buttons.png');
   width: 50px;
   height: 50px;
-  background-position: 0px -205px; 
+  background-position: 0px -205px;
 }
 
 .ui-button.ui-state-hover .ui-icon.wmjs-icon-zoomout {
   background-image: url('img/wmjs_buttons.png');
   width: 50px;
   height: 50px;
-  background-position: -53px -205px; 
+  background-position: -53px -205px;
 }
 .ui-button.ui-state-active .ui-icon.wmjs-icon-zoomout {
   background-image: url('img/wmjs_buttons.png');
   width: 50px;
   height: 50px;
-  background-position: -106px -205px; 
+  background-position: -106px -205px;
 }
 
 .ui-button .ui-icon.wmjs-icon-zoomhome {
   background-image: url('img/wmjs_buttons.png');
   width: 50px;
   height: 50px;
-  background-position: 0px -153px; 
+  background-position: 0px -153px;
 }
 
 .ui-button.ui-state-hover .ui-icon.wmjs-icon-zoomhome {
   background-image: url('img/wmjs_buttons.png');
   width: 50px;
   height: 50px;
-  background-position: -53px -153px; 
+  background-position: -53px -153px;
 }
 .ui-button.ui-state-active .ui-icon.wmjs-icon-zoomhome {
   background-image: url('img/wmjs_buttons.png');
   width: 50px;
   height: 50px;
-  background-position: -106px -153px; 
+  background-position: -106px -153px;
 }
 
 
@@ -536,20 +536,20 @@ table.webmapjs_coordinates tr{
   background-image: url('img/wmjs_buttons.png');
   width: 50px;
   height: 50px;
-  background-position: 0px 0px; 
+  background-position: 0px 0px;
 }
 
 .ui-button.ui-state-hover .ui-icon.wmjs-icon-zoomin {
   background-image: url('img/wmjs_buttons.png');
   width: 50px;
   height: 50px;
-  background-position: -53px 0px; 
+  background-position: -53px 0px;
 }
 .ui-button.ui-state-active .ui-icon.wmjs-icon-zoomin {
   background-image: url('img/wmjs_buttons.png');
   width: 50px;
   height: 50px;
-  background-position: -106px 0px; 
+  background-position: -106px 0px;
 }
 
 
@@ -558,20 +558,20 @@ table.webmapjs_coordinates tr{
   background-image: url('img/wmjs_buttons.png');
   width: 50px;
   height: 50px;
-  background-position: 0px -104px; 
+  background-position: 0px -104px;
 }
 
 .ui-button.ui-state-hover .ui-icon.wmjs-icon-zoombox {
   background-image: url('img/wmjs_buttons.png');
   width: 50px;
   height: 50px;
-  background-position: -53px -104px; 
+  background-position: -53px -104px;
 }
 .ui-button.ui-state-active .ui-icon.wmjs-icon-zoombox {
   background-image: url('img/wmjs_buttons.png');
   width: 50px;
   height: 50px;
-  background-position: -106px -104px; 
+  background-position: -106px -104px;
 }
 
 
@@ -580,20 +580,20 @@ table.webmapjs_coordinates tr{
   background-image: url('img/wmjs_buttons.png');
   width: 50px;
   height: 50px;
-  background-position: -159px -104px; 
+  background-position: -159px -104px;
 }
 
 .ui-button.ui-state-hover .ui-icon.wmjs-icon-zoombox-activated {
   background-image: url('img/wmjs_buttons.png');
   width: 50px;
   height: 50px;
-  background-position: -211px -104px; 
+  background-position: -211px -104px;
 }
 .ui-button.ui-state-active .ui-icon.wmjs-icon-zoombox-activated {
   background-image: url('img/wmjs_buttons.png');
   width: 50px;
   height: 50px;
-  background-position: -264px -104px; 
+  background-position: -264px -104px;
 }
 
 
@@ -601,20 +601,20 @@ table.webmapjs_coordinates tr{
   background-image: url('img/wmjs_buttons.png');
   width: 50px;
   height: 50px;
-  background-position: 0px -53px; 
+  background-position: 0px -53px;
 }
 
 .ui-button.ui-state-hover .ui-icon.wmjs-icon-dragpan {
   background-image: url('img/wmjs_buttons.png');
   width: 50px;
   height: 50px;
-  background-position: -53px -53px; 
+  background-position: -53px -53px;
 }
 .ui-button.ui-state-active .ui-icon.wmjs-icon-dragpan {
   background-image: url('img/wmjs_buttons.png');
   width: 50px;
   height: 50px;
-  background-position: -106px -53px; 
+  background-position: -106px -53px;
 }
 
 
@@ -623,65 +623,65 @@ table.webmapjs_coordinates tr{
   background-image: url('img/wmjs_buttons.png');
   width: 50px;
   height: 50px;
-  background-position: -159px -53px; 
+  background-position: -159px -53px;
 }
 
 .ui-button.ui-state-hover .ui-icon.wmjs-icon-dragpan-activated {
   background-image: url('img/wmjs_buttons.png');
   width: 50px;
   height: 50px;
-  background-position: -211px -53px; 
+  background-position: -211px -53px;
 }
 .ui-button.ui-state-active .ui-icon.wmjs-icon-dragpan-activated {
   background-image: url('img/wmjs_buttons.png');
   width: 50px;
   height: 50px;
-  background-position: -264px -53px; 
+  background-position: -264px -53px;
 }
 
 
 .ui-button .ui-icon.wmjs-icon-close{
     background-image: url('img/layer_remove.gif');
     width: 16px;
-    height: 16px; 
+    height: 16px;
     margin:0;
     padding:0;
-    
-    background-position: 0 0; 
+
+    background-position: 0 0;
 }
 
 .ui-button.ui-state-hover .ui-icon.wmjs-icon-close{
     background-image: url('img/layer_remove.gif');
     width: 16px;
-    height: 16px; 
-    background-position: 0 0; 
+    height: 16px;
+    background-position: 0 0;
 }
 .ui-button.ui-state-active .ui-icon.wmjs-icon-close{
     background-image: url('img/layer_remove.gif');
     width: 16px;
-    height: 16px; 
+    height: 16px;
     background-position: 0 0;
 }
 
 .imageloading{
-  
+
   background: url('img/ajax-loader.gif') no-repeat;
 }
 
 
 .timeselection{
   border:1px solid #888;
- 
+
  /*background: rgba(255, 255, 255, 0.25); */
  border-radius:5px;
-  
+
   padding:6px;
  z-index:4000;
  position:absolute;
  width:190px;
 position: absolute;
     top: 8px;
-    
+
     right: 8px;
 }
 
@@ -694,7 +694,7 @@ position: absolute;
  margin:0px;
 }
 .timeselection input{
-  
+
    background-color: #FFF;
     border:solid 1px #BFBDBD;
     color: #000;
@@ -707,7 +707,7 @@ position: absolute;
 }
 
 .timenext{
-  
+
   width:15px;
 }
 
@@ -744,10 +744,10 @@ position: absolute;
     height:16px;
     width:16px;
     margin:5px;
-    
+
      cursor:pointer;
      border:none;
-     
+
 }
 
 .ui-widget {
@@ -763,7 +763,7 @@ position: absolute;
     padding: 5px;
     font-size: 12px;
     visibility: visible;
-    
+
     /*bottom:120%;*/
     margin-left: -57px;
     margin-top: -4px;
@@ -791,7 +791,7 @@ position: absolute;
     -webkit-border-radius: 4px;
        -moz-border-radius: 4px;
             border-radius: 4px;
-    border:1px solid black;            
+    border:1px solid black;
 }
 
 /*.ui-slider {
@@ -834,15 +834,15 @@ position: absolute;
 
 .getfeatureinfo{
    overflow:'hidden';
-    
+
 }
 
 .getfeatureinfolayer{
   background-color:#EEE;padding:4px;margin-bottom:2px;
- 
+
   overflow:'hidden';
   display:'block';
-  
+
   margin:2px;
 
 }
@@ -870,7 +870,7 @@ padding:5px;
   border-left:1px solid #FFF;
   width:15px;
   height:35px;
-  
+
   background-color:#FFF;
 }
 
@@ -882,7 +882,7 @@ padding:5px;
 }
 .animationimageloading{
   background-color:#323FFF;
-  
+
 }
 .animationimagecurrent{
    background-color:#FF4;
@@ -903,6 +903,8 @@ padding:5px;
 .wmjslegendbuffer{
   position:absolute;
   display:none;
+  top:0px;
+  left:0px;
   /*border:2px solid green;*/
 }
 
@@ -927,12 +929,12 @@ padding:5px;
 
 .WMJSDivBuffer-loading{
   position:absolute;
-  
+
   top:10px;
   left:10px;
   width:40px;
   height:40px;
-  
+
   z-index:10000;
   background: url('img/ajax-loader.gif') no-repeat;
 }
