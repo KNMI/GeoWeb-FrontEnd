@@ -49,9 +49,7 @@ var WMJSGetCapabilities = function (service, forceReload, succes, fail) {
     }).done(function(d) {
       succes(d);
     }).fail(function() {
-      console.log("Ajax call failed: " + getcapreq);
       errormessage({ "error":"Request failed for " + getcapreq });
-    }).always(function() {
     });
   } catch (e) {
     console.log('catch: ', e);

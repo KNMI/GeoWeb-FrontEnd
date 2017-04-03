@@ -21,7 +21,7 @@ const SET_TIME_DIMENSION = 'SET_TIME_DIMENSION';
 const TOGGLE_ANIMATION = 'TOGGLE_ANIMATION';
 const SET_MAP_MODE = 'SET_MAP_MODE';
 const SET_LAYOUT = 'SET_LAYOUT';
-const PROGTEMP_LOCATION = 'PROGTEMP_LOCATION';
+const CURSOR_LOCATION = 'CURSOR_LOCATION';
 const SET_GEOJSON = 'SET_GEOJSON';
 import { ADAGUCMAPDRAW_UPDATEFEATURE } from '../components/AdagucMapDraw';
 import { ADAGUCMEASUREDISTANCE_UPDATE } from '../components/AdagucMeasureDistance';
@@ -44,9 +44,9 @@ function setLayout (layout) {
     payload: layout
   };
 }
-function progtempLocation (closest) {
+function cursorLocation (closest) {
   return {
-    type: PROGTEMP_LOCATION,
+    type: CURSOR_LOCATION,
     payload: closest
   };
 }
@@ -247,7 +247,7 @@ export const actions = {
   setMapMode,
   toggleAnimation,
   setTimeDimension,
-  progtempLocation,
+  cursorLocation,
   setLayout,
   setGeoJSON
 };
@@ -438,9 +438,9 @@ const doToggleAnimation = (state) => {
 const newMapMode = (state, payload) => {
   return Object.assign({}, state, { mapMode: payload });
 };
-const setProgtempLocation = (state, payload) => {
+const setCursorLocation = (state, payload) => {
   const loc = { location: payload };
-  return Object.assign({}, state, { progtemp: loc });
+  return Object.assign({}, state, { cursor: loc });
 };
 const newLayout = (state, payload) => {
   return Object.assign({}, state, { layout: payload });
@@ -467,7 +467,7 @@ const ACTION_HANDLERS = {
   [SET_TIME_DIMENSION]            : (state, action) => doSetTimeDim(state, action.payload),
   [TOGGLE_ANIMATION]              : (state, action) => doToggleAnimation(state),
   [SET_MAP_MODE]                  : (state, action) => newMapMode(state, action.payload),
-  [PROGTEMP_LOCATION]             : (state, action) => setProgtempLocation(state, action.payload),
+  [CURSOR_LOCATION]               : (state, action) => setCursorLocation(state, action.payload),
   [SET_LAYOUT]                    : (state, action) => newLayout(state, action.payload),
   [SET_GEOJSON]                   : (state, action) => newGeoJSON(state, action.payload)
 };
