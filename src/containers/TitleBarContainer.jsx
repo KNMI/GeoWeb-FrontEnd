@@ -152,7 +152,7 @@ class TitleBarContainer extends Component {
     const username = data.username ? data.username : data.userName;
     this.getServices();
     if (username && username.length > 0) {
-      console.log('username: '+username);
+      console.log('username: ' + username);
       if (username === 'guest') {
         this.setState({
           loginModalMessage: ''
@@ -169,7 +169,6 @@ class TitleBarContainer extends Component {
         loginModalMessage: (this.inputfieldUserName && this.inputfieldUserName.length > 0) ? 'Unauthorized' : ''
       });
     }
-
   }
 
   checkCredentialsBadCallback (error) {
