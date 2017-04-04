@@ -47,6 +47,11 @@ body {
   height: 670px;
   z-index: 10000;
 }
+.Panel.activePanel > .content,
+.Panel.activePanel > .title {
+  // background-color: #bcdff1;
+  background-color: #017daf;
+}
 #root {
   height: inherit;
   width: inherit;

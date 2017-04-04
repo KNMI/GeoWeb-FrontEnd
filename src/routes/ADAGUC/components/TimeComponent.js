@@ -21,7 +21,6 @@ export default class TimeComponent extends React.Component {
     this.changeDay = this.changeDay.bind(this);
     this.changeHour = this.changeHour.bind(this);
     this.changeMinute = this.changeMinute.bind(this);
-    this.element = document.querySelector('.map .content');
   }
   eventOnMapDimUpdate () {
     this.eventOnDimChange();
@@ -285,14 +284,13 @@ export default class TimeComponent extends React.Component {
     if (this.timer) {
       clearInterval(this.timer);
     }
-    this.timer = setInterval(function () { console.log('set interval draw canvas'); this.drawCanvas(); }, 60000);
+    this.timer = setInterval(this.drawCanvas, 60000);
   }
   componentDidUpdate () {
     this.drawCanvas();
   }
   /* istanbul ignore next */
   componentWillUnmount () {
-    this.element = undefined;
     if (this.timer) {
       clearInterval(this.timer);
     }
@@ -332,6 +330,7 @@ export default class TimeComponent extends React.Component {
   }
 
   render () {
+    console.log('tc: ', this.props.timedim);
     /* istanbul ignore next */
     return (
       <Col>

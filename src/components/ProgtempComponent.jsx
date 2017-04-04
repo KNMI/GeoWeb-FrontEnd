@@ -207,7 +207,7 @@ export default class ProgtempComponent extends Component {
     }
 
     // If there is no HARMONIE layer we can also abort.
-    if (wmjslayers.layers.length > 0 && layers.datalayers.filter((layer) => layer.title && layer.title.includes('HARM')).length > 0) {
+    if (wmjslayers.layers.length > 0 && layers.panel[adagucProperties.activeMapId].datalayers.filter((layer) => layer.title && layer.title.includes('HARM')).length > 0) {
       const harmlayer = wmjslayers.layers.filter((layer) => layer.service && layer.service.includes('HARM'))[0];
       if (!harmlayer) return;
       this.referenceTime = harmlayer.getDimension('reference_time').currentValue;

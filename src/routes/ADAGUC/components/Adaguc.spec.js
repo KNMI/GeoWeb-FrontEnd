@@ -9,7 +9,25 @@ describe('(Component) Adaguc', () => {
   beforeEach(() => {
     _globalState = {
       adagucProperties : {
-        layers: {},
+        layers: {
+          baselayer: {},
+          panel: [
+            {
+              datalayers: [],
+              overlays: []
+            }, {
+              datalayers: [],
+              overlays: []
+            }, {
+              datalayers: [],
+              overlays: []
+            }, {
+              datalayers: [],
+              overlays: []
+            }
+          ]
+        },
+
         sources: {},
         boundingBox: null,
         projectionName: 'EPSG:3857',

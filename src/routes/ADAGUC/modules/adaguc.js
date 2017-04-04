@@ -1,5 +1,6 @@
 import { MAP_STYLES } from '../constants/map_styles';
 import { BOUNDING_BOXES } from '../constants/bounding_boxes';
+import cloneDeep from 'lodash/cloneDeep';
 // ------------------------------------
 // Constants
 // ------------------------------------
@@ -12,7 +13,6 @@ const LOGIN = 'LOGIN';
 const LOGOUT = 'LOGOUT';
 const SET_CUT = 'SET_CUT';
 const SET_MAP_STYLE = 'SET_MAP_STYLE';
-const SET_STYLE = 'SET_STYLE';
 const PREPARE_SIGMET = 'PREPARE_SIGMET';
 const ALTER_LAYER = 'ALTER_LAYER';
 const REORDER_LAYER = 'REORDER_LAYER';
@@ -23,6 +23,8 @@ const SET_MAP_MODE = 'SET_MAP_MODE';
 const SET_LAYOUT = 'SET_LAYOUT';
 const CURSOR_LOCATION = 'CURSOR_LOCATION';
 const SET_GEOJSON = 'SET_GEOJSON';
+const SET_ACTIVE_PANEL = 'SET_ACTIVE_PANEL';
+
 import { ADAGUCMAPDRAW_UPDATEFEATURE } from '../components/AdagucMapDraw';
 import { ADAGUCMEASUREDISTANCE_UPDATE } from '../components/AdagucMeasureDistance';
 
@@ -36,6 +38,12 @@ function createMap (sources, overlays) {
       sources: sources,
       overlays: overlays
     }
+  };
+}
+function setActivePanel (mapId) {
+  return {
+    type: SET_ACTIVE_PANEL,
+    payload: mapId
   };
 }
 function setLayout (layout) {
@@ -83,12 +91,6 @@ function setMapStyle (styleIdx = 0) {
   return {
     type: SET_MAP_STYLE,
     payload: styleIdx
-  };
-}
-function setStyle (style = 0) {
-  return {
-    type: SET_STYLE,
-    payload: style
   };
 }
 function addLayer (layer) {
@@ -239,7 +241,6 @@ export const actions = {
   logout,
   setCut,
   setMapStyle,
-  setStyle,
   prepareSIGMET,
   reorderLayer,
   setWMJSLayers,
@@ -249,39 +250,10 @@ export const actions = {
   setTimeDimension,
   cursorLocation,
   setLayout,
-  setGeoJSON
+  setGeoJSON,
+  setActivePanel
 };
 
-/*
-const initialState = {
-  adagucProperties: {
-    sources: {
-      data: null,
-      overlay: null
-    },
-    layers: {
-      baselayer: MAP_STYLES[1],
-      datalayers: [],
-      overlays: []
-    },
-    boundingBox: BOUNDING_BOXES[0],
-    projectionName: 'EPSG:3857',
-    mapCreated: false
-  },
-  header: {
-    title: 'hello Headers'
-  },
-  leftSideBar: {
-    title: 'hello LeftSideBar'
-  },
-  m.ainViewport: {
-    title: 'hello MainViewport'
-  },
-  rightSideBar: {
-    title: 'hello RightSideBar'
-  }
-};
- */
 const newMapState = (state, payload) => {
   return Object.assign({}, state, { mapCreated: true },
     { sources: { data: payload.sources, overlay: [payload.overlays] } });
@@ -292,32 +264,27 @@ const newMapStyle = (state, payload) => {
 const newCut = (state, payload) => {
   return Object.assign({}, state, { boundingBox: payload });
 };
-const newStyle = (state, payload) => {
-  return Object.assign({}, state, { style: state.styles[payload].name });
-};
 const doAddLayer = (state, payload) => {
-  if (!state.layers) {
-    state.layers = { datalayers: [], overlays: [] };
-  }
-  let oldlayers = [...state.layers.datalayers];
-  oldlayers.unshift(payload);
-  const newlayers = Object.assign({}, state.layers, { datalayers: oldlayers });
+  let layersCpy = cloneDeep(state.layers.panel[state.activeMapId]);
+  layersCpy.datalayers.unshift(payload);
+
+  let oldPanel = cloneDeep(state.layers.panel);
+  oldPanel[state.activeMapId] = layersCpy;
+  const newlayers = Object.assign({}, state.layers, { panel: oldPanel });
 
   return Object.assign({}, state, { layers: newlayers });
 };
 
 const doAddOverlayLayer = (state, payload) => {
-  if (!state.layers) {
-    state.layers = { datalayers: [], overlays: [] };
-  }
-
-  let oldlayers = [...state.layers.overlays];
+  let layersCpy = cloneDeep(state.layers.panel[state.activeMapId]);
   if (!payload.enabled) {
     payload.enabled = true;
   }
-  oldlayers.unshift(payload);
+  layersCpy.overlays.unshift(payload);
 
-  const newlayers = Object.assign({}, state.layers, { overlays: oldlayers });
+  let oldPanel = cloneDeep(state.layers.panel);
+  oldPanel[state.activeMapId] = layersCpy;
+  const newlayers = Object.assign({}, state.layers, { panel: oldPanel });
 
   return Object.assign({}, state, { layers: newlayers });
 };
@@ -337,66 +304,73 @@ const setSigmet = (state, payload) => {
 };
 
 const doAlterLayer = (state, payload) => {
-  let fitleredLayers;
   const { index, layerType, fieldsNewValuesObj } = payload;
+  let layersCpy = cloneDeep(state.layers.panel[state.activeMapId]);
+
   switch (layerType) {
     case 'data':
-      let newDatalayers = state.layers.datalayers.map(a => Object.assign({}, a));
-      const oldLayer = state.layers.datalayers[index];
-      const newlayer = Object.assign({}, oldLayer, fieldsNewValuesObj);
-      newDatalayers[index] = newlayer;
-      fitleredLayers = Object.assign({}, state.layers, { datalayers: newDatalayers });
-      break;
+      const oldDataLayer = layersCpy.datalayers[index];
+      const newDatalayer = Object.assign({}, oldDataLayer, fieldsNewValuesObj);
+      layersCpy.datalayers[index] = newDatalayer;
+      let oldDataPanel = cloneDeep(state.layers.panel);
+      oldDataPanel[state.activeMapId] = layersCpy;
+      const newDataLayers = Object.assign({}, state.layers, { panel: oldDataPanel });
+      return Object.assign({}, state, { layers: newDataLayers });
     case 'overlay':
-      let newOverlayLayers = state.layers.overlays.map(a => Object.assign({}, a));
-      const oldOverLayer = state.layers.overlays[index];
-      const newOverlayer = Object.assign({}, oldOverLayer, fieldsNewValuesObj);
-      newOverlayLayers[index] = newOverlayer;
-      fitleredLayers = Object.assign({}, state.layers, { overlays: newOverlayLayers });
-      break;
+      const oldOverlayLayer = layersCpy.overlays[index];
+      const newOverlayLayer = Object.assign({}, oldOverlayLayer, fieldsNewValuesObj);
+      layersCpy.overlays[index] = newOverlayLayer;
+      let oldOverlayPanel = cloneDeep(state.layers.panel);
+      oldOverlayPanel[state.activeMapId] = layersCpy;
+      const newOverlayLayers = Object.assign({}, state.layers, { panel: oldOverlayPanel });
+      return Object.assign({}, state, { layers: newOverlayLayers });
     case 'base':
-      fitleredLayers = Object.assign({}, state.layers, { baselayer: Object.assign({}, state.layers.baselayer, fieldsNewValuesObj) });
-      break;
+      const newBaseLayer = Object.assign({}, state.layers.baselayer, fieldsNewValuesObj);
+      const newLayersObj = Object.assign({}, state.layers, { baselayer: newBaseLayer });
+      return Object.assign({}, state, { layers: newLayersObj });
     default:
-      fitleredLayers = state.layers;
-      break;
+      return state;
   }
-  return Object.assign({}, state, { layers: fitleredLayers });
 };
 
 const doReorderLayer = (state, payload) => {
   const direction = payload.direction === 'up' ? -1 : 1;
   const idx = payload.index;
-  if (idx + direction < 0 || idx + direction >= state.layers.datalayers.length) {
+  if (idx + direction < 0 || idx + direction >= state.layers.panel[state.activeMapId].datalayers.length) {
     return state;
   }
 
-  let newDatalayers = state.layers.datalayers.map(a => Object.assign({}, a));
-  const tmp = newDatalayers[idx];
-  newDatalayers[idx] = newDatalayers[idx + direction];
-  newDatalayers[idx + direction] = tmp;
-  return Object.assign({}, state, { layers: Object.assign({}, state.layers, { datalayers: newDatalayers }) });
+  let layersCpy = cloneDeep(state.layers.panel[state.activeMapId].datalayers);
+  const temp = layersCpy[idx];
+  layersCpy[idx] = layersCpy[direction + idx];
+  layersCpy[direction + idx] = temp;
+
+  let oldDataPanel = cloneDeep(state.layers.panel);
+  oldDataPanel[state.activeMapId] = Object.assign({}, oldDataPanel[state.activeMapId], { datalayers: layersCpy });
+  const newDataLayers = Object.assign({}, state.layers, { panel: oldDataPanel });
+  return Object.assign({}, state, { layers: newDataLayers });
 };
 
 const doDeleteLayer = (state, payload) => {
   const { idx, type } = payload;
-  let fitleredLayers;
+  let layersCpy = cloneDeep(state.layers.panel[state.activeMapId]);
+
   switch (type) {
     case 'data':
-      let datalayersCpy = state.layers.datalayers.map(a => Object.assign({}, a));
-      datalayersCpy.splice(idx, 1);
-      fitleredLayers = Object.assign({}, state.layers, { datalayers: datalayersCpy });
-      break;
+      layersCpy.datalayers.splice(idx, 1);
+      let oldDataPanel = cloneDeep(state.layers.panel);
+      oldDataPanel[state.activeMapId] = layersCpy;
+      const newDataLayers = Object.assign({}, state.layers, { panel: oldDataPanel });
+      return Object.assign({}, state, { layers: newDataLayers });
     case 'overlay':
-      let overlaysCpy = state.layers.overlays.map(a => Object.assign({}, a));
-      overlaysCpy.splice(idx, 1);
-      fitleredLayers = Object.assign({}, state.layers, { overlays: overlaysCpy });
-      break;
+      layersCpy.overlays.splice(idx, 1);
+      let oldOverlayPanel = cloneDeep(state.layers.panel);
+      oldOverlayPanel[state.activeMapId] = layersCpy;
+      const newOverlayLayers = Object.assign({}, state.layers, { panel: oldOverlayPanel });
+      return Object.assign({}, state, { layers: newOverlayLayers });
     default:
-      fitleredLayers = state.layers;
-      break;
+      return state;
   }
-  return Object.assign({}, state, { layers: fitleredLayers });
 };
 
 function setGeoJSON (json) {
@@ -445,6 +419,9 @@ const setCursorLocation = (state, payload) => {
 const newLayout = (state, payload) => {
   return Object.assign({}, state, { layout: payload });
 };
+const newActivePanel = (state, payload) => {
+  return Object.assign({}, state, { activeMapId: payload });
+};
 // ------------------------------------
 // Action Handlers
 // ------------------------------------
@@ -462,14 +439,14 @@ const ACTION_HANDLERS = {
   [REORDER_LAYER]                 : (state, action) => doReorderLayer(state, action.payload),
   [SET_CUT]                       : (state, action) => newCut(state, action.payload),
   [SET_MAP_STYLE]                 : (state, action) => newMapStyle(state, action.payload),
-  [SET_STYLE]                     : (state, action) => newStyle(state, action.payload),
   [SET_WMJSLAYERS]                : (state, action) => doSetWMJSLayers(state, action.payload),
   [SET_TIME_DIMENSION]            : (state, action) => doSetTimeDim(state, action.payload),
   [TOGGLE_ANIMATION]              : (state, action) => doToggleAnimation(state),
   [SET_MAP_MODE]                  : (state, action) => newMapMode(state, action.payload),
   [CURSOR_LOCATION]               : (state, action) => setCursorLocation(state, action.payload),
   [SET_LAYOUT]                    : (state, action) => newLayout(state, action.payload),
-  [SET_GEOJSON]                   : (state, action) => newGeoJSON(state, action.payload)
+  [SET_GEOJSON]                   : (state, action) => newGeoJSON(state, action.payload),
+  [SET_ACTIVE_PANEL]              : (state, action) => newActivePanel(state, action.payload)
 };
 
 // ------------------------------------
