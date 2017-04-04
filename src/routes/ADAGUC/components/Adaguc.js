@@ -127,7 +127,7 @@ export default class Adaguc extends React.Component {
       return;
     }
     this.webMapJS.stopAnimating();
-    if (this.props.master) {
+    if (this.props.active) {
       this.props.dispatch(this.props.actions.setWMJSLayers({ layers: this.webMapJS.getLayers(), baselayers: this.webMapJS.getBaseLayers() }));
     }
     layer.onReady = undefined;
@@ -154,14 +154,14 @@ export default class Adaguc extends React.Component {
     }
     if (wmjstime !== this.prevTime) {
       this.prevTime = wmjstime;
-      if (this.props.master) {
+      if (this.props.active) {
         this.props.dispatch(this.props.actions.setTimeDimension(wmjstime));
       }
     }
   }
   /* istanbul ignore next */
   resize () {
-    var element = document.querySelector('.map .content');
+    var element = document.querySelector('#adagucwrapper' + this.props.mapId).parentNode;
     this.webMapJS.setSize($(element).width(), $(element).height());
     this.webMapJS.draw();
   }
@@ -179,7 +179,7 @@ export default class Adaguc extends React.Component {
     localStorage.setItem('geoweb', JSON.stringify({ 'personal_urls': [] }));
     // eslint-disable-next-line no-undef
     this.webMapJS = new WMJSMap(adagucMapRef, BACKEND_SERVER_XML2JSON);
-    var element = document.querySelector('.map .content');
+    var element = document.querySelector('#adagucwrapper' + this.props.mapId).parentNode;
     const width = $(element).width();
     const height = $(element).height();
     this.webMapJS.setSize(width, height);
@@ -199,7 +199,7 @@ export default class Adaguc extends React.Component {
       axios.spread((services, overlays) => dispatch(actions.createMap([...services.data, ...JSON.parse(localStorage.getItem('geoweb')).personal_urls], overlays.data[0])))
     );
     this.webMapJS.stopAnimating();
-    const newDatalayers = adagucProperties.layers.datalayers.map((datalayer) => {
+    const newDatalayers = adagucProperties.layers.panel[this.props.mapId].datalayers.map((datalayer) => {
       // eslint-disable-next-line no-undef
       const newDataLayer = new WMJSLayer(datalayer);
       newDataLayer.setAutoUpdate(true, moment.duration(2, 'minutes').asMilliseconds(), this.updateLayer);
@@ -215,7 +215,7 @@ export default class Adaguc extends React.Component {
     }
     // eslint-disable-next-line no-undef
     let currentDate = getCurrentDateIso8601();
-    if (this.props.master) {
+    if (this.props.active) {
       dispatch(actions.setTimeDimension(currentDate.toISO8601()));
       dispatch(actions.setWMJSLayers({ layers: this.webMapJS.getLayers(), baselayers: this.webMapJS.getBaseLayers() }));
     }
@@ -255,79 +255,36 @@ export default class Adaguc extends React.Component {
   componentDidUpdate (prevProps, prevState) {
     // The first time, the map needs to be created. This is when in the previous state the map creation boolean is false
     // Otherwise only change when a new dataset is selected
-    const { adagucProperties } = this.props;
+    const { adagucProperties, mapId, active, dispatch, actions } = this.props;
     const { layers, boundingBox, timedim, animate, mapMode, cursor } = adagucProperties;
-      // eslint-disable-next-line no-undef
+
+    // Update Boundingbox
     if (boundingBox !== prevProps.adagucProperties.boundingBox) {
+      // eslint-disable-next-line no-undef
       this.webMapJS.setBBOX(boundingBox.bbox.join());
-      this.webMapJS.draw();
     }
-    if (layers !== prevProps.adagucProperties.layers) {
-      const { baselayer, datalayers, overlays } = layers;
-      if (baselayer !== prevProps.adagucProperties.layers.baselayer || overlays !== prevProps.adagucProperties.layers.overlays) {
-        // eslint-disable-next-line no-undef
-        const overlayers = overlays.map((overlay) => { const newOverlay = new WMJSLayer(overlay); newOverlay.keepOnTop = true; return newOverlay; });
-        // eslint-disable-next-line no-undef
-        const newBaselayers = [new WMJSLayer(baselayer)].concat(overlayers);
-        this.webMapJS.setBaseLayers(newBaselayers);
-      }
-      if (datalayers !== prevProps.adagucProperties.layers.datalayers) {
-        // TODO refactor this so we don't remove all layers and just update them if count and order remain the same
-        if (datalayers.length !== prevProps.adagucProperties.layers.datalayers.length || this.orderChanged(datalayers, prevProps.adagucProperties.layers.datalayers)) {
-          console.log('Resubmitting ADAGUC Layers');
-          this.webMapJS.stopAnimating();
-          const newDatalayers = datalayers.map((datalayer) => {
-            // eslint-disable-next-line no-undef
-            const newDataLayer = new WMJSLayer(datalayer);
-            newDataLayer.setAutoUpdate(true, moment.duration(2, 'minutes').asMilliseconds(), this.updateLayer);
-            newDataLayer.onReady = this.updateLayer;
-            return newDataLayer;
-          });
-          this.webMapJS.removeAllLayers();
-          newDatalayers.reverse().forEach((layer) => this.webMapJS.addLayer(layer));
-          const newActiveLayer = (this.webMapJS.getLayers()[0]);
-          if (newActiveLayer) {
-            this.webMapJS.setActiveLayer(this.webMapJS.getLayers()[0]);
-          }
-        } else {
-          console.log('Updating WEBMAPJS LAYER STATE');
-          let layers = this.webMapJS.getLayers();
-          for (var i = layers.length - 1; i >= 0; i--) {
-            layers[i].enabled = datalayers[i].enabled;
-            layers[i].opacity = datalayers[i].opacity;
-            layers[i].service = datalayers[i].service;
-            layers[i].name = datalayers[i].name;
-            layers[i].label = datalayers[i].label;
-            if (datalayers[i].style) {
-              layers[i].currentStyle = datalayers[i].style;
-            }
-            this.webMapJS.getListener().triggerEvent('onmapdimupdate');
-          }
-        }
-      }
-      // this.onChangeAnimation(animate);
-      if (this.props.master) {
-        this.props.dispatch(this.props.actions.setWMJSLayers({ layers: this.webMapJS.getLayers(), baselayers: this.webMapJS.getBaseLayers() }));
-      }
-    }
+
+    // Update Time
     if (timedim !== prevProps.adagucProperties.timedim) {
+      // eslint-disable-next-line no-undef
       this.webMapJS.setDimension('time', timedim, true);
     }
-    if (animate !== prevProps.adagucProperties.animate) {
+
+    // Update animation
+    if (animate) {
       this.onChangeAnimation(animate);
     }
-    if (cursor !== prevProps.adagucProperties.cursor) {
-      if (cursor && cursor.location) {
-        this.webMapJS.positionMapPinByLatLon({ x: cursor.location.x, y: cursor.location.y });
-      }
-    }
+
+    // Update mapmode
     if (mapMode !== prevProps.adagucProperties.mapMode) {
+      // Remove listeners if switching away from progtemp or timeseries
       if ((prevProps.adagucProperties.mapMode === 'progtemp' && mapMode !== 'progtemp') ||
           (prevProps.adagucProperties.mapMode === 'timeseries' && mapMode !== 'timeseries')) {
         this.webMapJS.removeListener('mouseclicked');
         this.webMapJS.enableInlineGetFeatureInfo(true);
       }
 
+      // Register listeners if switching to progtemp or timeseries
       if ((prevProps.adagucProperties.mapMode !== 'progtemp' && mapMode === 'progtemp') ||
           (prevProps.adagucProperties.mapMode !== 'timeseries' && mapMode === 'timeseries')) {
         this.webMapJS.enableInlineGetFeatureInfo(false);
@@ -338,6 +295,7 @@ export default class Adaguc extends React.Component {
           this.webMapJS.setMapModeZoomBoxIn();
           break;
         case 'progtemp':
+        case 'timeseries':
         case 'pan':
           this.webMapJS.setMapModePan();
           break;
@@ -355,12 +313,81 @@ export default class Adaguc extends React.Component {
         this.webMapJS.setMessage('');
       }
     }
+
+    // Track cursor if necessary
+    if (cursor !== prevProps.adagucProperties.cursor) {
+      if (cursor && cursor.location) {
+        this.webMapJS.positionMapPinByLatLon({ x: cursor.location.x, y: cursor.location.y });
+      }
+    }
+    if (layers.baselayer !== prevProps.adagucProperties.layers.baselayer) {
+      // eslint-disable-next-line no-undef
+      const overlayers = layers.panel[mapId].overlays.map((overlay) => { const newOverlay = new WMJSLayer(overlay); newOverlay.keepOnTop = true; return newOverlay; });
+      // eslint-disable-next-line no-undef
+      const newBaselayers = [new WMJSLayer(layers.baselayer)].concat(overlayers);
+      this.webMapJS.setBaseLayers(newBaselayers);
+      if (active) {
+        dispatch(actions.setWMJSLayers({ layers: this.webMapJS.getLayers(), baselayers: this.webMapJS.getBaseLayers() }));
+      }
+    }
+
+    // Set the current layers if the panel becomes active (necessary for the layermanager etc.)
+    if (!prevProps.active && active) {
+      dispatch(actions.setWMJSLayers({ layers: this.webMapJS.getLayers(), baselayers: this.webMapJS.getBaseLayers() }));
+    }
+    if (active) {
+      const currPanel = layers.panel[mapId];
+      const prevPanel = prevProps.adagucProperties.layers.panel[mapId];
+      let baseChanged = false;
+      let layersChanged = false;
+      if (currPanel.overlays !== prevPanel.overlays) {
+        baseChanged = true;
+        // eslint-disable-next-line no-undef
+        const overlayers = currPanel.overlays.map((overlay) => { const newOverlay = new WMJSLayer(overlay); newOverlay.keepOnTop = true; return newOverlay; });
+        // eslint-disable-next-line no-undef
+        const newBaselayers = [new WMJSLayer(layers.baselayer)].concat(overlayers);
+        this.webMapJS.setBaseLayers(newBaselayers);
+      }
+      if (currPanel.datalayers !== prevPanel.datalayers) {
+        console.log('active');
+        layersChanged = true;
+        if (this.orderChanged(currPanel.datalayers, prevPanel.datalayers)) {
+          this.webMapJS.stopAnimating();
+          const newDatalayers = currPanel.datalayers.map((datalayer) => {
+            // eslint-disable-next-line no-undef
+            const newDataLayer = new WMJSLayer(datalayer);
+            newDataLayer.setAutoUpdate(true, moment.duration(2, 'minutes').asMilliseconds(), this.updateLayer);
+            newDataLayer.onReady = this.updateLayer;
+            return newDataLayer;
+          });
+          this.webMapJS.removeAllLayers();
+          newDatalayers.reverse().forEach((layer) => this.webMapJS.addLayer(layer));
+        } else {
+          let layers = this.webMapJS.getLayers();
+          for (var i = layers.length - 1; i >= 0; i--) {
+            layers[i].enabled = currPanel.datalayers[i].enabled;
+            layers[i].opacity = currPanel.datalayers[i].opacity;
+            layers[i].service = currPanel.datalayers[i].service;
+            layers[i].name = currPanel.datalayers[i].name;
+            layers[i].label = currPanel.datalayers[i].label;
+            if (currPanel.datalayers[i].style) {
+              layers[i].currentStyle = currPanel.datalayers[i].style;
+            }
+            this.webMapJS.getListener().triggerEvent('onmapdimupdate');
+          }
+        }
+      }
+      if (baseChanged || layersChanged) {
+        dispatch(actions.setWMJSLayers({ layers: this.webMapJS.getLayers(), baselayers: this.webMapJS.getBaseLayers() }));
+      }
+    }
+    // Redraw at the end
     this.webMapJS.draw();
   }
 
   /* istanbul ignore next */
   onChangeAnimation (value) {
-    this.isAnimating = value;
+    this.isAnimating = value && this.props.active;
     if (this.isAnimating) {
       this.webMapJS.drawAutomatic(moment().utc().subtract(4, 'hours'), moment().utc().add(48, 'hours'));
     } else {
@@ -373,9 +400,9 @@ export default class Adaguc extends React.Component {
     });
   }
   render () {
-    const { adagucProperties, dispatch } = this.props;
+    const { adagucProperties, dispatch, mapId } = this.props;
     return (
-      <div id='adagucwrapper'>
+      <div id={'adagucwrapper' + mapId}>
         <div ref='adaguc' />
         <div style={{ margin: '5px 10px 10px 5px ' }}>
           <AdagucMapDraw
@@ -444,5 +471,6 @@ Adaguc.propTypes = {
   adagucProperties : React.PropTypes.object.isRequired,
   actions          : React.PropTypes.object.isRequired,
   dispatch         : React.PropTypes.func.isRequired,
-  master           : React.PropTypes.bool
+  mapId            : React.PropTypes.number.isRequired,
+  active           : React.PropTypes.bool.isRequired
 };

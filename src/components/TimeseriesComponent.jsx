@@ -94,7 +94,6 @@ export default class TimeseriesComponent extends Component {
     ];
   }
   customTooltip (props, labels, units) {
-    console.log(labels);
     if (props.payload.length > 0) {
       return (
         <div className='recharts-tooltip-wrapper' style={{ backgroundColor: 'rgba(255, 255, 255, 0.8)', border: '1px solid rgb(204, 204, 204)', padding: '0.5rem 1rem 0 1rem' }}>
@@ -216,7 +215,7 @@ LAYERS=&QUERY_LAYERS=air_pressure_at_sea_level,wind__at_10m,dew_point_temperatur
     }
 
     // If there is no HARMONIE layer we can also abort.
-    if (wmjslayers.layers.length > 0 && layers.datalayers.filter((layer) => layer.title && layer.title.includes('HARM')).length > 0) {
+    if (wmjslayers.layers.length > 0 && layers.panel[adagucProperties.activeMapId].datalayers.filter((layer) => layer.title && layer.title.includes('HARM')).length > 0) {
       const harmlayer = wmjslayers.layers.filter((layer) => layer.service && layer.service.includes('HARM'))[0];
       if (!harmlayer) return;
       this.referenceTime = harmlayer.getDimension('reference_time').currentValue;
@@ -270,7 +269,6 @@ LAYERS=&QUERY_LAYERS=air_pressure_at_sea_level,wind__at_10m,dew_point_temperatur
     let retData = [];
     data.map((d) => {
       let mappedName = '';
-      console.log(d, data);
       switch (d) {
         case 'pressure':
           mappedName = 'Air pressure';
