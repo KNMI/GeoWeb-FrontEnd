@@ -189,7 +189,9 @@ class TaskCategory extends Component {
   }
 
   componentWillReceiveProps (nextProps) {
-    this.setState({ isOpen: nextProps.isOpen });
+    if (typeof nextProps.isOpen !== 'undefined') {
+      this.setState({ isOpen: nextProps.isOpen });
+    }
   }
 
   render () {

@@ -521,6 +521,16 @@ main:fullscreen {
   max-width: 100%;
 }
 
+.Panel .accordionsWrapper .collapse .btn.active {
+  background: #bcdff1;
+  border-color: #3299cb;
+  z-index: unset;
+}
+
+.Panel .accordionsWrapper .collapse.show .btn.active {
+  z-index: 2;
+}
+
 .Footer .col-auto:first-child .btn-outline-info {
   @extend .rounded-left;
 }

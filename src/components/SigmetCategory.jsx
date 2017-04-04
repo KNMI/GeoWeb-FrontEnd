@@ -10,6 +10,21 @@ import CollapseOmni from '../components/CollapseOmni';
 const timeFormat = 'YYYY MMM DD - HH:mm';
 // const shortTimeFormat = 'HH:mm';
 const SEPARATOR = '_';
+const emptyGeoJson = {
+  type: 'FeatureCollection',
+  features: [
+    {
+      type: 'Feature',
+      geometry: {
+        type: 'Polygon',
+        coordinates: []
+      },
+      properties: {
+        prop0: 'value0'
+      }
+    }
+  ]
+};
 const phenomenonMapping = [
   {
     'phenomenon': { 'name': 'Thunderstorm', 'code': 'TS' },
@@ -66,6 +81,7 @@ class SigmetCategory extends Component {
     this.toggle = this.toggle.bind(this);
     this.onObsOrFcstClick = this.onObsOrFcstClick.bind(this);
     this.setPhenomenon = this.setPhenomenon.bind(this);
+    this.handleSigmetClick = this.handleSigmetClick.bind(this);
     this.saveSigmet = this.saveSigmet.bind(this);
     this.savedSigmetCallback = this.savedSigmetCallback.bind(this);
     this.getHRS4code = this.getHRT4code.bind(this);
@@ -76,9 +92,7 @@ class SigmetCategory extends Component {
 
   // get Human Readable Text for Code
   getHRT4code (code) {
-    console.log('HRT requested', code);
     if (typeof code === 'undefined') {
-      console.log('Oeps');
       return UNKNOWN;
     }
     const UNKNOWN = 'Unknown';
@@ -156,6 +170,11 @@ class SigmetCategory extends Component {
     this.setState({ isOpen: !this.state.isOpen });
   }
 
+  handleSigmetClick (index) {
+    this.props.selectMethod(index);
+    this.drawSIGMET({ geojson: this.state.list[index].geojson });
+  }
+
   onObsOrFcstClick (obsSelected) {
     const newList = cloneDeep(this.state.list);
     newList[0].obs_or_forecast.obs = obsSelected;
@@ -175,8 +194,6 @@ class SigmetCategory extends Component {
   saveSigmet () {
     const newList = cloneDeep(this.state.list);
     newList[0].geojson = this.props.adagucProperties.adagucmapdraw.geojson;
-    console.log(this.props.adagucProperties.adagucmapdraw.geojson);
-    console.log(newList[0].geojson);
     this.setState({ list: newList });
     axios({
       method: 'post',
@@ -207,10 +224,7 @@ class SigmetCategory extends Component {
   setEmptySigmet () {
     this.setState({
       list: [{
-        geojson                   : {
-          type                    : 'FeatureCollection',
-          features                :[]
-        },
+        geojson                   : emptyGeoJson,
         phenomenon                : '',
         obs_or_forecast           : {
           obs                     : true
@@ -240,12 +254,9 @@ class SigmetCategory extends Component {
   gotExistingSigmetsCallback (message) {
     console.log('Got SIGMETs list feedback', message);
     let sigmetsList = message && message.data && message.data.sigmets ? message.data.sigmets : [];
-    console.log('List 1', sigmetsList);
     sigmetsList.forEach((sigmet) => {
       sigmet.phenomenonHRT = this.getHRT4code(sigmet.phenomenon);
     });
-    console.log('List length 2', sigmetsList.length);
-    console.log('List 2', sigmetsList);
     this.setState({ list: sigmetsList });
   }
 
@@ -262,11 +273,15 @@ class SigmetCategory extends Component {
   }
 
   componentWillReceiveProps (nextProps) {
-    this.setState({ isOpen: nextProps.isOpen });
+    if (typeof nextProps.isOpen !== 'undefined') {
+      this.setState({ isOpen: nextProps.isOpen });
+    }
   }
+
   drawSIGMET (geojson) {
     this.props.dispatch(this.props.actions.setGeoJSON(geojson));
   }
+
    /*renderWhatBlock (editable, item) {
     console.log('What?: ', item);
     console.log('What?: ', editable);
@@ -336,9 +351,9 @@ class SigmetCategory extends Component {
     </Row>;
   }*/
   render () {
-    const { title, icon, parentCollapsed, editable } = this.props;
+    const { title, icon, parentCollapsed, editable, selectedIndex } = this.props;
     const notifications = !editable ? this.state.list.length : 0;
-    const maxSize = this.state.list ? 200 * this.state.list.length : 0;
+    const maxSize = this.state.list ? 150 * this.state.list.length : 0;
     // const maxSize = editable ? 800 : this.state.list ? Math.min(250 * this.state.list.length, 600) : 0;
     return (
       <Card className='row accordion'>
@@ -366,8 +381,9 @@ class SigmetCategory extends Component {
           <CardBlock>
             <Row>
               <Col className='btn-group-vertical'>
-                {this.state.list.map((item, i) =>
-                  <Button tag='div' className='Sigmet row' key={i} onClick={(evt) => { evt.stopPropagation(); this.drawSIGMET({ geojson: item.geojson }); }}>
+                {this.state.list.map((item, index) =>
+                  <Button tag='div' className={'Sigmet row' + (selectedIndex === index ? ' active' : '')}
+                    key={index} onClick={() => { this.handleSigmetClick(index); }}>
                     <Row>
                       <Col xs='auto'>
                         <Badge color='success' style={{ width: '100%' }}>What</Badge>
@@ -414,6 +430,8 @@ SigmetCategory.propTypes = {
   source        : PropTypes.string,
   parentCollapsed : PropTypes.bool,
   editable      : PropTypes.bool,
+  selectedIndex : PropTypes.number,
+  selectMethod  : PropTypes.func,
   adagucProperties: PropTypes.object,
   dispatch: PropTypes.func,
   actions: PropTypes.object
