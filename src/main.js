@@ -16,8 +16,21 @@ const initialState = {
     },
     layers: {
       baselayer: MAP_STYLES[1],
-      datalayers: [],
-      overlays: []
+      panel: [
+        {
+          datalayers: [],
+          overlays: []
+        }, {
+          datalayers: [],
+          overlays: []
+        }, {
+          datalayers: [],
+          overlays: []
+        }, {
+          datalayers: [],
+          overlays: []
+        }
+      ]
     },
     boundingBox: BOUNDING_BOXES[0],
     projectionName: 'EPSG:3857',
@@ -28,6 +41,7 @@ const initialState = {
     },
     mapMode: 'pan',
     layout: 'single',
+    activeMapId: 0,
     adagucmapdraw: {
       geojson: { 'type': 'FeatureCollection',
         'features': [

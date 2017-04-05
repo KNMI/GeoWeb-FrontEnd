@@ -1,13 +1,13 @@
 import React, { Component, PropTypes } from 'react';
-import { Button, Col, Row, Popover, InputGroup,
-Input,
-InputGroupButton, PopoverTitle, PopoverContent, ButtonGroup, TabContent, TabPane, Nav, NavItem, NavLink, Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
+import { Button, Col, Row, Popover, InputGroup, Input, InputGroupButton, PopoverContent,
+  ButtonGroup, TabContent, TabPane, Nav, NavItem, NavLink, Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
 import Panel from '../components/Panel';
 import { BOUNDING_BOXES } from '../routes/ADAGUC/constants/bounding_boxes';
 import { Icon } from 'react-fa';
 import classnames from 'classnames';
 import { Typeahead } from 'react-bootstrap-typeahead';
-import CanvasComponent from '../routes/ADAGUC/components/CanvasComponent';
+import ProgtempComponent from '../components/ProgtempComponent';
+import TimeseriesComponent from '../components/TimeseriesComponent';
 import { BACKEND_SERVER_URL } from '../routes/ADAGUC/constants/backend';
 import axios from 'axios';
 var moment = require('moment');
@@ -24,11 +24,11 @@ class MapActionContainer extends Component {
     this.setView = this.setView.bind(this);
     this.handleActionClick = this.handleActionClick.bind(this);
     this.handleAddSource = this.handleAddSource.bind(this);
-    this.setChosenLocation = this.setChosenLocation.bind(this);
 
     // Render functions
-    this.renderPopOver = this.renderPopOver.bind(this);
+    this.renderBBOXPopOver = this.renderBBOXPopOver.bind(this);
     this.renderLayerChooser = this.renderLayerChooser.bind(this);
+    this.renderTimeseriesPopover = this.renderTimeseriesPopover.bind(this);
     // Helper
     this.generateMap = this.generateMap.bind(this);
     this.handleAddLayer = this.handleAddLayer.bind(this);
@@ -39,97 +39,14 @@ class MapActionContainer extends Component {
     this.renderPresetSelector = this.renderPresetSelector.bind(this);
     this.setPreset = this.setPreset.bind(this);
     this.getServices = this.getServices.bind(this);
-    this.padLeft = this.padLeft.bind(this);
-    this.renderProgtempData = this.renderProgtempData.bind(this);
-    this.modifyData = this.modifyData.bind(this);
     // State
     this.state = {
       collapse: false,
       popoverOpen: false,
       layerChooserOpen: false,
       activeTab: '1',
-      canvasWidth: 480,
-      canvasHeight: 670,
       getCapBusy: false
     };
-    this.progtempLocations = [
-      {
-        name: 'EHAM',
-        x: 4.77,
-        y: 52.30
-      }, {
-        name: 'EHRD',
-        x: 4.42,
-        y: 51.95
-      }, {
-        name: 'EHTW',
-        x: 6.98,
-        y: 52.28
-      }, {
-        name: 'EHBK',
-        x: 5.76,
-        y: 50.95
-      }, {
-        name: 'EHFS',
-        x: 3.68,
-        y: 51.46
-      }, {
-        name: 'EHDB',
-        x: 5.18,
-        y: 52.12
-      }, {
-        name: 'EHGG',
-        x: 6.57,
-        y: 53.10
-      }, {
-        name: 'EHKD',
-        x: 4.74,
-        y: 52.93
-      }, {
-        name: 'EHAK',
-        x: 3.81,
-        y: 55.399
-      }, {
-        name: 'EHDV',
-        x: 2.28,
-        y: 53.36
-      }, {
-        name: 'EHFZ',
-        x: 3.94,
-        y: 54.12
-      }, {
-        name: 'EHFD',
-        x: 4.67,
-        y: 54.83
-      }, {
-        name: 'EHHW',
-        x: 6.04,
-        y: 52.037
-      }, {
-        name: 'EHKV',
-        x: 3.68,
-        y: 53.23
-      }, {
-        name: 'EHMG',
-        x: 4.93,
-        y: 53.63
-      }, {
-        name: 'EHMA',
-        x: 5.94,
-        y: 53.54
-      }, {
-        name: 'EHQE',
-        x: 4.15,
-        y: 52.92
-      }, {
-        name: 'EHPG',
-        x: 3.3416,
-        y: 52.36
-      }
-    ];
-  }
-  padLeft (nr, n, str) {
-    return Array(n - String(nr).length + 1).join(str || '0') + nr;
   }
 
   getServices () {
@@ -175,6 +92,11 @@ class MapActionContainer extends Component {
       this.setState({ progTempPopOverOpen: true });
     } else {
       this.setState({ progTempPopOverOpen: false });
+    }
+    if (action === 'timeseries') {
+      this.setState({ timeSeriesPopOverOpen: true });
+    } else {
+      this.setState({ timeSeriesPopOverOpen: false });
     }
     this.props.dispatch(this.props.actions.setMapMode(action));
   }
@@ -247,7 +169,7 @@ class MapActionContainer extends Component {
     dispatch(actions.setCut(BOUNDING_BOXES[e.currentTarget.id]));
     this.setState({ popoverOpen: false });
   }
-  renderPopOver () {
+  renderBBOXPopOver () {
     return (
       <Popover placement='left' isOpen={this.state.popoverOpen} target='setAreaButton' toggle={this.togglePopside}>
         <PopoverContent style={{ height: '15rem', overflow: 'hidden', overflowY: 'scroll' }}>
@@ -334,113 +256,18 @@ class MapActionContainer extends Component {
     });
   }
 
-  renderBaseProgtemp (canvasWidth, canvasHeight) {
-    var canvasBG = document.getElementById('bijvoetCanvas');
-    // eslint-disable-next-line no-undef
-    drawProgtempBg(canvasBG, canvasWidth, canvasHeight);
-  }
-
-  modifyData (data, referenceTime, timeOffset) {
-    function fetchData (data, referenceTime, timeOffset, name) {
-      let selectedData = data.filter((obj) => obj.name === name)[0].data;
-      selectedData = (selectedData[Object.keys(selectedData)[timeOffset]]);
-      let selectedObjs = Object.keys(selectedData).map((key) => parseFloat(selectedData[key][Object.keys(selectedData[key])[0]]));
-      return selectedObjs;
-    }
-
-    function getWindInfo (windX, windY) {
-      let toRadians = (deg) => {
-        return (deg / 180) * Math.PI;
-      };
-      let toDegrees = (rad) => {
-        return (((rad / Math.PI) * 180) + 360) % 360;
-      };
-
-      let windSpeed = [];
-      let windDirection = [];
-      for (var i = 0; i < windX.length; ++i) {
-        windSpeed.push(Math.sqrt(windX[i] * windX[i] + windY[i] * windY[i]));
-        windDirection.push(toDegrees(toRadians(270) - Math.atan2(windY[i], windX[i])));
-      }
-      return { windSpeed, windDirection };
-    }
-
-    function computeTwTv (T, Td, pressure) {
-      let Tw = [];
-      let Tv = [];
-      for (var i = 0; i < T.length; ++i) {
-        // eslint-disable-next-line no-undef
-        Tw = calc_Tw(T[i], Td[i], pressure[i]);
-        // eslint-disable-next-line no-undef
-        Tv = calc_Tv(T[i], Td[i], pressure[i]);
-      }
-      return { Tw, Tv };
-    }
-    let pressureData = fetchData(data, referenceTime, timeOffset, 'air_pressure__at_ml');
-    let airTemp = fetchData(data, referenceTime, timeOffset, 'air_temperature__at_ml');
-    let windXData = fetchData(data, referenceTime, timeOffset, 'x_wind__at_ml');
-    let windYData = fetchData(data, referenceTime, timeOffset, 'y_wind__at_ml');
-    let { windSpeed, windDirection } = getWindInfo(windXData, windYData);
-    let dewTemp = fetchData(data, referenceTime, timeOffset, 'dewpoint_temperature__at_ml');
-    let { Tw, Tv } = computeTwTv(airTemp, dewTemp, pressureData);
-    return { PSounding: pressureData, TSounding: airTemp, TdSounding: dewTemp, ddSounding: windDirection, ffSounding: windSpeed, TwSounding: Tw, TvSounding: Tv };
-  }
-  renderProgtempData (canvasWidth, canvasHeight, timeOffset) {
-    if (!this.progtempData) {
-      return;
-    }
-    if (timeOffset < 0 || timeOffset > 48) {
-      return;
-    }
-    var canvas = document.getElementById('canvasOverlay');
-    if (!canvas) {
-      return;
-    }
-    const { PSounding, TSounding, TdSounding, ddSounding, ffSounding, TwSounding, TvSounding } = this.modifyData(this.progtempData, this.referenceTime, timeOffset);
-    // eslint-disable-next-line no-undef
-    drawProgtemp(canvas, canvasWidth, canvasHeight, PSounding, TSounding, TdSounding, ddSounding, ffSounding, TwSounding, TvSounding);
-    // eslint-disable-next-line no-undef
-    plotHodo(canvas, canvasWidth, canvasHeight, PSounding, TSounding, TdSounding, ddSounding, ffSounding, TwSounding);
-  }
-  setChosenLocation (loc) {
-    this.props.dispatch(this.props.actions.progtempLocation(loc[0]));
-  }
   renderProgtempPopover (adagucTime) {
-    function convertMinSec (loc) {
-      function padLeft (nr, n, str) {
-        return Array(n - String(nr).length + 1).join(str || '0') + nr;
-      }
-
-      const behindComma = (loc - Math.floor(loc));
-
-      const minutes = behindComma * 60;
-      const seconds = Math.floor((minutes - Math.floor(minutes)) * 60);
-
-      return Math.floor(loc) + ':' + padLeft(Math.floor(minutes), 2, '0') + ':' + padLeft(seconds, 2, '0');
+    if (this.state.progTempPopOverOpen) {
+      const { dispatch, actions } = this.props;
+      return <ProgtempComponent adagucProperties={this.props.adagucProperties} isOpen={this.state.progTempPopOverOpen} dispatch={dispatch} actions={actions} />;
     }
-    const maxWidth = this.state.canvasWidth + 'px';
-    const maxHeight = this.state.canvasHeight + 'px';
-    const offset = '-' + this.state.canvasHeight + 'px';
-    const { progtemp } = this.props.adagucProperties;
-    const now = moment(moment.utc().format('YYYY-MM-DDTHH:mm:ss'));
-    const timeOffset = Math.floor(moment.duration(adagucTime.diff(now)).asHours()).toString();
-    return (
-      <Popover placement='left' isOpen={this.state.progTempPopOverOpen} target='progtemp_button'>
-        {progtemp && progtemp.location
-          ? <PopoverTitle>Location: {progtemp.location.name ? progtemp.location.name : convertMinSec(progtemp.location.x) + ', ' + convertMinSec(progtemp.location.y)}</PopoverTitle>
-          : <div />
-        }
-        <PopoverContent style={{ maxWidth: maxWidth, maxHeight: maxHeight }}>
-          <CanvasComponent id='bijvoetCanvas' style={{ display: 'block' }} width={this.state.canvasWidth}
-            height={this.state.canvasHeight} onRenderCanvas={() => this.renderBaseProgtemp(this.state.canvasWidth, this.state.canvasHeight)} />
-          <CanvasComponent id='canvasOverlay' style={{ marginTop: offset, display: 'block' }}
-            width={this.state.canvasWidth} height={this.state.canvasHeight}
-            onRenderCanvas={() => this.renderProgtempData(this.state.canvasWidth, this.state.canvasHeight, timeOffset)} />
-          <div className='canvasLoadingOverlay' ref='canvasLoadingOverlay' />
-          <Typeahead onChange={this.setChosenLocation} options={this.progtempLocations} labelKey='name' placeholder='Type to select default location' submitFormOnEnter />
-        </PopoverContent>
-      </Popover>
-    );
+  }
+
+  renderTimeseriesPopover (adagucTime) {
+    if (this.state.timeSeriesPopOverOpen) {
+      const { dispatch, actions } = this.props;
+      return <TimeseriesComponent adagucProperties={this.props.adagucProperties} isOpen={this.state.timeSeriesPopOverOpen} dispatch={dispatch} actions={actions} />;
+    }
   }
 
   renderLayerChooser () {
@@ -491,55 +318,7 @@ class MapActionContainer extends Component {
       </ModalFooter>
     </Modal>);
   }
-  toggleCanvas () {
-    var canvas = this.refs.canvasLoadingOverlay;
-    const attribute = canvas.getAttribute('class');
-    if (!attribute || attribute === 'canvasLoadingOverlay') {
-      canvas.setAttribute('class', 'canvasLoadingOverlay canvasDisabled');
-    } else {
-      canvas.setAttribute('class', 'canvasLoadingOverlay');
-    }
-  }
-  componentWillReceiveProps (nextProps) {
-    const { adagucProperties } = nextProps;
-    const { layers, wmjslayers, progtemp } = adagucProperties;
-    if (!wmjslayers || !wmjslayers.layers || adagucProperties.mapMode !== 'progtemp') {
-      return;
-    }
-    if (wmjslayers.layers.length > 0 && layers.datalayers.filter((layer) => layer.title && layer.title.includes('HARM')).length > 0) {
-      const harmlayer = wmjslayers.layers.filter((layer) => layer.service && layer.service.includes('HARM'))[0];
-      if (!harmlayer) return;
-      this.referenceTime = harmlayer.getDimension('reference_time').currentValue;
-    }
-    if (progtemp && this.props.adagucProperties.progtemp !== progtemp) {
-      const { location } = progtemp;
-      const harmlayer = wmjslayers.layers.filter((layer) => layer.service.includes('HARM'))[0];
-      if (!harmlayer) return;
-      const refTime = harmlayer.getDimension('reference_time').currentValue;
-      if (location && (refTime !== this.referenceTime || !this.props.adagucProperties.progtemp ||
-        !this.props.adagucProperties.location || location !== this.props.adagucProperties.progtemp.location)) {
-        this.referenceTime = refTime;
-        const url = `http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.HARM_N25_ML.cgi?SERVICE=WMS&&SERVICE=WMS&VERSION=1.3.0
-&REQUEST=GetPointValue&LAYERS=&QUERY_LAYERS=air_pressure__at_ml,y_wind__at_ml,x_wind__at_ml,dewpoint_temperature__at_ml,air_temperature__at_ml
-&CRS=EPSG%3A4326&INFO_FORMAT=application/json&time=*&DIM_reference_time=` + this.referenceTime + `&x=` + location.x + `&y=` + location.y + `&DIM_modellevel=*`;
-        this.toggleCanvas();
-        axios.get(url).then((res) => {
-          if (res.data.includes('No data available')) {
-            console.log('no data');
-            this.toggleCanvas();
-            return;
-          }
-          this.toggleCanvas();
-          this.progtempData = res.data;
-          this.renderProgtempData(this.state.canvasWidth, this.state.canvasHeight, Math.floor(moment.duration(moment.utc(adagucProperties.timedim).diff(moment.utc(this.referenceTime))).asHours()));
-        });
-      }
-    }
-    if (this.props.adagucProperties.timedim !== adagucProperties.timedim) {
-      const diff = Math.floor(moment.duration(moment.utc(adagucProperties.timedim).diff(moment.utc(this.referenceTime))).asHours());
-      this.renderProgtempData(this.state.canvasWidth, this.state.canvasHeight, diff);
-    }
-  }
+
   render () {
     const { title, adagucProperties } = this.props;
     const items = [
@@ -570,8 +349,9 @@ class MapActionContainer extends Component {
       },
       {
         title: 'Show time series',
+        action: 'timeseries',
         icon: 'line-chart',
-        disabled: true
+        onClick: 'timeseries'
       },
       {
         title: 'Show progtemp',
@@ -583,8 +363,9 @@ class MapActionContainer extends Component {
     return (
       <Col className='MapActionContainer'>
         {this.renderLayerChooser()}
-        {this.renderPopOver()}
+        {this.renderBBOXPopOver()}
         {this.renderProgtempPopover(moment.utc(adagucProperties.timedim))}
+        {this.renderTimeseriesPopover()}
         <Panel className='Panel' title={title}>
           {items.map((item, index) =>
             <Button color='primary' key={index} active={adagucProperties.mapMode === item.action} disabled={item.disabled || null}

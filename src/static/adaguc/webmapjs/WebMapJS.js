@@ -32,8 +32,6 @@
 
   var WebMapJSMapNo = 0;
 
-  var legendImageStore; // GLOBAL LEGEND IMAGE STORE
-  var imageStore; // GLOBAL IMAGE STORE
 
   var logging = false;
 
@@ -46,12 +44,17 @@
   var WMSControlsImageSrc;
   var mapPinImageSrc;
   var scaleBarURL;
+
+  var enableConsoleDebugging = false;
+
   /**
    * Set base URL of several sources used wihtin webmapjs
    */
 
-  var debug = function (message) {};
-  var error = function (message) {};
+  var debug = function (message) {
+    // if (enableConsoleDebugging) { console.log(message); }
+  };
+  var error = function (message) { console.log('WebMapJS warning: '+message); };
 
   /**
     * Function which checks wether URL contains a ? token. If not, it is assumed that this token was not provided by the user,
@@ -77,10 +80,17 @@
     this.srs = 'EPSG:4326';
   };
 
+  var legendImageStore; // GLOBAL LEGEND IMAGE STORE
+  var getMapImageStore; // GLOBAL IMAGE STORE
+  var maxAnimationSteps = 1000;
+  legendImageStore = new WMJSImageStore(maxAnimationSteps * 5, 'wmjslegendbuffer');
+  getMapImageStore = new WMJSImageStore(maxAnimationSteps * 5, 'wmjsimagebuffer');
+
   /**
     * WMJSMap class
     */
   function WMJSMap (_element, _xml2jsonrequestURL) {
+
     this.setBaseURL = function (_baseURL) {
       base = _baseURL;
       base_plus_dir = base + 'adaguc/webmapjs';
@@ -103,7 +113,7 @@
     this.setXML2JSONURL = function (_xml2jsonrequest) {
       xml2jsonrequest = _xml2jsonrequest;
     };
-    var enableConsoleDebugging = false;
+
     var mainElement = _element;
     // var baseDiv = document.createElement('div');
     try {
@@ -137,12 +147,12 @@
     var layers = Array();
     var busy = 0;
     var mapdimensions = [];// Array of Dimension;
-    var maxAnimationSteps = 1000;
+
 
     var baseLayers = '';
     var numBaseLayers = 0;
     var _map = this;
-    _map.renderer = 'WMJSCanvasBuffer';// WMJSDivBuffer
+    _map.renderer = 'WMJSCanvasBuffer';
     var layersBusy = 0;
     var mapBusy = false;
     var scaleBarDiv = document.createElement('div');
@@ -165,13 +175,13 @@
     var updateSRS = '';
 
     var legendDivBuffer = [];
-    legendImageStore = new WMJSImageStore(maxAnimationSteps * 5, undefined, 'wmjslegendbuffer');//, imageLoadComplete);
+
     _map.getLegendStore = function () {
       return legendImageStore;
     };
 
     var divBuffer = [];
-    imageStore = new WMJSImageStore(maxAnimationSteps * 5, undefined, 'wmjsimagebuffer');//, imageLoadComplete);
+
     var loadingDiv = $('<div class="WMJSDivBuffer-loading"/>', {});
     var initialized = 0;
     var newSwapBuffer = 0;
@@ -291,12 +301,11 @@
                 }
               }
             }
-
             var legendDivBufferToLoad = currentLegendDivBuffer;
             currentLegendDivBuffer = 1 - currentLegendDivBuffer;
             try {
               legendDivBuffer[legendDivBufferToLoad].load(function () {
-                if (enableConsoleDebugging)console.log('Legend ' + legendDivBufferToLoad);
+                if (enableConsoleDebugging)console.log('Legend buffer nr' + legendDivBufferToLoad);
                 try {
                   var maxWidth = 0;
                   var maxHeight = 0;
@@ -316,7 +325,7 @@
                 callBack.triggerEvent('onlegendready');
               });
             } catch (e) {
-              console.log(e);
+              console.error(e);
               legendDivBuffer[0].hide();
               legendDivBuffer[1].hide();
               legendBusy = false;
@@ -809,36 +818,19 @@
 
       // IMAGE buffers
       for (var j = 0; j < 2; j++) {
-        var d;
-        if (_map.renderer == 'WMJSDivBuffer') {
-          d = new WMJSDivBuffer(callBack, 'imagebuffer', imageStore, _map.getWidth(), _map.getHeight());
-        } else if (_map.renderer == 'WMJSCanvasBuffer') {
-          d = new WMJSCanvasBuffer(callBack, 'imagebuffer', imageStore, _map.getWidth(), _map.getHeight());
-        }
-        var imageLoadComplete = function (image) {
-          for (var j = 0; j < 2; j++) {
-            divBuffer[j].imageLoadComplete(image);
-          }
-          wmjsAnimate.checkAnimation();
-        };
-        imageStore.setLoadEventCallback(imageLoadComplete);
-
-        divBuffer.push(d);
+        let d = new WMJSCanvasBuffer(callBack, 'imagebuffer', getMapImageStore, _map.getWidth(), _map.getHeight());
+        getMapImageStore.addLoadEventCallback(d.imageLoadComplete);
         baseDiv.append(d.getBuffer());
+        divBuffer.push(d);
       }
 
       // Legend buffers
 
       for (var j = 0; j < 2; j++) {
-        var d = new WMJSDivBuffer(callBack, 'legendbuffer', legendImageStore);
-        var imageLoadComplete = function (image) {
-          for (var j = 0; j < 2; j++) {
-            legendDivBuffer[j].imageLoadComplete(image);
-          }
-        };
-        legendImageStore.setLoadEventCallback(imageLoadComplete);
+        let d = new WMJSCanvasBuffer(callBack, 'legendbuffer', legendImageStore,  _map.getWidth(), _map.getHeight());
+        legendImageStore.addLoadEventCallback(d.imageLoadComplete);
+        baseDiv.append(d.getBuffer());
         legendDivBuffer.push(d);
-        baseDiv.append(d.div);
       }
 
       callBack.addToCallback('draw', _map.draw, true);
@@ -1260,6 +1252,12 @@
         divBuffer[1].resize(_map.getWidth(), _map.getHeight());
       }
 
+      if (legendDivBuffer.length > 1) {
+        legendDivBuffer[0].setPosition(0, 0);
+        legendDivBuffer[0].resize(_map.getWidth(), _map.getHeight());
+        legendDivBuffer[1].setPosition(0, 0);
+        legendDivBuffer[1].resize(_map.getWidth(), _map.getHeight());
+      }
       _map.repositionLegendGraphic(true);
       // Fire the onresize event, to notify listeners that something happened.
       callBack.triggerEvent('onresize', [width, height]);
@@ -1411,6 +1409,7 @@
     };
 
     var makeInfoHTML = function () {
+      return;
       try {
         // Create the layerinformation table
         var infoHTML = '<table class="myTable">';
@@ -1714,7 +1713,7 @@
     this.prefetch = function (requests) {
       var prefetching = [];
       for (j = 0; j < requests.length; j++) {
-        var image = imageStore.getImage(requests[j]);
+        var image = getMapImageStore.getImage(requests[j]);
         if (image.isLoaded() == false && image.isLoading() == false) {
           prefetching.push(image);
           image.load();
@@ -1724,12 +1723,12 @@
     };
 
     this.getImageStore = function () {
-      return imageStore;
+      return getMapImageStore;
     };
 
     // Returns 0: not loaded, 1 loading, 2 loaded
     this.isThisRequestLoaded = function (request) {
-      var image = imageStore.getImageForSrc(request);
+      var image = getMapImageStore.getImageForSrc(request);
       if (image == undefined) return 0;
       if (image.isLoaded()) return 2;
       if (image.isLoading()) return 1;
@@ -2644,6 +2643,7 @@
     var resizingBBOXEnabled = false;
 
     this.updateMouseCursorCoordinates = function (coordinates) {
+      return;
       var geoCoord = _map.getGeoCoordFromPixelCoord(coordinates);
       var X;
       var Y;

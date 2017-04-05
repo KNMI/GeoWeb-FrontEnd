@@ -28,8 +28,16 @@ body {
   width: 100vw;
   overflow: hidden;
 }
-.canvasLoadingOverlay.canvasDisabled {
+.canvasLoadingOverlay.canvasDisabled,.canvasLoadingOverlay.timeOverlay.canvasDisabled {
   background-color: rgba(50, 50, 50, 0.4);
+}
+.canvasLoadingOverlay.timeOverlay{
+  margin-top: -800px;
+  display: block;
+  background-color: rgba(50, 50, 50, 0);
+  width: 480px;
+  height: 800px;
+  z-index: 10000;
 }
 .canvasLoadingOverlay {
   margin-top: -670px;
@@ -39,6 +47,11 @@ body {
   height: 670px;
   z-index: 10000;
 }
+.Panel.activePanel > .content,
+.Panel.activePanel > .title {
+  // background-color: #bcdff1;
+  background-color: #017daf;
+}
 #root {
   height: inherit;
   width: inherit;
@@ -47,6 +60,7 @@ body {
 
 #timeline {
   max-height: 40rem;
+  overflow: hidden;
   width: 100%;
 }
 
@@ -414,6 +428,9 @@ a.breadcrumb-active:hover, a.nav-link.active:hover {
   margin-right: 0.4rem;
 }
 
+#timePopover {
+  margin-top: 11rem;
+}
 aside, header, main {
   display: inherit;
 }

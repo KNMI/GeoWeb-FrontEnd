@@ -135,7 +135,7 @@ var WMJSImage = function (src, callback, __type) {
   _this.setSize = function (w, h) {
     w = parseInt(w);
     h = parseInt(h);
-    if (w == 0 || h == 0) return;
+    if (w === 0 || h === 0) return;
     if (isNaN(w) || isNaN(h)) return;
     // console.log("Set size " +w+","+h);
     el.width(parseInt(w) + 'px');
@@ -152,16 +152,6 @@ var WMJSImage = function (src, callback, __type) {
   };
 
   var el = $(document.createElement('img'));
-//    el.css('border', "solid 2px red");
-  // console.log(_type);
-  if (_type == 'wmjsimagebuffer') {
-    el.left = '0px';
-    el.top = '0px';
-    el.css({ position:'absolute' });
-  } else {
-    // console.log('relative')
-    el.css({ 'position':'relative' });
-  }
   el.onselectstart = function () { return false; };
   el.ondrag = function () { return false; };
 

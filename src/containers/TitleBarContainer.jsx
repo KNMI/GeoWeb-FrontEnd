@@ -44,11 +44,15 @@ class TitleBarContainer extends Component {
     };
   }
   getServices () {
+    console.log('======== getServices ========');
     const { dispatch, actions } = this.props;
     const defaultURLs = ['getServices', 'getOverlayServices'].map((url) => BACKEND_SERVER_URL + '/' + url);
     const allURLs = [...defaultURLs];
     axios.all(allURLs.map((req) => axios.get(req, { withCredentials: true }))).then(
-      axios.spread((services, overlays) => dispatch(actions.createMap([...services.data, ...JSON.parse(localStorage.getItem('geoweb')).personal_urls], overlays.data[0])))
+      axios.spread((services, overlays) => {
+        console.log('getServices found Num services:' + services.data.length);
+        dispatch(actions.createMap([...services.data, ...JSON.parse(localStorage.getItem('geoweb')).personal_urls], overlays.data[0]));
+      })
     ).catch((e) => console.log('Error!: ', e.response));
   }
 
@@ -80,6 +84,7 @@ class TitleBarContainer extends Component {
   }
 
   doLogin () {
+    console.log('======== Start doLogin ========');
     const { isLoggedIn } = this.props;
     if (!isLoggedIn) {
       axios({
@@ -88,6 +93,7 @@ class TitleBarContainer extends Component {
         withCredentials: true,
         responseType: 'json'
       }).then(src => {
+        console.log('AJAX OK from doLogin, now go to checkCredentials');
         this.checkCredentials();
       }).catch(error => {
         this.checkCredentialsBadCallback(error);
@@ -98,7 +104,7 @@ class TitleBarContainer extends Component {
   }
 
   doLogout () {
-    this.setLoggedOutCallback('Signing out');
+    console.log('======== Signing out ========');
     axios({
       method: 'get',
       url: BACKEND_SERVER_URL + '/logout',
@@ -112,11 +118,14 @@ class TitleBarContainer extends Component {
   }
 
   checkCredentials () {
-    console.log('checkCredentials', BACKEND_SERVER_URL + '/getuser');
-    // if (this.inputfieldUserName === '') return;
-    this.setState({
-      loginModalMessage: 'Checking...'
-    });
+    console.log('======== CheckCredentials ========');
+    try {
+      this.setState({
+        loginModalMessage: 'Checking...'
+      });
+    } catch (e) {
+      console.log(e);
+    }
     axios({
       method: 'get',
       url: BACKEND_SERVER_URL + '/getuser',
@@ -142,35 +151,40 @@ class TitleBarContainer extends Component {
   };
 
   checkCredentialsOKCallback (data) {
-    console.log('checkCredentialsOKCallback');
+    console.log('Called checkCredentialsOKCallback');
     const { dispatch, actions } = this.props;
     const username = data.username ? data.username : data.userName;
     if (username && username.length > 0) {
+      console.log('checkCredentialsOKCallback username: ' + username);
       if (username === 'guest') {
-        this.setState({
-          loginModalMessage: ''
-        });
+        this.checkCredentialsBadCallback({ response: { data: { message:'guest' } } });
         return;
       }
+      this.getServices();
       dispatch(actions.login(username));
       this.setState({
         loginModal: false,
         loginModalMessage: 'Signed in as user ' + username
       });
     } else {
+      this.getServices();
       this.setState({
         loginModalMessage: (this.inputfieldUserName && this.inputfieldUserName.length > 0) ? 'Unauthorized' : ''
       });
     }
-    this.getServices();
   }
 
   checkCredentialsBadCallback (error) {
-    console.log('checkCredentialsBadCallback');
+    let errormsg = '';
+    try {
+      errormsg = error.response.data.message;
+    } catch (e) {
+    }
+    console.log('checkCredentialsBadCallback: [' + errormsg + ']');
     const { dispatch, actions } = this.props;
     dispatch(actions.logout());
     this.setState({
-      loginModalMessage: error.response.data.message
+      loginModalMessage: errormsg === 'guest' ? '' : errormsg
     });
     this.getServices();
   }

@@ -136,7 +136,18 @@ describe('(Redux Module) Adaguc', () => {
 
     beforeEach(() => {
       _globalState = {
-        adagucProperties : { layers: { datalayers: [{ title: 'abc' }], overlays: [{ title: 'overlay' }] }, sources: {}, boundingBox: null, projectionName: 'EPSG:3857', mapCreated: false }
+        adagucProperties : {
+          layers: {
+            panel: [
+            { datalayers: [{ title: 'abc' }], overlays: [{ title: 'overlay' }] }
+            ]
+          },
+          sources: {},
+          boundingBox: null,
+          projectionName: 'EPSG:3857',
+          mapCreated: false,
+          activeMapId: 0
+        }
       };
       _dispatchSpy = sinon.spy((action) => {
         _globalState = {
@@ -156,34 +167,34 @@ describe('(Redux Module) Adaguc', () => {
     });
     it('Should remove nothing when an unknown layer is attempted to be deleted.', () => {
       const layerstate = _getStateSpy();
-      expect(layerstate.adagucProperties.layers.datalayers).to.have.length(1);
-      expect(layerstate.adagucProperties.layers.overlays).to.have.length(1);
+      expect(layerstate.adagucProperties.layers.panel[0].datalayers).to.have.length(1);
+      expect(layerstate.adagucProperties.layers.panel[0].overlays).to.have.length(1);
       _dispatchSpy(actions.deleteLayer(0, '@@@@'));
       const newlayerstate = _getStateSpy();
-      expect(newlayerstate.adagucProperties.layers.datalayers).to.have.length(1);
-      expect(newlayerstate.adagucProperties.layers.overlays).to.have.length(1);
+      expect(newlayerstate.adagucProperties.layers.panel[0].datalayers).to.have.length(1);
+      expect(newlayerstate.adagucProperties.layers.panel[0].overlays).to.have.length(1);
     });
     it('Should remove only a datalayer from the state when called.', () => {
       const layerstate = _getStateSpy();
-      expect(layerstate.adagucProperties.layers.datalayers).to.have.length(1);
-      expect(layerstate.adagucProperties.layers.overlays).to.have.length(1);
+      expect(layerstate.adagucProperties.layers.panel[0].datalayers).to.have.length(1);
+      expect(layerstate.adagucProperties.layers.panel[0].overlays).to.have.length(1);
 
       _dispatchSpy(actions.deleteLayer(0, 'data'));
 
       const newlayerstate = _getStateSpy();
-      expect(newlayerstate.adagucProperties.layers.datalayers).to.have.length(0);
-      expect(newlayerstate.adagucProperties.layers.overlays).to.have.length(1);
+      expect(newlayerstate.adagucProperties.layers.panel[0].datalayers).to.have.length(0);
+      expect(newlayerstate.adagucProperties.layers.panel[0].overlays).to.have.length(1);
     });
     it('Should remove only an overlay layer from the state when called.', () => {
       const layerstate = _getStateSpy();
-      expect(layerstate.adagucProperties.layers.datalayers).to.have.length(1);
-      expect(layerstate.adagucProperties.layers.overlays).to.have.length(1);
+      expect(layerstate.adagucProperties.layers.panel[0].datalayers).to.have.length(1);
+      expect(layerstate.adagucProperties.layers.panel[0].overlays).to.have.length(1);
 
       _dispatchSpy(actions.deleteLayer(0, 'overlay'));
 
       const newlayerstate = _getStateSpy();
-      expect(newlayerstate.adagucProperties.layers.datalayers).to.have.length(1);
-      expect(newlayerstate.adagucProperties.layers.overlays).to.have.length(0);
+      expect(newlayerstate.adagucProperties.layers.panel[0].datalayers).to.have.length(1);
+      expect(newlayerstate.adagucProperties.layers.panel[0].overlays).to.have.length(0);
     });
   });
 
@@ -196,17 +207,22 @@ describe('(Redux Module) Adaguc', () => {
       _globalState = {
         adagucProperties : {
           layers: {
-            datalayers: [
-            { title: 'abc' },
-            { title: 'def' }
-            ],
-            overlays:
-            [{ title: 'overlay' }]
+            panel: [
+              {
+                datalayers: [
+                { title: 'abc' },
+                { title: 'def' }
+                ],
+                overlays:
+                [{ title: 'overlay' }]
+              }
+            ]
           },
           sources: {},
           boundingBox: null,
           projectionName: 'EPSG:3857',
-          mapCreated: false
+          mapCreated: false,
+          activeMapId: 0
         }
       };
       _dispatchSpy = sinon.spy((action) => {
@@ -222,16 +238,16 @@ describe('(Redux Module) Adaguc', () => {
 
     it('Reordering layers should work.', () => {
       const layerstate = _getStateSpy();
-      expect(layerstate.adagucProperties.layers.datalayers).to.have.length(2);
-      expect(layerstate.adagucProperties.layers.datalayers[0].title).to.eql('abc');
-      expect(layerstate.adagucProperties.layers.overlays).to.have.length(1);
+      expect(layerstate.adagucProperties.layers.panel[0].datalayers).to.have.length(2);
+      expect(layerstate.adagucProperties.layers.panel[0].datalayers[0].title).to.eql('abc');
+      expect(layerstate.adagucProperties.layers.panel[0].overlays).to.have.length(1);
 
       _dispatchSpy(actions.reorderLayer('down', 0));
 
       const newlayerstate = _getStateSpy();
-      expect(newlayerstate.adagucProperties.layers.datalayers).to.have.length(2);
-      expect(newlayerstate.adagucProperties.layers.datalayers[0].title).to.eql('def');
-      expect(newlayerstate.adagucProperties.layers.overlays).to.have.length(1);
+      expect(newlayerstate.adagucProperties.layers.panel[0].datalayers).to.have.length(2);
+      expect(newlayerstate.adagucProperties.layers.panel[0].datalayers[0].title).to.eql('def');
+      expect(newlayerstate.adagucProperties.layers.panel[0].overlays).to.have.length(1);
     });
   });
 });
