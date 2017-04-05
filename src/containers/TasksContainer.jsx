@@ -11,7 +11,7 @@ const items = [
     title: 'Checklist shift',
     notifications: 3,
     icon: 'calendar-check-o',
-    link: 'checklist',
+    // link: 'checklist',
     tasks: [
       {
         title: 'Basis forecast',
@@ -55,7 +55,7 @@ const items = [
   {
     title: 'Reports & Logs',
     icon: 'file-text-o',
-    link: 'reports_and_logs',
+    // link: 'reports_and_logs',
     tasks: [
       { title: 'Shift report' },
       { title: 'Telephone records' }
@@ -64,7 +64,7 @@ const items = [
   {
     title: 'Monitoring & Triggers',
     icon: 'bell-o',
-    link: 'monitoring_and_triggers',
+    // link: 'monitoring_and_triggers',
     tasks: [
       { title: 'Extremes' },
       { title: 'Alarms' }
@@ -160,10 +160,12 @@ class TasksContainer extends Component {
       <Col className='TasksContainer'>
         <CollapseOmni className='CollapseOmni' isOpen={this.state.isOpen} isHorizontal minSize={64} maxSize={300}>
           <Panel className='Panel' title={title}>
-            {filteredItems.map((item, index) =>
-              <TaskCategory key={index} title={item.title} isOpen={this.state.isOpen && hasFilter} parentCollapsed={!this.state.isOpen}
-                icon={item.icon} notifications={item.notifications} link={item.link} tasks={item.tasks} />)
-              }
+            <Col xs='auto' className='accordionsWrapper'>
+              {filteredItems.map((item, index) =>
+                <TaskCategory key={index} title={item.title} isOpen={this.state.isOpen && hasFilter} parentCollapsed={!this.state.isOpen}
+                  icon={item.icon} notifications={item.notifications} link={item.link} tasks={item.tasks} />
+              )}
+            </Col>
           </Panel>
         </CollapseOmni>
       </Col>
@@ -187,7 +189,9 @@ class TaskCategory extends Component {
   }
 
   componentWillReceiveProps (nextProps) {
-    this.setState({ isOpen: nextProps.isOpen });
+    if (typeof nextProps.isOpen !== 'undefined') {
+      this.setState({ isOpen: nextProps.isOpen });
+    }
   }
 
   render () {
@@ -241,7 +245,8 @@ class TaskCategory extends Component {
                         <Icon name='caret-right' className='icon' />
                       </Col>
                     </Link>
-                  </Button>)}
+                  </Button>
+                )}
               </Col>
             </Row>
           </CardBlock>
