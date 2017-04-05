@@ -5,6 +5,7 @@ import { Typeahead } from 'react-bootstrap-typeahead';
 import CanvasComponent from '../routes/ADAGUC/components/CanvasComponent';
 import axios from 'axios';
 export default class ProgtempComponent extends Component {
+  /* istanbul ignore next */
   constructor () {
     super();
     this.state = {
@@ -89,17 +90,17 @@ export default class ProgtempComponent extends Component {
       }
     ];
   }
-
+  /* istanbul ignore next */
   componentDidMount () {
     this.renderBaseProgtemp(this.state.canvasWidth, this.state.canvasHeight);
   }
-
+  /* istanbul ignore next */
   renderBaseProgtemp (canvasWidth, canvasHeight) {
     var canvasBG = document.getElementById('bijvoetCanvas');
     // eslint-disable-next-line no-undef
     drawProgtempBg(canvasBG, canvasWidth, canvasHeight);
   }
-
+  /* istanbul ignore next */
   toggleCanvas () {
     var canvas = this.refs.canvasLoadingOverlay;
     const attribute = canvas.getAttribute('class');
@@ -109,6 +110,7 @@ export default class ProgtempComponent extends Component {
       canvas.setAttribute('class', 'canvasLoadingOverlay');
     }
   }
+  /* istanbul ignore next */
   modifyData (data, referenceTime, timeOffset) {
     function fetchData (data, referenceTime, timeOffset, name) {
       let selectedData = data.filter((obj) => obj.name === name)[0].data;
@@ -154,7 +156,7 @@ export default class ProgtempComponent extends Component {
     let { Tw, Tv } = computeTwTv(airTemp, dewTemp, pressureData);
     return { PSounding: pressureData, TSounding: airTemp, TdSounding: dewTemp, ddSounding: windDirection, ffSounding: windSpeed, TwSounding: Tw, TvSounding: Tv };
   }
-
+  /* istanbul ignore next */
   fetchNewLocationData (cursor, wmjslayers, adagucTime, canvasWidth, canvasHeight) {
     const { location } = cursor;
     const harmlayer = wmjslayers.layers.filter((layer) => layer.service.includes('HARM'))[0];
@@ -179,7 +181,7 @@ export default class ProgtempComponent extends Component {
       });
     }
   }
-
+  /* istanbul ignore next */
   renderProgtempData (canvasWidth, canvasHeight, timeOffset) {
     if (!this.progtempData) {
       return;
@@ -197,6 +199,7 @@ export default class ProgtempComponent extends Component {
     // eslint-disable-next-line no-undef
     plotHodo(canvas, canvasWidth, canvasHeight, PSounding, TSounding, TdSounding, ddSounding, ffSounding, TwSounding);
   }
+  /* istanbul ignore next */
   componentWillReceiveProps (nextProps) {
     const { adagucProperties } = nextProps;
     const { layers, wmjslayers, cursor } = adagucProperties;
@@ -223,6 +226,7 @@ export default class ProgtempComponent extends Component {
       this.renderProgtempData(this.state.canvasWidth, this.state.canvasHeight, diff);
     }
   }
+  /* istanbul ignore next */
   convertMinSec (loc) {
     function padLeft (nr, n, str) {
       return Array(n - String(nr).length + 1).join(str || '0') + nr;
@@ -235,9 +239,11 @@ export default class ProgtempComponent extends Component {
 
     return Math.floor(loc) + ':' + padLeft(Math.floor(minutes), 2, '0') + ':' + padLeft(seconds, 2, '0');
   }
+  /* istanbul ignore next */
   setChosenLocation (loc) {
     this.props.dispatch(this.props.actions.cursorLocation(loc[0]));
   }
+  /* istanbul ignore next */
   render () {
     const adagucTime = moment.utc(this.props.adagucProperties.timedim);
     const maxWidth = this.state.canvasWidth + 'px';

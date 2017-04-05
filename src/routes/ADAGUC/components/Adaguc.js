@@ -179,7 +179,9 @@ export default class Adaguc extends React.Component {
     localStorage.setItem('geoweb', JSON.stringify({ 'personal_urls': [] }));
     // eslint-disable-next-line no-undef
     this.webMapJS = new WMJSMap(adagucMapRef, BACKEND_SERVER_XML2JSON);
-    var element = document.querySelector('#adagucwrapper' + this.props.mapId).parentNode;
+    let element = document.querySelector('#adagucwrapper' + this.props.mapId);
+    if (!element) return;
+    element = element.parentNode;
     const width = $(element).width();
     const height = $(element).height();
     this.webMapJS.setSize(width, height);
@@ -271,7 +273,7 @@ export default class Adaguc extends React.Component {
     }
 
     // Update animation
-    if (animate) {
+    if (animate !== prevProps.adagucProperties.animate) {
       this.onChangeAnimation(animate);
     }
 
@@ -300,16 +302,20 @@ export default class Adaguc extends React.Component {
           this.webMapJS.setMapModePan();
           break;
         case 'draw':
-          this.webMapJS.setMessage('Press [Esc] to close the polygon.');
+          if (active) {
+            this.webMapJS.setMessage('Press [Esc] to close the polygon.');
+          }
           break;
         case 'measure':
-          this.webMapJS.setMessage('Click to end measuring. Press [Esc] to delete the measurement.');
+          if (active) {
+            this.webMapJS.setMessage('Click to end measuring. Press [Esc] to delete the measurement.');
+          }
           break;
         default:
           this.webMapJS.setMapModeNone();
           break;
       }
-      if (!(mapMode === 'draw' || mapMode === 'measure')) {
+      if (!active || !(mapMode === 'draw' || mapMode === 'measure')) {
         this.webMapJS.setMessage('');
       }
     }
@@ -415,7 +421,7 @@ export default class Adaguc extends React.Component {
             dispatch={dispatch}
             webmapjs={this.webMapJS}
             isInEditMode={adagucProperties.mapMode === 'measure'} />
-          <ModelTime webmapjs={this.webMapJS} />
+          <ModelTime webmapjs={this.webMapJS} active={this.props.active} />
         </div>
       </div>
     );
@@ -434,6 +440,11 @@ class ModelTime extends React.Component {
   updateState () {
     if (!this.props.webmapjs.getDimension('time')) {
       console.log('Warning: webmapjs has no time dim');
+      return;
+    }
+
+    if (!this.props.active) {
+      this.resetState();
       return;
     }
 
@@ -464,7 +475,8 @@ class ModelTime extends React.Component {
   }
 }
 ModelTime.propTypes = {
-  webmapjs: React.PropTypes.object
+  webmapjs: React.PropTypes.object,
+  active: React.PropTypes.bool
 };
 
 Adaguc.propTypes = {
