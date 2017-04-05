@@ -290,7 +290,6 @@ const doAddOverlayLayer = (state, payload) => {
 };
 
 const doLogin = (state, payload) => {
-  console.log('doLogin', payload);
   return Object.assign({}, state, { user: { isLoggedIn: true, userName: payload.userName, roles: payload.roles ? payload.roles : [] } });
 };
 
@@ -382,7 +381,6 @@ function setGeoJSON (json) {
 }
 
 const newGeoJSON = (state, payload) => {
-  console.log(payload);
   return Object.assign({}, state, { adagucmapdraw: payload });
 };
 

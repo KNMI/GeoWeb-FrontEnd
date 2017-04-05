@@ -37,7 +37,6 @@ describe('(Component) MapPanel', () => {
     global.localStorage.getItem = sinon.stub();
     global.localStorage.setItem = sinon.stub();
     const _component = mount(<MapPanel adagucProperties={adagucProperties} dispatch={emptyDispatch} actions={emptyActions} />);
-    console.log(_component);
     expect(_component.type()).to.eql(MapPanel);
   });
 });

@@ -24,7 +24,6 @@ describe('(Redux Module) Adaguc', () => {
     it('Check if sign in and sign out actions work.', () => {
       let state = adagucReducer(undefined, {});
       state = adagucReducer(state, { type: 'LOGIN', payload: { userName:'asdf', roles:[] } });
-      console.log(state);
       expect(state).to.eql({ user: { isLoggedIn: true, userName: 'asdf', roles: [] } });
       state = adagucReducer(state, { type: '@@@@@@@' });
       expect(state).to.eql({ user: { isLoggedIn: true, userName: 'asdf', roles: [] } });
