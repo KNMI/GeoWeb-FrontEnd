@@ -18,7 +18,7 @@ describe('(Container) SigmetsContainer', () => {
   it('Allows triggering the toggle function', () => {
     const _component = mount(<SigmetsContainer />);
     expect(_component.state().isOpen).to.eql(true);
-    let evt = new KeyboardEvent('keydown', {
+    const evt = new KeyboardEvent('keydown', {
       bubbles: true,
       cancelable: true,
       key: 'F11',

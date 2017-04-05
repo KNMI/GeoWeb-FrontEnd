@@ -25,7 +25,7 @@ describe('(Container) ProductsContainer', () => {
   it('Allows triggering the toggle function', () => {
     const _component = mount(<ProductsContainer />);
     expect(_component.state().isOpen).to.eql(true);
-    let evt = new KeyboardEvent('keydown', {
+    const evt = new KeyboardEvent('keydown', {
       bubbles: true,
       cancelable: true,
       key: 'F11',
