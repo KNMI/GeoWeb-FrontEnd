@@ -291,7 +291,7 @@ a.breadcrumb-active:hover, a.nav-link.active:hover {
 }
 
 .accordion.card > a {
-  display: inherit
+  display: inherit;
 }
 
 .accordion .card-header {
@@ -300,12 +300,15 @@ a.breadcrumb-active:hover, a.nav-link.active:hover {
   overflow: hidden;
   text-overflow: ellipsis;
   width: 100%;
-  cursor: pointer;
   z-index: 2;
   color: $inverse-active-color;
   background-color: $ux-interactive-color;
   border: none;
   @extend .rounded-top;
+}
+
+.accordion > .card-header, .accordion > a {
+  cursor: pointer;
 }
 
 .accordion a {
@@ -314,7 +317,9 @@ a.breadcrumb-active:hover, a.nav-link.active:hover {
   cursor: inherit;
 }
 
-.accordion .card-block .btn:disabled {
+.accordion > a:not([href]),
+.accordion .card-block .btn:disabled,
+.accordion > .card-header.disabled {
   cursor: not-allowed;
 }
 
@@ -446,7 +451,7 @@ main:fullscreen {
   margin: 0 0.2rem 0.2rem 0.2rem;
 }
 
-.TasksContainer, .SigmetsContainer {
+.TasksContainer, .SigmetsContainer, .ProductsContainer {
   flex: 1;
 }
 

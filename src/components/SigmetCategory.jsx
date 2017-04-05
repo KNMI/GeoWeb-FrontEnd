@@ -7,10 +7,10 @@ import axios from 'axios';
 import cloneDeep from 'lodash/cloneDeep';
 import CollapseOmni from '../components/CollapseOmni';
 
-const timeFormat = 'YYYY MMM DD - HH:mm';
-// const shortTimeFormat = 'HH:mm';
+const TIME_FORMAT = 'YYYY MMM DD - HH:mm';
+// const shortTIME_FORMAT = 'HH:mm';
 const SEPARATOR = '_';
-const emptyGeoJson = {
+const EMPTY_GEO_JSON = {
   type: 'FeatureCollection',
   features: [
     {
@@ -25,7 +25,7 @@ const emptyGeoJson = {
     }
   ]
 };
-const phenomenonMapping = [
+const PHENOMENON_MAPPING = [
   {
     'phenomenon': { 'name': 'Thunderstorm', 'code': 'TS' },
     'variants': [
@@ -104,7 +104,7 @@ class SigmetCategory extends Component {
     let variantIndex;
     let additionIndex;
 
-    const effectiveMapping = cloneDeep(phenomenonMapping).map((item) => {
+    const effectiveMapping = cloneDeep(PHENOMENON_MAPPING).map((item) => {
       if (item.variants.length > 0) {
         variantIndex = item.variants.findIndex((variant) => codeFragments[0].startsWith(variant.code));
         if (variantIndex > -1) {
@@ -155,7 +155,7 @@ class SigmetCategory extends Component {
 
   getPhenomena () {
     let result = [];
-    phenomenonMapping.forEach((item) => {
+    PHENOMENON_MAPPING.forEach((item) => {
       item.variants.forEach((variant) => {
         result.push({
           name: variant.name + ' ' + item.phenomenon.name.toLowerCase(),
@@ -172,7 +172,6 @@ class SigmetCategory extends Component {
 
   handleSigmetClick (index) {
     this.props.selectMethod(index);
-    this.drawSIGMET({ geojson: this.state.list[index].geojson });
   }
 
   onObsOrFcstClick (obsSelected) {
@@ -224,7 +223,7 @@ class SigmetCategory extends Component {
   setEmptySigmet () {
     this.setState({
       list: [{
-        geojson                   : emptyGeoJson,
+        geojson                   : EMPTY_GEO_JSON,
         phenomenon                : '',
         obs_or_forecast           : {
           obs                     : true
@@ -276,6 +275,10 @@ class SigmetCategory extends Component {
     if (typeof nextProps.isOpen !== 'undefined') {
       this.setState({ isOpen: nextProps.isOpen });
     }
+    if (this.props.selectedIndex !== nextProps.selectedIndex) {
+      const geoDef = nextProps.selectedIndex !== -1 ? this.state.list[nextProps.selectedIndex].geojson : EMPTY_GEO_JSON;
+      this.drawSIGMET({ geojson: geoDef });
+    }
   }
 
   drawSIGMET (geojson) {
@@ -315,7 +318,7 @@ class SigmetCategory extends Component {
             <Input defaultValue='2017 Mar 30' />
             <Input defaultValue='13:37 UTC' />
           </div>
-          : <Moment format={timeFormat} date={item.issuedate} />}
+          : <Moment format={TIME_FORMAT} date={item.issuedate} />}
         </Col>
       </Row>);
   }
@@ -366,7 +369,7 @@ class SigmetCategory extends Component {
             {notifications > 0 ? <Badge color='danger' pill className='collapsed'>{notifications}</Badge> : null}
           </Col>
         </CardHeader>
-        : <CardHeader onClick={this.toggle} title={title}>
+        : <CardHeader onClick={maxSize > 0 ? this.toggle : null} className={maxSize > 0 ? null : 'disabled'} title={title}>
           <Col xs='auto'>
             <Icon name={icon} />
           </Col>
@@ -400,12 +403,12 @@ class SigmetCategory extends Component {
                         <Badge color='success' style={{ width: '100%' }}>When</Badge>
                       </Col>
                       <Col>
-                        <Moment format={timeFormat} date={item.issuedate} />&nbsp;UTC
+                        <Moment format={TIME_FORMAT} date={item.issuedate} />&nbsp;UTC
                       </Col>
                     </Row>
                     <Row>
                       <Col xs={{ offset: 2 }}>
-                        <Moment format={timeFormat} date={item.validdate} />&nbsp;UTC
+                        <Moment format={TIME_FORMAT} date={item.validdate} />&nbsp;UTC
                       </Col>
                     </Row>
                     <Row>

@@ -11,7 +11,7 @@ const items = [
     title: 'Checklist shift',
     notifications: 3,
     icon: 'calendar-check-o',
-    link: 'checklist',
+    // link: 'checklist',
     tasks: [
       {
         title: 'Basis forecast',
@@ -55,7 +55,7 @@ const items = [
   {
     title: 'Reports & Logs',
     icon: 'file-text-o',
-    link: 'reports_and_logs',
+    // link: 'reports_and_logs',
     tasks: [
       { title: 'Shift report' },
       { title: 'Telephone records' }
@@ -64,7 +64,7 @@ const items = [
   {
     title: 'Monitoring & Triggers',
     icon: 'bell-o',
-    link: 'monitoring_and_triggers',
+    // link: 'monitoring_and_triggers',
     tasks: [
       { title: 'Extremes' },
       { title: 'Alarms' }
