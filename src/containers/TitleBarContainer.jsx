@@ -8,7 +8,9 @@ PopoverContent,
   Modal, ModalHeader, ModalBody, ModalFooter, Button, InputGroup, Input, FormText } from 'reactstrap';
 import { Link, hashHistory } from 'react-router';
 import { BACKEND_SERVER_URL } from '../routes/ADAGUC/constants/backend';
-import { UserRoles, CheckIfUserHasRole } from '../routes/ADAGUC/utils/user';
+import { CheckIfUserHasRole } from '../routes/ADAGUC/utils/user';
+import { UserRoles } from '../routes/ADAGUC/constants/userroles';
+
 let moment = require('moment');
 
 const timeFormat = 'YYYY MMM DD - HH:mm';
@@ -33,8 +35,8 @@ class TitleBarContainer extends Component {
     this.checkCredentialsOKCallback = this.checkCredentialsOKCallback.bind(this);
     this.checkCredentialsBadCallback = this.checkCredentialsBadCallback.bind(this);
     this.getServices = this.getServices.bind(this);
-    this.getServices = this.getServices.bind(this);
-
+    this.render = this.render.bind(this);
+    this.componentDidUpdate = this.componentDidUpdate.bind(this);
     this.inputfieldUserName = '';
     this.inputfieldPassword = '';
     this.timer = -1;
@@ -62,6 +64,7 @@ class TitleBarContainer extends Component {
   getTitleForRoute (routeItem) {
     return (routeItem.indexRoute ? routeItem.indexRoute.title : routeItem.title) || 'Untitled';
   }
+
   isRouteEnd (routes, index) {
     const lastIndex = routes.length - 1;
     if (index === lastIndex) {
@@ -73,17 +76,26 @@ class TitleBarContainer extends Component {
     }
     return false;
   }
+
   setTime () {
     const time = moment.utc().format(timeFormat).toString();
     this.setState({ currentTime: time });
   }
+
   componentWillUnmount () {
     clearInterval(this.timer);
   }
+
   componentDidMount () {
     this.timer = setInterval(this.setTime, 15000);
     this.setState({ currentTime: moment.utc().format(timeFormat).toString() });
     this.checkCredentials();
+  }
+
+  componentDidUpdate () {
+    if (this.userNameInputRef && this.state.loginModal === true) {
+      this.userNameInputRef.focus();
+    }
   }
 
   doLogin () {
@@ -97,7 +109,12 @@ class TitleBarContainer extends Component {
         responseType: 'json'
       }).then(src => {
         console.log('AJAX OK from doLogin, now go to checkCredentials');
-        this.checkCredentials();
+        this.checkCredentials(() => {
+          // When signed in as admin, jump to admin manage page
+          if (CheckIfUserHasRole(this.props, UserRoles.ADMIN)) {
+            hashHistory.push('/manage');
+          }
+        });
       }).catch(error => {
         this.checkCredentialsBadCallback(error);
       });
@@ -115,12 +132,13 @@ class TitleBarContainer extends Component {
       responseType: 'json'
     }).then(src => {
       this.setLoggedOutCallback('Signed out');
+      hashHistory.push('/');
     }).catch(error => {
       this.setLoggedOutCallback(error.response.data.message);
     });
   }
 
-  checkCredentials () {
+  checkCredentials (callback) {
     console.log('======== CheckCredentials ========');
     try {
       this.setState({
@@ -136,6 +154,7 @@ class TitleBarContainer extends Component {
       responseType: 'json'
     }).then(src => {
       this.checkCredentialsOKCallback(src.data);
+      if (callback)callback();
     }).catch(error => {
       this.checkCredentialsBadCallback(error);
     });
@@ -161,7 +180,15 @@ class TitleBarContainer extends Component {
     if (username && username.length > 0) {
       console.log('checkCredentialsOKCallback username: ' + username);
       if (username === 'guest') {
-        this.checkCredentialsBadCallback({ response: { data: { message:'guest' } } });
+        if (this.inputfieldUserName !== '' && this.inputfieldUserName !== 'guest') {
+          // User has entered something else than 'guest', so the backend does not return the new user.
+          // This is probably causes by cookies not being saved.
+          this.checkCredentialsBadCallback({ response: { data: {
+            message:'Your browser is probably blocking cookies. We need cookies to keep your credentials. Please contact your administrator.'
+          } } });
+        } else {
+          this.checkCredentialsBadCallback({ response: { data: { message:'guest' } } });
+        }
         return;
       }
       this.getServices();
@@ -200,7 +227,8 @@ class TitleBarContainer extends Component {
 
   toggleLoginModal () {
     this.setState({
-      loginModal: !this.state.loginModal
+      loginModal: !this.state.loginModal,
+      loginModalMessage:''
     });
   }
 
@@ -233,8 +261,13 @@ class TitleBarContainer extends Component {
     }
   }
 
+  returnInputRef (ref) {
+    this.input = ref;
+  }
+
   render () {
     const { isLoggedIn, userName, routes } = this.props;
+    console.log(UserRoles);
     const hasRoleADMIN = CheckIfUserHasRole(this.props, UserRoles.ADMIN);
     let cumulativePath = '';
     return (
@@ -281,7 +314,7 @@ class TitleBarContainer extends Component {
           <ModalBody>
             <Collapse isOpen={!isLoggedIn}>
               <InputGroup>
-                <Input placeholder='username' name='username' onChange={this.handleOnChange} />
+                <input ref={(input) => { this.userNameInputRef = input; }} className='form-control' tabIndex={0} placeholder='username' name='username' onChange={this.handleOnChange} />
                 <Input type='password' name='password' id='examplePassword' placeholder='password'
                   onKeyPress={this.handleKeyPressPassword} onChange={this.handleOnChange}
                 />

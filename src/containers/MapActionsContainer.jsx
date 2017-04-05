@@ -1,4 +1,5 @@
 import React, { Component, PropTypes } from 'react';
+import ReactDOM from 'react-dom';
 import { Button, Col, Row, Popover, InputGroup, Input, InputGroupButton, PopoverContent,
   ButtonGroup, TabContent, TabPane, Nav, NavItem, NavLink, Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
 import Panel from '../components/Panel';
@@ -39,6 +40,9 @@ class MapActionContainer extends Component {
     this.renderPresetSelector = this.renderPresetSelector.bind(this);
     this.setPreset = this.setPreset.bind(this);
     this.getServices = this.getServices.bind(this);
+    this.componentDidUpdate = this.componentDidUpdate.bind(this);
+    this.renderLayerChooser = this.renderLayerChooser.bind(this);
+
     // State
     this.state = {
       collapse: false,
@@ -284,6 +288,24 @@ class MapActionContainer extends Component {
     }
   }
 
+  componentDidUpdate () {
+    // console.log(this.state.layerChooserOpen);
+    // console.log(this.refs);
+    // if (this.refs.layerSelectorTypeRef) {
+    //   console.log(this.refs.layerSelectorTypeRef.getInstance());
+    //   ReactDOM.findDOMNode(this.refs.layerSelectorTypeRef.getInstance().refs.input).focus();
+    //   // this.refs.layerSelectorTypeRef.getInputDOMNode().focus();
+    //   // this.refs.layerSelectorTypeRef.getInstance().focus();
+    //   // this.refs.layerSelectorTypeRef.getInstance().refs.input.focus();
+    //   // console.log(this.refs.layerSelectorTypeRef.getInstance().refs.input);
+    // }
+    // // const elmt = document.querySelector('#addLayerModal .bootstrap-typeahead-input-main');
+    // // console.log(elmt);
+    // // if (elmt) {
+    // //   elmt.focus();
+    // // }
+  }
+
   renderLayerChooser () {
     return (<Modal id='addLayerModal' isOpen={this.state.layerChooserOpen} toggle={this.toggleLayerChooser}>
       <ModalHeader>Choose Layer</ModalHeader>
@@ -323,7 +345,7 @@ class MapActionContainer extends Component {
               : this.renderURLInput()}
           </TabPane>
           <TabPane tabId='3'>
-            <Typeahead onChange={this.handleAddLayer} options={this.state.layers ? this.state.layers : []} autofocus />
+            <Typeahead ref='layerSelectorTypeRef' onChange={this.handleAddLayer} options={this.state.layers ? this.state.layers : []} autoFocus />
           </TabPane>
         </TabContent>
       </ModalBody>
