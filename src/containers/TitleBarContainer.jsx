@@ -8,6 +8,7 @@ PopoverContent,
   Modal, ModalHeader, ModalBody, ModalFooter, Button, InputGroup, Input, FormText } from 'reactstrap';
 import { Link, hashHistory } from 'react-router';
 import { BACKEND_SERVER_URL } from '../routes/ADAGUC/constants/backend';
+import { UserRoles, CheckIfUserHasRole } from '../routes/ADAGUC/utils/user';
 let moment = require('moment');
 
 const timeFormat = 'YYYY MMM DD - HH:mm';
@@ -32,6 +33,7 @@ class TitleBarContainer extends Component {
     this.checkCredentialsOKCallback = this.checkCredentialsOKCallback.bind(this);
     this.checkCredentialsBadCallback = this.checkCredentialsBadCallback.bind(this);
     this.getServices = this.getServices.bind(this);
+    this.getServices = this.getServices.bind(this);
 
     this.inputfieldUserName = '';
     this.inputfieldPassword = '';
@@ -43,12 +45,17 @@ class TitleBarContainer extends Component {
       loginModalMessage: ''
     };
   }
+
   getServices () {
+    console.log('======== getServices ========');
     const { dispatch, actions } = this.props;
     const defaultURLs = ['getServices', 'getOverlayServices'].map((url) => BACKEND_SERVER_URL + '/' + url);
     const allURLs = [...defaultURLs];
     axios.all(allURLs.map((req) => axios.get(req, { withCredentials: true }))).then(
-      axios.spread((services, overlays) => dispatch(actions.createMap([...services.data, ...JSON.parse(localStorage.getItem('geoweb')).personal_urls], overlays.data[0])))
+      axios.spread((services, overlays) => {
+        console.log('getServices found Num services:' + services.data.length);
+        dispatch(actions.createMap([...services.data, ...JSON.parse(localStorage.getItem('geoweb')).personal_urls], overlays.data[0]));
+      })
     ).catch((e) => console.log('Error!: ', e.response));
   }
 
@@ -80,6 +87,7 @@ class TitleBarContainer extends Component {
   }
 
   doLogin () {
+    console.log('======== Start doLogin ========');
     const { isLoggedIn } = this.props;
     if (!isLoggedIn) {
       axios({
@@ -88,6 +96,7 @@ class TitleBarContainer extends Component {
         withCredentials: true,
         responseType: 'json'
       }).then(src => {
+        console.log('AJAX OK from doLogin, now go to checkCredentials');
         this.checkCredentials();
       }).catch(error => {
         this.checkCredentialsBadCallback(error);
@@ -98,7 +107,7 @@ class TitleBarContainer extends Component {
   }
 
   doLogout () {
-    this.setLoggedOutCallback('Signing out');
+    console.log('======== Signing out ========');
     axios({
       method: 'get',
       url: BACKEND_SERVER_URL + '/logout',
@@ -112,9 +121,14 @@ class TitleBarContainer extends Component {
   }
 
   checkCredentials () {
-    this.setState({
-      loginModalMessage: 'Checking...'
-    });
+    console.log('======== CheckCredentials ========');
+    try {
+      this.setState({
+        loginModalMessage: 'Checking...'
+      });
+    } catch (e) {
+      console.log(e);
+    }
     axios({
       method: 'get',
       url: BACKEND_SERVER_URL + '/getuser',
@@ -140,34 +154,46 @@ class TitleBarContainer extends Component {
   };
 
   checkCredentialsOKCallback (data) {
+    console.log('Called checkCredentialsOKCallback');
     const { dispatch, actions } = this.props;
     const username = data.username ? data.username : data.userName;
+    const roles = data.roles;
     if (username && username.length > 0) {
+      console.log('checkCredentialsOKCallback username: ' + username);
       if (username === 'guest') {
-        this.setState({
-          loginModalMessage: ''
-        });
+        this.checkCredentialsBadCallback({ response: { data: { message:'guest' } } });
         return;
       }
-      dispatch(actions.login(username));
+      this.getServices();
+      dispatch(actions.login({ userName:username, roles:roles }));
+      console.log('Roles:' + roles);
+      console.log('ADMIN:', CheckIfUserHasRole(this.props, UserRoles.ADMIN));
+      console.log('MET:', CheckIfUserHasRole(this.props, UserRoles.MET));
+      console.log('USER:', CheckIfUserHasRole(this.props, UserRoles.USER));
+
       this.setState({
         loginModal: false,
         loginModalMessage: 'Signed in as user ' + username
       });
     } else {
+      this.getServices();
       this.setState({
         loginModalMessage: (this.inputfieldUserName && this.inputfieldUserName.length > 0) ? 'Unauthorized' : ''
       });
     }
-    this.getServices();
   }
 
   checkCredentialsBadCallback (error) {
-    console.log('checkCredentialsBadCallback');
+    let errormsg = '';
+    try {
+      errormsg = error.response.data.message;
+    } catch (e) {
+    }
+    console.log('checkCredentialsBadCallback: [' + errormsg + ']');
     const { dispatch, actions } = this.props;
     dispatch(actions.logout());
     this.setState({
-      loginModalMessage: error.response.data.message
+      loginModalMessage: errormsg === 'guest' ? '' : errormsg
     });
     this.getServices();
   }
@@ -209,6 +235,7 @@ class TitleBarContainer extends Component {
 
   render () {
     const { isLoggedIn, userName, routes } = this.props;
+    const hasRoleADMIN = CheckIfUserHasRole(this.props, UserRoles.ADMIN);
     let cumulativePath = '';
     return (
       <Navbar inverse className='test'>
@@ -243,7 +270,7 @@ class TitleBarContainer extends Component {
           <Col xs='auto'>
             <Nav>
               <NavLink className='active' onClick={this.toggleLoginModal} ><Icon name='user' id='loginIcon' />{isLoggedIn ? ' ' + userName : ' Sign in'}</NavLink>
-              {isLoggedIn ? <Link to='manage' className='active nav-link'><Icon name='cog' /></Link> : '' }
+              {hasRoleADMIN ? <Link to='manage' className='active nav-link'><Icon name='cog' /></Link> : '' }
               {isLoggedIn ? <LayoutDropDown dispatch={this.props.dispatch} actions={this.props.actions} /> : '' }
               <NavLink className='active' onClick={this.toggleFullscreen} ><Icon name='expand' /></NavLink>
             </Nav>
@@ -317,6 +344,7 @@ TitleBarContainer.propTypes = {
   isLoggedIn: PropTypes.bool,
   loginModal: PropTypes.bool,
   userName: PropTypes.string,
+  roles: PropTypes.array,
   routes: PropTypes.array,
   dispatch: PropTypes.func,
   actions: PropTypes.object
@@ -325,7 +353,8 @@ TitleBarContainer.propTypes = {
 TitleBarContainer.defaultProps = {
   isLoggedIn: false,
   loginModal: false,
-  userName: ''
+  userName: '',
+  roles: []
 };
 
 export default TitleBarContainer;

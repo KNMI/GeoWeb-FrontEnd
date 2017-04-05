@@ -300,10 +300,12 @@ a.breadcrumb-active:hover, a.nav-link.active:hover {
   border: none;
   border-bottom: 0.1rem solid transparent;
   border-radius: 0.19rem;
+  min-width: 100%;
+  flex: none;
 }
 
 .accordion.card > a {
-  display: inherit
+  display: inherit;
 }
 
 .accordion .card-header {
@@ -312,12 +314,15 @@ a.breadcrumb-active:hover, a.nav-link.active:hover {
   overflow: hidden;
   text-overflow: ellipsis;
   width: 100%;
-  cursor: pointer;
   z-index: 2;
   color: $inverse-active-color;
   background-color: $ux-interactive-color;
   border: none;
   @extend .rounded-top;
+}
+
+.accordion > .card-header, .accordion > a {
+  cursor: pointer;
 }
 
 .accordion a {
@@ -326,7 +331,9 @@ a.breadcrumb-active:hover, a.nav-link.active:hover {
   cursor: inherit;
 }
 
-.accordion .card-block .btn:disabled {
+.accordion > a:not([href]),
+.accordion .card-block .btn:disabled,
+.accordion > .card-header.disabled {
   cursor: not-allowed;
 }
 
@@ -461,7 +468,7 @@ main:fullscreen {
   margin: 0 0.2rem 0.2rem 0.2rem;
 }
 
-.TasksContainer, .SigmetsContainer {
+.TasksContainer, .SigmetsContainer, .ProductsContainer {
   flex: 1;
 }
 
@@ -515,7 +522,6 @@ main:fullscreen {
 .Panel > .content {
   box-sizing: border-box;
   background: white;
-  border-bottom: 0.06rem solid $inverse-hover-color;
   @extend .rounded-bottom;
   box-shadow: 0 0.15rem 0.25rem rgba(0,0,0,0.5);
   margin: 0.25rem;
@@ -525,6 +531,26 @@ main:fullscreen {
   overflow-x: hidden;
   flex: 1;
   flex-direction: column;
+}
+
+.CollapseOmni .Panel > .content {
+  flex-direction: row;
+}
+
+.Panel .accordionsWrapper {
+  flex-direction: column;
+  min-width: 100%;
+  max-width: 100%;
+}
+
+.Panel .accordionsWrapper .collapse .btn.active {
+  background: #bcdff1;
+  border-color: #3299cb;
+  z-index: unset;
+}
+
+.Panel .accordionsWrapper .collapse.show .btn.active {
+  z-index: 2;
 }
 
 .Footer .col-auto:first-child .btn-outline-info {
@@ -539,42 +565,13 @@ main:fullscreen {
   margin-right: 0.33rem;
 }
 
-.Sigmet {
-  @extend .row;
-  padding: 0;
+.accordion .card-block .Sigmet.row.btn {
+  flex-direction: column;
+  padding: 0.5rem;
 }
 
-.Sigmet .row {
-  width: 100%;
-}
-
-.Sigmet .col.alert {
-  padding: 0.3rem;
-  margin: 0;
-}
-
-.Sigmet.btn {
-  width: 100%;
-}
-
-.Sigmet input.level {
-  background: yellow;
-}
-
-.SigmetsContainer .content {
-  overflow-x: hidden;
-  overflow-y: auto;
-}
-
-.SigmetsContainer .accordion .btn.row {
-  padding: 0;
-  min-height: 13rem;
-}
-
-.card-block {
-  overflow-y: auto;
-  overflow-x: hidden;
-  max-height: 20rem;
+.accordion .card-block .Sigmet.row.btn .row {
+  flex-direction: row;
 }
 
 *,

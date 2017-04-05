@@ -12,7 +12,8 @@ const mapStateToHeaderProps = (state) => {
   return {
     title: 'header',
     isLoggedIn: state.adagucProperties.user.isLoggedIn,
-    userName: state.adagucProperties.user.userName
+    userName: state.adagucProperties.user.userName,
+    roles: state.adagucProperties.user.roles
   };
 };
 

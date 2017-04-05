@@ -1,7 +1,10 @@
 import TasksContainer from '../../../containers/TasksContainer';
-import Inspector from '../../../components/Inspector';
-import Empty from '../../../components/Empty';
+import ProductsContainer from '../../../containers/ProductsContainer';
 import TitleBarContainer from '../../../containers/TitleBarContainer';
+import MapActionsContainer from '../../../containers/MapActionsContainer';
+import LayerManagerPanel from '../../../components/LayerManagerPanel';
+import MapPanel from '../../../components/MapPanel';
+import { actions } from '../../ADAGUC/modules/adaguc';
 import { connect } from 'react-redux';
 
 const mapStateToHeaderProps = (state) => {
@@ -11,30 +14,38 @@ const mapStateToHeaderProps = (state) => {
   };
 };
 
-const mapStateToLeftSideBarProps = (state) => {
-  return { title: 'leftSideBar Products' };
-};
-
 const mapStateToEmptyProps = (state) => {
   return {};
 };
 
-const mapStateToMainViewportProps = (state) => {
-  return { title: 'main Products' };
+const mapStateToMapProps = (state) => {
+  return { adagucProperties: state.adagucProperties };
+};
+
+const mapStateToLayerManagerProps = (state) => {
+  return { adagucProperties: state.adagucProperties };
 };
 
 const mapStateToRightSideBarProps = (state) => {
-  return { title: 'rightSideBar Products' };
+  return { adagucProperties: state.adagucProperties };
+};
+
+const mapDispatchToMainViewportProps = function (dispatch) {
+  return ({
+    dispatch: dispatch,
+    actions: actions
+  });
 };
 
 // Sync route definition
 export default () => ({
   title: 'Products',
   components : {
-    header: connect(mapStateToHeaderProps)(TitleBarContainer),
-    leftSideBar: connect(mapStateToLeftSideBarProps)(Inspector),
-    secondLeftSideBar: connect(mapStateToEmptyProps)(Empty),
-    mainViewport: connect(mapStateToMainViewportProps)(TasksContainer),
-    rightSideBar: connect(mapStateToRightSideBarProps)(Inspector)
+    header: connect(mapStateToHeaderProps, mapDispatchToMainViewportProps)(TitleBarContainer),
+    leftSideBar: connect(mapStateToEmptyProps)(TasksContainer),
+    secondLeftSideBar: connect(mapStateToMapProps, mapDispatchToMainViewportProps)(ProductsContainer),
+    map: connect(mapStateToMapProps, mapDispatchToMainViewportProps)(MapPanel),
+    layerManager: connect(mapStateToLayerManagerProps, mapDispatchToMainViewportProps)(LayerManagerPanel),
+    rightSideBar: connect(mapStateToRightSideBarProps, mapDispatchToMainViewportProps)(MapActionsContainer)
   }
 });

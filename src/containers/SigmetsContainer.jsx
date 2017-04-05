@@ -1,37 +1,40 @@
 import React, { Component, PropTypes } from 'react';
 import { Button, Col, Row } from 'reactstrap';
 import Icon from 'react-fa';
-import cloneDeep from 'lodash/cloneDeep';
 import CollapseOmni from '../components/CollapseOmni';
 import SigmetCategory from '../components/SigmetCategory';
 import Panel from '../components/Panel';
 import { BACKEND_SERVER_URL } from '../routes/ADAGUC/constants/backend';
 
-const getSigmetsUrl = BACKEND_SERVER_URL + '/sigmet/getsigmetlist?';
-const setSigmetUrl = BACKEND_SERVER_URL + '/sigmet/storesigmet';
-const items = [
+const GET_SIGMETS_URL = BACKEND_SERVER_URL + '/sigmet/getsigmetlist?';
+const SET_SIGMET_URL = BACKEND_SERVER_URL + '/sigmet/storesigmet';
+const ITEMS = [
   {
     title: 'Open issued SIGMETs',
+    ref:   'active-sigmets',
     icon: 'folder-open',
-    source: getSigmetsUrl + 'active=true',
+    source: GET_SIGMETS_URL + 'active=true',
     editable: false
   },
   {
     title: 'Open archived SIGMETs',
+    ref:  'archived-sigmets',
     icon: 'archive',
-    source: getSigmetsUrl + 'active=false&status=CANCELLED',
+    source: GET_SIGMETS_URL + 'active=false&status=CANCELLED',
     editable: false
   },
   {
     title: 'Open concept SIGMETs',
+    ref:   'concept-sigmets',
     icon: 'folder-open-o',
-    source: getSigmetsUrl + 'active=false&status=PRODUCTION',
+    source: GET_SIGMETS_URL + 'active=false&status=PRODUCTION',
     editable: false
   },
   {
     title: 'Create new SIGMET',
+    ref:   'add-sigmet',
     icon: 'star-o',
-    source: setSigmetUrl,
+    source: SET_SIGMET_URL,
     editable: true
   }
 ];
@@ -40,12 +43,24 @@ class SigmetsContainer extends Component {
   constructor (props) {
     super(props);
     this.toggle = this.toggle.bind(this);
-    this.state = { isOpen: true };
+    this.select = this.select.bind(this);
+    this.state = { isOpen: true, selectedItem: {}, expandedCategories: [] };
   }
 
   toggle (evt) {
-    this.setState({ isOpen: !this.state.isOpen });
+    this.setState({ isOpen: !this.state.isOpen, selectedItem: {} });
     evt.preventDefault();
+  }
+
+  select (category, index) {
+    if (typeof this.state.selectedItem.index !== 'undefined' &&
+        this.state.selectedItem.category === category && this.state.selectedItem.index === index) {
+      this.setState({ selectedItem: {} });
+      return false;
+    } else {
+      this.setState({ selectedItem: { category: category, index: index } });
+      return true;
+    }
   }
 
   render () {
@@ -54,22 +69,20 @@ class SigmetsContainer extends Component {
         <Icon name={this.state.isOpen ? 'angle-double-left' : 'angle-double-right'} />
       </Button>
     </Row>;
-    const hasFilter = this.state.filter instanceof RegExp;
-    let filteredItems = cloneDeep(items).filter(category => {
-      if (hasFilter) {
-        category.tasks = category.tasks.filter(item => this.state.filter.test(item.title));
-        return category.tasks.length > 0 || this.state.filter.test(category.title);
-      }
-      return true;
-    });
     return (
       <Col className='SigmetsContainer'>
         <CollapseOmni className='CollapseOmni' isOpen={this.state.isOpen} isHorizontal minSize={64} maxSize={400}>
           <Panel className='Panel' title={title}>
-            {filteredItems.map((item, index) =>
-              <SigmetCategory adagucProperties={this.props.adagucProperties}
-                dispatch={this.props.dispatch} actions={this.props.actions} key={index} title={item.title} isOpen={hasFilter} parentCollapsed={!this.state.isOpen}
-                icon={item.icon} source={item.source} editable={item.editable} />)}
+            <Col xs='auto' className='accordionsWrapper'>
+              {ITEMS.map((item, index) =>
+                <SigmetCategory adagucProperties={this.props.adagucProperties}
+                  dispatch={this.props.dispatch} actions={this.props.actions} key={index} title={item.title} parentCollapsed={!this.state.isOpen}
+                  icon={item.icon} source={item.source} editable={item.editable}
+                  isOpen={this.state.isOpen && typeof this.state.selectedItem.index !== 'undefined' && this.state.selectedItem.category === item.ref}
+                  selectedIndex={typeof this.state.selectedItem.index !== 'undefined' && this.state.selectedItem.category === item.ref ? this.state.selectedItem.index : -1}
+                  selectMethod={(index) => this.select(item.ref, index)} />
+              )}
+            </Col>
           </Panel>
         </CollapseOmni>
       </Col>
@@ -78,7 +91,9 @@ class SigmetsContainer extends Component {
 }
 
 SigmetsContainer.propTypes = {
-  title: PropTypes.string
+  adagucProperties: PropTypes.object,
+  dispatch: PropTypes.func,
+  actions: PropTypes.object
 };
 
 export default SigmetsContainer;
