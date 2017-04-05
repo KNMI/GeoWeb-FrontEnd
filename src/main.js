@@ -37,7 +37,8 @@ const initialState = {
     mapCreated: false,
     user: {
       isLoggedIn: false,
-      userName: ''
+      userName: '',
+      roles : []
     },
     mapMode: 'pan',
     layout: 'single',

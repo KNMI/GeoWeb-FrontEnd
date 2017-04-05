@@ -8,6 +8,7 @@ PopoverContent,
   Modal, ModalHeader, ModalBody, ModalFooter, Button, InputGroup, Input, FormText } from 'reactstrap';
 import { Link, hashHistory } from 'react-router';
 import { BACKEND_SERVER_URL } from '../routes/ADAGUC/constants/backend';
+import { UserRoles, CheckIfUserHasRole } from '../routes/ADAGUC/utils/user';
 let moment = require('moment');
 
 const timeFormat = 'YYYY MMM DD - HH:mm';
@@ -32,6 +33,7 @@ class TitleBarContainer extends Component {
     this.checkCredentialsOKCallback = this.checkCredentialsOKCallback.bind(this);
     this.checkCredentialsBadCallback = this.checkCredentialsBadCallback.bind(this);
     this.getServices = this.getServices.bind(this);
+    this.getServices = this.getServices.bind(this);
 
     this.inputfieldUserName = '';
     this.inputfieldPassword = '';
@@ -43,6 +45,7 @@ class TitleBarContainer extends Component {
       loginModalMessage: ''
     };
   }
+
   getServices () {
     console.log('======== getServices ========');
     const { dispatch, actions } = this.props;
@@ -154,6 +157,7 @@ class TitleBarContainer extends Component {
     console.log('Called checkCredentialsOKCallback');
     const { dispatch, actions } = this.props;
     const username = data.username ? data.username : data.userName;
+    const roles = data.roles;
     if (username && username.length > 0) {
       console.log('checkCredentialsOKCallback username: ' + username);
       if (username === 'guest') {
@@ -161,7 +165,12 @@ class TitleBarContainer extends Component {
         return;
       }
       this.getServices();
-      dispatch(actions.login(username));
+      dispatch(actions.login({ userName:username, roles:roles }));
+      console.log('Roles:' + roles);
+      console.log('ADMIN:', CheckIfUserHasRole(this.props, UserRoles.ADMIN));
+      console.log('MET:', CheckIfUserHasRole(this.props, UserRoles.MET));
+      console.log('USER:', CheckIfUserHasRole(this.props, UserRoles.USER));
+
       this.setState({
         loginModal: false,
         loginModalMessage: 'Signed in as user ' + username
@@ -226,6 +235,7 @@ class TitleBarContainer extends Component {
 
   render () {
     const { isLoggedIn, userName, routes } = this.props;
+    const hasRoleADMIN = CheckIfUserHasRole(this.props, UserRoles.ADMIN);
     let cumulativePath = '';
     return (
       <Navbar inverse className='test'>
@@ -260,7 +270,7 @@ class TitleBarContainer extends Component {
           <Col xs='auto'>
             <Nav>
               <NavLink className='active' onClick={this.toggleLoginModal} ><Icon name='user' id='loginIcon' />{isLoggedIn ? ' ' + userName : ' Sign in'}</NavLink>
-              {isLoggedIn ? <Link to='manage' className='active nav-link'><Icon name='cog' /></Link> : '' }
+              {hasRoleADMIN ? <Link to='manage' className='active nav-link'><Icon name='cog' /></Link> : '' }
               {isLoggedIn ? <LayoutDropDown dispatch={this.props.dispatch} actions={this.props.actions} /> : '' }
               <NavLink className='active' onClick={this.toggleFullscreen} ><Icon name='expand' /></NavLink>
             </Nav>
@@ -334,6 +344,7 @@ TitleBarContainer.propTypes = {
   isLoggedIn: PropTypes.bool,
   loginModal: PropTypes.bool,
   userName: PropTypes.string,
+  roles: PropTypes.array,
   routes: PropTypes.array,
   dispatch: PropTypes.func,
   actions: PropTypes.object
@@ -342,7 +353,8 @@ TitleBarContainer.propTypes = {
 TitleBarContainer.defaultProps = {
   isLoggedIn: false,
   loginModal: false,
-  userName: ''
+  userName: '',
+  roles: []
 };
 
 export default TitleBarContainer;
