@@ -70,13 +70,13 @@ function setWMJSLayers (layers) {
     payload: layers
   };
 }
-function login (username) {
+function login (userobject) {
   return {
     type: LOGIN,
-    payload: username
+    payload: userobject
   };
 }
-function logout (username) {
+function logout () {
   return {
     type: LOGOUT
   };
@@ -290,11 +290,12 @@ const doAddOverlayLayer = (state, payload) => {
 };
 
 const doLogin = (state, payload) => {
-  return Object.assign({}, state, { user: { isLoggedIn: true, userName: payload } });
+  console.log('doLogin', payload);
+  return Object.assign({}, state, { user: { isLoggedIn: true, userName: payload.userName, roles: payload.roles ? payload.roles : [] } });
 };
 
 const doLogout = (state, payload) => {
-  return Object.assign({}, state, { user: { isLoggedIn: false, userName: '' } });
+  return Object.assign({}, state, { user: { isLoggedIn: false, userName: '', roles: [] } });
 };
 
 const setSigmet = (state, payload) => {
