@@ -7,10 +7,25 @@ import axios from 'axios';
 import cloneDeep from 'lodash/cloneDeep';
 import CollapseOmni from '../components/CollapseOmni';
 
-const timeFormat = 'YYYY MMM DD - HH:mm';
-// const shortTimeFormat = 'HH:mm';
+const TIME_FORMAT = 'YYYY MMM DD - HH:mm';
+// const shortTIME_FORMAT = 'HH:mm';
 const SEPARATOR = '_';
-const phenomenonMapping = [
+const EMPTY_GEO_JSON = {
+  type: 'FeatureCollection',
+  features: [
+    {
+      type: 'Feature',
+      geometry: {
+        type: 'Polygon',
+        coordinates: []
+      },
+      properties: {
+        prop0: 'value0'
+      }
+    }
+  ]
+};
+const PHENOMENON_MAPPING = [
   {
     'phenomenon': { 'name': 'Thunderstorm', 'code': 'TS' },
     'variants': [
@@ -66,6 +81,7 @@ class SigmetCategory extends Component {
     this.toggle = this.toggle.bind(this);
     this.onObsOrFcstClick = this.onObsOrFcstClick.bind(this);
     this.setPhenomenon = this.setPhenomenon.bind(this);
+    this.handleSigmetClick = this.handleSigmetClick.bind(this);
     this.saveSigmet = this.saveSigmet.bind(this);
     this.savedSigmetCallback = this.savedSigmetCallback.bind(this);
     this.getHRS4code = this.getHRT4code.bind(this);
@@ -76,9 +92,7 @@ class SigmetCategory extends Component {
 
   // get Human Readable Text for Code
   getHRT4code (code) {
-    console.log('HRT requested', code);
     if (typeof code === 'undefined') {
-      console.log('Oeps');
       return UNKNOWN;
     }
     const UNKNOWN = 'Unknown';
@@ -90,7 +104,7 @@ class SigmetCategory extends Component {
     let variantIndex;
     let additionIndex;
 
-    const effectiveMapping = cloneDeep(phenomenonMapping).map((item) => {
+    const effectiveMapping = cloneDeep(PHENOMENON_MAPPING).map((item) => {
       if (item.variants.length > 0) {
         variantIndex = item.variants.findIndex((variant) => codeFragments[0].startsWith(variant.code));
         if (variantIndex > -1) {
@@ -141,7 +155,7 @@ class SigmetCategory extends Component {
 
   getPhenomena () {
     let result = [];
-    phenomenonMapping.forEach((item) => {
+    PHENOMENON_MAPPING.forEach((item) => {
       item.variants.forEach((variant) => {
         result.push({
           name: variant.name + ' ' + item.phenomenon.name.toLowerCase(),
@@ -154,6 +168,10 @@ class SigmetCategory extends Component {
 
   toggle () {
     this.setState({ isOpen: !this.state.isOpen });
+  }
+
+  handleSigmetClick (index) {
+    this.props.selectMethod(index);
   }
 
   onObsOrFcstClick (obsSelected) {
@@ -175,8 +193,6 @@ class SigmetCategory extends Component {
   saveSigmet () {
     const newList = cloneDeep(this.state.list);
     newList[0].geojson = this.props.adagucProperties.adagucmapdraw.geojson;
-    console.log(this.props.adagucProperties.adagucmapdraw.geojson);
-    console.log(newList[0].geojson);
     this.setState({ list: newList });
     axios({
       method: 'post',
@@ -207,10 +223,7 @@ class SigmetCategory extends Component {
   setEmptySigmet () {
     this.setState({
       list: [{
-        geojson                   : {
-          type                    : 'FeatureCollection',
-          features                :[]
-        },
+        geojson                   : EMPTY_GEO_JSON,
         phenomenon                : '',
         obs_or_forecast           : {
           obs                     : true
@@ -230,7 +243,6 @@ class SigmetCategory extends Component {
         validdate                 : '',
         firname                   : '',
         location_indicator_icao   : 'EHAA',
-        // icao_location_indicator   : 'EHAA',
         location_indicator_mwo    : 'EHDB',
         uuid                      : '00000000-0000-0000-0000-000000000000',
         status                    : 'PRODUCTION'
@@ -241,12 +253,9 @@ class SigmetCategory extends Component {
   gotExistingSigmetsCallback (message) {
     console.log('Got SIGMETs list feedback', message);
     let sigmetsList = message && message.data && message.data.sigmets ? message.data.sigmets : [];
-    console.log('List 1', sigmetsList);
     sigmetsList.forEach((sigmet) => {
       sigmet.phenomenonHRT = this.getHRT4code(sigmet.phenomenon);
     });
-    console.log('List length 2', sigmetsList.length);
-    console.log('List 2', sigmetsList);
     this.setState({ list: sigmetsList });
   }
 
@@ -263,12 +272,20 @@ class SigmetCategory extends Component {
   }
 
   componentWillReceiveProps (nextProps) {
-    this.setState({ isOpen: nextProps.isOpen });
+    if (typeof nextProps.isOpen !== 'undefined') {
+      this.setState({ isOpen: nextProps.isOpen });
+    }
+    if (this.props.selectedIndex !== nextProps.selectedIndex) {
+      const geoDef = nextProps.selectedIndex !== -1 ? this.state.list[nextProps.selectedIndex].geojson : EMPTY_GEO_JSON;
+      this.drawSIGMET({ geojson: geoDef });
+    }
   }
+
   drawSIGMET (geojson) {
     this.props.dispatch(this.props.actions.setGeoJSON(geojson));
   }
-  renderWhatBlock (editable, item) {
+
+   /*renderWhatBlock (editable, item) {
     console.log('What?: ', item);
     console.log('What?: ', editable);
     return (
@@ -287,7 +304,7 @@ class SigmetCategory extends Component {
         : <Col xs='auto'>{item.obs_or_forecast.obs ? 'Observed' : 'Forecast'}</Col>}
       </Row>);
   }
-  renderWhenBlock (editable, item) {
+ renderWhenBlock (editable, item) {
     return (
       <Row>
         <Col xs='2'>
@@ -301,7 +318,7 @@ class SigmetCategory extends Component {
             <Input defaultValue='2017 Mar 30' />
             <Input defaultValue='13:37 UTC' />
           </div>
-          : <Moment format={timeFormat} date={item.issuedate} />}
+          : <Moment format={TIME_FORMAT} date={item.issuedate} />}
         </Col>
       </Row>);
   }
@@ -335,11 +352,12 @@ class SigmetCategory extends Component {
         <Col>Amsterdam FIR</Col>
       </Row>
     </Row>;
-  }
+  }*/
   render () {
-    const { title, icon, parentCollapsed, editable } = this.props;
+    const { title, icon, parentCollapsed, editable, selectedIndex } = this.props;
     const notifications = !editable ? this.state.list.length : 0;
-    const maxSize = editable ? 800 : this.state.list ? Math.min(250 * this.state.list.length, 600) : 0;
+    const maxSize = this.state.list ? 150 * this.state.list.length : 0;
+    // const maxSize = editable ? 800 : this.state.list ? Math.min(250 * this.state.list.length, 600) : 0;
     return (
       <Card className='row accordion'>
         {parentCollapsed ? <CardHeader>
@@ -351,7 +369,7 @@ class SigmetCategory extends Component {
             {notifications > 0 ? <Badge color='danger' pill className='collapsed'>{notifications}</Badge> : null}
           </Col>
         </CardHeader>
-        : <CardHeader onClick={this.toggle} title={title}>
+        : <CardHeader onClick={maxSize > 0 ? this.toggle : null} className={maxSize > 0 ? null : 'disabled'} title={title}>
           <Col xs='auto'>
             <Icon name={icon} />
           </Col>
@@ -363,10 +381,45 @@ class SigmetCategory extends Component {
           </Col>
         </CardHeader>}
         <CollapseOmni className='CollapseOmni' isOpen={this.state.isOpen} minSize={0} maxSize={maxSize}>
-          <CardBlock style={{ flexDirection: 'column' }}>
-            {
-              this.state.list.map((item, i) => { return <Row style={{ width: '100%' }}>{this.renderBlock(editable, item)}</Row>; })
-            }
+          <CardBlock>
+            <Row>
+              <Col className='btn-group-vertical'>
+                {this.state.list.map((item, index) =>
+                  <Button tag='div' className={'Sigmet row' + (selectedIndex === index ? ' active' : '')}
+                    key={index} onClick={() => { this.handleSigmetClick(index); }}>
+                    <Row>
+                      <Col xs='auto'>
+                        <Badge color='success' style={{ width: '100%' }}>What</Badge>
+                      </Col>
+                      <Col>
+                        {item.phenomenonHRT}
+                      </Col>
+                      <Col xs='auto'>
+                        {item.obs_or_forecast.obs ? 'Observed' : 'Forecast'}
+                      </Col>
+                    </Row>
+                    <Row>
+                      <Col xs='auto'>
+                        <Badge color='success' style={{ width: '100%' }}>When</Badge>
+                      </Col>
+                      <Col>
+                        <Moment format={TIME_FORMAT} date={item.issuedate} />&nbsp;UTC
+                      </Col>
+                    </Row>
+                    <Row>
+                      <Col xs={{ offset: 2 }}>
+                        <Moment format={TIME_FORMAT} date={item.validdate} />&nbsp;UTC
+                      </Col>
+                    </Row>
+                    <Row>
+                      <Col xs='auto'>
+                        <Badge color='success' style={{ width: '100%' }}>Where</Badge>
+                      </Col>
+                    </Row>
+                  </Button>
+                )}
+              </Col>
+            </Row>
           </CardBlock>
         </CollapseOmni>
       </Card>);
@@ -380,7 +433,11 @@ SigmetCategory.propTypes = {
   source        : PropTypes.string,
   parentCollapsed : PropTypes.bool,
   editable      : PropTypes.bool,
-  adagucProperties: PropTypes.object
+  selectedIndex : PropTypes.number,
+  selectMethod  : PropTypes.func,
+  adagucProperties: PropTypes.object,
+  dispatch: PropTypes.func,
+  actions: PropTypes.object
 };
 
 export default SigmetCategory;

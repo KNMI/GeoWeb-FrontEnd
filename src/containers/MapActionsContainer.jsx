@@ -92,6 +92,20 @@ class MapActionContainer extends Component {
   }
 
   handleActionClick (action) {
+    let toggleProgtemp = false;
+    let toggleTimeseries = false;
+    if (action === 'progtemp' && this.state.progTempPopOverOpen) {
+      this.setState({ progTempPopOverOpen: false });
+      toggleProgtemp = true;
+    }
+    if (action === 'timeseries' && this.state.timeSeriesPopOverOpen) {
+      this.setState({ timeSeriesPopOverOpen: false });
+      toggleTimeseries = true;
+    }
+    if (toggleProgtemp || toggleTimeseries) {
+      this.props.dispatch(this.props.actions.setMapMode('pan'));
+      return;
+    }
     if (action === 'progtemp') {
       this.setState({ progTempPopOverOpen: true });
     } else {
