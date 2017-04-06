@@ -316,7 +316,7 @@ class SigmetCategory extends Component {
                       </Col>
                       <Col xs='auto'>
                         { editable
-                         ? <SwitchButton mode='select' labelRight='Observed' label='Forecast' defaultChecked={item.obs_or_forecast.obs} disabled={!editable} onClick={(e) => e.preventDefault()} />
+                         ? <SwitchButton mode='select' labelRight='Observed' label='Forecast' defaultChecked={item.obs_or_forecast.obs} disabled={!editable} />
                          : item.obs_or_forecast.obs ? 'Observed' : 'Forecast'
                         }
                       </Col>
