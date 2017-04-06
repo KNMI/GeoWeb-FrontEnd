@@ -4,6 +4,7 @@ import Icon from 'react-fa';
 import CollapseOmni from '../components/CollapseOmni';
 import SigmetCategory from '../components/SigmetCategory';
 import Panel from '../components/Panel';
+import cloneDeep from 'lodash/cloneDeep';
 import { BACKEND_SERVER_URL } from '../routes/ADAGUC/constants/backend';
 
 const GET_SIGMETS_URL = BACKEND_SERVER_URL + '/sigmet/getsigmetlist?';
@@ -38,29 +39,63 @@ const ITEMS = [
     editable: true
   }
 ];
+const EMPTY_GEO_JSON = {
+  type: 'FeatureCollection',
+  features: [
+    {
+      type: 'Feature',
+      geometry: {
+        type: 'Polygon',
+        coordinates: []
+      },
+      properties: {
+        prop0: 'value0'
+      }
+    }
+  ]
+};
 
 class SigmetsContainer extends Component {
   constructor (props) {
     super(props);
     this.toggle = this.toggle.bind(this);
     this.select = this.select.bind(this);
-    this.state = { isOpen: true, selectedItem: {}, expandedCategories: [] };
+    let isOpenCategory = {};
+    ITEMS.forEach((item, index) => {
+      isOpenCategory[item.ref] = false;
+    });
+    this.state = { isOpen: true, selectedItem: {}, isOpenCategory: isOpenCategory };
   }
 
   toggle (evt) {
-    this.setState({ isOpen: !this.state.isOpen, selectedItem: {} });
+    const geo = this.state.isOpen ? EMPTY_GEO_JSON : (this.state.selectedItem.geojson || EMPTY_GEO_JSON);
+    this.setState({ isOpen: !this.state.isOpen });
+    this.drawSIGMET(geo);
     evt.preventDefault();
   }
 
-  select (category, index) {
+  toggleCategory (category) {
+    console.log('Toggled');
+    const newIsOpenCategory = cloneDeep(this.state.isOpenCategory);
+    newIsOpenCategory[category] = !newIsOpenCategory[category];
+    this.setState({ isOpenCategory: newIsOpenCategory });
+  }
+
+  select (category, index, geo) {
     if (typeof this.state.selectedItem.index !== 'undefined' &&
         this.state.selectedItem.category === category && this.state.selectedItem.index === index) {
+      this.drawSIGMET(EMPTY_GEO_JSON);
       this.setState({ selectedItem: {} });
       return false;
     } else {
-      this.setState({ selectedItem: { category: category, index: index } });
+      this.drawSIGMET(geo);
+      this.setState({ selectedItem: { category: category, index: index, geojson: geo } });
       return true;
     }
+  }
+
+  drawSIGMET (geojson) {
+    this.props.dispatch(this.props.actions.setGeoJSON({ geojson: geojson }));
   }
 
   render () {
@@ -76,11 +111,11 @@ class SigmetsContainer extends Component {
             <Col xs='auto' className='accordionsWrapper'>
               {ITEMS.map((item, index) =>
                 <SigmetCategory adagucProperties={this.props.adagucProperties}
-                  dispatch={this.props.dispatch} actions={this.props.actions} key={index} title={item.title} parentCollapsed={!this.state.isOpen}
+                  key={index} title={item.title} parentCollapsed={!this.state.isOpen}
                   icon={item.icon} source={item.source} editable={item.editable}
-                  isOpen={this.state.isOpen && typeof this.state.selectedItem.index !== 'undefined' && this.state.selectedItem.category === item.ref}
+                  isOpen={this.state.isOpen && this.state.isOpenCategory[item.ref]}
                   selectedIndex={typeof this.state.selectedItem.index !== 'undefined' && this.state.selectedItem.category === item.ref ? this.state.selectedItem.index : -1}
-                  selectMethod={(index) => this.select(item.ref, index)} />
+                  selectMethod={(index, geo) => this.select(item.ref, index, geo)} toggleMethod={() => this.toggleCategory(item.ref)} />
               )}
             </Col>
           </Panel>

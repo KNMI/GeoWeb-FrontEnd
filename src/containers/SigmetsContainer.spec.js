@@ -2,6 +2,9 @@ import React from 'react';
 import { default as SigmetsContainer } from './SigmetsContainer';
 import { mount } from 'enzyme';
 
+const emptyDispatch = () => {};
+const emptyActions = { setGeoJSON: () => {} };
+
 describe('(Container) SigmetsContainer', () => {
   it('Renders a ReactStrap Col', () => {
     const _component = mount(<SigmetsContainer />);
@@ -16,7 +19,7 @@ describe('(Container) SigmetsContainer', () => {
   });
 
   it('Allows triggering the toggle function', () => {
-    const _component = mount(<SigmetsContainer />);
+    const _component = mount(<SigmetsContainer dispatch={emptyDispatch} actions={emptyActions} />);
     expect(_component.state().isOpen).to.eql(true);
     const evt = new KeyboardEvent('keydown', {
       bubbles: true,
