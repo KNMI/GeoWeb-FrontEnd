@@ -3,7 +3,7 @@ import { default as SigmetsContainer } from './SigmetsContainer';
 import { mount } from 'enzyme';
 
 const emptyDispatch = () => {};
-const emptyActions = { setGeoJSON: () => {} };
+const emptyActions = { setGeoJSON: (json) => {} };
 
 describe('(Container) SigmetsContainer', () => {
   it('Renders a ReactStrap Col', () => {

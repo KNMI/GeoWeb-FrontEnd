@@ -191,7 +191,6 @@ class SigmetCategory extends Component {
   }
 
   handleSigmetClick (index) {
-    console.log('Click', index, this.state.list);
     this.props.selectMethod(index, this.state.list[index].geojson);
   }
 
@@ -345,7 +344,6 @@ class SigmetCategory extends Component {
     const notifications = !editable ? this.state.list.length : 0;
     const maxSize = this.state.list ? 150 * this.state.list.length : 0;
     // const maxSize = editable ? 800 : this.state.list ? Math.min(250 * this.state.list.length, 600) : 0;
-    console.log('Second Sigmet', this.state.list[1]);
     return (
       <Card className='row accordion'>
         {parentCollapsed ? <CardHeader>
