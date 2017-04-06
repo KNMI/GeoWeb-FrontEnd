@@ -6,6 +6,8 @@ import Icon from 'react-fa';
 import axios from 'axios';
 import cloneDeep from 'lodash/cloneDeep';
 import CollapseOmni from '../components/CollapseOmni';
+import SwitchButton from 'react-switch-button';
+import 'react-switch-button/dist/react-switch-button.css';
 
 const TIME_FORMAT = 'YYYY MMM DD - HH:mm';
 // const shortTIME_FORMAT = 'HH:mm';
@@ -92,10 +94,10 @@ class SigmetCategory extends Component {
 
   // get Human Readable Text for Code
   getHRT4code (code) {
+    const UNKNOWN = 'Unknown';
     if (typeof code === 'undefined') {
       return UNKNOWN;
     }
-    const UNKNOWN = 'Unknown';
     const codeFragments = code.split(SEPARATOR);
     if (codeFragments.length < 2) {
       return UNKNOWN;
@@ -288,6 +290,7 @@ class SigmetCategory extends Component {
     const { title, icon, parentCollapsed, editable, selectedIndex } = this.props;
     const notifications = !editable ? this.state.list.length : 0;
     const maxSize = this.state.list ? 150 * this.state.list.length : 0;
+    console.log('togglestate', this.state);
     // const maxSize = editable ? 800 : this.state.list ? Math.min(250 * this.state.list.length, 600) : 0;
     return (
       <Card className='row accordion'>
@@ -326,7 +329,10 @@ class SigmetCategory extends Component {
                         {item.phenomenonHRT}
                       </Col>
                       <Col xs='auto'>
-                        {item.obs_or_forecast.obs ? 'Observed' : 'Forecast'}
+                        { editable
+                         ? <SwitchButton mode='select' labelRight='Observed' label='Forecast' defaultChecked={item.obs_or_forecast.obs} disabled={!editable} onClick={(e) => e.preventDefault()} />
+                         : item.obs_or_forecast.obs ? 'Observed' : 'Forecast'
+                        }
                       </Col>
                     </Row>
                     <Row>

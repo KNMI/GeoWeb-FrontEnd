@@ -117,6 +117,8 @@
     "react-moment": "^0.2.2",
     "react-redux": "^5.0.3",
     "react-router": "^3.0.3",
+    "react-switch-button": "^2.2.1",
+    "react-toggle-button": "^2.1.0",
     "reactable": "^0.14.1",
     "reactstrap": "^4.5.0",
     "recharts": "^0.22.0",
