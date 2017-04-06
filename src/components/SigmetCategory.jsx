@@ -339,7 +339,10 @@ class SigmetCategory extends Component {
                         <Badge color='success' style={{ width: '100%' }}>Where</Badge>
                       </Col>
                       <Col>
-                        {item.level.lev1.value + item.level.lev1.unit}
+                        {item.level.lev1 ? item.level.lev1.value + item.level.lev1.unit : ''}
+                      </Col>
+                      <Col>
+                        {item.level.lev2 ? item.level.lev2.value + item.level.lev2.unit : ''}
                       </Col>
                     </Row>
                   </Button>
