@@ -275,7 +275,7 @@ class SigmetCategory extends Component {
   render () {
     const { title, icon, parentCollapsed, editable, selectedIndex, toggleMethod } = this.props;
     const notifications = !editable ? this.state.list.length : 0;
-    const maxSize = this.state.list ? 150 * this.state.list.length : 0;
+    const maxSize = this.state.list ? 250 * this.state.list.length : 0;
     console.log('togglestate', this.state);
     // const maxSize = editable ? 800 : this.state.list ? Math.min(250 * this.state.list.length, 600) : 0;
     return (
@@ -326,12 +326,12 @@ class SigmetCategory extends Component {
                         <Badge color='success' style={{ width: '100%' }}>When</Badge>
                       </Col>
                       <Col>
-                        <Moment format={TIME_FORMAT} date={item.issuedate} />&nbsp;UTC
+                        <Moment format={TIME_FORMAT} date={item.validdate} />&nbsp;UTC
                       </Col>
                     </Row>
                     <Row>
                       <Col xs={{ offset: 2 }}>
-                        <Moment format={TIME_FORMAT} date={item.validdate} />&nbsp;UTC
+                        <Moment format={TIME_FORMAT} date={item.validdateend} />&nbsp;UTC
                       </Col>
                     </Row>
                     <Row>
@@ -339,10 +339,50 @@ class SigmetCategory extends Component {
                         <Badge color='success' style={{ width: '100%' }}>Where</Badge>
                       </Col>
                       <Col>
+                        {item.firname}
+                      </Col>
+                      <Col>
+                        {item.location_indicator_icao}
+                      </Col>
+                      <Col>
                         {item.level.lev1 ? item.level.lev1.value + item.level.lev1.unit : ''}
                       </Col>
                       <Col>
                         {item.level.lev2 ? item.level.lev2.value + item.level.lev2.unit : ''}
+                      </Col>
+                    </Row>
+                    <Row>
+                      <Col xs='auto'>
+                        <Badge color='success' style={{ width: '100%' }}>Progression</Badge>
+                      </Col>
+                      <Col>
+                        {item.movement.stationary ? 'Stationary' : 'Move' }
+                      </Col>
+                    </Row>
+                    <Row>
+                      <Col xs={{ offset: 2 }}>
+                        {item.change === 'NC' ? 'No change' : '' }
+                      </Col>
+                    </Row>
+                    <Row>
+                      <Col xs={{ offset: 2 }}>
+                        {item.forecast_position}
+                      </Col>
+                    </Row>
+                    <Row>
+                      <Col xs='auto'>
+                        <Badge color='success' style={{ width: '100%' }}>Issued at</Badge>
+                      </Col>
+                      <Col>
+                        <Moment format={TIME_FORMAT} date={item.issuedate} />&nbsp;UTC
+                      </Col>
+                    </Row>
+                    <Row>
+                      <Col xs={{ offset: 2 }}>
+                        {item.location_indicator_mwo}
+                      </Col>
+                      <Col>
+                        {item.sequence}
                       </Col>
                     </Row>
                   </Button>
