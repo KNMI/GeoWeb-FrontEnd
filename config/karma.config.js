@@ -18,7 +18,7 @@ const karmaConfig = {
   singleRun: !argv.watch,
 
   // which karma frameworks do we want integrated
-  frameworks: ['mocha', 'chai'],
+  frameworks: ['mocha', 'dirty-chai', 'chai-sinon'],
 
   // displays tests in a nice readable format
   reporters: ['spec', 'istanbul'],
@@ -26,7 +26,7 @@ const karmaConfig = {
   // include some polyfills
   files: [
     'node_modules/babel-polyfill/dist/polyfill.js',
-    './src/**/*.spec.js' // specify files to watch for tests
+    './src/**/*.spec.js'
   ],
   preprocessors : {
 
@@ -67,6 +67,8 @@ const karmaConfig = {
   plugins: webpackConfig.plugins.concat([
     'karma-babel-preprocessor',
     'karma-chai',
+    'karma-dirty-chai',
+    'karma-chai-sinon',
     'karma-istanbul',
     'karma-jsdom-launcher',
     'karma-mocha',

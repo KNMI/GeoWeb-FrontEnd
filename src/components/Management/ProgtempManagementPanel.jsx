@@ -111,7 +111,6 @@ export default class ProgtempManagementPanel extends React.Component {
     this.setState({ locations: listCpy });
   }
   render () {
-    console.log(this.state.locations);
     return (
       <Panel style={{ overflowX: 'hidden', overflowY: 'auto' }}>
         <Row style={{ flex: 1 }}>

@@ -3,10 +3,10 @@ import { default as AdagucMapDraw } from './AdagucMapDraw.js';
 import AdagucMeasureDistance from './AdagucMeasureDistance.js';
 import axios from 'axios';
 import $ from 'jquery';
+import { BACKEND_SERVER_URL, BACKEND_SERVER_XML2JSON } from '../constants/backend';
 var moment = require('moment');
 var elementResizeEvent = require('element-resize-event');
 
-import { BACKEND_SERVER_URL, BACKEND_SERVER_XML2JSON } from '../constants/backend';
 export default class Adaguc extends React.Component {
   constructor () {
     super();

@@ -26,6 +26,6 @@ describe('(Component) LocationManagementPanel', () => {
     const editButton = firstCard.find('.fa-pencil').first();
     editButton.simulate('click');
     const titleInput = _deepComponent.find('.card').first().find('#nameinput0');
-    expect(titleInput).to.exist;
+    expect(titleInput).to.exist();
   });
 });

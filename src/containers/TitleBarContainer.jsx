@@ -49,13 +49,11 @@ class TitleBarContainer extends Component {
   }
 
   getServices () {
-    console.log('======== getServices ========');
     const { dispatch, actions } = this.props;
     const defaultURLs = ['getServices', 'getOverlayServices'].map((url) => BACKEND_SERVER_URL + '/' + url);
     const allURLs = [...defaultURLs];
     axios.all(allURLs.map((req) => axios.get(req, { withCredentials: true }))).then(
       axios.spread((services, overlays) => {
-        console.log('getServices found Num services:' + services.data.length);
         dispatch(actions.createMap([...services.data, ...JSON.parse(localStorage.getItem('geoweb')).personal_urls], overlays.data[0]));
       })
     ).catch((e) => console.log('Error!: ', e.response));
@@ -99,7 +97,6 @@ class TitleBarContainer extends Component {
   }
 
   doLogin () {
-    console.log('======== Start doLogin ========');
     const { isLoggedIn } = this.props;
     if (!isLoggedIn) {
       axios({
@@ -108,7 +105,6 @@ class TitleBarContainer extends Component {
         withCredentials: true,
         responseType: 'json'
       }).then(src => {
-        console.log('AJAX OK from doLogin, now go to checkCredentials');
         this.checkCredentials(() => {
           // When signed in as admin, jump to admin manage page
           if (CheckIfUserHasRole(this.props, UserRoles.ADMIN)) {
@@ -124,7 +120,6 @@ class TitleBarContainer extends Component {
   }
 
   doLogout () {
-    console.log('======== Signing out ========');
     axios({
       method: 'get',
       url: BACKEND_SERVER_URL + '/logout',
@@ -139,7 +134,6 @@ class TitleBarContainer extends Component {
   }
 
   checkCredentials (callback) {
-    console.log('======== CheckCredentials ========');
     try {
       this.setState({
         loginModalMessage: 'Checking...'
@@ -173,12 +167,10 @@ class TitleBarContainer extends Component {
   };
 
   checkCredentialsOKCallback (data) {
-    console.log('Called checkCredentialsOKCallback');
     const { dispatch, actions } = this.props;
     const username = data.username ? data.username : data.userName;
     const roles = data.roles;
     if (username && username.length > 0) {
-      console.log('checkCredentialsOKCallback username: ' + username);
       if (username === 'guest') {
         if (this.inputfieldUserName !== '' && this.inputfieldUserName !== 'guest') {
           // User has entered something else than 'guest', so the backend does not return the new user.
@@ -193,10 +185,6 @@ class TitleBarContainer extends Component {
       }
       this.getServices();
       dispatch(actions.login({ userName:username, roles:roles }));
-      console.log('Roles:' + roles);
-      console.log('ADMIN:', CheckIfUserHasRole(this.props, UserRoles.ADMIN));
-      console.log('MET:', CheckIfUserHasRole(this.props, UserRoles.MET));
-      console.log('USER:', CheckIfUserHasRole(this.props, UserRoles.USER));
 
       this.setState({
         loginModal: false,
@@ -215,8 +203,8 @@ class TitleBarContainer extends Component {
     try {
       errormsg = error.response.data.message;
     } catch (e) {
+      console.log(e);
     }
-    console.log('checkCredentialsBadCallback: [' + errormsg + ']');
     const { dispatch, actions } = this.props;
     dispatch(actions.logout());
     this.setState({
@@ -267,7 +255,6 @@ class TitleBarContainer extends Component {
 
   render () {
     const { isLoggedIn, userName, routes } = this.props;
-    console.log(UserRoles);
     const hasRoleADMIN = CheckIfUserHasRole(this.props, UserRoles.ADMIN);
     let cumulativePath = '';
     return (

@@ -6,7 +6,6 @@ import { Row } from 'reactstrap';
 class LayerManagerPanel extends Component {
   render () {
     const { title, dispatch, actions, adagucProperties } = this.props;
-    // console.log(adagucProperties);
     return (
       <Panel title={title}>
         <Row style={{ flex: 1 }}>

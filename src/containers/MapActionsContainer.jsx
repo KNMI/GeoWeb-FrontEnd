@@ -40,7 +40,6 @@ class MapActionContainer extends Component {
     this.renderPresetSelector = this.renderPresetSelector.bind(this);
     this.setPreset = this.setPreset.bind(this);
     this.getServices = this.getServices.bind(this);
-    this.componentDidUpdate = this.componentDidUpdate.bind(this);
     this.renderLayerChooser = this.renderLayerChooser.bind(this);
 
     // State
@@ -287,25 +286,6 @@ class MapActionContainer extends Component {
       return <TimeseriesComponent adagucProperties={this.props.adagucProperties} isOpen={this.state.timeSeriesPopOverOpen} dispatch={dispatch} actions={actions} />;
     }
   }
-
-  componentDidUpdate () {
-    // console.log(this.state.layerChooserOpen);
-    // console.log(this.refs);
-    // if (this.refs.layerSelectorTypeRef) {
-    //   console.log(this.refs.layerSelectorTypeRef.getInstance());
-    //   ReactDOM.findDOMNode(this.refs.layerSelectorTypeRef.getInstance().refs.input).focus();
-    //   // this.refs.layerSelectorTypeRef.getInputDOMNode().focus();
-    //   // this.refs.layerSelectorTypeRef.getInstance().focus();
-    //   // this.refs.layerSelectorTypeRef.getInstance().refs.input.focus();
-    //   // console.log(this.refs.layerSelectorTypeRef.getInstance().refs.input);
-    // }
-    // // const elmt = document.querySelector('#addLayerModal .bootstrap-typeahead-input-main');
-    // // console.log(elmt);
-    // // if (elmt) {
-    // //   elmt.focus();
-    // // }
-  }
-
   renderLayerChooser () {
     return (<Modal id='addLayerModal' isOpen={this.state.layerChooserOpen} toggle={this.toggleLayerChooser}>
       <ModalHeader>Choose Layer</ModalHeader>
