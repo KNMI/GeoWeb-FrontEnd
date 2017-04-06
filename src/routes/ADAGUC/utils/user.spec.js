@@ -1,4 +1,5 @@
-import { UserRoles, CheckIfUserHasRole } from './user';
+import { UserRoles } from '../constants/userroles';
+import { CheckIfUserHasRole } from '../utils/user';
 
 describe('(Utils) user', () => {
   it('Checks if ADMIN role is found', () => {
