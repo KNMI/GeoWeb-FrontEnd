@@ -66,13 +66,18 @@ var WMJSCanvasBuffer = function (webmapJSCallback, _type, _imageStore, w, h) {
 
     _this.hidden = false;
     ctx.globalAlpha = 1;
-    // ctx.beginPath();
+
     ctx.clearRect(0, 0, width, height);
-    // ctx.fillStyle = 'white';
-    // if (type === 'legendbuffer') {
+    // if (type !== 'legendbuffer') {
+    //   ctx.beginPath();
+    //   ctx.rect(0, 0, width, height);
+    //   ctx.fillStyle = 'red';
+    //   ctx.fill();
+    // }
+      // if (type === 'legendbuffer') {
     //   ctx.fillStyle = 'transparent';
     // }
-    // ctx.fill();
+
     // ctx.endPath();
 
     /* Calculcate new pos */
@@ -130,10 +135,14 @@ var WMJSCanvasBuffer = function (webmapJSCallback, _type, _imageStore, w, h) {
       }
     }
     ctx.globalAlpha = 1;
-    webmapJSCallback.triggerEvent('beforecanvasdisplay',ctx);
+    if (type === 'imagebuffer') {
+      webmapJSCallback.triggerEvent('beforecanvasdisplay', ctx);
+    }
 
     _this.canvas.show();
-    webmapJSCallback.triggerEvent('aftercanvasdisplay',ctx);
+    if (type === 'imagebuffer') {
+      webmapJSCallback.triggerEvent('aftercanvasdisplay', ctx);
+    }
   };
 
   this.finishedLoading = function () {
