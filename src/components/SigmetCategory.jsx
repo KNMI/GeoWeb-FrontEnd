@@ -27,6 +27,31 @@ const EMPTY_GEO_JSON = {
     }
   ]
 };
+const EMPTY_SIGMET = {
+  geojson                   : EMPTY_GEO_JSON,
+  phenomenon                : '',
+  obs_or_forecast           : {
+    obs                     : true
+  },
+  level                     : {
+    lev1                    : {
+      value                 : 100.0,
+      unit                  : 'FL'
+    }
+  },
+  movement                  : {
+    stationary              : true
+  },
+  change                    : 'NC',
+  forecast_position         : '',
+  issuedate                 : '',
+  validdate                 : '',
+  firname                   : '',
+  location_indicator_icao   : 'EHAA',
+  location_indicator_mwo    : 'EHDB',
+  uuid                      : '00000000-0000-0000-0000-000000000000',
+  status                    : 'PRODUCTION'
+};
 const PHENOMENON_MAPPING = [
   {
     'phenomenon': { 'name': 'Thunderstorm', 'code': 'TS' },
@@ -80,7 +105,6 @@ const PHENOMENON_MAPPING = [
 class SigmetCategory extends Component {
   constructor (props) {
     super(props);
-    this.toggle = this.toggle.bind(this);
     this.onObsOrFcstClick = this.onObsOrFcstClick.bind(this);
     this.setPhenomenon = this.setPhenomenon.bind(this);
     this.handleSigmetClick = this.handleSigmetClick.bind(this);
@@ -168,12 +192,8 @@ class SigmetCategory extends Component {
     return result;
   }
 
-  toggle () {
-    this.setState({ isOpen: !this.state.isOpen });
-  }
-
   handleSigmetClick (index) {
-    this.props.selectMethod(index);
+    this.props.selectMethod(index, this.state.list[index].geojson);
   }
 
   onObsOrFcstClick (obsSelected) {
@@ -223,33 +243,7 @@ class SigmetCategory extends Component {
   }
 
   setEmptySigmet () {
-    this.setState({
-      list: [{
-        geojson                   : EMPTY_GEO_JSON,
-        phenomenon                : '',
-        obs_or_forecast           : {
-          obs                     : true
-        },
-        level                     : {
-          lev1                    : {
-            value                 : 100.0,
-            unit                  : 'FL'
-          }
-        },
-        movement                  : {
-          stationary              : true
-        },
-        change                    : 'NC',
-        forecast_position         : '',
-        issuedate                 : '',
-        validdate                 : '',
-        firname                   : '',
-        location_indicator_icao   : 'EHAA',
-        location_indicator_mwo    : 'EHDB',
-        uuid                      : '00000000-0000-0000-0000-000000000000',
-        status                    : 'PRODUCTION'
-      }]
-    });
+    this.setState({ list: [EMPTY_SIGMET] });
   }
 
   gotExistingSigmetsCallback (message) {
@@ -276,18 +270,10 @@ class SigmetCategory extends Component {
     if (typeof nextProps.isOpen !== 'undefined') {
       this.setState({ isOpen: nextProps.isOpen });
     }
-    if (this.props.selectedIndex !== nextProps.selectedIndex) {
-      const geoDef = nextProps.selectedIndex !== -1 ? this.state.list[nextProps.selectedIndex].geojson : EMPTY_GEO_JSON;
-      this.drawSIGMET({ geojson: geoDef });
-    }
-  }
-
-  drawSIGMET (geojson) {
-    this.props.dispatch(this.props.actions.setGeoJSON(geojson));
   }
 
   render () {
-    const { title, icon, parentCollapsed, editable, selectedIndex } = this.props;
+    const { title, icon, parentCollapsed, editable, selectedIndex, toggleMethod } = this.props;
     const notifications = !editable ? this.state.list.length : 0;
     const maxSize = this.state.list ? 150 * this.state.list.length : 0;
     console.log('togglestate', this.state);
@@ -303,7 +289,7 @@ class SigmetCategory extends Component {
             {notifications > 0 ? <Badge color='danger' pill className='collapsed'>{notifications}</Badge> : null}
           </Col>
         </CardHeader>
-        : <CardHeader onClick={maxSize > 0 ? this.toggle : null} className={maxSize > 0 ? null : 'disabled'} title={title}>
+        : <CardHeader onClick={maxSize > 0 ? toggleMethod : null} className={maxSize > 0 ? null : 'disabled'} title={title}>
           <Col xs='auto'>
             <Icon name={icon} />
           </Col>
@@ -352,6 +338,9 @@ class SigmetCategory extends Component {
                       <Col xs='auto'>
                         <Badge color='success' style={{ width: '100%' }}>Where</Badge>
                       </Col>
+                      <Col>
+                        {item.level.lev1.value + item.level.lev1.unit}
+                      </Col>
                     </Row>
                   </Button>
                 )}
@@ -372,9 +361,8 @@ SigmetCategory.propTypes = {
   editable      : PropTypes.bool,
   selectedIndex : PropTypes.number,
   selectMethod  : PropTypes.func,
-  adagucProperties: PropTypes.object,
-  dispatch: PropTypes.func,
-  actions: PropTypes.object
+  toggleMethod  : PropTypes.func,
+  adagucProperties: PropTypes.object
 };
 
 export default SigmetCategory;
