@@ -67,7 +67,7 @@ describe('(Store) createStore', () => {
 
   it('should have an empty asyncReducers object', () => {
     expect(store.asyncReducers).to.be.an('object');
-    expect(store.asyncReducers).to.be.empty;
+    expect(store.asyncReducers).to.be.empty();
   });
 
   describe('(ADAGUC)', () => {

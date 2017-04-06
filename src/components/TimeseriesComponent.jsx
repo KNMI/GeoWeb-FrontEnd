@@ -4,7 +4,9 @@ var moment = require('moment');
 import { Typeahead } from 'react-bootstrap-typeahead';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 import axios from 'axios';
+
 export default class TimeseriesComponent extends Component {
+  /* istanbul ignore next */
   constructor () {
     super();
     this.state = {
@@ -93,6 +95,7 @@ export default class TimeseriesComponent extends Component {
       }
     ];
   }
+  /* istanbul ignore next */
   customTooltip (props, labels, units) {
     if (props.payload.length > 0) {
       return (
@@ -109,6 +112,7 @@ export default class TimeseriesComponent extends Component {
     }
   }
 
+  /* istanbul ignore next */
   fetchNewLocationData (cursor, wmjslayers, adagucTime) {
     const { location } = cursor;
     const harmlayer = wmjslayers.layers.filter((layer) => layer.service.includes('HARM'))[0];
@@ -140,6 +144,7 @@ LAYERS=&QUERY_LAYERS=air_pressure_at_sea_level,wind__at_10m,dew_point_temperatur
 
   // Remap the data from GetPointInfo to an object containing the relevant data at a reference time
   // such that it can be directly plotted in a graph.
+  /* istanbul ignore next */
   modifyData (data) {
     if (!data) return;
     function remap (obj, refTime) {
@@ -205,6 +210,7 @@ LAYERS=&QUERY_LAYERS=air_pressure_at_sea_level,wind__at_10m,dew_point_temperatur
     this.setState({ minPressure, maxPressure });
     return returnArr;
   }
+  /* istanbul ignore next */
   componentWillReceiveProps (nextProps) {
     const { adagucProperties } = nextProps;
     const { layers, wmjslayers, cursor } = adagucProperties;
@@ -227,6 +233,7 @@ LAYERS=&QUERY_LAYERS=air_pressure_at_sea_level,wind__at_10m,dew_point_temperatur
     }
     this.setState({ });
   }
+  /* istanbul ignore next */
   convertMinSec (loc) {
     function padLeft (nr, n, str) {
       return Array(n - String(nr).length + 1).join(str || '0') + nr;
@@ -239,9 +246,11 @@ LAYERS=&QUERY_LAYERS=air_pressure_at_sea_level,wind__at_10m,dew_point_temperatur
 
     return Math.floor(loc) + ':' + padLeft(Math.floor(minutes), 2, '0') + ':' + padLeft(seconds, 2, '0');
   }
+  /* istanbul ignore next */
   setChosenLocation (loc) {
     this.props.dispatch(this.props.actions.cursorLocation(loc[0]));
   }
+  /* istanbul ignore next */
   toggleCanvas () {
     var canvas = this.refs.canvasLoadingOverlay;
     const attribute = canvas.getAttribute('class');
@@ -251,6 +260,7 @@ LAYERS=&QUERY_LAYERS=air_pressure_at_sea_level,wind__at_10m,dew_point_temperatur
       canvas.setAttribute('class', 'canvasLoadingOverlay timeOverlay');
     }
   }
+  /* istanbul ignore next */
   renderDots (props) {
     const { cx, cy, stroke, key } = props;
     if (cx === +cx && cy === +cy) {
@@ -265,6 +275,7 @@ LAYERS=&QUERY_LAYERS=air_pressure_at_sea_level,wind__at_10m,dew_point_temperatur
 
     return null;
   }
+  /* istanbul ignore next */
   getLabels (data) {
     let retData = [];
     data.map((d) => {
@@ -294,6 +305,7 @@ LAYERS=&QUERY_LAYERS=air_pressure_at_sea_level,wind__at_10m,dew_point_temperatur
     return retData;
   }
 
+  /* istanbul ignore next */
   getUnits (data) {
     let retData = [];
     data.map((d) => {
@@ -313,6 +325,7 @@ LAYERS=&QUERY_LAYERS=air_pressure_at_sea_level,wind__at_10m,dew_point_temperatur
     });
     return retData;
   }
+  /* istanbul ignore next */
   render () {
     const { cursor, wmjslayers, timedim } = this.props.adagucProperties;
     if (cursor && !this.state.timeData) {
@@ -384,7 +397,6 @@ LAYERS=&QUERY_LAYERS=air_pressure_at_sea_level,wind__at_10m,dew_point_temperatur
     </Popover>);
   }
 }
-
 TimeseriesComponent.propTypes = {
   adagucProperties: PropTypes.object.isRequired,
   isOpen: PropTypes.bool.isRequired,

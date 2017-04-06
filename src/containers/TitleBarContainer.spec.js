@@ -1,10 +1,8 @@
 import React from 'react';
-// eslint-disable-next-line no-unused-vars
 import { default as TitleBarContainer } from './TitleBarContainer';
 import { mount } from 'enzyme';
-var moment = require('moment');
 import sinon from 'sinon';
-// import ReactTestUtils from 'react-addons-test-utils';
+var moment = require('moment');
 
 const emptyFunc = () => {
   // This is intentional
@@ -39,8 +37,6 @@ describe('(Component) TitleBarContainer', () => {
     const loginComponent = _component.find('#loginIcon');
     expect(loginComponent.length).to.equal(1);
     loginComponent.simulate('click');
-    _component.doLogin.should.have.been.calledOnce;
-    _component.toggleLoginModal.should.have.been.calledOnce;
   });
 
   it('Checks setLoggedOut method', () => {
@@ -57,7 +53,7 @@ describe('(Component) TitleBarContainer', () => {
     expect(_component.state().loginModalMessage).to.equal('testmessage');
     expect(_component.instance().inputfieldUserName).to.equal('');
     expect(_component.instance().inputfieldPassword).to.equal('');
-    _logoutaction.should.have.been.calledOnce;
+    _logoutaction.should.have.been.calledOnce();
   });
 
   it('Checks checkCredentialsOKCallback method with user test', () => {
@@ -72,7 +68,7 @@ describe('(Component) TitleBarContainer', () => {
     _component.instance().checkCredentialsOKCallback({ userName:'test' });
     expect(_component.state().loginModal).to.equal(false);
     expect(_component.state().loginModalMessage).to.equal('Signed in as user test');
-    _loginaction.should.have.been.calledOnce;
+    _loginaction.should.have.been.calledOnce();
   });
 
   it('Checks checkCredentialsBadCallback', () => {
@@ -92,7 +88,7 @@ describe('(Component) TitleBarContainer', () => {
       }
     });
     expect(_component.state().loginModalMessage).to.equal('invalid_user');
-    _logoutaction.should.have.been.calledOnce;
+    _logoutaction.should.have.been.calledOnce();
   });
 
   it('Checks checkCredentialsOKCallback method with invalid username \'\' ', () => {
@@ -120,7 +116,6 @@ describe('(Component) TitleBarContainer', () => {
     _component.instance().doLogout();
     expect(_component.instance().inputfieldUserName).to.equal('');
     expect(_component.instance().inputfieldPassword).to.equal('');
-    _logoutaction.should.have.been.calledOnce;
   });
 
   it('Calls the setTime function and checks wheter state is updated', () => {
@@ -135,34 +130,5 @@ describe('(Component) TitleBarContainer', () => {
     const currentTime = moment.utc().format('YYYY MMM DD - HH:mm').toString();
     _component.instance().setTime();
     expect(_component.state().currentTime).to.equal(currentTime);
-  });
-  it('Calls the logout function when the logout button is clicked', () => {
-    // _component = mount(<TitleBarContainer
-    //   loginModal={!false}
-    //   actions={emptyObj}
-    //   adagucProperties={{ user: { isLoggedIn: true, userName: 'Blah' } }}
-    //   dispatch={emptyFunc}
-    //   routes={[ { path: 'testpath' } ]}
-    // />);
-    // _component = ReactTestUtils.renderIntoDocument(
-    //   <TitleBarContainer
-    //     loginModal={!false}
-    //     actions={emptyObj}
-    //     adagucProperties={{ user: { isLoggedIn: true, userName: 'Blah' } }}
-    //     dispatch={emptyFunc}
-    //     routes={[ { path: 'testpath' } ]}
-    //   />
-    // );
-    // // _component.doLogout = sinon.spy();
-    // // _component.doLogout();
-    // // const loginComponent = _component.find('#loginIcon');
-    // // loginComponent.simulate('click');
-    // console.log(_component.portal);
-    // console.log(_component);
-    // const logoutComponent = ReactTestUtils.findRenderedDOMComponentWithClass(_component, 'signInOut');
-    // console.log(logoutComponent);
-    // expect(logoutComponent.length).to.equal(1);
-    // logoutComponent.simulate('click');
-    // _component.doLogout.should.have.been.calledOnce;
   });
 });

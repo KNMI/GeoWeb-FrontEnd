@@ -22,9 +22,9 @@ const AdagucMapDraw = React.createClass({
   },
   convertGeoCoordsToScreenCoords (featureCoords) {
     const { webmapjs } = this.props;
-    let XYCoords = [];
+    const XYCoords = [];
     for (let j = 0; j < featureCoords.length; j++) {
-      let coord = webmapjs.getPixelCoordFromLatLong({ x:featureCoords[j][0], y:featureCoords[j][1] });
+      const coord = webmapjs.getPixelCoordFromLatLong({ x:featureCoords[j][0], y:featureCoords[j][1] });
       XYCoords.push(coord);
     }
     return XYCoords;
@@ -35,27 +35,35 @@ const AdagucMapDraw = React.createClass({
      You are free to draw anything you like on the canvas.
     */
 
-    let featureIndex = 0; /* Current selected feature from GeoJSON */
+    const featureIndex = 0; /* Current selected feature from GeoJSON */
 
-    let feature = this.props.geojson.features[featureIndex];
+    const feature = this.props.geojson.features[featureIndex];
 
     /* Loop through all polygons of the same feature */
     for (let polygonIndex = 0; polygonIndex < feature.geometry.coordinates.length; polygonIndex++) {
-      let featureCoords = feature.geometry.coordinates[polygonIndex];
+      const featureCoords = feature.geometry.coordinates[polygonIndex];
 
-      let XYCoords = this.convertGeoCoordsToScreenCoords(featureCoords);
+      const XYCoords = this.convertGeoCoordsToScreenCoords(featureCoords);
       /* Only draw if there is stuff to show */
       if (XYCoords.length > 0) {
         /* Draw polygons and calculate center of poly */
-        let middle = { x:0, y:0 };
+        const middle = { x:0, y:0 };
         ctx.strokeStyle = '#000'; ctx.lineWidth = 3; ctx.fillStyle = '#F88'; ctx.beginPath();
         for (let j = 0; j < XYCoords.length; j++) {
-          let coord = XYCoords[j];
-          if (j === 0)ctx.moveTo(coord.x, coord.y); else ctx.lineTo(coord.x, coord.y);
+          const coord = XYCoords[j];
+          if (j === 0) {
+            ctx.moveTo(coord.x, coord.y);
+          } else {
+            ctx.lineTo(coord.x, coord.y);
+          }
           middle.x += coord.x;
           middle.y += coord.y;
         }
-        ctx.closePath(); ctx.globalAlpha = 0.6; ctx.fill(); ctx.globalAlpha = 1; ctx.stroke();
+        ctx.closePath();
+        ctx.globalAlpha = 0.6;
+        ctx.fill();
+        ctx.globalAlpha = 1;
+        ctx.stroke();
         middle.x = parseInt(middle.x / XYCoords.length);
         middle.y = parseInt(middle.y / XYCoords.length);
 
@@ -74,23 +82,33 @@ const AdagucMapDraw = React.createClass({
         }
 
         /* Function for drawing vertices with several styles */
-        let drawVertice = (coord, selected, middle) => {
+        const drawVertice = (coord, selected, middle) => {
           let w = 7;
           if (this.props.isInEditMode === false) {
             /* Standard style, no editing, just display location of vertices */
-            ctx.strokeStyle = '#000'; ctx.fillStyle = '#000'; ctx.lineWidth = 1.0; w = 5;
+            ctx.strokeStyle = '#000';
+            ctx.fillStyle = '#000';
+            ctx.lineWidth = 1.0;
+            w = 5;
           } else {
             if (selected === false) {
               if (middle === true) {
                 /* Style for middle editable vertice */
-                ctx.strokeStyle = '#000'; ctx.fillStyle = '#D87502'; ctx.lineWidth = 1.0;
+                ctx.strokeStyle = '#000';
+                ctx.fillStyle = '#D87502';
+                ctx.lineWidth = 1.0;
               } else {
                 /* Style for standard editable vertice */
-                ctx.strokeStyle = '#000'; ctx.fillStyle = '#0275D8'; ctx.lineWidth = 1.0;
+                ctx.strokeStyle = '#000';
+                ctx.fillStyle = '#0275D8';
+                ctx.lineWidth = 1.0;
               }
             } else {
               /* Style for selected editable vertice */
-              ctx.strokeStyle = '#000'; ctx.fillStyle = '#FF0'; ctx.lineWidth = 1.0; w = 11;
+              ctx.strokeStyle = '#000';
+              ctx.fillStyle = '#FF0';
+              ctx.lineWidth = 1.0;
+              w = 11;
             }
           }
           ctx.globalAlpha = 1.0;
@@ -119,9 +137,9 @@ const AdagucMapDraw = React.createClass({
       E.g. when the map is dragging/panning, this event is not triggerd
     */
     if (this.props.isInEditMode === false) return;
-    let featureIndex = 0;
-    let feature = this.props.geojson.features[featureIndex];
-    let featureCoords = feature.geometry.coordinates[this.snappedPolygonIndex];
+    const featureIndex = 0;
+    const feature = this.props.geojson.features[featureIndex];
+    const featureCoords = feature.geometry.coordinates[this.snappedPolygonIndex];
 
     const { webmapjs } = this.props;
     let { mouseX, mouseY, mouseDown } = event;
@@ -141,8 +159,8 @@ const AdagucMapDraw = React.createClass({
         /* In case middle point is selected, transpose whole polygon */
         if (this.mouseIsOverVertexNr === -2) {
           if (this.snappedGeoCoords) {
-            let incX = this.mouseGeoCoord.x - this.snappedGeoCoords.x;
-            let incY = this.mouseGeoCoord.y - this.snappedGeoCoords.y;
+            const incX = this.mouseGeoCoord.x - this.snappedGeoCoords.x;
+            const incY = this.mouseGeoCoord.y - this.snappedGeoCoords.y;
             for (let j = 0; j < featureCoords.length; j++) {
               featureCoords[j][0] += incX;
               featureCoords[j][1] += incY;
@@ -160,20 +178,20 @@ const AdagucMapDraw = React.createClass({
     }
 
     /* Function which calculates the distance between two points */
-    let distance = (a, b) => {
+    const distance = (a, b) => {
       return Math.sqrt((a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y));
     };
 
     /* Function which calculates if a point is between two other points */
-    let isBetween = (a, c, b) => {
-      let da = distance(a, c) + distance(c, b);
-      let db = distance(a, b);
-      if (Math.abs(da - db) < 1) return true; else return false;
+    const isBetween = (a, c, b) => {
+      const da = distance(a, c) + distance(c, b);
+      const db = distance(a, b);
+      return (Math.abs(da - db) < 1);
     };
 
     /* Checks if mouse is in proximity of given coordinate */
-    let checkDist = (coord, polygonIndex) => {
-      let d = distance(coord, { x:mouseX, y:mouseY });
+    const checkDist = (coord, polygonIndex) => {
+      const d = distance(coord, { x:mouseX, y:mouseY });
       if (d < 8) {
         this.snappedGeoCoords = { ...this.mouseGeoCoord };
         this.snappedPolygonIndex = polygonIndex;
@@ -186,11 +204,11 @@ const AdagucMapDraw = React.createClass({
     let foundVertex = -1;
     this.mouseIsOverVertexNr = -1;
     for (let polygonIndex = feature.geometry.coordinates.length - 1; polygonIndex >= 0; polygonIndex--) {
-      let featureCoords = feature.geometry.coordinates[polygonIndex];
+      const featureCoords = feature.geometry.coordinates[polygonIndex];
       if (featureCoords !== undefined) {
         /* Get all vertexes */
-        let XYCoords = this.convertGeoCoordsToScreenCoords(featureCoords);
-        let middle = { x:0, y:0 };
+        const XYCoords = this.convertGeoCoordsToScreenCoords(featureCoords);
+        const middle = { x:0, y:0 };
         /* Snap to the vertex closer than specified pixels */
         for (let j = 0; j < XYCoords.length; j++) {
           let coord = XYCoords[j];
@@ -226,13 +244,13 @@ const AdagucMapDraw = React.createClass({
     this.selectedEdge = -1;
     if (this.editMode !== 'deletefeatures') {
       for (let polygonIndex = feature.geometry.coordinates.length - 1; polygonIndex >= 0; polygonIndex--) {
-        let featureCoords = feature.geometry.coordinates[polygonIndex];
+        const featureCoords = feature.geometry.coordinates[polygonIndex];
         if (featureCoords !== undefined) {
           /* Get all vertexes */
-          let XYCoords = this.convertGeoCoordsToScreenCoords(featureCoords);
+          const XYCoords = this.convertGeoCoordsToScreenCoords(featureCoords);
           for (let j = 0; j < XYCoords.length; j++) {
-            let startV = XYCoords[j];
-            let stopV = XYCoords[(j + 1) % XYCoords.length];
+            const startV = XYCoords[j];
+            const stopV = XYCoords[(j + 1) % XYCoords.length];
             if (isBetween(startV, { x:mouseX, y:mouseY }, stopV)) {
               this.selectedEdge = j;
               this.snappedPolygonIndex = polygonIndex;
@@ -273,9 +291,9 @@ const AdagucMapDraw = React.createClass({
     /* Insert a new vertex into an edge, e.g a line is clicked and a point is added */
     if (this.selectedEdge !== -1 && this.editMode !== 'deletefeatures') {
       this.mouseGeoCoord = webmapjs.getLatLongFromPixelCoord({ x:mouseX, y:mouseY });
-      let featureIndex = 0;
-      let feature = this.props.geojson.features[featureIndex];
-      let featureCoords = feature.geometry.coordinates[this.snappedPolygonIndex];
+      const featureIndex = 0;
+      const feature = this.props.geojson.features[featureIndex];
+      const featureCoords = feature.geometry.coordinates[this.snappedPolygonIndex];
       if (featureCoords === undefined) return false;
       featureCoords.splice(this.selectedEdge + 1, 0, [this.mouseGeoCoord.x, this.mouseGeoCoord.y]);
       this.featureHasChanged('insert vertex into line');
@@ -286,8 +304,8 @@ const AdagucMapDraw = React.createClass({
     /* This is trigged when a new polygon is created. Two points are added at once */
     if (this.editMode === '') {
       this.editMode = 'addpolygon';
-      let featureIndex = 0;
-      let feature = this.props.geojson.features[featureIndex];
+      const featureIndex = 0;
+      const feature = this.props.geojson.features[featureIndex];
       this.mouseGeoCoord = webmapjs.getLatLongFromPixelCoord({ x:mouseX, y:mouseY });
 
       if (feature.geometry.coordinates === undefined) {
@@ -299,7 +317,7 @@ const AdagucMapDraw = React.createClass({
         feature.geometry.coordinates.push([]);
       }
       this.snappedPolygonIndex = feature.geometry.coordinates.length - 1;
-      let featureCoords = feature.geometry.coordinates[this.snappedPolygonIndex];
+      const featureCoords = feature.geometry.coordinates[this.snappedPolygonIndex];
       featureCoords.push([this.mouseGeoCoord.x, this.mouseGeoCoord.y]);
       featureCoords.push([this.mouseGeoCoord.x, this.mouseGeoCoord.y]);
       this.featureHasChanged('new poly created');
@@ -311,9 +329,9 @@ const AdagucMapDraw = React.createClass({
     /* This is triggered when new points are added during the addpolygon mode. One point is added per time */
     if (this.editMode === 'addpolygon') {
       this.mouseGeoCoord = webmapjs.getLatLongFromPixelCoord({ x:mouseX, y:mouseY });
-      let featureIndex = 0;
-      let feature = this.props.geojson.features[featureIndex];
-      let featureCoords = feature.geometry.coordinates[this.snappedPolygonIndex];
+      const featureIndex = 0;
+      const feature = this.props.geojson.features[featureIndex];
+      const featureCoords = feature.geometry.coordinates[this.snappedPolygonIndex];
       featureCoords.push([this.mouseGeoCoord.x, this.mouseGeoCoord.y]);
       this.featureHasChanged('vertex added to polygon');
       this.mouseIsOverVertexNr = featureCoords.length - 1;
@@ -328,9 +346,9 @@ const AdagucMapDraw = React.createClass({
     /* Deletes any features under the mousecursor */
     const { webmapjs } = this.props;
     if (this.mouseIsOverVertexNr !== -1) {
-      let featureIndex = 0;
-      let feature = this.props.geojson.features[featureIndex];
-      let featureCoords = feature.geometry.coordinates[this.snappedPolygonIndex];
+      const featureIndex = 0;
+      const feature = this.props.geojson.features[featureIndex];
+      const featureCoords = feature.geometry.coordinates[this.snappedPolygonIndex];
       if (featureCoords === undefined) {
         return;
       }
@@ -353,7 +371,7 @@ const AdagucMapDraw = React.createClass({
       webmapjs.draw();
     }
   },
-  adagucMouseUp (event) {
+  adagucMouseUp () {
     if (this.props.isInEditMode === false) return;
 
     if (this.somethingWasDragged !== false) {
@@ -382,7 +400,7 @@ const AdagucMapDraw = React.createClass({
     if (this.editMode === 'addpolygon') {
       this.editMode = '';
       if (this.snappedPolygonIndex !== -1) {
-        let featureIndex = 0;
+        const featureIndex = 0;
         if (this.props.geojson.features[featureIndex].geometry.coordinates[this.snappedPolygonIndex].length > 0) {
           if (cancelLastPoint === true) {
             this.props.geojson.features[featureIndex].geometry.coordinates[this.snappedPolygonIndex].pop();
@@ -402,12 +420,9 @@ const AdagucMapDraw = React.createClass({
     }
   },
   handleKeyDown (event) {
-    switch (event.keyCode) {
-      case 27: /* ESCAPE_KEY */
-        this.cancelEdit(true);
-        break;
-      default:
-        break;
+    const ESCAPE_KEY = 27;
+    if (event.keyCode === ESCAPE_KEY) {
+      this.cancelEdit(true);
     }
   },
   componentWillMount () {
@@ -428,17 +443,12 @@ const AdagucMapDraw = React.createClass({
   featureHasChanged (text) {
     this.props.dispatch({ type: ADAGUCMAPDRAW_UPDATEFEATURE, payload: { geojson: this.props.geojson, text: text } });
   },
-  componentDidMount () {
-  },
   componentWillReceiveProps (nextProps) {
      /* Handle toggle edit */
     if (nextProps.isInEditMode === false && this.editMode !== '') {
       this.cancelEdit(true); /* Throw away last vertice */
       if (this.editMode === 'deletefeatures') {
         this.editMode = '';
-        // if (nextProps.isInDeleteMode === true) {
-        //   this.props.dispatch({ type: ADAGUCMAPDRAW_DELETE, payload: { isInDeleteMode:false } });
-        // }
         return;
       }
     }
@@ -446,10 +456,6 @@ const AdagucMapDraw = React.createClass({
     /* Handle toggle delete */
     if (nextProps.isInDeleteMode === true) {
       this.editMode = 'deletefeatures';
-      // if (nextProps.isInEditMode === false) {
-      //   /* Editmode should be switched on when deletemode is entered */
-      //   this.props.dispatch({ type: ADAGUCMAPDRAW_EDITING, payload: { isInEditMode:true } });
-      // }
     } else {
       if (this.editMode === 'deletefeatures') {
         this.editMode = '';

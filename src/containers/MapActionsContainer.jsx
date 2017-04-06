@@ -1,4 +1,5 @@
 import React, { Component, PropTypes } from 'react';
+import ReactDOM from 'react-dom';
 import { Button, Col, Row, Popover, InputGroup, Input, InputGroupButton, PopoverContent,
   ButtonGroup, TabContent, TabPane, Nav, NavItem, NavLink, Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
 import Panel from '../components/Panel';
@@ -39,6 +40,8 @@ class MapActionContainer extends Component {
     this.renderPresetSelector = this.renderPresetSelector.bind(this);
     this.setPreset = this.setPreset.bind(this);
     this.getServices = this.getServices.bind(this);
+    this.renderLayerChooser = this.renderLayerChooser.bind(this);
+
     // State
     this.state = {
       collapse: false,
@@ -88,6 +91,20 @@ class MapActionContainer extends Component {
   }
 
   handleActionClick (action) {
+    let toggleProgtemp = false;
+    let toggleTimeseries = false;
+    if (action === 'progtemp' && this.state.progTempPopOverOpen) {
+      this.setState({ progTempPopOverOpen: false });
+      toggleProgtemp = true;
+    }
+    if (action === 'timeseries' && this.state.timeSeriesPopOverOpen) {
+      this.setState({ timeSeriesPopOverOpen: false });
+      toggleTimeseries = true;
+    }
+    if (toggleProgtemp || toggleTimeseries) {
+      this.props.dispatch(this.props.actions.setMapMode('pan'));
+      return;
+    }
     if (action === 'progtemp') {
       this.setState({ progTempPopOverOpen: true });
     } else {
@@ -269,7 +286,6 @@ class MapActionContainer extends Component {
       return <TimeseriesComponent adagucProperties={this.props.adagucProperties} isOpen={this.state.timeSeriesPopOverOpen} dispatch={dispatch} actions={actions} />;
     }
   }
-
   renderLayerChooser () {
     return (<Modal id='addLayerModal' isOpen={this.state.layerChooserOpen} toggle={this.toggleLayerChooser}>
       <ModalHeader>Choose Layer</ModalHeader>
@@ -309,7 +325,7 @@ class MapActionContainer extends Component {
               : this.renderURLInput()}
           </TabPane>
           <TabPane tabId='3'>
-            <Typeahead onChange={this.handleAddLayer} options={this.state.layers ? this.state.layers : []} autofocus />
+            <Typeahead ref='layerSelectorTypeRef' onChange={this.handleAddLayer} options={this.state.layers ? this.state.layers : []} autoFocus />
           </TabPane>
         </TabContent>
       </ModalBody>

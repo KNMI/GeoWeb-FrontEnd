@@ -26,28 +26,28 @@ describe('(Container) MapAnimationControlsContainer', () => {
   it('Allows for triggering toggleLayerChooser', () => {
     const _component = mount(<MapAnimationControlsContainer adagucProperties={adagucProperties} dispatch={emptyDispatch} actions={emptyActions} />);
     _component.instance().toggleLayerChooser();
-    expect('everything').to.be.ok;
+    expect('everything').to.be.ok();
   });
   it('Allows for triggering toggleAnimation', () => {
     const _component = mount(<MapAnimationControlsContainer adagucProperties={adagucProperties} dispatch={emptyDispatch} actions={emptyActions} />);
     _component.instance().toggleAnimation();
-    expect('everything').to.be.ok;
+    expect('everything').to.be.ok();
   });
   it('Allows for triggering togglePopside', () => {
     const _component = shallow(<MapAnimationControlsContainer adagucProperties={adagucProperties} dispatch={emptyDispatch} actions={emptyActions} />);
     _component.instance().togglePopside();
-    expect('everything').to.be.ok;
+    expect('everything').to.be.ok();
   });
   it('Allows for triggering generateMap', () => {
     const _component = mount(<MapAnimationControlsContainer adagucProperties={adagucProperties} dispatch={emptyDispatch} actions={emptyActions} />);
     _component.instance().generateMap([{ name: 'testName', text: 'testText' }]);
-    expect('everything').to.be.ok;
+    expect('everything').to.be.ok();
   });
   it('Allows for triggering goToNow', () => {
     global.getCurrentDateIso8601 = sinon.stub().returns({ toISO8601: () => {} });
     const _component = mount(<MapAnimationControlsContainer adagucProperties={adagucProperties} dispatch={emptyDispatch} actions={emptyActions} />);
     _component.instance().goToNow();
-    expect('everything').to.be.ok;
+    expect('everything').to.be.ok();
   });
   it('Allows for triggering getLayerName', () => {
     const _component = mount(<MapAnimationControlsContainer adagucProperties={adagucProperties} dispatch={emptyDispatch} actions={emptyActions} />);
@@ -65,16 +65,16 @@ describe('(Container) MapAnimationControlsContainer', () => {
     expect(obs).to.eql('Overlay');
     obs = _component.instance().getLayerName({ title: 'RADAR_EXT' });
     expect(obs).to.eql('Radar (EXT)');
-    expect('everything').to.be.ok;
+    expect('everything').to.be.ok();
   });
   it('Allows for setting addLayer state', () => {
     const _component = mount(<MapAnimationControlsContainer adagucProperties={adagucProperties} dispatch={emptyDispatch} actions={emptyActions} />);
     _component.setState({ action: 'addLayer' });
-    expect('everything').to.be.ok;
+    expect('everything').to.be.ok();
   });
   it('Allows for setting selectPreset state', () => {
     const _component = mount(<MapAnimationControlsContainer adagucProperties={adagucProperties} dispatch={emptyDispatch} actions={emptyActions} />);
     _component.setState({ action: 'selectPreset' });
-    expect('everything').to.be.ok;
+    expect('everything').to.be.ok();
   });
 });

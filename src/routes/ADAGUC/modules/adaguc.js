@@ -1,6 +1,8 @@
 import { MAP_STYLES } from '../constants/map_styles';
 import { BOUNDING_BOXES } from '../constants/bounding_boxes';
 import cloneDeep from 'lodash/cloneDeep';
+import { ADAGUCMAPDRAW_UPDATEFEATURE } from '../components/AdagucMapDraw';
+import { ADAGUCMEASUREDISTANCE_UPDATE } from '../components/AdagucMeasureDistance';
 // ------------------------------------
 // Constants
 // ------------------------------------
@@ -24,9 +26,6 @@ const SET_LAYOUT = 'SET_LAYOUT';
 const CURSOR_LOCATION = 'CURSOR_LOCATION';
 const SET_GEOJSON = 'SET_GEOJSON';
 const SET_ACTIVE_PANEL = 'SET_ACTIVE_PANEL';
-
-import { ADAGUCMAPDRAW_UPDATEFEATURE } from '../components/AdagucMapDraw';
-import { ADAGUCMEASUREDISTANCE_UPDATE } from '../components/AdagucMeasureDistance';
 
 // ------------------------------------
 // Actions
@@ -290,7 +289,6 @@ const doAddOverlayLayer = (state, payload) => {
 };
 
 const doLogin = (state, payload) => {
-  console.log('doLogin', payload);
   return Object.assign({}, state, { user: { isLoggedIn: true, userName: payload.userName, roles: payload.roles ? payload.roles : [] } });
 };
 
@@ -382,7 +380,6 @@ function setGeoJSON (json) {
 }
 
 const newGeoJSON = (state, payload) => {
-  console.log(payload);
   return Object.assign({}, state, { adagucmapdraw: payload });
 };
 

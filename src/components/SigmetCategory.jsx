@@ -245,7 +245,6 @@ class SigmetCategory extends Component {
   }
 
   gotExistingSigmetsCallback (message) {
-    console.log('Got SIGMETs list feedback', message);
     let sigmetsList = message && message.data && message.data.sigmets ? message.data.sigmets : [];
     sigmetsList.forEach((sigmet) => {
       sigmet.phenomenonHRT = this.getHRT4code(sigmet.phenomenon);
@@ -254,7 +253,7 @@ class SigmetCategory extends Component {
   }
 
   savedSigmetCallback (message) {
-    console.log('Saved SIGMET feedback', message);
+    // intentionally empty
   }
 
   componentWillMount () {
@@ -271,74 +270,6 @@ class SigmetCategory extends Component {
     }
   }
 
-   /*renderWhatBlock (editable, item) {
-    console.log('What?: ', item);
-    console.log('What?: ', editable);
-    return (
-      <Row>
-        <Col xs='2'>
-          <Badge color='success' style={{ width: '100%' }}>What</Badge>
-        </Col>
-        {editable ? <Typeahead className='col' onChange={this.setPhenomenon} options={this.getPhenomena()} labelKey='name' />
-        : <Alert color='success' className='col'>
-          {item.phenomenonHRT}
-        </Alert>}
-        {editable ? <ButtonGroup className='col'>
-          <Button color='primary' onClick={() => this.onObsOrFcstClick(true)} active={this.state.list[0].obs_or_forecast.obs}>Observed</Button>
-          <Button color='primary' onClick={() => this.onObsOrFcstClick(false)} active={!this.state.list[0].obs_or_forecast.obs}>Forecast</Button>
-        </ButtonGroup>
-        : <Col xs='auto'>{item.obs_or_forecast.obs ? 'Observed' : 'Forecast'}</Col>}
-      </Row>);
-  }
- renderWhenBlock (editable, item) {
-    return (
-      <Row>
-        <Col xs='2'>
-          <Badge color='success' style={{ width: '100%' }}>When</Badge>
-        </Col>
-        <Col xs='4'>
-          <Badge color='warning'>Issue date</Badge>
-        </Col>
-        <Col xs='auto'>
-          {editable ? <div>
-            <Input defaultValue='2017 Mar 30' />
-            <Input defaultValue='13:37 UTC' />
-          </div>
-          : <Moment format={TIME_FORMAT} date={item.issuedate} />}
-        </Col>
-      </Row>);
-  }
-  renderWhereBlock (editable, item) {
-    return (
-      <Row>
-        <Col xs='2'>
-          <Badge color='success' style={{ width: '100%' }}>Where</Badge>
-        </Col>
-        {editable ? <Input />
-        : <Alert className='col'>
-          {item.level.lev1 ? item.level.lev1.value + item.level.lev1.unit : ''}
-        </Alert>}
-        {editable ? <Col />
-        : <Col xs='auto'><Button color='primary' onClick={() => this.drawSIGMET({ geojson: item.geojson })}>Show</Button></Col>}
-      </Row>);
-  }
-  renderBlock (editable, item) {
-    return <Row className='btn' style={{ flexDirection: 'column' }}>
-      <Row>{this.renderWhatBlock(editable, item)}</Row>
-      <Row>{this.renderWhenBlock(editable, item)}</Row>
-      <Row>{this.renderWhereBlock(editable, item)}</Row>
-      {editable ? <Row>
-        <Col />
-        <Col xs='auto'>
-          <Button color='primary' onClick={this.saveSigmet}>Save</Button>
-        </Col>
-      </Row> : ''}
-      <Row>
-        <Col>FIR name</Col>
-        <Col>Amsterdam FIR</Col>
-      </Row>
-    </Row>;
-  }*/
   render () {
     const { title, icon, parentCollapsed, editable, selectedIndex, toggleMethod } = this.props;
     const notifications = !editable ? this.state.list.length : 0;

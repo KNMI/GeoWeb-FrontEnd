@@ -19,7 +19,7 @@ describe('(Layout) BaseLayout', () => {
       keyCode: 122
     });
     _component.instance().elementToFullScreen(evt);
-    expect('everything').to.be.ok;
+    expect('everything').to.be.ok();
   });
 
   it('Attaches a route based class name', () => {

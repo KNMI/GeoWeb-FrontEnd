@@ -15,7 +15,7 @@ describe('(Container) SigmetsContainer', () => {
     const _component = mount(<SigmetsContainer />);
     expect(_component.state().isOpen).to.eql(true);
     _component.setState({ collapse: true });
-    expect('everything').to.be.ok;
+    expect('everything').to.be.ok();
   });
 
   it('Allows triggering the toggle function', () => {
