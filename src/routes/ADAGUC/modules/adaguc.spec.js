@@ -24,7 +24,6 @@ describe('(Redux Module) Adaguc', () => {
     it('Check if sign in and sign out actions work.', () => {
       let state = adagucReducer(undefined, {});
       state = adagucReducer(state, { type: 'LOGIN', payload: { userName:'asdf', roles:[] } });
-      console.log(state);
       expect(state).to.eql({ user: { isLoggedIn: true, userName: 'asdf', roles: [] } });
       state = adagucReducer(state, { type: '@@@@@@@' });
       expect(state).to.eql({ user: { isLoggedIn: true, userName: 'asdf', roles: [] } });
@@ -106,7 +105,6 @@ describe('(Redux Module) Adaguc', () => {
   describe('(Action Handler) addLayer', () => {
     let _globalState;
     let _dispatchSpy;
-    let _getStateSpy;
 
     beforeEach(() => {
       _globalState = {
@@ -118,15 +116,11 @@ describe('(Redux Module) Adaguc', () => {
           adagucProperties : adagucReducer(_globalState.adagucProperties, action)
         };
       });
-      _getStateSpy = sinon.spy(() => {
-        return _globalState;
-      });
     });
 
     it('Should call dispatch and getState exactly once.', () => {
-      actions.addLayer(_dispatchSpy, _getStateSpy);
-      _dispatchSpy.should.have.been.calledOnce;
-      _getStateSpy.should.have.been.calledOnce;
+      _dispatchSpy(actions.addLayer);
+      _dispatchSpy.should.have.been.calledOnce();
     });
   });
 
@@ -162,9 +156,8 @@ describe('(Redux Module) Adaguc', () => {
     });
 
     it('Should call dispatch and getState exactly once.', () => {
-      actions.deleteLayer(_dispatchSpy, _getStateSpy);
-      _dispatchSpy.should.have.been.calledOnce;
-      _getStateSpy.should.have.been.calledOnce;
+      _dispatchSpy(actions.deleteLayer);
+      _dispatchSpy.should.have.been.calledOnce();
     });
     it('Should remove nothing when an unknown layer is attempted to be deleted.', () => {
       const layerstate = _getStateSpy();

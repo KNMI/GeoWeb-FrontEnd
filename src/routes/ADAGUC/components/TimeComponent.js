@@ -31,13 +31,11 @@ export default class TimeComponent extends React.Component {
   }
   /* istanbul ignore next */
   drawCanvas () {
-    // console.log('drawCanvas');
     let timeDim = this.props.timedim;
     if (timeDim === undefined) {
       return;
     }
     if (timeDim.length !== 20 || timeDim[19] !== 'Z' || timeDim[10] !== 'T') {
-      console.log('TimeDim is not valid: [' + timeDim + ']');
       return;
     }
     this.hoverDateDone = this.hoverDate;
@@ -229,7 +227,6 @@ export default class TimeComponent extends React.Component {
   /* istanbul ignore next */
   setNewDate (value) {
     if (!value) {
-      console.log('Warning: setNewDate set with undefined: ignoring');
       return;
     }
     let isodate = this.toISO8601(value);
@@ -274,10 +271,8 @@ export default class TimeComponent extends React.Component {
   }
   /* istanbul ignore next */
   componentDidMount () {
-    console.log('componentDidMount');
     let element = document.querySelector('#timelineParent');
     elementResizeEvent(element, () => {
-      console.log('resize van TimeComponent', element);
       this.setState({ });
     });
 
@@ -330,7 +325,6 @@ export default class TimeComponent extends React.Component {
   }
 
   render () {
-    console.log('tc: ', this.props.timedim);
     /* istanbul ignore next */
     return (
       <Col>

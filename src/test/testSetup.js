@@ -1,19 +1,25 @@
 // ---------------------------------------
 // Test Environment Setup
 // ---------------------------------------
+//
+// =============================================== \\
+// DO NOT TOUCH THIS ORDER OF IMPORTS OR CHAI.USE! \\
+// =============================================== \\
 import sinon from 'sinon';
 import chai from 'chai';
-import sinonChai from 'sinon-chai';
 import chaiAsPromised from 'chai-as-promised';
+import dirtyChai from 'dirty-chai';
+import sinonChai from 'sinon-chai';
 import chaiEnzyme from 'chai-enzyme';
 
-chai.use(sinonChai);
 chai.use(chaiAsPromised);
+chai.use(dirtyChai);
+chai.use(sinonChai);
 chai.use(chaiEnzyme());
 
+global.expect = chai.expect;
 global.chai = chai;
 global.sinon = sinon;
-global.expect = chai.expect;
 global.should = chai.should();
 
 const project = require('./project.config');

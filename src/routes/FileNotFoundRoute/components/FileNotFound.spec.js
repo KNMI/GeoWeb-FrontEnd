@@ -11,7 +11,7 @@ describe('(View) FileNotFound', () => {
 
   it('Renders a scary message', () => {
     const welcome = _component.find('h4');
-    expect(welcome).to.exist;
+    expect(welcome).to.exist();
     expect(welcome.text()).to.match(/This is not the duck you are looking for!/);
   });
 

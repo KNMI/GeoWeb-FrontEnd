@@ -109,7 +109,6 @@ class LayerStyle extends React.Component {
 
   alterLayer (e, wantedStyle) {
     const indexInLayerList = e.currentTarget.id;
-    console.log(e.currentTarget, wantedStyle);
     this.props.dispatch(this.props.actions.alterLayer(indexInLayerList, this.props.target.includes('data') ? 'data' : 'base', { style: wantedStyle.name, styleTitle: wantedStyle.title }));
     this.setState({ popoverOpen: false });
   }

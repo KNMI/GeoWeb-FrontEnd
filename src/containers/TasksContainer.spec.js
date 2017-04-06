@@ -12,14 +12,14 @@ describe('(Container) TasksContainer', () => {
     const _component = mount(<TasksContainer />);
     expect(_component.state().isOpen).to.eql(false);
     _component.setState({ collapse: true });
-    expect('everything').to.be.ok;
+    expect('everything').to.be.ok();
   });
 
   it('Allows setting filter state', () => {
     const _component = mount(<TasksContainer />);
     expect(_component.state().filter).to.be.an('undefined');
     _component.setState({ filter: new RegExp('shi', 'i') });
-    expect('everything').to.be.ok;
+    expect('everything').to.be.ok();
   });
 
   it('Allows triggering the toggle function', () => {
