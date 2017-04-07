@@ -491,19 +491,20 @@ main:fullscreen {
 
 .Panel > .title {
   box-sizing: border-box;
-  max-height: 4.25rem;
+  max-height: 5rem;
   background: white;
-  border-bottom: 0.06rem solid #4bb0ce;
+  // border-bottom: 0.06rem solid #4bb0ce;
   @extend .rounded-top;
   box-shadow: 0 0.05rem 0.25rem rgba(0,0,0,0.5);
   margin: 0.25rem;
   margin-bottom: 0;
-  padding: 0.33rem;
+  padding: 0.6rem;
   overflow: hidden;
 }
 
 .Panel > div.notitle {
   border: none;
+  padding: 0.33rem;
   padding-top: 0;
 }
 

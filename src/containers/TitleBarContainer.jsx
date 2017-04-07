@@ -54,6 +54,7 @@ class TitleBarContainer extends Component {
     const allURLs = [...defaultURLs];
     axios.all(allURLs.map((req) => axios.get(req, { withCredentials: true }))).then(
       axios.spread((services, overlays) => {
+        console.log(services.data.length);
         dispatch(actions.createMap([...services.data, ...JSON.parse(localStorage.getItem('geoweb')).personal_urls], overlays.data[0]));
       })
     ).catch((e) => console.log('Error!: ', e.response));
