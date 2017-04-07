@@ -256,10 +256,8 @@ export default class Adaguc extends React.Component {
       this.webMapJS.setDimension('time', timedim, true);
     }
 
-    // Update animation
-    if (animate !== prevProps.adagucProperties.animate) {
-      this.onChangeAnimation(animate);
-    }
+    // Update animation -- animate iff animate is set and the panel is active.
+    this.onChangeAnimation(active && animate);
 
     // Update mapmode
     if (mapMode !== prevProps.adagucProperties.mapMode) {
