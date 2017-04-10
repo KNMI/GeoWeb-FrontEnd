@@ -1,12 +1,14 @@
-import LocationManagementPanel from '../../../components/Management/LocationManagementPanel';
-import TitleBarContainer from '../../../containers/TitleBarContainer';
-import Empty from '../../../components/Empty';
+import ProductsManagementPanel from '../../../../components/Management/ProductsManagementPanel';
+import TitleBarContainer from '../../../../containers/TitleBarContainer';
+import SidebarContainer from '../../../../containers/Management/SidebarContainer';
+import Empty from '../../../../components/Empty';
 import { connect } from 'react-redux';
-import { actions } from '../../ADAGUC/modules/adaguc';
+import { actions } from '../../../ADAGUC/modules/adaguc';
 
 const mapStateToMapProps = (state) => {
   return { adagucProperties: state.adagucProperties };
 };
+
 const mapStateToHeaderProps = (state) => {
   return {
     title: 'header',
@@ -25,13 +27,12 @@ const mapDispatchToMainViewportProps = function (dispatch) {
 
 // Sync route definition
 export default () => ({
-  path: 'locations',
-  title: 'Location Manager',
+  title: 'Products',
   components : {
     header: connect(mapStateToHeaderProps, mapDispatchToMainViewportProps)(TitleBarContainer),
-    leftSideBar: Empty,
+    leftSideBar: SidebarContainer,
     secondLeftSideBar: Empty,
-    map: connect(mapStateToMapProps, mapDispatchToMainViewportProps)(LocationManagementPanel),
+    map: connect(mapStateToMapProps, mapDispatchToMainViewportProps)(ProductsManagementPanel),
     layerManager: Empty,
     rightSideBar: Empty
   }

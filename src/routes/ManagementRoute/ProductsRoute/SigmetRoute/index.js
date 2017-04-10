@@ -1,8 +1,8 @@
-import ProgtempManagementPanel from '../../../components/Management/ProgtempManagementPanel';
-import TitleBarContainer from '../../../containers/TitleBarContainer';
-import Empty from '../../../components/Empty';
+import SigmetManagementPanel from '../../../../components/Management/SigmetManagementPanel';
+import TitleBarContainer from '../../../../containers/TitleBarContainer';
+import Empty from '../../../../components/Empty';
 import { connect } from 'react-redux';
-import { actions } from '../../ADAGUC/modules/adaguc';
+import { actions } from '../../../ADAGUC/modules/adaguc';
 
 const mapStateToMapProps = (state) => {
   return { adagucProperties: state.adagucProperties };
@@ -25,13 +25,13 @@ const mapDispatchToMainViewportProps = function (dispatch) {
 
 // Sync route definition
 export default () => ({
-  path: 'product/progtemp',
-  title: 'Progtemp Manager',
+  path: 'sigmet',
+  title: 'SIGMET Manager',
   components : {
     header: connect(mapStateToHeaderProps, mapDispatchToMainViewportProps)(TitleBarContainer),
     leftSideBar: Empty,
     secondLeftSideBar: Empty,
-    map: connect(mapStateToMapProps, mapDispatchToMainViewportProps)(ProgtempManagementPanel),
+    map: connect(mapStateToMapProps, mapDispatchToMainViewportProps)(SigmetManagementPanel),
     layerManager: Empty,
     rightSideBar: Empty
   }

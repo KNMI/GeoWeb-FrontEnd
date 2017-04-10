@@ -1,14 +1,12 @@
 import IndexRoute from './IndexRoute';
-import LocationRoute from './LocationRoute';
-import ProgtempRoute from './ProgtempRoute';
-import SigmetRoute from './SigmetRoute';
+import AppRoute from './AppRoute';
+import ProductsRoute from './ProductsRoute';
 
 export default (store) => ({
   path: 'manage',
   indexRoute: IndexRoute(store),
   childRoutes: [
-    LocationRoute(),
-    ProgtempRoute(),
-    SigmetRoute()
+    AppRoute(),
+    ProductsRoute()
   ]
 });

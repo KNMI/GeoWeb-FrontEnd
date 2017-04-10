@@ -1,9 +1,11 @@
 import React from 'react';
 import { Popover,
-PopoverTitle, Button,
-ButtonGroup,
+PopoverTitle,
 PopoverContent, Badge, Col, Row } from 'reactstrap';
 import { Icon } from 'react-fa';
+require('rc-slider/assets/index.css');
+const Slider = require('rc-slider');
+
 // ----------------------------------------- \\
 // Rendering of the layersource with popover \\
 // ----------------------------------------- \\
@@ -185,50 +187,53 @@ class LayerOpacity extends React.Component {
   togglePopover (e, layer, i) {
     this.setState({ popoverOpen: !this.state.popoverOpen });
   }
-  alterLayer (e) {
+  alterLayer (value) {
     // TODO .... this
-    const wantedOpacity = e.currentTarget.id / 100.0;
+    const wantedOpacity = value / 100.0;
     this.props.dispatch(this.props.actions.alterLayer(this.props.i, 'data', { opacity: wantedOpacity }));
-    this.setState({ popoverOpen: false });
+  }
+
+  floatToIntPercentage (v) {
+    // By default a layer is fully opaque
+    if (v === undefined || v === null) return 100;
+    return parseInt(Math.floor(v * 100));
   }
 
   render () {
+    const marks = {
+      0: '0%',
+      10: '10%',
+      20: '20%',
+      30: '30%',
+      40: '40%',
+      50: '50%',
+      60: '60%',
+      70: '70%',
+      80: '80%',
+      90: '90%',
+      100: '100%'
+    };
+
     const { i, target, layer } = this.props;
     if (this.state.popoverOpen) {
       return (
         <div>
           <Popover width={'auto'} key={'opacitypopover' + i} isOpen={this.state.popoverOpen} target={target} toggle={() => this.togglePopover(layer, i)}>
             <PopoverTitle>Opacity</PopoverTitle>
-            <PopoverContent>
-              <ButtonGroup vertical>
-                <Button onClick={this.alterLayer} id='0'>0%</Button>
-                <Button onClick={this.alterLayer} id='10'>10%</Button>
-                <Button onClick={this.alterLayer} id='20'>20%</Button>
-                <Button onClick={this.alterLayer} id='30'>30%</Button>
-                <Button onClick={this.alterLayer} id='40'>40%</Button>
-                <Button onClick={this.alterLayer} id='50'>50%</Button>
-                <Button onClick={this.alterLayer} id='60'>60%</Button>
-                <Button onClick={this.alterLayer} id='70'>70%</Button>
-                <Button onClick={this.alterLayer} id='80'>80%</Button>
-                <Button onClick={this.alterLayer} id='90'>90%</Button>
-                <Button onClick={this.alterLayer} id='100'>100%</Button>
-              </ButtonGroup>
+            <PopoverContent style={{ height: '15rem', marginBottom: '1rem' }}>
+              <Slider style={{ margin: '1rem' }} vertical min={0} max={100} marks={marks} step={1} onChange={(v) => this.alterLayer(v)} defaultValue={this.floatToIntPercentage(layer.opacity)} />
             </PopoverContent>
           </Popover>
 
           <Badge pill className={'alert-' + this.props.color + (this.props.editable ? ' editable' : '')} onClick={() => this.togglePopover(layer, i)}>
-            {layer.opacity
-              ? layer.opacity * 100 + ' %'
-              : '100 %'}
+            {this.floatToIntPercentage(layer.opacity) + ' %'}
             <Icon style={{ marginLeft: '0.25rem' }} id={target} name='pencil' />
           </Badge>
         </div>
       );
     } else {
       return (<Badge pill className={'alert-' + this.props.color + (this.props.editable ? ' editable' : '')} onClick={() => this.togglePopover(layer, i)}>
-        {layer.opacity
-          ? layer.opacity * 100 + ' %'
-          : '100 %'}
+        {this.floatToIntPercentage(layer.opacity) + ' %'}
         <Icon style={{ marginLeft: '0.25rem' }} id={target} name='pencil' />
       </Badge>);
     }

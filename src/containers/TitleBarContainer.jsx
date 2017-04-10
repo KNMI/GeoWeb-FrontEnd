@@ -300,13 +300,19 @@ class TitleBarContainer extends Component {
         <Modal isOpen={this.state.loginModal} toggle={this.toggleLoginModal}>
           <ModalHeader toggle={this.toggleLoginModal}>{isLoggedIn ? 'You are signed in.' : 'Sign in'}</ModalHeader>
           <ModalBody>
-            <Collapse isOpen={!isLoggedIn}>
-              <InputGroup>
+            <Collapse isOpen>
+              {isLoggedIn
+              ? <InputGroup>
+                <Input placeholder='Preset name' />
+                <Button color='primary'>Save as preset</Button>
+              </InputGroup>
+              : <InputGroup>
                 <input ref={(input) => { this.userNameInputRef = input; }} className='form-control' tabIndex={0} placeholder='username' name='username' onChange={this.handleOnChange} />
                 <Input type='password' name='password' id='examplePassword' placeholder='password'
                   onKeyPress={this.handleKeyPressPassword} onChange={this.handleOnChange}
                 />
               </InputGroup>
+            }
             </Collapse>
             <FormText color='muted'>
               {this.state.loginModalMessage}
