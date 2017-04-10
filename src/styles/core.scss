@@ -468,8 +468,23 @@ main:fullscreen {
   margin: 0 0.2rem 0.2rem 0.2rem;
 }
 
-.TasksContainer, .SigmetsContainer, .ProductsContainer {
+.TasksContainer, .SigmetsContainer, .ProductsContainer, .ManageSideContainer {
   flex: 1;
+}
+
+.ManageSideContainer > div.notitle {
+  flex: unset;
+}
+.ManageSideContainer > div.content {
+  display: flex;
+  flex: 1;
+}
+.ManageSideContainer .content .btn:not(:last-child) {
+  margin-bottom: 0.33rem;
+}
+
+.ManageSideContainer .content .btn, .ManageSideContainer .title .btn {
+  padding: 0.5rem 0.7rem;
 }
 
 .MapActionContainer .content .btn:not(:last-child) {

@@ -8,6 +8,7 @@ import cloneDeep from 'lodash/cloneDeep';
 import CollapseOmni from '../components/CollapseOmni';
 import SwitchButton from 'react-switch-button';
 import 'react-switch-button/dist/react-switch-button.css';
+import ReactSlider from 'react-slider';
 
 const TIME_FORMAT = 'YYYY MMM DD - HH:mm';
 // const shortTIME_FORMAT = 'HH:mm';
@@ -276,7 +277,18 @@ class SigmetCategory extends Component {
     const { title, icon, parentCollapsed, editable, selectedIndex, toggleMethod } = this.props;
     const notifications = !editable ? this.state.list.length : 0;
     const maxSize = this.state.list ? 150 * this.state.list.length : 0;
-    console.log('togglestate', this.state);
+    const marks = {
+      0: 'Everything above',
+      10: 'FL10',
+      50: 'FL50',
+      100: 'FL100',
+      200: 'FL200',
+      250: 'FL250',
+      300: 'FL300',
+      500: 'FL500',
+      1000: 'Everything below'
+    };
+
     // const maxSize = editable ? 800 : this.state.list ? Math.min(250 * this.state.list.length, 600) : 0;
     return (
       <Card className='row accordion'>
@@ -339,7 +351,11 @@ class SigmetCategory extends Component {
                         <Badge color='success' style={{ width: '100%' }}>Where</Badge>
                       </Col>
                       <Col>
-                        {item.level.lev1.value + item.level.lev1.unit}
+                        { editable
+                         ? <ReactSlider defaultValue={[0, 100]} />
+                         : item.level.lev1.value + item.level.lev1.unit
+                        }
+
                       </Col>
                     </Row>
                   </Button>
