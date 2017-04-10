@@ -8,7 +8,7 @@ import cloneDeep from 'lodash/cloneDeep';
 import CollapseOmni from '../components/CollapseOmni';
 import SwitchButton from 'react-switch-button';
 import 'react-switch-button/dist/react-switch-button.css';
-import ReactSlider from 'react-slider';
+import Slider, { Range } from 'rc-slider';
 
 const TIME_FORMAT = 'YYYY MMM DD - HH:mm';
 // const shortTIME_FORMAT = 'HH:mm';
@@ -278,7 +278,7 @@ class SigmetCategory extends Component {
     const notifications = !editable ? this.state.list.length : 0;
     const maxSize = this.state.list ? 150 * this.state.list.length : 0;
     const marks = {
-      0: 'Everything above',
+      0: 'Everything below',
       10: 'FL10',
       50: 'FL50',
       100: 'FL100',
@@ -286,7 +286,7 @@ class SigmetCategory extends Component {
       250: 'FL250',
       300: 'FL300',
       500: 'FL500',
-      1000: 'Everything below'
+      1000: 'Everything above'
     };
 
     // const maxSize = editable ? 800 : this.state.list ? Math.min(250 * this.state.list.length, 600) : 0;
@@ -352,7 +352,9 @@ class SigmetCategory extends Component {
                       </Col>
                       <Col>
                         { editable
-                         ? <ReactSlider defaultValue={[0, 100]} />
+                         ? <Slider.Range vertical min={-10} marks={marks} step={10}
+                           onChange={(v) => console.log(v)} defaultValue={[20, 40]} />
+
                          : item.level.lev1.value + item.level.lev1.unit
                         }
 
