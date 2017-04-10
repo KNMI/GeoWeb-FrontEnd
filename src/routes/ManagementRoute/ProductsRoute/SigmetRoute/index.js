@@ -1,38 +1,12 @@
-import SigmetManagementPanel from '../../../../components/Management/SigmetManagementPanel';
-import TitleBarContainer from '../../../../containers/TitleBarContainer';
-import Empty from '../../../../components/Empty';
-import { connect } from 'react-redux';
-import { actions } from '../../../ADAGUC/modules/adaguc';
+import IndexRoute from './IndexRoute';
+import ParameterRoute from './ParameterRoute';
+import PhenomenaRoute from './PhenomenaRoute';
 
-const mapStateToMapProps = (state) => {
-  return { adagucProperties: state.adagucProperties };
-};
-const mapStateToHeaderProps = (state) => {
-  return {
-    title: 'header',
-    isLoggedIn: state.adagucProperties.user.isLoggedIn,
-    userName: state.adagucProperties.user.userName,
-    roles: state.adagucProperties.user.roles
-  };
-};
-
-const mapDispatchToMainViewportProps = function (dispatch) {
-  return ({
-    dispatch: dispatch,
-    actions: actions
-  });
-};
-
-// Sync route definition
-export default () => ({
+export default (store) => ({
   path: 'sigmet',
-  title: 'SIGMET Manager',
-  components : {
-    header: connect(mapStateToHeaderProps, mapDispatchToMainViewportProps)(TitleBarContainer),
-    leftSideBar: Empty,
-    secondLeftSideBar: Empty,
-    map: connect(mapStateToMapProps, mapDispatchToMainViewportProps)(SigmetManagementPanel),
-    layerManager: Empty,
-    rightSideBar: Empty
-  }
+  indexRoute: IndexRoute(store),
+  childRoutes: [
+    ParameterRoute(),
+    PhenomenaRoute()
+  ]
 });

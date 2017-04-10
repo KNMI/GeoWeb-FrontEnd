@@ -1,6 +1,5 @@
 import React, { Component, PropTypes } from 'react';
-import { Button, Col, Row, Badge, Card, CardHeader, CardBlock, Alert, ButtonGroup, Input } from 'reactstrap';
-import { Typeahead } from 'react-bootstrap-typeahead';
+import { Button, Col, Row, Badge, Card, CardHeader, CardBlock } from 'reactstrap';
 import Moment from 'react-moment';
 import Icon from 'react-fa';
 import axios from 'axios';
@@ -8,13 +7,12 @@ import cloneDeep from 'lodash/cloneDeep';
 import CollapseOmni from '../components/CollapseOmni';
 import SwitchButton from 'react-switch-button';
 import 'react-switch-button/dist/react-switch-button.css';
+import { BACKEND_SERVER_URL } from '../routes/ADAGUC/constants/backend.js';
 require('rc-slider/assets/index.css');
 require('rc-tooltip/assets/bootstrap.css');
 const Slider = require('rc-slider');
 const createSliderWithTooltip = Slider.createSliderWithTooltip;
 const Range = createSliderWithTooltip(Slider.Range);
-const Tooltip = require('rc-tooltip');
-const Handle = Slider.Handle;
 
 const TIME_FORMAT = 'YYYY MMM DD - HH:mm';
 // const shortTIME_FORMAT = 'HH:mm';
@@ -59,55 +57,6 @@ const EMPTY_SIGMET = {
   uuid                      : '00000000-0000-0000-0000-000000000000',
   status                    : 'PRODUCTION'
 };
-const PHENOMENON_MAPPING = [
-  {
-    'phenomenon': { 'name': 'Thunderstorm', 'code': 'TS' },
-    'variants': [
-      { 'name': 'Obscured', 'code': 'OBSC' },
-      { 'name': 'Embedded', 'code': 'EMBD' },
-      { 'name': 'Frequent', 'code': 'FRQ' },
-      { 'name': 'Squall line', 'code': 'SQL' }
-    ],
-    'additions': [
-      { 'name': 'with hail', 'code': 'GR' }
-    ]
-  },
-  {
-    'phenomenon': { 'name': 'Turbulence', 'code': 'TURB' },
-    'variants': [
-      { 'name': 'Severe', 'code': 'SEV' }
-    ],
-    'additions': []
-  },
-  {
-    'phenomenon': { 'name': 'Icing', 'code': 'ICE' },
-    'variants': [
-      { 'name': 'Severe', 'code': 'SEV' }
-    ],
-    'additions': [
-      { 'name': 'due to freezing rain', 'code': '(FZRA)' }
-    ]
-  },
-  {
-    'phenomenon': { 'name': 'Duststorm', 'code': 'DS' },
-    'variants': [
-      { 'name': 'Heavy', 'code': 'HVY' }
-    ],
-    'additions': []
-  },
-  {
-    'phenomenon': { 'name': 'Sandstorm', 'code': 'SS' },
-    'variants': [
-      { 'name': 'Heavy', 'code': 'HVY' }
-    ],
-    'additions': []
-  },
-  {
-    'phenomenon': { 'name': 'Radioactive cloud', 'code': 'RDOACT CLD' },
-    'variants': [],
-    'additions': []
-  }
-];
 
 class SigmetCategory extends Component {
   constructor (props) {
@@ -121,11 +70,46 @@ class SigmetCategory extends Component {
     this.getExistingSigmets = this.getExistingSigmets.bind(this);
     this.gotExistingSigmetsCallback = this.gotExistingSigmetsCallback.bind(this);
     this.state = { isOpen: props.isOpen, list: [] };
+    axios.get(BACKEND_SERVER_URL + '/sigmet/getsigmetphenomena').then((res) => {
+      this.PHENOMENON_MAPPING = res.data;
+    }).catch((error) => {
+      console.log(error);
+      this.PHENOMENON_MAPPING =
+      [
+        { 'phenomenon':{ 'name':'Thunderstorm', 'code':'TS', 'layerpreset':'sigmet_layer_TS' },
+          'variants':[{ 'name':'Obscured', 'code':'OBSC' }, { 'name':'Embedded', 'code':'EMBD' }, { 'name':'Frequent', 'code':'FRQ' }, { 'name':'Squall line', 'code':'SQL' }],
+          'additions':[{ 'name':'with hail', 'code':'GR' }]
+        },
+        { 'phenomenon':{ 'name':'Turbulence', 'code':'SEV_TURB', 'layerpreset':'sigmet_layer_SEV_TURB' },
+          'variants':[],
+          'additions':[]
+        },
+        { 'phenomenon':{ 'name':'Severe Icing', 'code':'SEV_ICE', 'layerpreset':'sigmet_layer_SEV_ICE' },
+          'variants':[],
+          'additions':[{ 'name':'due to freezing rain', 'code':'FRZA' }]
+        },
+        { 'phenomenon':{ 'name':'Duststorm', 'code':'DS', 'layerpreset':'sigmet_layer_DS' },
+          'variants':[],
+          'additions':[]
+        },
+        { 'phenomenon':{ 'name':'Sandstorm', 'code':'SS', 'layerpreset':'sigmet_layer_SS' },
+          'variants':[],
+          'additions':[]
+        },
+        { 'phenomenon':{ 'name':'Radioactive cloud', 'code':'RDOACT_CLD', 'layerpreset':'sigmet_layer_RDOACT_CLD' },
+          'variants':[],
+          'additions':[]
+        }
+      ];
+    });
   }
 
   // get Human Readable Text for Code
   getHRT4code (code) {
     const UNKNOWN = 'Unknown';
+    if (!this.PHENOMENON_MAPPING) {
+      return UNKNOWN;
+    }
     if (typeof code === 'undefined') {
       return UNKNOWN;
     }
@@ -136,40 +120,43 @@ class SigmetCategory extends Component {
     let result = '';
     let variantIndex;
     let additionIndex;
-
-    const effectiveMapping = cloneDeep(PHENOMENON_MAPPING).map((item) => {
-      if (item.variants.length > 0) {
-        variantIndex = item.variants.findIndex((variant) => codeFragments[0].startsWith(variant.code));
-        if (variantIndex > -1) {
-          item.variants = [item.variants[variantIndex]];
+    let effectiveMapping = cloneDeep(this.PHENOMENON_MAPPING).filter((item) => item.phenomenon.code === code);
+    console.log(code, effectiveMapping);
+    if (effectiveMapping.length !== 1) {
+      effectiveMapping = cloneDeep(this.PHENOMENON_MAPPING).map((item) => {
+        if (item.variants.length > 0) {
+          variantIndex = item.variants.findIndex((variant) => codeFragments[0].startsWith(variant.code));
+          if (variantIndex > -1) {
+            item.variants = [item.variants[variantIndex]];
+            return item;
+          }
+        } else if (item.phenomenon.code.startsWith(codeFragments[0])) {
           return item;
         }
-      } else if (item.phenomenon.code.startsWith(codeFragments[0])) {
-        return item;
-      }
-    }).filter((item) => typeof item !== 'undefined').filter((item) => {
-      if (item.variants.length > 0) {
-        return codeFragments[1].startsWith(item.phenomenon.code);
-      } else {
-        return true;
-      }
-    }).map((item) => {
-      if (item.additions.length > 0) {
-        additionIndex = item.additions.findIndex((addition) => codeFragments[1].endsWith(addition.code));
-        if (additionIndex > -1) {
-          item.additions = [item.additions[additionIndex]];
-          return item;
-        } else if (codeFragments.length > 2) {
-          additionIndex = item.additions.findIndex((addition) => codeFragments[2].endsWith(addition.code));
+      }).filter((item) => typeof item !== 'undefined').filter((item) => {
+        if (item.variants.length > 0) {
+          return codeFragments[1].startsWith(item.phenomenon.code);
+        } else {
+          return true;
+        }
+      }).map((item) => {
+        if (item.additions.length > 0) {
+          additionIndex = item.additions.findIndex((addition) => codeFragments[1].endsWith(addition.code));
           if (additionIndex > -1) {
             item.additions = [item.additions[additionIndex]];
             return item;
+          } else if (codeFragments.length > 2) {
+            additionIndex = item.additions.findIndex((addition) => codeFragments[2].endsWith(addition.code));
+            if (additionIndex > -1) {
+              item.additions = [item.additions[additionIndex]];
+              return item;
+            }
           }
         }
-      }
-      item.additions = [];
-      return item;
-    });
+        item.additions = [];
+        return item;
+      });
+    }
     if (effectiveMapping.length === 1) {
       if (effectiveMapping[0].variants.length === 1) {
         result = effectiveMapping[0].variants[0].name + ' ' + effectiveMapping[0].phenomenon.name.toLowerCase();
@@ -188,7 +175,7 @@ class SigmetCategory extends Component {
 
   getPhenomena () {
     let result = [];
-    PHENOMENON_MAPPING.forEach((item) => {
+    this.PHENOMENON_MAPPING.forEach((item) => {
       item.variants.forEach((variant) => {
         result.push({
           name: variant.name + ' ' + item.phenomenon.name.toLowerCase(),
@@ -308,7 +295,7 @@ class SigmetCategory extends Component {
             {notifications > 0 ? <Badge color='danger' pill className='collapsed'>{notifications}</Badge> : null}
           </Col>
         </CardHeader>
-        : <CardHeader onClick={maxSize > 0 ? toggleMethod : null} className={maxSize > 0 ? null : 'disabled'} title={title}>
+        : <CardHeader onClick={maxSize > 0 ? toggleMethod : null} className={maxSize > 0 ? null : 'disabled' } title={title}>
           <Col xs='auto'>
             <Icon name={icon} />
           </Col>
@@ -324,7 +311,7 @@ class SigmetCategory extends Component {
             <Row>
               <Col className='btn-group-vertical'>
                 {this.state.list.map((item, index) =>
-                  <Button tag='div' className={'Sigmet row' + (selectedIndex === index ? ' active' : '')}
+                  <Button tag='div' className={ 'Sigmet row' + (selectedIndex === index ? ' active' : '')}
                     key={index} onClick={() => { this.handleSigmetClick(index); }}>
                     <Row>
                       <Col xs='auto'>
