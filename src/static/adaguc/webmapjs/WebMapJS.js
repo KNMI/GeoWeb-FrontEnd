@@ -166,6 +166,7 @@
 
     var displayLegendInMap = true;
     var messageDiv;
+    var timeoffsetContainerDiv;
     var timeoffsetDiv;
     var bbox = new WMJSBBOX(); // Boundingbox that will be used for map loading
     var updateBBOX = new WMJSBBOX(); // Boundingbox to move map without loading anything
@@ -422,18 +423,30 @@
         }
       }).appendTo(overlayDiv);
       messageDiv = $('#' + messageDivId);
-      var timeoffsetDivId = makeComponentId('timeoffsetDiv');
+      var timeoffsetContainerDivId = makeComponentId('timeoffsetContainerDiv');
       jQuery('<div/>', {
-        id:timeoffsetDivId,
-        css: {zIndex:100,
-          backgroundColor: 'rgba(255, 255, 255, 0.75',
+        id:timeoffsetContainerDivId,
+        css: {
           padding: '1rem',
           position: 'absolute',
           bottom: '0',
-          left: '50%',
+          // left: '50%',
+          width: '100%',
+          textAlign: 'center',
           fontSize: '1.3rem'
         }
       }).appendTo(overlayDiv);
+      timeoffsetContainerDiv = $('#' + timeoffsetContainerDivId);
+
+      var timeoffsetDivId = makeComponentId('timeoffsetDiv');
+      jQuery('<div/>', {
+        id:timeoffsetDivId,
+        css: {
+          zIndex:100,
+          backgroundColor: 'rgba(255, 255, 255, 0.75)',
+          padding: '0 1rem 1rem 1rem'
+        }
+      }).appendTo(timeoffsetContainerDiv);
       timeoffsetDiv = $('#' + timeoffsetDivId);
 
       baseDiv.css('cursor', 'default');
