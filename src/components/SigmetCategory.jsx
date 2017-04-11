@@ -1,5 +1,5 @@
 import React, { Component, PropTypes } from 'react';
-import { Button, Col, Row, Badge, Card, CardHeader, CardBlock } from 'reactstrap';
+import { Button, ButtonGroup, Col, Row, Badge, Card, CardHeader, CardBlock } from 'reactstrap';
 import Moment from 'react-moment';
 import Icon from 'react-fa';
 import axios from 'axios';
@@ -8,15 +8,20 @@ import CollapseOmni from '../components/CollapseOmni';
 import SwitchButton from 'react-switch-button';
 import 'react-switch-button/dist/react-switch-button.css';
 import { BACKEND_SERVER_URL } from '../routes/ADAGUC/constants/backend.js';
-require('rc-slider/assets/index.css');
-require('rc-tooltip/assets/bootstrap.css');
 const Slider = require('rc-slider');
 const createSliderWithTooltip = Slider.createSliderWithTooltip;
 const Range = createSliderWithTooltip(Slider.Range);
+const Handle = Slider.Handle;
+const Tooltip = require('rc-tooltip');
+require('rc-slider/assets/index.css');
+require('rc-tooltip/assets/bootstrap.css');
 
 const TIME_FORMAT = 'YYYY MMM DD - HH:mm';
 // const shortTIME_FORMAT = 'HH:mm';
 const SEPARATOR = '_';
+const UNIT_M = 'm';
+const UNIT_FL = 'FL';
+const UNIT_FT = 'ft';
 const EMPTY_GEO_JSON = {
   type: 'FeatureCollection',
   features: [
@@ -69,7 +74,12 @@ class SigmetCategory extends Component {
     this.getHRS4code = this.getHRT4code.bind(this);
     this.getExistingSigmets = this.getExistingSigmets.bind(this);
     this.gotExistingSigmetsCallback = this.gotExistingSigmetsCallback.bind(this);
-    this.state = { isOpen: props.isOpen, list: [] };
+    this.state = {
+      isOpen: props.isOpen,
+      list: [],
+      renderRange: false,
+      lowerUnit: UNIT_FL
+    };
     axios.get(BACKEND_SERVER_URL + '/sigmet/getsigmetphenomena').then((res) => {
       this.PHENOMENON_MAPPING = res.data;
     }).catch((error) => {
@@ -266,24 +276,160 @@ class SigmetCategory extends Component {
     }
   }
 
+  marks (flightLevelValues, unit) {
+    let retObj = {
+      0: 'Surface',
+      400: 'Above'
+    };
+
+    switch (unit) {
+      case UNIT_M:
+        const prettyNumbers = flightLevelValues.map((val) => Math.round((val * 30.48) / 500) * 500);
+        prettyNumbers.map((val) => { retObj[Math.round(val / 30.48)] = val + ' ' + UNIT_M; });
+        break;
+      case UNIT_FT:
+        flightLevelValues.map((val) => { retObj[val] = val * 100 + ' ' + UNIT_FT; });
+        break;
+      case UNIT_FL:
+      default:
+        flightLevelValues.map((val) => { retObj[val] = UNIT_FL + ' ' + val; });
+        break;
+    }
+    return retObj;
+  };
+
+  tooltip (flightLevel, unit) {
+    if (flightLevel === 400) {
+      return 'Above';
+    }
+    if (flightLevel === 0) {
+      return 'Surface';
+    }
+    switch (unit) {
+      case UNIT_M:
+        return Math.round((flightLevel * 30.48) / 100) * 100 + ' ' + UNIT_M;
+      case UNIT_FT:
+        return flightLevel * 100 + ' ' + UNIT_FT;
+      case UNIT_FL:
+        return UNIT_FL + ' ' + flightLevel;
+      default:
+        break;
+    }
+  };
+
+  setSigmetLevel (value) {
+    let listCpy = cloneDeep(this.state.list);
+    if (value.length === 0) {
+      return;
+    }
+    if (value.length === 1) {
+      // Slider was used
+      const val = value[0];
+      const isTop = this.state.tops;
+      if (isTop) {
+        listCpy[0].level.lev1 = { unit: 'TOP', value: val };
+      } else {
+        switch (this.state.lowerUnit) {
+          case UNIT_M:
+            const meterVal = Math.round((val * 30.48) / 100) * 100;
+            listCpy[0].level.lev1 = { unit: 'M', value: meterVal };
+            break;
+          case UNIT_FT:
+            const feetVal = val * 100;
+            listCpy[0].level.lev1 = { unit: 'FT', value: feetVal };
+            break;
+          case UNIT_FL:
+          default:
+            listCpy[0].level.lev1 = { unit: 'FL', value: val };
+            break;
+        }
+      }
+    } else {
+      // value.length === 2
+      const lowerVal = value[0];
+      const upperVal = value[1];
+      if (lowerVal >= upperVal) {
+        return;
+      }
+      if (lowerVal === 0) {
+        // SFC
+        listCpy[0].level.lev1 = { unit: 'SFC', value: 0 };
+        switch (this.state.lowerUnit) {
+          case UNIT_M:
+            const meterVal = Math.round((lowerVal * 30.48) / 100) * 100;
+            listCpy[0].level.lev2 = { unit: 'M', value: meterVal };
+            break;
+          case UNIT_FT:
+            const feetVal = lowerVal * 100;
+            listCpy[0].level.lev2 = { unit: 'FT', value: feetVal };
+            break;
+          case UNIT_FL:
+          default:
+            listCpy[0].level.lev2 = { unit: 'FL', value: lowerVal };
+            break;
+        }
+      } else if (upperVal === 400) {
+        // Above
+        listCpy[0].level.lev1 = { unit: this.state.tops ? 'TOP_ABV' : 'ABV', value: 0 };
+        switch (this.state.lowerUnit) {
+          case UNIT_M:
+            break;
+          case UNIT_FT:
+            break;
+          case UNIT_FL:
+          default:
+            listCpy[0].level.lev2 = { unit: 'FL', value: lowerVal };
+            break;
+        }
+      } else {
+        // Between
+        switch (this.state.lowerUnit) {
+          case UNIT_M:
+            const lowerMeterVal = Math.round((lowerVal * 30.48) / 100) * 100;
+            const upperMeterVal = Math.round((upperVal * 30.48) / 100) * 100;
+            listCpy[0].level.lev1 = { unit: 'M', value: lowerMeterVal };
+            listCpy[0].level.lev2 = { unit: 'M', value: upperMeterVal };
+            break;
+          case UNIT_FT:
+            const lowerFeetVal = lowerVal * 100;
+            const upperFeetVal = upperVal * 100;
+            listCpy[0].level.lev1 = { unit: 'FT', value: lowerFeetVal };
+            listCpy[0].level.lev2 = { unit: 'FT', value: upperFeetVal };
+            break;
+          case UNIT_FL:
+          default:
+            listCpy[0].level.lev1 = { unit: 'FL', value: lowerVal };
+            listCpy[0].level.lev2 = { unit: 'FL', value: upperVal };
+            break;
+        }
+      }
+    }
+    this.setState({ list: listCpy });
+  }
+
   render () {
     const { title, icon, parentCollapsed, editable, selectedIndex, toggleMethod } = this.props;
     const notifications = !editable ? this.state.list.length : 0;
-    const maxSize = this.state.list ? 500 * this.state.list.length : 0;
-    const marks = {
-      0: 'Everything below',
-      10: 'FL10',
-      50: 'FL50',
-      100: 'FL100',
-      150: 'FL150',
-      200: 'FL200',
-      250: 'FL250',
-      300: 'FL300',
-      350: 'FL350',
-      400: 'Everything above'
+    let maxSize = this.state.list ? 500 * this.state.list.length : 0;
+    if (editable) {
+      maxSize = 900;
+    }
+    const markValues = this.marks([50, 100, 150, 200, 250, 300, 350], this.state.lowerUnit);
+    const handle = (props) => {
+      const { value, dragging, index, ...restProps } = props;
+      return (
+        <Tooltip
+          prefixCls='rc-slider-tooltip'
+          overlay={this.tooltip(value, this.state.lowerUnit)}
+          visible={dragging}
+          placement='top'
+          key={index}
+        >
+          <Handle {...restProps} />
+        </Tooltip>
+      );
     };
 
-// >>>>>>> upstream/master
     // const maxSize = editable ? 800 : this.state.list ? Math.min(250 * this.state.list.length, 600) : 0;
     return (
       <Card className='row accordion'>
@@ -323,7 +469,7 @@ class SigmetCategory extends Component {
                       </Col>
                       <Col xs='auto'>
                         { editable
-                         ? <SwitchButton mode='select' labelRight='Observed' label='Forecast' defaultChecked={item.obs_or_forecast.obs} disabled={!editable} />
+                         ? <SwitchButton name='obsfcstswitch' mode='select' labelRight='Observed' label='Forecast' defaultChecked={item.obs_or_forecast.obs} disabled={!editable} />
                          : item.obs_or_forecast.obs ? 'Observed' : 'Forecast'
                         }
                       </Col>
@@ -352,11 +498,35 @@ class SigmetCategory extends Component {
                         {item.location_indicator_icao}
                       </Col>
                     </Row>
-                    <Row style={{ height: '10rem' }}>
-                      { editable ? <Col>
-                        <Range vertical min={0} marks={marks} step={10}
-                          onChange={(v) => console.log(v)} defaultValue={[20, 40]} />
-                      </Col>
+                    <Row style={{ height: '13rem', minHeight: '13rem' }}>
+                      { editable ? <Row>
+                        <Col xs='8' style={{ flexDirection: 'column' }}>
+                          <Row style={{ flex: 'none' }}><Col>
+                            <SwitchButton name='dualsingleswitch' mode='select' labelRight='Range' label='At Alt.' defaultChecked={this.state.renderRange} onChange={(v) => this.setState({ renderRange: v.target.checked })} />
+                          </Col></Row>
+                          <Row>
+                            <Col>
+                              <SwitchButton name='topswitch' label='Tops: Off' labelRight='On' defaultChecked={this.state.tops} onChange={(v) => this.setState({ tops: v.target.checked })} />
+                            </Col>
+                          </Row>
+                          <Row style={{ flex: 'none' }}>
+                            <Col style={{ width: '100%' }}>
+                              <ButtonGroup>
+                                <Button color='primary' onClick={() => this.setState({ lowerUnit: UNIT_M })} active={this.state.lowerUnit === UNIT_M}>{UNIT_M}</Button>
+                                <Button color='primary' onClick={() => this.setState({ lowerUnit: UNIT_FL })} active={this.state.lowerUnit === UNIT_FL}>{UNIT_FL}</Button>
+                                <Button color='primary' onClick={() => this.setState({ lowerUnit: UNIT_FT })} active={this.state.lowerUnit === UNIT_FT}>{UNIT_FT}</Button>
+                              </ButtonGroup>
+                            </Col>
+                          </Row>
+                          <Row style={{ flex: 1 }}>
+                            &nbsp;
+                          </Row>
+                        </Col>
+                        <Col xs='4'>
+                          {this.state.renderRange ? <Range step={10} allowCross={false} min={0} max={400} marks={markValues} vertical onChange={(v) => this.setSigmetLevel(v)} tipFormatter={value => this.tooltip(value, this.state.lowerUnit)} />
+                        : <Slider step={10} allowCross={false} min={0} max={400} marks={markValues} vertical onChange={(v) => this.setSigmetLevel([v])} handle={handle} />}
+                        </Col>
+                      </Row>
                         : <Col>
                           {item.level.lev1 ? item.level.lev1.value + item.level.lev1.unit : ''} -
                           {item.level.lev2 ? item.level.lev2.value + item.level.lev2.unit : ''}

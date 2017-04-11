@@ -1,6 +1,7 @@
 @import '~bootstrap/scss/bootstrap';
 @import 'typeaheadjs';
 @import 'collapse';
+@import 'slider';
 @import 'popover';
 
 $radius-size: 0.19rem;
@@ -562,7 +563,7 @@ main:fullscreen {
   max-width: 100%;
 }
 
-.Panel .accordionsWrapper .collapse .btn.active {
+.Panel .accordionsWrapper .collapse .btn.btn-secondary.active {
   background: #bcdff1;
   border-color: #3299cb;
   z-index: unset;
@@ -582,6 +583,10 @@ main:fullscreen {
 
 .SmallLayerManagerPanel .btn:not(:last-child) {
   margin-right: 0.33rem;
+}
+
+.Sigmet .btn-primary {
+  padding: 0.5rem 0.7rem;
 }
 
 .accordion .card-block .Sigmet.row.btn {
