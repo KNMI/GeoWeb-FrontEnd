@@ -65,42 +65,42 @@ describe('(Redux Module) Adaguc', () => {
     });
   });
 
-  describe('(Action Handler) prepareSIGMET', () => {
-    let _globalState;
-    let _dispatchSpy;
-    let _getStateSpy;
+  // describe('(Action Handler) prepareSIGMET', () => {
+  //   let _globalState;
+  //   let _dispatchSpy;
+  //   let _getStateSpy;
 
-    beforeEach(() => {
-      _globalState = {
-        adagucProperties : { layers: {}, sources: {}, boundingBox: null, projectionName: 'EPSG:3857', mapCreated: false }
-      };
-      _dispatchSpy = sinon.spy((action) => {
-        _globalState = {
-          ..._globalState,
-          adagucProperties : adagucReducer(_globalState.adagucProperties, action)
-        };
-      });
-      _getStateSpy = sinon.spy(() => {
-        return _globalState;
-      });
-    });
+  //   beforeEach(() => {
+  //     _globalState = {
+  //       adagucProperties : { layers: {}, sources: {}, boundingBox: null, projectionName: 'EPSG:3857', mapCreated: false }
+  //     };
+  //     _dispatchSpy = sinon.spy((action) => {
+  //       _globalState = {
+  //         ..._globalState,
+  //         adagucProperties : adagucReducer(_globalState.adagucProperties, action)
+  //       };
+  //     });
+  //     _getStateSpy = sinon.spy(() => {
+  //       return _globalState;
+  //     });
+  //   });
 
-    it('SIGMET state should contain only the FIR overlay.', () => {
-      _dispatchSpy(actions.prepareSIGMET('OBSC TS'));
-      const sigmetState = _getStateSpy();
-      expect(sigmetState.adagucProperties.layers.overlays).to.have.length(1);
-      const overlay = sigmetState.adagucProperties.layers.overlays[0];
-      expect(overlay.label).to.equal('FIR areas');
-    });
+  //   it('SIGMET state should contain only the FIR overlay.', () => {
+  //     _dispatchSpy(actions.prepareSIGMET('OBSC TS'));
+  //     const sigmetState = _getStateSpy();
+  //     expect(sigmetState.adagucProperties.layers.overlays).to.have.length(1);
+  //     const overlay = sigmetState.adagucProperties.layers.overlays[0];
+  //     expect(overlay.label).to.equal('FIR areas');
+  //   });
 
-    it('SIGMET state should contain a lightning layer.', () => {
-      _dispatchSpy(actions.prepareSIGMET('OBSC TS'));
-      const sigmetState = _getStateSpy();
-      expect(sigmetState.adagucProperties.layers.datalayers).to.have.length.of.at.least(1);
-      const lightningLayer = sigmetState.adagucProperties.layers.datalayers.filter((layer) => layer.title === 'LGT');
-      expect(lightningLayer).to.have.length.of.at.least(1);
-    });
-  });
+  //   it('SIGMET state should contain a lightning layer.', () => {
+  //     _dispatchSpy(actions.prepareSIGMET('OBSC TS'));
+  //     const sigmetState = _getStateSpy();
+  //     expect(sigmetState.adagucProperties.layers.datalayers).to.have.length.of.at.least(1);
+  //     const lightningLayer = sigmetState.adagucProperties.layers.datalayers.filter((layer) => layer.title === 'LGT');
+  //     expect(lightningLayer).to.have.length.of.at.least(1);
+  //   });
+  // });
 
   describe('(Action Handler) addLayer', () => {
     let _globalState;

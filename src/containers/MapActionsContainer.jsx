@@ -261,7 +261,7 @@ class MapActionContainer extends Component {
 
   setPreset () {
     const { dispatch, actions } = this.props;
-    dispatch(actions.prepareSIGMET());
+    dispatch(actions.setPreset('sigmet_layer_TS'));
     this.setState({
       layerChooserOpen: false,
       activeTab: '1',

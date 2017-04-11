@@ -6,8 +6,8 @@ import axios from 'axios';
 import cloneDeep from 'lodash/cloneDeep';
 import CollapseOmni from '../components/CollapseOmni';
 import SwitchButton from 'react-switch-button';
+import { Typeahead } from 'react-bootstrap-typeahead';
 import 'react-switch-button/dist/react-switch-button.css';
-import { BACKEND_SERVER_URL } from '../routes/ADAGUC/constants/backend.js';
 const Slider = require('rc-slider');
 const createSliderWithTooltip = Slider.createSliderWithTooltip;
 const Range = createSliderWithTooltip(Slider.Range);
@@ -80,44 +80,13 @@ class SigmetCategory extends Component {
       renderRange: false,
       lowerUnit: UNIT_FL
     };
-    axios.get(BACKEND_SERVER_URL + '/sigmet/getsigmetphenomena').then((res) => {
-      this.PHENOMENON_MAPPING = res.data;
-    }).catch((error) => {
-      console.log(error);
-      this.PHENOMENON_MAPPING =
-      [
-        { 'phenomenon':{ 'name':'Thunderstorm', 'code':'TS', 'layerpreset':'sigmet_layer_TS' },
-          'variants':[{ 'name':'Obscured', 'code':'OBSC' }, { 'name':'Embedded', 'code':'EMBD' }, { 'name':'Frequent', 'code':'FRQ' }, { 'name':'Squall line', 'code':'SQL' }],
-          'additions':[{ 'name':'with hail', 'code':'GR' }]
-        },
-        { 'phenomenon':{ 'name':'Turbulence', 'code':'SEV_TURB', 'layerpreset':'sigmet_layer_SEV_TURB' },
-          'variants':[],
-          'additions':[]
-        },
-        { 'phenomenon':{ 'name':'Severe Icing', 'code':'SEV_ICE', 'layerpreset':'sigmet_layer_SEV_ICE' },
-          'variants':[],
-          'additions':[{ 'name':'due to freezing rain', 'code':'FRZA' }]
-        },
-        { 'phenomenon':{ 'name':'Duststorm', 'code':'DS', 'layerpreset':'sigmet_layer_DS' },
-          'variants':[],
-          'additions':[]
-        },
-        { 'phenomenon':{ 'name':'Sandstorm', 'code':'SS', 'layerpreset':'sigmet_layer_SS' },
-          'variants':[],
-          'additions':[]
-        },
-        { 'phenomenon':{ 'name':'Radioactive cloud', 'code':'RDOACT_CLD', 'layerpreset':'sigmet_layer_RDOACT_CLD' },
-          'variants':[],
-          'additions':[]
-        }
-      ];
-    });
   }
 
   // get Human Readable Text for Code
   getHRT4code (code) {
+    const { phenomenonMapping } = this.props;
     const UNKNOWN = 'Unknown';
-    if (!this.PHENOMENON_MAPPING) {
+    if (!phenomenonMapping) {
       return UNKNOWN;
     }
     if (typeof code === 'undefined') {
@@ -130,10 +99,9 @@ class SigmetCategory extends Component {
     let result = '';
     let variantIndex;
     let additionIndex;
-    let effectiveMapping = cloneDeep(this.PHENOMENON_MAPPING).filter((item) => item.phenomenon.code === code);
-    console.log(code, effectiveMapping);
+    let effectiveMapping = cloneDeep(phenomenonMapping).filter((item) => item.phenomenon.code === code);
     if (effectiveMapping.length !== 1) {
-      effectiveMapping = cloneDeep(this.PHENOMENON_MAPPING).map((item) => {
+      effectiveMapping = cloneDeep(phenomenonMapping).map((item) => {
         if (item.variants.length > 0) {
           variantIndex = item.variants.findIndex((variant) => codeFragments[0].startsWith(variant.code));
           if (variantIndex > -1) {
@@ -184,14 +152,40 @@ class SigmetCategory extends Component {
   }
 
   getPhenomena () {
+    const { phenomenonMapping } = this.props;
     let result = [];
-    this.PHENOMENON_MAPPING.forEach((item) => {
-      item.variants.forEach((variant) => {
-        result.push({
-          name: variant.name + ' ' + item.phenomenon.name.toLowerCase(),
-          code: variant.code + SEPARATOR + item.phenomenon.code
+    phenomenonMapping.forEach((item) => {
+      if (item.variants.length === 0) {
+        const res = {
+          name: item.phenomenon.name,
+          code: item.phenomenon.code,
+          layerpreset: item.phenomenon.layerpreset
+        };
+        item.additions.forEach((addition) => {
+          result.push({
+            name: res.name + ' ' + addition.name,
+            code: res.code + SEPARATOR + addition.code,
+            layerpreset: item.phenomenon.layerpreset
+          });
         });
-      });
+        result.push(res);
+      } else {
+        item.variants.forEach((variant) => {
+          const res = {
+            name: variant.name + ' ' + item.phenomenon.name.toLowerCase(),
+            code: variant.code + SEPARATOR + item.phenomenon.code,
+            layerpreset: item.phenomenon.layerpreset
+          };
+          item.additions.forEach((addition) => {
+            result.push({
+              name: res.name + ' ' + addition.name,
+              code: res.code + addition.code,
+              layerpreset: item.phenomenon.layerpreset
+            });
+          });
+          result.push(res);
+        });
+      }
     });
     return result;
   }
@@ -231,6 +225,19 @@ class SigmetCategory extends Component {
     }).catch(error => {
       this.savedSigmetCallback(error.response);
     });
+  }
+
+  setSelectedPhenomenon (ph) {
+    if (ph.length === 0) {
+      return;
+    }
+    const onlyObj = ph[0];
+    let listCpy = cloneDeep(this.state.list);
+    listCpy[0].phenomenon = onlyObj.code;
+    this.setState({ list: listCpy });
+    console.log(onlyObj);
+    console.log(onlyObj.layerpreset);
+    this.props.dispatch(this.props.actions.setPreset(onlyObj.layerpreset));
   }
 
   getExistingSigmets () {
@@ -407,16 +414,10 @@ class SigmetCategory extends Component {
     this.setState({ list: listCpy });
   }
 
-  render () {
-    const { title, icon, parentCollapsed, editable, selectedIndex, toggleMethod } = this.props;
-    const notifications = !editable ? this.state.list.length : 0;
-    let maxSize = this.state.list ? 500 * this.state.list.length : 0;
-    if (editable) {
-      maxSize = 900;
-    }
+  renderLevelSelection (editable, item) {
     const markValues = this.marks([50, 100, 150, 200, 250, 300, 350], this.state.lowerUnit);
-    const handle = (props) => {
-      const { value, dragging, index, ...restProps } = props;
+    const handle = (params) => {
+      const { value, dragging, index, ...restProps } = params;
       return (
         <Tooltip
           prefixCls='rc-slider-tooltip'
@@ -429,6 +430,53 @@ class SigmetCategory extends Component {
         </Tooltip>
       );
     };
+
+    if (editable) {
+      return (<Row>
+        <Col xs='8' style={{ flexDirection: 'column' }}>
+          <Row style={{ flex: 'none' }}><Col>
+            <SwitchButton name='dualsingleswitch' mode='select' labelRight='Range' label='At Alt.'
+              defaultChecked={this.state.renderRange} onChange={(v) => this.setState({ renderRange: v.target.checked })} />
+          </Col></Row>
+          <Row>
+            <Col>
+              <SwitchButton name='topswitch' label='Tops: Off' labelRight='On' defaultChecked={this.state.tops} onChange={(v) => this.setState({ tops: v.target.checked })} />
+            </Col>
+          </Row>
+          <Row style={{ flex: 'none' }}>
+            <Col style={{ width: '100%' }}>
+              <ButtonGroup>
+                <Button color='primary' onClick={() => this.setState({ lowerUnit: UNIT_M })} active={this.state.lowerUnit === UNIT_M}>{UNIT_M}</Button>
+                <Button color='primary' onClick={() => this.setState({ lowerUnit: UNIT_FL })} active={this.state.lowerUnit === UNIT_FL}>{UNIT_FL}</Button>
+                <Button color='primary' onClick={() => this.setState({ lowerUnit: UNIT_FT })} active={this.state.lowerUnit === UNIT_FT}>{UNIT_FT}</Button>
+              </ButtonGroup>
+            </Col>
+          </Row>
+          <Row style={{ flex: 1 }}>
+            &nbsp;
+          </Row>
+        </Col>
+        <Col xs='4'>
+          {this.state.renderRange
+          ? <Range step={10} allowCross={false} min={0} max={400} marks={markValues} vertical
+            onChange={(v) => this.setSigmetLevel(v)} tipFormatter={value => this.tooltip(value, this.state.lowerUnit)} />
+          : <Slider step={10} allowCross={false} min={0} max={400} marks={markValues} vertical onChange={(v) => this.setSigmetLevel([v])} handle={handle} />}
+        </Col>
+      </Row>);
+    }
+    return (<Col>
+      {item.level.lev1 ? item.level.lev1.value + item.level.lev1.unit : ''} -
+      {item.level.lev2 ? item.level.lev2.value + item.level.lev2.unit : ''}
+    </Col>);
+  }
+
+  render () {
+    const { title, icon, parentCollapsed, editable, selectedIndex, toggleMethod } = this.props;
+    const notifications = !editable ? this.state.list.length : 0;
+    let maxSize = this.state.list ? 500 * this.state.list.length : 0;
+    if (editable) {
+      maxSize = 900;
+    }
 
     // const maxSize = editable ? 800 : this.state.list ? Math.min(250 * this.state.list.length, 600) : 0;
     return (
@@ -465,8 +513,13 @@ class SigmetCategory extends Component {
                         <Badge color='success' style={{ width: '100%' }}>What</Badge>
                       </Col>
                       <Col>
-                        {item.phenomenonHRT}
+                        { editable
+                         ? <Typeahead filterBy={['name', 'code']} labelKey='name' options={this.getPhenomena()} onChange={(ph) => this.setSelectedPhenomenon(ph)} />
+                         : item.phenomenonHRT
+                        }
                       </Col>
+                    </Row>
+                    <Row>
                       <Col xs='auto'>
                         { editable
                          ? <SwitchButton name='obsfcstswitch' mode='select' labelRight='Observed' label='Forecast' defaultChecked={item.obs_or_forecast.obs} disabled={!editable} />
@@ -499,39 +552,7 @@ class SigmetCategory extends Component {
                       </Col>
                     </Row>
                     <Row style={{ height: '13rem', minHeight: '13rem' }}>
-                      { editable ? <Row>
-                        <Col xs='8' style={{ flexDirection: 'column' }}>
-                          <Row style={{ flex: 'none' }}><Col>
-                            <SwitchButton name='dualsingleswitch' mode='select' labelRight='Range' label='At Alt.' defaultChecked={this.state.renderRange} onChange={(v) => this.setState({ renderRange: v.target.checked })} />
-                          </Col></Row>
-                          <Row>
-                            <Col>
-                              <SwitchButton name='topswitch' label='Tops: Off' labelRight='On' defaultChecked={this.state.tops} onChange={(v) => this.setState({ tops: v.target.checked })} />
-                            </Col>
-                          </Row>
-                          <Row style={{ flex: 'none' }}>
-                            <Col style={{ width: '100%' }}>
-                              <ButtonGroup>
-                                <Button color='primary' onClick={() => this.setState({ lowerUnit: UNIT_M })} active={this.state.lowerUnit === UNIT_M}>{UNIT_M}</Button>
-                                <Button color='primary' onClick={() => this.setState({ lowerUnit: UNIT_FL })} active={this.state.lowerUnit === UNIT_FL}>{UNIT_FL}</Button>
-                                <Button color='primary' onClick={() => this.setState({ lowerUnit: UNIT_FT })} active={this.state.lowerUnit === UNIT_FT}>{UNIT_FT}</Button>
-                              </ButtonGroup>
-                            </Col>
-                          </Row>
-                          <Row style={{ flex: 1 }}>
-                            &nbsp;
-                          </Row>
-                        </Col>
-                        <Col xs='4'>
-                          {this.state.renderRange ? <Range step={10} allowCross={false} min={0} max={400} marks={markValues} vertical onChange={(v) => this.setSigmetLevel(v)} tipFormatter={value => this.tooltip(value, this.state.lowerUnit)} />
-                        : <Slider step={10} allowCross={false} min={0} max={400} marks={markValues} vertical onChange={(v) => this.setSigmetLevel([v])} handle={handle} />}
-                        </Col>
-                      </Row>
-                        : <Col>
-                          {item.level.lev1 ? item.level.lev1.value + item.level.lev1.unit : ''} -
-                          {item.level.lev2 ? item.level.lev2.value + item.level.lev2.unit : ''}
-                        </Col>
-                      }
+                      {this.renderLevelSelection(editable, item)}
                     </Row>
                     <Row>
                       <Col xs='auto'>
@@ -589,7 +610,8 @@ SigmetCategory.propTypes = {
   selectedIndex : PropTypes.number,
   selectMethod  : PropTypes.func,
   toggleMethod  : PropTypes.func,
-  adagucProperties: PropTypes.object
+  adagucProperties: PropTypes.object,
+  phenomenonMapping: PropTypes.array
 };
 
 export default SigmetCategory;
