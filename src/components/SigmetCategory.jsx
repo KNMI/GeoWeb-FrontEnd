@@ -269,7 +269,7 @@ class SigmetCategory extends Component {
   render () {
     const { title, icon, parentCollapsed, editable, selectedIndex, toggleMethod } = this.props;
     const notifications = !editable ? this.state.list.length : 0;
-    const maxSize = this.state.list ? 150 * this.state.list.length : 0;
+    const maxSize = this.state.list ? 500 * this.state.list.length : 0;
     const marks = {
       0: 'Everything below',
       10: 'FL10',
@@ -283,6 +283,7 @@ class SigmetCategory extends Component {
       400: 'Everything above'
     };
 
+// >>>>>>> upstream/master
     // const maxSize = editable ? 800 : this.state.list ? Math.min(250 * this.state.list.length, 600) : 0;
     return (
       <Card className='row accordion'>
@@ -295,7 +296,7 @@ class SigmetCategory extends Component {
             {notifications > 0 ? <Badge color='danger' pill className='collapsed'>{notifications}</Badge> : null}
           </Col>
         </CardHeader>
-        : <CardHeader onClick={maxSize > 0 ? toggleMethod : null} className={maxSize > 0 ? null : 'disabled' } title={title}>
+        : <CardHeader onClick={maxSize > 0 ? toggleMethod : null} className={maxSize > 0 ? null : 'disabled'} title={title}>
           <Col xs='auto'>
             <Icon name={icon} />
           </Col>
@@ -311,7 +312,7 @@ class SigmetCategory extends Component {
             <Row>
               <Col className='btn-group-vertical'>
                 {this.state.list.map((item, index) =>
-                  <Button tag='div' className={ 'Sigmet row' + (selectedIndex === index ? ' active' : '')}
+                  <Button tag='div' className={'Sigmet row' + (selectedIndex === index ? ' active' : '')}
                     key={index} onClick={() => { this.handleSigmetClick(index); }}>
                     <Row>
                       <Col xs='auto'>
@@ -332,12 +333,12 @@ class SigmetCategory extends Component {
                         <Badge color='success' style={{ width: '100%' }}>When</Badge>
                       </Col>
                       <Col>
-                        <Moment format={TIME_FORMAT} date={item.issuedate} />&nbsp;UTC
+                        <Moment format={TIME_FORMAT} date={item.validdate} />&nbsp;UTC
                       </Col>
                     </Row>
                     <Row>
                       <Col xs={{ offset: 2 }}>
-                        <Moment format={TIME_FORMAT} date={item.validdate} />&nbsp;UTC
+                        <Moment format={TIME_FORMAT} date={item.validdateend} />&nbsp;UTC
                       </Col>
                     </Row>
                     <Row>
@@ -345,12 +346,57 @@ class SigmetCategory extends Component {
                         <Badge color='success' style={{ width: '100%' }}>Where</Badge>
                       </Col>
                       <Col>
-                        { editable
-                         ? <Range vertical min={0} marks={marks} step={10}
-                           onChange={(v) => console.log(v)} defaultValue={[20, 40]} />
-                         : item.level.lev1.value + item.level.lev1.unit
-                        }
-
+                        {item.firname}
+                      </Col>
+                      <Col>
+                        {item.location_indicator_icao}
+                      </Col>
+                    </Row>
+                    <Row style={{ height: '10rem' }}>
+                      { editable ? <Col>
+                        <Range vertical min={0} marks={marks} step={10}
+                          onChange={(v) => console.log(v)} defaultValue={[20, 40]} />
+                      </Col>
+                        : <Col>
+                          {item.level.lev1 ? item.level.lev1.value + item.level.lev1.unit : ''} -
+                          {item.level.lev2 ? item.level.lev2.value + item.level.lev2.unit : ''}
+                        </Col>
+                      }
+                    </Row>
+                    <Row>
+                      <Col xs='auto'>
+                        <Badge color='success' style={{ width: '100%' }}>Progression</Badge>
+                      </Col>
+                      <Col>
+                        {item.movement.stationary ? 'Stationary' : 'Move' }
+                      </Col>
+                    </Row>
+                    <Row>
+                      <Col xs={{ offset: 2 }}>
+                        {item.change === 'NC' ? 'No change' : '' }
+                      </Col>
+                    </Row>
+                    <Row>
+                      <Col xs={{ offset: 2 }}>
+                        {item.forecast_position}
+                      </Col>
+                    </Row>
+                    <Row>
+                      <Col xs='auto'>
+                        <Badge color='success' style={{ width: '100%' }}>Issued at</Badge>
+                      </Col>
+                      <Col>
+                        <Moment format={TIME_FORMAT} date={item.issuedate} />&nbsp;UTC
+                      </Col>
+                    </Row>
+                    <Row>
+                      <Col xs={{ offset: 2 }}>
+                        {item.location_indicator_mwo}
+                      </Col>
+                    </Row>
+                    <Row>
+                      <Col xs={{ offset: 2 }}>
+                        {item.sequence}
                       </Col>
                     </Row>
                   </Button>

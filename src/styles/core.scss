@@ -49,8 +49,7 @@ body {
 }
 .Panel.activePanel > .content,
 .Panel.activePanel > .title {
-  // background-color: #bcdff1;
-  background-color: #017daf;
+  background-color: #017daf; /* #bcdff1; */
 }
 #root {
   height: inherit;
@@ -506,25 +505,29 @@ main:fullscreen {
 
 .Panel > .title {
   box-sizing: border-box;
-  max-height: 5rem;
+  max-height: 4.25rem;
   background: white;
-  // border-bottom: 0.06rem solid #4bb0ce;
+  border-bottom: 0.06rem solid #4bb0ce;
   @extend .rounded-top;
   box-shadow: 0 0.05rem 0.25rem rgba(0,0,0,0.5);
   margin: 0.25rem;
   margin-bottom: 0;
-  padding: 0.6rem;
+  padding: 0.33rem;
   overflow: hidden;
 }
 
 .Panel > div.notitle {
   border: none;
-  padding: 0.33rem;
-  padding-top: 0;
+  padding: 0 0.33rem 0.33rem 0.33rem;
 }
 
 .Panel > .title .row {
   flex-flow: row nowrap;
+}
+
+.map.row .Panel > .title:not(.notitle) {
+  border: none;
+  padding-bottom: 0.67rem;
 }
 
 .Panel > .title .input-group {
