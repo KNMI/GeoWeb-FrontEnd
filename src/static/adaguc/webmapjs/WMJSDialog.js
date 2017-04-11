@@ -34,7 +34,7 @@ WMJSDialog.createDialog = function (options, baseDiv, _map) {
       minHeight:'20px',
       height:200,
       width:420,
-      zIndex:2000,
+      zIndex:1000,
         // border:'2px solid #8890D0',
       borderTop:'1px solid #8890D0',
       borderRight:'1px solid #8890D0',

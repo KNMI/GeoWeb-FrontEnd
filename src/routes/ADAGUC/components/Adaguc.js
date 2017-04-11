@@ -181,7 +181,7 @@ export default class Adaguc extends React.Component {
     this.webMapJS.setBaseLayers([new WMJSLayer(adagucProperties.layers.baselayer)]);
     const defaultURLs = ['getServices', 'getOverlayServices'].map((url) => BACKEND_SERVER_URL + '/' + url);
     const allURLs = [...defaultURLs];
-    axios.all(allURLs.map((req) => axios.get(req))).then(
+    axios.all(allURLs.map((req) => axios.get(req, { withCredentials: true }))).then(
       axios.spread((services, overlays) => dispatch(actions.createMap([...services.data, ...JSON.parse(localStorage.getItem('geoweb')).personal_urls], overlays.data[0])))
     );
     this.webMapJS.stopAnimating();
@@ -256,10 +256,8 @@ export default class Adaguc extends React.Component {
       this.webMapJS.setDimension('time', timedim, true);
     }
 
-    // Update animation
-    if (animate !== prevProps.adagucProperties.animate) {
-      this.onChangeAnimation(animate);
-    }
+    // Update animation -- animate iff animate is set and the panel is active.
+    this.onChangeAnimation(active && animate);
 
     // Update mapmode
     if (mapMode !== prevProps.adagucProperties.mapMode) {

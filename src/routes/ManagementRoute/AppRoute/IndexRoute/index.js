@@ -1,9 +1,9 @@
-import TitleBarContainer from '../../../containers/TitleBarContainer';
-import SidebarContainer from '../../../containers/Management/SidebarContainer';
-import ManagementPanel from '../../../components/Management/ManagementPanel';
-import Empty from '../../../components/Empty';
+import AppManagementPanel from '../../../../components/Management/AppManagementPanel';
+import TitleBarContainer from '../../../../containers/TitleBarContainer';
+import SidebarContainer from '../../../../containers/Management/SidebarContainer';
+import Empty from '../../../../components/Empty';
 import { connect } from 'react-redux';
-import { actions } from '../../ADAGUC/modules/adaguc';
+import { actions } from '../../../ADAGUC/modules/adaguc';
 
 const mapStateToMapProps = (state) => {
   return { adagucProperties: state.adagucProperties };
@@ -27,12 +27,12 @@ const mapDispatchToMainViewportProps = function (dispatch) {
 
 // Sync route definition
 export default () => ({
-  title: 'Management',
+  title: 'Application',
   components : {
     header: connect(mapStateToHeaderProps, mapDispatchToMainViewportProps)(TitleBarContainer),
     leftSideBar: SidebarContainer,
-    secondLeftSideBar: ManagementPanel,
-    map: connect(mapStateToMapProps, mapDispatchToMainViewportProps)(Empty),
+    secondLeftSideBar: Empty,
+    map: connect(mapStateToMapProps, mapDispatchToMainViewportProps)(AppManagementPanel),
     layerManager: Empty,
     rightSideBar: Empty
   }

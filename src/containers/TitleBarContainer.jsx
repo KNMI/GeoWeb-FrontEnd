@@ -54,6 +54,7 @@ class TitleBarContainer extends Component {
     const allURLs = [...defaultURLs];
     axios.all(allURLs.map((req) => axios.get(req, { withCredentials: true }))).then(
       axios.spread((services, overlays) => {
+        console.log(services.data.length);
         dispatch(actions.createMap([...services.data, ...JSON.parse(localStorage.getItem('geoweb')).personal_urls], overlays.data[0]));
       })
     ).catch((e) => console.log('Error!: ', e.response));
@@ -291,7 +292,7 @@ class TitleBarContainer extends Component {
             <Nav>
               <NavLink className='active' onClick={this.toggleLoginModal} ><Icon name='user' id='loginIcon' />{isLoggedIn ? ' ' + userName : ' Sign in'}</NavLink>
               {hasRoleADMIN ? <Link to='manage' className='active nav-link'><Icon name='cog' /></Link> : '' }
-              {isLoggedIn ? <LayoutDropDown dispatch={this.props.dispatch} actions={this.props.actions} /> : '' }
+              <LayoutDropDown dispatch={this.props.dispatch} actions={this.props.actions} />
               <NavLink className='active' onClick={this.toggleFullscreen} ><Icon name='expand' /></NavLink>
             </Nav>
           </Col>
@@ -299,13 +300,19 @@ class TitleBarContainer extends Component {
         <Modal isOpen={this.state.loginModal} toggle={this.toggleLoginModal}>
           <ModalHeader toggle={this.toggleLoginModal}>{isLoggedIn ? 'You are signed in.' : 'Sign in'}</ModalHeader>
           <ModalBody>
-            <Collapse isOpen={!isLoggedIn}>
-              <InputGroup>
+            <Collapse isOpen>
+              {isLoggedIn
+              ? <InputGroup>
+                <Input placeholder='Preset name' />
+                <Button color='primary'>Save as preset</Button>
+              </InputGroup>
+              : <InputGroup>
                 <input ref={(input) => { this.userNameInputRef = input; }} className='form-control' tabIndex={0} placeholder='username' name='username' onChange={this.handleOnChange} />
                 <Input type='password' name='password' id='examplePassword' placeholder='password'
                   onKeyPress={this.handleKeyPressPassword} onChange={this.handleOnChange}
                 />
               </InputGroup>
+            }
             </Collapse>
             <FormText color='muted'>
               {this.state.loginModalMessage}

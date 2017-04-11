@@ -15,16 +15,16 @@ export class SinglePanel extends Component {
 class MapPanel extends Component {
   render () {
     const { title, adagucProperties, dispatch, actions } = this.props;
-
+    const spaceTitle = ' ';
     switch (adagucProperties.layout) {
       case 'dual':
         return (
           <Row style={{ flex: 1 }}>
             <Col xs='6'>
-              <SinglePanel title={title} mapId={0} adagucProperties={adagucProperties} dispatch={dispatch} actions={actions} master />
+              <SinglePanel title={title || spaceTitle} mapId={0} adagucProperties={adagucProperties} dispatch={dispatch} actions={actions} master />
             </Col>
             <Col xs='6'>
-              <SinglePanel title={title} mapId={1} adagucProperties={adagucProperties} dispatch={dispatch} actions={actions} />
+              <SinglePanel title={title || spaceTitle} mapId={1} adagucProperties={adagucProperties} dispatch={dispatch} actions={actions} />
             </Col>
           </Row>
         );
@@ -32,17 +32,17 @@ class MapPanel extends Component {
         return (
           <Row style={{ flex: 1 }}>
             <Col xs='6'>
-              <SinglePanel title={title} mapId={0} adagucProperties={adagucProperties} dispatch={dispatch} actions={actions} master />
+              <SinglePanel title={title || spaceTitle} mapId={0} adagucProperties={adagucProperties} dispatch={dispatch} actions={actions} master />
             </Col>
             <Col xs='6' style={{ flexDirection: 'column' }}>
               <Row style={{ flex: 1 }}>
-                <SinglePanel title={title} mapId={1} adagucProperties={adagucProperties} dispatch={dispatch} actions={actions} />
+                <SinglePanel title={title || spaceTitle} mapId={1} adagucProperties={adagucProperties} dispatch={dispatch} actions={actions} />
               </Row>
               <Row style={{ flex: 1 }}>
-                <SinglePanel title={title} mapId={2} adagucProperties={adagucProperties} dispatch={dispatch} actions={actions} />
+                <SinglePanel title={title || spaceTitle} mapId={2} adagucProperties={adagucProperties} dispatch={dispatch} actions={actions} />
               </Row>
               <Row style={{ flex: 1 }}>
-                <SinglePanel title={title} mapId={3} adagucProperties={adagucProperties} dispatch={dispatch} actions={actions} />
+                <SinglePanel title={title || spaceTitle} mapId={3} adagucProperties={adagucProperties} dispatch={dispatch} actions={actions} />
               </Row>
             </Col>
           </Row>
@@ -51,18 +51,18 @@ class MapPanel extends Component {
         return (<Row style={{ flex: 1 }}>
           <Col xs='6'>
             <Col xs='6'>
-              <SinglePanel title={title} mapId={0} adagucProperties={adagucProperties} dispatch={dispatch} actions={actions} master />
+              <SinglePanel title={title || spaceTitle} mapId={0} adagucProperties={adagucProperties} dispatch={dispatch} actions={actions} master />
             </Col>
             <Col xs='6'>
-              <SinglePanel title={title} mapId={1} adagucProperties={adagucProperties} dispatch={dispatch} actions={actions} />
+              <SinglePanel title={title || spaceTitle} mapId={1} adagucProperties={adagucProperties} dispatch={dispatch} actions={actions} />
             </Col>
           </Col>
           <Col xs='6'>
             <Col xs='6'>
-              <SinglePanel title={title} mapId={2} adagucProperties={adagucProperties} dispatch={dispatch} actions={actions} />
+              <SinglePanel title={title || spaceTitle} mapId={2} adagucProperties={adagucProperties} dispatch={dispatch} actions={actions} />
             </Col>
             <Col xs='6'>
-              <SinglePanel title={title} mapId={3} adagucProperties={adagucProperties} dispatch={dispatch} actions={actions} />
+              <SinglePanel title={title || spaceTitle} mapId={3} adagucProperties={adagucProperties} dispatch={dispatch} actions={actions} />
             </Col>
           </Col>
         </Row>);

@@ -1,6 +1,5 @@
 import React, { Component, PropTypes } from 'react';
-import { Button, Col, Row, Badge, Card, CardHeader, CardBlock, Alert, ButtonGroup, Input } from 'reactstrap';
-import { Typeahead } from 'react-bootstrap-typeahead';
+import { Button, Col, Row, Badge, Card, CardHeader, CardBlock } from 'reactstrap';
 import Moment from 'react-moment';
 import Icon from 'react-fa';
 import axios from 'axios';
@@ -8,6 +7,12 @@ import cloneDeep from 'lodash/cloneDeep';
 import CollapseOmni from '../components/CollapseOmni';
 import SwitchButton from 'react-switch-button';
 import 'react-switch-button/dist/react-switch-button.css';
+import { BACKEND_SERVER_URL } from '../routes/ADAGUC/constants/backend.js';
+require('rc-slider/assets/index.css');
+require('rc-tooltip/assets/bootstrap.css');
+const Slider = require('rc-slider');
+const createSliderWithTooltip = Slider.createSliderWithTooltip;
+const Range = createSliderWithTooltip(Slider.Range);
 
 const TIME_FORMAT = 'YYYY MMM DD - HH:mm';
 // const shortTIME_FORMAT = 'HH:mm';
@@ -52,55 +57,6 @@ const EMPTY_SIGMET = {
   uuid                      : '00000000-0000-0000-0000-000000000000',
   status                    : 'PRODUCTION'
 };
-const PHENOMENON_MAPPING = [
-  {
-    'phenomenon': { 'name': 'Thunderstorm', 'code': 'TS' },
-    'variants': [
-      { 'name': 'Obscured', 'code': 'OBSC' },
-      { 'name': 'Embedded', 'code': 'EMBD' },
-      { 'name': 'Frequent', 'code': 'FRQ' },
-      { 'name': 'Squall line', 'code': 'SQL' }
-    ],
-    'additions': [
-      { 'name': 'with hail', 'code': 'GR' }
-    ]
-  },
-  {
-    'phenomenon': { 'name': 'Turbulence', 'code': 'TURB' },
-    'variants': [
-      { 'name': 'Severe', 'code': 'SEV' }
-    ],
-    'additions': []
-  },
-  {
-    'phenomenon': { 'name': 'Icing', 'code': 'ICE' },
-    'variants': [
-      { 'name': 'Severe', 'code': 'SEV' }
-    ],
-    'additions': [
-      { 'name': 'due to freezing rain', 'code': '(FZRA)' }
-    ]
-  },
-  {
-    'phenomenon': { 'name': 'Duststorm', 'code': 'DS' },
-    'variants': [
-      { 'name': 'Heavy', 'code': 'HVY' }
-    ],
-    'additions': []
-  },
-  {
-    'phenomenon': { 'name': 'Sandstorm', 'code': 'SS' },
-    'variants': [
-      { 'name': 'Heavy', 'code': 'HVY' }
-    ],
-    'additions': []
-  },
-  {
-    'phenomenon': { 'name': 'Radioactive cloud', 'code': 'RDOACT CLD' },
-    'variants': [],
-    'additions': []
-  }
-];
 
 class SigmetCategory extends Component {
   constructor (props) {
@@ -114,11 +70,46 @@ class SigmetCategory extends Component {
     this.getExistingSigmets = this.getExistingSigmets.bind(this);
     this.gotExistingSigmetsCallback = this.gotExistingSigmetsCallback.bind(this);
     this.state = { isOpen: props.isOpen, list: [] };
+    axios.get(BACKEND_SERVER_URL + '/sigmet/getsigmetphenomena').then((res) => {
+      this.PHENOMENON_MAPPING = res.data;
+    }).catch((error) => {
+      console.log(error);
+      this.PHENOMENON_MAPPING =
+      [
+        { 'phenomenon':{ 'name':'Thunderstorm', 'code':'TS', 'layerpreset':'sigmet_layer_TS' },
+          'variants':[{ 'name':'Obscured', 'code':'OBSC' }, { 'name':'Embedded', 'code':'EMBD' }, { 'name':'Frequent', 'code':'FRQ' }, { 'name':'Squall line', 'code':'SQL' }],
+          'additions':[{ 'name':'with hail', 'code':'GR' }]
+        },
+        { 'phenomenon':{ 'name':'Turbulence', 'code':'SEV_TURB', 'layerpreset':'sigmet_layer_SEV_TURB' },
+          'variants':[],
+          'additions':[]
+        },
+        { 'phenomenon':{ 'name':'Severe Icing', 'code':'SEV_ICE', 'layerpreset':'sigmet_layer_SEV_ICE' },
+          'variants':[],
+          'additions':[{ 'name':'due to freezing rain', 'code':'FRZA' }]
+        },
+        { 'phenomenon':{ 'name':'Duststorm', 'code':'DS', 'layerpreset':'sigmet_layer_DS' },
+          'variants':[],
+          'additions':[]
+        },
+        { 'phenomenon':{ 'name':'Sandstorm', 'code':'SS', 'layerpreset':'sigmet_layer_SS' },
+          'variants':[],
+          'additions':[]
+        },
+        { 'phenomenon':{ 'name':'Radioactive cloud', 'code':'RDOACT_CLD', 'layerpreset':'sigmet_layer_RDOACT_CLD' },
+          'variants':[],
+          'additions':[]
+        }
+      ];
+    });
   }
 
   // get Human Readable Text for Code
   getHRT4code (code) {
     const UNKNOWN = 'Unknown';
+    if (!this.PHENOMENON_MAPPING) {
+      return UNKNOWN;
+    }
     if (typeof code === 'undefined') {
       return UNKNOWN;
     }
@@ -129,40 +120,43 @@ class SigmetCategory extends Component {
     let result = '';
     let variantIndex;
     let additionIndex;
-
-    const effectiveMapping = cloneDeep(PHENOMENON_MAPPING).map((item) => {
-      if (item.variants.length > 0) {
-        variantIndex = item.variants.findIndex((variant) => codeFragments[0].startsWith(variant.code));
-        if (variantIndex > -1) {
-          item.variants = [item.variants[variantIndex]];
+    let effectiveMapping = cloneDeep(this.PHENOMENON_MAPPING).filter((item) => item.phenomenon.code === code);
+    console.log(code, effectiveMapping);
+    if (effectiveMapping.length !== 1) {
+      effectiveMapping = cloneDeep(this.PHENOMENON_MAPPING).map((item) => {
+        if (item.variants.length > 0) {
+          variantIndex = item.variants.findIndex((variant) => codeFragments[0].startsWith(variant.code));
+          if (variantIndex > -1) {
+            item.variants = [item.variants[variantIndex]];
+            return item;
+          }
+        } else if (item.phenomenon.code.startsWith(codeFragments[0])) {
           return item;
         }
-      } else if (item.phenomenon.code.startsWith(codeFragments[0])) {
-        return item;
-      }
-    }).filter((item) => typeof item !== 'undefined').filter((item) => {
-      if (item.variants.length > 0) {
-        return codeFragments[1].startsWith(item.phenomenon.code);
-      } else {
-        return true;
-      }
-    }).map((item) => {
-      if (item.additions.length > 0) {
-        additionIndex = item.additions.findIndex((addition) => codeFragments[1].endsWith(addition.code));
-        if (additionIndex > -1) {
-          item.additions = [item.additions[additionIndex]];
-          return item;
-        } else if (codeFragments.length > 2) {
-          additionIndex = item.additions.findIndex((addition) => codeFragments[2].endsWith(addition.code));
+      }).filter((item) => typeof item !== 'undefined').filter((item) => {
+        if (item.variants.length > 0) {
+          return codeFragments[1].startsWith(item.phenomenon.code);
+        } else {
+          return true;
+        }
+      }).map((item) => {
+        if (item.additions.length > 0) {
+          additionIndex = item.additions.findIndex((addition) => codeFragments[1].endsWith(addition.code));
           if (additionIndex > -1) {
             item.additions = [item.additions[additionIndex]];
             return item;
+          } else if (codeFragments.length > 2) {
+            additionIndex = item.additions.findIndex((addition) => codeFragments[2].endsWith(addition.code));
+            if (additionIndex > -1) {
+              item.additions = [item.additions[additionIndex]];
+              return item;
+            }
           }
         }
-      }
-      item.additions = [];
-      return item;
-    });
+        item.additions = [];
+        return item;
+      });
+    }
     if (effectiveMapping.length === 1) {
       if (effectiveMapping[0].variants.length === 1) {
         result = effectiveMapping[0].variants[0].name + ' ' + effectiveMapping[0].phenomenon.name.toLowerCase();
@@ -181,7 +175,7 @@ class SigmetCategory extends Component {
 
   getPhenomena () {
     let result = [];
-    PHENOMENON_MAPPING.forEach((item) => {
+    this.PHENOMENON_MAPPING.forEach((item) => {
       item.variants.forEach((variant) => {
         result.push({
           name: variant.name + ' ' + item.phenomenon.name.toLowerCase(),
@@ -275,8 +269,21 @@ class SigmetCategory extends Component {
   render () {
     const { title, icon, parentCollapsed, editable, selectedIndex, toggleMethod } = this.props;
     const notifications = !editable ? this.state.list.length : 0;
-    const maxSize = this.state.list ? 250 * this.state.list.length : 0;
-    console.log('togglestate', this.state);
+    const maxSize = this.state.list ? 500 * this.state.list.length : 0;
+    const marks = {
+      0: 'Everything below',
+      10: 'FL10',
+      50: 'FL50',
+      100: 'FL100',
+      150: 'FL150',
+      200: 'FL200',
+      250: 'FL250',
+      300: 'FL300',
+      350: 'FL350',
+      400: 'Everything above'
+    };
+
+// >>>>>>> upstream/master
     // const maxSize = editable ? 800 : this.state.list ? Math.min(250 * this.state.list.length, 600) : 0;
     return (
       <Card className='row accordion'>
@@ -344,12 +351,17 @@ class SigmetCategory extends Component {
                       <Col>
                         {item.location_indicator_icao}
                       </Col>
-                      <Col>
-                        {item.level.lev1 ? item.level.lev1.value + item.level.lev1.unit : ''}
+                    </Row>
+                    <Row style={{ height: '10rem' }}>
+                      { editable ? <Col>
+                        <Range vertical min={0} marks={marks} step={10}
+                          onChange={(v) => console.log(v)} defaultValue={[20, 40]} />
                       </Col>
-                      <Col>
-                        {item.level.lev2 ? item.level.lev2.value + item.level.lev2.unit : ''}
-                      </Col>
+                        : <Col>
+                          {item.level.lev1 ? item.level.lev1.value + item.level.lev1.unit : ''} -
+                          {item.level.lev2 ? item.level.lev2.value + item.level.lev2.unit : ''}
+                        </Col>
+                      }
                     </Row>
                     <Row>
                       <Col xs='auto'>
@@ -381,7 +393,9 @@ class SigmetCategory extends Component {
                       <Col xs={{ offset: 2 }}>
                         {item.location_indicator_mwo}
                       </Col>
-                      <Col>
+                    </Row>
+                    <Row>
+                      <Col xs={{ offset: 2 }}>
                         {item.sequence}
                       </Col>
                     </Row>

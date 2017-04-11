@@ -166,6 +166,7 @@
 
     var displayLegendInMap = true;
     var messageDiv;
+    var timeoffsetContainerDiv;
     var timeoffsetDiv;
     var bbox = new WMJSBBOX(); // Boundingbox that will be used for map loading
     var updateBBOX = new WMJSBBOX(); // Boundingbox to move map without loading anything
@@ -422,18 +423,30 @@
         }
       }).appendTo(overlayDiv);
       messageDiv = $('#' + messageDivId);
-      var timeoffsetDivId = makeComponentId('timeoffsetDiv');
+      var timeoffsetContainerDivId = makeComponentId('timeoffsetContainerDiv');
       jQuery('<div/>', {
-        id:timeoffsetDivId,
-        css: {zIndex:100,
-          backgroundColor: 'rgba(255, 255, 255, 0.75',
+        id:timeoffsetContainerDivId,
+        css: {
           padding: '1rem',
           position: 'absolute',
           bottom: '0',
-          left: '50%',
+          // left: '50%',
+          width: '100%',
+          textAlign: 'center',
           fontSize: '1.3rem'
         }
       }).appendTo(overlayDiv);
+      timeoffsetContainerDiv = $('#' + timeoffsetContainerDivId);
+
+      var timeoffsetDivId = makeComponentId('timeoffsetDiv');
+      jQuery('<div/>', {
+        id:timeoffsetDivId,
+        css: {
+          zIndex:100,
+          backgroundColor: 'rgba(255, 255, 255, 0.75)',
+          padding: '0 1rem 1rem 1rem'
+        }
+      }).appendTo(timeoffsetContainerDiv);
       timeoffsetDiv = $('#' + timeoffsetDivId);
 
       baseDiv.css('cursor', 'default');
@@ -1547,13 +1560,14 @@
       var currentTime = start.format('YYYY-MM-DDTHH:mm:ss');
       var drawDates = [];
       var iter = 0;
+      // Fetch all dates within the time interval with a dynamic frequency
       while (moment(currentTime) <= end && iter < 1000) {
         iter++;
         var smallestTime = null;
         for (var i = layers.length - 1; i >= 0; i--) {
           var timeDim = layers[i].getDimension('time');
           if (!timeDim) {
-            continue
+            continue;
           }
           var layerTime = timeDim.getNextClosestValue(currentTime);
           if (!layerTime || layerTime === 'date too early') {
@@ -1571,7 +1585,26 @@
         drawDates.push(smallestTimeObj);
         currentTime = smallestTime;
       }
-      this.draw(drawDates);
+
+      // If there are times in the interval, animate them all,
+      // Otherwise, fall back to "dumb" animation and draw the last 100 dates from the first layer
+      if (drawDates.length > 0) {
+        this.draw(drawDates);
+      } else {
+        var firstTimeDim = layers[0].getDimension('time');
+        if (!firstTimeDim) {
+          return;
+        }
+        var numTimeSteps = firstTimeDim.size();
+
+        var numStepsBack = Math.min(firstTimeDim.size(), 100);
+
+        var dates = [];
+        for (var j = numTimeSteps - numStepsBack; j < numTimeSteps; ++j) {
+          dates.push({ name:firstTimeDim.name, value:firstTimeDim.getValueForIndex(j) });
+        }
+        this.draw(dates);
+      }
     };
     /**
      * API Function called to draw the layers, fires getmap request and shows the layers on the screen

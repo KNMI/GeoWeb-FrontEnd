@@ -49,8 +49,7 @@ body {
 }
 .Panel.activePanel > .content,
 .Panel.activePanel > .title {
-  // background-color: #bcdff1;
-  background-color: #017daf;
+  background-color: #017daf; /* #bcdff1; */
 }
 #root {
   height: inherit;
@@ -468,8 +467,23 @@ main:fullscreen {
   margin: 0 0.2rem 0.2rem 0.2rem;
 }
 
-.TasksContainer, .SigmetsContainer, .ProductsContainer {
+.TasksContainer, .SigmetsContainer, .ProductsContainer, .ManageSideContainer {
   flex: 1;
+}
+
+.ManageSideContainer > div.notitle {
+  flex: unset;
+}
+.ManageSideContainer > div.content {
+  display: flex;
+  flex: 1;
+}
+.ManageSideContainer .content .btn:not(:last-child) {
+  margin-bottom: 0.33rem;
+}
+
+.ManageSideContainer .content .btn, .ManageSideContainer .title .btn {
+  padding: 0.5rem 0.7rem;
 }
 
 .MapActionContainer .content .btn:not(:last-child) {
@@ -504,11 +518,16 @@ main:fullscreen {
 
 .Panel > div.notitle {
   border: none;
-  padding-top: 0;
+  padding: 0 0.33rem 0.33rem 0.33rem;
 }
 
 .Panel > .title .row {
   flex-flow: row nowrap;
+}
+
+.map.row .Panel > .title:not(.notitle) {
+  border: none;
+  padding-bottom: 0.67rem;
 }
 
 .Panel > .title .input-group {

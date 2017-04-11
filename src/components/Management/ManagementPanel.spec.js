@@ -10,8 +10,5 @@ describe('(Component) ManagementPanel', () => {
 
   it('Can render', () => {
     expect(_component.type()).to.equal(ManagementPanel);
-    const cards = _component.find('.card');
-    const firstCard = cards.first();
-    expect(firstCard.find('.card-title').text()).to.equal('Locaties');
   });
 });

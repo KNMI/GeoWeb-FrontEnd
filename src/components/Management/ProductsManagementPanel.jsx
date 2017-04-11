@@ -2,24 +2,18 @@ import React from 'react';
 import { Card, Button, CardTitle, CardText, Row } from 'reactstrap';
 import { Link } from 'react-router';
 import Panel from '../Panel';
-export default class SigmetManagementPanel extends React.Component {
+export default class ProductsManagementPanel extends React.Component {
   render () {
-    const linkBase = 'manage/products/sigmet/';
+    const linkBase = 'manage/products/';
     const items = [
       {
-        title: 'Parameters',
-        text: 'Configuratie van verscheidene parameters',
-        link: linkBase + 'parameters'
+        title: 'Bijvoet',
+        text: 'Configuratie voor het Bijvoet-diagram',
+        link: linkBase + 'progtemp'
       }, {
-        title: 'Fenomenen',
-        text: 'Configuratie voor SIGMET fenomenen',
-        link: linkBase + 'phenomena',
-        disabled: true
-      }, {
-        title: 'Lagen',
-        text: 'Standaardlagen voor fenomenen',
-        link: linkBase + 'layers',
-        disabled: true
+        title: 'SIGMET',
+        text: 'Configuratie voor SIGMET',
+        link: linkBase + 'sigmet'
       }
     ];
 
@@ -33,7 +27,7 @@ export default class SigmetManagementPanel extends React.Component {
                 <CardTitle>{item.title}</CardTitle>
                 <CardText>{item.text}</CardText>
                 <Link to={item.link} className='row'>
-                  <Button disabled={item.disabled === true}>Bewerk</Button>
+                  <Button>Bewerk</Button>
                 </Link>
               </Card>
             );
