@@ -6,7 +6,7 @@ import SigmetCategory from '../components/SigmetCategory';
 import Panel from '../components/Panel';
 import cloneDeep from 'lodash/cloneDeep';
 import { BACKEND_SERVER_URL } from '../routes/ADAGUC/constants/backend';
-
+import axios from 'axios';
 const GET_SIGMETS_URL = BACKEND_SERVER_URL + '/sigmet/getsigmetlist?';
 const SET_SIGMET_URL = BACKEND_SERVER_URL + '/sigmet/storesigmet';
 const ITEMS = [
@@ -65,6 +65,38 @@ class SigmetsContainer extends Component {
       isOpenCategory[item.ref] = false;
     });
     this.state = { isOpen: true, selectedItem: {}, isOpenCategory: isOpenCategory };
+    axios.get(BACKEND_SERVER_URL + '/sigmet/getsigmetphenomena').then((res) => {
+      this.phenomenonMapping = res.data;
+    }).catch((error) => {
+      console.log(error);
+      this.phenomenonMapping =
+      [
+        { 'phenomenon':{ 'name':'Thunderstorm', 'code':'TS', 'layerpreset':'sigmet_layer_TS' },
+          'variants':[{ 'name':'Obscured', 'code':'OBSC' }, { 'name':'Embedded', 'code':'EMBD' }, { 'name':'Frequent', 'code':'FRQ' }, { 'name':'Squall line', 'code':'SQL' }],
+          'additions':[{ 'name':'with hail', 'code':'GR' }]
+        },
+        { 'phenomenon':{ 'name':'Turbulence', 'code':'SEV_TURB', 'layerpreset':'sigmet_layer_SEV_TURB' },
+          'variants':[],
+          'additions':[]
+        },
+        { 'phenomenon':{ 'name':'Severe Icing', 'code':'SEV_ICE', 'layerpreset':'sigmet_layer_SEV_ICE' },
+          'variants':[],
+          'additions':[{ 'name':'due to freezing rain', 'code':'FRZA' }]
+        },
+        { 'phenomenon':{ 'name':'Duststorm', 'code':'HVY_DS', 'layerpreset':'sigmet_layer_DS' },
+          'variants':[],
+          'additions':[]
+        },
+        { 'phenomenon':{ 'name':'Sandstorm', 'code':'HVY_SS', 'layerpreset':'sigmet_layer_SS' },
+          'variants':[],
+          'additions':[]
+        },
+        { 'phenomenon':{ 'name':'Radioactive cloud', 'code':'RDOACT_CLD', 'layerpreset':'sigmet_layer_RDOACT_CLD' },
+          'variants':[],
+          'additions':[]
+        }
+      ];
+    });
   }
 
   toggle (evt) {
@@ -109,12 +141,13 @@ class SigmetsContainer extends Component {
           <Panel className='Panel' title={title}>
             <Col xs='auto' className='accordionsWrapper'>
               {ITEMS.map((item, index) =>
-                <SigmetCategory adagucProperties={this.props.adagucProperties}
+                <SigmetCategory phenomenonMapping={this.phenomenonMapping || []} adagucProperties={this.props.adagucProperties}
                   key={index} title={item.title} parentCollapsed={!this.state.isOpen}
                   icon={item.icon} source={item.source} editable={item.editable}
                   isOpen={this.state.isOpen && this.state.isOpenCategory[item.ref]}
                   selectedIndex={typeof this.state.selectedItem.index !== 'undefined' && this.state.selectedItem.category === item.ref ? this.state.selectedItem.index : -1}
-                  selectMethod={(index, geo) => this.select(item.ref, index, geo)} toggleMethod={() => this.toggleCategory(item.ref)} />
+                  selectMethod={(index, geo) => this.select(item.ref, index, geo)} toggleMethod={() => this.toggleCategory(item.ref)}
+                  dispatch={this.props.dispatch} actions={this.props.actions} />
               )}
             </Col>
           </Panel>
