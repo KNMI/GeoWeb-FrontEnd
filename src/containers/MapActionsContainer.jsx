@@ -1,5 +1,4 @@
 import React, { Component, PropTypes } from 'react';
-import ReactDOM from 'react-dom';
 import { Button, Col, Row, Popover, InputGroup, Input, InputGroupButton, PopoverContent,
   ButtonGroup, TabContent, TabPane, Nav, NavItem, NavLink, Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
 import Panel from '../components/Panel';
@@ -51,7 +50,16 @@ class MapActionContainer extends Component {
       getCapBusy: false
     };
   }
-
+  componentWillUpdate (nextprops) {
+    if (nextprops.adagucProperties.user !== this.props.adagucProperties.user) {
+      axios.get(BACKEND_SERVER_URL + '/preset/getpresets', { withCredentials: true }).then((res) => {
+        this.setState({ presets: res.data });
+        console.log(res.data);
+      }).catch((error) => {
+        console.error(error);
+      });
+    }
+  }
   getServices () {
     const { dispatch, actions } = this.props;
     const defaultURLs = ['getServices', 'getOverlayServices'].map((url) => BACKEND_SERVER_URL + '/' + url);
@@ -234,7 +242,7 @@ class MapActionContainer extends Component {
       {sources.overlay.map((src, i) => <Button id={src.name} key={i} onClick={this.handleSourceClick}>{this.getLayerName(src)}</Button>)}</div>;
   }
   renderPresetSelector () {
-    return <Button onClick={this.setPreset}>SIGMET Thunderstorm</Button>;
+    return <Typeahead filterBy={['name', 'keywords']} labelKey='name' options={this.state.presets} onChange={(ph) => this.setPreset(ph)} />;
   }
 
   renderURLInput () {
@@ -259,9 +267,9 @@ class MapActionContainer extends Component {
     );
   }
 
-  setPreset () {
+  setPreset (preset) {
     const { dispatch, actions } = this.props;
-    dispatch(actions.setPreset('sigmet_layer_TS'));
+    dispatch(actions.setPreset(preset[0]));
     this.setState({
       layerChooserOpen: false,
       activeTab: '1',

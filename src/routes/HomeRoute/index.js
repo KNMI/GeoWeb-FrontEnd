@@ -12,7 +12,11 @@ const mapStateToHeaderProps = (state) => {
     title: 'header',
     isLoggedIn: state.adagucProperties.user.isLoggedIn,
     userName: state.adagucProperties.user.userName,
-    roles: state.adagucProperties.user.roles
+    roles: state.adagucProperties.user.roles,
+    layout: state.adagucProperties.layout,
+    layers: state.adagucProperties.layers,
+    bbox: state.adagucProperties.boundingBox.bbox,
+    projectionName: state.adagucProperties.projectionName
   };
 };
 
