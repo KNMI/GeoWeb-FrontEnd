@@ -97,6 +97,11 @@ class SigmetsContainer extends Component {
         }
       ];
     });
+    axios.get(BACKEND_SERVER_URL + '/sigmet/getsigmetparameters').then((result) => {
+      this.parameters = result.data;
+    }).catch((error) => {
+      console.log(error);
+    });
   }
 
   toggle (evt) {
@@ -148,7 +153,8 @@ class SigmetsContainer extends Component {
                   isOpen={this.state.isOpen && this.state.isOpenCategory[item.ref]}
                   selectedIndex={typeof this.state.selectedItem.index !== 'undefined' && this.state.selectedItem.category === item.ref ? this.state.selectedItem.index : -1}
                   selectMethod={(index, geo) => this.select(item.ref, index, geo)} toggleMethod={() => this.toggleCategory(item.ref)}
-                  dispatch={this.props.dispatch} actions={this.props.actions} />
+                  dispatch={this.props.dispatch} actions={this.props.actions}
+                  parameters={this.parameters || {}} />
               )}
             </Col>
           </Panel>

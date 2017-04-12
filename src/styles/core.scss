@@ -3,6 +3,7 @@
 @import 'collapse';
 @import 'slider';
 @import 'popover';
+@import 'datetime';
 
 $radius-size: 0.19rem;
 $shadow: 0.06rem 0.125rem 0.125rem rgba(0,0,0,0.3);
@@ -436,7 +437,7 @@ a.breadcrumb-active:hover, a.nav-link.active:hover {
   padding: 0;
 }
 
-.container-fluid div:not(.collapse):not(.dropdown-menu):not(.btn-group-vertical):not(.managementPanel):not(.loc-card):not(.managementRow) {
+.container-fluid div:not(.collapse):not(.dropdown-menu):not(.btn-group-vertical):not(.managementPanel):not(.loc-card):not(.managementRow):not(.rdt):not(.rdtPicker) {
   display: inherit;
 }
 

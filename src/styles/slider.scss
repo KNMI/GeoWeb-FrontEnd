@@ -3,40 +3,40 @@ $font-inactive-color: #777;
 $font-active-color: #333;
 $border-inactive-color: #919191;
 
-.rc-slider-tooltip {
+div.rc-slider-tooltip {
     z-index: 100;
 }
 
-.Panel .rc-slider-handle:hover {
+div.rc-slider-handle:hover {
     border-color: #015f8c;
 }
 
-.Panel .rc-slider-handle {
+div.rc-slider-handle {
     border-color: $ux-interactive-color;
 }
 
-.Panel .rc-slider-track {
+div.rc-slider-track {
     background-color: $ux-interactive-color;
 }
 
-.Panel .rc-slider-dot {
+span.rc-slider-dot {
     border-color: $border-inactive-color;
 }
 
-.Panel .rc-slider-dot-active {
+span.rc-slider-dot-active {
     border-color: $ux-interactive-color;
 }
 
-.Panel .rc-slider-mark-text {
+div.rc-slider-mark-text {
     color: $font-inactive-color;
     font-size: 0.9rem;
 }
 
-.Panel .rc-slider-mark-text-active {
+div.rc-slider-mark-text-active {
     color: $font-active-color;
 }
 
-.Panel .rc-slider-rail {
+div.rc-slider-rail {
     background-color: $border-inactive-color;
 }
 

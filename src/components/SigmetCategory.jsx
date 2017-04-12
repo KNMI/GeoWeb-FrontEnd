@@ -3,23 +3,21 @@ import { Button, ButtonGroup, Col, Row, Badge, Card, CardHeader, CardBlock } fro
 import Moment from 'react-moment';
 import Icon from 'react-fa';
 import axios from 'axios';
-import cloneDeep from 'lodash/cloneDeep';
+import { cloneDeep, isEmpty } from 'lodash';
 import CollapseOmni from '../components/CollapseOmni';
 import SwitchButton from 'react-switch-button';
-import { Typeahead } from 'react-bootstrap-typeahead';
 import 'react-switch-button/dist/react-switch-button.css';
-const Slider = require('rc-slider');
+import { Typeahead } from 'react-bootstrap-typeahead';
+import DateTimePicker from 'react-datetime';
+import Slider from 'rc-slider';
+import Tooltip from 'rc-tooltip';
 const createSliderWithTooltip = Slider.createSliderWithTooltip;
 const Range = createSliderWithTooltip(Slider.Range);
 const Handle = Slider.Handle;
-const Tooltip = require('rc-tooltip');
-require('rc-slider/assets/index.css');
-require('rc-tooltip/assets/bootstrap.css');
 
-const DATE_FORMAT = 'YYYY MMM DD';
-const TIME_FORMAT = 'HH:mm';
-const DATE_TIME_FORMAT = 'YYYY MMM DD - HH:mm';
-// const shortTIME_FORMAT = 'HH:mm';
+const DATE_FORMAT = 'YYYY MMM DD - ';
+const TIME_FORMAT = 'HH:mm UTC';
+const DATE_TIME_FORMAT = 'YYYY MMM DD - HH:mm UTC';
 const SEPARATOR = '_';
 const UNIT_M = 'm';
 const UNIT_FL = 'FL';
@@ -59,17 +57,29 @@ const EMPTY_SIGMET = {
   issuedate                 : '',
   validdate                 : '',
   firname                   : '',
-  location_indicator_icao   : 'EHAA',
+  location_indicator_icao   : '',
   location_indicator_mwo    : 'EHDB',
   uuid                      : '00000000-0000-0000-0000-000000000000',
   status                    : 'PRODUCTION'
+};
+
+const FALLBACK_PARAMS = {
+  maxhoursofvalidity      : 4,
+  hoursbeforevalidity     : 4,
+  firareas                : [
+    {
+      location_indicator_icao   : 'EHAA',
+      firname                   : 'AMSTERDAM FIR',
+      areapreset                : 'NL_FIR'
+    }
+  ],
+  location_indicator_wmo  :'EHDB'
 };
 
 class SigmetCategory extends Component {
   constructor (props) {
     super(props);
     this.onObsOrFcstClick = this.onObsOrFcstClick.bind(this);
-    this.setPhenomenon = this.setPhenomenon.bind(this);
     this.handleSigmetClick = this.handleSigmetClick.bind(this);
     this.saveSigmet = this.saveSigmet.bind(this);
     this.savedSigmetCallback = this.savedSigmetCallback.bind(this);
@@ -193,6 +203,14 @@ class SigmetCategory extends Component {
     return result;
   }
 
+  getParameters () {
+    let { parameters } = this.props;
+    if (isEmpty(parameters)) {
+      parameters = FALLBACK_PARAMS;
+    }
+    return parameters;
+  }
+
   handleSigmetClick (index) {
     this.props.selectMethod(index, this.state.list[index].geojson);
   }
@@ -201,16 +219,6 @@ class SigmetCategory extends Component {
     const newList = cloneDeep(this.state.list);
     newList[0].obs_or_forecast.obs = obsSelected;
     this.setState({ list: newList });
-  }
-
-  setPhenomenon (phenomenon) {
-    if (typeof phenomenon === 'undefined') {
-      return;
-    }
-    const newList = cloneDeep(this.state.list);
-    newList[0].phenomenon = phenomenon[0].code;
-    this.setState({ list: newList });
-    // TODO: also get the presets for this phenomenon
   }
 
   saveSigmet () {
@@ -230,17 +238,40 @@ class SigmetCategory extends Component {
     });
   }
 
-  setSelectedPhenomenon (ph) {
-    if (ph.length === 0) {
+  setSelectedPhenomenon (phenomenonList) {
+    if (phenomenonList.length === 0) {
       return;
     }
-    const onlyObj = ph[0];
+    const onlyObj = phenomenonList[0];
     let listCpy = cloneDeep(this.state.list);
     listCpy[0].phenomenon = onlyObj.code;
     this.setState({ list: listCpy });
-    console.log(onlyObj);
-    console.log(onlyObj.layerpreset);
     this.props.dispatch(this.props.actions.setPreset(onlyObj.layerpreset));
+  }
+
+  setSelectedFir (firList) {
+    if (firList.length === 0) {
+      return;
+    }
+    const firObj = firList[0];
+    let listCpy = cloneDeep(this.state.list);
+    listCpy[0].firname = firObj.firname;
+    listCpy[0].location_indicator_icao = firObj.location_indicator_icao;
+    this.setState({ list: listCpy });
+  }
+
+  setSelectedObservedForecast (isObserved) {
+    let listCpy = cloneDeep(this.state.list);
+    listCpy[0].obs_or_forecast = { obs: isObserved };
+    this.setState({ list: listCpy });
+  }
+
+  setSelectedValidFromMoment (moment) {
+    console.log('Moment from', moment);
+  }
+
+  setSelectedValidUntilMoment (moment) {
+    console.log('Moment until', moment);
   }
 
   getExistingSigmets () {
@@ -461,7 +492,7 @@ class SigmetCategory extends Component {
             </Col>
             <Col xs='8' style={{ justifyContent: 'center' }}>
               <SwitchButton name='dualsingleswitch' mode='select' labelRight='Extent' label='Single'
-                defaultChecked={this.state.renderRange} onChange={(v) => this.setState({ renderRange: v.target.checked })} align='center' />
+                defaultChecked={this.state.renderRange} onChange={(evt) => this.setState({ renderRange: evt.target.checked })} align='center' />
             </Col>
           </Row>
           <Row style={{ flex: 'none', padding: '0.5rem 0' }}>
@@ -490,8 +521,8 @@ class SigmetCategory extends Component {
       </Row>);
     }
     return (<Col>
-      {item.level.lev1 ? item.level.lev1.value + item.level.lev1.unit : ''} -
-      {item.level.lev2 ? item.level.lev2.value + item.level.lev2.unit : ''}
+      {item.level.lev1 ? item.level.lev1.value + item.level.lev1.unit : ''}
+      {item.level.lev2 ? ' - ' + item.level.lev2.value + item.level.lev2.unit : ''}
     </Col>);
   }
 
@@ -539,7 +570,8 @@ class SigmetCategory extends Component {
                       </Col>
                       <Col xs='9'>
                         { editable
-                         ? <Typeahead style={{ width: '100%' }} filterBy={['name', 'code']} labelKey='name' options={this.getPhenomena()} onChange={(ph) => this.setSelectedPhenomenon(ph)} />
+                         ? <Typeahead style={{ width: '100%' }} filterBy={['name', 'code']} labelKey='name'
+                           options={this.getPhenomena()} onChange={(phenomenonList) => this.setSelectedPhenomenon(phenomenonList)} />
                          : <span style={{ fontWeight: 'bold' }}>{item.phenomenonHRT}</span>
                         }
                       </Col>
@@ -548,7 +580,7 @@ class SigmetCategory extends Component {
                       <Col xs={{ size: 9, offset: 3 }}>
                         { editable
                          ? <SwitchButton name='obsfcstswitch' mode='select'
-                           labelRight='Observed' label='Forecast' defaultChecked={item.obs_or_forecast.obs} disabled={!editable} />
+                           labelRight='Observed' label='Forecast' defaultChecked={item.obs_or_forecast.obs} onChange={(evt) => this.setSelectedObservedForecast(evt.target.checked)} />
                          : <span>{item.obs_or_forecast.obs ? 'Observed' : 'Forecast'}</span>
                         }
                       </Col>
@@ -557,22 +589,39 @@ class SigmetCategory extends Component {
                       <Col xs='3'>
                         <Badge color='success'>When</Badge>
                       </Col>
+                    </Row>
+                    <Row style={editable ? { paddingTop: '0.19rem', minHeight: '2rem' } : { paddingTop: '0.19rem' }}>
+                      <Col xs={{ size: 2, offset: 1 }}>
+                        <Badge>From</Badge>
+                      </Col>
                       <Col xs='9'>
-                        <Moment format={DATE_FORMAT} date={item.validdate} />
+                        {editable
+                          ? <DateTimePicker style={{ width: '100%' }} dateFormat={DATE_FORMAT} timeFormat={TIME_FORMAT} onChange={(moment) => this.setSelectedValidFromMoment(moment)} />
+                          : <Moment format={DATE_TIME_FORMAT} date={item.validdate} />
+                        }
                       </Col>
                     </Row>
-                    <Row>
-                      <Col xs={{ size: 9, offset: 3 }}>
-                        <Moment format={TIME_FORMAT} date={item.validdate} />&nbsp;&ndash;&nbsp;
-                        <Moment format={TIME_FORMAT} date={item.validdateend} />&nbsp;UTC
+                    <Row style={editable ? { paddingTop: '0.19rem', minHeight: '2.5rem' } : { paddingTop: '0.19rem' }}>
+                      <Col xs={{ size: 2, offset: 1 }}>
+                        <Badge>Until</Badge>
+                      </Col>
+                      <Col xs='9'>
+                        {editable
+                          ? <DateTimePicker style={{ width: '100%' }} dateFormat={DATE_FORMAT} timeFormat={TIME_FORMAT} onChange={(moment) => this.setSelectedValidUntilMoment(moment)} />
+                          : <Moment format={DATE_TIME_FORMAT} date={item.validdateend} />
+                        }
                       </Col>
                     </Row>
-                    <Row className='section'>
+                    <Row className='section' style={editable ? { minHeight: '2.5rem' } : null}>
                       <Col xs='3'>
                         <Badge color='success'>Where</Badge>
                       </Col>
                       <Col xs='9'>
-                        <span>{item.firname || '--'}</span>
+                        {editable
+                        ? <Typeahead style={{ width: '100%' }} filterBy={['firname', 'location_indicator_icao']} labelKey='firname'
+                          options={this.getParameters().firareas} onChange={(firList) => this.setSelectedFir(firList)} />
+                        : <span>{item.firname || '--'}</span>
+                      }
                       </Col>
                     </Row>
                     <Row>
@@ -657,6 +706,7 @@ SigmetCategory.propTypes = {
   selectedIndex : PropTypes.number,
   selectMethod  : PropTypes.func,
   toggleMethod  : PropTypes.func,
+  parameters    : PropTypes.object,
   parentCollapsed   : PropTypes.bool,
   adagucProperties  : PropTypes.object,
   phenomenonMapping : PropTypes.array,
