@@ -113,7 +113,7 @@ class TitleBarContainer extends Component {
         this.checkCredentials(() => {
           // When signed in as admin, jump to admin manage page
           if (CheckIfUserHasRole(this.props, UserRoles.ADMIN)) {
-            hashHistory.push('/manage');
+            hashHistory.push('/manage/app');
           }
         });
       }).catch(error => {
