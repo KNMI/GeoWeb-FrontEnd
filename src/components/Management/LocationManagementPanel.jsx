@@ -3,10 +3,13 @@ import React from 'react';
 import Panel from '../Panel';
 import { Input, Card, Button, CardTitle, CardText, Row, Col } from 'reactstrap';
 import { Icon } from 'react-fa';
+import axios from 'axios';
+import { BACKEND_SERVER_URL } from '../../routes/ADAGUC/constants/backend';
+
 export default class LocationManagementPanel extends React.Component {
   constructor (props) {
     super(props);
-    this.progtempLocations = [
+    this.defaultProgtempLocations = [
       {
         name: 'EHAM',
         x: 4.77,
@@ -81,6 +84,18 @@ export default class LocationManagementPanel extends React.Component {
         y: 52.36
       }
     ];
+    this.progtempLocations = this.defaultProgtempLocations;
+    axios({
+      method: 'get',
+      url: BACKEND_SERVER_URL + '/admin/read',
+      params:{ type:'locations', name:'locations' },
+      withCredentials: true,
+      responseType: 'json'
+    }).then(src => {
+      this.progtempLocations = JSON.parse(src.data.payload);
+    }).catch(error => {
+      alert('Loading default list, because: ' + error.response.data.error);
+    });
   }
 
   toggle (tab) {
@@ -104,6 +119,7 @@ export class LocationMapper extends React.Component {
     this.deleteLocation = this.deleteLocation.bind(this);
     this.doneEditing = this.doneEditing.bind(this);
     this.setEditMode = this.setEditMode.bind(this);
+    this.saveLocations = this.saveLocations.bind(this);
   }
   deleteLocation (i) {
     let arrayCpy = this.state.locations.map((a) => Object.assign(a));
@@ -137,6 +153,31 @@ export class LocationMapper extends React.Component {
   componentWillReceiveProps (nextprops) {
     this.setState({ locations: nextprops.locations });
   }
+  saveLocations () {
+    console.log('Save');
+
+    // let payload = JSON.stringify(this.state.locations);
+    // console.log(payload);
+    axios({
+      method: 'post',
+      url: BACKEND_SERVER_URL + '/admin/create',
+      params:{ type:'locations', name:'locations' },
+      data:this.state.locations,
+      withCredentials: true,
+      responseType: 'json'
+    }).then(src => {
+      console.log(src.data.message);
+      if (src.data.message === 'ok') {
+        alert('OK, Entry saved!');
+      } else {
+        alert(src.data.message);
+      }
+    }).catch(error => {
+      console.log(error);
+      console.log(error.data);
+      alert('something went wrong: ');
+    });
+  }
   render () {
     return (
       <Panel style={{ overflowX: 'hidden', overflowY: 'auto' }}>
@@ -147,7 +188,7 @@ export class LocationMapper extends React.Component {
         </Row>
         <Row style={{ bottom: '1rem', position: 'fixed' }}>
           <Col>
-            <Button color='primary' style={{ marginRight: '1rem' }}>Save</Button>
+            <Button color='primary' style={{ marginRight: '1rem' }} onClick={ this.saveLocations }>Save</Button>
             <Button color='primary' onClick={this.addCard}>Add</Button>
           </Col>
         </Row>
