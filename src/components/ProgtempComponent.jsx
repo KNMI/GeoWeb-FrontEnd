@@ -1,9 +1,12 @@
 import React, { Component, PropTypes } from 'react';
 import { Popover, PopoverTitle, PopoverContent } from 'reactstrap';
-var moment = require('moment');
 import { Typeahead } from 'react-bootstrap-typeahead';
 import CanvasComponent from '../routes/ADAGUC/components/CanvasComponent';
 import axios from 'axios';
+import { DefaultLocations } from '../routes/ADAGUC/constants/defaultlocations';
+import { ReadLocations } from '../routes/ADAGUC/utils/admin';
+var moment = require('moment');
+
 export default class ProgtempComponent extends Component {
   /* istanbul ignore next */
   constructor () {
@@ -14,81 +17,19 @@ export default class ProgtempComponent extends Component {
     };
     this.renderBaseProgtemp = this.renderBaseProgtemp.bind(this);
     this.setChosenLocation = this.setChosenLocation.bind(this);
-    this.progtempLocations = [
-      {
-        name: 'EHAM',
-        x: 4.77,
-        y: 52.30
-      }, {
-        name: 'EHRD',
-        x: 4.42,
-        y: 51.95
-      }, {
-        name: 'EHTW',
-        x: 6.98,
-        y: 52.28
-      }, {
-        name: 'EHBK',
-        x: 5.76,
-        y: 50.95
-      }, {
-        name: 'EHFS',
-        x: 3.68,
-        y: 51.46
-      }, {
-        name: 'EHDB',
-        x: 5.18,
-        y: 52.12
-      }, {
-        name: 'EHGG',
-        x: 6.57,
-        y: 53.10
-      }, {
-        name: 'EHKD',
-        x: 4.74,
-        y: 52.93
-      }, {
-        name: 'EHAK',
-        x: 3.81,
-        y: 55.399
-      }, {
-        name: 'EHDV',
-        x: 2.28,
-        y: 53.36
-      }, {
-        name: 'EHFZ',
-        x: 3.94,
-        y: 54.12
-      }, {
-        name: 'EHFD',
-        x: 4.67,
-        y: 54.83
-      }, {
-        name: 'EHHW',
-        x: 6.04,
-        y: 52.037
-      }, {
-        name: 'EHKV',
-        x: 3.68,
-        y: 53.23
-      }, {
-        name: 'EHMG',
-        x: 4.93,
-        y: 53.63
-      }, {
-        name: 'EHMA',
-        x: 5.94,
-        y: 53.54
-      }, {
-        name: 'EHQE',
-        x: 4.15,
-        y: 52.92
-      }, {
-        name: 'EHPG',
-        x: 3.3416,
-        y: 52.36
+
+    this.progtempLocations = [] ;//DefaultLocations;
+    console.log('start reading locations');
+    ReadLocations((data) => {
+      if (data) {
+        console.log('retrieved progtemp locations from disk');
+        this.progtempLocations = data;
+        console.log('progtemlocations set');
+        this.setState();
+      } else {
+        console.log('get progtemlocations failed');
       }
-    ];
+    });
   }
   /* istanbul ignore next */
   componentDidMount () {
