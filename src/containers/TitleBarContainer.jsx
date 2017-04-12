@@ -263,7 +263,8 @@ class TitleBarContainer extends Component {
     const saveLayers = document.getElementsByName('layerCheckbox')[0].checked;
     const savePanelLayout = document.getElementsByName('panelCheckbox')[0].checked;
     const saveBoundingBox = document.getElementsByName('viewCheckbox')[0].checked;
-    // const role = document.getElementsByName('roleSelect')[0].value;
+    const role = document.getElementsByName('roleSelect');
+    console.log('role: ', role);
     let numPanels = -1;
     if (/quad/.test(this.props.layout)) {
       numPanels = 4;
@@ -321,15 +322,32 @@ class TitleBarContainer extends Component {
       keywords: []
     };
 
+    let url = BACKEND_SERVER_URL + '/preset/';
+    let params = {
+      name: presetName
+    };
+    if (role.length === 0) {
+      url += 'putuserpreset';
+    } else {
+      const selectedRole = role[0].options[role[0].selectedIndex].value;
+      if (selectedRole === 'system') {
+        url += 'putsystempreset';
+      } else if (selectedRole === 'user') {
+        url += 'putuserpreset';
+      } else {
+        url += 'putsrolespreset';
+        params['roles'] = selectedRole;
+      }
+    }
+
     axios({
       method: 'post',
-      url: BACKEND_SERVER_URL + '/preset/putuserpreset',
-      params: {
-        name: presetName
-      },
+      url: url,
+      params: params,
       withCredentials: true,
       data: dataToSend
     });
+    this.togglePresetModal();
   }
   returnInputRef (ref) {
     this.input = ref;
@@ -373,10 +391,9 @@ class TitleBarContainer extends Component {
                  <FormGroup>
                    <Label for='roleSelect'>Save for</Label>
                    <Input type='select' name='roleSelect' id='roleSelect'>
-                     <option>Me</option>
-                     <option>Role Meteorologist</option>
-                     <option>Role User</option>
-                     <option>System wide</option>
+                     <option value='user' >Me</option>
+                     <option value='MET'>Role Meteorologist</option>
+                     <option value='system'>System wide</option>
                    </Input>
                  </FormGroup>
                </Col>
