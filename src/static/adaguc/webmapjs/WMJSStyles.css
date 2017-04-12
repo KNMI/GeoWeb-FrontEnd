@@ -948,3 +948,12 @@ padding:5px;
   -ms-user-select: none;
   user-select: none;
 }
+
+
+.wmjsdialog-closebutton{
+  padding:0px;
+  margin:0px;
+}
+.ui-button-text-only .ui-button-text {
+  padding:2px;
+}
