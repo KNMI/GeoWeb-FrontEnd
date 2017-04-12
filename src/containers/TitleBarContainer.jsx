@@ -264,7 +264,6 @@ class TitleBarContainer extends Component {
     const savePanelLayout = document.getElementsByName('panelCheckbox')[0].checked;
     const saveBoundingBox = document.getElementsByName('viewCheckbox')[0].checked;
     const role = document.getElementsByName('roleSelect');
-    console.log('role: ', role);
     let numPanels = -1;
     if (/quad/.test(this.props.layout)) {
       numPanels = 4;
