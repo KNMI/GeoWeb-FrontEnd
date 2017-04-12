@@ -539,12 +539,30 @@ const setCursorLocation = (state, payload) => {
   return Object.assign({}, state, { cursor: loc });
 };
 const newLayout = (state, payload) => {
-  const numPanels = payload === 'dual' ? 2 : (payload.includes('quad') ? 4 : 1);
+  let numPanels = -1;
+  if (/quad/.test(payload)) {
+    numPanels = 4;
+  } else if (/triple/.test(payload)) {
+    numPanels = 3;
+  } else if (/dual/.test(payload)) {
+    numPanels = 2;
+  } else {
+    numPanels = 1;
+  }
   const activeMapId = state.activeMapId < numPanels ? state.activeMapId : 0;
   return Object.assign({}, state, { layout: payload, activeMapId: activeMapId });
 };
 const newActivePanel = (state, payload) => {
-  const numPanels = state.layout === 'dual' ? 2 : state.layout.includes('quad') ? 4 : 1;
+  let numPanels = -1;
+  if (/quad/.test(state.layout)) {
+    numPanels = 4;
+  } else if (/triple/.test(state.layout)) {
+    numPanels = 3;
+  } else if (/dual/.test(state.layout)) {
+    numPanels = 2;
+  } else {
+    numPanels = 1;
+  }
   const activeMapId = payload < numPanels ? payload : 0;
   return Object.assign({}, state, { activeMapId: activeMapId });
 };
