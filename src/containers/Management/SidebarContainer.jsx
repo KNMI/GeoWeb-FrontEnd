@@ -10,27 +10,32 @@ export default class SidebarContainer extends React.Component {
         title: 'Manage application',
         icon: 'cog',
         link: 'app',
-        disabled: false
+        disabled: false,
+        key: 'manage_applications'
       }, {
         title: 'Manage work schedule',
         icon: 'calendar',
         disabled: true,
-        link: 'schedule'
+        link: 'schedule',
+        key: 'manage_work_schedule'
       }, {
         title: 'Product configuration',
         icon: 'thermometer-quarter',
         link: 'products',
-        disabled: false
+        disabled: false,
+        key: 'product_configuration'
       }, {
         title: 'Trigger configuration',
         icon: 'bell-o',
         disabled: true,
-        link: 'trigger'
+        link: 'trigger',
+        key: 'trigger_configuration'
       }, {
         title: 'Logging & Analysis',
         icon: 'meh-o',
         disabled: true,
-        link: 'log'
+        link: 'log',
+        key: 'logging_analysis'
       }
     ];
 
@@ -39,7 +44,7 @@ export default class SidebarContainer extends React.Component {
         {items.map((item, i) => {
           return item.disabled
           ? <Button key={i} color='primary' className='row' title={item.title} disabled><Icon name={item.icon} /></Button>
-          : <Link to={'manage/' + item.link} style={{ color: 'inherit', marginBottom: '0.33rem' }} >
+          : <Link to={'manage/' + item.link} key={item.key} style={{ color: 'inherit', marginBottom: '0.33rem' }} >
             <Button key={i} color='primary' className='row' title={item.title} disabled={item.disabled === true} style={{ width: '3rem' }}>
               <Icon name={item.icon} />
             </Button>

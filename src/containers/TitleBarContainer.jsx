@@ -58,7 +58,6 @@ class TitleBarContainer extends Component {
     const allURLs = [...defaultURLs];
     axios.all(allURLs.map((req) => axios.get(req, { withCredentials: true }))).then(
       axios.spread((services, overlays) => {
-        console.log(services.data.length);
         dispatch(actions.createMap([...services.data, ...JSON.parse(localStorage.getItem('geoweb')).personal_urls], overlays.data[0]));
       })
     ).catch((e) => console.log('Error!: ', e.response));
@@ -491,7 +490,7 @@ class TitleBarContainer extends Component {
           <Col xs='auto'>
             <Nav>
               <NavLink className='active' onClick={this.toggleLoginModal} ><Icon name='user' id='loginIcon' />{isLoggedIn ? ' ' + userName : ' Sign in'}</NavLink>
-              {hasRoleADMIN ? <Link to='manage' className='active nav-link'><Icon name='cog' /></Link> : '' }
+              {hasRoleADMIN ? <Link to='manage/app' className='active nav-link'><Icon name='cog' /></Link> : '' }
               <LayoutDropDown dispatch={this.props.dispatch} actions={this.props.actions} />
               <NavLink className='active' onClick={this.toggleFullscreen} ><Icon name='expand' /></NavLink>
               {isLoggedIn
