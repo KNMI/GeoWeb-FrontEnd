@@ -259,7 +259,18 @@ class TitleBarContainer extends Component {
     this.setState({ presetModal: !this.state.presetModal, loginModal: false });
   }
   savePreset () {
-    // Todo...
+    const presetName = 'myPreset';
+    axios({
+      method: 'post',
+      url: BACKEND_SERVER_URL + '/presets/putuserpreset',
+      params: {
+        name: presetName
+      },
+      withCredentials: true,
+      data: {
+        asdf: 'asdf'
+      }
+    });
   }
   returnInputRef (ref) {
     this.input = ref;
