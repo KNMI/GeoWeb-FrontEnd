@@ -46,6 +46,44 @@ class MapPanel extends Component {
             </Col>
           </Row>
         );
+      case 'tripleuneven':
+        return (
+          <Row style={{ flex: 1 }}>
+            <Col xs='6'>
+              <SinglePanel title={title} mapId={0} adagucProperties={adagucProperties} dispatch={dispatch} actions={actions} />
+            </Col>
+            <Col xs='6' style={{ flexDirection: 'column' }}>
+              <Row style={{ flex: 1 }}>
+                <SinglePanel title={title} mapId={1} adagucProperties={adagucProperties} dispatch={dispatch} actions={actions} />
+              </Row>
+              <Row style={{ flex: 1 }}>
+                <SinglePanel title={title} mapId={2} adagucProperties={adagucProperties} dispatch={dispatch} actions={actions} />
+              </Row>
+            </Col>
+          </Row>
+        );
+      case 'quad':
+        return (
+          <Row style={{ flex: 1 }}>
+            <Col xs='6' style={{ flexDirection: 'column' }}>
+              <Row style={{ flex: 1 }}>
+                <SinglePanel title={title} mapId={0} adagucProperties={adagucProperties} dispatch={dispatch} actions={actions} />
+              </Row>
+              <Row style={{ flex: 1 }}>
+                <SinglePanel title={title} mapId={2} adagucProperties={adagucProperties} dispatch={dispatch} actions={actions} />
+              </Row>
+            </Col>
+            <Col xs='6' style={{ flexDirection: 'column' }}>
+              <Row style={{ flex: 1 }}>
+                <SinglePanel title={title} mapId={1} adagucProperties={adagucProperties} dispatch={dispatch} actions={actions} />
+              </Row>
+              <Row style={{ flex: 1 }}>
+                <SinglePanel title={title} mapId={3} adagucProperties={adagucProperties} dispatch={dispatch} actions={actions} />
+              </Row>
+            </Col>
+          </Row>
+        );
+
       case 'quadcol':
         return (<Row style={{ flex: 1 }}>
           <Col xs='6'>

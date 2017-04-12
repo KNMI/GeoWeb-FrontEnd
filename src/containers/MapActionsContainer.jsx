@@ -269,7 +269,7 @@ class MapActionContainer extends Component {
 
   setPreset (preset) {
     const { dispatch, actions } = this.props;
-    dispatch(actions.setPreset(preset));
+    dispatch(actions.setPreset(preset[0]));
     this.setState({
       layerChooserOpen: false,
       activeTab: '1',

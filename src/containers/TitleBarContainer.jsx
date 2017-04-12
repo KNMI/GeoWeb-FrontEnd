@@ -43,7 +43,7 @@ class TitleBarContainer extends Component {
     this.inputfieldUserName = '';
     this.inputfieldPassword = '';
     this.timer = -1;
-
+    this.savePreset = this.savePreset.bind(this);
     this.state = {
       currentTime: moment.utc().format(timeFormat).toString(),
       loginModal: this.props.loginModal,
@@ -259,17 +259,76 @@ class TitleBarContainer extends Component {
     this.setState({ presetModal: !this.state.presetModal, loginModal: false });
   }
   savePreset () {
-    const presetName = 'myPreset';
+    const presetName = document.getElementById('presetname').value;
+    const saveLayers = document.getElementsByName('layerCheckbox')[0].checked;
+    const savePanelLayout = document.getElementsByName('panelCheckbox')[0].checked;
+    const saveBoundingBox = document.getElementsByName('viewCheckbox')[0].checked;
+    // const role = document.getElementsByName('roleSelect')[0].value;
+    let numPanels = -1;
+    if (/quad/.test(this.props.layout)) {
+      numPanels = 4;
+    } else if (/triple/.test(this.props.layout)) {
+      numPanels = 3;
+    } else if (/dual/.test(this.props.layout)) {
+      numPanels = 2;
+    } else {
+      numPanels = 1;
+    }
+
+    const displayObj = {
+      type: this.props.layout,
+      npanels: numPanels
+    };
+    const bbox = {
+      top: this.props.bbox[3],
+      bottom: this.props.bbox[1],
+      crs: this.props.projectionName
+    };
+    let layerConfig = [];
+    this.props.layers.panel.forEach((panel, i) => {
+      if (i >= numPanels) {
+        return;
+      }
+      let panelArr = [];
+      panel.datalayers.forEach((layer) => {
+        panelArr.push({
+          active: true,
+          dimensions: {},
+          service: layer.service,
+          name: layer.name,
+          opacity: layer.opacity,
+          overlay: false
+        });
+      });
+      panel.overlays.forEach((layer) => {
+        panelArr.push({
+          active: true,
+          dimensions: {},
+          service: layer.service,
+          name: layer.name,
+          opacity: 1,
+          overlay: true
+        });
+      });
+      layerConfig.push(panelArr);
+    });
+
+    const dataToSend = {
+      area: saveBoundingBox ? bbox : null,
+      display: savePanelLayout ? displayObj : null,
+      layers: saveLayers ? layerConfig : null,
+      name: presetName,
+      keywords: []
+    };
+
     axios({
       method: 'post',
-      url: BACKEND_SERVER_URL + '/presets/putuserpreset',
+      url: BACKEND_SERVER_URL + '/preset/putuserpreset',
       params: {
         name: presetName
       },
       withCredentials: true,
-      data: {
-        asdf: 'asdf'
-      }
+      data: dataToSend
     });
   }
   returnInputRef (ref) {
@@ -283,7 +342,7 @@ class TitleBarContainer extends Component {
         <Form>
           <FormGroup>
             <InputGroup>
-              <Input placeholder='Preset name' />
+              <Input id='presetname' placeholder='Preset name' />
               <InputGroupButton><Button color='primary' onClick={this.savePreset}><Icon className='icon' name='cloud' />Save</Button></InputGroupButton>
             </InputGroup>
           </FormGroup>
@@ -456,7 +515,9 @@ class LayoutDropDown extends Component {
             <Button onClick={() => this.postLayout('single')}>Single</Button>
             <Button onClick={() => this.postLayout('dual')}>Dual column</Button>
             <Button onClick={() => this.postLayout('quaduneven')}>Uneven quad</Button>
+            <Button onClick={() => this.postLayout('tripleuneven')}>Uneven triple</Button>
             <Button onClick={() => this.postLayout('quadcol')}>Four columns</Button>
+            <Button onClick={() => this.postLayout('quad')}>Square</Button>
           </ButtonGroup>
 
         </PopoverContent>
@@ -477,7 +538,11 @@ TitleBarContainer.propTypes = {
   roles: PropTypes.array,
   routes: PropTypes.array,
   dispatch: PropTypes.func,
-  actions: PropTypes.object
+  actions: PropTypes.object,
+  layout: PropTypes.string,
+  layers: PropTypes.object,
+  bbox: PropTypes.array,
+  projectionName: PropTypes.string
 };
 
 TitleBarContainer.defaultProps = {

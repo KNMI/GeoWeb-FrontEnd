@@ -449,6 +449,7 @@ class ModelTime extends React.Component {
   }
   render () {
     const { webmapjs } = this.props;
+
     if (webmapjs !== undefined) {
       if (this.listenersInitialized === undefined) { // TODO mount/unmount
         this.listenersInitialized = true;
@@ -457,6 +458,7 @@ class ModelTime extends React.Component {
         webmapjs.addListener('onmapdimchange', this.updateState, true);
       }
       webmapjs.setTimeOffset(this.state.display);
+      webmapjs.setActive(this.props.active);
     }
     return <div />;
   }
