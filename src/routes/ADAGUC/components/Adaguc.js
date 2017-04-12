@@ -325,26 +325,20 @@ export default class Adaguc extends React.Component {
     if (!prevProps.active && active) {
       dispatch(actions.setWMJSLayers({ layers: this.webMapJS.getLayers(), baselayers: this.webMapJS.getBaseLayers() }));
     }
-    if (!active) {
-      this.webMapJS.draw();
-      return;
-    }
     const currPanel = layers.panel[mapId];
     const prevPanel = prevProps.adagucProperties.layers.panel[mapId];
     let baseChanged = false;
     let layersChanged = false;
-    if (currPanel.overlays !== prevPanel.overlays) {
-      baseChanged = true;
-      const overlayers = currPanel.overlays.map((overlay) => {
-        // eslint-disable-next-line no-undef
-        const newOverlay = new WMJSLayer(overlay);
-        newOverlay.keepOnTop = true;
-        return newOverlay;
-      });
+    const overlayers = currPanel.overlays.map((overlay) => {
       // eslint-disable-next-line no-undef
-      const newBaselayers = [new WMJSLayer(layers.baselayer)].concat(overlayers);
-      this.webMapJS.setBaseLayers(newBaselayers);
-    }
+      const newOverlay = new WMJSLayer(overlay);
+      newOverlay.keepOnTop = true;
+      return newOverlay;
+    });
+    // eslint-disable-next-line no-undef
+    const newBaselayers = [new WMJSLayer(layers.baselayer)].concat(overlayers);
+    this.webMapJS.setBaseLayers(newBaselayers);
+
     if (currPanel.datalayers !== prevPanel.datalayers) {
       layersChanged = true;
       if (this.orderChanged(currPanel.datalayers, prevPanel.datalayers)) {
@@ -373,7 +367,7 @@ export default class Adaguc extends React.Component {
         }
       }
     }
-    if (baseChanged || layersChanged) {
+    if (active && (baseChanged || layersChanged)) {
       dispatch(actions.setWMJSLayers({ layers: this.webMapJS.getLayers(), baselayers: this.webMapJS.getBaseLayers() }));
     }
     this.webMapJS.draw();
