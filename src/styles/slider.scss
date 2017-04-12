@@ -1,3 +1,63 @@
+$ux-interactive-color: #017daf;
+$font-inactive-color: #777;
+$font-active-color: #333;
+$border-inactive-color: #919191;
+
 .rc-slider-tooltip {
     z-index: 100;
+}
+
+.Panel .rc-slider-handle:hover {
+    border-color: #015f8c;
+}
+
+.Panel .rc-slider-handle {
+    border-color: $ux-interactive-color;
+}
+
+.Panel .rc-slider-track {
+    background-color: $ux-interactive-color;
+}
+
+.Panel .rc-slider-dot {
+    border-color: $border-inactive-color;
+}
+
+.Panel .rc-slider-dot-active {
+    border-color: $ux-interactive-color;
+}
+
+.Panel .rc-slider-mark-text {
+    color: $font-inactive-color;
+    font-size: 0.9rem;
+}
+
+.Panel .rc-slider-mark-text-active {
+    color: $font-active-color;
+}
+
+.Panel .rc-slider-rail {
+    background-color: $border-inactive-color;
+}
+
+.Panel .rsbc-switch-button.rsbc-switch-button.rsbc-switch-button-flat-round input[type="checkbox"] + label,
+.Panel .rsbc-switch-button.rsbc-switch-button.rsbc-switch-button-flat-round.rsbc-mode-select:hover input[type="checkbox"]:checked + label, .Panel .rsbc-switch-button.rsbc-switch-button.rsbc-switch-button-flat-round.rsbc-mode-select input[type="checkbox"] + label {
+    background-color: $ux-interactive-color!important;
+    /* border-radius: 0.42rem; */
+}
+
+.Panel .rsbc-switch-button.rsbc-switch-button.rsbc-switch-button-flat-round input[type="checkbox"]:checked + label:after,
+.Panel .rsbc-switch-button.rsbc-switch-button.rsbc-switch-button-flat-round.rsbc-mode-select input[type="checkbox"] + label:after {
+    background-color: $ux-interactive-color!important;
+    /* border-radius: 0.19rem; */
+    width: 1rem;
+}
+
+.Panel .rsbc-switch-button.rsbc-switch-button-flat-round input[type="checkbox"]:checked + label:after {
+    margin-left: 1.5rem;
+}
+
+.Panel .rsbc-switch-button.rsbc-switch-button-flat-round input[type="checkbox"] + label:before {
+    background-color: #fff;
+    /* border-radius: 0.32rem; */
 }

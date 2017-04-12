@@ -130,6 +130,7 @@ class SigmetsContainer extends Component {
   }
 
   render () {
+    const maxSize = 400;
     let title = <Row>
       <Button color='primary' onClick={this.toggle} title={this.state.isOpen ? 'Collapse panel' : 'Expand panel'}>
         <Icon name={this.state.isOpen ? 'angle-double-left' : 'angle-double-right'} />
@@ -137,9 +138,9 @@ class SigmetsContainer extends Component {
     </Row>;
     return (
       <Col className='SigmetsContainer'>
-        <CollapseOmni className='CollapseOmni' isOpen={this.state.isOpen} isHorizontal minSize={64} maxSize={400}>
+        <CollapseOmni className='CollapseOmni' isOpen={this.state.isOpen} isHorizontal minSize={64} maxSize={maxSize}>
           <Panel className='Panel' title={title}>
-            <Col xs='auto' className='accordionsWrapper'>
+            <Col xs='auto' className='accordionsWrapper' style={{ minWidth: maxSize - 32 }}>
               {ITEMS.map((item, index) =>
                 <SigmetCategory phenomenonMapping={this.phenomenonMapping || []} adagucProperties={this.props.adagucProperties}
                   key={index} title={item.title} parentCollapsed={!this.state.isOpen}
