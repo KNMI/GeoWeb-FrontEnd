@@ -3,8 +3,10 @@ import Icon from 'react-fa';
 import GeoWebLogo from '../components/assets/icon.svg';
 import axios from 'axios';
 import { Navbar, NavbarBrand, Row, Col, Nav, NavLink, Breadcrumb, BreadcrumbItem, Collapse,
-ButtonGroup, Popover,
-PopoverContent,
+ButtonGroup, Popover, Form,
+FormGroup,
+Label,
+PopoverContent, PopoverTitle, InputGroupButton,
   Modal, ModalHeader, ModalBody, ModalFooter, Button, InputGroup, Input, FormText } from 'reactstrap';
 import { Link, hashHistory } from 'react-router';
 import { BACKEND_SERVER_URL } from '../routes/ADAGUC/constants/backend';
@@ -28,6 +30,7 @@ class TitleBarContainer extends Component {
     this.doLogin = this.doLogin.bind(this);
     this.doLogout = this.doLogout.bind(this);
     this.toggleLoginModal = this.toggleLoginModal.bind(this);
+    this.togglePresetModal = this.togglePresetModal.bind(this);
     this.handleOnChange = this.handleOnChange.bind(this);
     this.handleKeyPressPassword = this.handleKeyPressPassword.bind(this);
     this.checkCredentials = this.checkCredentials.bind(this);
@@ -44,7 +47,8 @@ class TitleBarContainer extends Component {
     this.state = {
       currentTime: moment.utc().format(timeFormat).toString(),
       loginModal: this.props.loginModal,
-      loginModalMessage: ''
+      loginModalMessage: '',
+      presetModal: false
     };
   }
 
@@ -121,6 +125,7 @@ class TitleBarContainer extends Component {
   }
 
   doLogout () {
+    this.toggleLoginModal();
     axios({
       method: 'get',
       url: BACKEND_SERVER_URL + '/logout',
@@ -250,10 +255,119 @@ class TitleBarContainer extends Component {
     }
   }
 
+  togglePresetModal () {
+    this.setState({ presetModal: !this.state.presetModal, loginModal: false });
+  }
+  savePreset () {
+    // Todo...
+  }
   returnInputRef (ref) {
     this.input = ref;
   }
 
+  renderPresetModal (presetModalOpen, togglePresetModal, hasRoleADMIN) {
+    return (<Modal isOpen={presetModalOpen} toggle={togglePresetModal}>
+      <ModalHeader toggle={togglePresetModal}>Save preset</ModalHeader>
+      <ModalBody>
+        <Form>
+          <FormGroup>
+            <InputGroup>
+              <Input placeholder='Preset name' />
+              <InputGroupButton><Button color='primary' onClick={this.savePreset}><Icon className='icon' name='cloud' />Save</Button></InputGroupButton>
+            </InputGroup>
+          </FormGroup>
+          <FormGroup tag='fieldset' row>
+            <Row>
+              <Col xs='6'>
+                <FormGroup check>
+                  <Label check>
+                    <Input type='checkbox' name='layerCheckbox' />{' '}
+                    Layers
+                  </Label>
+                </FormGroup>
+                <FormGroup check>
+                  <Label check>
+                    <Input type='checkbox' name='panelCheckbox' />{' '}
+                    Panel setting
+                  </Label>
+                </FormGroup>
+                <FormGroup check>
+                  <Label check>
+                    <Input type='checkbox' name='viewCheckbox' />{' '}
+                    View
+                  </Label>
+                </FormGroup>
+              </Col>
+              {hasRoleADMIN
+               ? <Col xs='6'>
+                 <FormGroup>
+                   <Label for='roleSelect'>Save for</Label>
+                   <Input type='select' name='roleSelect' id='roleSelect'>
+                     <option>Me</option>
+                     <option>Role Meteorologist</option>
+                     <option>Role User</option>
+                     <option>System wide</option>
+                   </Input>
+                 </FormGroup>
+               </Col>
+               : ''}
+            </Row>
+          </FormGroup>
+        </Form>
+      </ModalBody>
+      <ModalFooter>
+        <Button color='primary' onClick={this.savePreset}>
+          <Icon className='icon' name='cloud' />
+         Save
+        </Button>
+        <Button color='secondary' onClick={togglePresetModal}>Cancel</Button>
+      </ModalFooter>
+    </Modal>);
+  }
+  renderLoginModal (loginModalOpen, loginModalMessage, toggleLoginModal, handleOnChange, handleKeyPressPassword) {
+    return (<Modal isOpen={loginModalOpen} toggle={toggleLoginModal}>
+      <ModalHeader toggle={toggleLoginModal}>Sign in</ModalHeader>
+      <ModalBody>
+        <Collapse isOpen>
+          <InputGroup>
+            <input ref={(input) => { this.userNameInputRef = input; }} className='form-control' tabIndex={0} placeholder='username' name='username' onChange={this.handleOnChange} />
+            <Input type='password' name='password' id='examplePassword' placeholder='password'
+              onKeyPress={handleKeyPressPassword} onChange={handleOnChange} />
+          </InputGroup>
+        </Collapse>
+        <FormText color='muted'>
+          {loginModalMessage}
+        </FormText>
+      </ModalBody>
+      <ModalFooter>
+        <Button color='primary' onClick={this.doLogin} className='signInOut'>
+          <Icon className='icon' name='sign-in' />
+         Sign in
+        </Button>
+        <Button color='secondary' onClick={this.toggleLoginModal}>Cancel</Button>
+      </ModalFooter>
+    </Modal>);
+  }
+  renderLoggedInPopover (loginModal, toggle, userName) {
+    return (
+      <Popover placement='bottom' isOpen={loginModal} target='loginIcon' toggle={toggle}>
+        <PopoverTitle>Hi {userName}</PopoverTitle>
+        <PopoverContent>
+          <ButtonGroup vertical style={{ padding: '0.5rem' }}>
+            <Button onClick={this.togglePresetModal} >
+              <Icon className='icon' name='floppy-o' />
+              Save preset
+            </Button>
+            <Button onClick={this.doLogout} className='signInOut'>
+              <Icon className='icon' name='sign-out' />
+             Sign out
+            </Button>
+          </ButtonGroup>
+        </PopoverContent>
+      </Popover>
+
+    );
+  }
   render () {
     const { isLoggedIn, userName, routes } = this.props;
     const hasRoleADMIN = CheckIfUserHasRole(this.props, UserRoles.ADMIN);
@@ -294,38 +408,16 @@ class TitleBarContainer extends Component {
               {hasRoleADMIN ? <Link to='manage' className='active nav-link'><Icon name='cog' /></Link> : '' }
               <LayoutDropDown dispatch={this.props.dispatch} actions={this.props.actions} />
               <NavLink className='active' onClick={this.toggleFullscreen} ><Icon name='expand' /></NavLink>
+              {isLoggedIn
+                ? this.renderLoggedInPopover(this.state.loginModal, this.toggleLoginModal, userName)
+                : this.renderLoginModal(this.state.loginModal,
+                  this.state.loginModalMessage, this.toggleLoginModal, this.handleOnChange, this.handleKeyPressPassword)
+              }
+              {this.renderPresetModal(this.state.presetModal, this.togglePresetModal, hasRoleADMIN)}
+
             </Nav>
           </Col>
         </Row>
-        <Modal isOpen={this.state.loginModal} toggle={this.toggleLoginModal}>
-          <ModalHeader toggle={this.toggleLoginModal}>{isLoggedIn ? 'You are signed in.' : 'Sign in'}</ModalHeader>
-          <ModalBody>
-            <Collapse isOpen>
-              {isLoggedIn
-              ? <InputGroup>
-                <Input placeholder='Preset name' />
-                <Button color='primary'>Save as preset</Button>
-              </InputGroup>
-              : <InputGroup>
-                <input ref={(input) => { this.userNameInputRef = input; }} className='form-control' tabIndex={0} placeholder='username' name='username' onChange={this.handleOnChange} />
-                <Input type='password' name='password' id='examplePassword' placeholder='password'
-                  onKeyPress={this.handleKeyPressPassword} onChange={this.handleOnChange}
-                />
-              </InputGroup>
-            }
-            </Collapse>
-            <FormText color='muted'>
-              {this.state.loginModalMessage}
-            </FormText>
-          </ModalBody>
-          <ModalFooter>
-            <Button color='primary' onClick={this.doLogin} className='signInOut'>
-              <Icon className='icon' name={isLoggedIn ? 'sign-out' : 'sign-in'} />
-              {isLoggedIn ? 'Sign out' : 'Sign in'}
-            </Button>{' '}
-            <Button color='secondary' onClick={this.toggleLoginModal}>Cancel</Button>
-          </ModalFooter>
-        </Modal>
       </Navbar>
 
     );
