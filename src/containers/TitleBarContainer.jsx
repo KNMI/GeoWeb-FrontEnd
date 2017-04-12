@@ -445,7 +445,9 @@ class LayoutDropDown extends Component {
             <Button onClick={() => this.postLayout('single')}>Single</Button>
             <Button onClick={() => this.postLayout('dual')}>Dual column</Button>
             <Button onClick={() => this.postLayout('quaduneven')}>Uneven quad</Button>
+            <Button onClick={() => this.postLayout('tripleuneven')}>Uneven triple</Button>
             <Button onClick={() => this.postLayout('quadcol')}>Four columns</Button>
+            <Button onClick={() => this.postLayout('quad')}>Square</Button>
           </ButtonGroup>
 
         </PopoverContent>

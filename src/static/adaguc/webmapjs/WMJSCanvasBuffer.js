@@ -67,13 +67,15 @@ var WMJSCanvasBuffer = function (webmapJSCallback, _type, _imageStore, w, h) {
     _this.hidden = false;
     ctx.globalAlpha = 1;
 
-    ctx.clearRect(0, 0, width, height);
-    // if (type !== 'legendbuffer') {
-    //   ctx.beginPath();
-    //   ctx.rect(0, 0, width, height);
-    //   ctx.fillStyle = 'red';
-    //   ctx.fill();
-    // }
+    if (type === 'legendbuffer') {
+      ctx.clearRect(0, 0, width, height);
+    }
+    if (type === 'imagebuffer') {
+      ctx.beginPath();
+      ctx.rect(0, 0, width, height);
+      ctx.fillStyle = 'white';
+      ctx.fill();
+    }
       // if (type === 'legendbuffer') {
     //   ctx.fillStyle = 'transparent';
     // }
