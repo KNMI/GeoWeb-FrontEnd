@@ -7,6 +7,8 @@ import Panel from '../components/Panel';
 import cloneDeep from 'lodash/cloneDeep';
 import { BACKEND_SERVER_URL } from '../routes/ADAGUC/constants/backend';
 import axios from 'axios';
+import moment from 'moment';
+
 const GET_SIGMETS_URL = BACKEND_SERVER_URL + '/sigmet/getsigmetlist?';
 const SET_SIGMET_URL = BACKEND_SERVER_URL + '/sigmet/storesigmet';
 const ITEMS = [
@@ -60,11 +62,12 @@ class SigmetsContainer extends Component {
     super(props);
     this.toggle = this.toggle.bind(this);
     this.select = this.select.bind(this);
+    this.updateParent = this.updateParent.bind(this);
     let isOpenCategory = {};
     ITEMS.forEach((item, index) => {
       isOpenCategory[item.ref] = false;
     });
-    this.state = { isOpen: true, selectedItem: {}, isOpenCategory: isOpenCategory };
+    this.state = { isOpen: true, selectedItem: {}, isOpenCategory: isOpenCategory, latestUpdateTime: moment().utc().format() };
     axios.get(BACKEND_SERVER_URL + '/sigmet/getsigmetphenomena').then((res) => {
       this.phenomenonMapping = res.data;
     }).catch((error) => {
@@ -134,7 +137,12 @@ class SigmetsContainer extends Component {
     this.props.dispatch(this.props.actions.setGeoJSON({ geojson: geojson }));
   }
 
+  updateParent () {
+    this.setState({ latestUpdateTime: moment().utc().format(), geojson: EMPTY_GEO_JSON });
+  }
+
   render () {
+    console.log(this.state);
     const maxSize = 400;
     let title = <Row>
       <Button color='primary' onClick={this.toggle} title={this.state.isOpen ? 'Collapse panel' : 'Expand panel'}>
@@ -149,11 +157,11 @@ class SigmetsContainer extends Component {
               {ITEMS.map((item, index) =>
                 <SigmetCategory phenomenonMapping={this.phenomenonMapping || []} adagucProperties={this.props.adagucProperties}
                   key={index} title={item.title} parentCollapsed={!this.state.isOpen}
-                  icon={item.icon} source={item.source} editable={item.editable}
+                  icon={item.icon} source={item.source} editable={item.editable} latestUpdateTime={this.state.latestUpdateTime}
                   isOpen={this.state.isOpen && this.state.isOpenCategory[item.ref]}
                   selectedIndex={typeof this.state.selectedItem.index !== 'undefined' && this.state.selectedItem.category === item.ref ? this.state.selectedItem.index : -1}
                   selectMethod={(index, geo) => this.select(item.ref, index, geo)} toggleMethod={() => this.toggleCategory(item.ref)}
-                  dispatch={this.props.dispatch} actions={this.props.actions}
+                  dispatch={this.props.dispatch} actions={this.props.actions} updateParent={this.updateParent}
                   parameters={this.parameters || {}} />
               )}
             </Col>

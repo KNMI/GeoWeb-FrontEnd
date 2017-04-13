@@ -1,6 +1,7 @@
 import React, { Component, PropTypes } from 'react';
 import { Button, ButtonGroup, Col, Row, Badge, Card, CardHeader, CardBlock } from 'reactstrap';
 import Moment from 'react-moment';
+import moment from 'moment';
 import Icon from 'react-fa';
 import axios from 'axios';
 import { cloneDeep, isEmpty } from 'lodash';
@@ -55,7 +56,8 @@ const EMPTY_SIGMET = {
   change                    : 'NC',
   forecast_position         : '',
   issuedate                 : '',
-  validdate                 : '',
+  validdate                 : moment().utc().format(),
+  validdate_end              : moment().add(4, 'hour'),
   firname                   : '',
   location_indicator_icao   : '',
   location_indicator_mwo    : 'EHDB',
@@ -221,7 +223,8 @@ class SigmetCategory extends Component {
     this.setState({ list: newList });
   }
 
-  saveSigmet () {
+  saveSigmet (evt) {
+    evt.preventDefault();
     const newList = cloneDeep(this.state.list);
     newList[0].geojson = this.props.adagucProperties.adagucmapdraw.geojson;
     this.setState({ list: newList });
@@ -230,7 +233,7 @@ class SigmetCategory extends Component {
       url: this.props.source,
       withCredentials: true,
       responseType: 'json',
-      data: JSON.stringify(newList[0])
+      data: newList[0]
     }).then(src => {
       this.savedSigmetCallback(src);
     }).catch(error => {
@@ -266,12 +269,16 @@ class SigmetCategory extends Component {
     this.setState({ list: listCpy });
   }
 
-  setSelectedValidFromMoment (moment) {
-    console.log('Moment from', moment);
+  setSelectedValidFromMoment (validFrom) {
+    let listCpy = cloneDeep(this.state.list);
+    listCpy[0].validdate = validFrom.utc().format();
+    this.setState({ list: listCpy });
   }
 
-  setSelectedValidUntilMoment (moment) {
-    console.log('Moment until', moment);
+  setSelectedValidUntilMoment (validUntil) {
+    let listCpy = cloneDeep(this.state.list);
+    listCpy[0].validdate_end = validUntil.utc().format();
+    this.setState({ list: listCpy });
   }
 
   getExistingSigmets () {
@@ -300,7 +307,9 @@ class SigmetCategory extends Component {
   }
 
   savedSigmetCallback (message) {
-    // intentionally empty
+    this.setState({ isOpen: false });
+    this.props.selectMethod(0);
+    this.props.updateParent();
   }
 
   componentWillMount () {
@@ -357,6 +366,52 @@ class SigmetCategory extends Component {
         break;
     }
   };
+
+  showLevels (level) {
+    if (!level.lev1) {
+      return '';
+    }
+    let result = '';
+    switch (level.lev1.unit) {
+      case 'SFC':
+        if (!level.lev2) {
+          return '';
+        }
+        result = 'Between surface and ';
+        if (level.lev2.unit === UNIT_FL) {
+          result += UNIT_FL + level.lev2.value;
+        } else {
+          result += level.lev2.value + level.lev2.unit === UNIT_M ? 'm' : 'ft';
+        }
+        return result;
+      case 'TOP':
+        return 'Tops at FL' + level.lev1.value;
+      case 'TOP_ABV':
+        return 'Tops above FL' + level.lev1.value;
+      case 'ABV':
+        return 'Above FL' + level.lev1.value;
+    }
+
+    if (!level.lev2) {
+      let result = 'At ';
+      if (level.lev1.unit === UNIT_FL) {
+        result += 'FL' + level.lev1.value;
+      } else {
+        result += level.lev1.value + level.lev1.unit === UNIT_M ? 'm' : 'ft';
+      }
+      return result;
+    } else {
+      let result = 'Between ';
+      if (level.lev1.unit === UNIT_FL) {
+        result += 'FL' + level.lev1.value + ' and FL' + level.lev2.value;
+      } else if (level.lev1.unit === UNIT_M) {
+        result += level.lev1.value + 'm and ' + level.lev2.value + 'm';
+      } else {
+        result += level.lev1.value + 'ft and ' + level.lev2.value + 'ft';
+      }
+      return result;
+    }
+  }
 
   setTops (evt) {
     let newPartialState = { tops: evt.target.checked };
@@ -521,8 +576,7 @@ class SigmetCategory extends Component {
       </Row>);
     }
     return (<Col>
-      {item.level.lev1 ? item.level.lev1.value + item.level.lev1.unit : ''}
-      {item.level.lev2 ? ' - ' + item.level.lev2.value + item.level.lev2.unit : ''}
+      {this.showLevels(item.level)}
     </Col>);
   }
 
@@ -596,7 +650,14 @@ class SigmetCategory extends Component {
                       </Col>
                       <Col xs='9'>
                         {editable
-                          ? <DateTimePicker style={{ width: '100%' }} dateFormat={DATE_FORMAT} timeFormat={TIME_FORMAT} onChange={(moment) => this.setSelectedValidFromMoment(moment)} />
+                          ? <DateTimePicker style={{ width: '100%' }} dateFormat={DATE_FORMAT} timeFormat={TIME_FORMAT} utc
+                            onChange={(validFrom) => this.setSelectedValidFromMoment(validFrom)}
+                            isValidDate={(curr, selected) => curr.isAfter(moment().subtract(1, 'day')) &&
+                              curr.isBefore(moment().add(this.getParameters().hoursbeforevalidity, 'hour'))}
+                            timeConstraints={{ hours: {
+                              min: moment().hour(),
+                              max: (moment().hour() + this.getParameters().hoursbeforevalidity)
+                            } }} />
                           : <Moment format={DATE_TIME_FORMAT} date={item.validdate} />
                         }
                       </Col>
@@ -607,8 +668,15 @@ class SigmetCategory extends Component {
                       </Col>
                       <Col xs='9'>
                         {editable
-                          ? <DateTimePicker style={{ width: '100%' }} dateFormat={DATE_FORMAT} timeFormat={TIME_FORMAT} onChange={(moment) => this.setSelectedValidUntilMoment(moment)} />
-                          : <Moment format={DATE_TIME_FORMAT} date={item.validdateend} />
+                          ? <DateTimePicker style={{ width: '100%' }} dateFormat={DATE_FORMAT} timeFormat={TIME_FORMAT} utc
+                            onChange={(validUntil) => this.setSelectedValidUntilMoment(validUntil)}
+                            isValidDate={(curr, selected) => curr.isAfter(moment(this.state.list[0].validdate).subtract(1, 'day')) &&
+                              curr.isBefore(moment(this.state.list[0].validdate).add(this.getParameters().maxhoursofvalidity, 'hour'))}
+                            timeConstraints={{ hours: {
+                              min: moment(this.state.list[0].validdate).hour(),
+                              max: (moment(this.state.list[0].validdate).hour() + this.getParameters().maxhoursofvalidity)
+                            } }} />
+                          : <Moment format={DATE_TIME_FORMAT} date={item.validdate_end} />
                         }
                       </Col>
                     </Row>
@@ -660,7 +728,7 @@ class SigmetCategory extends Component {
                         {editable
                           ? '--'
                           : <Moment format={DATE_TIME_FORMAT} date={item.issuedate} />
-                        }&nbsp;UTC
+                        }
                       </Col>
                     </Row>
                     <Row>
@@ -682,7 +750,7 @@ class SigmetCategory extends Component {
                     {editable
                       ? <Row style={{ minHeight: '2.5rem' }}>
                         <Col xs={{ size: 3, offset: 9 }}>
-                          <Button color='primary' onClick={(evt) => { console.log('Clicked', evt); }} >Save</Button>
+                          <Button color='primary' onClick={this.saveSigmet} >Save</Button>
                         </Col>
                       </Row>
                       : ''
@@ -711,7 +779,9 @@ SigmetCategory.propTypes = {
   adagucProperties  : PropTypes.object,
   phenomenonMapping : PropTypes.array,
   dispatch          : PropTypes.func,
-  actions           : PropTypes.object
+  actions           : PropTypes.object,
+  updateParent      : PropTypes.func,
+  latestUpdateTime  : PropTypes.string
 };
 
 export default SigmetCategory;
