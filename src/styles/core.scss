@@ -3,6 +3,7 @@
 @import 'collapse';
 @import 'slider';
 @import 'popover';
+@import 'datetime';
 
 $radius-size: 0.19rem;
 $shadow: 0.06rem 0.125rem 0.125rem rgba(0,0,0,0.3);
@@ -80,12 +81,12 @@ body {
   margin: 0;
 }
 
-.col, .col-6, .col-2, .col-3, .col-4, .col-10 {
+.col, .col-1, .col-2, .col-3, .col-4, .col-6, .col-7, .col-8, .col-9, .col-10, .col-12 {
   padding: 0;
 }
 
 .rounded {
-  border-radius: $radius-size
+  border-radius: $radius-size;
 }
 .rounded-top {
   border-radius: $radius-size $radius-size 0 0;
@@ -397,6 +398,30 @@ a.breadcrumb-active:hover, a.nav-link.active:hover {
   box-shadow: unset;
 }
 
+.accordion .row.section {
+  border-top: 0.06rem solid #eee;
+  padding-top: 0.5rem;
+}
+
+.accordion .Sigmet .badge {
+  padding: 0.25em 0.4em;
+  width: 100%;
+  height: 1.2rem;
+}
+
+.accordion .Sigmet .bootstrap-typeahead,
+.accordion .Sigmet .bootstrap-typeahead-input {
+  width: 100%;
+}
+
+.accordion .Sigmet .btn-group .btn {
+  padding: 0.19rem 0.5rem;
+}
+
+.dropdown-item, .bootstrap-typeahead-menu > li, .popover-content > li {
+  padding: 0.19rem;
+}
+
 .loc-card {
   margin: 1rem;
   height: 11rem;
@@ -412,7 +437,7 @@ a.breadcrumb-active:hover, a.nav-link.active:hover {
   padding: 0;
 }
 
-.container-fluid div:not(.collapse):not(.dropdown-menu):not(.btn-group-vertical):not(.managementPanel):not(.loc-card):not(.managementRow) {
+.container-fluid div:not(.collapse):not(.dropdown-menu):not(.btn-group-vertical):not(.managementPanel):not(.loc-card):not(.managementRow):not(.rdt):not(.rdtPicker) {
   display: inherit;
 }
 
@@ -591,7 +616,8 @@ main:fullscreen {
 
 .accordion .card-block .Sigmet.row.btn {
   flex-direction: column;
-  padding: 0.5rem;
+  padding: 0.19rem;
+  line-height: 1.4rem;
 }
 
 .accordion .card-block .Sigmet.row.btn .row {
