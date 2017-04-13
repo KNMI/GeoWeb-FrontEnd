@@ -183,6 +183,32 @@
 
     var divBuffer = [];
 
+    var mapHeader = {
+      height:30,
+      fill:{
+        color:'#EEE',
+        opacity:0.4
+      },
+      hover:{
+        color:'#017daf',
+        opacity:0.9
+      },
+      selected:{
+        color:'#017daf',
+        opacity:1.0
+      },
+      hoverSelected:{
+        color:'#017daf',
+        opacity:1.0
+      },
+      cursorSet:false,
+      prevCursor:'default',
+      hovering:false
+    };
+
+    var currentCursor = 'default';
+    var mapIsActivated = false;
+
     var loadingDiv = $('<div class="WMJSDivBuffer-loading"/>', {});
     var initialized = 0;
     var newSwapBuffer = 0;
@@ -995,6 +1021,11 @@
     this.setLayer = function (layer, getcapdoc) {
       // mapdimensions = new Array(
       return _map.addLayer(layer, getcapdoc, layer);
+    };
+
+    /* Indicate weather this map component is active or not */
+    this.setActive = function (active) {
+      mapIsActivated = active;
     };
 
     this.setActiveLayer = function (layer) {
@@ -1924,8 +1955,19 @@
             if (enableConsoleDebugging)console.log('loadedBBOX.setBBOX(bbox)');
             loadedBBOX.setBBOX(loadingBBOX);
             if (enableConsoleDebugging)console.log('-----------------------');
-
+            var ctx = divBuffer[current].getCanvasContext();
             divBuffer[current].display(updateBBOX, loadedBBOX);
+            ctx.beginPath();
+            ctx.rect(0, 0, width, mapHeader.height);
+            if (mapIsActivated === false) {
+              ctx.globalAlpha = mapHeader.hovering ? mapHeader.hover.opacity : mapHeader.fill.opacity;
+              ctx.fillStyle = mapHeader.hovering ? mapHeader.hover.color : mapHeader.fill.color;
+            } else {
+              ctx.globalAlpha = mapHeader.hovering ? mapHeader.hoverSelected.opacity : mapHeader.selected.opacity;
+              ctx.fillStyle = mapHeader.hovering ? mapHeader.hoverSelected.color : mapHeader.selected.color;
+            }
+            ctx.fill();
+            ctx.globalAlpha = 1;
             divMapPin.oldx = divMapPin.exactX;
             divMapPin.oldy = divMapPin.exactY;
             divBuffer[prev].hide();
@@ -2723,11 +2765,31 @@
     this.mouseDownEvent = function (e) {
       preventdefault_event(e);
       var mouseCoords = _map.getMouseCoordinatesForDocument(e);
+      if (mapHeader.cursorSet && mouseCoords.y < mapHeader.height) {
+        return;
+      }
       _map.mouseDown(mouseCoords.x, mouseCoords.y, e);
     };
     this.mouseMoveEvent = function (e) {
       preventdefault_event(e);
       var mouseCoords = _map.getMouseCoordinatesForDocument(e);
+      if (mouseDownPressed === 0 && mouseCoords.y >= 0 && mouseCoords.y < mapHeader.height && mouseCoords.x >= 0 && mouseCoords.x <= width) {
+        if (mapHeader.cursorSet === false) {
+          mapHeader.cursorSet = true;
+          mapHeader.prevCursor = currentCursor;
+          mapHeader.hovering = true;
+          _map.setCursor('pointer');
+          _map.draw();
+        }
+      } else {
+        if (mapHeader.cursorSet === true) {
+          mapHeader.cursorSet = false;
+          mapHeader.hovering = false;
+          _map.setCursor(mapHeader.prevCursor);
+          _map.draw();
+        }
+      }
+
       _map.mouseMove(mouseCoords.x, mouseCoords.y, e);
     };
     this.mouseUpEvent = function (e) {
@@ -2888,7 +2950,7 @@
                   if (dialog.moveToMouseCursor == true) {
                     dialog.setXY(mouseUpX, mouseUpY);
                   } else {
-                    dialog.setXY(320, 5);
+                    dialog.setXY(5, 35);
                   }
                 }
 
@@ -3081,10 +3143,11 @@
 
     this.setCursor = function (cursor) {
       if (cursor) {
-        baseDiv.css('cursor', cursor);
+        currentCursor = cursor;
       } else {
-        baseDiv.css('cursor', 'default');
+        currentCursor = 'default';
       }
+      baseDiv.css('cursor', currentCursor);
     };
 
     this.zoomTo = function (_newbbox) {

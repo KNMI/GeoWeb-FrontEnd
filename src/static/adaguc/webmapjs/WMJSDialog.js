@@ -32,18 +32,17 @@ WMJSDialog.createDialog = function (options, baseDiv, _map) {
   var dialog = jQuery('<div />', {
     css:{
       minHeight:'20px',
-      height:200,
-      width:420,
+      height:180,
+      width:320,
       zIndex:1000,
         // border:'2px solid #8890D0',
-      borderTop:'1px solid #8890D0',
-      borderRight:'1px solid #8890D0',
-      borderBottom:'1px solid #6670B0',
-      borderLeft:'1px solid #6670B0',
+      border:'1px solid #01405e',
+      borderRadius:'3px',
       position:'absolute',
+      boxShadow:'0.06rem 0.125rem 0.125rem rgba(0, 0, 0, 0.3)',
       margin:0,
       padding:'0px',
-      backgroundColor:'#EEF',
+      backgroundColor:'#01547d',
       display:'inline-block'
     },
     mousedown:function (event) {
@@ -83,14 +82,15 @@ WMJSDialog.createDialog = function (options, baseDiv, _map) {
       // alert(e);
     if (e.keyCode == 27) { dialog.closeDialog(); }
   });
-  var closeButton = jQuery('<div/>', { css:{ position:'absolute', right:'6px', top:'-3px', margin:'0px', padding:'0px', zIndex:1200 },
+  var closeButton = jQuery('<div/>', { css:{ color:'white', fontWeight:'bold', textColor:'white',width:'16px',height:'16px', lineHeight:'14px', margin:'1px', padding:'1px !important', zIndex:1200 },
     click:function () {
       dialog.closeDialog();
     } }).appendTo(dialog);
-  closeButton.iconbutton({ text:false, icons:{ primary:'wmjs-icon-close' } });
+  // closeButton.iconbutton({ text:'X'});
+  closeButton.iconbutton({ label:'X'}).addClass('wmjsdialog-closebutton');
 
   var dialogContent = jQuery('<div/>', {
-    css:{ position:'absolute', right:'0px', top:'18px', background:'#FFF', borderTop:'2px solid #6670B0', width:'100%', height:'100%', overflow:'auto', fontSize:'10px', lineHeight:'12px' },
+    css:{ position:'absolute', right:'0px', top:'18px', background:'#FFF', borderTop:'1px solid #01405e', width:'100%', height:'100%', overflow:'auto', fontSize:'10px', lineHeight:'12px' },
     mousedown:function (event) {
       event.stopPropagation();
       preventdefault_event(event);

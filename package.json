@@ -62,7 +62,7 @@
       }
     },
     "test": {
-      "command": "node --max_old_space_size=8192 ./node_modules/karma/bin/karma start config/karma.config",
+      "command": "node --max_old_space_size=16384 ./node_modules/karma/bin/karma start config/karma.config",
       "env": {
         "NODE_ENV": "test",
         "DEBUG": "app:*"

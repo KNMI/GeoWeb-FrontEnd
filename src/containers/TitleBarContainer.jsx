@@ -3,8 +3,10 @@ import Icon from 'react-fa';
 import GeoWebLogo from '../components/assets/icon.svg';
 import axios from 'axios';
 import { Navbar, NavbarBrand, Row, Col, Nav, NavLink, Breadcrumb, BreadcrumbItem, Collapse,
-ButtonGroup, Popover,
-PopoverContent,
+ButtonGroup, Popover, Form,
+FormGroup,
+Label,
+PopoverContent, PopoverTitle, InputGroupButton,
   Modal, ModalHeader, ModalBody, ModalFooter, Button, InputGroup, Input, FormText } from 'reactstrap';
 import { Link, hashHistory } from 'react-router';
 import { BACKEND_SERVER_URL } from '../routes/ADAGUC/constants/backend';
@@ -28,6 +30,7 @@ class TitleBarContainer extends Component {
     this.doLogin = this.doLogin.bind(this);
     this.doLogout = this.doLogout.bind(this);
     this.toggleLoginModal = this.toggleLoginModal.bind(this);
+    this.togglePresetModal = this.togglePresetModal.bind(this);
     this.handleOnChange = this.handleOnChange.bind(this);
     this.handleKeyPressPassword = this.handleKeyPressPassword.bind(this);
     this.checkCredentials = this.checkCredentials.bind(this);
@@ -40,11 +43,12 @@ class TitleBarContainer extends Component {
     this.inputfieldUserName = '';
     this.inputfieldPassword = '';
     this.timer = -1;
-
+    this.savePreset = this.savePreset.bind(this);
     this.state = {
       currentTime: moment.utc().format(timeFormat).toString(),
       loginModal: this.props.loginModal,
-      loginModalMessage: ''
+      loginModalMessage: '',
+      presetModal: false
     };
   }
 
@@ -54,7 +58,6 @@ class TitleBarContainer extends Component {
     const allURLs = [...defaultURLs];
     axios.all(allURLs.map((req) => axios.get(req, { withCredentials: true }))).then(
       axios.spread((services, overlays) => {
-        console.log(services.data.length);
         dispatch(actions.createMap([...services.data, ...JSON.parse(localStorage.getItem('geoweb')).personal_urls], overlays.data[0]));
       })
     ).catch((e) => console.log('Error!: ', e.response));
@@ -109,7 +112,7 @@ class TitleBarContainer extends Component {
         this.checkCredentials(() => {
           // When signed in as admin, jump to admin manage page
           if (CheckIfUserHasRole(this.props, UserRoles.ADMIN)) {
-            hashHistory.push('/manage');
+            hashHistory.push('/manage/app');
           }
         });
       }).catch(error => {
@@ -121,6 +124,7 @@ class TitleBarContainer extends Component {
   }
 
   doLogout () {
+    this.toggleLoginModal();
     axios({
       method: 'get',
       url: BACKEND_SERVER_URL + '/logout',
@@ -250,10 +254,205 @@ class TitleBarContainer extends Component {
     }
   }
 
+  togglePresetModal () {
+    this.setState({ presetModal: !this.state.presetModal, loginModal: false });
+  }
+  savePreset () {
+    const presetName = document.getElementById('presetname').value;
+    const saveLayers = document.getElementsByName('layerCheckbox')[0].checked;
+    const savePanelLayout = document.getElementsByName('panelCheckbox')[0].checked;
+    const saveBoundingBox = document.getElementsByName('viewCheckbox')[0].checked;
+    const role = document.getElementsByName('roleSelect');
+    let numPanels = -1;
+    if (/quad/.test(this.props.layout)) {
+      numPanels = 4;
+    } else if (/triple/.test(this.props.layout)) {
+      numPanels = 3;
+    } else if (/dual/.test(this.props.layout)) {
+      numPanels = 2;
+    } else {
+      numPanels = 1;
+    }
+
+    const displayObj = {
+      type: this.props.layout,
+      npanels: numPanels
+    };
+    const bbox = {
+      top: this.props.bbox[3],
+      bottom: this.props.bbox[1],
+      crs: this.props.projectionName
+    };
+    let layerConfig = [];
+    this.props.layers.panel.forEach((panel, i) => {
+      if (i >= numPanels) {
+        return;
+      }
+      let panelArr = [];
+      panel.datalayers.forEach((layer) => {
+        panelArr.push({
+          active: true,
+          dimensions: {},
+          service: layer.service,
+          name: layer.name,
+          opacity: layer.opacity,
+          overlay: false
+        });
+      });
+      panel.overlays.forEach((layer) => {
+        panelArr.push({
+          active: true,
+          dimensions: {},
+          service: layer.service,
+          name: layer.name,
+          opacity: 1,
+          overlay: true
+        });
+      });
+      layerConfig.push(panelArr);
+    });
+
+    const dataToSend = {
+      area: saveBoundingBox ? bbox : null,
+      display: savePanelLayout ? displayObj : null,
+      layers: saveLayers ? layerConfig : null,
+      name: presetName,
+      keywords: []
+    };
+
+    let url = BACKEND_SERVER_URL + '/preset/';
+    let params = {
+      name: presetName
+    };
+    if (role.length === 0) {
+      url += 'putuserpreset';
+    } else {
+      const selectedRole = role[0].options[role[0].selectedIndex].value;
+      if (selectedRole === 'system') {
+        url += 'putsystempreset';
+      } else if (selectedRole === 'user') {
+        url += 'putuserpreset';
+      } else {
+        url += 'putsrolespreset';
+        params['roles'] = selectedRole;
+      }
+    }
+
+    axios({
+      method: 'post',
+      url: url,
+      params: params,
+      withCredentials: true,
+      data: dataToSend
+    });
+    this.togglePresetModal();
+  }
   returnInputRef (ref) {
     this.input = ref;
   }
 
+  renderPresetModal (presetModalOpen, togglePresetModal, hasRoleADMIN) {
+    return (<Modal isOpen={presetModalOpen} toggle={togglePresetModal}>
+      <ModalHeader toggle={togglePresetModal}>Save preset</ModalHeader>
+      <ModalBody>
+        <Form>
+          <FormGroup>
+            <InputGroup>
+              <Input id='presetname' placeholder='Preset name' />
+              <InputGroupButton><Button color='primary' onClick={this.savePreset}><Icon className='icon' name='cloud' />Save</Button></InputGroupButton>
+            </InputGroup>
+          </FormGroup>
+          <FormGroup tag='fieldset' row>
+            <Row>
+              <Col xs='6'>
+                <FormGroup check>
+                  <Label check>
+                    <Input type='checkbox' name='layerCheckbox' />{' '}
+                    Layers
+                  </Label>
+                </FormGroup>
+                <FormGroup check>
+                  <Label check>
+                    <Input type='checkbox' name='panelCheckbox' />{' '}
+                    Panel setting
+                  </Label>
+                </FormGroup>
+                <FormGroup check>
+                  <Label check>
+                    <Input type='checkbox' name='viewCheckbox' />{' '}
+                    View
+                  </Label>
+                </FormGroup>
+              </Col>
+              {hasRoleADMIN
+               ? <Col xs='6'>
+                 <FormGroup>
+                   <Label for='roleSelect'>Save for</Label>
+                   <Input type='select' name='roleSelect' id='roleSelect'>
+                     <option value='user' >Me</option>
+                     <option value='MET'>Role Meteorologist</option>
+                     <option value='system'>System wide</option>
+                   </Input>
+                 </FormGroup>
+               </Col>
+               : ''}
+            </Row>
+          </FormGroup>
+        </Form>
+      </ModalBody>
+      <ModalFooter>
+        <Button color='primary' onClick={this.savePreset}>
+          <Icon className='icon' name='cloud' />
+         Save
+        </Button>
+        <Button color='secondary' onClick={togglePresetModal}>Cancel</Button>
+      </ModalFooter>
+    </Modal>);
+  }
+  renderLoginModal (loginModalOpen, loginModalMessage, toggleLoginModal, handleOnChange, handleKeyPressPassword) {
+    return (<Modal isOpen={loginModalOpen} toggle={toggleLoginModal}>
+      <ModalHeader toggle={toggleLoginModal}>Sign in</ModalHeader>
+      <ModalBody>
+        <Collapse isOpen>
+          <InputGroup>
+            <input ref={(input) => { this.userNameInputRef = input; }} className='form-control' tabIndex={0} placeholder='username' name='username' onChange={this.handleOnChange} />
+            <Input type='password' name='password' id='examplePassword' placeholder='password'
+              onKeyPress={handleKeyPressPassword} onChange={handleOnChange} />
+          </InputGroup>
+        </Collapse>
+        <FormText color='muted'>
+          {loginModalMessage}
+        </FormText>
+      </ModalBody>
+      <ModalFooter>
+        <Button color='primary' onClick={this.doLogin} className='signInOut'>
+          <Icon className='icon' name='sign-in' />
+         Sign in
+        </Button>
+        <Button color='secondary' onClick={this.toggleLoginModal}>Cancel</Button>
+      </ModalFooter>
+    </Modal>);
+  }
+  renderLoggedInPopover (loginModal, toggle, userName) {
+    return (
+      <Popover placement='bottom' isOpen={loginModal} target='loginIcon' toggle={toggle}>
+        <PopoverTitle>Hi {userName}</PopoverTitle>
+        <PopoverContent>
+          <ButtonGroup vertical style={{ padding: '0.5rem' }}>
+            <Button onClick={this.togglePresetModal} >
+              <Icon className='icon' name='floppy-o' />
+              Save preset
+            </Button>
+            <Button onClick={this.doLogout} className='signInOut'>
+              <Icon className='icon' name='sign-out' />
+             Sign out
+            </Button>
+          </ButtonGroup>
+        </PopoverContent>
+      </Popover>
+
+    );
+  }
   render () {
     const { isLoggedIn, userName, routes } = this.props;
     const hasRoleADMIN = CheckIfUserHasRole(this.props, UserRoles.ADMIN);
@@ -291,41 +490,19 @@ class TitleBarContainer extends Component {
           <Col xs='auto'>
             <Nav>
               <NavLink className='active' onClick={this.toggleLoginModal} ><Icon name='user' id='loginIcon' />{isLoggedIn ? ' ' + userName : ' Sign in'}</NavLink>
-              {hasRoleADMIN ? <Link to='manage' className='active nav-link'><Icon name='cog' /></Link> : '' }
+              {hasRoleADMIN ? <Link to='manage/app' className='active nav-link'><Icon name='cog' /></Link> : '' }
               <LayoutDropDown dispatch={this.props.dispatch} actions={this.props.actions} />
               <NavLink className='active' onClick={this.toggleFullscreen} ><Icon name='expand' /></NavLink>
+              {isLoggedIn
+                ? this.renderLoggedInPopover(this.state.loginModal, this.toggleLoginModal, userName)
+                : this.renderLoginModal(this.state.loginModal,
+                  this.state.loginModalMessage, this.toggleLoginModal, this.handleOnChange, this.handleKeyPressPassword)
+              }
+              {this.renderPresetModal(this.state.presetModal, this.togglePresetModal, hasRoleADMIN)}
+
             </Nav>
           </Col>
         </Row>
-        <Modal isOpen={this.state.loginModal} toggle={this.toggleLoginModal}>
-          <ModalHeader toggle={this.toggleLoginModal}>{isLoggedIn ? 'You are signed in.' : 'Sign in'}</ModalHeader>
-          <ModalBody>
-            <Collapse isOpen>
-              {isLoggedIn
-              ? <InputGroup>
-                <Input placeholder='Preset name' />
-                <Button color='primary'>Save as preset</Button>
-              </InputGroup>
-              : <InputGroup>
-                <input ref={(input) => { this.userNameInputRef = input; }} className='form-control' tabIndex={0} placeholder='username' name='username' onChange={this.handleOnChange} />
-                <Input type='password' name='password' id='examplePassword' placeholder='password'
-                  onKeyPress={this.handleKeyPressPassword} onChange={this.handleOnChange}
-                />
-              </InputGroup>
-            }
-            </Collapse>
-            <FormText color='muted'>
-              {this.state.loginModalMessage}
-            </FormText>
-          </ModalBody>
-          <ModalFooter>
-            <Button color='primary' onClick={this.doLogin} className='signInOut'>
-              <Icon className='icon' name={isLoggedIn ? 'sign-out' : 'sign-in'} />
-              {isLoggedIn ? 'Sign out' : 'Sign in'}
-            </Button>{' '}
-            <Button color='secondary' onClick={this.toggleLoginModal}>Cancel</Button>
-          </ModalFooter>
-        </Modal>
       </Navbar>
 
     );
@@ -353,7 +530,9 @@ class LayoutDropDown extends Component {
             <Button onClick={() => this.postLayout('single')}>Single</Button>
             <Button onClick={() => this.postLayout('dual')}>Dual column</Button>
             <Button onClick={() => this.postLayout('quaduneven')}>Uneven quad</Button>
+            <Button onClick={() => this.postLayout('tripleuneven')}>Uneven triple</Button>
             <Button onClick={() => this.postLayout('quadcol')}>Four columns</Button>
+            <Button onClick={() => this.postLayout('quad')}>Square</Button>
           </ButtonGroup>
 
         </PopoverContent>
@@ -374,7 +553,11 @@ TitleBarContainer.propTypes = {
   roles: PropTypes.array,
   routes: PropTypes.array,
   dispatch: PropTypes.func,
-  actions: PropTypes.object
+  actions: PropTypes.object,
+  layout: PropTypes.string,
+  layers: PropTypes.object,
+  bbox: PropTypes.array,
+  projectionName: PropTypes.string
 };
 
 TitleBarContainer.defaultProps = {
