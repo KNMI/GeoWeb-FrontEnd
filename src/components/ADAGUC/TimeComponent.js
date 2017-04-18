@@ -1,11 +1,11 @@
-import React from 'react';
-// import ButtonPausePlayAnimation from './ButtonPausePlayAnimation.js';
+import React, { Component } from 'react';
 import CanvasComponent from './CanvasComponent.js';
 import { Icon } from 'react-fa';
 import { Button, Col, Row } from 'reactstrap';
+import PropTypes from 'prop-types';
 var elementResizeEvent = require('element-resize-event');
 
-export default class TimeComponent extends React.Component {
+export default class TimeComponent extends Component {
   constructor () {
     super();
     this.onRenderCanvas = this.onRenderCanvas.bind(this);
@@ -348,8 +348,8 @@ export default class TimeComponent extends React.Component {
   }
 }
 TimeComponent.propTypes = {
-  timedim: React.PropTypes.string,
-  wmjslayers: React.PropTypes.object,
-  dispatch: React.PropTypes.func,
-  actions: React.PropTypes.object
+  timedim: PropTypes.string,
+  wmjslayers: PropTypes.object,
+  dispatch: PropTypes.func,
+  actions: PropTypes.object
 };

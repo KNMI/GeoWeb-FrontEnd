@@ -1,7 +1,8 @@
-import React, { Component, PropTypes } from 'react';
-import { default as Adaguc } from '../routes/ADAGUC/components/Adaguc';
+import React, { Component } from 'react';
+import { default as Adaguc } from './ADAGUC/Adaguc';
 import { default as Panel } from './Panel';
 import { Row, Col } from 'reactstrap';
+import PropTypes from 'prop-types';
 
 export class SinglePanel extends Component {
   render () {

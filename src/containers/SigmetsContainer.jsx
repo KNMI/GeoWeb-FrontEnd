@@ -1,13 +1,14 @@
-import React, { Component, PropTypes } from 'react';
+import React, { Component } from 'react';
 import { Button, Col, Row } from 'reactstrap';
 import Icon from 'react-fa';
 import CollapseOmni from '../components/CollapseOmni';
 import SigmetCategory from '../components/SigmetCategory';
 import Panel from '../components/Panel';
 import cloneDeep from 'lodash/cloneDeep';
-import { BACKEND_SERVER_URL } from '../routes/ADAGUC/constants/backend';
+import { BACKEND_SERVER_URL } from '../constants/backend';
 import axios from 'axios';
 import moment from 'moment';
+import PropTypes from 'prop-types';
 
 const GET_SIGMETS_URL = BACKEND_SERVER_URL + '/sigmet/getsigmetlist?';
 const SET_SIGMET_URL = BACKEND_SERVER_URL + '/sigmet/storesigmet';

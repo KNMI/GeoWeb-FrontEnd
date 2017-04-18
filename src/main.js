@@ -3,8 +3,8 @@ import ReactDOM from 'react-dom';
 import createStore from './store/createStore';
 import AppContainer from './containers/AppContainer';
 
-import { MAP_STYLES } from './routes/ADAGUC/constants/map_styles';
-import { BOUNDING_BOXES } from './routes/ADAGUC/constants/bounding_boxes';
+import { MAP_STYLES } from './constants/map_styles';
+import { BOUNDING_BOXES } from './constants/bounding_boxes';
 // ========================================================
 // Store Instantiation
 // ========================================================

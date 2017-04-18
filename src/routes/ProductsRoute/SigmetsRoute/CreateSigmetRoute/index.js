@@ -5,7 +5,7 @@ import MapPanel from '../../../../components/MapPanel';
 import LayerManagerPanel from '../../../../components/LayerManagerPanel';
 import TitleBarContainer from '../../../../containers/TitleBarContainer';
 import { connect } from 'react-redux';
-import { actions } from '../../../ADAGUC/modules/adaguc';
+import { actions } from '../../../../actions/adaguc';
 
 const mapStateToHeaderProps = (state) => {
   return {

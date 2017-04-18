@@ -1,5 +1,5 @@
 import { combineReducers } from 'redux';
-const reducer = require('../routes/ADAGUC/modules/adaguc').default;
+const reducer = require('../reducers/adaguc').default;
 const defaultReducer = require('./defaultReducer').default;
 
 export const makeRootReducer = () => {

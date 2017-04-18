@@ -1,8 +1,9 @@
-import React, { Component, PropTypes } from 'react';
+import React, { Component } from 'react';
 import { Button, Col, Row, Badge, Card, CardHeader, CardBlock } from 'reactstrap';
 import { Link } from 'react-router';
 import Icon from 'react-fa';
 import CollapseOmni from '../components/CollapseOmni';
+import PropTypes from 'prop-types';
 
 class ProductCategory extends Component {
   constructor (props) {

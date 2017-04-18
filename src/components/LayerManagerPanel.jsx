@@ -1,8 +1,10 @@
-import React, { Component, PropTypes } from 'react';
-import { default as LayerManager } from '../routes/ADAGUC/components/LayerManager';
-import { default as TimeComponent } from '../routes/ADAGUC/components/TimeComponent';
+import React, { Component } from 'react';
+import { default as LayerManager } from './ADAGUC/LayerManager';
+import { default as TimeComponent } from './ADAGUC/TimeComponent';
 import { default as Panel } from './Panel';
 import { Row } from 'reactstrap';
+import PropTypes from 'prop-types';
+
 class LayerManagerPanel extends Component {
   render () {
     const { title, dispatch, actions, adagucProperties } = this.props;

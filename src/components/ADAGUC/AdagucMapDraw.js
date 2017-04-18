@@ -1,25 +1,17 @@
-import React from 'react';
-
-export const ADAGUCMAPDRAW_EDITING = 'ADAGUCMAPDRAW_EDITING';
-export const ADAGUCMAPDRAW_DELETE = 'ADAGUCMAPDRAW_DELETE';
-export const ADAGUCMAPDRAW_UPDATEFEATURE = 'ADAGUCMAPDRAW_UPDATEFEATURE';
-
-/* istanbul ignore next */
-const AdagucMapDraw = React.createClass({
-  propTypes: {
-    webmapjs  : React.PropTypes.object,
-    geojson   : React.PropTypes.object,
-    dispatch  : React.PropTypes.func.isRequired,
-    isInEditMode  : React.PropTypes.bool,
-    isInDeleteMode  : React.PropTypes.bool
-  },
-  getDefaultProps () {
-    return {
-      isInEditMode:false,
-      isInDeleteMode:false,
-      webmapjs:undefined
-    };
-  },
+import React, { Component } from 'react';
+import PropTypes from 'prop-types';
+export default class AdagucMapDraw extends Component {
+  constructor () {
+    super();
+    this.adagucBeforeDraw = this.adagucBeforeDraw.bind(this);
+    this.adagucMouseMove = this.adagucMouseMove.bind(this);
+    this.adagucMouseDown = this.adagucMouseDown.bind(this);
+    this.deleteFeature = this.deleteFeature.bind(this);
+    this.adagucMouseUp = this.adagucMouseUp.bind(this);
+    this.cancelEdit = this.cancelEdit.bind(this);
+    this.featureHasChanged = this.featureHasChanged.bind(this);
+    this.handleKeyDown = this.handleKeyDown.bind(this);
+  }
   convertGeoCoordsToScreenCoords (featureCoords) {
     const { webmapjs } = this.props;
     const XYCoords = [];
@@ -28,7 +20,8 @@ const AdagucMapDraw = React.createClass({
       XYCoords.push(coord);
     }
     return XYCoords;
-  },
+  }
+
   adagucBeforeDraw (ctx) {
     /* adagucBeforeDraw is an event callback function which is triggered
      just before adagucviewer will flip the back canvas buffer to the front.
@@ -130,7 +123,7 @@ const AdagucMapDraw = React.createClass({
         }
       }
     }
-  },
+  }
   adagucMouseMove (event) {
     /* adagucMouseMove is an event callback function which is triggered when the mouse moves over the map
       This event is only triggered if the map is in hover state.
@@ -278,7 +271,7 @@ const AdagucMapDraw = React.createClass({
       return true; /* False means that this component will take over entire controll.
                      True means that it is still possible to pan and drag the map while editing */
     }
-  },
+  }
   adagucMouseDown (event) {
     if (this.props.isInEditMode === false) return;
     this.somethingWasDragged = false;
@@ -341,7 +334,7 @@ const AdagucMapDraw = React.createClass({
 
     return false; /* False means that this component will take over entire controll.
                      True means that it is still possible to pan and drag the map while editing */
-  },
+  }
   deleteFeature () {
     /* Deletes any features under the mousecursor */
     const { webmapjs } = this.props;
@@ -370,7 +363,7 @@ const AdagucMapDraw = React.createClass({
       this.mouseIsOverVertexNr = -1;
       webmapjs.draw();
     }
-  },
+  }
   adagucMouseUp () {
     if (this.props.isInEditMode === false) return;
 
@@ -391,7 +384,7 @@ const AdagucMapDraw = React.createClass({
     if (this.editMode === 'addpolygon') {
       return false;
     }
-  },
+  }
   cancelEdit (cancelLastPoint) {
     if (this.props.isInEditMode === false) return;
     const { webmapjs } = this.props;
@@ -418,17 +411,17 @@ const AdagucMapDraw = React.createClass({
         this.deleteFeature();
       }
     }
-  },
+  }
   handleKeyDown (event) {
     const ESCAPE_KEY = 27;
     if (event.keyCode === ESCAPE_KEY) {
       this.cancelEdit(true);
     }
-  },
+  }
   componentWillMount () {
     document.addEventListener('keydown', this.handleKeyDown);
     this.editMode = '';
-  },
+  }
   componentWillUnMount () {
     document.removeEventListener('keydown', this.handleKeyDown);
     const { webmapjs } = this.props;
@@ -439,10 +432,11 @@ const AdagucMapDraw = React.createClass({
       webmapjs.removeListener('beforemousedown', this.adagucMouseDown);
       webmapjs.removeListener('beforemouseup', this.adagucMouseUp);
     }
-  },
+  }
   featureHasChanged (text) {
-    this.props.dispatch({ type: ADAGUCMAPDRAW_UPDATEFEATURE, payload: { geojson: this.props.geojson, text: text } });
-  },
+    const { dispatch, actions } = this.props;
+    dispatch(actions.updateFeature(this.props.geojson, text));
+  }
   componentWillReceiveProps (nextProps) {
      /* Handle toggle edit */
     if (nextProps.isInEditMode === false && this.editMode !== '') {
@@ -467,7 +461,7 @@ const AdagucMapDraw = React.createClass({
     if (nextProps.isInEditMode === false && nextProps.isInDeleteMode === false) {
       this.editMode = '';
     }
-  },
+  }
   render () {
     const { webmapjs } = this.props;
     if (this.disabled === undefined) {
@@ -486,6 +480,19 @@ const AdagucMapDraw = React.createClass({
     }
     return (<div />);
   }
-});
+}
 
-export default AdagucMapDraw;
+AdagucMapDraw.propTypes = {
+  webmapjs  : PropTypes.object,
+  geojson   : PropTypes.object,
+  actions   : PropTypes.object,
+  dispatch  : PropTypes.func.isRequired,
+  isInEditMode  : PropTypes.bool,
+  isInDeleteMode  : PropTypes.bool
+};
+
+AdagucMapDraw.defaultProps = {
+  isInEditMode: false,
+  isInDeleteMode: false,
+  webmapjs: undefined
+};

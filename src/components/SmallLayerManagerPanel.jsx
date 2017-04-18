@@ -1,10 +1,11 @@
-import React, { Component, PropTypes } from 'react';
-import { default as LayerManager } from '../routes/ADAGUC/components/LayerManager';
+import React, { Component } from 'react';
+import { default as LayerManager } from './ADAGUC/LayerManager';
 import { default as MapAnimationControlsContainer } from '../containers/MapAnimationControlsContainer';
 import { default as Panel } from './Panel';
 import { Row, Col, Button } from 'reactstrap';
 import { Icon } from 'react-fa';
 import { hashHistory } from 'react-router';
+import PropTypes from 'prop-types';
 
 class SmallLayerManagerPanel extends Component {
   constructor (props) {
