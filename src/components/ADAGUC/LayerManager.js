@@ -1,28 +1,29 @@
-import React from 'react';
+import React, { Component } from 'react';
 import { Popover,
 PopoverTitle,
 PopoverContent, Badge, Col, Row } from 'reactstrap';
 import { Icon } from 'react-fa';
+import PropTypes from 'prop-types';
 require('rc-slider/assets/index.css');
 const Slider = require('rc-slider');
 
 // ----------------------------------------- \\
 // Rendering of the layersource with popover \\
 // ----------------------------------------- \\
-class LayerSource extends React.Component {
+class LayerSource extends Component {
   render () {
     return <Badge pill className={'alert-' + this.props.color}>{this.props.name}</Badge>;
   }
 }
 LayerSource.propTypes = {
-  name: React.PropTypes.string.isRequired,
-  color: React.PropTypes.string.isRequired
+  name: PropTypes.string.isRequired,
+  color: PropTypes.string.isRequired
 };
 
 // --------------------------------------- \\
 // Rendering of the layername with popover \\
 // --------------------------------------- \\
-class LayerName extends React.Component {
+class LayerName extends Component {
   constructor () {
     super();
     this.togglePopover = this.togglePopover.bind(this);
@@ -80,21 +81,21 @@ class LayerName extends React.Component {
   }
 }
 LayerName.propTypes = {
-  placement: React.PropTypes.string,
-  target: React.PropTypes.string.isRequired,
-  dispatch: React.PropTypes.func.isRequired,
-  actions: React.PropTypes.object.isRequired,
-  name: React.PropTypes.string.isRequired,
-  i: React.PropTypes.number.isRequired,
-  layer: React.PropTypes.object.isRequired,
-  color: React.PropTypes.string.isRequired,
-  editable: React.PropTypes.bool
+  placement: PropTypes.string,
+  target: PropTypes.string.isRequired,
+  dispatch: PropTypes.func.isRequired,
+  actions: PropTypes.object.isRequired,
+  name: PropTypes.string.isRequired,
+  i: PropTypes.number.isRequired,
+  layer: PropTypes.object.isRequired,
+  color: PropTypes.string.isRequired,
+  editable: PropTypes.bool
 };
 
 // ---------------------------------------- \\
 // Rendering of the layerstyle with popover \\
 // ---------------------------------------- \\
-class LayerStyle extends React.Component {
+class LayerStyle extends Component {
   constructor () {
     super();
     this.state = {
@@ -151,31 +152,31 @@ class LayerStyle extends React.Component {
   }
 }
 LayerStyle.propTypes = {
-  style: React.PropTypes.string,
-  layer: React.PropTypes.object.isRequired,
-  i: React.PropTypes.number.isRequired,
-  target: React.PropTypes.string.isRequired,
-  dispatch: React.PropTypes.func.isRequired,
-  actions: React.PropTypes.object.isRequired,
-  color: React.PropTypes.string.isRequired,
-  editable: React.PropTypes.bool
+  style: PropTypes.string,
+  layer: PropTypes.object.isRequired,
+  i: PropTypes.number.isRequired,
+  target: PropTypes.string.isRequired,
+  dispatch: PropTypes.func.isRequired,
+  actions: PropTypes.object.isRequired,
+  color: PropTypes.string.isRequired,
+  editable: PropTypes.bool
 };
 
-class LayerModelRun extends React.Component {
+class LayerModelRun extends Component {
   render () {
     return <Badge pill className={'alert-' + this.props.color}>{this.props.refTime}</Badge>;
   }
 }
 
 LayerModelRun.propTypes = {
-  refTime: React.PropTypes.string.isRequired,
-  color: React.PropTypes.string.isRequired
+  refTime: PropTypes.string.isRequired,
+  color: PropTypes.string.isRequired
 };
 
 // ---------------------------------------- \\
 // Rendering of the layerstyle with popover \\
 // ---------------------------------------- \\
-class LayerOpacity extends React.Component {
+class LayerOpacity extends Component {
   constructor () {
     super();
     this.state = {
@@ -240,16 +241,16 @@ class LayerOpacity extends React.Component {
   }
 }
 LayerOpacity.propTypes = {
-  layer: React.PropTypes.object.isRequired,
-  i: React.PropTypes.number.isRequired,
-  target: React.PropTypes.string.isRequired,
-  dispatch: React.PropTypes.func.isRequired,
-  actions: React.PropTypes.object.isRequired,
-  color: React.PropTypes.string.isRequired,
-  editable: React.PropTypes.bool
+  layer: PropTypes.object.isRequired,
+  i: PropTypes.number.isRequired,
+  target: PropTypes.string.isRequired,
+  dispatch: PropTypes.func.isRequired,
+  actions: PropTypes.object.isRequired,
+  color: PropTypes.string.isRequired,
+  editable: PropTypes.bool
 };
 
-export default class LayerManager extends React.Component {
+export default class LayerManager extends Component {
   constructor () {
     super();
     this.deleteLayer = this.deleteLayer.bind(this);
@@ -452,7 +453,7 @@ export default class LayerManager extends React.Component {
 }
 
 LayerManager.propTypes = {
-  dispatch: React.PropTypes.func.isRequired,
-  actions: React.PropTypes.object.isRequired,
-  wmjslayers: React.PropTypes.object
+  dispatch: PropTypes.func.isRequired,
+  actions: PropTypes.object.isRequired,
+  wmjslayers: PropTypes.object
 };

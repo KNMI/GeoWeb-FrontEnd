@@ -1,27 +1,15 @@
-import React from 'react';
-// import omit from 'lodash.omit';
+import React, { Component } from 'react';
+import PropTypes from 'prop-types';
 
-/* istanbul ignore next */
-const CanvasComponent = React.createClass({
-  propTypes: {
-    onRenderCanvas: React.PropTypes.func,
-    onClickB: React.PropTypes.func,
-    id: React.PropTypes.string,
-    onMouseMove: React.PropTypes.func,
-    width: React.PropTypes.number,
-    height: React.PropTypes.number,
-    style: React.PropTypes.object
-  },
-  getDefaultProps () {
-    return {
-      onRenderCanvas:function () {},
-      onClickB:function () {},
-      onMouseMove:function () {}
-    };
-  },
+export default class CanvasComponent extends Component {
+  constructor () {
+    super();
+    this.updateCanvas = this.updateCanvas.bind(this);
+  }
   componentDidMount () {
     this.updateCanvas();
-  },
+  }
+
   updateCanvas () {
     if (!this.refs) return;
     if (!this.refs.canvas) return;
@@ -56,7 +44,8 @@ const CanvasComponent = React.createClass({
     ctx.canvas.width = parentWidth;
     ctx.canvas.height = parentHeight;
     this.props.onRenderCanvas(ctx);
-  },
+  }
+
   render () {
     this.updateCanvas();
     if (this.props.width && this.props.height && this.props.style) {
@@ -69,6 +58,20 @@ const CanvasComponent = React.createClass({
       );
     }
   }
-});
+}
 
-export default CanvasComponent;
+CanvasComponent.propTypes = {
+  onRenderCanvas: PropTypes.func,
+  onClickB: PropTypes.func,
+  id: PropTypes.string,
+  onMouseMove: PropTypes.func,
+  width: PropTypes.number,
+  height: PropTypes.number,
+  style: PropTypes.object
+};
+
+CanvasComponent.defaultProps = {
+  onRenderCanvas: () => {},
+  onClickB: () => {},
+  onMouseMove: () => {}
+};

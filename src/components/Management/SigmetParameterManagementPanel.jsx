@@ -3,9 +3,11 @@ import React from 'react';
 import Panel from '../Panel';
 import { Input, Card, Button, CardTitle, CardText, Row, Col } from 'reactstrap';
 import { Icon } from 'react-fa';
-import { BACKEND_SERVER_URL } from '../../routes/ADAGUC/constants/backend.js';
+import { BACKEND_SERVER_URL } from '../../constants/backend.js';
 import axios from 'axios';
 import cloneDeep from 'lodash/cloneDeep';
+import PropTypes from 'prop-types';
+
 export default class LocationManagementPanel extends React.Component {
   componentWillMount () {
     axios.get(BACKEND_SERVER_URL + '/sigmet/getsigmetparameters').then((res) => {
@@ -47,6 +49,7 @@ export class ParameterMapper extends React.Component {
         icaoinput: document.querySelector('#icaoinput' + i).value
       });
     }
+
     const newSigmetParameterObj = {
       maxhoursofvalidity: maxhoursofvalidity,
       hoursbeforevalidity: hoursbeforevalidity,
@@ -104,7 +107,7 @@ export class ParameterMapper extends React.Component {
   }
 }
 ParameterMapper.propTypes = {
-  sigmetParameters: React.PropTypes.object.isRequired
+  sigmetParameters: PropTypes.object.isRequired
 };
 
 class SigmetCard extends React.Component {
@@ -116,12 +119,12 @@ class SigmetCard extends React.Component {
   }
 }
 SigmetCard.propTypes = {
-  title: React.PropTypes.string.isRequired,
-  value: React.PropTypes.string,
-  firdata: React.PropTypes.object,
-  i: React.PropTypes.number.isRequired,
-  fir: React.PropTypes.bool,
-  deleteFirArea: React.PropTypes.func
+  title: PropTypes.string.isRequired,
+  value: PropTypes.string,
+  firdata: PropTypes.object,
+  i: PropTypes.number.isRequired,
+  fir: PropTypes.bool,
+  deleteFirArea: PropTypes.func
 };
 
 class ParameterCard extends React.Component {
@@ -155,9 +158,9 @@ class ParameterCard extends React.Component {
   }
 }
 ParameterCard.propTypes = {
-  title: React.PropTypes.string.isRequired,
-  value: React.PropTypes.string.isRequired,
-  i: React.PropTypes.number.isRequired
+  title: PropTypes.string.isRequired,
+  value: PropTypes.string.isRequired,
+  i: PropTypes.number.isRequired
 };
 
 class FirCard extends React.Component {
@@ -184,9 +187,9 @@ class FirCard extends React.Component {
   }
 }
 FirCard.propTypes = {
-  title: React.PropTypes.string,
-  areapreset: React.PropTypes.string,
-  icao: React.PropTypes.string,
-  i: React.PropTypes.number.isRequired,
-  deleteFirArea: React.PropTypes.func.isRequired
+  title: PropTypes.string,
+  areapreset: PropTypes.string,
+  icao: PropTypes.string,
+  i: PropTypes.number.isRequired,
+  deleteFirArea: PropTypes.func.isRequired
 };

@@ -1,9 +1,9 @@
-import React, { Component, PropTypes } from 'react';
+import React, { Component } from 'react';
 import { hashHistory, Router } from 'react-router';
 import { Provider } from 'react-redux';
+import PropTypes from 'prop-types';
 
 class AppContainer extends Component {
-
   shouldComponentUpdate () {
     return false;
   }

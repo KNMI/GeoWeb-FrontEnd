@@ -12,7 +12,7 @@ const karmaConfig = {
 
   basePath : '../', // project root in relation to bin/karma.js
 
-  browsers: ['jsdom'],
+  browsers: ['Chrome'],
 
   // just run once by default unless --watch flag is passed
   singleRun: !argv.watch,
@@ -70,7 +70,7 @@ const karmaConfig = {
     'karma-dirty-chai',
     'karma-chai-sinon',
     'karma-istanbul',
-    'karma-jsdom-launcher',
+    'karma-chrome-launcher',
     'karma-mocha',
     'karma-sourcemap-loader',
     'karma-spec-reporter',

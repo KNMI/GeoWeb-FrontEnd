@@ -1,9 +1,10 @@
-import React, { Component, PropTypes } from 'react';
+import React, { Component } from 'react';
 import { Button, Col, Popover, PopoverContent, ButtonGroup, TabContent, TabPane, Nav, NavItem, NavLink, Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
-import { BOUNDING_BOXES } from '../routes/ADAGUC/constants/bounding_boxes';
+import { BOUNDING_BOXES } from '../constants/bounding_boxes';
 import { Icon } from 'react-fa';
 import classnames from 'classnames';
 import { Typeahead } from 'react-bootstrap-typeahead';
+import PropTypes from 'prop-types';
 
 class MapAnimationControlsContainer extends Component {
   constructor (props) {

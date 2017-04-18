@@ -4,19 +4,27 @@ import Panel from '../Panel';
 import { Input, Card, Button, CardTitle, CardText, Row, Col } from 'reactstrap';
 import { Icon } from 'react-fa';
 import axios from 'axios';
+import PropTypes from 'prop-types';
 
-import { BACKEND_SERVER_URL } from '../../routes/ADAGUC/constants/backend';
-import { DefaultLocations } from '../../routes/ADAGUC/constants/defaultlocations';
-import { ReadLocations } from '../../routes/ADAGUC/utils/admin';
+import { BACKEND_SERVER_URL } from '../../constants/backend';
+import { DefaultLocations } from '../../constants/defaultlocations';
 
 export default class LocationManagementPanel extends React.Component {
   constructor (props) {
     super(props);
     this.progtempLocations = DefaultLocations;
-    ReadLocations((data) => {
-      if (data) {
-        this.progtempLocations = data;
-      }
+    axios({
+      method: 'get',
+      url: BACKEND_SERVER_URL + '/admin/read',
+      params:{ type:'locations', name:'locations' },
+      withCredentials: true,
+      responseType: 'json'
+    }).then(src => {
+      this.progtempLocations = JSON.parse(src.data.payload);
+      this.setState();
+    }).catch(error => {
+      alert('Loading default list, because: ' + error.response.data.error);
+      this.progtempLocations = DefaultLocations;
     });
   }
 
@@ -141,7 +149,7 @@ export class LocationMapper extends React.Component {
   }
 }
 LocationMapper.propTypes = {
-  locations: React.PropTypes.array.isRequired
+  locations: PropTypes.array.isRequired
 };
 
 class LocationCard extends React.Component {
@@ -153,14 +161,14 @@ class LocationCard extends React.Component {
   }
 }
 LocationCard.propTypes = {
-  name: React.PropTypes.string,
-  x: React.PropTypes.number,
-  y: React.PropTypes.number,
-  i: React.PropTypes.number.isRequired,
-  edit: React.PropTypes.bool,
-  doneEditing: React.PropTypes.func.isRequired,
-  setEditMode: React.PropTypes.func.isRequired,
-  deleteLocation: React.PropTypes.func.isRequired
+  name: PropTypes.string,
+  x: PropTypes.number,
+  y: PropTypes.number,
+  i: PropTypes.number.isRequired,
+  edit: PropTypes.bool,
+  doneEditing: PropTypes.func.isRequired,
+  setEditMode: PropTypes.func.isRequired,
+  deleteLocation: PropTypes.func.isRequired
 };
 
 class EditCard extends React.Component {
@@ -187,11 +195,11 @@ class EditCard extends React.Component {
   }
 }
 EditCard.propTypes = {
-  name: React.PropTypes.string,
-  x: React.PropTypes.number,
-  y: React.PropTypes.number,
-  i: React.PropTypes.number.isRequired,
-  doneEditing: React.PropTypes.func.isRequired
+  name: PropTypes.string,
+  x: PropTypes.number,
+  y: PropTypes.number,
+  i: PropTypes.number.isRequired,
+  doneEditing: PropTypes.func.isRequired
 };
 
 class StaticCard extends React.Component {
@@ -219,10 +227,10 @@ class StaticCard extends React.Component {
   }
 }
 StaticCard.propTypes = {
-  name: React.PropTypes.string,
-  x: React.PropTypes.number,
-  y: React.PropTypes.number,
-  i: React.PropTypes.number.isRequired,
-  setEditMode: React.PropTypes.func.isRequired,
-  deleteLocation: React.PropTypes.func.isRequired
+  name: PropTypes.string,
+  x: PropTypes.number,
+  y: PropTypes.number,
+  i: PropTypes.number.isRequired,
+  setEditMode: PropTypes.func.isRequired,
+  deleteLocation: PropTypes.func.isRequired
 };

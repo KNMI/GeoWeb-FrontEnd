@@ -1,9 +1,10 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { default as AdagucMapDraw } from './AdagucMapDraw.js';
 import AdagucMeasureDistance from './AdagucMeasureDistance.js';
 import axios from 'axios';
 import $ from 'jquery';
-import { BACKEND_SERVER_URL, BACKEND_SERVER_XML2JSON } from '../constants/backend';
+import { BACKEND_SERVER_URL, BACKEND_SERVER_XML2JSON } from '../../constants/backend';
 var moment = require('moment');
 var elementResizeEvent = require('element-resize-event');
 
@@ -388,12 +389,13 @@ export default class Adaguc extends React.Component {
     });
   }
   render () {
-    const { adagucProperties, dispatch, mapId } = this.props;
+    const { adagucProperties, dispatch, mapId, actions } = this.props;
     return (
       <div id={'adagucwrapper' + mapId}>
         <div ref='adaguc' />
         <div style={{ margin: '5px 10px 10px 5px ' }}>
           <AdagucMapDraw
+            actions={actions}
             geojson={adagucProperties.adagucmapdraw.geojson}
             dispatch={dispatch}
             isInEditMode={adagucProperties.mapMode === 'draw' || adagucProperties.mapMode === 'delete'}
@@ -458,14 +460,14 @@ class ModelTime extends React.Component {
   }
 }
 ModelTime.propTypes = {
-  webmapjs: React.PropTypes.object,
-  active: React.PropTypes.bool
+  webmapjs: PropTypes.object,
+  active: PropTypes.bool
 };
 
 Adaguc.propTypes = {
-  adagucProperties : React.PropTypes.object.isRequired,
-  actions          : React.PropTypes.object.isRequired,
-  dispatch         : React.PropTypes.func.isRequired,
-  mapId            : React.PropTypes.number.isRequired,
-  active           : React.PropTypes.bool.isRequired
+  adagucProperties : PropTypes.object.isRequired,
+  actions          : PropTypes.object.isRequired,
+  dispatch         : PropTypes.func.isRequired,
+  mapId            : PropTypes.number.isRequired,
+  active           : PropTypes.bool.isRequired
 };

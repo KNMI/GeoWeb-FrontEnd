@@ -1,10 +1,11 @@
-import React, { Component, PropTypes } from 'react';
+import React, { Component } from 'react';
 import { Popover, PopoverTitle, PopoverContent } from 'reactstrap';
 import { Typeahead } from 'react-bootstrap-typeahead';
-import CanvasComponent from '../routes/ADAGUC/components/CanvasComponent';
+import CanvasComponent from './ADAGUC/CanvasComponent';
 import axios from 'axios';
-import { DefaultLocations } from '../routes/ADAGUC/constants/defaultlocations';
-import { ReadLocations } from '../routes/ADAGUC/utils/admin';
+import { BACKEND_SERVER_URL } from '../constants/backend';
+import { DefaultLocations } from '../constants/defaultlocations';
+import PropTypes from 'prop-types';
 var moment = require('moment');
 
 export default class ProgtempComponent extends Component {
@@ -18,17 +19,19 @@ export default class ProgtempComponent extends Component {
     this.renderBaseProgtemp = this.renderBaseProgtemp.bind(this);
     this.setChosenLocation = this.setChosenLocation.bind(this);
 
-    this.progtempLocations = [] ;//DefaultLocations;
-    console.log('start reading locations');
-    ReadLocations((data) => {
-      if (data) {
-        console.log('retrieved progtemp locations from disk');
-        this.progtempLocations = data;
-        console.log('progtemlocations set');
-        this.setState();
-      } else {
-        console.log('get progtemlocations failed');
-      }
+    this.progtempLocations = [];
+    axios({
+      method: 'get',
+      url: BACKEND_SERVER_URL + '/admin/read',
+      params:{ type:'locations', name:'locations' },
+      withCredentials: true,
+      responseType: 'json'
+    }).then(src => {
+      this.progtempLocations = JSON.parse(src.data.payload);
+      this.setState();
+    }).catch(error => {
+      alert('Loading default list, because: ' + error.response.data.error);
+      this.progtempLocations = DefaultLocations;
     });
   }
   /* istanbul ignore next */

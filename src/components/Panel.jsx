@@ -1,5 +1,6 @@
-import React, { Component, PropTypes } from 'react';
+import React, { Component } from 'react';
 import { Row } from 'reactstrap';
+import PropTypes from 'prop-types';
 
 class Panel extends Component {
   render () {

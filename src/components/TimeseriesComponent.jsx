@@ -1,9 +1,10 @@
-import React, { Component, PropTypes } from 'react';
+import React, { Component } from 'react';
 import { Popover, PopoverTitle, PopoverContent } from 'reactstrap';
 var moment = require('moment');
 import { Typeahead } from 'react-bootstrap-typeahead';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 import axios from 'axios';
+import PropTypes from 'prop-types';
 
 export default class TimeseriesComponent extends Component {
   /* istanbul ignore next */

@@ -1,9 +1,10 @@
-import React, { Component, PropTypes } from 'react';
+import React, { Component } from 'react';
 import { Button, Col, Row } from 'reactstrap';
 import Icon from 'react-fa';
 import CollapseOmni from '../components/CollapseOmni';
 import ProductCategory from '../components/ProductCategory';
 import Panel from '../components/Panel';
+import PropTypes from 'prop-types';
 
 const ITEMS = [
   {

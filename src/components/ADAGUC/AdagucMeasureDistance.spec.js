@@ -1,5 +1,5 @@
 import React from 'react';
-import { default as AdagucMeasureDistance, haverSine } from './AdagucMeasureDistance';
+import AdagucMeasureDistance, { haverSine } from './AdagucMeasureDistance';
 import { shallow } from 'enzyme';
 
 const dispatch = () => {};

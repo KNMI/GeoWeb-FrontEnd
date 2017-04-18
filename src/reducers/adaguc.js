@@ -1,164 +1,70 @@
+import cloneDeep from 'lodash/cloneDeep';
 import { MAP_STYLES } from '../constants/map_styles';
 import { BOUNDING_BOXES } from '../constants/bounding_boxes';
-import cloneDeep from 'lodash/cloneDeep';
-import { ADAGUCMAPDRAW_UPDATEFEATURE } from '../components/AdagucMapDraw';
-import { ADAGUCMEASUREDISTANCE_UPDATE } from '../components/AdagucMeasureDistance';
-// ------------------------------------
-// Constants
-// ------------------------------------
+import { ADD_LAYER,
+ADD_OVERLAY_LAYER,
+ADAGUCMAPDRAW_UPDATEFEATURE,
+ADAGUCMEASUREDISTANCE_UPDATE,
+CREATE_MAP,
+DELETE_LAYER,
+LOGIN,
+LOGOUT,
+SET_CUT,
+SET_MAP_STYLE,
+SET_PRESET,
+ALTER_LAYER,
+REORDER_LAYER,
+SET_WMJSLAYERS,
+SET_TIME_DIMENSION,
+TOGGLE_ANIMATION,
+SET_MAP_MODE,
+SET_LAYOUT,
+CURSOR_LOCATION,
+SET_GEOJSON,
+SET_ACTIVE_PANEL } from '../constants/actions';
 
-const ADD_LAYER = 'ADD_LAYER';
-const ADD_OVERLAY_LAYER = 'ADD_OVERLAY_LAYER';
-const CREATE_MAP = 'CREATE_MAP';
-const DELETE_LAYER = 'DELETE_LAYER';
-const LOGIN = 'LOGIN';
-const LOGOUT = 'LOGOUT';
-const SET_CUT = 'SET_CUT';
-const SET_MAP_STYLE = 'SET_MAP_STYLE';
-const SET_PRESET = 'SET_PRESET';
-const ALTER_LAYER = 'ALTER_LAYER';
-const REORDER_LAYER = 'REORDER_LAYER';
-const SET_WMJSLAYERS = 'SET_WMJSLAYERS';
-const SET_TIME_DIMENSION = 'SET_TIME_DIMENSION';
-const TOGGLE_ANIMATION = 'TOGGLE_ANIMATION';
-const SET_MAP_MODE = 'SET_MAP_MODE';
-const SET_LAYOUT = 'SET_LAYOUT';
-const CURSOR_LOCATION = 'CURSOR_LOCATION';
-const SET_GEOJSON = 'SET_GEOJSON';
-const SET_ACTIVE_PANEL = 'SET_ACTIVE_PANEL';
+const newMapState = (state, payload) => {
+  return Object.assign({}, state, { mapCreated: true },
+    { sources: { data: payload.sources, overlay: [payload.overlays] } });
+};
+const newMapStyle = (state, payload) => {
+  return Object.assign({}, state, { mapType: MAP_STYLES[payload] });
+};
+const newCut = (state, payload) => {
+  return Object.assign({}, state, { boundingBox: payload });
+};
+const doAddLayer = (state, payload) => {
+  let layersCpy = cloneDeep(state.layers.panel[state.activeMapId]);
+  layersCpy.datalayers.unshift(payload);
 
-// ------------------------------------
-// Actions
-// ------------------------------------
-function createMap (sources, overlays) {
-  return {
-    type: CREATE_MAP,
-    payload: {
-      sources: sources,
-      overlays: overlays
-    }
-  };
-}
-function setActivePanel (mapId) {
-  return {
-    type: SET_ACTIVE_PANEL,
-    payload: mapId
-  };
-}
-function setLayout (layout) {
-  return {
-    type: SET_LAYOUT,
-    payload: layout
-  };
-}
-function cursorLocation (closest) {
-  return {
-    type: CURSOR_LOCATION,
-    payload: closest
-  };
-}
-function setMapMode (mode) {
-  return {
-    type: SET_MAP_MODE,
-    payload: mode
-  };
-}
-function setWMJSLayers (layers) {
-  return {
-    type: SET_WMJSLAYERS,
-    payload: layers
-  };
-}
-function login (userobject) {
-  return {
-    type: LOGIN,
-    payload: userobject
-  };
-}
-function logout () {
-  return {
-    type: LOGOUT
-  };
-}
-function setCut (boundingbox = BOUNDING_BOXES[0]) {
-  return {
-    type: SET_CUT,
-    payload: boundingbox
-  };
-}
-function setMapStyle (styleIdx = 0) {
-  return {
-    type: SET_MAP_STYLE,
-    payload: styleIdx
-  };
-}
-function addLayer (layer) {
-  return {
-    type: ADD_LAYER,
-    payload: Object.assign({}, layer, { enabled: true, opacity: 1 })
-  };
-}
-function alterLayer (index, layerType, fieldsNewValuesObj) {
-  return {
-    type: ALTER_LAYER,
-    payload: { index, layerType, fieldsNewValuesObj }
-  };
-}
-function addOverlayLayer (layer) {
-  return {
-    type: ADD_OVERLAY_LAYER,
-    payload: layer
-  };
-}
-function reorderLayer (direction, index) {
-  return {
-    type: REORDER_LAYER,
-    payload: { direction, index }
-  };
-}
-function setPreset (presetObj) {
-  return {
-    type: SET_PRESET,
-    payload: presetObj
-  };
-}
-function deleteLayer (layerParams, layertype) {
-  return {
-    type: DELETE_LAYER,
-    payload: {
-      idx: layerParams,
-      type : layertype
-    }
-  };
-}
-function setTimeDimension (timedim) {
-  return {
-    type: SET_TIME_DIMENSION,
-    payload: timedim
-  };
-}
-function toggleAnimation () {
-  return {
-    type: TOGGLE_ANIMATION
-  };
-}
-/*  This is a thunk, meaning it is a function that immediately
-    returns a function for lazy evaluation. It is incredibly useful for
-    creating async actions, especially when combined with redux-thunk! */
+  let oldPanel = cloneDeep(state.layers.panel);
+  oldPanel[state.activeMapId] = layersCpy;
+  const newlayers = Object.assign({}, state.layers, { panel: oldPanel });
 
-// export const doubleAsync = () => {
-//   return (dispatch, getState) => {
-//     return new Promise((resolve) => {
-//       setTimeout(() => {
-//         dispatch({
-//           type    : COUNTER_DOUBLE_ASYNC,
-//           payload : getState().adagucProperties
-//         });
-//         resolve();
-//       }, 200);
-//     });
-//   };
-// };
+  return Object.assign({}, state, { layers: newlayers });
+};
+
+const doAddOverlayLayer = (state, payload) => {
+  let layersCpy = cloneDeep(state.layers.panel[state.activeMapId]);
+  if (!payload.enabled) {
+    payload.enabled = true;
+  }
+  layersCpy.overlays.unshift(payload);
+
+  let oldPanel = cloneDeep(state.layers.panel);
+  oldPanel[state.activeMapId] = layersCpy;
+  const newlayers = Object.assign({}, state.layers, { panel: oldPanel });
+
+  return Object.assign({}, state, { layers: newlayers });
+};
+
+const doLogin = (state, payload) => {
+  return Object.assign({}, state, { user: { isLoggedIn: true, userName: payload.userName, roles: payload.roles ? payload.roles : [] } });
+};
+
+const doLogout = (state, payload) => {
+  return Object.assign({}, state, { user: { isLoggedIn: false, userName: '', roles: [] } });
+};
 
 // TODO: This info should be obtained form the backend
 const sigmetLayers = (p) => {
@@ -353,71 +259,6 @@ const sigmetLayers = (p) => {
   }
 };
 
-export const actions = {
-  addLayer,
-  addOverlayLayer,
-  createMap,
-  deleteLayer,
-  login,
-  logout,
-  setCut,
-  setMapStyle,
-  setPreset,
-  reorderLayer,
-  setWMJSLayers,
-  alterLayer,
-  setMapMode,
-  toggleAnimation,
-  setTimeDimension,
-  cursorLocation,
-  setLayout,
-  setGeoJSON,
-  setActivePanel
-};
-
-const newMapState = (state, payload) => {
-  return Object.assign({}, state, { mapCreated: true },
-    { sources: { data: payload.sources, overlay: [payload.overlays] } });
-};
-const newMapStyle = (state, payload) => {
-  return Object.assign({}, state, { mapType: MAP_STYLES[payload] });
-};
-const newCut = (state, payload) => {
-  return Object.assign({}, state, { boundingBox: payload });
-};
-const doAddLayer = (state, payload) => {
-  let layersCpy = cloneDeep(state.layers.panel[state.activeMapId]);
-  layersCpy.datalayers.unshift(payload);
-
-  let oldPanel = cloneDeep(state.layers.panel);
-  oldPanel[state.activeMapId] = layersCpy;
-  const newlayers = Object.assign({}, state.layers, { panel: oldPanel });
-
-  return Object.assign({}, state, { layers: newlayers });
-};
-
-const doAddOverlayLayer = (state, payload) => {
-  let layersCpy = cloneDeep(state.layers.panel[state.activeMapId]);
-  if (!payload.enabled) {
-    payload.enabled = true;
-  }
-  layersCpy.overlays.unshift(payload);
-
-  let oldPanel = cloneDeep(state.layers.panel);
-  oldPanel[state.activeMapId] = layersCpy;
-  const newlayers = Object.assign({}, state.layers, { panel: oldPanel });
-
-  return Object.assign({}, state, { layers: newlayers });
-};
-
-const doLogin = (state, payload) => {
-  return Object.assign({}, state, { user: { isLoggedIn: true, userName: payload.userName, roles: payload.roles ? payload.roles : [] } });
-};
-
-const doLogout = (state, payload) => {
-  return Object.assign({}, state, { user: { isLoggedIn: false, userName: '', roles: [] } });
-};
-
 const setNewPreset = (state, payload) => {
   if (typeof payload === 'string') {
     console.log('sigmetpreset');
@@ -520,13 +361,6 @@ const doDeleteLayer = (state, payload) => {
       return state;
   }
 };
-
-function setGeoJSON (json) {
-  return {
-    type: SET_GEOJSON,
-    payload: json
-  };
-}
 
 const newGeoJSON = (state, payload) => {
   return Object.assign({}, state, { adagucmapdraw: payload });

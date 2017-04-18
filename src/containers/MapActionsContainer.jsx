@@ -1,16 +1,18 @@
-import React, { Component, PropTypes } from 'react';
+import React, { Component } from 'react';
 import { Button, Col, Row, Popover, InputGroup, Input, InputGroupButton, PopoverContent,
   ButtonGroup, TabContent, TabPane, Nav, NavItem, NavLink, Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
 import Panel from '../components/Panel';
-import { BOUNDING_BOXES } from '../routes/ADAGUC/constants/bounding_boxes';
+import { BOUNDING_BOXES } from '../constants/bounding_boxes';
 import { Icon } from 'react-fa';
 import classnames from 'classnames';
 import { Typeahead } from 'react-bootstrap-typeahead';
 import ProgtempComponent from '../components/ProgtempComponent';
 import TimeseriesComponent from '../components/TimeseriesComponent';
-import { BACKEND_SERVER_URL } from '../routes/ADAGUC/constants/backend';
+import { BACKEND_SERVER_URL } from '../constants/backend';
 import axios from 'axios';
+import PropTypes from 'prop-types';
 var moment = require('moment');
+
 class MapActionContainer extends Component {
   constructor (props) {
     super(props);

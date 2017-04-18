@@ -1,4 +1,4 @@
-import React, { Component, PropTypes } from 'react';
+import React, { Component } from 'react';
 import { Button, ButtonGroup, Col, Row, Badge, Card, CardHeader, CardBlock } from 'reactstrap';
 import Moment from 'react-moment';
 import moment from 'moment';
@@ -12,6 +12,7 @@ import { Typeahead } from 'react-bootstrap-typeahead';
 import DateTimePicker from 'react-datetime';
 import Slider from 'rc-slider';
 import Tooltip from 'rc-tooltip';
+import PropTypes from 'prop-types';
 const createSliderWithTooltip = Slider.createSliderWithTooltip;
 const Range = createSliderWithTooltip(Slider.Range);
 const Handle = Slider.Handle;

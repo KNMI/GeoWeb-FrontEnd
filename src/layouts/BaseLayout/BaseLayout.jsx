@@ -1,6 +1,7 @@
-import React, { Component, PropTypes } from 'react';
+import React, { Component } from 'react';
 import { Container, Row, Col } from 'reactstrap';
 import '../../styles/core.scss';
+import PropTypes from 'prop-types';
 
 const browserFullScreenRequests = [
   'mozRequestFullScreen',
