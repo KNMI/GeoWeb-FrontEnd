@@ -9,4 +9,8 @@ body {
 .page-header {
   background-color: #01547d;
   background-image: unset;
+  
+  .project-name:before {
+    content:url('./assets/images/icon.svg');
+  }
 }
