@@ -112,7 +112,7 @@ function WMJSDimension (config) {
     var index = this.getIndexForValue(closestValue);
     var nextValue = this.getValueForIndex(index + 1);
     // Only return future dates
-    if (moment(newValue) >= moment(nextValue)) {
+    if (!nextValue || nextValue === 'date too early' || moment(newValue) >= moment(nextValue)) {
       return null;
     }
     return nextValue;

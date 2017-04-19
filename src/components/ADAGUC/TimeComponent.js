@@ -147,7 +147,7 @@ export default class TimeComponent extends Component {
             ctx.fillRect(x + 0.5, y + 0.5, w, h);
             ctx.strokeRect(x + 0.5, y + 0.5, w, h);
           } catch (error) {
-            console.log('Layer probably does not have a time dimension');
+            console.error('Layer probably does not have a time dimension');
           }
         }
       }

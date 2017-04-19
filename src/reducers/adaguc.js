@@ -46,10 +46,11 @@ const doAddLayer = (state, payload) => {
 
 const doAddOverlayLayer = (state, payload) => {
   const layersCpy = cloneDeep(state.layers.panel[state.activeMapId]);
-  if (!payload.enabled) {
-    payload.enabled = true;
+  let layerCpy = cloneDeep(payload);
+  if (!layerCpy.enabled) {
+    layerCpy.enabled = true;
   }
-  layersCpy.overlays.unshift(payload);
+  layersCpy.overlays.unshift(layerCpy);
 
   const oldPanel = cloneDeep(state.layers.panel);
   oldPanel[state.activeMapId] = layersCpy;
@@ -260,7 +261,6 @@ const sigmetLayers = (p) => {
 
 const setNewPreset = (state, payload) => {
   if (typeof payload === 'string') {
-    console.log('sigmetpreset');
     const sigmetPreset = sigmetLayers(payload);
     const newLayers = Object.assign({}, state.layers, { panel: sigmetPreset.layers.panel });
     return Object.assign({}, state, { layers: newLayers, layout: sigmetPreset.layout, boundingBox: sigmetPreset.boundingBox });
@@ -268,24 +268,23 @@ const setNewPreset = (state, payload) => {
     const transform = (panels) => {
       let panel = [];
       panels.forEach((p) => {
-        panel.push({
-          datalayers: p.filter((layer) => layer.overlay === false),
+        panel.push(Object.assign({
+          datalayers: p.filter((layer) => layer.overlay === false).map((layer) => { layer.enabled = true; return layer; }),
           overlays: p.filter((layer) => layer.overlay === true)
-        });
+        }));
       });
       while (panel.length !== 4) {
-        panel.push({
+        panel.push(Object.assign({
           datalayers: [],
           overlays: []
-        });
+        }));
       }
       return panel;
     };
-    const bbox = payload.bbox ? Object.assign({}, state.boundingBox, { bbox: [0, payload.bbox.top, 1, payload.bbox.bottom] }) : state.boundingBox;
-    const layout = payload.display ? payload.display.type : state.layout;
-    const panel = payload.layers ? transform(payload.layers) : state.layers;
-    console.log(panel);
-    // const newLayers = Object.assign({}, state.layers, { panel: sigmet.layers.panel });
+    const payloadCpy = cloneDeep(payload);
+    const bbox = payloadCpy.bbox ? Object.assign({}, state.boundingBox, { bbox: [0, payloadCpy.bbox.top, 1, payloadCpy.bbox.bottom] }) : state.boundingBox;
+    const layout = payloadCpy.display ? payloadCpy.display.type : state.layout;
+    const panel = payloadCpy.layers ? transform(payloadCpy.layers) : state.layers;
     const newLayers = Object.assign({}, state.layers, { panel: panel });
     return Object.assign({}, state, { layers: newLayers, boundingBox: bbox, layout: layout });
   }
@@ -397,7 +396,7 @@ const setCursorLocation = (state, payload) => {
   return Object.assign({}, state, { cursor: loc });
 };
 const newLayout = (state, payload) => {
-  let numPanels = -1;
+  let numPanels;
   if (/quad/.test(payload)) {
     numPanels = 4;
   } else if (/triple/.test(payload)) {
@@ -411,7 +410,7 @@ const newLayout = (state, payload) => {
   return Object.assign({}, state, { layout: payload, activeMapId: activeMapId });
 };
 const newActivePanel = (state, payload) => {
-  let numPanels = -1;
+  let numPanels;
   if (/quad/.test(state.layout)) {
     numPanels = 4;
   } else if (/triple/.test(state.layout)) {
