@@ -15,11 +15,11 @@ const mapStateToHeaderProps = (state) => {
   };
 };
 
-const mapStateToLeftSideBarProps = (state) => {
+const mapStateToLeftSideBarProps = () => {
   return { };
 };
 
-const mapStateToEmptyProps = (state) => {
+const mapStateToEmptyProps = () => {
   return {};
 };
 

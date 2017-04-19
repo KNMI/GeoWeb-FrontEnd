@@ -20,7 +20,7 @@ const mapStateToHeaderProps = (state) => {
   };
 };
 
-const mapStateToEmptyProps = (state) => {
+const mapStateToEmptyProps = () => {
   return {};
 };
 

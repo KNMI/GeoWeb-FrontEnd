@@ -10,7 +10,7 @@ const adagucProperties = {
   }
 };
 
-const emptyDispatch = () => {};
+const emptyDispatch = () => { /* intentionally left blank */ };
 const emptyActions = {};
 
 const evt = new MouseEvent('click', {

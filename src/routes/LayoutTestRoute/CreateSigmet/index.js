@@ -4,26 +4,26 @@ import Empty from '../../../components/Empty';
 import TitleBarContainer from '../../../containers/TitleBarContainer';
 import { connect } from 'react-redux';
 
-const mapStateToHeaderProps = (state) => {
+const mapStateToHeaderProps = () => {
   return {
     title: 'header',
     isLoggedIn: false
   };
 };
 
-const mapStateToLeftSideBarProps = (state) => {
+const mapStateToLeftSideBarProps = () => {
   return { title: 'leftSideBar SIGMET' };
 };
 
-const mapStateToEmptyProps = (state) => {
+const mapStateToEmptyProps = () => {
   return {};
 };
 
-const mapStateToMainViewportProps = (state) => {
+const mapStateToMainViewportProps = () => {
   return { title: 'createSigmet SIGMET' };
 };
 
-const mapStateToRightSideBarProps = (state) => {
+const mapStateToRightSideBarProps = () => {
   return { title: 'rightSideBar SIGMET' };
 };
 

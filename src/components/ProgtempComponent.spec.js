@@ -11,7 +11,7 @@ const adagucProperties = {
   }
 };
 
-const emptyDispatch = () => {};
+const emptyDispatch = () => { /* intentionally left blank */ };
 const emptyActions = {};
 
 describe('(Component) ProgtempComponent', () => {

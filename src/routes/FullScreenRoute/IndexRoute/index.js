@@ -19,7 +19,7 @@ const mapDispatchToMainViewportProps = function (dispatch) {
   });
 };
 
-const mapStateToEmptyProps = (state) => {
+const mapStateToEmptyProps = () => {
   return {};
 };
 

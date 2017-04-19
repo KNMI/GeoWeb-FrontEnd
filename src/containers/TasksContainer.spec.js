@@ -25,7 +25,7 @@ describe('(Container) TasksContainer', () => {
   it('Allows triggering the toggle function', () => {
     const _component = mount(<TasksContainer />);
     expect(_component.state().isOpen).to.eql(false);
-    let evt = new KeyboardEvent('keydown', {
+    const evt = new KeyboardEvent('keydown', {
       bubbles: true,
       cancelable: true,
       key: 'F11',

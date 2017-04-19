@@ -18,7 +18,7 @@ const adagucProperties = {
   timedim: '2017-04-06T21:00:00Z'
 };
 
-const emptyDispatch = () => {};
+const emptyDispatch = () => { /* intentionally left blank */ };
 const emptyActions = {};
 
 describe('(Component) TimeseriesComponent', () => {
