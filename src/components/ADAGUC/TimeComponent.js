@@ -31,7 +31,7 @@ export default class TimeComponent extends Component {
   }
   /* istanbul ignore next */
   drawCanvas () {
-    let timeDim = this.props.timedim;
+    const timeDim = this.props.timedim;
     if (timeDim === undefined) {
       return;
     }
@@ -39,11 +39,9 @@ export default class TimeComponent extends Component {
       return;
     }
     this.hoverDateDone = this.hoverDate;
-    let layers = this.props.wmjslayers.layers;
-    let overlayers = this.props.wmjslayers.baselayers.filter((layer) => layer.keepOnTop === true);
-    let ctx = this.ctx;
-    // let canvasWidth = ctx.canvas.clientWidth;
-    // let canvasHeight = ctx.canvas.clientHeight;
+    const layers = this.props.wmjslayers.layers;
+    const overlayers = this.props.wmjslayers.baselayers.filter((layer) => layer.keepOnTop === true);
+    const ctx = this.ctx;
     // eslint-disable-next-line no-undef
     const canvasWidth = $(ctx.canvas).width();
     // eslint-disable-next-line no-undef
@@ -54,17 +52,17 @@ export default class TimeComponent extends Component {
 
     ctx.font = '14px Arial';
     ctx.lineWidth = 1;
-    let scaleWidth = canvasWidth;
+    const scaleWidth = canvasWidth;
     // eslint-disable-next-line no-undef
-    let currentDate = getCurrentDateIso8601();
+    const currentDate = getCurrentDateIso8601();
     // eslint-disable-next-line no-undef
-    this.startDate = parseISO8601DateToDate(timeDim); // getCurrentDateIso8601();
+    this.startDate = parseISO8601DateToDate(timeDim);
     // eslint-disable-next-line no-undef
-    this.endDate = parseISO8601DateToDate(timeDim); // getCurrentDateIso8601();
+    this.endDate = parseISO8601DateToDate(timeDim);
 
     this.timeWidth = 24 / 2;
-    let hours = this.startDate.getUTCHours();
-    let h = parseInt(hours / this.timeWidth) * this.timeWidth;
+    const hours = this.startDate.getUTCHours();
+    const h = parseInt(hours / this.timeWidth) * this.timeWidth;
     this.startDate.setUTCHours(h);
     this.startDate.setUTCMinutes(0);
     this.startDate.setUTCSeconds(0);
@@ -73,16 +71,12 @@ export default class TimeComponent extends Component {
     this.endDate.setUTCSeconds(0);
 
     // eslint-disable-next-line no-undef
-    // startDate.substract(new DateInterval(0, 0, 0, 12, 0, 0));
-
-    // eslint-disable-next-line no-undef
     this.startDate.add(new DateInterval(0, 0, 0, 0, 0, 0));
     // eslint-disable-next-line no-undef
     this.endDate.add(new DateInterval(0, 0, 0, this.timeWidth, 0, 0));
     let canvasDateIntervalStr = this.startDate.toISO8601() + '/' + this.endDate.toISO8601() + '/PT1M';
     // eslint-disable-next-line
     this.canvasDateInterval = new parseISOTimeRangeDuration(canvasDateIntervalStr);
-    // let sliderStartIndex = canvasDateInterval.getTimeStepFromISODate(startDate.toISO8601());
     let sliderCurrentIndex = -1;
     try {
       sliderCurrentIndex = this.canvasDateInterval.getTimeStepFromISODate(currentDate.toISO8601(), true);
@@ -90,15 +84,14 @@ export default class TimeComponent extends Component {
       // ???????
       // Apparantly we're reliant on exceptions
     }
-    let sliderMapIndex = this.canvasDateInterval.getTimeStepFromISODate(timeDim);
-    let sliderStopIndex = this.canvasDateInterval.getTimeStepFromISODate(this.endDate.toISO8601());
+    const sliderMapIndex = this.canvasDateInterval.getTimeStepFromISODate(timeDim);
+    const sliderStopIndex = this.canvasDateInterval.getTimeStepFromISODate(this.endDate.toISO8601());
 
-    let canvasDateIntervalStrHour = this.startDate.toISO8601() + '/' + this.endDate.toISO8601() + '/PT1H';
-    // eslint-disable-next-line no-undef
+    const canvasDateIntervalStrHour = this.startDate.toISO8601() + '/' + this.endDate.toISO8601() + '/PT1H';
     // eslint-disable-next-line
-    let canvasDateIntervalHour = new parseISOTimeRangeDuration(canvasDateIntervalStrHour);
-    let timeBlockStartIndex = canvasDateIntervalHour.getTimeStepFromDate(this.startDate);
-    let timeBlockStopIndex = canvasDateIntervalHour.getTimeStepFromISODate(this.endDate.toISO8601());
+    const canvasDateIntervalHour = new parseISOTimeRangeDuration(canvasDateIntervalStrHour);
+    const timeBlockStartIndex = canvasDateIntervalHour.getTimeStepFromDate(this.startDate);
+    const timeBlockStopIndex = canvasDateIntervalHour.getTimeStepFromISODate(this.endDate.toISO8601());
 
     /* Draw system time, past and future */
     let x = parseInt((sliderCurrentIndex / sliderStopIndex) * scaleWidth) + 0.5;
@@ -109,15 +102,15 @@ export default class TimeComponent extends Component {
 
     /* Draw time indication blocks */
     for (let j = timeBlockStartIndex - 1; j < timeBlockStopIndex + 1; j++) {
-      let dateAtTimeStep = canvasDateIntervalHour.getDateAtTimeStep(j);
-      let layerTimeIndex = this.canvasDateInterval.getTimeStepFromDate(dateAtTimeStep);
-      let layerTimeIndexNext = this.canvasDateInterval.getTimeStepFromDate(canvasDateIntervalHour.getDateAtTimeStep(j + 1));
-      let pos = layerTimeIndex / sliderStopIndex;
-      let width = (layerTimeIndexNext - layerTimeIndex) / sliderStopIndex;
+      const dateAtTimeStep = canvasDateIntervalHour.getDateAtTimeStep(j);
+      const layerTimeIndex = this.canvasDateInterval.getTimeStepFromDate(dateAtTimeStep);
+      const layerTimeIndexNext = this.canvasDateInterval.getTimeStepFromDate(canvasDateIntervalHour.getDateAtTimeStep(j + 1));
+      const pos = layerTimeIndex / sliderStopIndex;
+      const width = (layerTimeIndexNext - layerTimeIndex) / sliderStopIndex;
       ctx.fillStyle = '#AAA';
       ctx.strokeStyle = '#000';
       ctx.lineWidth = 0.5;
-      let x = parseInt(pos * scaleWidth);
+      const x = parseInt(pos * scaleWidth);
       ctx.fillRect(x + 0.5, canvasHeight - 16 + 0.5, width * scaleWidth + 0.5, 15);
       ctx.strokeRect(x + 0.5, canvasHeight - 16 + 0.5, width * scaleWidth + 0.5, 15);
       ctx.fillStyle = '#000';
@@ -125,10 +118,10 @@ export default class TimeComponent extends Component {
     }
     /* Draw blocks for layer */
     for (let j = 0; j < layers.length + 0; j++) {
-      let y = j * 20 + 1 + overlayers.length * 20;
-      let h = 16;
-      let layer = layers[j];
-      let dim = layer.getDimension('time');
+      const y = j * 20 + 1 + overlayers.length * 20;
+      const h = 16;
+      const layer = layers[j];
+      const dim = layer.getDimension('time');
       ctx.lineWidth = 1;
       ctx.fillStyle = '#F66';
       ctx.fillRect(0, y + 0.5, canvasWidth, h);
@@ -139,18 +132,17 @@ export default class TimeComponent extends Component {
         let layerStopIndex = dim.getIndexForValue(this.endDate, false);
         for (let j = layerStartIndex - 1; j < layerStopIndex + 1; j++) {
           try {
-            let layerTimeIndex = this.canvasDateInterval.getTimeStepFromISODate(dim.getValueForIndex(j));
-            let layerTimeIndexNext = this.canvasDateInterval.getTimeStepFromISODate(dim.getValueForIndex(j + 1));
-            let pos = layerTimeIndex / sliderStopIndex;
-            let posNext = layerTimeIndexNext / sliderStopIndex;
-            // let width = (layerTimeIndexNext - layerTimeIndex) / sliderStopIndex;
+            const layerTimeIndex = this.canvasDateInterval.getTimeStepFromISODate(dim.getValueForIndex(j));
+            const layerTimeIndexNext = this.canvasDateInterval.getTimeStepFromISODate(dim.getValueForIndex(j + 1));
+            const pos = layerTimeIndex / sliderStopIndex;
+            const posNext = layerTimeIndexNext / sliderStopIndex;
             ctx.fillStyle = '#BBB';
             if (sliderMapIndex >= layerTimeIndex && sliderMapIndex < layerTimeIndexNext) {
               ctx.fillStyle = '#FFFF60';
             }
             ctx.strokeStyle = '#888';
-            let x = parseInt(pos * scaleWidth);
-            let w = parseInt(posNext * scaleWidth) - x;
+            const x = parseInt(pos * scaleWidth);
+            const w = parseInt(posNext * scaleWidth) - x;
 
             ctx.fillRect(x + 0.5, y + 0.5, w, h);
             ctx.strokeRect(x + 0.5, y + 0.5, w, h);
@@ -159,9 +151,6 @@ export default class TimeComponent extends Component {
           }
         }
       }
-      // ctx.font = 'bold 10pt Arial';
-      // ctx.fillStyle = '#000';
-      // ctx.fillText(layer.title, 6, h + y - 3);
     }
 
     /* Draw current system time */
@@ -181,27 +170,17 @@ export default class TimeComponent extends Component {
     ctx.strokeStyle = '#333';
     x = parseInt((sliderMapIndex / sliderStopIndex) * scaleWidth);
     ctx.fillStyle = '#333';
-    // ctx.fillRect(x - 5, 0, 10, 3);
     ctx.strokeStyle = '#444';
-    // ctx.fillRect(x - 5, canvasHeight - 19, 10, 3);
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.moveTo(x + 0.0, 0);
     ctx.lineTo(x + 0.0, canvasHeight);
     ctx.stroke();
 
-    // let textXPos = x;
-    // let textWidth = 30;
-    // if (x > canvasWidth - (textWidth + 8)) {
-    //   textXPos -= (textWidth + 8);
-    // } else {
-    //   textXPos += 8;
-    // }
     ctx.strokeStyle = '#000000';
     ctx.lineWidth = 0.5;
     ctx.fillStyle = '#EEE';
     ctx.fillRect(x - 26, canvasHeight - 15, 52, 14);
-    // ctx.strokeRect(x - 20.5, canvasHeight - 15.5, 40, 16);
     ctx.fillStyle = '#000000';
     ctx.fillText(timeDim.substring(11, 16), x - 15, canvasHeight - 3);
   }
@@ -210,7 +189,7 @@ export default class TimeComponent extends Component {
     function prf (input, width) {
       // print decimal with fixed length (preceding zero's)
       let string = input + '';
-      let len = width - string.length;
+      const len = width - string.length;
       let zeros = '';
       for (let j = 0; j < len; j++) {
         zeros += '0' + zeros;
@@ -221,15 +200,14 @@ export default class TimeComponent extends Component {
     if (typeof value === 'string') {
       return value;
     }
-    let iso = prf(value.year, 4) + '-' + prf(value.month, 2) + '-' + prf(value.day, 2) + 'T' + prf(value.hour, 2) + ':' + prf(value.minute, 2) + ':' + prf(value.second, 2) + 'Z';
-    return iso;
+    return prf(value.year, 4) + '-' + prf(value.month, 2) + '-' + prf(value.day, 2) + 'T' + prf(value.hour, 2) + ':' + prf(value.minute, 2) + ':' + prf(value.second, 2) + 'Z';
   }
   /* istanbul ignore next */
   setNewDate (value) {
     if (!value) {
       return;
     }
-    let isodate = this.toISO8601(value);
+    const isodate = this.toISO8601(value);
     // eslint-disable-next-line no-undef
     var date = parseISO8601DateToDate(isodate);
     this.props.dispatch(this.props.actions.setTimeDimension(date.toISO8601()));
@@ -247,31 +225,43 @@ export default class TimeComponent extends Component {
   }
   /* istanbul ignore next */
   changeYear (value) {
-    let date = this.decomposeDateString(this.props.timedim); date.year = value; this.setNewDate(date);
+    let date = this.decomposeDateString(this.props.timedim);
+    date.year = value;
+    this.setNewDate(date);
   }
   /* istanbul ignore next */
   changeMonth (value) {
-    let date = this.decomposeDateString(this.props.timedim); date.month = value; this.setNewDate(date);
+    let date = this.decomposeDateString(this.props.timedim);
+    date.month = value;
+    this.setNewDate(date);
   }
   /* istanbul ignore next */
   changeDay (value) {
-    let date = this.decomposeDateString(this.props.timedim); date.day = value; this.setNewDate(date);
+    let date = this.decomposeDateString(this.props.timedim);
+    date.day = value;
+    this.setNewDate(date);
   }
   /* istanbul ignore next */
   changeHour (value) {
-    let date = this.decomposeDateString(this.props.timedim); date.hour = value; this.setNewDate(date);
+    let date = this.decomposeDateString(this.props.timedim);
+    date.hour = value;
+    this.setNewDate(date);
   }
   /* istanbul ignore next */
   changeMinute (value) {
-    let date = this.decomposeDateString(this.props.timedim); date.minute = value; this.setNewDate(date);
+    let date = this.decomposeDateString(this.props.timedim);
+    date.minute = value;
+    this.setNewDate(date);
   }
   /* istanbul ignore next */
   changeSecond (value) {
-    let date = this.decomposeDateString(this.props.timedim); date.second = value; this.setNewDate(date);
+    let date = this.decomposeDateString(this.props.timedim);
+    date.second = value;
+    this.setNewDate(date);
   }
   /* istanbul ignore next */
   componentDidMount () {
-    let element = document.querySelector('#timelineParent');
+    const element = document.querySelector('#timelineParent');
     elementResizeEvent(element, () => {
       this.setState({ });
     });
@@ -296,12 +286,12 @@ export default class TimeComponent extends Component {
   }
   /* istanbul ignore next */
   onClickCanvas (x, y) {
-    let t = x / this.ctx.canvas.clientWidth;
-    let s = this.canvasDateInterval.getTimeSteps() - 1;
-    let newTimeStep = parseInt(t * s);
+    const t = x / this.ctx.canvas.clientWidth;
+    const s = this.canvasDateInterval.getTimeSteps() - 1;
+    const newTimeStep = parseInt(t * s);
     /* istanbul ignore next */
     try {
-      let newDate = this.canvasDateInterval.getDateAtTimeStep(newTimeStep, true);
+      const newDate = this.canvasDateInterval.getDateAtTimeStep(newTimeStep, true);
       this.setNewDate(newDate.toISO8601());
     } catch (e) {
       throw new Error('311: ', e);
@@ -309,7 +299,7 @@ export default class TimeComponent extends Component {
   }
   handleButtonClickNow () {
     // eslint-disable-next-line no-undef
-    let currentDate = getCurrentDateIso8601();
+    const currentDate = getCurrentDateIso8601();
     this.props.dispatch(this.props.actions.setTimeDimension(currentDate.toISO8601()));
     this.eventOnDimChange();
   }
