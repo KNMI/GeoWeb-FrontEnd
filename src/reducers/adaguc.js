@@ -68,7 +68,6 @@ const doLogout = (state, payload) => {
 
 // TODO: This info should be obtained form the backend
 const sigmetLayers = (p) => {
-  console.log(p);
   switch (p) {
     case 'sigmet_layer_TS':
       return (
@@ -261,7 +260,6 @@ const sigmetLayers = (p) => {
 
 const setNewPreset = (state, payload) => {
   if (typeof payload === 'string') {
-    console.log('sigmetpreset');
     const sigmetPreset = sigmetLayers(payload);
     const newLayers = Object.assign({}, state.layers, { panel: sigmetPreset.layers.panel });
     return Object.assign({}, state, { layers: newLayers, layout: sigmetPreset.layout, boundingBox: sigmetPreset.boundingBox });
@@ -285,8 +283,6 @@ const setNewPreset = (state, payload) => {
     const bbox = payload.bbox ? Object.assign({}, state.boundingBox, { bbox: [0, payload.bbox.top, 1, payload.bbox.bottom] }) : state.boundingBox;
     const layout = payload.display ? payload.display.type : state.layout;
     const panel = payload.layers ? transform(payload.layers) : state.layers;
-    console.log(panel);
-    // const newLayers = Object.assign({}, state.layers, { panel: sigmet.layers.panel });
     const newLayers = Object.assign({}, state.layers, { panel: panel });
     return Object.assign({}, state, { layers: newLayers, boundingBox: bbox, layout: layout });
   }
@@ -398,7 +394,7 @@ const setCursorLocation = (state, payload) => {
   return Object.assign({}, state, { cursor: loc });
 };
 const newLayout = (state, payload) => {
-  let numPanels = -1;
+  let numPanels;
   if (/quad/.test(payload)) {
     numPanels = 4;
   } else if (/triple/.test(payload)) {
@@ -412,7 +408,7 @@ const newLayout = (state, payload) => {
   return Object.assign({}, state, { layout: payload, activeMapId: activeMapId });
 };
 const newActivePanel = (state, payload) => {
-  let numPanels = -1;
+  let numPanels;
   if (/quad/.test(state.layout)) {
     numPanels = 4;
   } else if (/triple/.test(state.layout)) {

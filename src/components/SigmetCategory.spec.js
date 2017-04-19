@@ -47,7 +47,6 @@ describe('(Container) SigmetCategory', () => {
     ];
     moxios.wait(function () {
       let request = moxios.requests.mostRecent();
-      console.log('moxios: ', request);
       request.respondWith({
         status: 200,
         response: phenomena
