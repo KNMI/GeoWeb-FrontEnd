@@ -4,7 +4,7 @@
 @import "{{ site.theme }}";
 @import url('https://fonts.googleapis.com/css?family=Roboto');
 body {
-  font-family: 'Roboto', sans-serif; 
+  font-family: system-ui, 'Roboto', sans-serif; 
 }
 .page-header {
   background-color: #01547d;
