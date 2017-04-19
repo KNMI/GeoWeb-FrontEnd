@@ -4,10 +4,27 @@ import { mount } from 'enzyme';
 import sinon from 'sinon';
 
 const adagucProperties = {
+  layers: {
+    baselayer: {},
+    panel: [
+      {
+        baselayers: [],
+        overlays: []
+      }, {
+        baselayers: [],
+        overlays: []
+      }, {
+        baselayers: [],
+        overlays: []
+      }, {
+        baselayers: [],
+        overlays: []
+      }
+    ]
+  },
   wmjslayers: {
     layers: [],
-    baselayers: [],
-    overlays: []
+    baselayers: [{}]
   },
   adagucmapdraw: {
     geojson: { 'type': 'FeatureCollection',
