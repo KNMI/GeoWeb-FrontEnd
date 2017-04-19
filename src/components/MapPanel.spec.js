@@ -27,8 +27,8 @@ const adagucProperties = {
   }
 };
 
-const emptyDispatch = () => {};
-const emptyActions = {};
+const emptyDispatch = () => { /* intentionally left blank */ };
+const emptyActions = { /* intentionally left blank */ };
 
 describe('(Component) MapPanel', () => {
   it('Renders a MapPanel', () => {

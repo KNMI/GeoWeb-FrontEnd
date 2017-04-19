@@ -16,8 +16,14 @@ const adagucProperties = {
   mapMode: 'pan'
 };
 
-const emptyDispatch = () => {};
-const emptyActions = { toggleAnimation: () => {}, setTimeDimension: () => {}, setMapMode: () => {} };
+const emptyDispatch = () => {
+  // intentionally left blank
+};
+const emptyActions = {
+  toggleAnimation: () => { /* intentionally left blank */ },
+  setTimeDimension: () => { /* intentionally left blank */ },
+  setMapMode: () => { /* intentionally left blank */ }
+};
 
 describe('(Container) MapActionsContainer', () => {
   it('Renders a ReactStrap Col', () => {
@@ -44,7 +50,7 @@ describe('(Container) MapActionsContainer', () => {
     expect('everything').to.be.ok();
   });
   it('Allows for triggering goToNow', () => {
-    global.getCurrentDateIso8601 = sinon.stub().returns({ toISO8601: () => {} });
+    global.getCurrentDateIso8601 = sinon.stub().returns({ toISO8601: () => { /* intentionally left blank */ } });
     const _component = mount(<MapActionsContainer adagucProperties={adagucProperties} dispatch={emptyDispatch} actions={emptyActions} />);
     _component.instance().goToNow();
     expect('everything').to.be.ok();
@@ -123,7 +129,6 @@ describe('(Container) MapActionsContainer', () => {
       },
       mapMode: 'progtemp'
     };
-    // _component.setState({ progTempPopOverOpen: true });
     _component.setProps({ adagucProperties: newAdaguc });
     expect('everything').to.be.ok();
   });

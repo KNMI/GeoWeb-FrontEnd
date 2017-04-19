@@ -4,26 +4,26 @@ import Empty from '../../../components/Empty';
 import TitleBarContainer from '../../../containers/TitleBarContainer';
 import { connect } from 'react-redux';
 
-const mapStateToHeaderProps = (state) => {
+const mapStateToHeaderProps = () => {
   return {
     title: 'header',
     isLoggedIn: false
   };
 };
 
-const mapStateToLeftSideBarProps = (state) => {
+const mapStateToLeftSideBarProps = () => {
   return { title: 'leftSideBar Monitoring' };
 };
 
-const mapStateToEmptyProps = (state) => {
+const mapStateToEmptyProps = () => {
   return {};
 };
 
-const mapStateToMainViewportProps = (state) => {
+const mapStateToMainViewportProps = () => {
   return { title: 'main Monitoring' };
 };
 
-const mapStateToRightSideBarProps = (state) => {
+const mapStateToRightSideBarProps = () => {
   return { title: 'rightSideBar Monitoring' };
 };
 

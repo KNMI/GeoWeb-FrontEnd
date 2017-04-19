@@ -7,14 +7,14 @@ import MapPanel from '../../../components/MapPanel';
 import { actions } from '../../../actions/adaguc';
 import { connect } from 'react-redux';
 
-const mapStateToHeaderProps = (state) => {
+const mapStateToHeaderProps = () => {
   return {
     title: 'header',
     isLoggedIn: false
   };
 };
 
-const mapStateToEmptyProps = (state) => {
+const mapStateToEmptyProps = () => {
   return {};
 };
 
