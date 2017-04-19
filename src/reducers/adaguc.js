@@ -34,10 +34,10 @@ const newCut = (state, payload) => {
   return Object.assign({}, state, { boundingBox: payload });
 };
 const doAddLayer = (state, payload) => {
-  let layersCpy = cloneDeep(state.layers.panel[state.activeMapId]);
+  const layersCpy = cloneDeep(state.layers.panel[state.activeMapId]);
   layersCpy.datalayers.unshift(payload);
 
-  let oldPanel = cloneDeep(state.layers.panel);
+  const oldPanel = cloneDeep(state.layers.panel);
   oldPanel[state.activeMapId] = layersCpy;
   const newlayers = Object.assign({}, state.layers, { panel: oldPanel });
 
@@ -45,13 +45,13 @@ const doAddLayer = (state, payload) => {
 };
 
 const doAddOverlayLayer = (state, payload) => {
-  let layersCpy = cloneDeep(state.layers.panel[state.activeMapId]);
+  const layersCpy = cloneDeep(state.layers.panel[state.activeMapId]);
   if (!payload.enabled) {
     payload.enabled = true;
   }
   layersCpy.overlays.unshift(payload);
 
-  let oldPanel = cloneDeep(state.layers.panel);
+  const oldPanel = cloneDeep(state.layers.panel);
   oldPanel[state.activeMapId] = layersCpy;
   const newlayers = Object.assign({}, state.layers, { panel: oldPanel });
 
@@ -62,200 +62,199 @@ const doLogin = (state, payload) => {
   return Object.assign({}, state, { user: { isLoggedIn: true, userName: payload.userName, roles: payload.roles ? payload.roles : [] } });
 };
 
-const doLogout = (state, payload) => {
+const doLogout = (state) => {
   return Object.assign({}, state, { user: { isLoggedIn: false, userName: '', roles: [] } });
 };
 
 // TODO: This info should be obtained form the backend
 const sigmetLayers = (p) => {
-  console.log(p);
-  switch (p) {
-    case 'sigmet_layer_TS':
-      return (
-      {
-        layers: {
-          panel: [
-            {
-              datalayers: [
-                {
-                  service: 'http://geoservices.knmi.nl/cgi-bin/HARM_N25.cgi?',
-                  title: 'HARM_N25_EXT',
-                  name: 'precipitation_flux',
-                  label: 'Prec: Precipitation rate',
-                  opacity: 1,
-                  enabled: true
-                }
-              ],
-              overlays: [
-                {
-                  service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.OVL.cgi?',
-                  title: 'OVL',
-                  name: 'FIR_DEC_2013_EU',
-                  label: 'FIR areas',
-                  enabled: true
-                }
-              ]
-            },
-            {
-              datalayers: [
-                {
-                  service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.OBS.cgi?',
-                  title: 'OBS',
-                  name: '10M/ww',
-                  label: 'wawa Weather Code (ww)',
-                  enabled: true,
-                  opacity: 1
-                }
-              ],
-              overlays: [
-                {
-                  service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.OVL.cgi?',
-                  title: 'OVL',
-                  name: 'FIR_DEC_2013_EU',
-                  label: 'FIR areas',
-                  enabled: true
-                }
-              ]
-            },
-            {
-              datalayers: [
-                {
-                  service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.RADAR.cgi?',
-                  title: 'RADAR',
-                  name: 'precipitation',
-                  label: 'Neerslag',
-                  opacity: 1,
-                  enabled: true
-                }, {
-                  service: 'http://bvmlab-218-41.knmi.nl/cgi-bin/WWWRADAR3.cgi?',
-                  title: 'LGT',
-                  name: 'LGT_NL25_LAM_05M',
-                  label: 'LGT_NL25_LAM_05M',
-                  enabled: true,
-                  opacity: 1
-                }
-              ],
-              overlays: [
-                {
-                  service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.OVL.cgi?',
-                  title: 'OVL',
-                  name: 'FIR_DEC_2013_EU',
-                  label: 'FIR areas',
-                  enabled: true
-                }
-              ]
-            },
-            {
-              datalayers: [],
-              overlays: [
-                {
-                  service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.OVL.cgi?',
-                  title: 'OVL',
-                  name: 'FIR_DEC_2013_EU',
-                  label: 'FIR areas',
-                  enabled: true
-                }
-              ]
-            }
-          ]
-        },
-        boundingBox: BOUNDING_BOXES[1],
-        layout: 'quaduneven'
-      });
-    default:
-      return (
-      {
-        layers: {
-          panel: [
-            {
-              datalayers: [
-                {
-                  service: 'http://geoservices.knmi.nl/cgi-bin/HARM_N25.cgi?',
-                  title: 'HARM_N25_EXT',
-                  name: 'precipitation_flux',
-                  label: 'Prec: Precipitation rate',
-                  opacity: 1,
-                  enabled: true
-                }
-              ],
-              overlays: [
-                {
-                  service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.OVL.cgi?',
-                  title: 'OVL',
-                  name: 'FIR_DEC_2013_EU',
-                  label: 'FIR areas',
-                  enabled: true
-                }
-              ]
-            },
-            {
-              datalayers: [
-                {
-                  service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.OBS.cgi?',
-                  title: 'OBS',
-                  name: '10M/ww',
-                  label: 'wawa Weather Code (ww)',
-                  enabled: true,
-                  opacity: 1
-                }
-              ],
-              overlays: [
-                {
-                  service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.OVL.cgi?',
-                  title: 'OVL',
-                  name: 'FIR_DEC_2013_EU',
-                  label: 'FIR areas',
-                  enabled: true
-                }
-              ]
-            },
-            {
-              datalayers: [
-                {
-                  service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.RADAR.cgi?',
-                  title: 'RADAR',
-                  name: 'precipitation',
-                  label: 'Neerslag',
-                  opacity: 1,
-                  enabled: true
-                }
-              ],
-              overlays: [
-                {
-                  service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.OVL.cgi?',
-                  title: 'OVL',
-                  name: 'FIR_DEC_2013_EU',
-                  label: 'FIR areas',
-                  enabled: true
-                }
-              ]
-            },
-            {
-              datalayers: [
-                {
-                  service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.SAT.cgi?',
-                  title: 'SAT',
-                  name: 'HRV-COMB',
-                  label: 'RGB-HRV-COMB',
-                  enabled: true,
-                  opacity: 1
-                }
-              ],
-              overlays: [
-                {
-                  service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.OVL.cgi?',
-                  title: 'OVL',
-                  name: 'FIR_DEC_2013_EU',
-                  label: 'FIR areas',
-                  enabled: true
-                }
-              ]
-            }
-          ]
-        },
-        boundingBox: BOUNDING_BOXES[1],
-        layout: 'quaduneven'
-      });
+  if (p === 'sigmet_layer_TS') {
+    return (
+    {
+      layers: {
+        panel: [
+          {
+            datalayers: [
+              {
+                service: 'http://geoservices.knmi.nl/cgi-bin/HARM_N25.cgi?',
+                title: 'HARM_N25_EXT',
+                name: 'precipitation_flux',
+                label: 'Prec: Precipitation rate',
+                opacity: 1,
+                enabled: true
+              }
+            ],
+            overlays: [
+              {
+                service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.OVL.cgi?',
+                title: 'OVL',
+                name: 'FIR_DEC_2013_EU',
+                label: 'FIR areas',
+                enabled: true
+              }
+            ]
+          },
+          {
+            datalayers: [
+              {
+                service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.OBS.cgi?',
+                title: 'OBS',
+                name: '10M/ww',
+                label: 'wawa Weather Code (ww)',
+                enabled: true,
+                opacity: 1
+              }
+            ],
+            overlays: [
+              {
+                service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.OVL.cgi?',
+                title: 'OVL',
+                name: 'FIR_DEC_2013_EU',
+                label: 'FIR areas',
+                enabled: true
+              }
+            ]
+          },
+          {
+            datalayers: [
+              {
+                service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.RADAR.cgi?',
+                title: 'RADAR',
+                name: 'precipitation',
+                label: 'Neerslag',
+                opacity: 1,
+                enabled: true
+              }, {
+                service: 'http://bvmlab-218-41.knmi.nl/cgi-bin/WWWRADAR3.cgi?',
+                title: 'LGT',
+                name: 'LGT_NL25_LAM_05M',
+                label: 'LGT_NL25_LAM_05M',
+                enabled: true,
+                opacity: 1
+              }
+            ],
+            overlays: [
+              {
+                service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.OVL.cgi?',
+                title: 'OVL',
+                name: 'FIR_DEC_2013_EU',
+                label: 'FIR areas',
+                enabled: true
+              }
+            ]
+          },
+          {
+            datalayers: [],
+            overlays: [
+              {
+                service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.OVL.cgi?',
+                title: 'OVL',
+                name: 'FIR_DEC_2013_EU',
+                label: 'FIR areas',
+                enabled: true
+              }
+            ]
+          }
+        ]
+      },
+      boundingBox: BOUNDING_BOXES[1],
+      layout: 'quaduneven'
+    }
+    );
+  } else {
+    return (
+    {
+      layers: {
+        panel: [
+          {
+            datalayers: [
+              {
+                service: 'http://geoservices.knmi.nl/cgi-bin/HARM_N25.cgi?',
+                title: 'HARM_N25_EXT',
+                name: 'precipitation_flux',
+                label: 'Prec: Precipitation rate',
+                opacity: 1,
+                enabled: true
+              }
+            ],
+            overlays: [
+              {
+                service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.OVL.cgi?',
+                title: 'OVL',
+                name: 'FIR_DEC_2013_EU',
+                label: 'FIR areas',
+                enabled: true
+              }
+            ]
+          },
+          {
+            datalayers: [
+              {
+                service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.OBS.cgi?',
+                title: 'OBS',
+                name: '10M/ww',
+                label: 'wawa Weather Code (ww)',
+                enabled: true,
+                opacity: 1
+              }
+            ],
+            overlays: [
+              {
+                service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.OVL.cgi?',
+                title: 'OVL',
+                name: 'FIR_DEC_2013_EU',
+                label: 'FIR areas',
+                enabled: true
+              }
+            ]
+          },
+          {
+            datalayers: [
+              {
+                service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.RADAR.cgi?',
+                title: 'RADAR',
+                name: 'precipitation',
+                label: 'Neerslag',
+                opacity: 1,
+                enabled: true
+              }
+            ],
+            overlays: [
+              {
+                service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.OVL.cgi?',
+                title: 'OVL',
+                name: 'FIR_DEC_2013_EU',
+                label: 'FIR areas',
+                enabled: true
+              }
+            ]
+          },
+          {
+            datalayers: [
+              {
+                service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.SAT.cgi?',
+                title: 'SAT',
+                name: 'HRV-COMB',
+                label: 'RGB-HRV-COMB',
+                enabled: true,
+                opacity: 1
+              }
+            ],
+            overlays: [
+              {
+                service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.OVL.cgi?',
+                title: 'OVL',
+                name: 'FIR_DEC_2013_EU',
+                label: 'FIR areas',
+                enabled: true
+              }
+            ]
+          }
+        ]
+      },
+      boundingBox: BOUNDING_BOXES[1],
+      layout: 'quaduneven'
+    });
   }
 };
 

@@ -25,7 +25,7 @@ export default (initialState = {}, isdev = false) => {
   // ======================================================
   // Store Instantiation and HMR Setup
   // ======================================================
-  let store = createStore(
+  const store = createStore(
     makeRootReducer(),
     initialState,
     composeEnhancers(

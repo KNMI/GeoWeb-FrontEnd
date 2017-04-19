@@ -165,7 +165,9 @@ export default class Adaguc extends React.Component {
     // eslint-disable-next-line no-undef
     this.webMapJS = new WMJSMap(adagucMapRef, BACKEND_SERVER_XML2JSON);
     let element = document.querySelector('#adagucwrapper' + this.props.mapId);
-    if (!element) return;
+    if (!element) {
+      return;
+    }
     element = element.parentNode;
     const width = $(element).width();
     const height = $(element).height();
@@ -238,44 +240,23 @@ export default class Adaguc extends React.Component {
     const latlong = this.webMapJS.getLatLongFromPixelCoord({ x: event.x, y: event.y });
     this.props.dispatch(this.props.actions.cursorLocation(latlong));
   }
-  /* istanbul ignore next */
-  componentDidUpdate (prevProps, prevState) {
-    // The first time, the map needs to be created. This is when in the previous state the map creation boolean is false
-    // Otherwise only change when a new dataset is selected
-    const { adagucProperties, mapId, active, dispatch, actions } = this.props;
-    const { layers, boundingBox, timedim, animate, mapMode, cursor } = adagucProperties;
 
-    // Update Boundingbox
-    if (boundingBox !== prevProps.adagucProperties.boundingBox) {
-      // eslint-disable-next-line no-undef
-      this.webMapJS.setBBOX(boundingBox.bbox.join());
-    }
-
-    // Update Time
-    if (timedim !== prevProps.adagucProperties.timedim) {
-      // eslint-disable-next-line no-undef
-      this.webMapJS.setDimension('time', timedim, true);
-    }
-
-    // Update animation -- animate iff animate is set and the panel is active.
-    this.onChangeAnimation(active && animate);
-
-    // Update mapmode
-    if (mapMode !== prevProps.adagucProperties.mapMode) {
+  updateMapMode (currentMode, mode, active) {
+    if (currentMode !== mode) {
       // Remove listeners if switching away from progtemp or timeseries
-      if ((prevProps.adagucProperties.mapMode === 'progtemp' && mapMode !== 'progtemp') ||
-          (prevProps.adagucProperties.mapMode === 'timeseries' && mapMode !== 'timeseries')) {
+      if ((mode === 'progtemp' && currentMode !== 'progtemp') ||
+          (mode === 'timeseries' && currentMode !== 'timeseries')) {
         this.webMapJS.removeListener('mouseclicked');
         this.webMapJS.enableInlineGetFeatureInfo(true);
       }
 
       // Register listeners if switching to progtemp or timeseries
-      if ((prevProps.adagucProperties.mapMode !== 'progtemp' && mapMode === 'progtemp') ||
-          (prevProps.adagucProperties.mapMode !== 'timeseries' && mapMode === 'timeseries')) {
+      if ((mode !== 'progtemp' && currentMode === 'progtemp') ||
+          (mode !== 'timeseries' && currentMode === 'timeseries')) {
         this.webMapJS.enableInlineGetFeatureInfo(false);
         this.webMapJS.addListener('mouseclicked', (e) => this.findClosestCursorLoc(e), true);
       }
-      switch (mapMode) {
+      switch (currentMode) {
         case 'zoom':
           this.webMapJS.setMapModeZoomBoxIn();
           break;
@@ -298,10 +279,36 @@ export default class Adaguc extends React.Component {
           this.webMapJS.setMapModeNone();
           break;
       }
-      if (!active || !(mapMode === 'draw' || mapMode === 'measure')) {
+      if (!active || !(currentMode === 'draw' || currentMode === 'measure')) {
         this.webMapJS.setMessage('');
       }
     }
+  }
+
+  /* istanbul ignore next */
+  componentDidUpdate (prevProps) {
+    // The first time, the map needs to be created. This is when in the previous state the map creation boolean is false
+    // Otherwise only change when a new dataset is selected
+    const { adagucProperties, mapId, active, dispatch, actions } = this.props;
+    const { layers, boundingBox, timedim, animate, mapMode, cursor } = adagucProperties;
+
+    // Update Boundingbox
+    if (boundingBox !== prevProps.adagucProperties.boundingBox) {
+      // eslint-disable-next-line no-undef
+      this.webMapJS.setBBOX(boundingBox.bbox.join());
+    }
+
+    // Update Time
+    if (timedim !== prevProps.adagucProperties.timedim) {
+      // eslint-disable-next-line no-undef
+      this.webMapJS.setDimension('time', timedim, true);
+    }
+
+    // Update animation -- animate iff animate is set and the panel is active.
+    this.onChangeAnimation(active && animate);
+
+    // Update mapmode
+    this.updateMapMode(mapMode, prevProps.adagucProperties.mapMode, active);
 
     // Track cursor if necessary
     if (cursor && cursor.location && cursor !== prevProps.adagucProperties.cursor) {

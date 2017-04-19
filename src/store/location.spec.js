@@ -3,4 +3,5 @@
 // } from 'store/location';
 
 describe('(Store) location', () => {
+  // intentionally left blank
 });

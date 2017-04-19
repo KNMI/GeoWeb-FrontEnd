@@ -3,4 +3,5 @@
 // } from 'store/defaultReducer';
 
 describe('(Store) defaultReducer', () => {
+  // intentionally left blank
 });

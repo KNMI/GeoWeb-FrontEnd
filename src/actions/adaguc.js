@@ -143,23 +143,6 @@ function toggleAnimation () {
     type: TOGGLE_ANIMATION
   };
 }
-/*  This is a thunk, meaning it is a function that immediately
-    returns a function for lazy evaluation. It is incredibly useful for
-    creating async actions, especially when combined with redux-thunk! */
-
-// export const doubleAsync = () => {
-//   return (dispatch, getState) => {
-//     return new Promise((resolve) => {
-//       setTimeout(() => {
-//         dispatch({
-//           type    : COUNTER_DOUBLE_ASYNC,
-//           payload : getState().adagucProperties
-//         });
-//         resolve();
-//       }, 200);
-//     });
-//   };
-// };
 
 function setGeoJSON (json) {
   return {
