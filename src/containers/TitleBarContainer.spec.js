@@ -5,10 +5,10 @@ import sinon from 'sinon';
 var moment = require('moment');
 
 const emptyFunc = () => {
-  // This is intentional
+  // intentionally left blank
 };
 const emptyObj = {
-  // This is intentional
+  // intentionally left blank
 };
 
 describe('(Component) TitleBarContainer', () => {

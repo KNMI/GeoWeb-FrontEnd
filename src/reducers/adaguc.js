@@ -268,7 +268,7 @@ const setNewPreset = (state, payload) => {
       let panel = [];
       panels.forEach((p) => {
         panel.push({
-          datalayers: p.filter((layer) => layer.overlay === false),
+          datalayers: p.filter((layer) => layer.overlay === false).map((layer) => { layer.enabled = true; return layer; }),
           overlays: p.filter((layer) => layer.overlay === true)
         });
       });
@@ -284,6 +284,7 @@ const setNewPreset = (state, payload) => {
     const layout = payload.display ? payload.display.type : state.layout;
     const panel = payload.layers ? transform(payload.layers) : state.layers;
     const newLayers = Object.assign({}, state.layers, { panel: panel });
+    console.log(newLayers);
     return Object.assign({}, state, { layers: newLayers, boundingBox: bbox, layout: layout });
   }
 };

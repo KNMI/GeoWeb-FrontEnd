@@ -12,7 +12,7 @@ describe('(Layout) BaseLayout', () => {
 
   it('Allows for triggering the fullscreen function', () => {
     const _component = mount(<BaseLayout routes={[ { title: 'title', path: 'full_screen' } ]} />);
-    let evt = new KeyboardEvent('keydown', {
+    const evt = new KeyboardEvent('keydown', {
       bubbles: true,
       cancelable: true,
       key: 'F11',

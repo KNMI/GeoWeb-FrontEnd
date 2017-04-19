@@ -383,7 +383,12 @@ export default class Adaguc extends React.Component {
     const layersChanged = this.updateLayers(layers.panel[mapId].datalayers, prevAdagucProperties.layers.panel[mapId].datalayers);
 
     // Set the current layers if the panel becomes active (necessary for the layermanager etc.)
+    if (active) {
+      console.log(baseChanged);
+      console.log(layersChanged);
+    }
     if (active && (baseChanged || layersChanged)) {
+      console.log(this.webMapJS.getBaseLayers());
       dispatch(actions.setWMJSLayers({ layers: this.webMapJS.getLayers(), baselayers: this.webMapJS.getBaseLayers() }));
     }
     this.webMapJS.draw();

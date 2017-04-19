@@ -12,7 +12,7 @@ const adagucProperties = {
   timedim: ''
 };
 
-const emptyDispatch = () => {};
+const emptyDispatch = () => { /* intentionally left blank */ };
 const emptyActions = {};
 
 describe('(Component) LayerManagerPanel', () => {
