@@ -94,6 +94,7 @@
     "cssnano": "^3.10.0",
     "debug": "^2.6.3",
     "deep-diff": "^0.3.4",
+    "es6-enum": "^1.1.0",
     "eslint-plugin-standard": "^3.0.1",
     "extract-text-webpack-plugin": "^2.1.0",
     "file-loader": "^0.11.1",
