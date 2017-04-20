@@ -21,6 +21,10 @@ const DATE_FORMAT = 'YYYY MMM DD - ';
 const TIME_FORMAT = 'HH:mm UTC';
 const DATE_TIME_FORMAT = 'YYYY MMM DD - HH:mm UTC';
 const SEPARATOR = '_';
+const TAG_NAMES = {
+  DIV: 'div',
+  SPAN: 'span'
+};
 const UNIT_M = 'm';
 const UNIT_FL = 'FL';
 const UNIT_FT = 'ft';
@@ -58,7 +62,7 @@ const EMPTY_SIGMET = {
   forecast_position         : '',
   issuedate                 : '',
   validdate                 : moment().utc().format(),
-  validdate_end              : moment().add(4, 'hour'),
+  validdate_end              : moment().utc().add(4, 'hour').format(),
   firname                   : '',
   location_indicator_icao   : '',
   location_indicator_mwo    : 'EHDB',
@@ -86,13 +90,12 @@ class SigmetCategory extends Component {
     this.handleSigmetClick = this.handleSigmetClick.bind(this);
     this.saveSigmet = this.saveSigmet.bind(this);
     this.savedSigmetCallback = this.savedSigmetCallback.bind(this);
-    this.getHRS4code = this.getHRT4code.bind(this);
     this.getExistingSigmets = this.getExistingSigmets.bind(this);
     this.gotExistingSigmetsCallback = this.gotExistingSigmetsCallback.bind(this);
     this.setTops = this.setTops.bind(this);
     this.state = {
       isOpen: props.isOpen,
-      list: [],
+      list: [EMPTY_SIGMET],
       renderRange: false,
       lowerUnit: UNIT_FL
     };
@@ -214,8 +217,25 @@ class SigmetCategory extends Component {
     return parameters;
   }
 
-  handleSigmetClick (index) {
-    this.props.selectMethod(index, this.state.list[index].geojson);
+  hasTagName (element, tagName) {
+    return element.tagName.toLowerCase() === tagName;
+  }
+
+  handleSigmetClick (evt, index) {
+    let shouldContinue = false;
+    if (!this.props.editable) {
+      shouldContinue = true;
+    } else if (this.props.selectedIndex !== 0) {
+      shouldContinue = true;
+    } else if (this.hasTagName(evt.target, TAG_NAMES.DIV) && evt.target.classList.contains('row')) {
+      shouldContinue = true;
+    } else if (this.hasTagName(evt.target, TAG_NAMES.SPAN) && evt.target.classList.contains('badge')) {
+      shouldContinue = true;
+    }
+
+    if (shouldContinue) {
+      this.props.selectMethod(index, this.state.list[index].geojson);
+    }
   }
 
   onObsOrFcstClick (obsSelected) {
@@ -238,7 +258,7 @@ class SigmetCategory extends Component {
     }).then(src => {
       this.savedSigmetCallback(src);
     }).catch(error => {
-      this.savedSigmetCallback(error.response);
+      this.couldntSaveSigmetCallback(error.response);
     });
   }
 
@@ -308,9 +328,17 @@ class SigmetCategory extends Component {
   }
 
   savedSigmetCallback (message) {
-    this.setState({ isOpen: false });
-    this.props.selectMethod(0);
-    this.props.updateParent();
+    this.setState({ isOpen: false, list: [EMPTY_SIGMET] });
+    if (this.props.selectedIndex === 0) {
+      this.props.selectMethod(0);
+    }
+  }
+
+  couldntSaveSigmetCallback (message) {
+    console.log('Error while trying to save SIGMET', message);
+    if (this.props.selectedIndex === 0) {
+      this.props.selectMethod(0);
+    }
   }
 
   componentWillMount () {
@@ -589,7 +617,6 @@ class SigmetCategory extends Component {
       maxSize = 900;
     }
 
-    // const maxSize = editable ? 800 : this.state.list ? Math.min(250 * this.state.list.length, 600) : 0;
     return (
       <Card className='row accordion'>
         {parentCollapsed ? <CardHeader>
@@ -618,7 +645,7 @@ class SigmetCategory extends Component {
               <Col className='btn-group-vertical'>
                 {this.state.list.map((item, index) =>
                   <Button tag='div' className={'Sigmet row' + (selectedIndex === index ? ' active' : '')}
-                    key={index} onClick={() => { this.handleSigmetClick(index); }} title={item.phenomenonHRT} >
+                    key={index} onClick={(evt) => { this.handleSigmetClick(evt, index); }} title={item.phenomenonHRT} >
                     <Row style={editable ? { minHeight: '2rem' } : null}>
                       <Col xs='3'>
                         <Badge color='success'>What</Badge>
@@ -626,7 +653,8 @@ class SigmetCategory extends Component {
                       <Col xs='9'>
                         { editable
                          ? <Typeahead style={{ width: '100%' }} filterBy={['name', 'code']} labelKey='name'
-                           options={this.getPhenomena()} onChange={(phenomenonList) => this.setSelectedPhenomenon(phenomenonList)} />
+                           options={this.getPhenomena()} onChange={(phenomenonList) => this.setSelectedPhenomenon(phenomenonList)}
+                           onClick={(evt) => console.log(evt)} />
                          : <span style={{ fontWeight: 'bold' }}>{item.phenomenonHRT}</span>
                         }
                       </Col>
@@ -653,11 +681,11 @@ class SigmetCategory extends Component {
                         {editable
                           ? <DateTimePicker style={{ width: '100%' }} dateFormat={DATE_FORMAT} timeFormat={TIME_FORMAT} utc
                             onChange={(validFrom) => this.setSelectedValidFromMoment(validFrom)}
-                            isValidDate={(curr, selected) => curr.isAfter(moment().subtract(1, 'day')) &&
-                              curr.isBefore(moment().add(this.getParameters().hoursbeforevalidity, 'hour'))}
+                            isValidDate={(curr, selected) => curr.isAfter(moment().utc().subtract(1, 'day')) &&
+                              curr.isBefore(moment().utc().add(this.getParameters().hoursbeforevalidity, 'hour'))}
                             timeConstraints={{ hours: {
-                              min: moment().hour(),
-                              max: (moment().hour() + this.getParameters().hoursbeforevalidity)
+                              min: moment().utc().hour(),
+                              max: (moment().utc().hour() + this.getParameters().hoursbeforevalidity)
                             } }} />
                           : <Moment format={DATE_TIME_FORMAT} date={item.validdate} />
                         }
@@ -688,7 +716,7 @@ class SigmetCategory extends Component {
                       <Col xs='9'>
                         {editable
                         ? <Typeahead style={{ width: '100%' }} filterBy={['firname', 'location_indicator_icao']} labelKey='firname'
-                          options={this.getParameters().firareas} onChange={(firList) => this.setSelectedFir(firList)} />
+                          options={this.getParameters().firareas} onChange={(firList) => this.setSelectedFir(firList)} defaultValue={this.getParameters().firareas[0]} />
                         : <span>{item.firname || '--'}</span>
                       }
                       </Col>
@@ -781,8 +809,7 @@ SigmetCategory.propTypes = {
   phenomenonMapping : PropTypes.array,
   dispatch          : PropTypes.func,
   actions           : PropTypes.object,
-  updateParent      : PropTypes.func,
-  latestUpdateTime  : PropTypes.string
+  updateParent      : PropTypes.func
 };
 
 export default SigmetCategory;

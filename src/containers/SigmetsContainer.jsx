@@ -7,7 +7,6 @@ import Panel from '../components/Panel';
 import cloneDeep from 'lodash/cloneDeep';
 import { BACKEND_SERVER_URL } from '../constants/backend';
 import axios from 'axios';
-import moment from 'moment';
 import PropTypes from 'prop-types';
 
 const GET_SIGMETS_URL = BACKEND_SERVER_URL + '/sigmet/getsigmetlist?';
@@ -63,18 +62,16 @@ class SigmetsContainer extends Component {
     super(props);
     this.toggle = this.toggle.bind(this);
     this.select = this.select.bind(this);
-    this.updateParent = this.updateParent.bind(this);
     let isOpenCategory = {};
     ITEMS.forEach((item, index) => {
       isOpenCategory[item.ref] = false;
     });
-    this.state = { isOpen: true, selectedItem: {}, isOpenCategory: isOpenCategory, latestUpdateTime: moment().utc().format() };
-    axios.get(BACKEND_SERVER_URL + '/sigmet/getsigmetphenomena').then((res) => {
-      this.phenomenonMapping = res.data;
+    this.state = { isOpen: true, selectedItem: {}, isOpenCategory: isOpenCategory };
+    axios.get(BACKEND_SERVER_URL + '/sigmet/getsigmetphenomena').then((result) => {
+      this.setState({ phenomena: result.data });
     }).catch((error) => {
       console.log(error);
-      this.phenomenonMapping =
-      [
+      const phenomena = [
         { 'phenomenon':{ 'name':'Thunderstorm', 'code':'TS', 'layerpreset':'sigmet_layer_TS' },
           'variants':[{ 'name':'Obscured', 'code':'OBSC' }, { 'name':'Embedded', 'code':'EMBD' }, { 'name':'Frequent', 'code':'FRQ' }, { 'name':'Squall line', 'code':'SQL' }],
           'additions':[{ 'name':'with hail', 'code':'GR' }]
@@ -100,9 +97,10 @@ class SigmetsContainer extends Component {
           'additions':[]
         }
       ];
+      this.setState({ phenomena: phenomena });
     });
     axios.get(BACKEND_SERVER_URL + '/sigmet/getsigmetparameters').then((result) => {
-      this.parameters = result.data;
+      this.setState({ parameters: result.data });
     }).catch((error) => {
       console.log(error);
     });
@@ -122,8 +120,7 @@ class SigmetsContainer extends Component {
   }
 
   select (category, index, geo) {
-    if (typeof this.state.selectedItem.index !== 'undefined' &&
-        this.state.selectedItem.category === category && this.state.selectedItem.index === index) {
+    if (this.state.selectedItem.category === category && this.state.selectedItem.index === index) {
       this.drawSIGMET(EMPTY_GEO_JSON);
       this.setState({ selectedItem: {} });
       return false;
@@ -138,12 +135,7 @@ class SigmetsContainer extends Component {
     this.props.dispatch(this.props.actions.setGeoJSON({ geojson: geojson }));
   }
 
-  updateParent () {
-    this.setState({ latestUpdateTime: moment().utc().format(), geojson: EMPTY_GEO_JSON });
-  }
-
   render () {
-    console.log(this.state);
     const maxSize = 400;
     let title = <Row>
       <Button color='primary' onClick={this.toggle} title={this.state.isOpen ? 'Collapse panel' : 'Expand panel'}>
@@ -156,14 +148,14 @@ class SigmetsContainer extends Component {
           <Panel className='Panel' title={title}>
             <Col xs='auto' className='accordionsWrapper' style={{ minWidth: maxSize - 32 }}>
               {ITEMS.map((item, index) =>
-                <SigmetCategory phenomenonMapping={this.phenomenonMapping || []} adagucProperties={this.props.adagucProperties}
+                <SigmetCategory phenomenonMapping={this.state.phenomena || []} adagucProperties={this.props.adagucProperties}
                   key={index} title={item.title} parentCollapsed={!this.state.isOpen}
                   icon={item.icon} source={item.source} editable={item.editable} latestUpdateTime={this.state.latestUpdateTime}
                   isOpen={this.state.isOpen && this.state.isOpenCategory[item.ref]}
                   selectedIndex={typeof this.state.selectedItem.index !== 'undefined' && this.state.selectedItem.category === item.ref ? this.state.selectedItem.index : -1}
                   selectMethod={(index, geo) => this.select(item.ref, index, geo)} toggleMethod={() => this.toggleCategory(item.ref)}
-                  dispatch={this.props.dispatch} actions={this.props.actions} updateParent={this.updateParent}
-                  parameters={this.parameters || {}} />
+                  dispatch={this.props.dispatch} actions={this.props.actions}
+                  parameters={this.state.parameters || {}} />
               )}
             </Col>
           </Panel>
