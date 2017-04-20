@@ -411,7 +411,7 @@ class TitleBarContainer extends Component {
     return (<Modal isOpen={triggerModalOpen} toggle={toggleTriggerModal}>
       <ModalHeader toggle={toggleTriggerModal}>Warning</ModalHeader>
       <ModalBody>
-        {this.state.triggerModalMessage ? this.state.triggerModalMessage.triggerName : 'Oops'}
+        {this.state.triggerModalMessage ? this.state.triggerModalMessage[0].triggername : 'Oops'}
       </ModalBody>
       <ModalFooter>
         <Button color='primary' onClick={toggleTriggerModal}>
