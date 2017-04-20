@@ -26,6 +26,8 @@ export default class AdagucMapDraw extends Component {
     this.featureHasChanged = this.featureHasChanged.bind(this);
     this.handleKeyDown = this.handleKeyDown.bind(this);
     this.hoverVertex = this.hoverVertex.bind(this);
+    this.transposePolygon = this.transposePolygon.bind(this);
+    this.transposeVertex = this.transposeVertex.bind(this);
   }
   convertGeoCoordsToScreenCoords (featureCoords) {
     const { webmapjs } = this.props;
@@ -192,6 +194,28 @@ export default class AdagucMapDraw extends Component {
     return { selectedEdge: this.EDGE.NONE, snappedPolygonIndex: this.SNAPPEDPOYLYGON.NONE };
   }
 
+  transposePolygon (featureCoords) {
+    const incX = this.mouseGeoCoord.x - this.snappedGeoCoords.x;
+    const incY = this.mouseGeoCoord.y - this.snappedGeoCoords.y;
+    for (let j = 0; j < featureCoords.length; j++) {
+      featureCoords[j][0] += incX;
+      featureCoords[j][1] += incY;
+      this.snappedGeoCoords.x = this.mouseGeoCoord.x;
+      this.snappedGeoCoords.y = this.mouseGeoCoord.y;
+    }
+    if (this.editMode !== this.EDITMODE.ADD_POLYGON) {
+      this.somethingWasDragged = this.DRAGMODE.POLYGON;
+    }
+  }
+
+  transposeVertex (featureCoords) {
+    featureCoords[this.mouseIsOverVertexNr][0] = this.mouseGeoCoord.x;
+    featureCoords[this.mouseIsOverVertexNr][1] = this.mouseGeoCoord.y;
+    if (this.editMode !== this.EDITMODE.ADD_POLYGON) {
+      this.somethingWasDragged = this.DRAGMODE.VERTEX;
+    }
+  }
+
   moveVertex (featureCoords, mouseDown) {
     if (!featureCoords) {
       return;
@@ -202,24 +226,10 @@ export default class AdagucMapDraw extends Component {
     if (vertexSelected || this.editMode === this.EDITMODE.ADD_POLYGON) {
       /* In case middle point is selected, transpose whole polygon */
       if (this.mouseIsOverVertexNr === this.VERTEX.MIDDLE_POINT_OF_POLYGON && this.snappedGeoCoords) {
-        const incX = this.mouseGeoCoord.x - this.snappedGeoCoords.x;
-        const incY = this.mouseGeoCoord.y - this.snappedGeoCoords.y;
-        for (let j = 0; j < featureCoords.length; j++) {
-          featureCoords[j][0] += incX;
-          featureCoords[j][1] += incY;
-          this.snappedGeoCoords.x = this.mouseGeoCoord.x;
-          this.snappedGeoCoords.y = this.mouseGeoCoord.y;
-        }
-        if (this.editMode !== this.EDITMODE.ADD_POLYGON) {
-          this.somethingWasDragged = this.DRAGMODE.POLYGON;
-        }
+        this.transposePolygon(featureCoords);
       } else if (this.mouseIsOverVertexNr !== this.VERTEX.NONE) {
       /* Transpose polygon vertex */
-        featureCoords[this.mouseIsOverVertexNr][0] = this.mouseGeoCoord.x;
-        featureCoords[this.mouseIsOverVertexNr][1] = this.mouseGeoCoord.y;
-        if (this.editMode !== this.EDITMODE.ADD_POLYGON) {
-          this.somethingWasDragged = this.DRAGMODE.VERTEX;
-        }
+        this.transposeVertex(featureCoords);
       }
       return false;
     }
@@ -239,7 +249,7 @@ export default class AdagucMapDraw extends Component {
       const middle = { x:0, y:0 };
       /* Snap to the vertex closer than specified pixels */
       for (let j = 0; j < XYCoords.length; j++) {
-        let coord = XYCoords[j];
+        const coord = XYCoords[j];
         middle.x += coord.x;
         middle.y += coord.y;
 
@@ -264,7 +274,9 @@ export default class AdagucMapDraw extends Component {
       This event is only triggered if the map is in hover state.
       E.g. when the map is dragging/panning, this event is not triggerd
     */
-    if (this.props.isInEditMode === false) return;
+    if (this.props.isInEditMode === false) {
+      return;
+    }
     const featureIndex = 0;
     const feature = this.props.geojson.features[featureIndex];
     const featureCoords = feature.geometry.coordinates[this.snappedPolygonIndex];

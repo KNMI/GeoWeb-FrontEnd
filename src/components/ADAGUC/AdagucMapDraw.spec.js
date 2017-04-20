@@ -2,7 +2,7 @@ import React from 'react';
 import { default as AdagucMapDraw } from './AdagucMapDraw';
 import { shallow } from 'enzyme';
 
-const dispatch = () => {};
+const dispatch = () => { /* intentionally left blank */ };
 
 describe('(Component) AdagucMapDraw', () => {
   it('Renders a div', () => {
