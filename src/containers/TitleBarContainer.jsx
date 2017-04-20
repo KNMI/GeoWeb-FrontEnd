@@ -12,10 +12,27 @@ import { Link, hashHistory } from 'react-router';
 import { BACKEND_SERVER_URL } from '../constants/backend';
 import { UserRoles } from '../constants/userroles';
 import PropTypes from 'prop-types';
-
-let moment = require('moment');
+import moment from 'moment';
 
 const timeFormat = 'YYYY MMM DD - HH:mm';
+const FALLBACK_TRIGGERS = [
+  {
+    group       : 'heat',
+    phenomenon  : 't2m',
+    triggername : 'obs above 10',
+    uuid        : '00000000-0000-0000-0000-000000000000',
+    task        : ['Create Sigmet', 'Reinvent some wheels'],
+    preset      : ['Beautiful constellation'],
+    issue_date  : moment().utc().format(),
+    duration    : '10m',
+    parameter   : {
+      variable    : 't2m',
+      threshold   : 10,
+      bbox        : [5, 5, 10, 10],
+      geojson     : []
+    }
+  }
+];
 
 const browserFullScreenRequests = [
   'mozRequestFullScreen',
@@ -29,6 +46,11 @@ class TitleBarContainer extends Component {
     this.setTime = this.setTime.bind(this);
     this.doLogin = this.doLogin.bind(this);
     this.doLogout = this.doLogout.bind(this);
+    this.triggerService = this.triggerService.bind(this);
+    this.retrieveTriggers = this.retrieveTriggers.bind(this);
+    this.gotTriggersCallback = this.gotTriggersCallback.bind(this);
+    this.errorTriggersCallback = this.errorTriggersCallback.bind(this);
+    this.toggleTriggerModal = this.toggleTriggerModal.bind(this);
     this.toggleLoginModal = this.toggleLoginModal.bind(this);
     this.togglePresetModal = this.togglePresetModal.bind(this);
     this.handleOnChange = this.handleOnChange.bind(this);
@@ -45,11 +67,43 @@ class TitleBarContainer extends Component {
     this.timer = -1;
     this.savePreset = this.savePreset.bind(this);
     this.state = {
-      currentTime: moment.utc().format(timeFormat).toString(),
+      currentTime: moment().utc().format(timeFormat).toString(),
       loginModal: this.props.loginModal,
       loginModalMessage: '',
       presetModal: false
     };
+  }
+
+  triggerService () {
+    if (!this.triggerIntervalId) {
+      this.triggerIntervalId = setInterval(this.retrieveTriggers, 60000);
+    }
+  }
+
+  retrieveTriggers () {
+    axios({
+      method: 'get',
+      url: BACKEND_SERVER_URL + '/triggers/gettriggers?startdate=' + moment().utc().format() + '&duration=10m',
+      withCredentials: true,
+      responseType: 'json'
+    }).then(this.gotTriggersCallback)
+    .catch(this.errorTriggersCallback);
+  }
+
+  gotTriggersCallback (result) {
+    console.log('Got triggers', result);
+  }
+
+  errorTriggersCallback (error) {
+    console.log('Error occurred while retrieving triggers', error);
+    this.toggleTriggerModal(FALLBACK_TRIGGERS);
+  }
+
+  toggleTriggerModal (message) {
+    this.setState({
+      triggerModal: !this.state.triggerModal,
+      triggerModalMessage: message
+    });
   }
 
   getServices () {
@@ -80,17 +134,19 @@ class TitleBarContainer extends Component {
   }
 
   setTime () {
-    const time = moment.utc().format(timeFormat).toString();
+    const time = moment().utc().format(timeFormat).toString();
     this.setState({ currentTime: time });
   }
 
   componentWillUnmount () {
     clearInterval(this.timer);
+    clearInterval(this.triggerIntervalId);
   }
 
   componentDidMount () {
+    this.triggerService();
     this.timer = setInterval(this.setTime, 15000);
-    this.setState({ currentTime: moment.utc().format(timeFormat).toString() });
+    this.setState({ currentTime: moment().utc().format(timeFormat).toString() });
     this.checkCredentials();
   }
 
@@ -351,6 +407,21 @@ class TitleBarContainer extends Component {
     this.input = ref;
   }
 
+  renderTriggerModal (triggerModalOpen, toggleTriggerModal) {
+    return (<Modal isOpen={triggerModalOpen} toggle={toggleTriggerModal}>
+      <ModalHeader toggle={toggleTriggerModal}>Warning</ModalHeader>
+      <ModalBody>
+        {this.state.triggerModalMessage ? this.state.triggerModalMessage.triggerName : 'Oops'}
+      </ModalBody>
+      <ModalFooter>
+        <Button color='primary' onClick={toggleTriggerModal}>
+          <Icon className='icon' name='check' />
+         Acknowledge
+        </Button>
+      </ModalFooter>
+    </Modal>);
+  }
+
   renderPresetModal (presetModalOpen, togglePresetModal, hasRoleADMIN) {
     return (<Modal isOpen={presetModalOpen} toggle={togglePresetModal}>
       <ModalHeader toggle={togglePresetModal}>Save preset</ModalHeader>
@@ -499,7 +570,7 @@ class TitleBarContainer extends Component {
                   this.state.loginModalMessage, this.toggleLoginModal, this.handleOnChange, this.handleKeyPressPassword)
               }
               {this.renderPresetModal(this.state.presetModal, this.togglePresetModal, hasRoleADMIN)}
-
+              {this.renderTriggerModal(this.state.triggerModal, this.toggleTriggerModal)}
             </Nav>
           </Col>
         </Row>
