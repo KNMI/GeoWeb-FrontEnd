@@ -4,6 +4,8 @@ import { shallow, mount } from 'enzyme';
 import { Col } from 'reactstrap';
 describe('(Component) LayerManager', () => {
   let _wmjslayers;
+  let emptyFunc = () => { /* intentionally left empty */ };
+  let empytObj = { /* intentionally left empty */ };
   beforeEach(() => {
     _wmjslayers = {
       layers: [
@@ -162,14 +164,14 @@ describe('(Component) LayerManager', () => {
     };
   });
   it('Renders an empty div without layers', () => {
-    const _component = mount(<LayerManager dispatch={() => {}} actions={{}} />);
+    const _component = mount(<LayerManager dispatch={emptyFunc} actions={empytObj} />);
     expect(_component.type()).to.eql(LayerManager);
   });
 
   it('Renders renders with layers', () => {
-    const _component = shallow(<LayerManager dispatch={() => {}} actions={{}} wmjslayers={_wmjslayers} />);
+    const _component = shallow(<LayerManager dispatch={emptyFunc} actions={empytObj} wmjslayers={_wmjslayers} />);
     expect(_component.type()).to.eql(Col);
-    const _deepComponent = mount(<LayerManager dispatch={() => {}} actions={{}} wmjslayers={_wmjslayers} />);
+    const _deepComponent = mount(<LayerManager dispatch={emptyFunc} actions={empytObj} wmjslayers={_wmjslayers} />);
     expect(_deepComponent.type()).to.eql(LayerManager);
 
     expect(_deepComponent.state('layers')).to.have.lengthOf(1);

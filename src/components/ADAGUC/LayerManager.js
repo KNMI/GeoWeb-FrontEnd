@@ -40,12 +40,14 @@ class LayerName extends Component {
     this.setState({ layers: inLayers, layer: this.props.layer });
   }
   // istanbul ignore next
-  togglePopover (e, layer, i) {
+  togglePopover () {
     this.setState({ popoverOpen: !this.state.popoverOpen });
     if (!this.state.layers || this.state.layer !== this.props.layer) {
       // eslint-disable-next-line no-undef
       var srv = WMJSgetServiceFromStore(this.props.layer.service);
-      srv.getLayerObjectsFlat((layers) => this.generateList(layers), (err) => { throw new Error(err); });
+      srv.getLayerObjectsFlat((layers) => this.generateList(layers), (err) => {
+        throw new Error(err);
+      });
     }
   }
   // istanbul ignore next
@@ -106,7 +108,7 @@ class LayerStyle extends Component {
   }
 
   // istanbul ignore next
-  togglePopover (e, layer, i) {
+  togglePopover () {
     this.setState({ popoverOpen: !this.state.popoverOpen });
   }
 
@@ -118,37 +120,29 @@ class LayerStyle extends Component {
 
   render () {
     const { i, target, layer } = this.props;
-    if (this.props.layer) {
-      const styleObj = this.props.layer.getStyleObject ? this.props.layer.getStyleObject(this.props.style) : null;
-      if (this.state.popoverOpen) {
-        return (
-          <div>
-            <Popover width={'auto'} key={'stylepopover' + i} isOpen={this.state.popoverOpen} target={target} toggle={() => this.togglePopover(layer, i)}>
-              <PopoverTitle>Select style</PopoverTitle>
-              <PopoverContent>{this.props.layer.styles ? this.props.layer.styles.map((style, q) => <li id={i}
-                onClick={(e) => this.alterLayer(e, style)} key={q}>{style.title}</li>) : <li />}
-              </PopoverContent>
-            </Popover>
-
-            <Badge
-              pill
-              color={this.props.color}
-              className={'alert-' + this.props.color + (this.props.editable ? ' editable' : '')}
-              onClick={() => this.togglePopover(layer, i)}>
-              {styleObj ? styleObj.title : 'default'}
-              <Icon style={{ marginLeft: '0.25rem' }} id={target} name='pencil' />
-            </Badge>
-          </div>
-        );
-      } else {
-        return (<Badge pill color={this.props.color} className={'alert-' + this.props.color + (this.props.editable ? ' editable' : '')} onClick={this.togglePopover}>
-          {styleObj ? styleObj.title : 'default'}
-          <Icon style={{ marginLeft: '0.25rem' }} id={target} name='pencil' />
-        </Badge>);
-      }
-    } else {
+    if (!this.props.layer) {
       return <div />;
     }
+    const styleObj = this.props.layer.getStyleObject ? this.props.layer.getStyleObject(this.props.style) : null;
+    return (
+      <div>
+        <Popover width={'auto'} key={'stylepopover' + i} isOpen={this.state.popoverOpen} target={target} toggle={() => this.togglePopover(layer, i)}>
+          <PopoverTitle>Select style</PopoverTitle>
+          <PopoverContent>{this.props.layer.styles ? this.props.layer.styles.map((style, q) => <li id={i}
+            onClick={(e) => this.alterLayer(e, style)} key={q}>{style.title}</li>) : <li />}
+          </PopoverContent>
+        </Popover>
+
+        <Badge
+          pill
+          color={this.props.color}
+          className={'alert-' + this.props.color + (this.props.editable ? ' editable' : '')}
+          onClick={() => this.togglePopover(layer, i)}>
+          {styleObj ? styleObj.title : 'default'}
+          <Icon style={{ marginLeft: '0.25rem' }} id={target} name='pencil' />
+        </Badge>
+      </div>
+    );
   }
 }
 LayerStyle.propTypes = {
@@ -185,18 +179,19 @@ class LayerOpacity extends Component {
     this.alterLayer = this.alterLayer.bind(this);
     this.togglePopover = this.togglePopover.bind(this);
   }
-  togglePopover (e, layer, i) {
+  togglePopover () {
     this.setState({ popoverOpen: !this.state.popoverOpen });
   }
   alterLayer (value) {
-    // TODO .... this
     const wantedOpacity = value / 100.0;
     this.props.dispatch(this.props.actions.alterLayer(this.props.i, 'data', { opacity: wantedOpacity }));
   }
 
   floatToIntPercentage (v) {
     // By default a layer is fully opaque
-    if (v === undefined || v === null) return 100;
+    if (v === undefined || v === null) {
+      return 100;
+    }
     return parseInt(Math.floor(v * 100));
   }
 
@@ -426,7 +421,7 @@ export default class LayerManager extends Component {
     this.updateState(this.props.wmjslayers);
   }
   // istanbul ignore next
-  componentWillUpdate (nextProps, nextState) {
+  componentWillUpdate (nextProps) {
     if (this.props.wmjslayers !== nextProps.wmjslayers) {
       this.updateState(nextProps.wmjslayers);
     }
