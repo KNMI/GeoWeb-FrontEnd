@@ -46,7 +46,7 @@ const doAddLayer = (state, payload) => {
 
 const doAddOverlayLayer = (state, payload) => {
   const layersCpy = cloneDeep(state.layers.panel[state.activeMapId]);
-  let layerCpy = cloneDeep(payload);
+  const layerCpy = cloneDeep(payload);
   if (!layerCpy.enabled) {
     layerCpy.enabled = true;
   }
@@ -269,7 +269,10 @@ const setNewPreset = (state, payload) => {
       let panel = [];
       panels.forEach((p) => {
         panel.push(Object.assign({
-          datalayers: p.filter((layer) => layer.overlay === false).map((layer) => { layer.enabled = true; return layer; }),
+          datalayers: p.filter((layer) => layer.overlay === false).map((layer) => {
+            layer.enabled = true;
+            return layer;
+          }),
           overlays: p.filter((layer) => layer.overlay === true)
         }));
       });
@@ -435,7 +438,7 @@ const ACTION_HANDLERS = {
   [CREATE_MAP]                    : (state, action) => newMapState(state, action.payload),
   [DELETE_LAYER]                  : (state, action) => doDeleteLayer(state, action.payload),
   [LOGIN]                         : (state, action) => doLogin(state, action.payload),
-  [LOGOUT]                        : (state, action) => doLogout(state, action.payload),
+  [LOGOUT]                        : (state, action) => doLogout(state),
   [SET_PRESET]                    : (state, action) => setNewPreset(state, action.payload),
   [REORDER_LAYER]                 : (state, action) => doReorderLayer(state, action.payload),
   [SET_CUT]                       : (state, action) => newCut(state, action.payload),
