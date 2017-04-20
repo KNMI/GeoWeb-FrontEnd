@@ -168,15 +168,15 @@ export default class Adaguc extends React.Component {
     }
     // eslint-disable-next-line no-undef
     this.webMapJS = new WMJSMap(adagucMapRef, BACKEND_SERVER_XML2JSON);
-    let element = document.querySelector('#adagucwrapper' + mapId);
+    const element = document.querySelector('#adagucwrapper' + mapId);
     if (!element) {
       return;
     }
-    element = element.parentNode;
-    const width = $(element).width();
-    const height = $(element).height();
+    const parentElement = element.parentNode;
+    const width = $(parentElement).width();
+    const height = $(parentElement).height();
     this.webMapJS.setSize(width, height);
-    elementResizeEvent(element, this.resize);
+    elementResizeEvent(parentElement, this.resize);
 
     // Set the initial projection
     this.webMapJS.setProjection(adagucProperties.projectionName);
@@ -221,7 +221,7 @@ export default class Adaguc extends React.Component {
     }
 
     // Unbind the resizelistener
-    let element = document.querySelector('#adagucwrapper' + this.props.mapId).parentNode;
+    const element = document.querySelector('#adagucwrapper' + this.props.mapId).parentNode;
     elementResizeEvent.unbind(element);
   }
 
@@ -259,19 +259,28 @@ export default class Adaguc extends React.Component {
   updateMapMode (mapMode, prevMapMode, active) {
     // Update mapmode
     if (mapMode !== prevMapMode) {
+      const listenerModi = ['progtemp', 'timeseries'];
+
+      const removeListeners = listenerModi.some((mode) => {
+        return prevMapMode === mode && mapMode !== mode;
+      });
+
+      const registerListeners = listenerModi.some((mode) => {
+        return prevMapMode !== mode && mapMode === mode;
+      });
       // Remove listeners if switching away from progtemp or timeseries
-      if ((prevMapMode === 'progtemp' && mapMode !== 'progtemp') ||
-          (prevMapMode === 'timeseries' && mapMode !== 'timeseries')) {
+      if (removeListeners) {
         this.webMapJS.removeListener('mouseclicked');
         this.webMapJS.enableInlineGetFeatureInfo(true);
       }
 
       // Register listeners if switching to progtemp or timeseries
-      if ((prevMapMode !== 'progtemp' && mapMode === 'progtemp') ||
-          (prevMapMode !== 'timeseries' && mapMode === 'timeseries')) {
+      if (registerListeners) {
         this.webMapJS.enableInlineGetFeatureInfo(false);
         this.webMapJS.addListener('mouseclicked', (e) => this.findClosestCursorLoc(e), true);
       }
+      // Reset the message, it will be re-set if necessary
+      this.webMapJS.setMessage('');
       switch (mapMode) {
         case 'zoom':
           this.webMapJS.setMapModeZoomBoxIn();
@@ -294,9 +303,6 @@ export default class Adaguc extends React.Component {
         default:
           this.webMapJS.setMapModeNone();
           break;
-      }
-      if (!active || !(mapMode === 'draw' || mapMode === 'measure')) {
-        this.webMapJS.setMessage('');
       }
     }
   }
@@ -342,9 +348,7 @@ export default class Adaguc extends React.Component {
           layers[i].service = currDataLayers[i].service;
           layers[i].name = currDataLayers[i].name;
           layers[i].label = currDataLayers[i].label;
-          if (currDataLayers[i].style) {
-            layers[i].currentStyle = currDataLayers[i].style;
-          }
+          layers[i].currentStyle = currDataLayers[i].style || layers[i].currentStyle;
           this.webMapJS.getListener().triggerEvent('onmapdimupdate');
         }
       }
@@ -354,7 +358,7 @@ export default class Adaguc extends React.Component {
   }
 
   /* istanbul ignore next */
-  componentDidUpdate (prevProps, prevState) {
+  componentDidUpdate (prevProps) {
     // The first time, the map needs to be created. This is when in the previous state the map creation boolean is false
     // Otherwise only change when a new dataset is selected
     const { adagucProperties, mapId, dispatch, actions, active } = this.props;

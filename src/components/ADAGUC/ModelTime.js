@@ -36,7 +36,7 @@ export default class ModelTime extends Component {
     const { webmapjs } = this.props;
 
     if (webmapjs !== undefined) {
-      if (this.listenersInitialized === undefined) { // TODO mount/unmount
+      if (this.listenersInitialized === undefined) {
         this.listenersInitialized = true;
         webmapjs.addListener('ondimchange', this.updateState, true);
         webmapjs.addListener('onmapdimupdate', this.updateState, true);
