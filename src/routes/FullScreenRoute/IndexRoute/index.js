@@ -2,7 +2,7 @@ import MapPanel from '../../../components/MapPanel';
 import Empty from '../../../components/Empty';
 import SmallLayerManagerPanel from '../../../components/SmallLayerManagerPanel';
 import { connect } from 'react-redux';
-import { actions } from '../../../actions/adaguc';
+import actions from '../../../actions/adaguc';
 
 const mapStateToMapProps = (state) => {
   return { adagucProperties: state.adagucProperties };

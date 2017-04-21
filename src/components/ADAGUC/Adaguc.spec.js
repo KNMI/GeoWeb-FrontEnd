@@ -1,7 +1,7 @@
 import React from 'react';
 import { default as Adaguc } from './Adaguc';
 import { default as adagucReducer } from '../../reducers/adagucReducer';
-import { actions } from '../../actions/adaguc';
+import actions from '../../actions/adaguc';
 import { shallow } from 'enzyme';
 import sinon from 'sinon';
 describe('(Component) Adaguc', () => {

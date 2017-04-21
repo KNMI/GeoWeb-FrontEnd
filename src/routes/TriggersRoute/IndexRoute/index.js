@@ -1,22 +1,16 @@
-import TasksContainer from '../../containers/TasksContainer';
-import MapActionsContainer from '../../containers/MapActionsContainer';
-import MapPanel from '../../components/MapPanel';
-import LayerManagerPanel from '../../components/LayerManagerPanel';
-import TitleBarContainer from '../../containers/TitleBarContainer';
-import Empty from '../../components/Empty';
+import TasksContainer from '../../../containers/TasksContainer';
+import TriggersContainer from '../../../containers/TriggersContainer';
+import TitleBarContainer from '../../../containers/TitleBarContainer';
+import MapActionsContainer from '../../../containers/MapActionsContainer';
+import LayerManagerPanel from '../../../components/LayerManagerPanel';
+import MapPanel from '../../../components/MapPanel';
+import actions from '../../../actions/adaguc';
 import { connect } from 'react-redux';
-import actions from '../../actions/adaguc';
 
-const mapStateToHeaderProps = (state) => {
+const mapStateToHeaderProps = () => {
   return {
     title: 'header',
-    isLoggedIn: state.adagucProperties.user.isLoggedIn,
-    userName: state.adagucProperties.user.userName,
-    roles: state.adagucProperties.user.roles,
-    layout: state.adagucProperties.layout,
-    layers: state.adagucProperties.layers,
-    bbox: state.adagucProperties.boundingBox.bbox,
-    projectionName: state.adagucProperties.projectionName
+    isLoggedIn: false
   };
 };
 
@@ -31,6 +25,11 @@ const mapStateToMapProps = (state) => {
 const mapStateToLayerManagerProps = (state) => {
   return { adagucProperties: state.adagucProperties };
 };
+
+const mapStateToRightSideBarProps = (state) => {
+  return { adagucProperties: state.adagucProperties };
+};
+
 const mapDispatchToMainViewportProps = function (dispatch) {
   return ({
     dispatch: dispatch,
@@ -38,17 +37,13 @@ const mapDispatchToMainViewportProps = function (dispatch) {
   });
 };
 
-const mapStateToRightSideBarProps = (state) => {
-  return { adagucProperties: state.adagucProperties };
-};
-
 // Sync route definition
 export default () => ({
-  title: 'GeoWeb',
+  title: 'Products',
   components : {
     header: connect(mapStateToHeaderProps, mapDispatchToMainViewportProps)(TitleBarContainer),
     leftSideBar: connect(mapStateToEmptyProps)(TasksContainer),
-    secondLeftSideBar: connect(mapStateToEmptyProps)(Empty),
+    secondLeftSideBar: connect(mapStateToMapProps, mapDispatchToMainViewportProps)(TriggersContainer),
     map: connect(mapStateToMapProps, mapDispatchToMainViewportProps)(MapPanel),
     layerManager: connect(mapStateToLayerManagerProps, mapDispatchToMainViewportProps)(LayerManagerPanel),
     rightSideBar: connect(mapStateToRightSideBarProps, mapDispatchToMainViewportProps)(MapActionsContainer)

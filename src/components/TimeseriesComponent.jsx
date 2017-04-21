@@ -143,7 +143,7 @@ LAYERS=&QUERY_LAYERS=air_pressure_at_sea_level,wind__at_10m,dew_point_temperatur
       axios.get(url).then((res) => {
         if (res.data.includes('No data available')) {
           this.toggleCanvas();
-          console.log('no data');
+          console.error('no data');
           return;
         }
         this.toggleCanvas();

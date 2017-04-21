@@ -3,7 +3,7 @@ import TitleBarContainer from '../../../../../containers/TitleBarContainer';
 import SidebarContainer from '../../../../../containers/Management/SidebarContainer';
 import Empty from '../../../../../components/Empty';
 import { connect } from 'react-redux';
-import { actions } from '../../../../../actions/adaguc';
+import actions from '../../../../../actions/adaguc';
 
 const mapStateToMapProps = (state) => {
   return { adagucProperties: state.adagucProperties };

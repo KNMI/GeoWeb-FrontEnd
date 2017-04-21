@@ -28,7 +28,7 @@ export default function locationReducer (state, action) {
   if (!state) {
     state = initialState;
   }
-  return action.type === LOCATION_CHANGE
+  return action && action.type === LOCATION_CHANGE
     ? action.payload
     : state;
 }
