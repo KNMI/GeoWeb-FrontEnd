@@ -23,7 +23,7 @@ const emptyActions = {};
 
 describe('(Component) TimeseriesComponent', () => {
   it('Renders a TimeseriesComponent', () => {
-    const _component = mount(<TimeseriesComponent adagucProperties={adagucProperties} dispatch={emptyDispatch} actions={emptyActions} />);
+    const _component = mount(<TimeseriesComponent adagucProperties={adagucProperties} dispatch={emptyDispatch} actions={emptyActions} isOpen={false} />);
     expect(_component.type()).to.eql(TimeseriesComponent);
   });
 });

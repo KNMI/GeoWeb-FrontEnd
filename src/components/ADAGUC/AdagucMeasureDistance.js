@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import Distance from '../../utils/Distance';
+import { haverSine } from '../../utils/Distance';
 export const ADAGUCMEASUREDISTANCE_EDITING = 'ADAGUCMEASUREDISTANCE_EDITING';
 export const ADAGUCMEASUREDISTANCE_UPDATE = 'ADAGUCMEASUREDISTANCE_UPDATE';
 
@@ -14,7 +14,6 @@ export default class AdagucMeasureDistance extends Component {
     this.adagucMouseDown = this.adagucMouseDown.bind(this);
     this.adagucMouseUp = this.adagucMouseUp.bind(this);
     this.handleKeyDown = this.handleKeyDown.bind(this);
-    this.distanceObj = new Distance();
   }
 
   drawVertice (ctx, coord, selected, middle) {
@@ -120,7 +119,7 @@ export default class AdagucMeasureDistance extends Component {
 
     if (this.isMeasuring === true) {
       this.lineStopLonLat = webmapjs.getLatLongFromPixelCoord({ x:mouseX, y:mouseY });
-      const h = this.distanceObj.haverSine(this.lineStartLonLat, this.lineStopLonLat);
+      const h = haverSine(this.lineStartLonLat, this.lineStopLonLat);
       this.bearing = h.bearing;
       this.distance = h.distance;
       this.props.dispatch({ type: ADAGUCMEASUREDISTANCE_UPDATE, payload: { distance:h.distance, bearing: h.bearing } });
