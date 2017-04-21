@@ -23,7 +23,8 @@ export default class AdagucMeasureDistance extends Component {
       /* Standard style, no editing, just display location of vertices */
       ctx.strokeStyle = '#000';
       ctx.fillStyle = '#000';
-      ctx.lineWidth = 1.0; w = 5;
+      ctx.lineWidth = 1.0;
+      w = 5;
     } else {
       if (selected === false) {
         if (middle === true) {
@@ -41,7 +42,8 @@ export default class AdagucMeasureDistance extends Component {
         /* Style for selected editable vertice */
         ctx.strokeStyle = '#000';
         ctx.fillStyle = '#FF0';
-        ctx.lineWidth = 1.0; w = 11;
+        ctx.lineWidth = 1.0;
+        w = 11;
       }
     }
     ctx.globalAlpha = 1.0;
@@ -77,7 +79,9 @@ export default class AdagucMeasureDistance extends Component {
     const lineStart = webmapjs.getPixelCoordFromLatLong(this.lineStartLonLat);
     const lineStop = webmapjs.getPixelCoordFromLatLong(this.lineStopLonLat);
 
-    ctx.strokeStyle = '#000'; ctx.lineWidth = 3; ctx.beginPath();
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
     ctx.moveTo(lineStart.x, lineStart.y);
     ctx.lineTo(lineStop.x, lineStop.y);
     ctx.stroke();

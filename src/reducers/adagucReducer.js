@@ -67,7 +67,6 @@ const doLogout = (state) => {
   return Object.assign({}, state, { user: { isLoggedIn: false, userName: '', roles: [] } });
 };
 
-// TODO: This info should be obtained form the backend
 const sigmetLayers = (p) => {
   if (p === 'sigmet_layer_TS') {
     return (
@@ -266,7 +265,7 @@ const setNewPreset = (state, payload) => {
     return Object.assign({}, state, { layers: newLayers, layout: sigmetPreset.layout, boundingBox: sigmetPreset.boundingBox });
   } else {
     const transform = (panels) => {
-      let panel = [];
+      const panel = [];
       panels.forEach((p) => {
         panel.push(Object.assign({
           datalayers: p.filter((layer) => layer.overlay === false).map((layer) => {
@@ -295,14 +294,14 @@ const setNewPreset = (state, payload) => {
 
 const doAlterLayer = (state, payload) => {
   const { index, layerType, fieldsNewValuesObj } = payload;
-  let layersCpy = cloneDeep(state.layers.panel[state.activeMapId]);
+  const layersCpy = cloneDeep(state.layers.panel[state.activeMapId]);
 
   switch (layerType) {
     case 'data':
       const oldDataLayer = layersCpy.datalayers[index];
       const newDatalayer = Object.assign({}, oldDataLayer, fieldsNewValuesObj);
       layersCpy.datalayers[index] = newDatalayer;
-      let oldDataPanel = cloneDeep(state.layers.panel);
+      const oldDataPanel = cloneDeep(state.layers.panel);
       oldDataPanel[state.activeMapId] = layersCpy;
       const newDataLayers = Object.assign({}, state.layers, { panel: oldDataPanel });
       return Object.assign({}, state, { layers: newDataLayers });
@@ -310,7 +309,7 @@ const doAlterLayer = (state, payload) => {
       const oldOverlayLayer = layersCpy.overlays[index];
       const newOverlayLayer = Object.assign({}, oldOverlayLayer, fieldsNewValuesObj);
       layersCpy.overlays[index] = newOverlayLayer;
-      let oldOverlayPanel = cloneDeep(state.layers.panel);
+      const oldOverlayPanel = cloneDeep(state.layers.panel);
       oldOverlayPanel[state.activeMapId] = layersCpy;
       const newOverlayLayers = Object.assign({}, state.layers, { panel: oldOverlayPanel });
       return Object.assign({}, state, { layers: newOverlayLayers });
@@ -330,12 +329,12 @@ const doReorderLayer = (state, payload) => {
     return state;
   }
 
-  let layersCpy = cloneDeep(state.layers.panel[state.activeMapId].datalayers);
+  const layersCpy = cloneDeep(state.layers.panel[state.activeMapId].datalayers);
   const temp = layersCpy[idx];
   layersCpy[idx] = layersCpy[direction + idx];
   layersCpy[direction + idx] = temp;
 
-  let oldDataPanel = cloneDeep(state.layers.panel);
+  const oldDataPanel = cloneDeep(state.layers.panel);
   oldDataPanel[state.activeMapId] = Object.assign({}, oldDataPanel[state.activeMapId], { datalayers: layersCpy });
   const newDataLayers = Object.assign({}, state.layers, { panel: oldDataPanel });
   return Object.assign({}, state, { layers: newDataLayers });
@@ -343,18 +342,18 @@ const doReorderLayer = (state, payload) => {
 
 const doDeleteLayer = (state, payload) => {
   const { idx, type } = payload;
-  let layersCpy = cloneDeep(state.layers.panel[state.activeMapId]);
+  const layersCpy = cloneDeep(state.layers.panel[state.activeMapId]);
 
   switch (type) {
     case 'data':
       layersCpy.datalayers.splice(idx, 1);
-      let oldDataPanel = cloneDeep(state.layers.panel);
+      const oldDataPanel = cloneDeep(state.layers.panel);
       oldDataPanel[state.activeMapId] = layersCpy;
       const newDataLayers = Object.assign({}, state.layers, { panel: oldDataPanel });
       return Object.assign({}, state, { layers: newDataLayers });
     case 'overlay':
       layersCpy.overlays.splice(idx, 1);
-      let oldOverlayPanel = cloneDeep(state.layers.panel);
+      const oldOverlayPanel = cloneDeep(state.layers.panel);
       oldOverlayPanel[state.activeMapId] = layersCpy;
       const newOverlayLayers = Object.assign({}, state.layers, { panel: oldOverlayPanel });
       return Object.assign({}, state, { layers: newOverlayLayers });
@@ -371,12 +370,12 @@ const handleAdagucMapDrawUpdateFeature = (state, payload) => {
   /* Returning new state is not strictly necessary,
     as the geojson in AdagucMapDraw is the same and does not require rerendering of the AdagucMapDraw component
   */
-  let adagucmapdraw = Object.assign({}, state.adagucmapdraw, { geojson : payload.geojson });
-  let adagucmeasuredistance = Object.assign({}, state.adagucmeasuredistance, { isInEditMode : false });
+  const adagucmapdraw = Object.assign({}, state.adagucmapdraw, { geojson : payload.geojson });
+  const adagucmeasuredistance = Object.assign({}, state.adagucmeasuredistance, { isInEditMode : false });
   return Object.assign({}, state, { adagucmeasuredistance: adagucmeasuredistance, adagucmapdraw: adagucmapdraw });
 };
 const handleAdagucMeasureDistanceUpdate = (state, payload) => {
-  let adagucmeasuredistance = Object.assign({}, state.adagucmeasuredistance,
+  const adagucmeasuredistance = Object.assign({}, state.adagucmeasuredistance,
     { distance : payload.distance,
       bearing : payload.bearing
     });
@@ -438,14 +437,14 @@ const ACTION_HANDLERS = {
   [CREATE_MAP]                    : (state, action) => newMapState(state, action.payload),
   [DELETE_LAYER]                  : (state, action) => doDeleteLayer(state, action.payload),
   [LOGIN]                         : (state, action) => doLogin(state, action.payload),
-  [LOGOUT]                        : (state, action) => doLogout(state),
+  [LOGOUT]                        : (state)         => doLogout(state),
   [SET_PRESET]                    : (state, action) => setNewPreset(state, action.payload),
   [REORDER_LAYER]                 : (state, action) => doReorderLayer(state, action.payload),
   [SET_CUT]                       : (state, action) => newCut(state, action.payload),
   [SET_MAP_STYLE]                 : (state, action) => newMapStyle(state, action.payload),
   [SET_WMJSLAYERS]                : (state, action) => doSetWMJSLayers(state, action.payload),
   [SET_TIME_DIMENSION]            : (state, action) => doSetTimeDim(state, action.payload),
-  [TOGGLE_ANIMATION]              : (state, action) => doToggleAnimation(state),
+  [TOGGLE_ANIMATION]              : (state)         => doToggleAnimation(state),
   [SET_MAP_MODE]                  : (state, action) => newMapMode(state, action.payload),
   [CURSOR_LOCATION]               : (state, action) => setCursorLocation(state, action.payload),
   [SET_LAYOUT]                    : (state, action) => newLayout(state, action.payload),
@@ -456,7 +455,10 @@ const ACTION_HANDLERS = {
 // ------------------------------------
 // Reducer
 // ------------------------------------
-export default function adagucReducer (state = {}, action) {
+export default function adagucReducer (state, action) {
+  if (!state) {
+    state = {};
+  }
   const handler = ACTION_HANDLERS[action.type];
   return handler ? handler(state, action) : state;
 }

@@ -4,8 +4,8 @@ import { shallow, mount } from 'enzyme';
 import { Col } from 'reactstrap';
 describe('(Component) LayerManager', () => {
   let _wmjslayers;
-  let emptyFunc = () => { /* intentionally left empty */ };
-  let empytObj = { /* intentionally left empty */ };
+  const emptyFunc = () => { /* intentionally left empty */ };
+  const empytObj = { /* intentionally left empty */ };
   beforeEach(() => {
     _wmjslayers = {
       layers: [

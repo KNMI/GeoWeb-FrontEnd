@@ -43,7 +43,7 @@ const mapStateToRightSideBarProps = (state) => {
 };
 
 // Sync route definition
-export default (state) => ({
+export default () => ({
   title: 'GeoWeb',
   components : {
     header: connect(mapStateToHeaderProps, mapDispatchToMainViewportProps)(TitleBarContainer),
