@@ -60,26 +60,18 @@ class LayerName extends Component {
     this.setState({ popoverOpen: false });
   }
   render () {
-    const { i, layer, target, placement } = this.props;
-    if (this.state.popoverOpen) {
-      return (
-        <div>
-          <Popover placement={placement} width={'auto'} key={'popover' + i} isOpen={this.state.popoverOpen} target={target} toggle={() => this.togglePopover(layer, i)}>
-            <PopoverTitle>Select layer</PopoverTitle>
-            <PopoverContent>{this.state.layers ? this.state.layers.map((layer, q) => <li id={i} onClick={(e) => this.alterLayer(e, layer)} key={q}>{layer.text}</li>) : ''}</PopoverContent>
-          </Popover>
-          <Badge pill color={this.props.color} className={'alert-' + this.props.color + (this.props.editable ? ' editable' : '')} onClick={() => this.togglePopover(layer, i)}>
-            {this.props.name}
-            <Icon id={target} style={{ marginLeft: '0.25rem' }} name='pencil' />
-          </Badge>
-        </div>);
-    } else {
-      return (
+    const { i, target, placement } = this.props;
+    return (
+      <div>
+        <Popover placement={placement} width={'auto'} key={'popover' + i} isOpen={this.state.popoverOpen} target={target} toggle={this.togglePopover}>
+          <PopoverTitle>Select layer</PopoverTitle>
+          <PopoverContent>{this.state.layers ? this.state.layers.map((layer, q) => <li id={i} onClick={(e) => this.alterLayer(e, layer)} key={q}>{layer.text}</li>) : ''}</PopoverContent>
+        </Popover>
         <Badge pill color={this.props.color} className={'alert-' + this.props.color + (this.props.editable ? ' editable' : '')} onClick={this.togglePopover}>
           {this.props.name}
-          <Icon style={{ marginLeft: '0.25rem' }} id={target} name='pencil' />
-        </Badge>);
-    }
+          <Icon id={target} style={{ marginLeft: '0.25rem' }} name='pencil' />
+        </Badge>
+      </div>);
   }
 }
 LayerName.propTypes = {
@@ -123,12 +115,12 @@ class LayerStyle extends Component {
     if (!this.props.layer) {
       return <div />;
     }
-    const styleObj = this.props.layer.getStyleObject ? this.props.layer.getStyleObject(this.props.style) : null;
+    const styleObj = this.props.layer.getStyleObject ? layer.getStyleObject(this.props.style) : null;
     return (
       <div>
-        <Popover width={'auto'} key={'stylepopover' + i} isOpen={this.state.popoverOpen} target={target} toggle={() => this.togglePopover(layer, i)}>
+        <Popover width={'auto'} key={'stylepopover' + i} isOpen={this.state.popoverOpen} target={target} toggle={this.togglePopover}>
           <PopoverTitle>Select style</PopoverTitle>
-          <PopoverContent>{this.props.layer.styles ? this.props.layer.styles.map((style, q) => <li id={i}
+          <PopoverContent>{layer.styles ? layer.styles.map((style, q) => <li id={i}
             onClick={(e) => this.alterLayer(e, style)} key={q}>{style.title}</li>) : <li />}
           </PopoverContent>
         </Popover>
@@ -137,7 +129,7 @@ class LayerStyle extends Component {
           pill
           color={this.props.color}
           className={'alert-' + this.props.color + (this.props.editable ? ' editable' : '')}
-          onClick={() => this.togglePopover(layer, i)}>
+          onClick={this.togglePopover}>
           {styleObj ? styleObj.title : 'default'}
           <Icon style={{ marginLeft: '0.25rem' }} id={target} name='pencil' />
         </Badge>
@@ -211,28 +203,21 @@ class LayerOpacity extends Component {
     };
 
     const { i, target, layer } = this.props;
-    if (this.state.popoverOpen) {
-      return (
-        <div>
-          <Popover width={'auto'} key={'opacitypopover' + i} isOpen={this.state.popoverOpen} target={target} toggle={() => this.togglePopover(layer, i)}>
-            <PopoverTitle>Opacity</PopoverTitle>
-            <PopoverContent style={{ height: '15rem', marginBottom: '1rem' }}>
-              <Slider style={{ margin: '1rem' }} vertical min={0} max={100} marks={marks} step={1} onChange={(v) => this.alterLayer(v)} defaultValue={this.floatToIntPercentage(layer.opacity)} />
-            </PopoverContent>
-          </Popover>
+    return (
+      <div>
+        <Popover width={'auto'} key={'opacitypopover' + i} isOpen={this.state.popoverOpen} target={target} toggle={this.togglePopover}>
+          <PopoverTitle>Opacity</PopoverTitle>
+          <PopoverContent style={{ height: '15rem', marginBottom: '1rem' }}>
+            <Slider style={{ margin: '1rem' }} vertical min={0} max={100} marks={marks} step={1} onChange={(v) => this.alterLayer(v)} defaultValue={this.floatToIntPercentage(layer.opacity)} />
+          </PopoverContent>
+        </Popover>
 
-          <Badge pill className={'alert-' + this.props.color + (this.props.editable ? ' editable' : '')} onClick={() => this.togglePopover(layer, i)}>
-            {this.floatToIntPercentage(layer.opacity) + ' %'}
-            <Icon style={{ marginLeft: '0.25rem' }} id={target} name='pencil' />
-          </Badge>
-        </div>
-      );
-    } else {
-      return (<Badge pill className={'alert-' + this.props.color + (this.props.editable ? ' editable' : '')} onClick={() => this.togglePopover(layer, i)}>
-        {this.floatToIntPercentage(layer.opacity) + ' %'}
-        <Icon style={{ marginLeft: '0.25rem' }} id={target} name='pencil' />
-      </Badge>);
-    }
+        <Badge pill className={'alert-' + this.props.color + (this.props.editable ? ' editable' : '')} onClick={this.togglePopover}>
+          {this.floatToIntPercentage(layer.opacity) + ' %'}
+          <Icon style={{ marginLeft: '0.25rem' }} id={target} name='pencil' />
+        </Badge>
+      </div>
+    );
   }
 }
 LayerOpacity.propTypes = {

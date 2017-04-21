@@ -3,6 +3,7 @@ import BaseLayout from '../layouts/BaseLayout';
 import HomeRoute from './HomeRoute';
 import ChecklistRoute from './ChecklistRoute';
 import ProductsRoute from './ProductsRoute';
+import TriggersRoute from './TriggersRoute';
 import ReportsAndLogsRoute from './ReportsAndLogsRoute';
 import MonitoringAndTriggersRoute from './MonitoringAndTriggersRoute';
 import FullScreenRoute from './FullScreenRoute';
@@ -20,6 +21,7 @@ export const createRoutes = (store) => ({
   childRoutes: [
     ChecklistRoute(),
     ProductsRoute(),
+    TriggersRoute(),
     ReportsAndLogsRoute(),
     MonitoringAndTriggersRoute(),
     FullScreenRoute(),

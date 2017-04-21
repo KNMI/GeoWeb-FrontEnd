@@ -72,7 +72,7 @@ class SigmetsContainer extends Component {
     axios.get(BACKEND_SERVER_URL + '/sigmet/getsigmetphenomena').then((res) => {
       this.phenomenonMapping = res.data;
     }).catch((error) => {
-      console.log(error);
+      console.error(error);
       this.phenomenonMapping =
       [
         { 'phenomenon':{ 'name':'Thunderstorm', 'code':'TS', 'layerpreset':'sigmet_layer_TS' },
@@ -104,7 +104,7 @@ class SigmetsContainer extends Component {
     axios.get(BACKEND_SERVER_URL + '/sigmet/getsigmetparameters').then((result) => {
       this.parameters = result.data;
     }).catch((error) => {
-      console.log(error);
+      console.error(error);
     });
   }
 
@@ -143,7 +143,6 @@ class SigmetsContainer extends Component {
   }
 
   render () {
-    console.log(this.state);
     const maxSize = 400;
     let title = <Row>
       <Button color='primary' onClick={this.toggle} title={this.state.isOpen ? 'Collapse panel' : 'Expand panel'}>

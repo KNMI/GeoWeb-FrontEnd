@@ -2,7 +2,7 @@ import ProgtempManagementPanel from '../../../../components/Management/ProgtempM
 import TitleBarContainer from '../../../../containers/TitleBarContainer';
 import Empty from '../../../../components/Empty';
 import { connect } from 'react-redux';
-import { actions } from '../../../../actions/adaguc';
+import actions from '../../../../actions/adaguc';
 
 const mapStateToMapProps = (state) => {
   return { adagucProperties: state.adagucProperties };

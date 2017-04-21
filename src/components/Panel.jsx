@@ -9,7 +9,9 @@ class Panel extends Component {
       return (
         <div className={className ? 'Panel ' + className : 'Panel'} onClick={() => {
           if (!actions) return;
-          if (mapMode !== 'progtemp' && mapMode !== 'timeseries') dispatch(actions.setActivePanel(mapId));
+          if (mapMode !== 'progtemp' && mapMode !== 'timeseries' && !className) {
+            dispatch(actions.setActivePanel(mapId));
+          }
         }}>
           <Row className='title notitle' style={style} />
           <Row className='content notitle' style={style}>
@@ -21,7 +23,9 @@ class Panel extends Component {
       return (
         <div className={'Panel ' + className} onClick={() => {
           if (!actions) return;
-          if (mapMode !== 'progtemp' && mapMode !== 'timeseries') dispatch(actions.setActivePanel(mapId));
+          if (mapMode !== 'progtemp' && mapMode !== 'timeseries' && !className) {
+            dispatch(actions.setActivePanel(mapId));
+          }
         }}>
           <Row className='title' style={style}>
             {title || 'Oops'}

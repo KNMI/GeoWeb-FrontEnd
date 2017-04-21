@@ -52,40 +52,43 @@ export default class TimeComponent extends Component {
     const layers = this.props.wmjslayers.layers;
     const overlayers = this.props.wmjslayers.baselayers.filter((layer) => layer.keepOnTop === true);
     const layerHeight = 20;
+    const blockHeight = 16;
+    ctx.lineWidth = 1;
     for (let j = 0; j < layers.length; j++) {
       const y = j * layerHeight + 1 + overlayers.length * layerHeight;
-      const h = 16;
       const layer = layers[j];
       const dim = layer.getDimension('time');
-      ctx.lineWidth = 1;
-      ctx.fillStyle = '#F66';
-      ctx.fillRect(0, y + 0.5, canvasWidth, h);
-      ctx.strokeStyle = '#AAA';
-      ctx.strokeRect(-1, y + 0.5, canvasWidth + 2, h);
       if (!dim) {
-        return;
+        continue;
       }
+      ctx.fillStyle = '#F66';
+      ctx.strokeStyle = '#AAA';
+      ctx.fillRect(0, y + 0.5, canvasWidth, blockHeight);
+      ctx.strokeRect(-1, y + 0.5, canvasWidth + 2, blockHeight);
       const layerStartIndex = dim.getIndexForValue(this.startDate, false);
       const layerStopIndex = dim.getIndexForValue(this.endDate, false);
       for (let j = layerStartIndex - 1; j < layerStopIndex + 1; j++) {
+        let layerTimeIndex;
+        let layerTimeIndexNext;
         try {
-          const layerTimeIndex = this.canvasDateInterval.getTimeStepFromISODate(dim.getValueForIndex(j));
-          const layerTimeIndexNext = this.canvasDateInterval.getTimeStepFromISODate(dim.getValueForIndex(j + 1));
-          const pos = layerTimeIndex / sliderStopIndex;
-          const posNext = layerTimeIndexNext / sliderStopIndex;
-          ctx.fillStyle = '#BBB';
-          if (sliderMapIndex >= layerTimeIndex && sliderMapIndex < layerTimeIndexNext) {
-            ctx.fillStyle = '#FFFF60';
-          }
-          ctx.strokeStyle = '#888';
-          const x = parseInt(pos * scaleWidth);
-          const w = parseInt(posNext * scaleWidth) - x;
-
-          ctx.fillRect(x + 0.5, y + 0.5, w, h);
-          ctx.strokeRect(x + 0.5, y + 0.5, w, h);
+          layerTimeIndex = this.canvasDateInterval.getTimeStepFromISODate(dim.getValueForIndex(j));
+          layerTimeIndexNext = this.canvasDateInterval.getTimeStepFromISODate(dim.getValueForIndex(j + 1));
         } catch (error) {
           console.error('Layer probably does not have a time dimension');
+          continue;
         }
+        const pos = layerTimeIndex / sliderStopIndex;
+        const posNext = layerTimeIndexNext / sliderStopIndex;
+        ctx.fillStyle = '#BBB';
+        if (sliderMapIndex >= layerTimeIndex && sliderMapIndex < layerTimeIndexNext) {
+          ctx.fillStyle = '#FFFF60';
+        }
+        ctx.strokeStyle = '#888';
+        const x = parseInt(pos * scaleWidth);
+        const w = parseInt(posNext * scaleWidth) - x;
+
+        ctx.fillRect(x + 0.5, y + 0.5, w, blockHeight);
+        ctx.strokeRect(x + 0.5, y + 0.5, w, blockHeight);
       }
     }
   }

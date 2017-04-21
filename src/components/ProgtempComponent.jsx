@@ -121,7 +121,7 @@ export default class ProgtempComponent extends Component {
       this.toggleCanvas();
       axios.get(url).then((res) => {
         if (res.data.includes('No data available')) {
-          console.log('no data');
+          console.error('no data');
           this.toggleCanvas();
           return;
         }

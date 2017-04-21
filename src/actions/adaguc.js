@@ -21,7 +21,7 @@ CURSOR_LOCATION,
 SET_GEOJSON,
 SET_ACTIVE_PANEL,
 ADAGUCMAPDRAW_UPDATEFEATURE } from '../constants/actions';
-
+var moment = require('moment');
 function updateFeature (geojson, text) {
   return {
     type: ADAGUCMAPDRAW_UPDATEFEATURE,
@@ -133,6 +133,10 @@ function deleteLayer (layerParams, layertype) {
   };
 }
 function setTimeDimension (timedim) {
+  const isValidDate = moment(timedim).isValid();
+  if (!isValidDate) {
+    return null;
+  };
   return {
     type: SET_TIME_DIMENSION,
     payload: timedim
@@ -151,7 +155,7 @@ function setGeoJSON (json) {
   };
 }
 
-export const actions = {
+const actions = {
   addLayer,
   addOverlayLayer,
   alterLayer,
@@ -173,3 +177,5 @@ export const actions = {
   toggleAnimation,
   updateFeature
 };
+
+export default actions;

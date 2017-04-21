@@ -100,10 +100,6 @@ export class LocationMapper extends React.Component {
   }
 
   saveLocations () {
-    console.log('Save');
-
-    // let payload = JSON.stringify(this.state.locations);
-    // console.log(payload);
     axios({
       method: 'post',
       url: BACKEND_SERVER_URL + '/admin/create',
@@ -112,16 +108,14 @@ export class LocationMapper extends React.Component {
       withCredentials: true,
       responseType: 'json'
     }).then(src => {
-      console.log(src.data.message);
       if (src.data.message === 'ok') {
-        console.log('OK, Entry saved!');
         this.loadLocations();
       } else {
         alert(src.data.message);
       }
     }).catch(error => {
-      console.log(error);
-      console.log(error.data);
+      console.error(error);
+      console.error(error.data);
       alert('something went wrong: ');
     });
   }
