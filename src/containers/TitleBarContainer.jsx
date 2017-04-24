@@ -13,27 +13,9 @@ import { BACKEND_SERVER_URL } from '../constants/backend';
 import { UserRoles } from '../constants/userroles';
 import PropTypes from 'prop-types';
 import moment from 'moment';
+import { addNotification } from 'reapop';
 
 const timeFormat = 'YYYY MMM DD - HH:mm';
-const FALLBACK_TRIGGERS = [
-  {
-    group       : 'heat',
-    phenomenon  : 't2m',
-    triggername : 'obs above 10',
-    uuid        : '00000000-0000-0000-0000-000000000000',
-    task        : ['Create Sigmet', 'Reinvent some wheels'],
-    preset      : ['Beautiful constellation'],
-    issue_date  : moment().utc().format(),
-    duration    : '10m',
-    parameter   : {
-      variable    : 't2m',
-      threshold   : 10,
-      bbox        : [5, 5, 10, 10],
-      geojson     : []
-    }
-  }
-];
-
 const browserFullScreenRequests = [
   'mozRequestFullScreen',
   'msRequestFullscreen',
@@ -50,7 +32,6 @@ class TitleBarContainer extends Component {
     this.retrieveTriggers = this.retrieveTriggers.bind(this);
     this.gotTriggersCallback = this.gotTriggersCallback.bind(this);
     this.errorTriggersCallback = this.errorTriggersCallback.bind(this);
-    this.toggleTriggerModal = this.toggleTriggerModal.bind(this);
     this.toggleLoginModal = this.toggleLoginModal.bind(this);
     this.togglePresetModal = this.togglePresetModal.bind(this);
     this.handleOnChange = this.handleOnChange.bind(this);
@@ -76,34 +57,73 @@ class TitleBarContainer extends Component {
 
   triggerService () {
     if (!this.triggerIntervalId) {
-      this.triggerIntervalId = setInterval(this.retrieveTriggers, 60000);
+      this.retrieveTriggers();
+      this.triggerIntervalId = setInterval(this.retrieveTriggers, moment.duration(1, 'minute').asMilliseconds());
     }
   }
 
   retrieveTriggers () {
     axios({
       method: 'get',
-      url: BACKEND_SERVER_URL + '/triggers/gettriggers?startdate=' + moment().utc().format() + '&duration=10m',
+      url: BACKEND_SERVER_URL + '/triggers/gettriggers?startdate=' + moment().subtract(1, 'hours').utc().format() + '&duration=3600',
       withCredentials: true,
       responseType: 'json'
     }).then(this.gotTriggersCallback)
     .catch(this.errorTriggersCallback);
   }
 
+  getTriggerTitle (trigger) {
+    if (trigger.phenomenon === 't2m') {
+      if (trigger.triggername.includes('above')) {
+        return 'High temperature';
+      } else {
+        return 'Low temperature';
+      }
+    }
+    return '???';
+  }
+
+  getTriggerMessage (trigger) {
+    let retStr = '';
+    if (trigger.triggername.includes('obs')) {
+      retStr = 'Observation ' + trigger.triggername.slice(3) + ' degrees at ' + moment(trigger.issuedate).format('LT');
+    }
+
+    return retStr;
+  }
+
   gotTriggersCallback (result) {
-    console.log('Got triggers', result);
+    console.log('Got triggers', result, this.props);
+    if (result.data.length > 0) {
+      let notifications;
+      if (this.props.discardedNotifications) {
+        notifications = result.data.filter((trigger) => !this.props.discardedNotifications.includes(trigger.uuid));
+      } else {
+        notifications = result.data;
+      }
+      notifications.filter((trigger) => !this.props.notifications.some((notification) => notification.id === trigger.uuid)).forEach((trigger, i) =>
+        this.props.dispatch(addNotification({
+          title: this.getTriggerTitle(trigger),
+          message: this.getTriggerMessage(trigger),
+          position: 'bl',
+          id: trigger.uuid,
+          status: 'error',
+          buttons: [
+            {
+              name: <Icon size='lg' name='bell-slash' />,
+              primary: true
+            }
+          ],
+          closeButton: false,
+          dismissible: true,
+          dismissAfter: 0
+        }))
+      );
+    }
   }
 
   errorTriggersCallback (error) {
-    console.log('Error occurred while retrieving triggers', error);
-    this.toggleTriggerModal(FALLBACK_TRIGGERS);
-  }
-
-  toggleTriggerModal (message) {
-    this.setState({
-      triggerModal: !this.state.triggerModal,
-      triggerModalMessage: message
-    });
+    console.error('Error occurred while retrieving triggers', error);
   }
 
   getServices () {
@@ -407,21 +427,6 @@ class TitleBarContainer extends Component {
     this.input = ref;
   }
 
-  renderTriggerModal (triggerModalOpen, toggleTriggerModal) {
-    return (<Modal isOpen={triggerModalOpen} toggle={toggleTriggerModal}>
-      <ModalHeader toggle={toggleTriggerModal}>Warning</ModalHeader>
-      <ModalBody>
-        {this.state.triggerModalMessage ? this.state.triggerModalMessage[0].triggername : 'Oops'}
-      </ModalBody>
-      <ModalFooter>
-        <Button color='primary' onClick={toggleTriggerModal}>
-          <Icon className='icon' name='check' />
-         Acknowledge
-        </Button>
-      </ModalFooter>
-    </Modal>);
-  }
-
   renderPresetModal (presetModalOpen, togglePresetModal, hasRoleADMIN) {
     return (<Modal isOpen={presetModalOpen} toggle={togglePresetModal}>
       <ModalHeader toggle={togglePresetModal}>Save preset</ModalHeader>
@@ -570,7 +575,6 @@ class TitleBarContainer extends Component {
                   this.state.loginModalMessage, this.toggleLoginModal, this.handleOnChange, this.handleKeyPressPassword)
               }
               {this.renderPresetModal(this.state.presetModal, this.togglePresetModal, hasRoleADMIN)}
-              {this.renderTriggerModal(this.state.triggerModal, this.toggleTriggerModal)}
             </Nav>
           </Col>
         </Row>
@@ -618,6 +622,8 @@ LayoutDropDown.propTypes = {
 };
 
 TitleBarContainer.propTypes = {
+  discardedNotifications: PropTypes.array,
+  notifications: PropTypes.array,
   isLoggedIn: PropTypes.bool,
   loginModal: PropTypes.bool,
   userName: PropTypes.string,

@@ -16,7 +16,9 @@ const mapStateToHeaderProps = (state) => {
     layout: state.adagucProperties.layout,
     layers: state.adagucProperties.layers,
     bbox: state.adagucProperties.boundingBox.bbox,
-    projectionName: state.adagucProperties.projectionName
+    projectionName: state.adagucProperties.projectionName,
+    notifications: state.notifications,
+    discardedNotifications: state.discardedNotifications
   };
 };
 

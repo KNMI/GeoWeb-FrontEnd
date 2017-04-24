@@ -1,14 +1,18 @@
 import { combineReducers } from 'redux';
-const reducer = require('../reducers/adagucReducer').default;
-const defaultReducer = require('./defaultReducer').default;
+import { reducer as notificationsReducer } from 'reapop';
+import { default as removedNotificationReducer } from '../reducers/removedNotificationReducer';
+import { default as adagucReducer } from '../reducers/adagucReducer';
+import { default as dummyReducer } from '../reducers/dummyReducer';
 
 export const makeRootReducer = () => {
   return combineReducers({
-    adagucProperties: reducer,
-    header: defaultReducer,
-    rightSideBar: defaultReducer,
-    leftSideBar: defaultReducer,
-    mainViewport: defaultReducer
+    adagucProperties: adagucReducer,
+    header: dummyReducer,
+    rightSideBar: dummyReducer,
+    leftSideBar: dummyReducer,
+    mainViewport: dummyReducer,
+    discardedNotifications: removedNotificationReducer,
+    notifications: notificationsReducer()
   });
 };
 export default makeRootReducer;

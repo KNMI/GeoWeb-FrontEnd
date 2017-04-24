@@ -123,6 +123,8 @@
     "react-switch-button": "^2.2.1",
     "reactable": "^0.14.1",
     "reactstrap": "^4.5.0",
+    "reapop": "^1.0.0",
+    "reapop-theme-wybo": "^0.4.1",
     "recharts": "^0.22.0",
     "redux": "^3.6.0",
     "redux-thunk": "^2.2.0",
