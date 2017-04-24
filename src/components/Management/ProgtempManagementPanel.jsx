@@ -2,37 +2,21 @@ import React from 'react';
 import Panel from '../Panel';
 import { Input, Card, Button, CardTitle, CardText, Row, Col, FormGroup, Label } from 'reactstrap';
 import { DefaultLocations } from '../../constants/defaultlocations';
-import { BACKEND_SERVER_URL } from '../../constants/backend';
-import axios from 'axios';
-// import { ReadLocations } from '../../routes/ADAGUC/utils/admin';
+import { ReadLocations } from '../../utils/admin';
 export default class ProgtempManagementPanel extends React.Component {
   constructor (props) {
     super(props);
     this.addAvailable = this.addAvailable.bind(this);
     this.progtempLocations = DefaultLocations;
     console.log('Start reading progtemp locs');
-    axios({
-      method: 'get',
-      url: BACKEND_SERVER_URL + '/admin/read',
-      params:{ type:'locations', name:'locations' },
-      withCredentials: true,
-      responseType: 'json'
-    }).then(src => {
-      this.progtempLocations = JSON.parse(src.data.payload);
-      this.setState();
-    }).catch(error => {
-      alert('Loading default list, because: ' + error.response.data.error);
-      this.progtempLocations = DefaultLocations;
+    ReadLocations((data) => {
+      if (data) {
+        this.progtempLocations = data;
+        console.log('progtemlocations set');
+      } else {
+        console.log('get progtemlocations failed');
+      }
     });
-
-    // ReadLocations((data) => {
-    //   if (data) {
-    //     this.progtempLocations = data;
-    //     console.log('progtemlocations set');
-    //   } else {
-    //     console.log('get progtemlocations failed');
-    //   }
-    // });
   }
   componentWillMount () {
     this.setState({ locations: this.progtempLocations });
