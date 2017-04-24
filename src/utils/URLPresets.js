@@ -4,31 +4,33 @@ import { BACKEND_SERVER_URL } from '../constants/backend';
 
 export var PresetURLWasLoaded = false;
 
-export const LoadURLPreset = (props) => {
+export const LoadURLPreset = (props, failure) => {
   if (PresetURLWasLoaded === true) {
-    console.log('URL already loaded');
     return;
   }
   PresetURLWasLoaded = true;
 
   let presetName = '';
   const queryStringParts = window.location.href.split('?');
-  if (queryStringParts.length !== 2) return;
+  if (queryStringParts.length !== 2) {
+    return;
+  }
   const queryString = queryStringParts[1].split('#')[0];
-  if (queryString.length === 0) return;
+  if (queryString.length === 0) {
+    return;
+  }
   const urlParts = queryString.split('&');
   for (let j = 0; j < urlParts.length; j++) {
-    let kvp = urlParts[j].split('=');
-    if (kvp.length === 2) {
-      if (kvp[0] === 'url') {
-        presetName = kvp[1];
-      }
+    const kvp = urlParts[j].split('=');
+    if (kvp.length === 2 && kvp[0] === 'url') {
+      presetName = kvp[1];
     }
   }
 
-  console.log(presetName);
   if (validator.isUUID(presetName) === false) {
-    console.log('invalid preset URL detected');
+    if (failure) {
+      failure('invalid preset URL detected');
+    }
     return;
   }
   axios({
@@ -41,7 +43,9 @@ export const LoadURLPreset = (props) => {
     const obj = JSON.parse(src.data.payload);
     props.dispatch(props.actions.setPreset(obj));
   }).catch(error => {
-    console.log(error);
+    if (failure) {
+      failure(error);
+    }
   });
 };
 
