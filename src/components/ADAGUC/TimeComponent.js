@@ -29,18 +29,80 @@ export default class TimeComponent extends Component {
   eventOnDimChange () {
     this.drawCanvas();
   }
+
+  drawTimeIndicationBlocks (ctx, timeBlockStartIndex, timeBlockStopIndex, canvasDateIntervalHour, sliderStopIndex, scaleWidth, canvasHeight) {
+    for (let j = timeBlockStartIndex - 1; j < timeBlockStopIndex + 1; j++) {
+      const dateAtTimeStep = canvasDateIntervalHour.getDateAtTimeStep(j);
+      const layerTimeIndex = this.canvasDateInterval.getTimeStepFromDate(dateAtTimeStep);
+      const layerTimeIndexNext = this.canvasDateInterval.getTimeStepFromDate(canvasDateIntervalHour.getDateAtTimeStep(j + 1));
+      const pos = layerTimeIndex / sliderStopIndex;
+      const width = (layerTimeIndexNext - layerTimeIndex) / sliderStopIndex;
+      ctx.fillStyle = '#AAA';
+      ctx.strokeStyle = '#000';
+      ctx.lineWidth = 0.5;
+      const x = parseInt(pos * scaleWidth);
+      ctx.fillRect(x + 0.5, canvasHeight - 16 + 0.5, width * scaleWidth + 0.5, 15);
+      ctx.strokeRect(x + 0.5, canvasHeight - 16 + 0.5, width * scaleWidth + 0.5, 15);
+      ctx.fillStyle = '#000';
+      ctx.fillText(dateAtTimeStep.getUTCHours() + 'H', pos * scaleWidth + 3, canvasHeight - 3);
+    }
+  }
+
+  drawLayerBlocks (ctx, canvasWidth, sliderStopIndex, sliderMapIndex, scaleWidth) {
+    const layers = this.props.wmjslayers.layers;
+    const overlayers = this.props.wmjslayers.baselayers.filter((layer) => layer.keepOnTop === true);
+    const layerHeight = 20;
+    const blockHeight = 16;
+    ctx.lineWidth = 1;
+    for (let j = 0; j < layers.length; j++) {
+      const y = j * layerHeight + 1 + overlayers.length * layerHeight;
+      const layer = layers[j];
+      const dim = layer.getDimension('time');
+      if (!dim) {
+        continue;
+      }
+      ctx.fillStyle = '#F66';
+      ctx.strokeStyle = '#AAA';
+      ctx.fillRect(0, y + 0.5, canvasWidth, blockHeight);
+      ctx.strokeRect(-1, y + 0.5, canvasWidth + 2, blockHeight);
+      const layerStartIndex = dim.getIndexForValue(this.startDate, false);
+      const layerStopIndex = dim.getIndexForValue(this.endDate, false);
+      for (let j = layerStartIndex - 1; j < layerStopIndex + 1; j++) {
+        let layerTimeIndex;
+        let layerTimeIndexNext;
+        try {
+          layerTimeIndex = this.canvasDateInterval.getTimeStepFromISODate(dim.getValueForIndex(j));
+          layerTimeIndexNext = this.canvasDateInterval.getTimeStepFromISODate(dim.getValueForIndex(j + 1));
+        } catch (error) {
+          console.error('Layer probably does not have a time dimension');
+          continue;
+        }
+        const pos = layerTimeIndex / sliderStopIndex;
+        const posNext = layerTimeIndexNext / sliderStopIndex;
+        ctx.fillStyle = '#BBB';
+        if (sliderMapIndex >= layerTimeIndex && sliderMapIndex < layerTimeIndexNext) {
+          ctx.fillStyle = '#FFFF60';
+        }
+        ctx.strokeStyle = '#888';
+        const x = parseInt(pos * scaleWidth);
+        const w = parseInt(posNext * scaleWidth) - x;
+
+        ctx.fillRect(x + 0.5, y + 0.5, w, blockHeight);
+        ctx.strokeRect(x + 0.5, y + 0.5, w, blockHeight);
+      }
+    }
+  }
+
   /* istanbul ignore next */
   drawCanvas () {
-    const timeDim = this.props.timedim;
-    if (timeDim === undefined) {
+    const { timedim } = this.props;
+    if (timedim === undefined) {
       return;
     }
-    if (timeDim.length !== 20 || timeDim[19] !== 'Z' || timeDim[10] !== 'T') {
+    if (timedim.length !== 20 || timedim[19] !== 'Z' || timedim[10] !== 'T') {
       return;
     }
     this.hoverDateDone = this.hoverDate;
-    const layers = this.props.wmjslayers.layers;
-    const overlayers = this.props.wmjslayers.baselayers.filter((layer) => layer.keepOnTop === true);
     const ctx = this.ctx;
     // eslint-disable-next-line no-undef
     const canvasWidth = $(ctx.canvas).width();
@@ -56,9 +118,9 @@ export default class TimeComponent extends Component {
     // eslint-disable-next-line no-undef
     const currentDate = getCurrentDateIso8601();
     // eslint-disable-next-line no-undef
-    this.startDate = parseISO8601DateToDate(timeDim);
+    this.startDate = parseISO8601DateToDate(timedim);
     // eslint-disable-next-line no-undef
-    this.endDate = parseISO8601DateToDate(timeDim);
+    this.endDate = parseISO8601DateToDate(timedim);
 
     this.timeWidth = 24 / 2;
     const hours = this.startDate.getUTCHours();
@@ -74,7 +136,7 @@ export default class TimeComponent extends Component {
     this.startDate.add(new DateInterval(0, 0, 0, 0, 0, 0));
     // eslint-disable-next-line no-undef
     this.endDate.add(new DateInterval(0, 0, 0, this.timeWidth, 0, 0));
-    let canvasDateIntervalStr = this.startDate.toISO8601() + '/' + this.endDate.toISO8601() + '/PT1M';
+    const canvasDateIntervalStr = this.startDate.toISO8601() + '/' + this.endDate.toISO8601() + '/PT1M';
     // eslint-disable-next-line
     this.canvasDateInterval = new parseISOTimeRangeDuration(canvasDateIntervalStr);
     let sliderCurrentIndex = -1;
@@ -84,7 +146,7 @@ export default class TimeComponent extends Component {
       // ???????
       // Apparantly we're reliant on exceptions
     }
-    const sliderMapIndex = this.canvasDateInterval.getTimeStepFromISODate(timeDim);
+    const sliderMapIndex = this.canvasDateInterval.getTimeStepFromISODate(timedim);
     const sliderStopIndex = this.canvasDateInterval.getTimeStepFromISODate(this.endDate.toISO8601());
 
     const canvasDateIntervalStrHour = this.startDate.toISO8601() + '/' + this.endDate.toISO8601() + '/PT1H';
@@ -101,57 +163,9 @@ export default class TimeComponent extends Component {
     ctx.fillRect(x, 0, canvasWidth - x, canvasHeight);
 
     /* Draw time indication blocks */
-    for (let j = timeBlockStartIndex - 1; j < timeBlockStopIndex + 1; j++) {
-      const dateAtTimeStep = canvasDateIntervalHour.getDateAtTimeStep(j);
-      const layerTimeIndex = this.canvasDateInterval.getTimeStepFromDate(dateAtTimeStep);
-      const layerTimeIndexNext = this.canvasDateInterval.getTimeStepFromDate(canvasDateIntervalHour.getDateAtTimeStep(j + 1));
-      const pos = layerTimeIndex / sliderStopIndex;
-      const width = (layerTimeIndexNext - layerTimeIndex) / sliderStopIndex;
-      ctx.fillStyle = '#AAA';
-      ctx.strokeStyle = '#000';
-      ctx.lineWidth = 0.5;
-      const x = parseInt(pos * scaleWidth);
-      ctx.fillRect(x + 0.5, canvasHeight - 16 + 0.5, width * scaleWidth + 0.5, 15);
-      ctx.strokeRect(x + 0.5, canvasHeight - 16 + 0.5, width * scaleWidth + 0.5, 15);
-      ctx.fillStyle = '#000';
-      ctx.fillText(dateAtTimeStep.getUTCHours() + 'H', pos * scaleWidth + 3, canvasHeight - 3);
-    }
+    this.drawTimeIndicationBlocks(ctx, timeBlockStartIndex, timeBlockStopIndex, canvasDateIntervalHour, sliderStopIndex, scaleWidth, canvasHeight);
     /* Draw blocks for layer */
-    for (let j = 0; j < layers.length + 0; j++) {
-      const y = j * 20 + 1 + overlayers.length * 20;
-      const h = 16;
-      const layer = layers[j];
-      const dim = layer.getDimension('time');
-      ctx.lineWidth = 1;
-      ctx.fillStyle = '#F66';
-      ctx.fillRect(0, y + 0.5, canvasWidth, h);
-      ctx.strokeStyle = '#AAA';
-      ctx.strokeRect(-1, y + 0.5, canvasWidth + 2, h);
-      if (dim) {
-        let layerStartIndex = dim.getIndexForValue(this.startDate, false);
-        let layerStopIndex = dim.getIndexForValue(this.endDate, false);
-        for (let j = layerStartIndex - 1; j < layerStopIndex + 1; j++) {
-          try {
-            const layerTimeIndex = this.canvasDateInterval.getTimeStepFromISODate(dim.getValueForIndex(j));
-            const layerTimeIndexNext = this.canvasDateInterval.getTimeStepFromISODate(dim.getValueForIndex(j + 1));
-            const pos = layerTimeIndex / sliderStopIndex;
-            const posNext = layerTimeIndexNext / sliderStopIndex;
-            ctx.fillStyle = '#BBB';
-            if (sliderMapIndex >= layerTimeIndex && sliderMapIndex < layerTimeIndexNext) {
-              ctx.fillStyle = '#FFFF60';
-            }
-            ctx.strokeStyle = '#888';
-            const x = parseInt(pos * scaleWidth);
-            const w = parseInt(posNext * scaleWidth) - x;
-
-            ctx.fillRect(x + 0.5, y + 0.5, w, h);
-            ctx.strokeRect(x + 0.5, y + 0.5, w, h);
-          } catch (error) {
-            console.log('Layer probably does not have a time dimension');
-          }
-        }
-      }
-    }
+    this.drawLayerBlocks(ctx, canvasWidth, sliderStopIndex, sliderMapIndex, scaleWidth);
 
     /* Draw current system time */
     if (sliderCurrentIndex !== -1) {
@@ -182,7 +196,7 @@ export default class TimeComponent extends Component {
     ctx.fillStyle = '#EEE';
     ctx.fillRect(x - 26, canvasHeight - 15, 52, 14);
     ctx.fillStyle = '#000000';
-    ctx.fillText(timeDim.substring(11, 16), x - 15, canvasHeight - 3);
+    ctx.fillText(timedim.substring(11, 16), x - 15, canvasHeight - 3);
   }
   /* istanbul ignore next */
   toISO8601 (value) {
@@ -209,7 +223,7 @@ export default class TimeComponent extends Component {
     }
     const isodate = this.toISO8601(value);
     // eslint-disable-next-line no-undef
-    var date = parseISO8601DateToDate(isodate);
+    const date = parseISO8601DateToDate(isodate);
     this.props.dispatch(this.props.actions.setTimeDimension(date.toISO8601()));
     this.eventOnDimChange();
   }
@@ -225,37 +239,37 @@ export default class TimeComponent extends Component {
   }
   /* istanbul ignore next */
   changeYear (value) {
-    let date = this.decomposeDateString(this.props.timedim);
+    const date = this.decomposeDateString(this.props.timedim);
     date.year = value;
     this.setNewDate(date);
   }
   /* istanbul ignore next */
   changeMonth (value) {
-    let date = this.decomposeDateString(this.props.timedim);
+    const date = this.decomposeDateString(this.props.timedim);
     date.month = value;
     this.setNewDate(date);
   }
   /* istanbul ignore next */
   changeDay (value) {
-    let date = this.decomposeDateString(this.props.timedim);
+    const date = this.decomposeDateString(this.props.timedim);
     date.day = value;
     this.setNewDate(date);
   }
   /* istanbul ignore next */
   changeHour (value) {
-    let date = this.decomposeDateString(this.props.timedim);
+    const date = this.decomposeDateString(this.props.timedim);
     date.hour = value;
     this.setNewDate(date);
   }
   /* istanbul ignore next */
   changeMinute (value) {
-    let date = this.decomposeDateString(this.props.timedim);
+    const date = this.decomposeDateString(this.props.timedim);
     date.minute = value;
     this.setNewDate(date);
   }
   /* istanbul ignore next */
   changeSecond (value) {
-    let date = this.decomposeDateString(this.props.timedim);
+    const date = this.decomposeDateString(this.props.timedim);
     date.second = value;
     this.setNewDate(date);
   }
@@ -285,7 +299,7 @@ export default class TimeComponent extends Component {
     this.ctx = ctx;
   }
   /* istanbul ignore next */
-  onClickCanvas (x, y) {
+  onClickCanvas (x) {
     const t = x / this.ctx.canvas.clientWidth;
     const s = this.canvasDateInterval.getTimeSteps() - 1;
     const newTimeStep = parseInt(t * s);
@@ -304,12 +318,12 @@ export default class TimeComponent extends Component {
     this.eventOnDimChange();
   }
   handleButtonClickPrevPage () {
-    let date = this.decomposeDateString(this.props.timedim);
+    const date = this.decomposeDateString(this.props.timedim);
     date.hour -= 1;
     this.setNewDate(date);
   }
   handleButtonClickNextPage () {
-    let date = this.decomposeDateString(this.props.timedim);
+    const date = this.decomposeDateString(this.props.timedim);
     date.hour += 1;
     this.setNewDate(date);
   }

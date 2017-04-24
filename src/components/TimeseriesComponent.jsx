@@ -96,6 +96,15 @@ export default class TimeseriesComponent extends Component {
       }
     ];
   }
+
+  componentDidMount () {
+    if (this._typeahead) {
+      const instance = this._typeahead.getInstance();
+      if (instance) {
+        instance.focus();
+      }
+    }
+  }
   /* istanbul ignore next */
   customTooltip (props, labels, units) {
     if (props.payload.length > 0) {
@@ -134,7 +143,7 @@ LAYERS=&QUERY_LAYERS=air_pressure_at_sea_level,wind__at_10m,dew_point_temperatur
       axios.get(url).then((res) => {
         if (res.data.includes('No data available')) {
           this.toggleCanvas();
-          console.log('no data');
+          console.error('no data');
           return;
         }
         this.toggleCanvas();
@@ -393,7 +402,8 @@ LAYERS=&QUERY_LAYERS=air_pressure_at_sea_level,wind__at_10m,dew_point_temperatur
          : <div style={{ width: maxWidth, height: maxHeight }} />
         }
         <div className='canvasLoadingOverlay timeOverlay' ref='canvasLoadingOverlay' />
-        <Typeahead onChange={this.setChosenLocation} options={this.progtempLocations} labelKey='name' placeholder='Type to select default location' submitFormOnEnter />
+        <Typeahead ref={ref => { this._typeahead = ref; }}
+          onChange={this.setChosenLocation} options={this.progtempLocations} labelKey='name' placeholder='Type to select default location' submitFormOnEnter />
       </PopoverContent>
     </Popover>);
   }

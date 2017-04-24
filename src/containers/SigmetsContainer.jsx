@@ -70,7 +70,7 @@ class SigmetsContainer extends Component {
     axios.get(BACKEND_SERVER_URL + '/sigmet/getsigmetphenomena').then((result) => {
       this.setState({ phenomena: result.data });
     }).catch((error) => {
-      console.log(error);
+      console.error(error);
       const phenomena = [
         { 'phenomenon':{ 'name':'Thunderstorm', 'code':'TS', 'layerpreset':'sigmet_layer_TS' },
           'variants':[{ 'name':'Obscured', 'code':'OBSC' }, { 'name':'Embedded', 'code':'EMBD' }, { 'name':'Frequent', 'code':'FRQ' }, { 'name':'Squall line', 'code':'SQL' }],
@@ -102,7 +102,7 @@ class SigmetsContainer extends Component {
     axios.get(BACKEND_SERVER_URL + '/sigmet/getsigmetparameters').then((result) => {
       this.setState({ parameters: result.data });
     }).catch((error) => {
-      console.log(error);
+      console.error(error);
     });
   }
 

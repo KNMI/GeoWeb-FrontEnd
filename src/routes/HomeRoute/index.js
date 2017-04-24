@@ -5,7 +5,7 @@ import LayerManagerPanel from '../../components/LayerManagerPanel';
 import TitleBarContainer from '../../containers/TitleBarContainer';
 import Empty from '../../components/Empty';
 import { connect } from 'react-redux';
-import { actions } from '../../actions/adaguc';
+import actions from '../../actions/adaguc';
 
 const mapStateToHeaderProps = (state) => {
   return {
@@ -43,7 +43,7 @@ const mapStateToRightSideBarProps = (state) => {
 };
 
 // Sync route definition
-export default (state) => ({
+export default () => ({
   title: 'GeoWeb',
   components : {
     header: connect(mapStateToHeaderProps, mapDispatchToMainViewportProps)(TitleBarContainer),

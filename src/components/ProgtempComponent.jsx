@@ -37,6 +37,12 @@ export default class ProgtempComponent extends Component {
   /* istanbul ignore next */
   componentDidMount () {
     this.renderBaseProgtemp(this.state.canvasWidth, this.state.canvasHeight);
+    if (this._typeahead) {
+      const instance = this._typeahead.getInstance();
+      if (instance) {
+        instance.focus();
+      }
+    }
   }
   /* istanbul ignore next */
   renderBaseProgtemp (canvasWidth, canvasHeight) {
@@ -115,7 +121,7 @@ export default class ProgtempComponent extends Component {
       this.toggleCanvas();
       axios.get(url).then((res) => {
         if (res.data.includes('No data available')) {
-          console.log('no data');
+          console.error('no data');
           this.toggleCanvas();
           return;
         }
@@ -209,7 +215,8 @@ export default class ProgtempComponent extends Component {
             width={this.state.canvasWidth} height={this.state.canvasHeight}
             onRenderCanvas={() => this.renderProgtempData(this.state.canvasWidth, this.state.canvasHeight, timeOffset)} />
           <div className='canvasLoadingOverlay' ref='canvasLoadingOverlay' />
-          <Typeahead onChange={this.setChosenLocation} options={this.progtempLocations} labelKey='name' placeholder='Type to select default location' submitFormOnEnter />
+          <Typeahead ref={ref => { this._typeahead = ref; }}
+            onChange={this.setChosenLocation} options={this.progtempLocations} labelKey='name' placeholder='Type to select default location' submitFormOnEnter />
         </PopoverContent>
       </Popover>);
   }

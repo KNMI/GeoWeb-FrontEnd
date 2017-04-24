@@ -53,10 +53,9 @@ class MapActionContainer extends Component {
     };
   }
   componentWillUpdate (nextprops) {
-    if (nextprops.adagucProperties.user !== this.props.adagucProperties.user) {
+    if (!this.state.presets && nextprops.adagucProperties.user !== this.props.adagucProperties.user) {
       axios.get(BACKEND_SERVER_URL + '/preset/getpresets', { withCredentials: true }).then((res) => {
         this.setState({ presets: res.data });
-        console.log(res.data);
       }).catch((error) => {
         console.error(error);
       });
@@ -67,8 +66,10 @@ class MapActionContainer extends Component {
     const defaultURLs = ['getServices', 'getOverlayServices'].map((url) => BACKEND_SERVER_URL + '/' + url);
     const allURLs = [...defaultURLs];
     axios.all(allURLs.map((req) => axios.get(req, { withCredentials: true }))).then(
-      axios.spread((services, overlays) => dispatch(actions.createMap([...services.data, ...JSON.parse(localStorage.getItem('geoweb')).personal_urls], overlays.data[0])))
-    ).catch((e) => console.log('Error!: ', e.response));
+      axios.spread((services, overlays) => {
+        dispatch(actions.createMap([...services.data, ...JSON.parse(localStorage.getItem('geoweb')).personal_urls], overlays.data[0]))}
+      )
+    ).catch((e) => console.error('Error!: ', e.response));
   }
 
   handleAddSource (e) {
@@ -244,7 +245,7 @@ class MapActionContainer extends Component {
       {sources.overlay.map((src, i) => <Button id={src.name} key={i} onClick={this.handleSourceClick}>{this.getLayerName(src)}</Button>)}</div>;
   }
   renderPresetSelector () {
-    return <Typeahead filterBy={['name', 'keywords']} labelKey='name' options={this.state.presets} onChange={(ph) => this.setPreset(ph)} />;
+    return <Typeahead ref={ref => { this._typeahead = ref; }} filterBy={['name', 'keywords']} labelKey='name' options={this.state.presets} onChange={(ph) => this.setPreset(ph)} />;
   }
 
   renderURLInput () {
@@ -261,7 +262,7 @@ class MapActionContainer extends Component {
 
     return (
       <InputGroup>
-        <Input id='sourceurlinput' placeholder='Add your own source' disabled={this.state.getCapBusy} />
+        <Input id='sourceurlinput' ref={ref => { this._urlinput = ref; }} placeholder='Add your own source' disabled={this.state.getCapBusy} />
         <InputGroupButton>
           <Button color='primary' onClick={this.handleAddSource} disabled={this.state.getCapBusy}>Add</Button>
         </InputGroupButton>
@@ -322,8 +323,8 @@ class MapActionContainer extends Component {
           <TabPane tabId='1'>
             <ButtonGroup>
               <Button onClick={() => this.setState({ action: 'addLayer', activeTab: '2' })}>Add Layer</Button>
-              <Button onClick={() => this.setState({ action: 'selectPreset', activeTab: '2' })}>Select Preset</Button>
-              <Button onClick={() => this.setState({ action: 'addCustomData', activeTab: '2' })}>Add Custom data</Button>
+              <Button onClick={() => { this.setState({ action: 'selectPreset', activeTab: '2' }); setTimeout(() => this._typeahead.getInstance().focus(), 100); }}>Select Preset</Button>
+              <Button onClick={() => { this.setState({ action: 'addCustomData', activeTab: '2' }); setTimeout(() => document.getElementById('sourceurlinput').focus(), 100); }}>Add Custom data</Button>
             </ButtonGroup>
           </TabPane>
 

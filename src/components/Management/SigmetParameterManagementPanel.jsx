@@ -56,6 +56,8 @@ export class ParameterMapper extends React.Component {
       location_indicator_wmo: locationIndicatorWmo,
       firareas: firs
     };
+
+    axios.post('/savelocations', newSigmetParameterObj);
   }
   deleteFirArea (i) {
     let arrayCpy = cloneDeep(this.state.sigmetParameters);
@@ -64,7 +66,6 @@ export class ParameterMapper extends React.Component {
   }
   addFirLocation () {
     let arrayCpy = cloneDeep(this.state.sigmetParameters);
-    console.log(arrayCpy);
     arrayCpy.firareas.push({ });
     this.setState({ sigmetParameters: arrayCpy });
   }

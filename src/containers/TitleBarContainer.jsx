@@ -200,7 +200,7 @@ class TitleBarContainer extends Component {
         loginModalMessage: 'Checking...'
       });
     } catch (e) {
-      console.log(e);
+      console.error(e);
     }
     axios({
       method: 'get',
@@ -264,7 +264,7 @@ class TitleBarContainer extends Component {
     try {
       errormsg = error.response.data.message;
     } catch (e) {
-      console.log(e);
+      console.error(e);
     }
     const { dispatch, actions } = this.props;
     dispatch(actions.logout());

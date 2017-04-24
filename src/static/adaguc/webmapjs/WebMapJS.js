@@ -46,15 +46,17 @@
   var scaleBarURL;
 
   var enableConsoleDebugging = false;
-
+  var enableConsoleErrors = false;
   /**
    * Set base URL of several sources used wihtin webmapjs
    */
 
   var debug = function (message) {
-    // if (enableConsoleDebugging) { console.log(message); }
+    if (enableConsoleDebugging) { console.log(message); }
   };
-  var error = function (message) { console.log('WebMapJS warning: '+message); };
+  var error = function (message) {
+    if (enableConsoleErrors) { console.log('WebMapJS warning: ', message); }
+  };
 
   /**
     * Function which checks wether URL contains a ? token. If not, it is assumed that this token was not provided by the user,
@@ -1592,7 +1594,7 @@
       var drawDates = [];
       var iter = 0;
       // Fetch all dates within the time interval with a dynamic frequency
-      while (moment(currentTime) <= end && iter < 1000) {
+      while (moment(currentTime) < end && iter < 1000) {
         iter++;
         var smallestTime = null;
         for (var i = layers.length - 1; i >= 0; i--) {
@@ -1620,6 +1622,7 @@
       // If there are times in the interval, animate them all,
       // Otherwise, fall back to "dumb" animation and draw the last 100 dates from the first layer
       if (drawDates.length > 0) {
+        const splicedDate = drawDates.pop();
         this.draw(drawDates);
       } else {
         var firstTimeDim = layers[0].getDimension('time');

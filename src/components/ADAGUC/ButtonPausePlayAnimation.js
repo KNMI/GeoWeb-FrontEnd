@@ -17,25 +17,19 @@ export default class ButtonPausePlayAnimation extends Component {
   getIcon (newpauseorplay) {
     return newpauseorplay ? 'play' : 'pause';
   }
-  handleClick (event) {
-    /* istanbul ignore next */
-    let newpauseorplay = !this.state.pauseorplay;
-    /* istanbul ignore next */
+  handleClick () {
+    const newpauseorplay = !this.state.pauseorplay;
     this.setState({ pauseorplay:newpauseorplay, icon:this.getIcon(newpauseorplay) });
-    /* istanbul ignore next */
     this.props.dispatch(this.props.actions.toggleAnimation());
     this.props.onChange(newpauseorplay);
   }
   componentWillReceiveProps (nextProps) {
-    /* istanbul ignore next */
     this.setState(nextProps);
   }
   onstopanimation () {
-    /* istanbul ignore next */
     this.setState({ pauseorplay:true, icon:this.getIcon(true) });
   }
   onstartanimation () {
-    /* istanbul ignore next */
     this.setState({ pauseorplay:false, icon:this.getIcon(false) });
   }
   render () {
@@ -54,5 +48,5 @@ ButtonPausePlayAnimation.propTypes = {
 
 ButtonPausePlayAnimation.defaultProps = {
   webmapjs: undefined,
-  onChange: () => { }
+  onChange: () => { /* intentionally left empty */ }
 };

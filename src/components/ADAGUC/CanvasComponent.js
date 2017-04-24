@@ -11,9 +11,10 @@ export default class CanvasComponent extends Component {
   }
 
   updateCanvas () {
-    if (!this.refs) return;
-    if (!this.refs.canvas) return;
-    let canvas = this.refs.canvas;
+    if (!this.refs || !this.refs.canvas) {
+      return;
+    }
+    const canvas = this.refs.canvas;
     const parentWidth = canvas.parentElement.getBoundingClientRect().width;
     const parentHeight = canvas.parentElement.getBoundingClientRect().height;
     if (this.width === parentWidth && this.height === parentHeight) {
@@ -21,26 +22,28 @@ export default class CanvasComponent extends Component {
     }
     this.width = parentWidth;
     this.height = parentHeight;
-    let onClickCanvas = this.props.onClickB;
-    let mousemove = this.props.onMouseMove;
+    const onClickCanvas = this.props.onClickB;
+    const mousemove = this.props.onMouseMove;
     if (!this.initialized) {
       this.refs.canvas.addEventListener('mousemove', function (event) {
-        let x = event.layerX;
-        let y = event.layerY;
+        const x = event.layerX;
+        const y = event.layerY;
         if (event.buttons === 1) {
           onClickCanvas(x, y);
         }
         mousemove(x, y);
       });
       this.refs.canvas.addEventListener('click', function (event) {
-        let x = event.layerX;
-        let y = event.layerY;
+        const x = event.layerX;
+        const y = event.layerY;
         onClickCanvas(x, y);
       });
       this.initialized = true;
     }
     const ctx = this.refs.canvas.getContext('2d');
-    if (!ctx) return;
+    if (!ctx) {
+      return;
+    }
     ctx.canvas.width = parentWidth;
     ctx.canvas.height = parentHeight;
     this.props.onRenderCanvas(ctx);
@@ -71,7 +74,7 @@ CanvasComponent.propTypes = {
 };
 
 CanvasComponent.defaultProps = {
-  onRenderCanvas: () => {},
-  onClickB: () => {},
-  onMouseMove: () => {}
+  onRenderCanvas: () => { /* intentionally left blank */ },
+  onClickB: () => { /* intentionally left blank */ },
+  onMouseMove: () => { /* intentionally left blank */ }
 };
