@@ -1,6 +1,8 @@
 import React, { Component } from 'react';
 import Icon from 'react-fa';
 import GeoWebLogo from '../components/assets/icon.svg';
+import { CheckIfUserHasRole } from '../utils/user';
+import { UserRoles } from '../constants/userroles';
 import axios from 'axios';
 import { Navbar, NavbarBrand, Row, Col, Nav, NavLink, Breadcrumb, BreadcrumbItem, Collapse,
 ButtonGroup, Popover, Form,
@@ -10,7 +12,6 @@ PopoverContent, PopoverTitle, InputGroupButton,
   Modal, ModalHeader, ModalBody, ModalFooter, Button, InputGroup, Input, FormText } from 'reactstrap';
 import { Link, hashHistory } from 'react-router';
 import { BACKEND_SERVER_URL } from '../constants/backend';
-import { UserRoles } from '../constants/userroles';
 import PropTypes from 'prop-types';
 
 let moment = require('moment');
@@ -111,7 +112,7 @@ class TitleBarContainer extends Component {
       }).then(src => {
         this.checkCredentials(() => {
           // When signed in as admin, jump to admin manage page
-          if (this.props.roles && this.props.roles.includes(UserRoles.ADMIN)) {
+          if (CheckIfUserHasRole(this.props, UserRoles.ADMIN)) {
             hashHistory.push('/manage/app');
           }
         });
@@ -455,7 +456,7 @@ class TitleBarContainer extends Component {
   }
   render () {
     const { isLoggedIn, userName, routes } = this.props;
-    const hasRoleADMIN = this.props.roles && this.props.roles.includes(UserRoles.ADMIN);
+    const hasRoleADMIN = CheckIfUserHasRole(this.props, UserRoles.ADMIN);
     let cumulativePath = '';
     return (
       <Navbar inverse className='test'>

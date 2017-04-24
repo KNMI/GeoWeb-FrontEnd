@@ -118,6 +118,7 @@ function reorderLayer (direction, index) {
   };
 }
 function setPreset (presetObj) {
+  console.log(presetObj);
   return {
     type: SET_PRESET,
     payload: presetObj

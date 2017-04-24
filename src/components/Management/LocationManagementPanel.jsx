@@ -8,23 +8,16 @@ import PropTypes from 'prop-types';
 
 import { BACKEND_SERVER_URL } from '../../constants/backend';
 import { DefaultLocations } from '../../constants/defaultlocations';
+import { ReadLocations } from '../../utils/admin';
 
 export default class LocationManagementPanel extends React.Component {
   constructor (props) {
     super(props);
     this.progtempLocations = DefaultLocations;
-    axios({
-      method: 'get',
-      url: BACKEND_SERVER_URL + '/admin/read',
-      params:{ type:'locations', name:'locations' },
-      withCredentials: true,
-      responseType: 'json'
-    }).then(src => {
-      this.progtempLocations = JSON.parse(src.data.payload);
-      this.setState();
-    }).catch(error => {
-      alert('Loading default list, because: ' + error.response.data.error);
-      this.progtempLocations = DefaultLocations;
+    ReadLocations((data) => {
+      if (data) {
+        this.progtempLocations = data;
+      }
     });
   }
 

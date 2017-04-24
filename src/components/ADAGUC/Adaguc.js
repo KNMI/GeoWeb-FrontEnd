@@ -6,7 +6,7 @@ import axios from 'axios';
 import ModelTime from './ModelTime';
 import $ from 'jquery';
 import { BACKEND_SERVER_URL, BACKEND_SERVER_XML2JSON } from '../../constants/backend';
-var diff = require('deep-diff').diff;
+import diff from 'deep-diff';
 var moment = require('moment');
 var elementResizeEvent = require('element-resize-event');
 
