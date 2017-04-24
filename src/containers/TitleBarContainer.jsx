@@ -2,8 +2,11 @@ import React, { Component } from 'react';
 import Icon from 'react-fa';
 import GeoWebLogo from '../components/assets/icon.svg';
 import { CheckIfUserHasRole } from '../utils/user';
+import { SaveURLPreset } from '../utils/URLPresets';
 import { UserRoles } from '../constants/userroles';
+import CopyToClipboard from 'react-copy-to-clipboard';
 import axios from 'axios';
+import uuidV4 from 'uuid/v4';
 import { Navbar, NavbarBrand, Row, Col, Nav, NavLink, Breadcrumb, BreadcrumbItem, Collapse,
 ButtonGroup, Popover, Form,
 FormGroup,
@@ -32,6 +35,7 @@ class TitleBarContainer extends Component {
     this.doLogout = this.doLogout.bind(this);
     this.toggleLoginModal = this.toggleLoginModal.bind(this);
     this.togglePresetModal = this.togglePresetModal.bind(this);
+    this.toggleSharePresetModal = this.toggleSharePresetModal.bind(this);
     this.handleOnChange = this.handleOnChange.bind(this);
     this.handleKeyPressPassword = this.handleKeyPressPassword.bind(this);
     this.checkCredentials = this.checkCredentials.bind(this);
@@ -45,11 +49,15 @@ class TitleBarContainer extends Component {
     this.inputfieldPassword = '';
     this.timer = -1;
     this.savePreset = this.savePreset.bind(this);
+    this.sharePreset = this.sharePreset.bind(this);
+    this.makePresetObj = this.makePresetObj.bind(this);
     this.state = {
       currentTime: moment.utc().format(timeFormat).toString(),
       loginModal: this.props.loginModal,
       loginModalMessage: '',
-      presetModal: false
+      presetModal: false,
+      sharePresetModal: false,
+      sharePresetName: ''
     };
   }
 
@@ -258,12 +266,28 @@ class TitleBarContainer extends Component {
   togglePresetModal () {
     this.setState({ presetModal: !this.state.presetModal, loginModal: false });
   }
-  savePreset () {
-    const presetName = document.getElementById('presetname').value;
-    const saveLayers = document.getElementsByName('layerCheckbox')[0].checked;
-    const savePanelLayout = document.getElementsByName('panelCheckbox')[0].checked;
-    const saveBoundingBox = document.getElementsByName('viewCheckbox')[0].checked;
-    const role = document.getElementsByName('roleSelect');
+  toggleSharePresetModal () {
+    this.setState({ sharePresetModal: !this.state.sharePresetModal, loginModal: false });
+  }
+
+  sharePreset () {
+    this.setState({ loginModal: false });
+    const presetName = uuidV4();
+    const dataToSend = this.makePresetObj(presetName, true, true, true, '');
+    console.log(dataToSend);
+    SaveURLPreset(presetName, dataToSend, (message) => {
+      if (message.status === 'ok') {
+        this.setState({
+          sharePresetModal: true,
+          sharePresetName: location.protocol + '//' + location.host + location.pathname + '?url=' + presetName + location.hash
+        });
+      } else {
+        alert('failed');
+      }
+    });
+  }
+
+  makePresetObj (presetName, saveLayers, savePanelLayout, saveBoundingBox, role) {
     let numPanels = -1;
     if (/quad/.test(this.props.layout)) {
       numPanels = 4;
@@ -320,6 +344,16 @@ class TitleBarContainer extends Component {
       name: presetName,
       keywords: []
     };
+    return dataToSend;
+  }
+
+  savePreset () {
+    const presetName = document.getElementById('presetname').value;
+    const saveLayers = document.getElementsByName('layerCheckbox')[0].checked;
+    const savePanelLayout = document.getElementsByName('panelCheckbox')[0].checked;
+    const saveBoundingBox = document.getElementsByName('viewCheckbox')[0].checked;
+    const role = document.getElementsByName('roleSelect');
+    const dataToSend = this.makePresetObj(presetName, saveLayers, savePanelLayout, saveBoundingBox, role);
 
     let url = BACKEND_SERVER_URL + '/preset/';
     let params = {
@@ -351,6 +385,25 @@ class TitleBarContainer extends Component {
   returnInputRef (ref) {
     this.input = ref;
   }
+
+  renderSharePresetModal (sharePresetModelOpen, toggleSharePresetModal, sharePresetName) {
+    return (<Modal isOpen={sharePresetModelOpen} toggle={toggleSharePresetModal}>
+      <ModalHeader toggle={toggleSharePresetModal}> Share preset URL</ModalHeader>
+      <ModalBody >
+        <CopyToClipboard text={sharePresetName} onCopy={toggleSharePresetModal}>
+          <Button color='primary'>
+            <Icon className='icon' name='share-alt' />
+           Copy link to Clipboard
+          </Button>
+        </CopyToClipboard><br /><hr />
+        <p>The link URL is:</p>
+        <a target='_blank' href={sharePresetName}>{sharePresetName}</a><br />
+      </ModalBody>
+      <ModalFooter>
+        <Button color='secondary' onClick={toggleSharePresetModal}>Cancel</Button>
+      </ModalFooter>
+    </Modal>);
+  };
 
   renderPresetModal (presetModalOpen, togglePresetModal, hasRoleADMIN) {
     return (<Modal isOpen={presetModalOpen} toggle={togglePresetModal}>
@@ -444,6 +497,10 @@ class TitleBarContainer extends Component {
               <Icon className='icon' name='floppy-o' />
               Save preset
             </Button>
+            <Button onClick={this.sharePreset} >
+              <Icon className='icon' name='share-alt' />
+              Share preset
+            </Button>
             <Button onClick={this.doLogout} className='signInOut'>
               <Icon className='icon' name='sign-out' />
              Sign out
@@ -500,6 +557,7 @@ class TitleBarContainer extends Component {
                   this.state.loginModalMessage, this.toggleLoginModal, this.handleOnChange, this.handleKeyPressPassword)
               }
               {this.renderPresetModal(this.state.presetModal, this.togglePresetModal, hasRoleADMIN)}
+              {this.renderSharePresetModal(this.state.sharePresetModal, this.toggleSharePresetModal, this.state.sharePresetName)}
 
             </Nav>
           </Col>

@@ -69,8 +69,6 @@ const store = createStore(initialState, __DEV__);
 const MOUNT_NODE = document.getElementById('root');
 
 let render = () => {
-  console.log('START');
-
   const routes = require('./routes/index').default(store);
   ReactDOM.render(
     <AppContainer store={store} routes={routes} />,

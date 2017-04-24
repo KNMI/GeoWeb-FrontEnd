@@ -3,12 +3,9 @@ import React from 'react';
 import Panel from '../Panel';
 import { Input, Card, Button, CardTitle, CardText, Row, Col } from 'reactstrap';
 import { Icon } from 'react-fa';
-import axios from 'axios';
 import PropTypes from 'prop-types';
-
-import { BACKEND_SERVER_URL } from '../../constants/backend';
 import { DefaultLocations } from '../../constants/defaultlocations';
-import { ReadLocations } from '../../utils/admin';
+import { ReadLocations, SaveLocations } from '../../utils/admin';
 
 export default class LocationManagementPanel extends React.Component {
   constructor (props) {
@@ -93,24 +90,7 @@ export class LocationMapper extends React.Component {
   }
 
   saveLocations () {
-    axios({
-      method: 'post',
-      url: BACKEND_SERVER_URL + '/admin/create',
-      params:{ type:'locations', name:'locations' },
-      data:this.state.locations,
-      withCredentials: true,
-      responseType: 'json'
-    }).then(src => {
-      if (src.data.message === 'ok') {
-        this.loadLocations();
-      } else {
-        alert(src.data.message);
-      }
-    }).catch(error => {
-      console.error(error);
-      console.error(error.data);
-      alert('something went wrong: ');
-    });
+    SaveLocations(this.state.locations);
   }
   render () {
     return (
