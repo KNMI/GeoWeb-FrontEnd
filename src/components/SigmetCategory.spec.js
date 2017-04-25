@@ -134,7 +134,7 @@ describe('(Container) SigmetCategory', () => {
     };
     let result;
     moxios.wait(function () {
-      const request = moxios.requests.mostRecent();
+      const request = moxios.stubRequest('http://birdexp07.knmi.nl:8080/sigmet/getsigmetlist?active=false');
       request.respondWith({
         status: 200,
         response: sigmets
@@ -143,9 +143,14 @@ describe('(Container) SigmetCategory', () => {
         expect(_component.find('.btn-group-vertical')).to.have.length(1);
         const _btnGroup = _component.find('.btn-group-vertical').get(0);
         expect(_btnGroup.find('.btn')).to.have.length(1);
-        const _firstButton = _component.find('btn-group-vertical').get(0);
+        const _firstButton = _btnGroup.find('.btn').get(0);
         _firstButton.simulate('click');
         expect(result).to.eql(1);
+        console.log('No error in this test');
+        expect(false).to.equal(true);
+      }).catch((error) => {
+        console.log('This test gave an error: ', error);
+        expect(false).to.equal(true);
       });
     });
   });

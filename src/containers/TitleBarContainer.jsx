@@ -93,7 +93,6 @@ class TitleBarContainer extends Component {
   }
 
   gotTriggersCallback (result) {
-    console.log('Got triggers', result, this.props);
     if (result.data.length > 0) {
       let notifications;
       if (this.props.discardedNotifications) {
@@ -282,7 +281,11 @@ class TitleBarContainer extends Component {
   checkCredentialsBadCallback (error) {
     let errormsg = '';
     try {
-      errormsg = error.response.data.message;
+      if (error.response && error.response.data) {
+        errormsg = error.response.data.message;
+      } else {
+        errormsg = error.message;
+      }
     } catch (e) {
       console.error(e);
     }
