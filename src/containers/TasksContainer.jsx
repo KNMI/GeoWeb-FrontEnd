@@ -46,7 +46,6 @@ const items = [
       { title: 'Warnings' },
       {
         title: 'SIGMETs',
-        notifications: 4,
         link: 'products/sigmets'
       },
       { title: 'Forecasts' },
@@ -188,7 +187,6 @@ class TasksContainer extends Component {
 }
 
 TasksContainer.propTypes = {
-  title: PropTypes.string,
   recentTriggers: PropTypes.array
 };
 

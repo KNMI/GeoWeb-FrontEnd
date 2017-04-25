@@ -1,9 +1,7 @@
 import React, { Component } from 'react';
-import { Button, ButtonGroup, Col, Row, Badge, Card, CardHeader, CardBlock } from 'reactstrap';
+import { Button, Col, Row, Badge, Card, CardHeader, CardBlock } from 'reactstrap';
 import Moment from 'react-moment';
-import moment from 'moment';
 import Icon from 'react-fa';
-import { cloneDeep, isEmpty } from 'lodash';
 import CollapseOmni from '../components/CollapseOmni';
 import PropTypes from 'prop-types';
 
@@ -11,20 +9,18 @@ const TAG_NAMES = {
   DIV: 'div',
   SPAN: 'span'
 };
-const DATE_FORMAT = 'YYYY MMM DD - ';
-const TIME_FORMAT = 'HH:mm UTC';
 const DATE_TIME_FORMAT = 'YYYY MMM DD - HH:mm UTC';
 
 class TriggerCategory extends Component {
   constructor (props) {
     super(props);
-    this.handleSigmetClick = this.handleSigmetClick.bind(this);
+    this.handleTriggerClick = this.handleTriggerClick.bind(this);
     this.state = {
       isOpen: props.isOpen
     };
   }
 
-  handleSigmetClick (evt, index) {
+  handleTriggerClick (evt, index) {
     let shouldContinue = false;
     if (!this.props.editable) {
       shouldContinue = true;
@@ -47,13 +43,13 @@ class TriggerCategory extends Component {
     }
   }
 
-  getTitle(t) {
+  getTitle (t) {
     return t;
   }
 
   render () {
-    console.log(this.props.data);
-    const { title, icon, parentCollapsed, selectedIndex, toggleMethod, data } = this.props;
+    const data = this.props.data || [];
+    const { title, icon, parentCollapsed, selectedIndex, toggleMethod } = this.props;
     const notifications = data.length;
     const maxSize = 500 * notifications;
     return (
@@ -84,7 +80,7 @@ class TriggerCategory extends Component {
               <Col className='btn-group-vertical'>
                 {data.map((item, index) =>
                   <Button tag='div' className={'Sigmet row' + (selectedIndex === index ? ' active' : '')}
-                    key={index} onClick={(evt) => { this.handleSigmetClick(evt, index); }} title={this.getTitle(item.phenomenon)} >
+                    key={index} onClick={(evt) => { this.handleTriggerClick(evt, index); }} title={this.getTitle(item.phenomenon)} >
                     <Row>
                       <Col xs='3'>
                         <Badge color='success'>What</Badge>
