@@ -40,6 +40,7 @@ const initialState = {
       userName: '',
       roles : []
     },
+    recentTriggers: [],
     mapMode: 'pan',
     layout: 'single',
     activeMapId: 0,

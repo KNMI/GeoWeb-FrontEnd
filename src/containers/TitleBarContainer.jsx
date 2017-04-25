@@ -91,42 +91,51 @@ class TitleBarContainer extends Component {
     }
     return '???';
   }
-
+  loadPreset () {
+    console.log('clicked');
+  }
   getTriggerMessage (trigger) {
     let retStr = '';
     if (trigger.triggername.includes('obs')) {
-      retStr = 'Observation ' + trigger.triggername.slice(3) + ' degrees at ' + moment(trigger.issuedate).format('LT');
+      retStr = 'Observation ' + trigger.triggername.slice(3) + ' degrees at ' + moment(trigger.issuedate).format('LT') + '.';
     }
 
     return retStr;
   }
 
+  seen (notification) {
+    if (!this.props.recentTriggers) {
+      return false;
+    }
+    return this.props.recentTriggers.some((trigger) => trigger.uuid === notification.uuid);
+  }
+
   gotTriggersCallback (result) {
     if (result.data.length > 0) {
-      let notifications;
-      if (this.props.discardedNotifications) {
-        notifications = result.data.filter((trigger) => !this.props.discardedNotifications.includes(trigger.uuid));
-      } else {
-        notifications = result.data;
-      }
-      notifications.filter((trigger) => !this.props.notifications.some((notification) => notification.id === trigger.uuid)).forEach((trigger, i) =>
-        this.props.dispatch(addNotification({
-          title: this.getTriggerTitle(trigger),
-          message: this.getTriggerMessage(trigger),
-          position: 'bl',
-          id: trigger.uuid,
-          status: 'error',
-          buttons: [
-            {
-              name: <Icon size='lg' name='bell-slash' />,
-              primary: true
-            }
-          ],
-          closeButton: false,
-          dismissible: true,
-          dismissAfter: 0
-        }))
-      );
+      result.data.filter((notification) => !this.seen(notification)).forEach((trigger) => {
+        if (!this.props.notifications || !this.props.notifications.some((not) => not.id === trigger.uuid)) {
+          this.props.dispatch(addNotification({
+            title: this.getTriggerTitle(trigger),
+            message: this.getTriggerMessage(trigger),
+            position: 'bl',
+            id: trigger.uuid,
+            raw: trigger,
+            status: 'error',
+            buttons: [
+              {
+                name: 'Discard',
+                primary: true
+              }, {
+                name: 'Where',
+                onClick: (e) => { e.stopPropagation(); console.log('here'); }
+              }
+            ],
+            dismissible: false,
+            dismissAfter: 0,
+            allowHTML: true
+          }));
+        }
+      });
     }
   }
 
@@ -367,6 +376,7 @@ class TitleBarContainer extends Component {
   }
 
   makePresetObj (presetName, saveLayers, savePanelLayout, saveBoundingBox, role) {
+    console.log(this.props);
     let numPanels = -1;
     if (/quad/.test(this.props.layout)) {
       numPanels = 4;
@@ -684,7 +694,7 @@ LayoutDropDown.propTypes = {
 };
 
 TitleBarContainer.propTypes = {
-  discardedNotifications: PropTypes.array,
+  recentTriggers: PropTypes.array,
   notifications: PropTypes.array,
   isLoggedIn: PropTypes.bool,
   loginModal: PropTypes.bool,

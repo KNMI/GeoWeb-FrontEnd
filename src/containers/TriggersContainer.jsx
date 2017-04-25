@@ -2,10 +2,9 @@ import React, { Component } from 'react';
 import { Button, Col, Row } from 'reactstrap';
 import Icon from 'react-fa';
 import CollapseOmni from '../components/CollapseOmni';
-import TriggerItems from '../components/TriggerItems';
+import TriggerCategory from '../components/TriggerCategory';
 import Panel from '../components/Panel';
 import cloneDeep from 'lodash/cloneDeep';
-import axios from 'axios';
 import moment from 'moment';
 import PropTypes from 'prop-types';
 
@@ -14,14 +13,11 @@ const ITEMS = [
     title: 'Active triggers',
     ref:   'active-triggers',
     icon: 'folder-open'
-    // source: GET_CURRENT_TRIGGERS
+  }, {
+    title: 'Previous triggers',
+    ref:   'prev-triggers',
+    icon:  'folder-open-o'
   }
-  // {
-  //   title: 'Create new trigger',
-  //   ref:   'add-trigger',
-  //   icon: 'star-o',
-  //   source: CREATE_TRIG
-  // }
 ];
 
 class TriggersContainer extends Component {
@@ -29,8 +25,6 @@ class TriggersContainer extends Component {
     super(props);
     this.toggle = this.toggle.bind(this);
     this.select = this.select.bind(this);
-    this.discardTrigger = this.discardTrigger.bind(this);
-    // this.fetchData = this.fetchData.bind(this);
     let isOpenCategory = {};
     ITEMS.forEach((item, index) => {
       isOpenCategory[item.ref] = false;
@@ -67,29 +61,27 @@ class TriggersContainer extends Component {
     }
   }
 
-  discardTrigger (uuid) {
-    const discardedTriggersCpy = cloneDeep(this.state.discardedTriggers);
-    discardedTriggersCpy.push(uuid);
-    this.setState({ discardedTriggers: discardedTriggersCpy });
-  }
-
   render () {
     let title = <Row>
       <Button color='primary' onClick={this.toggle} title={this.state.isOpen ? 'Collapse panel' : 'Expand panel'}>
         <Icon name={this.state.isOpen ? 'angle-double-left' : 'angle-double-right'} />
       </Button>
     </Row>;
+    const maxSize = 350;
     return (
-      <Col className='TriggerContainer'>
-        <CollapseOmni className='CollapseOmni' isOpen={this.state.isOpen} isHorizontal >
+      <Col className='SigmetsContainer'>
+        <CollapseOmni className='CollapseOmni' isOpen={this.state.isOpen} isHorizontal minSize={64} maxSize={maxSize}>
           <Panel className='Panel' title={title}>
-            <Col xs='auto' className='accordionsWrapper'>
-              {ITEMS.map((item, index) =>
-                <TriggerItems
-                  key={index} onClick={this.toggle} triggers={this.state.triggers} title={item.title} parentCollapsed={!this.state.isOpen} discardedTriggers={this.state.discardedTriggers}
+            <Col xs='auto' className='accordionsWrapper' style={{ minWidth: maxSize - 32 }}>
+              {ITEMS.map((item, index) => {
+                const recentData = this.props.recentTriggers ? this.props.recentTriggers : [];
+                const data = recentData.filter((trigger) => trigger.discarded === (item.title !== 'Active triggers'));
+                return <TriggerCategory
+                  key={index} onClick={this.toggle} triggers={this.state.triggers} title={item.title} parentCollapsed={!this.state.isOpen}
                   icon={item.icon} source={item.source} isOpen={this.state.isOpen && this.state.isOpenCategory[item.ref]}
-                  dispatch={this.props.dispatch} actions={this.props.actions} discardTrigger={this.discardTrigger} />
-              )}
+                  dispatch={this.props.dispatch} actions={this.props.actions} data={data}
+                  selectMethod={(index, geo) => this.select(item.ref, index, geo)} toggleMethod={() => this.toggleCategory(item.ref)} />;
+              })}
             </Col>
           </Panel>
         </CollapseOmni>
@@ -100,7 +92,8 @@ class TriggersContainer extends Component {
 
 TriggersContainer.propTypes = {
   dispatch: PropTypes.func,
-  actions: PropTypes.object
+  actions: PropTypes.object,
+  recentTriggers: PropTypes.array
 };
 
 export default TriggersContainer;

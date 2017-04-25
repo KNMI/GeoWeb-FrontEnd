@@ -12,12 +12,19 @@ const mapStateToHeaderProps = (state) => {
     title: 'header',
     isLoggedIn: state.adagucProperties.user.isLoggedIn,
     userName: state.adagucProperties.user.userName,
-    roles: state.adagucProperties.user.roles
+    roles: state.adagucProperties.user.roles,
+    layout: state.adagucProperties.layout,
+    layers: state.adagucProperties.layers,
+    bbox: state.adagucProperties.boundingBox.bbox,
+    notifications: state.notifications,
+    recentTriggers: state.recentTriggers
   };
 };
 
-const mapStateToEmptyProps = () => {
-  return {};
+const mapStateToSidebarProps = (state) => {
+  return {
+    recentTriggers: state.recentTriggers
+  };
 };
 
 const mapStateToMapProps = (state) => {
@@ -44,7 +51,7 @@ export default () => ({
   title: 'SIGMETs',
   components : {
     header: connect(mapStateToHeaderProps, mapDispatchToMainViewportProps)(TitleBarContainer),
-    leftSideBar: connect(mapStateToEmptyProps)(TasksContainer),
+    leftSideBar: connect(mapStateToSidebarProps)(TasksContainer),
     secondLeftSideBar: connect(mapStateToMapProps, mapDispatchToMainViewportProps)(SigmetsContainer),
     map: connect(mapStateToMapProps, mapDispatchToMainViewportProps)(MapPanel),
     layerManager: connect(mapStateToLayerManagerProps, mapDispatchToMainViewportProps)(LayerManagerPanel),

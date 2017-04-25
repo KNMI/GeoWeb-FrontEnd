@@ -7,15 +7,22 @@ import MapPanel from '../../../components/MapPanel';
 import actions from '../../../actions/adaguc';
 import { connect } from 'react-redux';
 
-const mapStateToHeaderProps = () => {
+const mapStateToHeaderProps = (state) => {
   return {
     title: 'header',
-    isLoggedIn: false
+    isLoggedIn: false,
+    layout: state.adagucProperties.layout,
+    layers: state.adagucProperties.layers,
+    bbox: state.adagucProperties.boundingBox.bbox,
+    notifications: state.notifications,
+    recentTriggers: state.recentTriggers
   };
 };
 
-const mapStateToEmptyProps = () => {
-  return {};
+const mapStateToSidebarProps = (state) => {
+  return {
+    recentTriggers: state.recentTriggers
+  };
 };
 
 const mapStateToMapProps = (state) => {
@@ -42,7 +49,7 @@ export default () => ({
   title: 'Products',
   components : {
     header: connect(mapStateToHeaderProps, mapDispatchToMainViewportProps)(TitleBarContainer),
-    leftSideBar: connect(mapStateToEmptyProps)(TasksContainer),
+    leftSideBar: connect(mapStateToSidebarProps)(TasksContainer),
     secondLeftSideBar: connect(mapStateToMapProps, mapDispatchToMainViewportProps)(ProductsContainer),
     map: connect(mapStateToMapProps, mapDispatchToMainViewportProps)(MapPanel),
     layerManager: connect(mapStateToLayerManagerProps, mapDispatchToMainViewportProps)(LayerManagerPanel),
