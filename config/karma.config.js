@@ -78,7 +78,16 @@ const karmaConfig = {
   ]),
   istanbulReporter: {
     dir : 'coverage/',
-    reporters : project.coverage_reporters
+    reporters : project.coverage_reporters,
+    lines: 45,
+    cache: true,
+    all: true,
+    watermarks: {
+      lines: [40, 50],
+      functions: [40, 50],
+      branches: [40, 50],
+      statements: [40, 50]
+    }
   }
 };
 module.exports = (cfg) => {
