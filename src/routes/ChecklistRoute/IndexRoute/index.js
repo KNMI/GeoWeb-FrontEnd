@@ -8,8 +8,11 @@ const mapStateToHeaderProps = (state) => {
   return {
     title: 'header',
     isLoggedIn: false,
+    layout: state.adagucProperties.layout,
+    layers: state.adagucProperties.layers,
+    bbox: state.adagucProperties.boundingBox.bbox,
     notifications: state.notifications,
-    discardedNotifications: state.discardedNotifications
+    recentTriggers: state.recentTriggers
   };
 };
 

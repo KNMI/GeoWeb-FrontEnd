@@ -11,17 +11,25 @@ const mapStateToHeaderProps = (state) => {
   return {
     title: 'header',
     isLoggedIn: false,
+    layout: state.adagucProperties.layout,
+    layers: state.adagucProperties.layers,
+    bbox: state.adagucProperties.boundingBox.bbox,
     notifications: state.notifications,
-    discardedNotifications: state.discardedNotifications
+    recentTriggers: state.recentTriggers
   };
 };
 
-const mapStateToEmptyProps = () => {
-  return {};
+const mapStateToSidebarProps = (state) => {
+  return {
+    recentTriggers: state.recentTriggers
+  };
 };
 
 const mapStateToMapProps = (state) => {
-  return { adagucProperties: state.adagucProperties };
+  return {
+    adagucProperties: state.adagucProperties,
+    recentTriggers: state.recentTriggers
+  };
 };
 
 const mapStateToLayerManagerProps = (state) => {
@@ -44,7 +52,7 @@ export default () => ({
   title: 'Monitoring & Triggers',
   components : {
     header: connect(mapStateToHeaderProps, mapDispatchToMainViewportProps)(TitleBarContainer),
-    leftSideBar: connect(mapStateToEmptyProps)(TasksContainer),
+    leftSideBar: connect(mapStateToSidebarProps)(TasksContainer),
     secondLeftSideBar: connect(mapStateToMapProps, mapDispatchToMainViewportProps)(TriggersContainer),
     map: connect(mapStateToMapProps, mapDispatchToMainViewportProps)(MapPanel),
     layerManager: connect(mapStateToLayerManagerProps, mapDispatchToMainViewportProps)(LayerManagerPanel),

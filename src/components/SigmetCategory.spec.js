@@ -146,10 +146,9 @@ describe('(Container) SigmetCategory', () => {
         const _firstButton = _btnGroup.find('.btn').get(0);
         _firstButton.simulate('click');
         expect(result).to.eql(1);
-        console.log('No error in this test');
         expect(false).to.equal(true);
       }).catch((error) => {
-        console.log('This test gave an error: ', error);
+        console.error('This test gave an error: ', error);
         expect(false).to.equal(true);
       });
     });

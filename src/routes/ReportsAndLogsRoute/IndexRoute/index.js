@@ -4,10 +4,15 @@ import Empty from '../../../components/Empty';
 import TitleBarContainer from '../../../containers/TitleBarContainer';
 import { connect } from 'react-redux';
 
-const mapStateToHeaderProps = () => {
+const mapStateToHeaderProps = (state) => {
   return {
     title: 'header',
-    isLoggedIn: false
+    isLoggedIn: false,
+    layout: state.adagucProperties.layout,
+    layers: state.adagucProperties.layers,
+    bbox: state.adagucProperties.boundingBox.bbox,
+    notifications: state.notifications,
+    recentTriggers: state.recentTriggers
   };
 };
 
