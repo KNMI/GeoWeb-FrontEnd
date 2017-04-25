@@ -16,11 +16,10 @@ PopoverContent, PopoverTitle, InputGroupButton,
 import { Link, hashHistory } from 'react-router';
 import { BACKEND_SERVER_URL } from '../constants/backend';
 import PropTypes from 'prop-types';
-
-let moment = require('moment');
+import moment from 'moment';
+import { addNotification } from 'reapop';
 
 const timeFormat = 'YYYY MMM DD - HH:mm';
-
 const browserFullScreenRequests = [
   'mozRequestFullScreen',
   'msRequestFullscreen',
@@ -33,6 +32,10 @@ class TitleBarContainer extends Component {
     this.setTime = this.setTime.bind(this);
     this.doLogin = this.doLogin.bind(this);
     this.doLogout = this.doLogout.bind(this);
+    this.triggerService = this.triggerService.bind(this);
+    this.retrieveTriggers = this.retrieveTriggers.bind(this);
+    this.gotTriggersCallback = this.gotTriggersCallback.bind(this);
+    this.errorTriggersCallback = this.errorTriggersCallback.bind(this);
     this.toggleLoginModal = this.toggleLoginModal.bind(this);
     this.togglePresetModal = this.togglePresetModal.bind(this);
     this.toggleSharePresetModal = this.toggleSharePresetModal.bind(this);
@@ -52,13 +55,83 @@ class TitleBarContainer extends Component {
     this.sharePreset = this.sharePreset.bind(this);
     this.makePresetObj = this.makePresetObj.bind(this);
     this.state = {
-      currentTime: moment.utc().format(timeFormat).toString(),
+      currentTime: moment().utc().format(timeFormat).toString(),
       loginModal: this.props.loginModal,
       loginModalMessage: '',
       presetModal: false,
       sharePresetModal: false,
       sharePresetName: ''
     };
+  }
+
+  triggerService () {
+    if (!this.triggerIntervalId) {
+      this.retrieveTriggers();
+      this.triggerIntervalId = setInterval(this.retrieveTriggers, moment.duration(1, 'minute').asMilliseconds());
+    }
+  }
+
+  retrieveTriggers () {
+    axios({
+      method: 'get',
+      url: BACKEND_SERVER_URL + '/triggers/gettriggers?startdate=' + moment().subtract(1, 'hours').utc().format() + '&duration=3600',
+      withCredentials: true,
+      responseType: 'json'
+    }).then(this.gotTriggersCallback)
+    .catch(this.errorTriggersCallback);
+  }
+
+  getTriggerTitle (trigger) {
+    if (trigger.phenomenon === 't2m') {
+      if (trigger.triggername.includes('above')) {
+        return 'High temperature';
+      } else {
+        return 'Low temperature';
+      }
+    }
+    return '???';
+  }
+
+  getTriggerMessage (trigger) {
+    let retStr = '';
+    if (trigger.triggername.includes('obs')) {
+      retStr = 'Observation ' + trigger.triggername.slice(3) + ' degrees at ' + moment(trigger.issuedate).format('LT');
+    }
+
+    return retStr;
+  }
+
+  gotTriggersCallback (result) {
+    if (result.data.length > 0) {
+      let notifications;
+      if (this.props.discardedNotifications) {
+        notifications = result.data.filter((trigger) => !this.props.discardedNotifications.includes(trigger.uuid));
+      } else {
+        notifications = result.data;
+      }
+      notifications.filter((trigger) => !this.props.notifications.some((notification) => notification.id === trigger.uuid)).forEach((trigger, i) =>
+        this.props.dispatch(addNotification({
+          title: this.getTriggerTitle(trigger),
+          message: this.getTriggerMessage(trigger),
+          position: 'bl',
+          id: trigger.uuid,
+          status: 'error',
+          buttons: [
+            {
+              name: <Icon size='lg' name='bell-slash' />,
+              primary: true
+            }
+          ],
+          closeButton: false,
+          dismissible: true,
+          dismissAfter: 0
+        }))
+      );
+    }
+  }
+
+  errorTriggersCallback (error) {
+    console.error('Error occurred while retrieving triggers', error);
   }
 
   getServices () {
@@ -89,17 +162,19 @@ class TitleBarContainer extends Component {
   }
 
   setTime () {
-    const time = moment.utc().format(timeFormat).toString();
+    const time = moment().utc().format(timeFormat).toString();
     this.setState({ currentTime: time });
   }
 
   componentWillUnmount () {
     clearInterval(this.timer);
+    clearInterval(this.triggerIntervalId);
   }
 
   componentDidMount () {
+    this.triggerService();
     this.timer = setInterval(this.setTime, 15000);
-    this.setState({ currentTime: moment.utc().format(timeFormat).toString() });
+    this.setState({ currentTime: moment().utc().format(timeFormat).toString() });
     this.checkCredentials();
   }
 
@@ -215,7 +290,11 @@ class TitleBarContainer extends Component {
   checkCredentialsBadCallback (error) {
     let errormsg = '';
     try {
-      errormsg = error.response.data.message;
+      if (error.response && error.response.data) {
+        errormsg = error.response.data.message;
+      } else {
+        errormsg = error.message;
+      }
     } catch (e) {
       console.error(e);
     }
@@ -558,7 +637,6 @@ class TitleBarContainer extends Component {
               }
               {this.renderPresetModal(this.state.presetModal, this.togglePresetModal, hasRoleADMIN)}
               {this.renderSharePresetModal(this.state.sharePresetModal, this.toggleSharePresetModal, this.state.sharePresetName)}
-
             </Nav>
           </Col>
         </Row>
@@ -606,6 +684,8 @@ LayoutDropDown.propTypes = {
 };
 
 TitleBarContainer.propTypes = {
+  discardedNotifications: PropTypes.array,
+  notifications: PropTypes.array,
   isLoggedIn: PropTypes.bool,
   loginModal: PropTypes.bool,
   userName: PropTypes.string,

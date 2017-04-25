@@ -65,7 +65,7 @@ const items = [
   {
     title: 'Monitoring & Triggers',
     icon: 'bell-o',
-    link: 'triggers',
+    link: 'monitoring_and_triggers',
     tasks: [
       { title: 'Extremes' },
       { title: 'Alarms' }

@@ -6,12 +6,14 @@ import axios from 'axios';
 import ModelTime from './ModelTime';
 import $ from 'jquery';
 import { BACKEND_SERVER_URL, BACKEND_SERVER_XML2JSON } from '../../constants/backend';
+
+import diff from 'deep-diff';
+import moment from 'moment';
+import elementResizeEvent from 'element-resize-event';
+
 import { DefaultLocations } from '../../constants/defaultlocations';
 import { ReadLocations } from '../../utils/admin';
 import { LoadURLPreset } from '../../utils/URLPresets';
-import diff from 'deep-diff';
-var moment = require('moment');
-var elementResizeEvent = require('element-resize-event');
 
 export default class Adaguc extends React.Component {
   constructor () {
@@ -39,8 +41,6 @@ export default class Adaguc extends React.Component {
     });
   }
 
-  currentLatestDate = undefined;
-  currentBeginDate = undefined;
   /* istanbul ignore next */
   updateLayer (layer) {
     this.webMapJS.setAnimationDelay(200);

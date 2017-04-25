@@ -1,5 +1,5 @@
 import React from 'react';
-import { FileNotFound } from 'routes/FileNotFoundRoute/components/FileNotFound';
+import FileNotFound from './FileNotFound';
 import { mount } from 'enzyme';
 
 describe('(View) FileNotFound', () => {

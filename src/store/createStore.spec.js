@@ -1,6 +1,4 @@
-import {
-  default as createStore
-} from 'store/createStore';
+import createStore from './createStore';
 import { MAP_STYLES } from '../constants/map_styles';
 import { BOUNDING_BOXES } from '../constants/bounding_boxes';
 describe('(Store) createStore', () => {
