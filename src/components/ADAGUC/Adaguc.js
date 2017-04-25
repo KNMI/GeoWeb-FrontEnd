@@ -151,14 +151,16 @@ export default class Adaguc extends React.Component {
   }
 
   componentWillUnmount () {
+    // Unbind the resizelistener
+    const element = document.querySelector('#adagucwrapper' + this.props.mapId).parentNode;
+    if (element && element.__resizeTrigger__) {
+      elementResizeEvent.unbind(element);
+    }
+
     // Let webmapjs destory itself
     if (this.webMapJS) {
       this.webMapJS.destroy();
     }
-
-    // Unbind the resizelistener
-    const element = document.querySelector('#adagucwrapper' + this.props.mapId).parentNode;
-    elementResizeEvent.unbind(element);
   }
 
   orderChanged (currLayers, prevLayers) {

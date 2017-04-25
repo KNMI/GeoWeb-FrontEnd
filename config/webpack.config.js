@@ -82,8 +82,6 @@ if (__DEV__) {
   );
 } else if (__PROD__) {
   debug('Enabling plugins for production (OccurenceOrder, Dedupe & UglifyJS).');
-  // UglifyJS doens't support ES7...
-  project.compiler_babel.presets.push('es2015');
   webpackConfig.plugins.push(
     new webpack.optimize.OccurrenceOrderPlugin(),
     new webpack.optimize.UglifyJsPlugin({

@@ -28,6 +28,7 @@ else
 	cd $CLONE_FOLDER
 fi
 npm install --silent &&
+cp -- "node_modules/react-switch-button/lib/react-switch-button.js" "node_modules/react-switch-button/dist/react-switch-button.min.js" &&
 npm run clean &&
 npm run deploy:prod &&
 rsync -av --exclude 'node_modules' dist/. geoweb@birdexp07:/ssd1/geoweb/htdocs/demos/$CLONE_FOLDER/ &&
