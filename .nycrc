@@ -1,0 +1,35 @@
+{
+  "include": [
+    "src/**/*.js",
+    "src/**/*.jsx"
+  ],
+  "exclude": [
+    "src/static/**/*.js",
+    "src/**/*.spec.js",
+    "src/test/testSetup.js",
+    "test/testSetup.js",
+    "src/**/index.js"
+  ],
+  "extension": [
+    ".js",
+    ".jsx"
+  ],
+  "reporter": [
+    "lcov",
+    "text"
+  ],
+  "watermarks": {
+      "statements": [40, 50],
+      "lines": [40, 50],
+      "functions": [40, 50],
+      "branches": [40, 50]
+  },
+  "lines": 30,
+  "require": "babel-core/register",
+  "sourceMap": false,
+  "instrument": false,
+  "cache": true,
+  "all": true,
+  "check-coverage": true,
+  "report-dir": "./coverage"
+}

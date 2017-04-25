@@ -8,3 +8,4 @@ dist
 coverage
 utils/latest
 .idea/
+.nyc_output

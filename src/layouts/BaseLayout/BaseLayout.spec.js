@@ -7,7 +7,8 @@ import { Provider } from 'react-redux';
 
 const STORE = {
   getState: () => { return { notifications: [] }; },
-  subscribe: () => null
+  subscribe: () => null,
+  dispatch: () => null
 };
 
 describe('(Layout) BaseLayout', () => {
@@ -28,11 +29,11 @@ describe('(Layout) BaseLayout', () => {
     _wrappingComponent.find(BaseLayout).get(0).elementToFullScreen(evt);
     expect('everything').to.be.ok();
   });
-  /*
+
   it('Attaches a route based class name', () => {
     const _wrappingComponent = mount(<Provider store={STORE}><BaseLayout routes={[ { title: 'title' }, { path: 'layout_test' } ]} /></Provider>);
     expect(_wrappingComponent.type()).to.eql(Provider);
     expect(_wrappingComponent.find(BaseLayout)).to.have.length(1);
-    expect(_wrappingComponent.find(BaseLayout).get(0).hasClass('test')).to.eql(true);
-  }); */
+    expect(_wrappingComponent.find('.test')).to.have.length(1);
+  });
 });

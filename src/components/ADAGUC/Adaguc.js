@@ -105,8 +105,6 @@ export default class Adaguc extends React.Component {
     ];
   }
 
-  currentLatestDate = undefined;
-  currentBeginDate = undefined;
   /* istanbul ignore next */
   updateLayer (layer) {
     this.webMapJS.setAnimationDelay(200);
