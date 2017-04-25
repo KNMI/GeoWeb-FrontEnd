@@ -8,7 +8,7 @@ import axios from 'axios';
 import cloneDeep from 'lodash/cloneDeep';
 import PropTypes from 'prop-types';
 
-export default class LocationManagementPanel extends React.Component {
+export default class SigmetParameterManagementPanel extends React.Component {
   componentWillMount () {
     axios.get(BACKEND_SERVER_URL + '/sigmet/getsigmetparameters').then((res) => {
       this.sigmetParameters = res.data;
