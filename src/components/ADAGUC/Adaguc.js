@@ -6,9 +6,14 @@ import axios from 'axios';
 import ModelTime from './ModelTime';
 import $ from 'jquery';
 import { BACKEND_SERVER_URL, BACKEND_SERVER_XML2JSON } from '../../constants/backend';
+
 import diff from 'deep-diff';
 import moment from 'moment';
 import elementResizeEvent from 'element-resize-event';
+
+import { DefaultLocations } from '../../constants/defaultlocations';
+import { ReadLocations } from '../../utils/admin';
+import { LoadURLPreset } from '../../utils/URLPresets';
 
 export default class Adaguc extends React.Component {
   constructor () {
@@ -28,81 +33,12 @@ export default class Adaguc extends React.Component {
       time: undefined
     };
     this.toggleView = this.toggleView.bind(this);
-    this.progtempLocations = [
-      {
-        name: 'EHAM',
-        x: 4.77,
-        y: 52.30
-      }, {
-        name: 'EHRD',
-        x: 4.42,
-        y: 51.95
-      }, {
-        name: 'EHTW',
-        x: 6.98,
-        y: 52.28
-      }, {
-        name: 'EHBK',
-        x: 5.76,
-        y: 50.95
-      }, {
-        name: 'EHFS',
-        x: 3.68,
-        y: 51.46
-      }, {
-        name: 'EHDB',
-        x: 5.18,
-        y: 52.12
-      }, {
-        name: 'EHGG',
-        x: 6.57,
-        y: 53.10
-      }, {
-        name: 'EHKD',
-        x: 4.74,
-        y: 52.93
-      }, {
-        name: 'EHAK',
-        x: 3.81,
-        y: 55.399
-      }, {
-        name: 'EHDV',
-        x: 2.28,
-        y: 53.36
-      }, {
-        name: 'EHFZ',
-        x: 3.94,
-        y: 54.12
-      }, {
-        name: 'EHFD',
-        x: 4.67,
-        y: 54.83
-      }, {
-        name: 'EHHW',
-        x: 6.04,
-        y: 52.037
-      }, {
-        name: 'EHKV',
-        x: 3.68,
-        y: 53.23
-      }, {
-        name: 'EHMG',
-        x: 4.93,
-        y: 53.63
-      }, {
-        name: 'EHMA',
-        x: 5.94,
-        y: 53.54
-      }, {
-        name: 'EHQE',
-        x: 4.15,
-        y: 52.92
-      }, {
-        name: 'EHPG',
-        x: 3.3416,
-        y: 52.36
+    this.progtempLocations = DefaultLocations;
+    ReadLocations((data) => {
+      if (data) {
+        this.progtempLocations = data;
       }
-    ];
+    });
   }
 
   /* istanbul ignore next */
@@ -211,7 +147,9 @@ export default class Adaguc extends React.Component {
     /* Component will unmount, set flag that map is not created */
     const { adagucProperties } = this.props;
     adagucProperties.mapCreated = false;
+    LoadURLPreset(this.props);
   }
+
   componentWillUnmount () {
     // Let webmapjs destory itself
     if (this.webMapJS) {
