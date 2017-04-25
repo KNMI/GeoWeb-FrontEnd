@@ -1,8 +1,7 @@
 import React from 'react';
 import { default as MapActionsContainer } from './MapActionsContainer';
 import { mount, shallow } from 'enzyme';
-// import sinon from 'sinon';
-// import { mount } from 'enzyme';
+import sinon from 'sinon';
 const adagucProperties = {
   wmjslayers: {
     layers: [],
@@ -16,13 +15,11 @@ const adagucProperties = {
   mapMode: 'pan'
 };
 
-const emptyDispatch = () => {
-  // intentionally left blank
-};
+const emptyDispatch = () => null;
 const emptyActions = {
-  toggleAnimation: () => { /* intentionally left blank */ },
-  setTimeDimension: () => { /* intentionally left blank */ },
-  setMapMode: () => { /* intentionally left blank */ }
+  toggleAnimation: () => null,
+  setTimeDimension: () => null,
+  setMapMode: () => null
 };
 
 describe('(Container) MapActionsContainer', () => {
