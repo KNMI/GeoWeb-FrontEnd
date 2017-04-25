@@ -5,20 +5,16 @@ import CollapseOmni from '../components/CollapseOmni';
 import TriggerItems from '../components/TriggerItems';
 import Panel from '../components/Panel';
 import cloneDeep from 'lodash/cloneDeep';
-import { BACKEND_SERVER_URL } from '../constants/backend';
 import axios from 'axios';
 import moment from 'moment';
 import PropTypes from 'prop-types';
 
-const GET_TRIGGERS_URL = BACKEND_SERVER_URL + '/triggers/gettriggers?';
-const CREATE_TRIG = BACKEND_SERVER_URL + '/triggers/createtrigger';
-const GET_CURRENT_TRIGGERS = GET_TRIGGERS_URL + 'startdate=2017-04-21T11:00:00Z&duration=3600';
 const ITEMS = [
   {
     title: 'Active triggers',
     ref:   'active-triggers',
-    icon: 'folder-open',
-    source: GET_CURRENT_TRIGGERS
+    icon: 'folder-open'
+    // source: GET_CURRENT_TRIGGERS
   }
   // {
   //   title: 'Create new trigger',
@@ -28,13 +24,13 @@ const ITEMS = [
   // }
 ];
 
-class SigmetsContainer extends Component {
+class TriggersContainer extends Component {
   constructor (props) {
     super(props);
     this.toggle = this.toggle.bind(this);
     this.select = this.select.bind(this);
     this.discardTrigger = this.discardTrigger.bind(this);
-    this.fetchData = this.fetchData.bind(this);
+    // this.fetchData = this.fetchData.bind(this);
     let isOpenCategory = {};
     ITEMS.forEach((item, index) => {
       isOpenCategory[item.ref] = false;
@@ -47,22 +43,6 @@ class SigmetsContainer extends Component {
       isOpenCategory: isOpenCategory,
       latestUpdateTime: moment().utc().format()
     };
-  }
-
-  fetchData () {
-    axios.get(GET_CURRENT_TRIGGERS).then((res) => {
-      this.setState({ triggers: res.data });
-    }).catch((error) => {
-      console.error(error);
-    });
-  }
-
-  componentDidMount () {
-    this.timer = setInterval(this.fetchData(), 60 * 1000);
-  }
-
-  componentWillUnmount () {
-    clearInterval(this.timer);
   }
 
   toggle (evt) {
@@ -118,10 +98,9 @@ class SigmetsContainer extends Component {
   }
 }
 
-SigmetsContainer.propTypes = {
-  adagucProperties: PropTypes.object,
+TriggersContainer.propTypes = {
   dispatch: PropTypes.func,
   actions: PropTypes.object
 };
 
-export default SigmetsContainer;
+export default TriggersContainer;

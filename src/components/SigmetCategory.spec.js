@@ -53,7 +53,9 @@ describe('(Container) SigmetCategory', () => {
       }).then(function () {
         const _component = mount(<SigmetCategory title={'test'} icon='star' />);
         const _instance = _component.instance();
-        let phenomenon = _instance.getHRT4code('Test');
+        let phenomenon = _instance.getHRT4code();
+        expect(phenomenon).to.eql('Unknown');
+        phenomenon = _instance.getHRT4code('Test');
         expect(phenomenon).to.eql('Unknown');
         phenomenon = _instance.getHRT4code('OBSC_TS');
         expect(phenomenon).to.eql('Obscured thunderstorm');
@@ -83,6 +85,72 @@ describe('(Container) SigmetCategory', () => {
         expect(phenomenon).to.eql('Heavy sandstorm');
         phenomenon = _instance.getHRT4code('RDOACT_CLD');
         expect(phenomenon).to.eql('Radioactive cloud');
+      });
+    });
+  });
+  it('Allows to trigger a handleSigmetClick', () => {
+    const sigmets = {
+      sigmets: [
+        {
+          geojson: {
+            type: 'FeatureCollection',
+            features: [
+              {
+                type: 'Feature',
+                properties: {},
+                geometry: {
+                  type: 'Polygon',
+                  coordinates: []
+                }
+              }
+            ]
+          },
+          phenomenon: 'SEV_ICE_FRZA',
+          obs_or_forecast: {
+            obs: false
+          },
+          level: {
+            lev1: {
+              value: 10,
+              unit: 'FL'
+            }
+          },
+          movement: {
+            stationary: true
+          },
+          change: 'NC',
+          forecast_position: '',
+          issuedate: '2017-04-21T09:24:06Z',
+          validdate: '2017-04-21T17:00:00Z',
+          validdate_end: '2017-04-21T20:00:00Z',
+          firname: 'AMSTERDAM FIR',
+          location_indicator_icao: 'EHAA',
+          location_indicator_mwo: 'EHDB',
+          uuid: '2d151119-3bf0-445b-b2b8-e0a78f853867',
+          status: 'PRODUCTION',
+          sequence: 0
+        }
+      ]
+    };
+    let result;
+    moxios.wait(function () {
+      const request = moxios.stubRequest('http://birdexp07.knmi.nl:8080/sigmet/getsigmetlist?active=false');
+      request.respondWith({
+        status: 200,
+        response: sigmets
+      }).then(function () {
+        const _component = mount(<SigmetCategory title={'test'} icon='star' />);
+        expect(_component.find('.btn-group-vertical')).to.have.length(1);
+        const _btnGroup = _component.find('.btn-group-vertical').get(0);
+        expect(_btnGroup.find('.btn')).to.have.length(1);
+        const _firstButton = _btnGroup.find('.btn').get(0);
+        _firstButton.simulate('click');
+        expect(result).to.eql(1);
+        console.log('No error in this test');
+        expect(false).to.equal(true);
+      }).catch((error) => {
+        console.log('This test gave an error: ', error);
+        expect(false).to.equal(true);
       });
     });
   });
