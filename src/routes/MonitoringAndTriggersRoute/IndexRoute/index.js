@@ -21,6 +21,7 @@ const mapStateToHeaderProps = (state) => {
 
 const mapStateToSidebarProps = (state) => {
   return {
+    adagucProperties: state.adagucProperties,
     recentTriggers: state.recentTriggers
   };
 };

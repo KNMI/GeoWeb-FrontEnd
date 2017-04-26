@@ -4,7 +4,7 @@ import { BACKEND_SERVER_URL } from '../constants/backend';
 
 export var PresetURLWasLoaded = false;
 
-export const LoadURLPreset = (props) => {
+export function LoadURLPreset (props) {
   if (PresetURLWasLoaded === true) {
     console.log('URL already loaded');
     return;
@@ -15,37 +15,40 @@ export const LoadURLPreset = (props) => {
   const queryStringParts = window.location.href.split('?');
   if (queryStringParts.length !== 2) return;
   const queryString = queryStringParts[1].split('#')[0];
-  if (queryString.length === 0) return;
-  const urlParts = queryString.split('&');
-  for (let j = 0; j < urlParts.length; j++) {
-    let kvp = urlParts[j].split('=');
-    if (kvp.length === 2) {
-      if (kvp[0] === 'url') {
-        presetName = kvp[1];
+  /* istanbul ignore next */
+  if (queryString.length !== 0) {
+    const urlParts = queryString.split('&');
+    for (let j = 0; j < urlParts.length; j++) {
+      let kvp = urlParts[j].split('=');
+      if (kvp.length === 2) {
+        if (kvp[0] === 'url') {
+          presetName = kvp[1];
+        }
       }
     }
-  }
 
-  console.log(presetName);
-  if (validator.isUUID(presetName) === false) {
-    console.log('invalid preset URL detected');
-    return;
+    console.log(presetName);
+    if (validator.isUUID(presetName) === false) {
+      console.log('invalid preset URL detected');
+      return;
+    }
+    axios({
+      method: 'get',
+      url: BACKEND_SERVER_URL + '/store/read',
+      params:{ type:'urlpresets', name:presetName },
+      withCredentials: true,
+      responseType: 'json'
+    }).then(src => {
+      const obj = JSON.parse(src.data.payload);
+      props.dispatch(props.actions.setPreset(obj));
+    }).catch(error => {
+      console.log(error);
+    });
   }
-  axios({
-    method: 'get',
-    url: BACKEND_SERVER_URL + '/store/read',
-    params:{ type:'urlpresets', name:presetName },
-    withCredentials: true,
-    responseType: 'json'
-  }).then(src => {
-    const obj = JSON.parse(src.data.payload);
-    props.dispatch(props.actions.setPreset(obj));
-  }).catch(error => {
-    console.log(error);
-  });
 };
 
-export const SaveURLPreset = (presetName, presetObj, callbackfunction) => {
+export function SaveURLPreset (presetName, presetObj, callbackfunction) {
+  /* istanbul ignore next */
   axios({
     method: 'post',
     url: BACKEND_SERVER_URL + '/store/create',

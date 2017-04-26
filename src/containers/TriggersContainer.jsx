@@ -76,7 +76,7 @@ class TriggersContainer extends Component {
               {ITEMS.map((item, index) => {
                 const recentData = this.props.recentTriggers ? this.props.recentTriggers : [];
                 const data = recentData.filter((trigger) => trigger.discarded === (item.title !== 'Active triggers'));
-                return <TriggerCategory
+                return <TriggerCategory adagucProperties={this.props.adagucProperties}
                   key={index} onClick={this.toggle} triggers={this.state.triggers} title={item.title} parentCollapsed={!this.state.isOpen}
                   icon={item.icon} source={item.source} isOpen={this.state.isOpen && this.state.isOpenCategory[item.ref]}
                   dispatch={this.props.dispatch} actions={this.props.actions} data={data}
@@ -91,6 +91,7 @@ class TriggersContainer extends Component {
 }
 
 TriggersContainer.propTypes = {
+  adagucProperties: PropTypes.object,
   dispatch: PropTypes.func,
   actions: PropTypes.object,
   recentTriggers: PropTypes.array

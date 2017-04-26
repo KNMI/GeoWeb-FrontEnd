@@ -177,7 +177,7 @@ export default class AdagucMeasureDistance extends Component {
     document.addEventListener('keydown', this.handleKeyDown);
   }
 
-  componentWillUnMount () {
+  componentWillUnmount () {
     document.removeEventListener('keydown', this.handleKeyDown);
     const { webmapjs } = this.props;
     if (webmapjs !== undefined && this.listenersInitialized === true) {
