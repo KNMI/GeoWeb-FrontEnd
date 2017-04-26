@@ -13,17 +13,17 @@ export const types = {
 };
 
 // Reducers
-export default function (state = INITIAL_STATE, { type, payload }) {
+export default function (state, { type, payload }) {
   switch (type) {
     case ADD_NOTIFICATION:
       const rawTrigger = payload.raw;
       // remove triggers that are too old
-      const youngStateCpy = cloneDeep(state).filter((trigger) => moment.duration(moment().diff(moment(trigger.issuedate))).asHours() < 1);
+      const youngStateCpy = cloneDeep(state || INITIAL_STATE).filter((trigger) => moment.duration(moment().diff(moment(trigger.issuedate))).asHours() < 1);
       // add trigger to list
       youngStateCpy.push({ ...rawTrigger, discarded: false });
       return youngStateCpy;
     case REMOVE_NOTIFICATION:
-      const stateCpy = cloneDeep(state);
+      const stateCpy = cloneDeep(state || INITIAL_STATE);
       stateCpy.map((trigger) => {
         if (trigger.uuid === payload) {
           trigger.discarded = true;
@@ -32,6 +32,6 @@ export default function (state = INITIAL_STATE, { type, payload }) {
       });
       return stateCpy;
     default:
-      return state;
+      return state || INITIAL_STATE;
   }
 };
