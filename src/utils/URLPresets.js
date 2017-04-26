@@ -4,45 +4,60 @@ import { BACKEND_SERVER_URL } from '../constants/backend';
 
 export var PresetURLWasLoaded = false;
 
-export function LoadURLPreset (props) {
+export const _getURLParameter = (windowLocationHref, key) => {
+  const queryStringParts = windowLocationHref.split('?');
+  if (queryStringParts.length !== 2) {
+    return;
+  }
+  const queryString = queryStringParts[1].split('#')[0];
+  if (queryString.length !== 0) {
+    const urlParts = queryString.split('&');
+    for (let j = 0; j < urlParts.length; j++) {
+      const kvp = urlParts[j].split('=');
+      if (kvp.length === 2 && kvp[0] === key) {
+        return kvp[1];
+      }
+    }
+  }
+};
+
+export const _loadPreset = (props, presetName, failure) => {
+  if (validator.isUUID(presetName) === false) {
+    if (failure) {
+      failure('invalid preset URL detected');
+    }
+    return;
+  }
+  axios({
+    method: 'get',
+    url: BACKEND_SERVER_URL + '/store/read',
+    params:{ type:'urlpresets', name:presetName },
+    withCredentials: true,
+    responseType: 'json'
+  }).then(src => {
+    const obj = JSON.parse(src.data.payload);
+    props.dispatch(props.actions.setPreset(obj));
+  }).catch(error => {
+    if (failure) {
+      failure(error);
+    }
+  });
+};
+
+export const LoadURLPreset = (props, failure) => {
   if (PresetURLWasLoaded === true) {
     return;
   }
   PresetURLWasLoaded = true;
 
-  let presetName = '';
-  const queryStringParts = window.location.href.split('?');
-  if (queryStringParts.length !== 2) {
+  let presetName = _getURLParameter(window.location.href, 'presetid');
+
+  if (!presetName) {
+    /* No preset URL was found */
     return;
   }
-  const queryString = queryStringParts[1].split('#')[0];
-  /* istanbul ignore next */
-  if (queryString.length !== 0) {
-    const urlParts = queryString.split('&');
-    for (let j = 0; j < urlParts.length; j++) {
-      const kvp = urlParts[j].split('=');
-      if (kvp.length === 2 && kvp[0] === 'url') {
-        presetName = kvp[1];
-      }
-    }
-
-    if (validator.isUUID(presetName) === false) {
-      return;
-    }
-    axios({
-      method: 'get',
-      url: BACKEND_SERVER_URL + '/store/read',
-      params:{ type:'urlpresets', name:presetName },
-      withCredentials: true,
-      responseType: 'json'
-    }).then(src => {
-      const obj = JSON.parse(src.data.payload);
-      props.dispatch(props.actions.setPreset(obj));
-    }).catch(error => {
-      console.error(error);
-    });
-  }
-}
+  _loadPreset(props, presetName, failure);
+};
 
 export function SaveURLPreset (presetName, presetObj, callbackfunction) {
   /* istanbul ignore next */
@@ -64,4 +79,4 @@ export function SaveURLPreset (presetName, presetObj, callbackfunction) {
     console.error(error.data);
     callbackfunction({ status:'failed', message: 'failed' });
   });
-}
+};

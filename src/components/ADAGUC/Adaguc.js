@@ -181,7 +181,7 @@ export default class Adaguc extends React.Component {
     /* Component will unmount, set flag that map is not created */
     const { adagucProperties } = this.props;
     adagucProperties.mapCreated = false;
-    LoadURLPreset(this.props);
+    LoadURLPreset(this.props, (error) => { console.error(error); });
   }
 
   /* istanbul ignore next */

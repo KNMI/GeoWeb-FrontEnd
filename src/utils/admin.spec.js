@@ -14,30 +14,36 @@ describe('(Utils) admin', () => {
     moxios.uninstall();
   });
 
-  it('Can read from backend', () => {
+  it('Can read from backend', (done) => {
     const callback = sinon.spy();
+    ReadLocations(callback);
     moxios.wait(function () {
       const req = moxios.stubRequest(BACKEND_SERVER_URL + '/admin/read');
+      if (!req) { done(); return; }
       req.respondWith({
         status: 200,
         response: {
-          payload: 'hi'
+          payload: 'admin.spec.js.hi'
         }
+      }).then(() => {
+        done();
       });
     });
-    ReadLocations(callback);
   });
 
-  it('Can store locations', () => {
+  it('Can store locations', (done) => {
+    SaveLocations({ name: 'asdf' });
     moxios.wait(function () {
       const request = moxios.stubRequest(BACKEND_SERVER_URL + '/admin/create');
+      if (!request) { done(); return; }
       request.respondWith({
         status: 200,
         response: {
           message: 'ok'
         }
+      }).then(() => {
+        done();
       });
     });
-    SaveLocations({ name: 'asdf' });
   });
 });

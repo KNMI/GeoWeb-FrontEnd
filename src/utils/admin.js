@@ -6,8 +6,7 @@ import { BACKEND_SERVER_URL } from '../constants/backend';
   Succes:  the callback is triggered with either a location.
   Fail: the callback is triggered with  nothing
 */
-/* istanbul ignore next */
-export function ReadLocations (callback) {
+export const ReadLocations = (callback, failure) => {
   axios({
     method: 'get',
     url: BACKEND_SERVER_URL + '/admin/read',
@@ -17,15 +16,16 @@ export function ReadLocations (callback) {
   }).then(src => {
     callback(JSON.parse(src.data.payload));
   }).catch(error => {
-    console.error('Loading default list, because: ' + error.response.data.error);
+    if (failure) {
+      failure('Loading default list, because: ' + error.response.data.error);
+    }
     callback();
   });
-}
-
+};
 /*
   Saves the list of locations to the backend server
 */
-export function SaveLocations (data) {
+export const SaveLocations = (data, failure) => {
   axios({
     method: 'post',
     url: BACKEND_SERVER_URL + '/admin/create',
@@ -38,10 +38,13 @@ export function SaveLocations (data) {
     if (src.data.message === 'ok') {
       this.loadLocations();
     } else {
-      console.error(src.data.message);
+      if (failure) {
+        failure(src.data.message);
+      }
     }
   }).catch(error => {
-    /* istanbul ignore next */
-    console.error(error);
+    if (failure) {
+      failure('something went wrong' + error);
+    }
   });
-}
+};

@@ -373,7 +373,7 @@ class TitleBarContainer extends Component {
       if (message.status === 'ok') {
         this.setState({
           sharePresetModal: true,
-          sharePresetName: location.protocol + '//' + location.host + location.pathname + '?url=' + presetName + location.hash
+          sharePresetName: location.protocol + '//' + location.host + location.pathname + '?presetid=' + presetName + location.hash
         });
       } else {
         alert('failed');
