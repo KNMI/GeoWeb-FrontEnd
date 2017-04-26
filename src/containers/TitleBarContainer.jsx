@@ -82,22 +82,15 @@ class TitleBarContainer extends Component {
   }
 
   getTriggerTitle (trigger) {
-    if (trigger.phenomenon === 't2m') {
-      if (trigger.triggername.includes('above')) {
-        return 'High temperature';
-      } else {
-        return 'Low temperature';
-      }
-    }
-    return '???';
-  }
-  loadPreset () {
-    console.log('clicked');
+    return trigger.phenomenon.parameter + ' (' + trigger.phenomenon.source + ')';
   }
   getTriggerMessage (trigger) {
     let retStr = '';
-    if (trigger.triggername.includes('obs')) {
-      retStr = 'Observation ' + trigger.triggername.slice(3) + ' degrees at ' + moment(trigger.issuedate).format('LT') + '.';
+    const { phenomenon, triggerdate } = trigger;
+    const { parameter, operator, threshold, units } = phenomenon;
+    const formattedDate = moment.utc(triggerdate).format('HH:mm');
+    if (phenomenon.source === 'OBS') {
+      retStr = `${parameter} of ${operator}${threshold} ${units} observed at ${formattedDate}`;
     }
 
     return retStr;
@@ -127,7 +120,7 @@ class TitleBarContainer extends Component {
                 primary: true
               }, {
                 name: 'Where',
-                onClick: (e) => { e.stopPropagation(); console.log('here'); }
+                onClick: (e) => { e.stopPropagation(); this.showLocations(trigger.locations); }
               }
             ],
             dismissible: false,

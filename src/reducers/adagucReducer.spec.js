@@ -199,4 +199,166 @@ describe('(Redux Module) Adaguc', () => {
       expect(newlayerstate.adagucProperties.layers.panel[0].overlays).to.have.length(1);
     });
   });
+
+  describe('(Action) setPreset', () => {
+    let _globalState;
+    let _dispatchSpy;
+    let _getStateSpy;
+
+    beforeEach(() => {
+      _globalState = {
+        adagucProperties : {
+          layers: {
+            panel: [
+              {
+                datalayers: [
+                { title: 'abc' },
+                { title: 'def' }
+                ],
+                overlays:
+                [{ title: 'overlay' }]
+              }
+            ]
+          },
+          sources: {},
+          boundingBox: null,
+          projectionName: 'EPSG:3857',
+          mapCreated: false,
+          activeMapId: 0,
+          layout: 'single'
+        }
+      };
+      _dispatchSpy = sinon.spy((action) => {
+        _globalState = {
+          ..._globalState,
+          adagucProperties : adagucReducer(_globalState.adagucProperties, action)
+        };
+      });
+      _getStateSpy = sinon.spy(() => {
+        return _globalState;
+      });
+    });
+
+    it('can set a SIGMET preset by string name', () => {
+      _dispatchSpy(actions.setPreset('sigmet_layer_TS'));
+      let newState = _getStateSpy();
+
+      expect(newState.adagucProperties.boundingBox).to.equal(BOUNDING_BOXES[1]);
+      expect(newState.adagucProperties.layout).to.equal('quaduneven');
+      expect(newState.adagucProperties.layers.panel[0].datalayers[0].title.includes('HARM')).to.be.true();
+      expect(newState.adagucProperties.layers.panel[0].overlays[0].label).to.equal('FIR areas');
+      expect(newState.adagucProperties.layers.panel[1].datalayers[0].label).to.equal('wawa Weather Code (ww)');
+      expect(newState.adagucProperties.layers.panel[2].datalayers[1].label).to.equal('LGT_NL25_LAM_05M');
+
+      _dispatchSpy(actions.setPreset('some_other_sigmet_phenomenon'));
+      newState = _getStateSpy();
+
+      expect(newState.adagucProperties.boundingBox).to.equal(BOUNDING_BOXES[1]);
+      expect(newState.adagucProperties.layout).to.equal('quaduneven');
+      expect(newState.adagucProperties.layers.panel[0].datalayers[0].title.includes('HARM')).to.be.true();
+      expect(newState.adagucProperties.layers.panel[0].overlays[0].label).to.equal('FIR areas');
+      expect(newState.adagucProperties.layers.panel[1].datalayers[0].label).to.equal('wawa Weather Code (ww)');
+      expect(newState.adagucProperties.layers.panel[2].datalayers).to.have.length(1);
+    });
+
+    it('can set preset directly by object', () => {
+      _dispatchSpy(actions.setPreset({
+        bbox: {
+          top: 1,
+          bottom: -1
+        },
+        display: {
+          type: 'quadcol'
+        },
+        layers: [
+          [
+            {
+              name: 'aaaa',
+              overlay: false
+            }
+          ]
+        ]
+      }));
+      let newState = _getStateSpy();
+      expect(newState.adagucProperties.boundingBox).to.eql({ bbox: [0, 1, 1, -1] });
+      expect(newState.adagucProperties.layout).to.equal('quadcol');
+      expect(newState.adagucProperties.layers.panel).to.have.length(4);
+      expect(newState.adagucProperties.layers.panel[0].datalayers[0].name).to.equal('aaaa');
+    });
+  });
+
+  describe('(Action), setLayout', () => {
+    let _globalState;
+    let _dispatchSpy;
+    let _getStateSpy;
+
+    beforeEach(() => {
+      _globalState = {
+        adagucProperties : {
+          layers: {
+            panel: [
+              {
+                datalayers: [
+                { title: 'abc' },
+                { title: 'def' }
+                ],
+                overlays:
+                [{ title: 'overlay' }]
+              }
+            ]
+          },
+          sources: {},
+          boundingBox: null,
+          projectionName: 'EPSG:3857',
+          mapCreated: false,
+          activeMapId: 0,
+          layout: 'single'
+        }
+      };
+      _dispatchSpy = sinon.spy((action) => {
+        _globalState = {
+          ..._globalState,
+          adagucProperties : adagucReducer(_globalState.adagucProperties, action)
+        };
+      });
+      _getStateSpy = sinon.spy(() => {
+        return _globalState;
+      });
+    });
+
+    it('Allows settings a new dual layout', () => {
+      _dispatchSpy(actions.setLayout('dualscreen'));
+      let newState = _getStateSpy();
+      expect(newState.adagucProperties.layout).to.equal('dualscreen');
+      expect(newState.adagucProperties.activeMapId).to.equal(0);
+
+      _dispatchSpy(actions.setLayout('uneventriple'));
+      newState = _getStateSpy();
+      expect(newState.adagucProperties.layout).to.equal('uneventriple');
+      expect(newState.adagucProperties.activeMapId).to.equal(0);
+
+      _dispatchSpy(actions.setLayout('quadsquare'));
+      newState = _getStateSpy();
+      expect(newState.adagucProperties.layout).to.equal('quadsquare');
+      expect(newState.adagucProperties.activeMapId).to.equal(0);
+    });
+
+    it('Defaults to a single layout', () => {
+      _dispatchSpy(actions.setLayout('@@@@'));
+      let newState = _getStateSpy();
+      expect(newState.adagucProperties.layout).to.equal('single');
+      expect(newState.adagucProperties.activeMapId).to.equal(0);
+    });
+
+    it('Resets the activeMapId to zero if scaled back from more viewers to fewer', () => {
+      _globalState.adagucProperties.activeMapId = 3;
+      _globalState.adagucProperties.layout = 'quadsquare';
+
+      _dispatchSpy(actions.setLayout('single'));
+
+      let newState = _getStateSpy();
+      expect(newState.adagucProperties.layout).to.equal('single');
+      expect(newState.adagucProperties.activeMapId).to.equal(0);
+    });
+  });
 });

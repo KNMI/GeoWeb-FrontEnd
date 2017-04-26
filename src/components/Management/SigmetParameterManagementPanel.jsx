@@ -14,6 +14,7 @@ export default class SigmetParameterManagementPanel extends React.Component {
       this.sigmetParameters = res.data;
     });
   }
+  /* istanbul ignore next */
   render () {
     if (!this.sigmetParameters) {
       return <Panel />;
@@ -26,6 +27,7 @@ export default class SigmetParameterManagementPanel extends React.Component {
 }
 
 export class ParameterMapper extends React.Component {
+  /* istanbul ignore next */
   constructor () {
     super();
     this.setEditMode = this.setEditMode.bind(this);
@@ -37,6 +39,7 @@ export class ParameterMapper extends React.Component {
     };
   }
 
+  /* istanbul ignore next */
   saveSigmetParameters () {
     const maxhoursofvalidity = parseInt(document.querySelector('#maxhoursofvalidity').value);
     const hoursbeforevalidity = parseInt(document.querySelector('#hoursbeforevalidity').value);

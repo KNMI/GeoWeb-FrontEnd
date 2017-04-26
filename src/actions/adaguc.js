@@ -20,6 +20,7 @@ SET_LAYOUT,
 CURSOR_LOCATION,
 SET_GEOJSON,
 SET_ACTIVE_PANEL,
+SET_TRIGGER_LOCATIONS,
 ADAGUCMAPDRAW_UPDATEFEATURE } from '../constants/actions';
 var moment = require('moment');
 function updateFeature (geojson, text) {
@@ -118,7 +119,6 @@ function reorderLayer (direction, index) {
   };
 }
 function setPreset (presetObj) {
-  console.log(presetObj);
   return {
     type: SET_PRESET,
     payload: presetObj
@@ -157,6 +157,13 @@ function setGeoJSON (json) {
   };
 }
 
+function setTriggerLocations (locations) {
+  return {
+    type: SET_TRIGGER_LOCATIONS,
+    payload: locations
+  };
+}
+
 const actions = {
   addLayer,
   addOverlayLayer,
@@ -174,6 +181,7 @@ const actions = {
   setMapStyle,
   setLayout,
   setPreset,
+  setTriggerLocations,
   setTimeDimension,
   setWMJSLayers,
   toggleAnimation,

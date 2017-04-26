@@ -28,7 +28,8 @@ const mapStateToEmptyProps = () => {
 
 const mapStateToSidebarProps = (state) => {
   return {
-    recentTriggers: state.recentTriggers
+    recentTriggers: state.recentTriggers,
+    adagucProperties: state.adagucProperties
   };
 };
 

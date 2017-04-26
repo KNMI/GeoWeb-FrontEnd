@@ -23,6 +23,7 @@ export default class Adaguc extends React.Component {
     this.updateLayer = this.updateLayer.bind(this);
     this.onChangeAnimation = this.onChangeAnimation.bind(this);
     this.timeHandler = this.timeHandler.bind(this);
+    this.adagucBeforeDraw = this.adagucBeforeDraw.bind(this);
     this.updateBBOX = this.updateBBOX.bind(this);
     this.isAnimating = false;
     this.state = {
@@ -91,6 +92,33 @@ export default class Adaguc extends React.Component {
     const bbox = this.webMapJS.getBBOX();
     dispatch(actions.setCut({ title: 'Custom', bbox: [bbox.left, bbox.bottom, bbox.right, bbox.top] }));
   }
+
+  adagucBeforeDraw (ctx) {
+    const { adagucProperties } = this.props;
+    const { triggerLocations } = adagucProperties;
+    if (!triggerLocations || triggerLocations.length === 0) {
+      return;
+    }
+
+    triggerLocations.forEach((location) => {
+      const { lat, lon, value, code } = location;
+      const coord = this.webMapJS.getPixelCoordFromLatLong({ x: lon, y: lat });
+
+      ctx.globalAlpha = 1.0;
+      const w = 7;
+      ctx.strokeStyle = '#000';
+      ctx.fillStyle = '#FF0000';
+      ctx.font = 'bold 12px Helvetica';
+
+      ctx.fillRect(coord.x - w / 2, coord.y - w / 2, w, w);
+      ctx.strokeRect(coord.x - w / 2, coord.y - w / 2, w, w);
+      ctx.strokeRect(coord.x - 0.5, coord.y - 0.5, 1, 1);
+      ctx.fillStyle = 'black';
+      ctx.fillText(value.toFixed(2), coord.x + 5, coord.y - 5);
+      ctx.fillText(code, coord.x + 5, coord.y + 12);
+    });
+  }
+
   /* istanbul ignore next */
   initAdaguc (adagucMapRef) {
     const { adagucProperties, actions, dispatch, mapId } = this.props;
@@ -111,6 +139,9 @@ export default class Adaguc extends React.Component {
     const height = $(parentElement).height();
     this.webMapJS.setSize(width, height);
     elementResizeEvent(parentElement, this.resize);
+
+    // Set listener for triggerPoints
+    this.webMapJS.addListener('beforecanvasdisplay', this.adagucBeforeDraw, true);
 
     // Set the initial projection
     this.webMapJS.setProjection(adagucProperties.projectionName);
@@ -156,7 +187,7 @@ export default class Adaguc extends React.Component {
     if (element && element.__resizeTrigger__) {
       elementResizeEvent.unbind(element);
     }
-
+    this.webMapJS.removeListener('beforecanvasdisplay', this.adagucBeforeDraw);
     // Let webmapjs destory itself
     if (this.webMapJS) {
       this.webMapJS.destroy();

@@ -21,6 +21,7 @@ SET_MAP_MODE,
 SET_LAYOUT,
 CURSOR_LOCATION,
 SET_GEOJSON,
+SET_TRIGGER_LOCATIONS,
 SET_ACTIVE_PANEL } from '../constants/actions';
 
 const newMapState = (state, payload) => {
@@ -286,7 +287,7 @@ const setNewPreset = (state, payload) => {
     const payloadCpy = cloneDeep(payload);
     const bbox = payloadCpy.bbox ? Object.assign({}, state.boundingBox, { bbox: [0, payloadCpy.bbox.top, 1, payloadCpy.bbox.bottom] }) : state.boundingBox;
     const layout = payloadCpy.display ? payloadCpy.display.type : state.layout;
-    const panel = payloadCpy.layers ? transform(payloadCpy.layers) : state.layers;
+    const panel = payloadCpy.layers ? transform(payloadCpy.layers) : state.layers.panel;
     const newLayers = Object.assign({}, state.layers, { panel: panel });
     return Object.assign({}, state, { layers: newLayers, boundingBox: bbox, layout: layout });
   }
@@ -399,6 +400,7 @@ const setCursorLocation = (state, payload) => {
 };
 const newLayout = (state, payload) => {
   let numPanels;
+  let fixedPayload = payload;
   if (/quad/.test(payload)) {
     numPanels = 4;
   } else if (/triple/.test(payload)) {
@@ -407,9 +409,10 @@ const newLayout = (state, payload) => {
     numPanels = 2;
   } else {
     numPanels = 1;
+    fixedPayload = 'single';
   }
   const activeMapId = state.activeMapId < numPanels ? state.activeMapId : 0;
-  return Object.assign({}, state, { layout: payload, activeMapId: activeMapId });
+  return Object.assign({}, state, { layout: fixedPayload, activeMapId: activeMapId });
 };
 const newActivePanel = (state, payload) => {
   let numPanels;
@@ -424,6 +427,9 @@ const newActivePanel = (state, payload) => {
   }
   const activeMapId = payload < numPanels ? payload : 0;
   return Object.assign({}, state, { activeMapId: activeMapId });
+};
+const newTriggerLocations = (state, payload) => {
+  return Object.assign({}, state, { triggerLocations: payload });
 };
 // ------------------------------------
 // Action Handlers
@@ -449,7 +455,8 @@ const ACTION_HANDLERS = {
   [CURSOR_LOCATION]               : (state, action) => setCursorLocation(state, action.payload),
   [SET_LAYOUT]                    : (state, action) => newLayout(state, action.payload),
   [SET_GEOJSON]                   : (state, action) => newGeoJSON(state, action.payload),
-  [SET_ACTIVE_PANEL]              : (state, action) => newActivePanel(state, action.payload)
+  [SET_ACTIVE_PANEL]              : (state, action) => newActivePanel(state, action.payload),
+  [SET_TRIGGER_LOCATIONS]         : (state, action) => newTriggerLocations(state, action.payload)
 };
 
 // ------------------------------------
