@@ -1,39 +1,30 @@
 import React, { Component } from 'react';
 import { Button, Col, Row, Badge, Card, CardHeader, CardBlock } from 'reactstrap';
 import Moment from 'react-moment';
+import moment from 'moment';
 import Icon from 'react-fa';
 import CollapseOmni from '../components/CollapseOmni';
 import PropTypes from 'prop-types';
-
-const TAG_NAMES = {
-  DIV: 'div',
-  SPAN: 'span'
-};
+import axios from 'axios';
+import { BACKEND_SERVER_URL } from '../constants/backend';
 const DATE_TIME_FORMAT = 'YYYY MMM DD - HH:mm UTC';
 
 class TriggerCategory extends Component {
   constructor (props) {
     super(props);
     this.handleTriggerClick = this.handleTriggerClick.bind(this);
+    this.setPreset = this.setPreset.bind(this);
     this.state = {
       isOpen: props.isOpen
     };
   }
 
   handleTriggerClick (evt, index) {
-    let shouldContinue = false;
-    if (!this.props.editable) {
-      shouldContinue = true;
-    } else if (this.props.selectedIndex !== 0) {
-      shouldContinue = true;
-    } else if (this.hasTagName(evt.target, TAG_NAMES.DIV) && evt.target.classList.contains('row')) {
-      shouldContinue = true;
-    } else if (this.hasTagName(evt.target, TAG_NAMES.SPAN) && evt.target.classList.contains('badge')) {
-      shouldContinue = true;
-    }
-
-    if (shouldContinue) {
-      this.props.selectMethod(index, this.state.list[index].geojson);
+    const locations = this.props.data[index].locations;
+    if (locations !== this.props.adagucProperties.triggerLocations) {
+      this.props.dispatch(this.props.actions.setTriggerLocations(locations));
+    } else {
+      this.props.dispatch(this.props.actions.setTriggerLocations([]));
     }
   }
 
@@ -43,8 +34,17 @@ class TriggerCategory extends Component {
     }
   }
 
-  getTitle (t) {
-    return t;
+  getTitle (trigger) {
+    const { parameter, operator, threshold, units } = trigger;
+    return `${parameter} (${operator}${threshold} ${units})`;
+  }
+
+  setPreset (presetName) {
+    axios.get(BACKEND_SERVER_URL + '/preset/getpreset?name=' + presetName, { withCredentials: true }).then((res) => {
+      this.props.dispatch(this.props.actions.setPreset(res.data));
+    }).catch((error) => {
+      console.error(error);
+    });
   }
 
   render () {
@@ -94,7 +94,7 @@ class TriggerCategory extends Component {
                         <Badge color='success'>When</Badge>
                       </Col>
                       <Col xs='9'>
-                        <Moment format={DATE_TIME_FORMAT} date={item.issuedate} />
+                        <Moment format={DATE_TIME_FORMAT} date={moment.utc(item.triggerdate)} />
                       </Col>
                     </Row>
                     <Row className='section'>
@@ -102,14 +102,27 @@ class TriggerCategory extends Component {
                         <Badge color='success'>Where</Badge>
                       </Col>
                       <Col xs='9'>
-                        <span>{item.firname || '--'}</span>
+                        <span>At {item.locations.length} location{item.locations.length !== 1 ? 's' : ''}</span>
                       </Col>
                     </Row>
-                    <Row>
-                      <Col xs={{ size: 9, offset: 3 }}>
-                        {item.location_indicator_icao}
+                    <Row className='section'>
+                      <Col xs='3'>
+                        <Badge color='success'>Presets</Badge>
                       </Col>
+                      {item.presets.length > 0
+                      ? <Col xs='9'>
+                        <a className='triggerPreset' href='#' onClick={(e) => { e.preventDefault(); e.stopPropagation(); this.setPreset(item.presets[0]); }}>{item.presets[0]}</a>
+                      </Col>
+                      : ''
+                    }
                     </Row>
+                    {item.presets.filter((item, i) => i !== 0).map((preset, i) =>
+                      <Row className='' key={i}>
+                        <Col xs={{ size: 9, offset: 3 }}>
+                          <a className='triggerPreset' href='#' onClick={(e) => { e.preventDefault(); e.stopPropagation(); this.setPreset(preset); }}>{preset}</a>
+                        </Col>
+                      </Row>
+                     )}
                   </Button>
                 )}
               </Col>
@@ -121,12 +134,13 @@ class TriggerCategory extends Component {
 }
 
 TriggerCategory.propTypes = {
+  adagucProperties: PropTypes.object,
+  actions       : PropTypes.object,
+  dispatch      : PropTypes.func,
   isOpen        : PropTypes.bool,
   title         : PropTypes.string.isRequired,
   icon          : PropTypes.string,
-  editable      : PropTypes.bool,
   selectedIndex : PropTypes.number,
-  selectMethod  : PropTypes.func,
   toggleMethod  : PropTypes.func,
   parentCollapsed   : PropTypes.bool,
   data              : PropTypes.array

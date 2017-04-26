@@ -18,6 +18,7 @@ export default class LocationManagementPanel extends React.Component {
     });
   }
 
+  /* istanbul ignore next */
   toggle (tab) {
     if (this.state.activeTab !== tab) {
       this.setState({
@@ -42,11 +43,13 @@ export class LocationMapper extends React.Component {
     this.saveLocations = this.saveLocations.bind(this);
     this.loadLocations = this.loadLocations.bind(this);
   }
+  /* istanbul ignore next */
   deleteLocation (i) {
     let arrayCpy = this.state.locations.map((a) => Object.assign(a));
     arrayCpy.splice(i, 1);
     this.setState({ locations: arrayCpy });
   }
+  /* istanbul ignore next */
   doneEditing (i) {
     const newName = document.querySelector('#nameinput' + i).value;
     const newLat = parseFloat(document.querySelector('#latinput' + i).value);
@@ -67,6 +70,7 @@ export class LocationMapper extends React.Component {
     arrayCpy[i].edit = true;
     this.setState({ locations: arrayCpy });
   }
+  /* istanbul ignore next */
   addCard () {
     let arrayCpy = this.state.locations.map((a) => Object.assign(a));
     arrayCpy.unshift({ edit: true });
@@ -75,10 +79,12 @@ export class LocationMapper extends React.Component {
   componentWillMount () {
     this.setState({ locations: this.props.locations });
   }
+  /* istanbul ignore next */
   componentWillReceiveProps (nextprops) {
     this.setState({ locations: nextprops.locations });
   }
 
+  /* istanbul ignore next */
   loadLocations () {
     this.progtempLocations = DefaultLocations;
     this.setState({ locations: [] });
@@ -88,7 +94,7 @@ export class LocationMapper extends React.Component {
       }
     });
   }
-
+  /* istanbul ignore next */
   saveLocations () {
     SaveLocations(this.state.locations);
   }

@@ -82,22 +82,15 @@ class TitleBarContainer extends Component {
   }
 
   getTriggerTitle (trigger) {
-    if (trigger.phenomenon === 't2m') {
-      if (trigger.triggername.includes('above')) {
-        return 'High temperature';
-      } else {
-        return 'Low temperature';
-      }
-    }
-    return '???';
-  }
-  loadPreset () {
-    console.log('clicked');
+    return trigger.phenomenon.parameter + ' (' + trigger.phenomenon.source + ')';
   }
   getTriggerMessage (trigger) {
     let retStr = '';
-    if (trigger.triggername.includes('obs')) {
-      retStr = 'Observation ' + trigger.triggername.slice(3) + ' degrees at ' + moment(trigger.issuedate).format('LT') + '.';
+    const { phenomenon, triggerdate } = trigger;
+    const { parameter, operator, threshold, units } = phenomenon;
+    const formattedDate = moment.utc(triggerdate).format('HH:mm');
+    if (phenomenon.source === 'OBS') {
+      retStr = `${parameter} of ${operator}${threshold} ${units} observed at ${formattedDate}`;
     }
 
     return retStr;
@@ -108,6 +101,14 @@ class TitleBarContainer extends Component {
       return false;
     }
     return this.props.recentTriggers.some((trigger) => trigger.uuid === notification.uuid);
+  }
+
+  handleTriggerClick (locations) {
+    if (locations !== this.props.adagucProperties.triggerLocations) {
+      this.props.dispatch(this.props.actions.setTriggerLocations(locations));
+    } else {
+      this.props.dispatch(this.props.actions.setTriggerLocations([]));
+    }
   }
 
   gotTriggersCallback (result) {
@@ -127,7 +128,7 @@ class TitleBarContainer extends Component {
                 primary: true
               }, {
                 name: 'Where',
-                onClick: (e) => { e.stopPropagation(); console.log('here'); }
+                onClick: (e) => { e.stopPropagation(); this.handleTriggerClick(trigger.locations); }
               }
             ],
             dismissible: false,
@@ -367,7 +368,7 @@ class TitleBarContainer extends Component {
       if (message.status === 'ok') {
         this.setState({
           sharePresetModal: true,
-          sharePresetName: location.protocol + '//' + location.host + location.pathname + '?url=' + presetName + location.hash
+          sharePresetName: location.protocol + '//' + location.host + location.pathname + '?presetid=' + presetName + location.hash
         });
       } else {
         alert('failed');
@@ -694,6 +695,7 @@ LayoutDropDown.propTypes = {
 };
 
 TitleBarContainer.propTypes = {
+  adagucProperties: PropTypes.object,
   recentTriggers: PropTypes.array,
   notifications: PropTypes.array,
   isLoggedIn: PropTypes.bool,

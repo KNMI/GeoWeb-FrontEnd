@@ -6,10 +6,13 @@ export default class CanvasComponent extends Component {
     super();
     this.updateCanvas = this.updateCanvas.bind(this);
   }
+
+  /* istanbul ignore next */
   componentDidMount () {
     this.updateCanvas();
   }
 
+  /* istanbul ignore next */
   updateCanvas () {
     if (!this.refs || !this.refs.canvas) {
       return;
@@ -49,6 +52,7 @@ export default class CanvasComponent extends Component {
     this.props.onRenderCanvas(ctx);
   }
 
+  /* istanbul ignore next */
   render () {
     this.updateCanvas();
     if (this.props.width && this.props.height && this.props.style) {

@@ -22,7 +22,6 @@ export const ReadLocations = (callback, failure) => {
     callback();
   });
 };
-
 /*
   Saves the list of locations to the backend server
 */
@@ -35,6 +34,7 @@ export const SaveLocations = (data, failure) => {
     withCredentials: true,
     responseType: 'json'
   }).then(src => {
+    /* istanbul ignore next */
     if (src.data.message === 'ok') {
       this.loadLocations();
     } else {

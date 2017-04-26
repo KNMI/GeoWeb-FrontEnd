@@ -15,12 +15,14 @@ const mapStateToHeaderProps = (state) => {
     layers: state.adagucProperties.layers,
     bbox: state.adagucProperties.boundingBox.bbox,
     notifications: state.notifications,
-    recentTriggers: state.recentTriggers
+    recentTriggers: state.recentTriggers,
+    adagucProperties: state.adagucProperties
   };
 };
 
 const mapStateToSidebarProps = (state) => {
   return {
+    adagucProperties: state.adagucProperties,
     recentTriggers: state.recentTriggers
   };
 };
