@@ -10,13 +10,15 @@ import { connect } from 'react-redux';
 const mapStateToHeaderProps = (state) => {
   return {
     title: 'header',
-    isLoggedIn: false,
     layout: state.adagucProperties.layout,
     layers: state.adagucProperties.layers,
     bbox: state.adagucProperties.boundingBox.bbox,
     notifications: state.notifications,
     recentTriggers: state.recentTriggers,
-    adagucProperties: state.adagucProperties
+    adagucProperties: state.adagucProperties,
+    isLoggedIn: state.adagucProperties.user.isLoggedIn,
+    userName: state.adagucProperties.user.userName,
+    roles: state.adagucProperties.user.roles
   };
 };
 
