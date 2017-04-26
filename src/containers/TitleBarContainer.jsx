@@ -67,7 +67,7 @@ class TitleBarContainer extends Component {
   triggerService () {
     if (!this.triggerIntervalId) {
       this.retrieveTriggers();
-      this.triggerIntervalId = setInterval(this.retrieveTriggers, moment.duration(1, 'minute').asMilliseconds());
+      this.triggerIntervalId = setInterval(this.retrieveTriggers, moment.duration(2, 'minute').asMilliseconds());
     }
   }
 
@@ -111,10 +111,16 @@ class TitleBarContainer extends Component {
     }
   }
 
+  diffWrtNow (adate, bdate) {
+    const adiff = moment.utc().diff(moment.utc(adate), 'seconds');
+    const bdiff = moment.utc().diff(moment.utc(bdate), 'seconds');
+    return adiff - bdiff;
+  }
+
   gotTriggersCallback (result) {
     if (result.data.length > 0) {
-      result.data.filter((notification) => !this.seen(notification)).forEach((trigger) => {
-        if (!this.props.notifications || !this.props.notifications.some((not) => not.id === trigger.uuid)) {
+      result.data.filter((notification) => !this.seen(notification)).filter((trigger) =>
+        !this.props.notifications.some((not) => not.id === trigger.uuid)).sort((a, b) => this.diffWrtNow(a.triggerdate, b.triggerdate)).slice(0, 3).forEach((trigger, i) => {
           this.props.dispatch(addNotification({
             title: this.getTriggerTitle(trigger),
             message: this.getTriggerMessage(trigger),
@@ -135,8 +141,7 @@ class TitleBarContainer extends Component {
             dismissAfter: 0,
             allowHTML: true
           }));
-        }
-      });
+        });
     }
   }
 
