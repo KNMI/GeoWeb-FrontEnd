@@ -29,6 +29,7 @@ export default class AdagucMapDraw extends Component {
     this.transposePolygon = this.transposePolygon.bind(this);
     this.transposeVertex = this.transposeVertex.bind(this);
   }
+  /* istanbul ignore next */
   convertGeoCoordsToScreenCoords (featureCoords) {
     const { webmapjs } = this.props;
     const XYCoords = [];
@@ -40,6 +41,7 @@ export default class AdagucMapDraw extends Component {
   }
 
   /* Function for drawing vertices with several styles */
+  /* istanbul ignore next */
   drawVertice (ctx, coord, selected, middle) {
     let w = 7;
     if (this.props.isInEditMode === false) {
@@ -75,6 +77,7 @@ export default class AdagucMapDraw extends Component {
     ctx.strokeRect(coord.x - 0.5, coord.y - 0.5, 1, 1);
   }
 
+  /* istanbul ignore next */
   drawPolygon (ctx, XYCoords, polygonIndex) {
     /* Draw polygons and calculate center of poly */
     const middle = { x:0, y:0 };
@@ -118,6 +121,7 @@ export default class AdagucMapDraw extends Component {
     return middle;
   }
 
+  /* istanbul ignore next */
   adagucBeforeDraw (ctx) {
     /* adagucBeforeDraw is an event callback function which is triggered
      just before adagucviewer will flip the back canvas buffer to the front.
@@ -153,11 +157,13 @@ export default class AdagucMapDraw extends Component {
   }
 
   /* Function which calculates the distance between two points */
+  /* istanbul ignore next */
   distance (a, b) {
     return Math.sqrt((a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y));
   }
 
   /* Function which calculates if a point is between two other points */
+  /* istanbul ignore next */
   isBetween (a, c, b) {
     const da = this.distance(a, c) + this.distance(c, b);
     const db = this.distance(a, b);
@@ -165,6 +171,7 @@ export default class AdagucMapDraw extends Component {
   }
 
   /* Checks if mouse is in proximity of given coordinate */
+  /* istanbul ignore next */
   checkDist (coord, polygonIndex, mouseX, mouseY) {
     const VERTEX = this.distance(coord, { x:mouseX, y:mouseY });
     if (VERTEX < 8) {
@@ -175,6 +182,7 @@ export default class AdagucMapDraw extends Component {
     return false;
   }
 
+  /* istanbul ignore next */
   hoverEdge (coordinates, mouseX, mouseY) {
     for (let polygonIndex = coordinates.length - 1; polygonIndex >= 0; polygonIndex--) {
       const featureCoords = coordinates[polygonIndex];
@@ -194,6 +202,7 @@ export default class AdagucMapDraw extends Component {
     return { selectedEdge: this.EDGE.NONE, snappedPolygonIndex: this.SNAPPEDPOYLYGON.NONE };
   }
 
+  /* istanbul ignore next */
   transposePolygon (featureCoords) {
     const incX = this.mouseGeoCoord.x - this.snappedGeoCoords.x;
     const incY = this.mouseGeoCoord.y - this.snappedGeoCoords.y;
@@ -208,6 +217,7 @@ export default class AdagucMapDraw extends Component {
     }
   }
 
+  /* istanbul ignore next */
   transposeVertex (featureCoords) {
     featureCoords[this.mouseIsOverVertexNr][0] = this.mouseGeoCoord.x;
     featureCoords[this.mouseIsOverVertexNr][1] = this.mouseGeoCoord.y;
@@ -216,6 +226,7 @@ export default class AdagucMapDraw extends Component {
     }
   }
 
+  /* istanbul ignore next */
   moveVertex (featureCoords, mouseDown) {
     if (!featureCoords) {
       return;
@@ -235,6 +246,7 @@ export default class AdagucMapDraw extends Component {
     }
   }
 
+  /* istanbul ignore next */
   hoverVertex (feature, mouseX, mouseY) {
     let foundVertex = this.VERTEX.NONE;
     this.mouseIsOverVertexNr = this.VERTEX.NONE;
@@ -269,6 +281,7 @@ export default class AdagucMapDraw extends Component {
     }
   }
 
+  /* istanbul ignore next */
   adagucMouseMove (event) {
     /* adagucMouseMove is an event callback function which is triggered when the mouse moves over the map
       This event is only triggered if the map is in hover state.
@@ -330,6 +343,7 @@ export default class AdagucMapDraw extends Component {
                      True means that it is still possible to pan and drag the map while editing */
     }
   }
+  /* istanbul ignore next */
   adagucMouseDown (event) {
     if (this.props.isInEditMode === false) {
       return;
@@ -397,6 +411,7 @@ export default class AdagucMapDraw extends Component {
     return false; /* False means that this component will take over entire controll.
                      True means that it is still possible to pan and drag the map while editing */
   }
+  /* istanbul ignore next */
   deleteFeature () {
     /* Deletes any features under the mousecursor */
     const { webmapjs } = this.props;
@@ -428,6 +443,7 @@ export default class AdagucMapDraw extends Component {
     webmapjs.draw();
   }
 
+  /* istanbul ignore next */
   adagucMouseUp () {
     if (this.props.isInEditMode === false) {
       return;
@@ -451,6 +467,7 @@ export default class AdagucMapDraw extends Component {
       return false;
     }
   }
+  /* istanbul ignore next */
   cancelEdit (cancelLastPoint) {
     if (this.props.isInEditMode === false) {
       return;
@@ -487,6 +504,7 @@ export default class AdagucMapDraw extends Component {
       }
     }
   }
+  /* istanbul ignore next */
   handleKeyDown (event) {
     const ESCAPE_KEY = 27;
     if (event.keyCode === ESCAPE_KEY) {
@@ -511,6 +529,7 @@ export default class AdagucMapDraw extends Component {
     const { dispatch, actions } = this.props;
     dispatch(actions.updateFeature(this.props.geojson, text));
   }
+  /* istanbul ignore next */
   componentWillReceiveProps (nextProps) {
      /* Handle toggle edit */
     if (nextProps.isInEditMode === false && this.editMode !== this.EDITMODE.EMPTY) {
@@ -536,6 +555,7 @@ export default class AdagucMapDraw extends Component {
       this.editMode = this.EDITMODE.EMPTY;
     }
   }
+  /* istanbul ignore next */
   render () {
     const { webmapjs } = this.props;
     if (this.disabled === undefined) {

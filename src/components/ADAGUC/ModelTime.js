@@ -10,6 +10,7 @@ export default class ModelTime extends Component {
       display: null
     };
   }
+  /* istanbul ignore next */
   updateState () {
     if (!this.props.webmapjs.getDimension('time')) {
       return;
@@ -29,9 +30,13 @@ export default class ModelTime extends Component {
       this.setState({ display: adagucTime.format('ddd D HH:mm').toString() + ' (' + (hourDifference) + ')' });
     }
   }
+
+  /* istanbul ignore next */
   resetState () {
     this.setState({ display: '' });
   }
+
+  /* istanbul ignore next */
   render () {
     const { webmapjs } = this.props;
 

@@ -22,6 +22,7 @@ export default class TimeComponent extends Component {
     this.changeHour = this.changeHour.bind(this);
     this.changeMinute = this.changeMinute.bind(this);
   }
+  /* istanbul ignore next */
   eventOnMapDimUpdate () {
     this.eventOnDimChange();
   }
@@ -30,6 +31,7 @@ export default class TimeComponent extends Component {
     this.drawCanvas();
   }
 
+  /* istanbul ignore next */
   drawTimeIndicationBlocks (ctx, timeBlockStartIndex, timeBlockStopIndex, canvasDateIntervalHour, sliderStopIndex, scaleWidth, canvasHeight) {
     for (let j = timeBlockStartIndex - 1; j < timeBlockStopIndex + 1; j++) {
       const dateAtTimeStep = canvasDateIntervalHour.getDateAtTimeStep(j);
@@ -48,6 +50,7 @@ export default class TimeComponent extends Component {
     }
   }
 
+  /* istanbul ignore next */
   drawLayerBlocks (ctx, canvasWidth, sliderStopIndex, sliderMapIndex, scaleWidth) {
     const layers = this.props.wmjslayers.layers;
     const overlayers = this.props.wmjslayers.baselayers.filter((layer) => layer.keepOnTop === true);
@@ -285,6 +288,7 @@ export default class TimeComponent extends Component {
     }
     this.timer = setInterval(this.drawCanvas, 60000);
   }
+  /* istanbul ignore next */
   componentDidUpdate () {
     this.drawCanvas();
   }
@@ -311,25 +315,28 @@ export default class TimeComponent extends Component {
       throw new Error('311: ', e);
     }
   }
+  /* istanbul ignore next */
   handleButtonClickNow () {
     // eslint-disable-next-line no-undef
     const currentDate = getCurrentDateIso8601();
     this.props.dispatch(this.props.actions.setTimeDimension(currentDate.toISO8601()));
     this.eventOnDimChange();
   }
+  /* istanbul ignore next */
   handleButtonClickPrevPage () {
     const date = this.decomposeDateString(this.props.timedim);
     date.hour -= 1;
     this.setNewDate(date);
   }
+  /* istanbul ignore next */
   handleButtonClickNextPage () {
     const date = this.decomposeDateString(this.props.timedim);
     date.hour += 1;
     this.setNewDate(date);
   }
 
+  /* istanbul ignore next */
   render () {
-    /* istanbul ignore next */
     return (
       <Col>
         <Row style={{ flex: 1 }}>
