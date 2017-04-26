@@ -103,6 +103,14 @@ class TitleBarContainer extends Component {
     return this.props.recentTriggers.some((trigger) => trigger.uuid === notification.uuid);
   }
 
+  handleTriggerClick (locations) {
+    if (locations !== this.props.adagucProperties.triggerLocations) {
+      this.props.dispatch(this.props.actions.setTriggerLocations(locations));
+    } else {
+      this.props.dispatch(this.props.actions.setTriggerLocations([]));
+    }
+  }
+
   gotTriggersCallback (result) {
     if (result.data.length > 0) {
       result.data.filter((notification) => !this.seen(notification)).forEach((trigger) => {
@@ -120,7 +128,7 @@ class TitleBarContainer extends Component {
                 primary: true
               }, {
                 name: 'Where',
-                onClick: (e) => { e.stopPropagation(); this.showLocations(trigger.locations); }
+                onClick: (e) => { e.stopPropagation(); this.handleTriggerClick(trigger.locations); }
               }
             ],
             dismissible: false,
@@ -687,6 +695,7 @@ LayoutDropDown.propTypes = {
 };
 
 TitleBarContainer.propTypes = {
+  adagucProperties: PropTypes.object,
   recentTriggers: PropTypes.array,
   notifications: PropTypes.array,
   isLoggedIn: PropTypes.bool,

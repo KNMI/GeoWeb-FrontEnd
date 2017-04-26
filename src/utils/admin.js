@@ -17,10 +17,10 @@ export function ReadLocations (callback) {
   }).then(src => {
     callback(JSON.parse(src.data.payload));
   }).catch(error => {
-    alert('Loading default list, because: ' + error.response.data.error);
+    console.error('Loading default list, because: ' + error.response.data.error);
     callback();
   });
-};
+}
 
 /*
   Saves the list of locations to the backend server
@@ -38,10 +38,10 @@ export function SaveLocations (data) {
     if (src.data.message === 'ok') {
       this.loadLocations();
     } else {
-      alert(src.data.message);
+      console.error(src.data.message);
     }
   }).catch(error => {
     /* istanbul ignore next */
     console.error(error);
   });
-};
+}

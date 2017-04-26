@@ -15,7 +15,7 @@
 // @role Object of type UserRoles
 // @return true if this role is indeed present in the role list
 export const CheckIfUserHasRole = (props, role) => {
-  let roles = props.roles ? props.roles : props;
+  const roles = props.roles ? props.roles : props;
   if (!(roles instanceof Array)) {
     return false;
   }

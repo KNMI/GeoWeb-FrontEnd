@@ -6,30 +6,27 @@ export var PresetURLWasLoaded = false;
 
 export function LoadURLPreset (props) {
   if (PresetURLWasLoaded === true) {
-    console.log('URL already loaded');
     return;
   }
   PresetURLWasLoaded = true;
 
   let presetName = '';
   const queryStringParts = window.location.href.split('?');
-  if (queryStringParts.length !== 2) return;
+  if (queryStringParts.length !== 2) {
+    return;
+  }
   const queryString = queryStringParts[1].split('#')[0];
   /* istanbul ignore next */
   if (queryString.length !== 0) {
     const urlParts = queryString.split('&');
     for (let j = 0; j < urlParts.length; j++) {
-      let kvp = urlParts[j].split('=');
-      if (kvp.length === 2) {
-        if (kvp[0] === 'url') {
-          presetName = kvp[1];
-        }
+      const kvp = urlParts[j].split('=');
+      if (kvp.length === 2 && kvp[0] === 'url') {
+        presetName = kvp[1];
       }
     }
 
-    console.log(presetName);
     if (validator.isUUID(presetName) === false) {
-      console.log('invalid preset URL detected');
       return;
     }
     axios({
@@ -42,10 +39,10 @@ export function LoadURLPreset (props) {
       const obj = JSON.parse(src.data.payload);
       props.dispatch(props.actions.setPreset(obj));
     }).catch(error => {
-      console.log(error);
+      console.error(error);
     });
   }
-};
+}
 
 export function SaveURLPreset (presetName, presetObj, callbackfunction) {
   /* istanbul ignore next */
@@ -67,4 +64,4 @@ export function SaveURLPreset (presetName, presetObj, callbackfunction) {
     console.error(error.data);
     callbackfunction({ status:'failed', message: 'failed' });
   });
-};
+}

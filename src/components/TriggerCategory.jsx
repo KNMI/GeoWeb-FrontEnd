@@ -15,7 +15,7 @@ class TriggerCategory extends Component {
     this.handleTriggerClick = this.handleTriggerClick.bind(this);
     this.setPreset = this.setPreset.bind(this);
     this.state = {
-      isOpen: props.isOpen,
+      isOpen: props.isOpen
     };
   }
 

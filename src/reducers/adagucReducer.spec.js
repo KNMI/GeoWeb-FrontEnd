@@ -46,7 +46,7 @@ describe('(Redux Module) Adaguc', () => {
 
     it('Should set the map state to have that bounding box', () => {
       let _globalState = { adagucProperties: { } };
-      let _dispatchSpy = sinon.spy((action) => {
+      const _dispatchSpy = sinon.spy((action) => {
         _globalState = {
           ..._globalState,
           adagucProperties : adagucReducer(_globalState.adagucProperties, action)
@@ -279,7 +279,7 @@ describe('(Redux Module) Adaguc', () => {
           ]
         ]
       }));
-      let newState = _getStateSpy();
+      const newState = _getStateSpy();
       expect(newState.adagucProperties.boundingBox).to.eql({ bbox: [0, 1, 1, -1] });
       expect(newState.adagucProperties.layout).to.equal('quadcol');
       expect(newState.adagucProperties.layers.panel).to.have.length(4);
@@ -328,24 +328,24 @@ describe('(Redux Module) Adaguc', () => {
 
     it('Allows settings a new dual layout', () => {
       _dispatchSpy(actions.setLayout('dualscreen'));
-      let newState = _getStateSpy();
+      const newState = _getStateSpy();
       expect(newState.adagucProperties.layout).to.equal('dualscreen');
       expect(newState.adagucProperties.activeMapId).to.equal(0);
 
       _dispatchSpy(actions.setLayout('uneventriple'));
-      newState = _getStateSpy();
-      expect(newState.adagucProperties.layout).to.equal('uneventriple');
-      expect(newState.adagucProperties.activeMapId).to.equal(0);
+      const unevenTripleState = _getStateSpy();
+      expect(unevenTripleState.adagucProperties.layout).to.equal('uneventriple');
+      expect(unevenTripleState.adagucProperties.activeMapId).to.equal(0);
 
       _dispatchSpy(actions.setLayout('quadsquare'));
-      newState = _getStateSpy();
-      expect(newState.adagucProperties.layout).to.equal('quadsquare');
-      expect(newState.adagucProperties.activeMapId).to.equal(0);
+      const squareState = _getStateSpy();
+      expect(squareState.adagucProperties.layout).to.equal('quadsquare');
+      expect(squareState.adagucProperties.activeMapId).to.equal(0);
     });
 
     it('Defaults to a single layout', () => {
       _dispatchSpy(actions.setLayout('@@@@'));
-      let newState = _getStateSpy();
+      const newState = _getStateSpy();
       expect(newState.adagucProperties.layout).to.equal('single');
       expect(newState.adagucProperties.activeMapId).to.equal(0);
     });
@@ -356,7 +356,7 @@ describe('(Redux Module) Adaguc', () => {
 
       _dispatchSpy(actions.setLayout('single'));
 
-      let newState = _getStateSpy();
+      const newState = _getStateSpy();
       expect(newState.adagucProperties.layout).to.equal('single');
       expect(newState.adagucProperties.activeMapId).to.equal(0);
     });
