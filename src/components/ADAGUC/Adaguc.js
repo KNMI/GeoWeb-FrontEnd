@@ -69,6 +69,7 @@ export default class Adaguc extends React.Component {
 
     setTimeout(function () { layer.parseLayer(this.updateLayer, true); }, 10000);
   }
+  /* istanbul ignore next */
   timeHandler () {
     const wmjstime = this.webMapJS.getDimension('time').currentValue;
     if (!this.prevTime) {
@@ -87,12 +88,14 @@ export default class Adaguc extends React.Component {
     this.webMapJS.setSize($(element).width(), $(element).height());
     this.webMapJS.draw();
   }
+  /* istanbul ignore next */
   updateBBOX () {
     const { dispatch, actions } = this.props;
     const bbox = this.webMapJS.getBBOX();
     dispatch(actions.setCut({ title: 'Custom', bbox: [bbox.left, bbox.bottom, bbox.right, bbox.top] }));
   }
 
+  /* istanbul ignore next */
   adagucBeforeDraw (ctx) {
     const { adagucProperties } = this.props;
     const { triggerLocations } = adagucProperties;
@@ -181,6 +184,7 @@ export default class Adaguc extends React.Component {
     LoadURLPreset(this.props);
   }
 
+  /* istanbul ignore next */
   componentWillUnmount () {
     // Unbind the resizelistener
     const element = document.querySelector('#adagucwrapper' + this.props.mapId).parentNode;
@@ -194,6 +198,7 @@ export default class Adaguc extends React.Component {
     }
   }
 
+  /* istanbul ignore next */
   orderChanged (currLayers, prevLayers) {
     if (currLayers.length !== prevLayers.length) {
       return true;
@@ -205,12 +210,14 @@ export default class Adaguc extends React.Component {
     }
     return false;
   }
+  /* istanbul ignore next */
   findClosestCursorLoc (event) {
     // Find the latlong from the pixel coordinate
     const latlong = this.webMapJS.getLatLongFromPixelCoord({ x: event.x, y: event.y });
     this.props.dispatch(this.props.actions.cursorLocation(latlong));
   }
 
+  /* istanbul ignore next */
   updateBoundingBox (boundingBox, prevBoundingBox) {
     if (boundingBox !== prevBoundingBox) {
       // eslint-disable-next-line no-undef
@@ -218,6 +225,7 @@ export default class Adaguc extends React.Component {
     }
   }
 
+  /* istanbul ignore next */
   updateTime (timedim, prevTime) {
     if (timedim !== prevTime) {
       // eslint-disable-next-line no-undef
@@ -225,6 +233,7 @@ export default class Adaguc extends React.Component {
     }
   }
 
+  /* istanbul ignore next */
   updateMapMode (mapMode, prevMapMode, active) {
     // Update mapmode
     if (mapMode !== prevMapMode) {
@@ -277,6 +286,7 @@ export default class Adaguc extends React.Component {
   }
 
   // Returns true when the layers are actually different w.r.t. next layers, otherwise false
+  /* istanbul ignore next */
   updateBaselayers (baselayer, prevBaselayer, overlays, prevOverlays) {
     if (diff(baselayer, prevBaselayer) || diff(overlays, prevOverlays)) {
       // eslint-disable-next-line no-undef
@@ -296,6 +306,7 @@ export default class Adaguc extends React.Component {
   }
 
   // Returns true when the layers are actually different w.r.t. prev layers, otherwise false
+  /* istanbul ignore next */
   updateLayers (currDataLayers, prevDataLayers) {
     if (currDataLayers !== prevDataLayers) {
       if (this.orderChanged(currDataLayers, prevDataLayers)) {
@@ -370,7 +381,7 @@ export default class Adaguc extends React.Component {
     } else {
       this.webMapJS.stopAnimating();
     }
-  };
+  }
   toggleView () {
     this.setState({
       dropdownOpenView: !this.state.dropdownOpenView

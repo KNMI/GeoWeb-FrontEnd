@@ -16,6 +16,7 @@ export default class AdagucMeasureDistance extends Component {
     this.handleKeyDown = this.handleKeyDown.bind(this);
   }
 
+  /* istanbul ignore next */
   drawVertice (ctx, coord, selected, middle) {
     let w = 7;
     if (this.props.isInEditMode === false) {
@@ -51,6 +52,7 @@ export default class AdagucMeasureDistance extends Component {
     ctx.strokeRect(coord.x - 0.5, coord.y - 0.5, 1, 1);
   }
 
+  /* istanbul ignore next */
   drawTextBG (ctx, txt, x, y, fontSize) {
     ctx.textBaseline = 'top';
     ctx.fillStyle = '#FFF';
@@ -60,6 +62,7 @@ export default class AdagucMeasureDistance extends Component {
     ctx.fillText(txt, x, y);
   }
 
+  /* istanbul ignore next */
   adagucBeforeDraw (ctx) {
     /* adagucBeforeDraw is an event callback function which is triggered
      just before adagucviewer will flip the back canvas buffer to the front.
@@ -100,6 +103,7 @@ export default class AdagucMeasureDistance extends Component {
     this.drawTextBG(ctx, bearingText, mx, my + 16, 16);
   }
 
+  /* istanbul ignore next */
   adagucMouseMove (event) {
     /* adagucMouseMove is an event callback function which is triggered when the mouse moves over the map
       This event is only triggered if the map is in hover state.
@@ -129,6 +133,7 @@ export default class AdagucMeasureDistance extends Component {
     return false;
   }
 
+  /* istanbul ignore next */
   adagucMouseDown (event) {
     if (this.props.isInEditMode === false) {
       return;
@@ -148,6 +153,7 @@ export default class AdagucMeasureDistance extends Component {
                      True means that it is still possible to pan and drag the map while editing */
   }
 
+  /* istanbul ignore next */
   adagucMouseUp () {
     if (this.props.isInEditMode === false) {
       return;
@@ -157,6 +163,7 @@ export default class AdagucMeasureDistance extends Component {
     return false;
   }
 
+  /* istanbul ignore next */
   handleKeyDown (event) {
     const ESCAPE_KEY = 27;
     if (event.keyCode === ESCAPE_KEY && this.props.isInEditMode) {
@@ -167,6 +174,7 @@ export default class AdagucMeasureDistance extends Component {
     }
   }
 
+  /* istanbul ignore next */
   componentWillReceiveProps () {
     if (this.props.webmapjs !== undefined) {
       this.props.webmapjs.draw();
@@ -177,6 +185,7 @@ export default class AdagucMeasureDistance extends Component {
     document.addEventListener('keydown', this.handleKeyDown);
   }
 
+  /* istanbul ignore next */
   componentWillUnmount () {
     document.removeEventListener('keydown', this.handleKeyDown);
     const { webmapjs } = this.props;
@@ -189,6 +198,7 @@ export default class AdagucMeasureDistance extends Component {
     }
   }
 
+  /* istanbul ignore next */
   render () {
     const { webmapjs } = this.props;
     if (this.disabled === undefined) {
