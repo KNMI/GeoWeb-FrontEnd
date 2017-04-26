@@ -437,7 +437,15 @@ a.breadcrumb-active:hover, a.nav-link.active:hover {
   padding: 0;
 }
 
-.container-fluid div:not(.collapse):not(.dropdown-menu):not(.btn-group-vertical):not(.managementPanel):not(.loc-card):not(.managementRow):not(.rdt):not(.rdtPicker) {
+.innerContainer {
+  height: inherit;
+  display: inherit;
+  flex-direction: inherit;
+  flex: inherit;
+  padding: inherit;
+}
+
+.innerContainer div:not(.collapse):not(.dropdown-menu):not(.btn-group-vertical):not(.managementPanel):not(.loc-card):not(.managementRow):not(.rdt):not(.rdtPicker) {
   display: inherit;
 }
 

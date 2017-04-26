@@ -137,7 +137,8 @@ function setTimeDimension (timedim) {
   const isValidDate = moment(timedim).isValid();
   if (!isValidDate) {
     return null;
-  };
+  }
+
   return {
     type: SET_TIME_DIMENSION,
     payload: timedim

@@ -2,7 +2,6 @@ import React from 'react';
 import { default as MapActionsContainer } from './MapActionsContainer';
 import { mount, shallow } from 'enzyme';
 import sinon from 'sinon';
-
 const adagucProperties = {
   wmjslayers: {
     layers: [],
@@ -16,13 +15,11 @@ const adagucProperties = {
   mapMode: 'pan'
 };
 
-const emptyDispatch = () => {
-  // intentionally left blank
-};
+const emptyDispatch = () => null;
 const emptyActions = {
-  toggleAnimation: () => { /* intentionally left blank */ },
-  setTimeDimension: () => { /* intentionally left blank */ },
-  setMapMode: () => { /* intentionally left blank */ }
+  toggleAnimation: () => null,
+  setTimeDimension: () => null,
+  setMapMode: () => null
 };
 
 describe('(Container) MapActionsContainer', () => {
@@ -34,11 +31,11 @@ describe('(Container) MapActionsContainer', () => {
     const _component = mount(<MapActionsContainer adagucProperties={adagucProperties} dispatch={emptyDispatch} actions={emptyActions} />);
     expect(_component.type()).to.eql(MapActionsContainer);
   });
-  it('Allows for triggering toggleLayerChooser', () => {
-    const _component = mount(<MapActionsContainer adagucProperties={adagucProperties} dispatch={emptyDispatch} actions={emptyActions} />);
-    _component.instance().toggleLayerChooser();
-    expect('everything').to.be.ok();
-  });
+  // it('Allows for triggering toggleLayerChooser', () => {
+  //   const _component = mount(<MapActionsContainer adagucProperties={adagucProperties} dispatch={emptyDispatch} actions={emptyActions} />);
+  //   _component.instance().toggleLayerChooser();
+  //   expect('everything').to.be.ok();
+  // });
   it('Allows for triggering toggleAnimation', () => {
     const _component = mount(<MapActionsContainer adagucProperties={adagucProperties} dispatch={emptyDispatch} actions={emptyActions} />);
     _component.instance().toggleAnimation();
@@ -98,11 +95,11 @@ describe('(Container) MapActionsContainer', () => {
     _component.setState({ popoverOpen: true });
     expect('everything').to.be.ok();
   });
-  it('Allows for setting layerChooserOpen state', () => {
-    const _component = mount(<MapActionsContainer adagucProperties={adagucProperties} dispatch={emptyDispatch} actions={emptyActions} />);
-    _component.setState({ layerChooserOpen: true });
-    expect('everything').to.be.ok();
-  });
+  // it('Allows for setting layerChooserOpen state', () => {
+  //   const _component = mount(<MapActionsContainer adagucProperties={adagucProperties} dispatch={emptyDispatch} actions={emptyActions} />);
+  //   _component.setState({ layerChooserOpen: true });
+  //   expect('everything').to.be.ok();
+  // });
   it('Allows for creating a progtemp config', () => {
     const _component = mount(<MapActionsContainer adagucProperties={adagucProperties} dispatch={emptyDispatch} actions={emptyActions} />);
     const newAdaguc = {

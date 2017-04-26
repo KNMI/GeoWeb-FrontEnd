@@ -12,7 +12,12 @@ const mapStateToHeaderProps = (state) => {
     title: 'header',
     isLoggedIn: state.adagucProperties.user.isLoggedIn,
     userName: state.adagucProperties.user.userName,
-    roles: state.adagucProperties.user.roles
+    roles: state.adagucProperties.user.roles,
+    layout: state.adagucProperties.layout,
+    layers: state.adagucProperties.layers,
+    bbox: state.adagucProperties.boundingBox.bbox,
+    notifications: state.notifications,
+    recentTriggers: state.recentTriggers
   };
 };
 
@@ -20,6 +25,11 @@ const mapStateToEmptyProps = () => {
   return {};
 };
 
+const mapStateToSidebarProps = (state) => {
+  return {
+    recentTriggers: state.recentTriggers
+  };
+};
 const mapStateToMapProps = (state) => {
   return { adagucProperties: state.adagucProperties };
 };
@@ -45,7 +55,7 @@ export default () => ({
   title: 'Create SIGMET',
   components : {
     header: connect(mapStateToHeaderProps, mapDispatchToMainViewportProps)(TitleBarContainer),
-    leftSideBar: connect(mapStateToEmptyProps)(TasksContainer),
+    leftSideBar: connect(mapStateToSidebarProps)(TasksContainer),
     secondLeftSideBar: connect(mapStateToEmptyProps)(SigmetsContainer),
     map: connect(mapStateToMapProps, mapDispatchToMainViewportProps)(MapPanel),
     layerManager: connect(mapStateToLayerManagerProps, mapDispatchToMainViewportProps)(LayerManagerPanel),

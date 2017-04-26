@@ -2,7 +2,7 @@
 const path = require('path');
 const debug = require('debug')('app:config:project');
 const argv = require('yargs').argv;
-const ip = require('ip');
+// const ip = require('ip');
 
 debug('Creating default configuration.');
 // ========================================================
@@ -25,34 +25,12 @@ const config = {
   // ----------------------------------
   // Server Configuration
   // ----------------------------------
-  server_host : ip.address(), // use string 'localhost' to prevent exposure on local network
+  server_host : 'localhost', // ip.address(), // use string 'localhost' to prevent exposure on local network
   server_port : process.env.PORT || 3000,
 
   // ----------------------------------
   // Compiler Configuration
   // ----------------------------------
-  compiler_babel : {
-    cacheDirectory : true,
-    plugins        : ['transform-runtime', 'transform-class-properties'],
-    presets        : ['es2016', 'react', 'stage-3'],
-    env : {
-      test: {
-        plugins: [
-          ['istanbul', {
-            exclude: [
-              '**/*.spec.js'
-            ]
-          }]
-        ]
-      }
-    }
-  },
-
-  compiler_devtool         : 'source-map',
-  compiler_hash_type       : 'hash',
-  compiler_fail_on_warning : false,
-  compiler_quiet           : false,
-  compiler_public_path     : '/',
   compiler_stats           : {
     chunks : false,
     chunkModules : false,
@@ -63,14 +41,6 @@ const config = {
     'react-redux',
     'react-router',
     'redux'
-  ],
-
-  // ----------------------------------
-  // Test Configuration
-  // ----------------------------------
-  coverage_reporters : [
-    { type : 'text-summary' },
-    { type : 'lcov', subdir : 'lcov' }
   ]
 };
 
@@ -94,7 +64,6 @@ config.globals = {
   'NODE_ENV'     : config.env,
   '__DEV__'      : config.env === 'development',
   '__PROD__'     : config.env === 'production',
-  '__TEST__'     : config.env === 'test',
   '__COVERAGE__' : !argv.watch && config.env === 'test',
   '__BASENAME__' : JSON.stringify(process.env.BASENAME || '')
 };

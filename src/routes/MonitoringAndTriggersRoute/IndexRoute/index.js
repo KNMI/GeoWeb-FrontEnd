@@ -1,40 +1,61 @@
 import TasksContainer from '../../../containers/TasksContainer';
-import Inspector from '../../../components/Inspector';
-import Empty from '../../../components/Empty';
+import TriggersContainer from '../../../containers/TriggersContainer';
 import TitleBarContainer from '../../../containers/TitleBarContainer';
+import MapActionsContainer from '../../../containers/MapActionsContainer';
+import LayerManagerPanel from '../../../components/LayerManagerPanel';
+import MapPanel from '../../../components/MapPanel';
+import actions from '../../../actions/adaguc';
 import { connect } from 'react-redux';
 
-const mapStateToHeaderProps = () => {
+const mapStateToHeaderProps = (state) => {
   return {
     title: 'header',
-    isLoggedIn: false
+    isLoggedIn: false,
+    layout: state.adagucProperties.layout,
+    layers: state.adagucProperties.layers,
+    bbox: state.adagucProperties.boundingBox.bbox,
+    notifications: state.notifications,
+    recentTriggers: state.recentTriggers
   };
 };
 
-const mapStateToLeftSideBarProps = () => {
-  return { title: 'leftSideBar Monitoring' };
+const mapStateToSidebarProps = (state) => {
+  return {
+    recentTriggers: state.recentTriggers
+  };
 };
 
-const mapStateToEmptyProps = () => {
-  return {};
+const mapStateToMapProps = (state) => {
+  return {
+    adagucProperties: state.adagucProperties,
+    recentTriggers: state.recentTriggers
+  };
 };
 
-const mapStateToMainViewportProps = () => {
-  return { title: 'main Monitoring' };
+const mapStateToLayerManagerProps = (state) => {
+  return { adagucProperties: state.adagucProperties };
 };
 
-const mapStateToRightSideBarProps = () => {
-  return { title: 'rightSideBar Monitoring' };
+const mapStateToRightSideBarProps = (state) => {
+  return { adagucProperties: state.adagucProperties };
+};
+
+const mapDispatchToMainViewportProps = function (dispatch) {
+  return ({
+    dispatch: dispatch,
+    actions: actions
+  });
 };
 
 // Sync route definition
 export default () => ({
   title: 'Monitoring & Triggers',
   components : {
-    header: connect(mapStateToHeaderProps)(TitleBarContainer),
-    leftSideBar: connect(mapStateToLeftSideBarProps)(Inspector),
-    secondLeftSideBar: connect(mapStateToEmptyProps)(Empty),
-    mainViewport: connect(mapStateToMainViewportProps)(TasksContainer),
-    rightSideBar: connect(mapStateToRightSideBarProps)(Inspector)
+    header: connect(mapStateToHeaderProps, mapDispatchToMainViewportProps)(TitleBarContainer),
+    leftSideBar: connect(mapStateToSidebarProps)(TasksContainer),
+    secondLeftSideBar: connect(mapStateToMapProps, mapDispatchToMainViewportProps)(TriggersContainer),
+    map: connect(mapStateToMapProps, mapDispatchToMainViewportProps)(MapPanel),
+    layerManager: connect(mapStateToLayerManagerProps, mapDispatchToMainViewportProps)(LayerManagerPanel),
+    rightSideBar: connect(mapStateToRightSideBarProps, mapDispatchToMainViewportProps)(MapActionsContainer)
   }
 });

@@ -46,7 +46,6 @@ const items = [
       { title: 'Warnings' },
       {
         title: 'SIGMETs',
-        notifications: 4,
         link: 'products/sigmets'
       },
       { title: 'Forecasts' },
@@ -65,7 +64,7 @@ const items = [
   {
     title: 'Monitoring & Triggers',
     icon: 'bell-o',
-    link: 'triggers',
+    link: 'monitoring_and_triggers',
     tasks: [
       { title: 'Extremes' },
       { title: 'Alarms' }
@@ -133,7 +132,18 @@ class TasksContainer extends Component {
     clearElmt.classList.remove('focus');
   }
 
+  setNotifications (list, linkName, notificationCount) {
+    const newItems = cloneDeep(list).map((item) => {
+      if (item.link === linkName) {
+        item.notifications = notificationCount;
+      }
+      return item;
+    });
+    return newItems;
+  }
+
   render () {
+    const triggers = this.props.recentTriggers || [];
     let title = <Row>
       <Button color='primary' onClick={this.toggle} title={this.state.isOpen ? 'Collapse panel' : 'Expand '}>
         <Icon name={this.state.isOpen ? 'angle-double-left' : 'angle-double-right'} />
@@ -157,12 +167,14 @@ class TasksContainer extends Component {
       }
       return true;
     });
+
+    const notifiedItems = this.setNotifications(filteredItems, 'monitoring_and_triggers', triggers.filter((trigger) => !trigger.discarded).length);
     return (
       <Col className='TasksContainer'>
         <CollapseOmni className='CollapseOmni' isOpen={this.state.isOpen} isHorizontal minSize={64} maxSize={300}>
           <Panel className='Panel' title={title}>
             <Col xs='auto' className='accordionsWrapper'>
-              {filteredItems.map((item, index) =>
+              {notifiedItems.map((item, index) =>
                 <TaskCategory key={index} title={item.title} isOpen={this.state.isOpen && hasFilter} parentCollapsed={!this.state.isOpen}
                   icon={item.icon} notifications={item.notifications} link={item.link} tasks={item.tasks} />
               )}
@@ -175,7 +187,7 @@ class TasksContainer extends Component {
 }
 
 TasksContainer.propTypes = {
-  title: PropTypes.string
+  recentTriggers: PropTypes.array
 };
 
 class TaskCategory extends Component {

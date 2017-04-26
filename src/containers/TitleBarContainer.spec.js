@@ -13,11 +13,13 @@ const emptyObj = {
 
 describe('(Component) TitleBarContainer', () => {
   let _component;
+  const _logoutaction = sinon.spy();
+
   beforeEach(() => {
-    _component = mount(<TitleBarContainer actions={emptyObj} adagucProperties={emptyObj} dispatch={emptyFunc} routes={[ { path: 'testpath' } ]} />);
+    _component = mount(<TitleBarContainer actions={{ logout:_logoutaction }} adagucProperties={emptyObj} dispatch={emptyFunc} routes={[ { path: 'testpath' } ]} />);
   });
   it('Renders nested routes', () => {
-    _component = mount(<TitleBarContainer actions={emptyObj} adagucProperties={emptyObj} dispatch={emptyFunc} routes={[
+    _component = mount(<TitleBarContainer actions={{ logout:_logoutaction }} adagucProperties={emptyObj} dispatch={emptyFunc} routes={[
       { path: 'testpathA', indexRoute: { title: 'testpathAtitle' } },
       { path: 'testpathB', indexRoute: { title: 'testpathBtitle' } },
       { path: 'testpathC', indexRoute: { title: 'testpathCtitle' } }
@@ -121,7 +123,7 @@ describe('(Component) TitleBarContainer', () => {
   it('Calls the setTime function and checks wheter state is updated', () => {
     _component = mount(
       <TitleBarContainer
-        actions={emptyObj}
+        actions={{ logout:_logoutaction }}
         adagucProperties={{ user: { isLoggedIn: true, userName: 'Blah' } }}
         dispatch={emptyFunc}
         routes={[ { path: 'testpath' } ]}
