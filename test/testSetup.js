@@ -1,4 +1,4 @@
-import jsdom from 'jsdom';
+const { JSDOM } = require('jsdom');
 import chai from 'chai';
 import sinon from 'sinon';
 import chaiAsPromised from 'chai-as-promised';
@@ -15,16 +15,17 @@ global.chai = chai;
 global.sinon = sinon;
 global.should = chai.should();
 
-const doc = jsdom.jsdom('<!doctype html><html><body></body></html>');
-const win = doc.defaultView;
-if (!doc.requestAnimationFrame) {
-  doc.requestAnimationFrame = requestAnimationFrame;
-  win.requestAnimationFrame = requestAnimationFrame;
+const jsdom = new JSDOM('<!doctype html><html><body></body></html>');
+const { window } = jsdom;
+const { document } = window;
+if (!document.requestAnimationFrame) {
+  document.requestAnimationFrame = requestAnimationFrame;
+  window.requestAnimationFrame = requestAnimationFrame;
   jsdom.requestAnimationFrame = requestAnimationFrame;
 }
 
-global.document = doc;
-global.window = win;
+global.document = document;
+global.window = window;
 
 Object.keys(window).forEach((key) => {
   if (!(key in global)) {

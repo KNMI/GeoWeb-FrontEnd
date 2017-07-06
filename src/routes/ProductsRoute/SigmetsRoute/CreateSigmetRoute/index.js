@@ -1,11 +1,10 @@
-import TasksContainer from '../../../../containers/TasksContainer';
-import SigmetsContainer from '../../../../containers/SigmetsContainer';
-import MapActionsContainer from '../../../../containers/MapActionsContainer';
-import MapPanel from '../../../../components/MapPanel';
-import LayerManagerPanel from '../../../../components/LayerManagerPanel';
-import TitleBarContainer from '../../../../containers/TitleBarContainer';
-import { connect } from 'react-redux';
-import actions from '../../../../actions/adaguc';
+import TasksContainer from '../../../../containers/TasksContainer'
+import SigmetsContainer from '../../../../containers/SigmetsContainer'
+import MapActionsContainer from '../../../../containers/MapActionsContainer'
+import MapPanel from '../../../../components/MapPanel'
+import LayerManagerPanel from '../../../../components/LayerManagerPanel'
+import TitleBarContainer from '../../../../containers/TitleBarContainer'
+import {connect} from 'react-redux'
 
 const mapStateToHeaderProps = (state) => {
   return {
@@ -19,42 +18,41 @@ const mapStateToHeaderProps = (state) => {
     notifications: state.notifications,
     recentTriggers: state.recentTriggers,
     adagucProperties: state.adagucProperties
-  };
-};
+  }
+}
 
 const mapStateToEmptyProps = () => {
-  return {};
-};
+  return {}
+}
 
 const mapStateToSidebarProps = (state) => {
   return {
     recentTriggers: state.recentTriggers
-  };
-};
+  }
+}
 const mapStateToMapProps = (state) => {
-  return { adagucProperties: state.adagucProperties };
-};
+  return {adagucProperties: state.adagucProperties}
+}
 
 const mapStateToLayerManagerProps = (state) => {
-  return { adagucProperties: state.adagucProperties };
-};
+  return {adagucProperties: state.adagucProperties}
+}
 
 const mapDispatchToMainViewportProps = function (dispatch) {
   return ({
-    dispatch: dispatch,
-    actions: actions
-  });
-};
+    dispatch: dispatch
+  })
+}
 
 const mapStateToRightSideBarProps = (state) => {
-  return { adagucProperties: state.adagucProperties };
-};
+  return {adagucProperties: state.adagucProperties}
+}
 
 // Sync route definition
 export default () => ({
   path: 'create_sigmet',
   title: 'Create SIGMET',
-  components : {
+  components: {
     header: connect(mapStateToHeaderProps, mapDispatchToMainViewportProps)(TitleBarContainer),
     leftSideBar: connect(mapStateToSidebarProps)(TasksContainer),
     secondLeftSideBar: connect(mapStateToEmptyProps)(SigmetsContainer),
@@ -62,4 +60,4 @@ export default () => ({
     layerManager: connect(mapStateToLayerManagerProps, mapDispatchToMainViewportProps)(LayerManagerPanel),
     rightSideBar: connect(mapStateToRightSideBarProps, mapDispatchToMainViewportProps)(MapActionsContainer)
   }
-});
+})

@@ -132,7 +132,7 @@ class SigmetsContainer extends Component {
   }
 
   drawSIGMET (geojson) {
-    this.props.dispatch(this.props.actions.setGeoJSON({ geojson: geojson }));
+    this.props.dispatch(this.props.drawActions.setGeoJSON(geojson));
   }
 
   render () {
@@ -149,7 +149,8 @@ class SigmetsContainer extends Component {
             <Col xs='auto' className='accordionsWrapper' style={{ minWidth: maxSize - 32 }}>
               {ITEMS.map((item, index) =>
                 <SigmetCategory phenomenonMapping={this.state.phenomena || []} adagucProperties={this.props.adagucProperties}
-                  key={index} title={item.title} parentCollapsed={!this.state.isOpen}
+                  key={index} title={item.title} parentCollapsed={!this.state.isOpen} drawProperties={this.props.drawProperties}
+                  mapActions={this.props.mapActions} layerActions={this.props.layerActions}
                   icon={item.icon} source={item.source} editable={item.editable} latestUpdateTime={this.state.latestUpdateTime}
                   isOpen={this.state.isOpen && this.state.isOpenCategory[item.ref]}
                   selectedIndex={typeof this.state.selectedItem.index !== 'undefined' && this.state.selectedItem.category === item.ref ? this.state.selectedItem.index : -1}

@@ -1,13 +1,13 @@
-import SigmetParameterManagementPanel from '../../../../../components/Management/SigmetParameterManagementPanel';
-import TitleBarContainer from '../../../../../containers/TitleBarContainer';
-import SidebarContainer from '../../../../../containers/Management/SidebarContainer';
-import Empty from '../../../../../components/Empty';
-import { connect } from 'react-redux';
-import actions from '../../../../../actions/adaguc';
+import SigmetParameterManagementPanel from '../../../../../components/Management/SigmetParameterManagementPanel'
+import TitleBarContainer from '../../../../../containers/TitleBarContainer'
+import SidebarContainer from '../../../../../containers/Management/SidebarContainer'
+import Empty from '../../../../../components/Empty'
+import {connect} from 'react-redux'
+// import actions from '../../../../../actions/adaguc';
 
 const mapStateToMapProps = (state) => {
-  return { adagucProperties: state.adagucProperties };
-};
+  return {adagucProperties: state.adagucProperties}
+}
 const mapStateToHeaderProps = (state) => {
   return {
     title: 'header',
@@ -19,21 +19,21 @@ const mapStateToHeaderProps = (state) => {
     bbox: state.adagucProperties.boundingBox.bbox,
     notifications: state.notifications,
     recentTriggers: state.recentTriggers
-  };
-};
+  }
+}
 
 const mapDispatchToMainViewportProps = function (dispatch) {
   return ({
-    dispatch: dispatch,
-    actions: actions
-  });
-};
+    dispatch: dispatch
+    // actions: actions
+  })
+}
 
 // Sync route definition
 export default () => ({
   path: 'parameters',
   title: 'Parameters',
-  components : {
+  components: {
     header: connect(mapStateToHeaderProps, mapDispatchToMainViewportProps)(TitleBarContainer),
     leftSideBar: SidebarContainer,
     secondLeftSideBar: Empty,
@@ -41,4 +41,4 @@ export default () => ({
     layerManager: Empty,
     rightSideBar: Empty
   }
-});
+})

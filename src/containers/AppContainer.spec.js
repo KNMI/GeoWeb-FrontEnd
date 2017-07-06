@@ -1,8 +1,8 @@
-import React from 'react';
+import React from 'react'
 // eslint-disable-next-line no-unused-vars
-import { default as AppContainer } from './AppContainer';
-import { shallow } from 'enzyme';
-import { Provider } from 'react-redux';
+import {default as AppContainer} from './AppContainer'
+import {shallow} from 'enzyme'
+import {Provider} from 'react-redux'
 
 describe('(Container) AppContainer', () => {
   // These things are required....
@@ -26,9 +26,9 @@ describe('(Container) AppContainer', () => {
     unsubscribeHistory: () => {
       // intentionally left blank
     }
-  };
+  }
   it('Renders a Redux Provider', () => {
-    const _component = shallow(<AppContainer routes={{}} store={store} />);
-    expect(_component.type()).to.eql(Provider);
-  });
-});
+    const _component = shallow(<AppContainer routes={{}} store={store} />)
+    expect(_component.type()).to.eql(Provider)
+  })
+})

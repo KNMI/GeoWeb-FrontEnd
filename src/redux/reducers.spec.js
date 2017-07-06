@@ -4,4 +4,4 @@
 
 describe('(Store) reducers', () => {
   // intentionally left blank
-});
+})

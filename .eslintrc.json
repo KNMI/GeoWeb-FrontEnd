@@ -1,22 +1,14 @@
 {
-  "ecmaVersion": 7,
-  "parser": "babel-eslint",
-  "extends": [
-    "standard",
-    "standard-react"
-  ],
-  "plugins": [
-    "babel",
-    "react",
-    "promise",
-    "json"
-  ],
+    "parserOptions": {
+	"ecmaVersion": 7
+    },
   "env": {
     "browser" : true,
     "mocha"   : true
   },
+
   "globals": {
-    "__DEV__"      : false,
+    "__DEV__"	   : false,
     "__TEST__"     : false,
     "__PROD__"     : false,
     "__COVERAGE__" : false,
@@ -26,11 +18,9 @@
     "windows": false,
     "document": false
   },
-  "rules": {
-    "semi"                 : [1, "always"],
-    "key-spacing"          : 0,
-    "jsx-quotes"           : [2, "prefer-single"],
-    "max-len"              : [2, 200, 2],
-    "object-curly-spacing" : [2, "always"]
-  }
+    "plugins": [
+     "chai-expect"
+    ],
+    "parser": "babel-eslint",
+    "extends": ["standard", "standard-react"]
 }

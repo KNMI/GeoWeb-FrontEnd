@@ -1,6 +1,6 @@
-import IndexRoute from './IndexRoute';
-import ParameterRoute from './ParameterRoute';
-import PhenomenaRoute from './PhenomenaRoute';
+import IndexRoute from './IndexRoute'
+import ParameterRoute from './ParameterRoute'
+import PhenomenaRoute from './PhenomenaRoute'
 
 export default (store) => ({
   path: 'sigmet',
@@ -9,4 +9,4 @@ export default (store) => ({
     ParameterRoute(),
     PhenomenaRoute()
   ]
-});
+})

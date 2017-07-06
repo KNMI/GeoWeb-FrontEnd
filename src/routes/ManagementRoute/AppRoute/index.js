@@ -1,5 +1,5 @@
-import IndexRoute from './IndexRoute';
-import LocationRoute from './LocationRoute';
+import IndexRoute from './IndexRoute'
+import LocationRoute from './LocationRoute'
 
 export default (store) => ({
   path: 'app',
@@ -7,4 +7,4 @@ export default (store) => ({
   childRoutes: [
     LocationRoute()
   ]
-});
+})

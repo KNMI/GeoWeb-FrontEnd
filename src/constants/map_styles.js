@@ -4,7 +4,7 @@ const OSM_STYLE = {
   title: 'OpenStreetMap',
   format: 'image/gif',
   enabled: true
-};
+}
 const MWS_STYLE = {
   service: 'http://geoservices.knmi.nl/cgi-bin/worldmaps.cgi?',
   name: 'mwsmap',
@@ -12,5 +12,5 @@ const MWS_STYLE = {
   title: 'MWS',
   format: 'image/png',
   enabled: true
-};
-export const MAP_STYLES = [MWS_STYLE, OSM_STYLE];
+}
+export const MAP_STYLES = [MWS_STYLE, OSM_STYLE]

@@ -124,8 +124,10 @@ export default class TimeseriesComponent extends Component {
 
   /* istanbul ignore next */
   fetchNewLocationData (cursor, wmjslayers, adagucTime) {
+    console.log('Fetching new location data');
     const { location } = cursor;
     const harmlayer = wmjslayers.layers.filter((layer) => layer.service.includes('HARM'))[0];
+    console.log(harmlayer)
     if (!harmlayer) return;
     const refTime = harmlayer.getDimension('reference_time').currentValue;
     this.toggleCanvas();
@@ -222,24 +224,25 @@ LAYERS=&QUERY_LAYERS=air_pressure_at_sea_level,wind__at_10m,dew_point_temperatur
   }
   /* istanbul ignore next */
   componentWillReceiveProps (nextProps) {
-    const { adagucProperties } = nextProps;
-    const { layers, wmjslayers, cursor } = adagucProperties;
-
+    const { adagucProperties, layers, mapProperties } = nextProps;
+    const { cursor } = adagucProperties;
+    const { wmjsLayers } = layers;
+    console.log(wmjsLayers, mapProperties, adagucProperties);
     // No layers or not in progtemp mode so no need to draw
-    if (!wmjslayers || !wmjslayers.layers || adagucProperties.mapMode !== 'timeseries') {
+    if (!wmjsLayers || !wmjsLayers.layers || mapProperties.mapMode !== 'timeseries') {
       return;
     }
 
     // If there is no HARMONIE layer we can also abort.
-    if (wmjslayers.layers.length > 0 && layers.panel[adagucProperties.activeMapId].datalayers.filter((layer) => layer.title && layer.title.includes('HARM')).length > 0) {
-      const harmlayer = wmjslayers.layers.filter((layer) => layer.service && layer.service.includes('HARM'))[0];
+    if (wmjsLayers.layers.length > 0 && wmjsLayers.layers.filter((layer) => layer.service && layer.service.includes('HARM')).length > 0) {
+      const harmlayer = wmjsLayers.layers.filter((layer) => layer.service && layer.service.includes('HARM'))[0];
       if (!harmlayer) return;
       this.referenceTime = harmlayer.getDimension('reference_time').currentValue;
     }
 
     // Refetch data if there is a location change (either due to pre-chosen location or mapclick)
     if (cursor && this.props.adagucProperties.cursor !== cursor) {
-      this.fetchNewLocationData(cursor, wmjslayers, adagucProperties.timedim);
+      this.fetchNewLocationData(cursor, wmjsLayers, adagucProperties.timeDimension);
     }
     this.setState({ });
   }
@@ -258,7 +261,7 @@ LAYERS=&QUERY_LAYERS=air_pressure_at_sea_level,wind__at_10m,dew_point_temperatur
   }
   /* istanbul ignore next */
   setChosenLocation (loc) {
-    this.props.dispatch(this.props.actions.cursorLocation(loc[0]));
+    this.props.dispatch(this.props.adagucActions.setCursorLocation(loc[0]));
   }
   /* istanbul ignore next */
   toggleCanvas () {
@@ -275,7 +278,7 @@ LAYERS=&QUERY_LAYERS=air_pressure_at_sea_level,wind__at_10m,dew_point_temperatur
     const { cx, cy, stroke, key } = props;
     if (cx === +cx && cy === +cy) {
       const dotDate = moment.utc(props.payload.date, 'MMM DD HH:mm');
-      const adagucDate = moment.utc(this.props.adagucProperties.timedim);
+      const adagucDate = moment.utc(this.props.adagucProperties.timeDimension);
       if (dotDate.hour() === adagucDate.hour() && dotDate.day() === adagucDate.day() && dotDate.month() === adagucDate.month() && dotDate.year() === adagucDate.year()) {
         return <circle cx={cx} cy={cy} r={3} stroke={stroke} fill={stroke} key={key} />;
       } else {
@@ -337,9 +340,11 @@ LAYERS=&QUERY_LAYERS=air_pressure_at_sea_level,wind__at_10m,dew_point_temperatur
   }
   /* istanbul ignore next */
   render () {
-    const { cursor, wmjslayers, timedim } = this.props.adagucProperties;
+    const { cursor, timeDimension } = this.props.adagucProperties;
+    console.log(timeDimension)
+    const { wmjsLayers } = this.props.layers;
     if (cursor && !this.state.timeData) {
-      this.fetchNewLocationData(cursor, wmjslayers, timedim);
+      this.fetchNewLocationData(cursor, wmjsLayers, timedim);
     }
     const maxWidth = this.state.canvasWidth + 'px';
     const maxHeight = this.state.canvasHeight + 'px';

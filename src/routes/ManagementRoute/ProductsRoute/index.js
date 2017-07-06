@@ -1,6 +1,6 @@
-import IndexRoute from './IndexRoute';
-import ProgtempRoute from './ProgtempRoute';
-import SigmetRoute from './SigmetRoute';
+import IndexRoute from './IndexRoute'
+import ProgtempRoute from './ProgtempRoute'
+import SigmetRoute from './SigmetRoute'
 
 export default (store) => ({
   path: 'products',
@@ -9,4 +9,4 @@ export default (store) => ({
     ProgtempRoute(),
     SigmetRoute()
   ]
-});
+})

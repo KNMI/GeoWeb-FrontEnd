@@ -167,7 +167,6 @@ class TasksContainer extends Component {
       }
       return true;
     });
-
     const notifiedItems = this.setNotifications(filteredItems, 'monitoring_and_triggers', triggers.filter((trigger) => !trigger.discarded).length);
     return (
       <Col className='TasksContainer'>

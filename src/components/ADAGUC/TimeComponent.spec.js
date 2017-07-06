@@ -1,14 +1,14 @@
-import React from 'react';
-import { default as TimeComponent } from './TimeComponent';
-import { shallow } from 'enzyme';
-import { Col } from 'reactstrap';
+import React from 'react'
+import {default as TimeComponent} from './TimeComponent'
+import {shallow} from 'enzyme'
+import {Col} from 'reactstrap'
 describe('(Component) TimeComponent', () => {
-  let _timeComponent;
+  let _timeComponent
   beforeEach(() => {
-    _timeComponent = shallow(<TimeComponent />);
-  });
+    _timeComponent = shallow(<TimeComponent />)
+  })
 
   it('Renders a Col', () => {
-    expect(_timeComponent.type()).to.eql(Col);
-  });
-});
+    expect(_timeComponent.type()).to.eql(Col)
+  })
+})

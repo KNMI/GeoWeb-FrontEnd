@@ -1,5 +1,5 @@
-import React from 'react';
-import DuckImage from '../assets/Duck.jpg';
+import React from 'react'
+import DuckImage from '../assets/Duck.jpg'
 
 export const FileNotFound = () => (
   <div>
@@ -9,6 +9,6 @@ export const FileNotFound = () => (
       className='duck'
       src={DuckImage} />
   </div>
-);
+)
 
-export default FileNotFound;
+export default FileNotFound

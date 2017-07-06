@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Button, Col, Popover, PopoverContent, ButtonGroup, TabContent, TabPane, Nav, NavItem, NavLink, Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
+import { Button, Col, Popover, InputGroup, InputGroupButton, Input, PopoverContent, ButtonGroup, TabContent, TabPane, Nav, NavItem, NavLink, Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
 import { BOUNDING_BOXES } from '../constants/bounding_boxes';
 import { Icon } from 'react-fa';
 import classnames from 'classnames';
@@ -38,11 +38,13 @@ class MapAnimationControlsContainer extends Component {
   }
 
   handleAddLayer (e) {
+    const { dispatch, layerActions, mapProperties, activeMapId } = this.props;
+    console.log('handleaddlayer: ', this.props)
     const addItem = e[0];
     if (!this.state.overlay) {
-      this.props.dispatch(this.props.actions.addLayer({ service: this.state.selectedSource.service, title: this.state.selectedSource.title, name: addItem.id, label: addItem.label, opacity: 1 }));
+      dispatch(layerActions.addLayer({ activeMapId: activeMapId, layer: { service: this.state.selectedSource.service, title: this.state.selectedSource.title, name: addItem.id, label: addItem.label, opacity: 1 }}));
     } else {
-      this.props.dispatch(this.props.actions.addOverlayLayer({ service: this.state.selectedSource.service, title: this.state.selectedSource.title, name: addItem.id, label: addItem.label }));
+      dispatch(layerActions.addOverlaysLayer({ activeMapId: activeMapId, layer: { service: this.state.selectedSource.service, title: this.state.selectedSource.title, name: addItem.id, label: addItem.label }}));
     }
     this.setState({
       layerChooserOpen: false,
@@ -67,40 +69,34 @@ class MapAnimationControlsContainer extends Component {
   handleSourceClick (e) {
     const { adagucProperties } = this.props;
     const { sources } = adagucProperties;
-    let selectedSource = sources.data.filter((source) => source.name === e.currentTarget.id);
-    if (!selectedSource || selectedSource.length === 0) {
-      selectedSource = sources.overlay.filter((source) => source.name === e.currentTarget.id);
-      this.setState({ overlay: true });
-    } else {
-      this.setState({ overlay: false });
-    }
-    const selectedService = selectedSource[0];
+    let selectedSource = sources.filter((source) => source.name === e.currentTarget.id)[0];
+
+    this.setState({ overlay: selectedSource.name === 'OVL' || selectedSource.goal === 'OVERLAY' });
 
     // eslint-disable-next-line no-undef
-    var srv = WMJSgetServiceFromStore(selectedService.service);
-    this.setState({ selectedSource: selectedService });
+    var srv = WMJSgetServiceFromStore(selectedSource.service);
+    this.setState({ selectedSource: selectedSource });
     srv.getLayerObjectsFlat((layers) => this.generateMap(layers), (err) => { throw new Error(err); });
   }
-
   toggleLayerChooser () {
     this.setState({ layerChooserOpen: !this.state.layerChooserOpen });
   }
   toggleAnimation () {
-    const { dispatch, actions } = this.props;
-    dispatch(actions.toggleAnimation());
+    const { dispatch, adagucActions } = this.props;
+    dispatch(adagucActions.toggleAnimation());
   }
   togglePopside () {
     this.setState({ popoverOpen: !this.state.popoverOpen });
   }
   goToNow () {
-    const { dispatch, actions } = this.props;
+    const { dispatch, adagucActions } = this.props;
     // eslint-disable-next-line no-undef
     let currentDate = getCurrentDateIso8601();
-    dispatch(actions.setTimeDimension(currentDate.toISO8601()));
+    dispatch(adagucActions.setTimeDimension(currentDate.toISO8601()));
   }
   setView (e) {
-    const { dispatch, actions } = this.props;
-    dispatch(actions.setCut(BOUNDING_BOXES[e.currentTarget.id]));
+    const { dispatch, mapActions } = this.props;
+    dispatch(mapActions.setCut(BOUNDING_BOXES[e.currentTarget.id]));
     this.setState({ popoverOpen: false });
   }
   renderPopOver () {
@@ -147,16 +143,37 @@ class MapAnimationControlsContainer extends Component {
   renderSourceSelector () {
     const { adagucProperties } = this.props;
     const { sources } = adagucProperties;
-    return <div>{sources.data.map((src, i) => <Button id={src.name} key={i} onClick={this.handleSourceClick}>{this.getLayerName(src)}</Button>)}
-      {sources.overlay.map((src, i) => <Button id={src.name} key={i} onClick={this.handleSourceClick}>{this.getLayerName(src)}</Button>)}</div>;
+    return <div>{sources.map((src, i) => <Button id={src.name} key={i} onClick={this.handleSourceClick}>{this.getLayerName(src)}</Button>)}</div>
   }
   renderPresetSelector () {
-    return <Button onClick={this.setPreset}>SIGMET Thunderstorm</Button>;
+    return <Typeahead ref={ref => { this._typeahead = ref; }} filterBy={['name', 'keywords']} labelKey='name' options={this.state.presets} onChange={(ph) => this.setPreset(ph)} />;
   }
 
-  setPreset () {
+  renderURLInput () {
+    var unit = document.getElementById('sourceurlinput');
+    if (unit && !this.urlinputhandlerinit) {
+      this.urlinputhandlerinit = true;
+      unit.addEventListener('keyup', function (event) {
+        event.preventDefault();
+        if (event.keyCode === 13) {
+          this.handleAddSource();
+        }
+      }.bind(this));
+    }
+
+    return (
+      <InputGroup>
+        <Input id='sourceurlinput' ref={ref => { this._urlinput = ref; }} placeholder='Add your own source' disabled={this.state.getCapBusy} />
+        <InputGroupButton>
+          <Button color='primary' onClick={this.handleAddSource} disabled={this.state.getCapBusy}>Add</Button>
+        </InputGroupButton>
+      </InputGroup>
+    );
+  }
+
+  setPreset (preset) {
     const { dispatch, actions } = this.props;
-    dispatch(actions.prepareSIGMET());
+    dispatch(actions.setPreset(preset[0]));
     this.setState({
       layerChooserOpen: false,
       activeTab: '1',
@@ -167,6 +184,7 @@ class MapAnimationControlsContainer extends Component {
       presetUnit: null
     });
   }
+
 
   renderLayerChooser () {
     return (<Modal id='addLayerModal' isOpen={this.state.layerChooserOpen} toggle={this.toggleLayerChooser}>
@@ -179,12 +197,12 @@ class MapAnimationControlsContainer extends Component {
         </NavItem>
         <NavItem>
           <NavLink id='tab2' className={classnames({ active: this.state.activeTab === '2' })} onClick={(e) => { this.toggleTab(e); }} disabled={!this.state.selectedSource}>
-            {this.state.action ? (this.state.action === 'addLayer' ? '(2) - Select Source' : '(2) - Select Preset') : ''}
+            {this.state.action ? (this.state.action === 'addLayer' ? '(2) - Select Source' : (this.state.action === 'selectPreset' ? '(2) - Select Preset' : '(2) - Enter URL')) : ''}
           </NavLink>
         </NavItem>
         <NavItem>
           <NavLink id='tab3' className={classnames({ active: this.state.activeTab === '3' })} onClick={(e) => { this.toggleTab(e); }} disabled={!this.state.selectedSource}>
-            {this.state.action ? (this.state.action === 'selectPreset' ? '' : '(3) - Select ' + this.getLayerName(this.state.selectedSource) + ' Layer') : ''}
+            {this.state.action ? (this.state.action === 'addLayer' ? '(3) - Select ' + this.getLayerName(this.state.selectedSource) + ' Layer' : '') : ''}
           </NavLink>
         </NavItem>
       </Nav>
@@ -192,17 +210,22 @@ class MapAnimationControlsContainer extends Component {
       <ModalBody>
         <TabContent activeTab={this.state.activeTab}>
           <TabPane tabId='1'>
-            <Button onClick={() => this.setState({ action: 'addLayer', activeTab: '2' })}>Add Layer</Button>
-            <Button onClick={() => this.setState({ action: 'selectPreset', activeTab: '2' })}>Select Preset</Button>
+            <ButtonGroup>
+              <Button onClick={() => this.setState({ action: 'addLayer', activeTab: '2' })}>Add Layer</Button>
+              <Button onClick={() => { this.setState({ action: 'selectPreset', activeTab: '2' }); setTimeout(() => this._typeahead.getInstance().focus(), 100); }}>Select Preset</Button>
+              <Button onClick={() => { this.setState({ action: 'addCustomData', activeTab: '2' }); setTimeout(() => document.getElementById('sourceurlinput').focus(), 100); }}>Add Custom data</Button>
+            </ButtonGroup>
           </TabPane>
 
           <TabPane tabId='2'>
             {this.state.action === 'addLayer'
               ? this.renderSourceSelector()
-              : this.renderPresetSelector()}
+              : this.state.action === 'selectPreset'
+              ? this.renderPresetSelector()
+              : this.renderURLInput()}
           </TabPane>
           <TabPane tabId='3'>
-            <Typeahead onChange={this.handleAddLayer} options={this.state.layers ? this.state.layers : []} autofocus />
+            <Typeahead ref='layerSelectorTypeRef' onChange={this.handleAddLayer} options={this.state.layers ? this.state.layers : []} autoFocus />
           </TabPane>
         </TabContent>
       </ModalBody>

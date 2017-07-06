@@ -4,13 +4,13 @@ import PropTypes from 'prop-types';
 
 class Panel extends Component {
   render () {
-    const { title, style, className, mapId, dispatch, actions, mapMode } = this.props;
+    const { title, style, className, mapId, dispatch, mapActions, mapMode } = this.props;
     if (!title) {
       return (
         <div className={className ? 'Panel ' + className : 'Panel'} onClick={() => {
-          if (!actions) return;
+          if (!mapActions) return;
           if (mapMode !== 'progtemp' && mapMode !== 'timeseries' && !className) {
-            dispatch(actions.setActivePanel(mapId));
+            dispatch(mapActions.setActivePanel(mapId));
           }
         }}>
           <Row className='title notitle' style={style} />
@@ -22,9 +22,9 @@ class Panel extends Component {
     } else {
       return (
         <div className={'Panel ' + className} onClick={() => {
-          if (!actions) return;
+          if (!mapActions) return;
           if (mapMode !== 'progtemp' && mapMode !== 'timeseries' && !className) {
-            dispatch(actions.setActivePanel(mapId));
+            dispatch(mapActions.setActivePanel(mapId));
           }
         }}>
           <Row className='title' style={style}>

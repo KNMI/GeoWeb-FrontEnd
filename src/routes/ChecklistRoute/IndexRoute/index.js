@@ -1,8 +1,8 @@
-import TasksContainer from '../../../containers/TasksContainer';
-import Inspector from '../../../components/Inspector';
-import Empty from '../../../components/Empty';
-import TitleBarContainer from '../../../containers/TitleBarContainer';
-import { connect } from 'react-redux';
+import TasksContainer from '../../../containers/TasksContainer'
+import Inspector from '../../../components/Inspector'
+import Empty from '../../../components/Empty'
+import TitleBarContainer from '../../../containers/TitleBarContainer'
+import {connect} from 'react-redux'
 
 const mapStateToHeaderProps = (state) => {
   return {
@@ -16,33 +16,33 @@ const mapStateToHeaderProps = (state) => {
     isLoggedIn: state.adagucProperties.user.isLoggedIn,
     userName: state.adagucProperties.user.userName,
     roles: state.adagucProperties.user.roles
-  };
-};
+  }
+}
 
 const mapStateToLeftSideBarProps = () => {
-  return { title: 'leftSideBar Checklist' };
-};
+  return {title: 'leftSideBar Checklist'}
+}
 
 const mapStateToEmptyProps = () => {
-  return {};
-};
+  return {}
+}
 
 const mapStateToMainViewportProps = () => {
-  return { title: 'main Checklist' };
-};
+  return {title: 'main Checklist'}
+}
 
 const mapStateToRightSideBarProps = () => {
-  return { title: 'rightSideBar Checklist' };
-};
+  return {title: 'rightSideBar Checklist'}
+}
 
 // Sync route definition
 export default () => ({
   title: 'Checklist shift',
-  components : {
+  components: {
     header: connect(mapStateToHeaderProps)(TitleBarContainer),
     leftSideBar: connect(mapStateToLeftSideBarProps)(Inspector),
     secondLeftSideBar: connect(mapStateToEmptyProps)(Empty),
     mainViewport: connect(mapStateToMainViewportProps)(TasksContainer),
     rightSideBar: connect(mapStateToRightSideBarProps)(Inspector)
   }
-});
+})

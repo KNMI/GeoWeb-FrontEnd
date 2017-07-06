@@ -148,28 +148,29 @@ export default class ProgtempComponent extends Component {
   }
   /* istanbul ignore next */
   componentWillReceiveProps (nextProps) {
-    const { adagucProperties } = nextProps;
-    const { layers, wmjslayers, cursor } = adagucProperties;
+    const { adagucProperties, layers, mapProperties } = nextProps;
+    const { wmjsLayers } = layers;
+    const { cursor } = adagucProperties;
 
     // No layers or not in progtemp mode so no need to draw
-    if (!wmjslayers || !wmjslayers.layers || adagucProperties.mapMode !== 'progtemp') {
+    if (!wmjsLayers || !wmjsLayers.layers || mapProperties.mapMode !== 'progtemp') {
       return;
     }
 
     // If there is no HARMONIE layer we can also abort.
-    if (wmjslayers.layers.length > 0 && layers.panel[adagucProperties.activeMapId].datalayers.filter((layer) => layer.title && layer.title.includes('HARM')).length > 0) {
-      const harmlayer = wmjslayers.layers.filter((layer) => layer.service && layer.service.includes('HARM'))[0];
+    if (wmjsLayers.layers.length > 0 && wmjsLayers.layers.filter((layer) => layer.service && layer.service.includes('HARM')).length > 0) {
+      const harmlayer = wmjsLayers.layers.filter((layer) => layer.service && layer.service.includes('HARM'))[0];
       if (!harmlayer) return;
       this.referenceTime = harmlayer.getDimension('reference_time').currentValue;
     }
 
     // Refetch data if there is a location change (either due to pre-chosen location or mapclick)
     if (cursor && this.props.adagucProperties.cursor !== cursor) {
-      this.fetchNewLocationData(cursor, wmjslayers, adagucProperties.timedim, this.state.canvasWidth, this.state.canvasHeight);
+      this.fetchNewLocationData(cursor, wmjsLayers, adagucProperties.timeDimension, this.state.canvasWidth, this.state.canvasHeight);
     }
     // On a new time, the progtemp data needs to be redrawn
-    if (this.props.adagucProperties.timedim !== adagucProperties.timedim) {
-      const diff = Math.floor(moment.duration(moment.utc(adagucProperties.timedim).diff(moment.utc(this.referenceTime))).asHours());
+    if (this.props.adagucProperties.timeDimension !== adagucProperties.timeDimension) {
+      const diff = Math.floor(moment.duration(moment.utc(adagucProperties.timeDimension).diff(moment.utc(this.referenceTime))).asHours());
       this.renderProgtempData(this.state.canvasWidth, this.state.canvasHeight, diff);
     }
   }
@@ -188,7 +189,7 @@ export default class ProgtempComponent extends Component {
   }
   /* istanbul ignore next */
   setChosenLocation (loc) {
-    this.props.dispatch(this.props.actions.cursorLocation(loc[0]));
+    this.props.dispatch(this.props.adagucActions.setCursorLocation(loc[0]));
   }
   /* istanbul ignore next */
   render () {

@@ -53,7 +53,7 @@ class MapActionContainer extends Component {
     };
   }
   componentWillUpdate (nextprops) {
-    if (!this.state.presets && nextprops.adagucProperties.user !== this.props.adagucProperties.user) {
+    if (!this.state.presets || this.props.user.username !== nextprops.user.username) {
       axios.get(BACKEND_SERVER_URL + '/preset/getpresets', { withCredentials: true }).then((res) => {
         this.setState({ presets: res.data });
       }).catch((error) => {
@@ -93,7 +93,7 @@ class MapActionContainer extends Component {
       }
       localStorage.setItem('geoweb', JSON.stringify(items));
       this.getServices();
-      getCap.getLayerObjectsFlat((layers) => this.props.dispatch(this.props.actions.addLayer({ ...layers[0], service: getCap.service })));
+      getCap.getLayerObjectsFlat((layers) => this.props.dispatch(this.props.layerActions.addLayer({ activeMapId: this.props.mapProperties.activeMapId, layer: {...layers[0], service: getCap.service }})));
       this.toggleLayerChooser();
     }, (error) => {
       this.setState({ getCapBusy: false });
@@ -104,6 +104,7 @@ class MapActionContainer extends Component {
   handleActionClick (action) {
     let toggleProgtemp = false;
     let toggleTimeseries = false;
+    const { dispatch, mapActions } = this.props;
     if (action === 'progtemp' && this.state.progTempPopOverOpen) {
       this.setState({ progTempPopOverOpen: false });
       toggleProgtemp = true;
@@ -113,7 +114,7 @@ class MapActionContainer extends Component {
       toggleTimeseries = true;
     }
     if (toggleProgtemp || toggleTimeseries) {
-      this.props.dispatch(this.props.actions.setMapMode('pan'));
+      dispatch(mapActions.setMapMode('pan'));
       return;
     }
     if (action === 'progtemp') {
@@ -126,14 +127,15 @@ class MapActionContainer extends Component {
     } else {
       this.setState({ timeSeriesPopOverOpen: false });
     }
-    this.props.dispatch(this.props.actions.setMapMode(action));
+    dispatch(mapActions.setMapMode(action));
   }
   handleAddLayer (e) {
+    const { dispatch, layerActions, mapProperties } = this.props;
     const addItem = e[0];
     if (!this.state.overlay) {
-      this.props.dispatch(this.props.actions.addLayer({ service: this.state.selectedSource.service, title: this.state.selectedSource.title, name: addItem.id, label: addItem.label, opacity: 1 }));
+      dispatch(layerActions.addLayer({ activeMapId: mapProperties.activeMapId, layer: { service: this.state.selectedSource.service, title: this.state.selectedSource.title, name: addItem.id, label: addItem.label, opacity: 1 }}));
     } else {
-      this.props.dispatch(this.props.actions.addOverlayLayer({ service: this.state.selectedSource.service, title: this.state.selectedSource.title, name: addItem.id, label: addItem.label }));
+      dispatch(layerActions.addOverlaysLayer({ activeMapId: mapProperties.activeMapId, layer: { service: this.state.selectedSource.service, title: this.state.selectedSource.title, name: addItem.id, label: addItem.label }}));
     }
     this.setState({
       layerChooserOpen: false,
@@ -158,18 +160,13 @@ class MapActionContainer extends Component {
   handleSourceClick (e) {
     const { adagucProperties } = this.props;
     const { sources } = adagucProperties;
-    let selectedSource = sources.data.filter((source) => source.name === e.currentTarget.id);
-    if (!selectedSource || selectedSource.length === 0) {
-      selectedSource = sources.overlay.filter((source) => source.name === e.currentTarget.id);
-      this.setState({ overlay: true });
-    } else {
-      this.setState({ overlay: false });
-    }
-    const selectedService = selectedSource[0];
+    let selectedSource = sources.filter((source) => source.name === e.currentTarget.id)[0];
+
+    this.setState({ overlay: selectedSource.name === 'OVL' || selectedSource.goal === 'OVERLAY' });
 
     // eslint-disable-next-line no-undef
-    var srv = WMJSgetServiceFromStore(selectedService.service);
-    this.setState({ selectedSource: selectedService });
+    var srv = WMJSgetServiceFromStore(selectedSource.service);
+    this.setState({ selectedSource: selectedSource });
     srv.getLayerObjectsFlat((layers) => this.generateMap(layers), (err) => { throw new Error(err); });
   }
 
@@ -177,8 +174,8 @@ class MapActionContainer extends Component {
     this.setState({ layerChooserOpen: !this.state.layerChooserOpen });
   }
   toggleAnimation () {
-    const { dispatch, actions } = this.props;
-    dispatch(actions.toggleAnimation());
+    const { dispatch, adagucActions } = this.props;
+    dispatch(adagucActions.toggleAnimation());
   }
   togglePopside () {
     this.setState({ popoverOpen: !this.state.popoverOpen });
@@ -187,14 +184,14 @@ class MapActionContainer extends Component {
     this.setState({ progTempPopOverOpen: !this.state.progTempPopOverOpen });
   }
   goToNow () {
-    const { dispatch, actions } = this.props;
+    const { dispatch, adagucActions } = this.props;
     // eslint-disable-next-line no-undef
     let currentDate = getCurrentDateIso8601();
-    dispatch(actions.setTimeDimension(currentDate.toISO8601()));
+    dispatch(adagucActions.setTimeDimension(currentDate.toISO8601()));
   }
   setView (e) {
-    const { dispatch, actions } = this.props;
-    dispatch(actions.setCut(BOUNDING_BOXES[e.currentTarget.id]));
+    const { dispatch, mapActions } = this.props;
+    dispatch(mapActions.setCut(BOUNDING_BOXES[e.currentTarget.id]));
     this.setState({ popoverOpen: false });
   }
   renderBBOXPopOver () {
@@ -241,8 +238,7 @@ class MapActionContainer extends Component {
   renderSourceSelector () {
     const { adagucProperties } = this.props;
     const { sources } = adagucProperties;
-    return <div>{sources.data.map((src, i) => <Button id={src.name} key={i} onClick={this.handleSourceClick}>{this.getLayerName(src)}</Button>)}
-      {sources.overlay.map((src, i) => <Button id={src.name} key={i} onClick={this.handleSourceClick}>{this.getLayerName(src)}</Button>)}</div>;
+    return <div>{sources.map((src, i) => <Button id={src.name} key={i} onClick={this.handleSourceClick}>{this.getLayerName(src)}</Button>)}</div>
   }
   renderPresetSelector () {
     return <Typeahead ref={ref => { this._typeahead = ref; }} filterBy={['name', 'keywords']} labelKey='name' options={this.state.presets} onChange={(ph) => this.setPreset(ph)} />;
@@ -271,8 +267,14 @@ class MapActionContainer extends Component {
   }
 
   setPreset (preset) {
-    const { dispatch, actions } = this.props;
-    dispatch(actions.setPreset(preset[0]));
+    const { dispatch, layerActions, mapActions } = this.props;
+    const thePreset = preset[0];
+    if(thePreset.area)
+      dispatch(mapActions.setCut({name: 'Custom', bbox: [0, thePreset.area.bottom, 1, thePreset.area.top]}))
+    if(thePreset.display)
+      dispatch(mapActions.setLayout(thePreset.display.type))
+    if(thePreset.layers)
+      dispatch(layerActions.setPreset(thePreset.layers))
     this.setState({
       layerChooserOpen: false,
       activeTab: '1',
@@ -286,15 +288,15 @@ class MapActionContainer extends Component {
 
   renderProgtempPopover (adagucTime) {
     if (this.state.progTempPopOverOpen) {
-      const { dispatch, actions } = this.props;
-      return <ProgtempComponent adagucProperties={this.props.adagucProperties} isOpen={this.state.progTempPopOverOpen} dispatch={dispatch} actions={actions} />;
+      const { dispatch, adagucActions, layers,mapProperties } = this.props;
+      return <ProgtempComponent mapProperties={mapProperties} layers={layers} adagucProperties={this.props.adagucProperties} isOpen={this.state.progTempPopOverOpen} dispatch={dispatch} adagucActions={adagucActions} />;
     }
   }
 
   renderTimeseriesPopover (adagucTime) {
     if (this.state.timeSeriesPopOverOpen) {
-      const { dispatch, actions } = this.props;
-      return <TimeseriesComponent adagucProperties={this.props.adagucProperties} isOpen={this.state.timeSeriesPopOverOpen} dispatch={dispatch} actions={actions} />;
+      const { dispatch } = this.props;
+      return <TimeseriesComponent mapProperties={this.props.mapProperties} layers={this.props.layers} adagucProperties={this.props.adagucProperties} adagucActions={this.props.adagucActions} isOpen={this.state.timeSeriesPopOverOpen} dispatch={dispatch} />;
     }
   }
   renderLayerChooser () {
@@ -347,7 +349,7 @@ class MapActionContainer extends Component {
   }
 
   render () {
-    const { title, adagucProperties } = this.props;
+    const { title, adagucProperties, mapProperties } = this.props;
     const items = [
       {
         title: 'Pan / zoom',
@@ -391,11 +393,11 @@ class MapActionContainer extends Component {
       <Col className='MapActionContainer'>
         {this.renderLayerChooser()}
         {this.renderBBOXPopOver()}
-        {this.renderProgtempPopover(moment.utc(adagucProperties.timedim))}
+        {this.renderProgtempPopover(moment.utc(adagucProperties.timeDimension))}
         {this.renderTimeseriesPopover()}
         <Panel className='Panel' title={title}>
           {items.map((item, index) =>
-            <Button color='primary' key={index} active={adagucProperties.mapMode === item.action} disabled={item.disabled || null}
+            <Button color='primary' key={index} active={mapProperties.mapMode === item.action} disabled={item.disabled || null}
               className='row' id={item.action + '_button'} title={item.title} onClick={() => this.handleActionClick(item.action)}>
               <Icon name={item.icon} />
             </Button>)}

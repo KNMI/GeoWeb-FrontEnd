@@ -7,12 +7,12 @@ import PropTypes from 'prop-types';
 
 class LayerManagerPanel extends Component {
   render () {
-    const { title, dispatch, actions, adagucProperties } = this.props;
+    const { title, dispatch, actions, adagucProperties, layers, mapProperties } = this.props;
     return (
       <Panel title={title}>
         <Row style={{ flex: 1 }}>
-          <TimeComponent timedim={adagucProperties.timedim} wmjslayers={adagucProperties.wmjslayers} dispatch={dispatch} actions={actions} />
-          <LayerManager wmjslayers={adagucProperties.wmjslayers} dispatch={dispatch} actions={actions} />
+          <TimeComponent timedim={adagucProperties.timeDimension} wmjslayers={layers.wmjsLayers} dispatch={dispatch} actions={this.props.adagucActions} />
+          <LayerManager wmjslayers={layers.wmjsLayers} dispatch={dispatch} layerActions={this.props.layerActions} adagucActions={this.props.adagucActions} activeMapId={mapProperties.activeMapId} />
         </Row>
       </Panel>
     );

@@ -150,12 +150,13 @@ class TitleBarContainer extends Component {
   }
 
   getServices () {
-    const { dispatch, actions } = this.props;
+    const { dispatch, mapActions, adagucActions } = this.props;
     const defaultURLs = ['getServices', 'getOverlayServices'].map((url) => BACKEND_SERVER_URL + '/' + url);
     const allURLs = [...defaultURLs];
     axios.all(allURLs.map((req) => axios.get(req, { withCredentials: true }))).then(
       axios.spread((services, overlays) => {
-        dispatch(actions.createMap([...services.data, ...JSON.parse(localStorage.getItem('geoweb')).personal_urls], overlays.data[0]));
+        dispatch(mapActions.createMap());
+        dispatch(adagucActions.setSources([...services.data, ...JSON.parse(localStorage.getItem('geoweb')).personal_urls, overlays.data[0]]));
       })
     ).catch((e) => console.log('Error!: ', e.response));
   }
@@ -200,7 +201,8 @@ class TitleBarContainer extends Component {
   }
 
   doLogin () {
-    const { isLoggedIn } = this.props;
+    const { user } = this.props;
+    const { isLoggedIn } = user;
     if (!isLoggedIn) {
       axios({
         method: 'get',
@@ -210,7 +212,7 @@ class TitleBarContainer extends Component {
       }).then(src => {
         this.checkCredentials(() => {
           // When signed in as admin, jump to admin manage page
-          if (CheckIfUserHasRole(this.props, UserRoles.ADMIN)) {
+          if (CheckIfUserHasRole(user.roles, UserRoles.ADMIN)) {
             hashHistory.push('/manage/app');
           }
         });
@@ -261,17 +263,17 @@ class TitleBarContainer extends Component {
   setLoggedOutCallback (message) {
     this.inputfieldPassword = '';
     this.inputfieldUserName = '';
-    const { dispatch, actions } = this.props;
+    const { dispatch, userActions } = this.props;
     this.checkCredentials();
     this.setState({
       loginModalMessage: message
     });
-    dispatch(actions.logout());
+    dispatch(userActions.logout());
     this.getServices();
   };
 
   checkCredentialsOKCallback (data) {
-    const { dispatch, actions } = this.props;
+    const { dispatch } = this.props;
     const username = data.username ? data.username : data.userName;
     const roles = data.roles;
     if (username && username.length > 0) {
@@ -288,7 +290,7 @@ class TitleBarContainer extends Component {
         return;
       }
       this.getServices();
-      dispatch(actions.login({ userName:username, roles:roles }));
+      dispatch(this.props.userActions.login({ username:username, roles:roles }));
 
       this.setState({
         loginModal: false,
@@ -313,8 +315,8 @@ class TitleBarContainer extends Component {
     } catch (e) {
       console.error(e);
     }
-    const { dispatch, actions } = this.props;
-    dispatch(actions.logout());
+    const { dispatch, userActions } = this.props;
+    dispatch(userActions.logout());
     this.setState({
       loginModalMessage: errormsg === 'guest' ? '' : errormsg
     });
@@ -368,7 +370,6 @@ class TitleBarContainer extends Component {
     this.setState({ loginModal: false });
     const presetName = uuidV4();
     const dataToSend = this.makePresetObj(presetName, true, true, true, '');
-    console.log(dataToSend);
     SaveURLPreset(presetName, dataToSend, (message) => {
       if (message.status === 'ok') {
         this.setState({
@@ -382,7 +383,7 @@ class TitleBarContainer extends Component {
   }
 
   makePresetObj (presetName, saveLayers, savePanelLayout, saveBoundingBox, role) {
-    console.log(this.props);
+    console.log('Presetprops: ', this.props)
     let numPanels = -1;
     if (/quad/.test(this.props.layout)) {
       numPanels = 4;
@@ -404,12 +405,12 @@ class TitleBarContainer extends Component {
       crs: this.props.projectionName
     };
     let layerConfig = [];
-    this.props.layers.panel.forEach((panel, i) => {
+    this.props.layers.panels.forEach((panel, i) => {
       if (i >= numPanels) {
         return;
       }
       let panelArr = [];
-      panel.datalayers.forEach((layer) => {
+      panel.layers.forEach((layer) => {
         panelArr.push({
           active: true,
           dimensions: {},
@@ -607,8 +608,9 @@ class TitleBarContainer extends Component {
     );
   }
   render () {
-    const { isLoggedIn, userName, routes } = this.props;
-    const hasRoleADMIN = CheckIfUserHasRole(this.props, UserRoles.ADMIN);
+    const { user, routes } = this.props;
+    const { isLoggedIn, username } = user;
+    const hasRoleADMIN = CheckIfUserHasRole(user.roles, UserRoles.ADMIN);
     let cumulativePath = '';
     return (
       <Navbar inverse className='test'>
@@ -642,12 +644,12 @@ class TitleBarContainer extends Component {
           </Col>
           <Col xs='auto'>
             <Nav>
-              <NavLink className='active' onClick={this.toggleLoginModal} ><Icon name='user' id='loginIcon' />{isLoggedIn ? ' ' + userName : ' Sign in'}</NavLink>
+              <NavLink className='active' onClick={this.toggleLoginModal} ><Icon name='user' id='loginIcon' />{isLoggedIn ? ' ' + username : ' Sign in'}</NavLink>
               {hasRoleADMIN ? <Link to='manage/app' className='active nav-link'><Icon name='cog' /></Link> : '' }
-              <LayoutDropDown dispatch={this.props.dispatch} actions={this.props.actions} />
+              <LayoutDropDown dispatch={this.props.dispatch} mapActions={this.props.mapActions} />
               <NavLink className='active' onClick={this.toggleFullscreen} ><Icon name='expand' /></NavLink>
               {isLoggedIn
-                ? this.renderLoggedInPopover(this.state.loginModal, this.toggleLoginModal, userName)
+                ? this.renderLoggedInPopover(this.state.loginModal, this.toggleLoginModal, username)
                 : this.renderLoginModal(this.state.loginModal,
                   this.state.loginModalMessage, this.toggleLoginModal, this.handleOnChange, this.handleKeyPressPassword)
               }
@@ -671,7 +673,7 @@ class LayoutDropDown extends Component {
     };
   }
   postLayout (layout) {
-    this.props.dispatch(this.props.actions.setLayout(layout));
+    this.props.dispatch(this.props.mapActions.setLayout(layout));
     this.setState({ popoverOpen: false });
   }
   render () {

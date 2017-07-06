@@ -6,13 +6,14 @@ import Icon from 'react-fa';
 import axios from 'axios';
 import { cloneDeep, isEmpty } from 'lodash';
 import CollapseOmni from '../components/CollapseOmni';
-import SwitchButton from 'react-switch-button';
+import SwitchButton from 'react-switch-button/lib/react-switch-button.js';
 import 'react-switch-button/dist/react-switch-button.css';
 import { Typeahead } from 'react-bootstrap-typeahead';
 import DateTimePicker from 'react-datetime';
 import Slider from 'rc-slider';
 import Tooltip from 'rc-tooltip';
 import PropTypes from 'prop-types';
+import { BOUNDING_BOXES } from '../constants/bounding_boxes'
 const createSliderWithTooltip = Slider.createSliderWithTooltip;
 const Range = createSliderWithTooltip(Slider.Range);
 const Handle = Slider.Handle;
@@ -247,7 +248,7 @@ class SigmetCategory extends Component {
   saveSigmet (evt) {
     evt.preventDefault();
     const newList = cloneDeep(this.state.list);
-    newList[0].geojson = this.props.adagucProperties.adagucmapdraw.geojson;
+    newList[0].geojson = this.props.drawProperties.geojson;
     this.setState({ list: newList });
     axios({
       method: 'post',
@@ -262,6 +263,200 @@ class SigmetCategory extends Component {
     });
   }
 
+  sigmetLayers(p) {
+    if (p === 'sigmet_layer_TS') {
+      return (
+      {
+        area: {
+          bottom: BOUNDING_BOXES[1].bbox[1],
+          top: BOUNDING_BOXES[1].bbox[3],
+          crs: "EPSG:3857"
+        },
+        display: {
+          npanels: 4,
+          type: 'quaduneven'
+        },
+        layers: [
+          [
+            {
+              service: 'http://geoservices.knmi.nl/cgi-bin/HARM_N25.cgi?',
+              title: 'HARM_N25_EXT',
+              name: 'precipitation_flux',
+              label: 'Prec: Precipitation rate',
+              opacity: 1,
+              enabled: true,
+              overlay: false
+            },
+            {
+              service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.OVL.cgi?',
+              title: 'OVL',
+              name: 'FIR_DEC_2013_EU',
+              label: 'FIR areas',
+              enabled: true,
+              overlay: true
+            }
+          ],
+          [
+            {
+              service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.OBS.cgi?',
+              title: 'OBS',
+              name: '10M/ww',
+              label: 'wawa Weather Code (ww)',
+              enabled: true,
+              opacity: 1,
+              overlay: false
+            },
+            {
+              service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.OVL.cgi?',
+              title: 'OVL',
+              name: 'FIR_DEC_2013_EU',
+              label: 'FIR areas',
+              enabled: true,
+              overlay: true
+            }
+          ],
+          [
+            {
+              service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.RADAR.cgi?',
+              title: 'RADAR',
+              name: 'precipitation',
+              label: 'Neerslag',
+              opacity: 1,
+              enabled: true,
+              overlay: false
+            }, {
+              service: 'http://bvmlab-218-41.knmi.nl/cgi-bin/WWWRADAR3.cgi?',
+              title: 'LGT',
+              name: 'LGT_NL25_LAM_05M',
+              label: 'LGT_NL25_LAM_05M',
+              enabled: true,
+              opacity: 1,
+              overlay: false
+            },
+            {
+              service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.OVL.cgi?',
+              title: 'OVL',
+              name: 'FIR_DEC_2013_EU',
+              label: 'FIR areas',
+              enabled: true,
+              overlay: true
+            }
+          ],
+          [
+            {
+              service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.OVL.cgi?',
+              title: 'OVL',
+              name: 'FIR_DEC_2013_EU',
+              label: 'FIR areas',
+              enabled: true,
+              overlay: true
+            }
+          ]
+        ]
+      });
+    } else {
+      return (
+      {
+        area: {
+          bottom: BOUNDING_BOXES[1].bbox[1],
+          top: BOUNDING_BOXES[1].bbox[3],
+          crs: "EPSG:3857"
+        },
+        display: {
+          npanels: 4,
+          type: 'quaduneven'
+        },
+        layers: [
+          [
+            {
+              service: 'http://geoservices.knmi.nl/cgi-bin/HARM_N25.cgi?',
+              title: 'HARM_N25_EXT',
+              name: 'precipitation_flux',
+              label: 'Prec: Precipitation rate',
+              opacity: 1,
+              enabled: true,
+              overlay: false
+            },
+            {
+              service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.OVL.cgi?',
+              title: 'OVL',
+              name: 'FIR_DEC_2013_EU',
+              label: 'FIR areas',
+              enabled: true,
+              overlay: true
+            }
+          ],
+          [
+            {
+              service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.OBS.cgi?',
+              title: 'OBS',
+              name: '10M/ww',
+              label: 'wawa Weather Code (ww)',
+              enabled: true,
+              opacity: 1,
+              overlay: false
+            },
+            {
+              service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.OVL.cgi?',
+              title: 'OVL',
+              name: 'FIR_DEC_2013_EU',
+              label: 'FIR areas',
+              enabled: true,
+              overlay: true
+            }
+          ],
+          [
+            {
+              service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.RADAR.cgi?',
+              title: 'RADAR',
+              name: 'precipitation',
+              label: 'Neerslag',
+              opacity: 1,
+              enabled: true,
+              overlay: false
+            }, {
+              service: 'http://bvmlab-218-41.knmi.nl/cgi-bin/WWWRADAR3.cgi?',
+              title: 'LGT',
+              name: 'LGT_NL25_LAM_05M',
+              label: 'LGT_NL25_LAM_05M',
+              enabled: true,
+              opacity: 1,
+              overlay: false
+            },
+            {
+              service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.OVL.cgi?',
+              title: 'OVL',
+              name: 'FIR_DEC_2013_EU',
+              label: 'FIR areas',
+              enabled: true,
+              overlay: true
+            }
+          ],
+          [
+            {
+              service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.SAT.cgi?',
+              title: 'SAT',
+              name: 'HRV-COMB',
+              label: 'RGB-HRV-COMB',
+              enabled: true,
+              opacity: 1,
+              overlay: false
+            },
+            {
+              service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.OVL.cgi?',
+              title: 'OVL',
+              name: 'FIR_DEC_2013_EU',
+              label: 'FIR areas',
+              enabled: true,
+              overlay: true
+            }
+          ]
+        ]
+      });
+    }
+  };
+
+
   setSelectedPhenomenon (phenomenonList) {
     if (phenomenonList.length === 0) {
       return;
@@ -270,7 +465,11 @@ class SigmetCategory extends Component {
     let listCpy = cloneDeep(this.state.list);
     listCpy[0].phenomenon = onlyObj.code;
     this.setState({ list: listCpy });
-    this.props.dispatch(this.props.actions.setPreset(onlyObj.layerpreset));
+    const preset = this.sigmetLayers(onlyObj.layerpreset);
+    this.props.dispatch(this.props.mapActions.setLayout(preset.display.type))
+    this.props.dispatch(this.props.layerActions.setPreset(preset.layers));
+    this.props.dispatch(this.props.mapActions.setCut({name: 'Custom', bbox: [0, preset.area.bottom, 1, preset.area.top]}))
+
   }
 
   setSelectedFir (firList) {

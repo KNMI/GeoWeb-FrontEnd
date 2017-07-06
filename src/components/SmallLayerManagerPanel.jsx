@@ -29,11 +29,12 @@ class SmallLayerManagerPanel extends Component {
   };
 
   render () {
-    const { title, dispatch, actions, adagucProperties } = this.props;
+    console.log(this.props)
+    const { title, dispatch, actions, adagucProperties, layers,mapProperties } = this.props;
     return (
       <Panel title={title} style={{ background: '#EEF' }}>
         <Row style={{ flex: 1 }}>
-          <LayerManager wmjslayers={adagucProperties.wmjslayers} dispatch={dispatch} actions={actions} />
+          <LayerManager wmjslayers={layers.wmjsLayers} dispatch={dispatch} layerActions={this.props.layerActions} adagucActions={this.props.adagucActions} activeMapId={mapProperties.activeMapId} />
           <Col />
           <Col xs='auto' className='SmallLayerManagerPanel' style={{ flexDirection: 'column' }}>
             <Row style={{ flexDirection: 'row', paddingBottom: '0.33rem' }}>
@@ -48,7 +49,7 @@ class SmallLayerManagerPanel extends Component {
             </Row>
             <Row style={{ flex: 1 }} />
             <Row >
-              {this.state.showControls ? <MapAnimationControlsContainer adagucProperties={adagucProperties} dispatch={dispatch} actions={actions} /> : ''}
+              {this.state.showControls ? <MapAnimationControlsContainer adagucProperties={adagucProperties} dispatch={dispatch} adagucActions={this.props.adagucActions} mapActions={this.props.mapActions} activeMapId={mapProperties.activeMapId} layerActions={this.props.layerActions} /> : ''}
             </Row>
           </Col>
         </Row>

@@ -6,25 +6,25 @@ import PropTypes from 'prop-types';
 
 export class SinglePanel extends Component {
   render () {
-    const { title, adagucProperties, dispatch, actions, mapId } = this.props;
-    const { activeMapId } = adagucProperties;
-    return (<Panel title={title} mapMode={adagucProperties.mapMode} mapId={mapId} dispatch={dispatch} actions={actions} className={mapId === activeMapId ? 'activePanel' : ''}>
-      <Adaguc adagucProperties={adagucProperties} mapId={mapId} dispatch={dispatch} actions={actions} active={mapId === activeMapId} />
+    const { title, mapProperties, dispatch, mapActions, mapId, drawProperties, layers, adagucProperties } = this.props;
+    const { activeMapId } = mapProperties;
+    return (<Panel mapActions={mapActions} title={title} mapMode={mapProperties.mapMode} mapId={mapId} dispatch={dispatch} className={mapId === activeMapId ? 'activePanel' : ''}>
+      <Adaguc drawActions={this.props.drawActions} layerActions={this.props.layerActions} mapProperties={mapProperties} adagucActions={this.props.adagucActions} adagucProperties={adagucProperties} layers={layers} drawProperties={drawProperties} mapId={mapId} dispatch={dispatch} mapActions={this.props.mapActions} active={mapId === activeMapId} />
     </Panel>);
   }
 }
 class MapPanel extends Component {
   render () {
-    const { title, adagucProperties, dispatch, actions } = this.props;
-    switch (adagucProperties.layout) {
+    const { title, mapProperties, drawProperties, dispatch, actions } = this.props;
+    switch (mapProperties.layout) {
       case 'dual':
         return (
           <Row style={{ flex: 1 }}>
             <Col xs='6'>
-              <SinglePanel title={title} mapId={0} adagucProperties={adagucProperties} dispatch={dispatch} actions={actions} />
+              <SinglePanel mapId={0} {...this.props} />
             </Col>
             <Col xs='6'>
-              <SinglePanel title={title} mapId={1} adagucProperties={adagucProperties} dispatch={dispatch} actions={actions} />
+              <SinglePanel mapId={1} {...this.props} />
             </Col>
           </Row>
         );
@@ -32,17 +32,17 @@ class MapPanel extends Component {
         return (
           <Row style={{ flex: 1 }}>
             <Col xs='6'>
-              <SinglePanel title={title} mapId={0} adagucProperties={adagucProperties} dispatch={dispatch} actions={actions} />
+              <SinglePanel mapId={0} {...this.props} />
             </Col>
             <Col xs='6' style={{ flexDirection: 'column' }}>
               <Row style={{ flex: 1 }}>
-                <SinglePanel title={title} mapId={1} adagucProperties={adagucProperties} dispatch={dispatch} actions={actions} />
+                <SinglePanel mapId={1} {...this.props} />
               </Row>
               <Row style={{ flex: 1 }}>
-                <SinglePanel title={title} mapId={2} adagucProperties={adagucProperties} dispatch={dispatch} actions={actions} />
+                <SinglePanel mapId={2} {...this.props} />
               </Row>
               <Row style={{ flex: 1 }}>
-                <SinglePanel title={title} mapId={3} adagucProperties={adagucProperties} dispatch={dispatch} actions={actions} />
+                <SinglePanel mapId={3} {...this.props} />
               </Row>
             </Col>
           </Row>
@@ -51,14 +51,14 @@ class MapPanel extends Component {
         return (
           <Row style={{ flex: 1 }}>
             <Col xs='6'>
-              <SinglePanel title={title} mapId={0} adagucProperties={adagucProperties} dispatch={dispatch} actions={actions} />
+              <SinglePanel mapId={0} {...this.props} />
             </Col>
             <Col xs='6' style={{ flexDirection: 'column' }}>
               <Row style={{ flex: 1 }}>
-                <SinglePanel title={title} mapId={1} adagucProperties={adagucProperties} dispatch={dispatch} actions={actions} />
+                <SinglePanel mapId={1} {...this.props} />
               </Row>
               <Row style={{ flex: 1 }}>
-                <SinglePanel title={title} mapId={2} adagucProperties={adagucProperties} dispatch={dispatch} actions={actions} />
+                <SinglePanel mapId={2} {...this.props} />
               </Row>
             </Col>
           </Row>
@@ -68,18 +68,18 @@ class MapPanel extends Component {
           <Row style={{ flex: 1 }}>
             <Col xs='6' style={{ flexDirection: 'column' }}>
               <Row style={{ flex: 1 }}>
-                <SinglePanel title={title} mapId={0} adagucProperties={adagucProperties} dispatch={dispatch} actions={actions} />
+                <SinglePanel mapId={0} {...this.props} />
               </Row>
               <Row style={{ flex: 1 }}>
-                <SinglePanel title={title} mapId={2} adagucProperties={adagucProperties} dispatch={dispatch} actions={actions} />
+                <SinglePanel mapId={2} {...this.props} />
               </Row>
             </Col>
             <Col xs='6' style={{ flexDirection: 'column' }}>
               <Row style={{ flex: 1 }}>
-                <SinglePanel title={title} mapId={1} adagucProperties={adagucProperties} dispatch={dispatch} actions={actions} />
+                <SinglePanel mapId={1} {...this.props} />
               </Row>
               <Row style={{ flex: 1 }}>
-                <SinglePanel title={title} mapId={3} adagucProperties={adagucProperties} dispatch={dispatch} actions={actions} />
+                <SinglePanel mapId={3} {...this.props} />
               </Row>
             </Col>
           </Row>
@@ -89,39 +89,39 @@ class MapPanel extends Component {
         return (<Row style={{ flex: 1 }}>
           <Col xs='6'>
             <Col xs='6'>
-              <SinglePanel title={title} mapId={0} adagucProperties={adagucProperties} dispatch={dispatch} actions={actions} />
+              <SinglePanel mapId={0} {...this.props} />
             </Col>
             <Col xs='6'>
-              <SinglePanel title={title} mapId={1} adagucProperties={adagucProperties} dispatch={dispatch} actions={actions} />
+              <SinglePanel mapId={1} {...this.props} />
             </Col>
           </Col>
           <Col xs='6'>
             <Col xs='6'>
-              <SinglePanel title={title} mapId={2} adagucProperties={adagucProperties} dispatch={dispatch} actions={actions} />
+              <SinglePanel mapId={2} {...this.props} />
             </Col>
             <Col xs='6'>
-              <SinglePanel title={title} mapId={3} adagucProperties={adagucProperties} dispatch={dispatch} actions={actions} />
+              <SinglePanel mapId={3} {...this.props} />
             </Col>
           </Col>
         </Row>);
       case 'single':
       default:
         return (
-          <SinglePanel title={title} mapId={0} adagucProperties={adagucProperties} dispatch={dispatch} actions={actions} />
+          <SinglePanel mapId={0} {...this.props} />
         );
     }
   }
 }
 SinglePanel.propTypes = {
   title: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
-  adagucProperties: PropTypes.object.isRequired,
+  mapProperties: PropTypes.object.isRequired,
   dispatch: PropTypes.func.isRequired,
   actions: PropTypes.object.isRequired,
   mapId: PropTypes.number.isRequired
 };
 MapPanel.propTypes = {
   title: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
-  adagucProperties: PropTypes.object.isRequired,
+  mapProperties: PropTypes.object.isRequired,
   dispatch: PropTypes.func.isRequired,
   actions: PropTypes.object.isRequired
 };

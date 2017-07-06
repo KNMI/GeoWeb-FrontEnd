@@ -1,7 +1,7 @@
-import React from 'react';
-import { default as MapPanel } from './MapPanel';
-import { mount } from 'enzyme';
-import sinon from 'sinon';
+import React from 'react'
+import {default as MapPanel} from './MapPanel'
+import {mount} from 'enzyme'
+import sinon from 'sinon'
 
 const adagucProperties = {
   layers: {
@@ -27,30 +27,30 @@ const adagucProperties = {
     baselayers: [{}]
   },
   adagucmapdraw: {
-    geojson: { 'type': 'FeatureCollection',
+    geojson: {'type': 'FeatureCollection',
       'features': [
-        { 'type': 'Feature',
+        {'type': 'Feature',
           'geometry': {
             'type': 'Polygon',
             'coordinates': []
           },
           'properties': {
             'prop0': 'value0',
-            'prop1': { 'this':  'that' }
+            'prop1': {'this': 'that'}
           }
         }
       ]
     }
   }
-};
+}
 
-const emptyDispatch = () => { /* intentionally left blank */ };
-const emptyActions = { /* intentionally left blank */ };
+const emptyDispatch = () => { /* intentionally left blank */ }
+const emptyActions = { /* intentionally left blank */ }
 
 describe('(Component) MapPanel', () => {
   it('Renders a MapPanel', () => {
-    global.WMJSMap = sinon.stub().returns({});
-    const _component = mount(<MapPanel adagucProperties={adagucProperties} dispatch={emptyDispatch} actions={emptyActions} />);
-    expect(_component.type()).to.eql(MapPanel);
-  });
-});
+    global.WMJSMap = sinon.stub().returns({})
+    const _component = mount(<MapPanel adagucProperties={adagucProperties} dispatch={emptyDispatch} actions={emptyActions} />)
+    expect(_component.type()).to.eql(MapPanel)
+  })
+})
