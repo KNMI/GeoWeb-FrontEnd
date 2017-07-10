@@ -1,12 +1,13 @@
-import React from 'react'
-import {default as Adaguc} from './Adaguc'
-import {default as adagucReducer} from '../../reducers/adagucReducer'
-import actions from '../../actions/adaguc'
-import {shallow} from 'enzyme'
-import sinon from 'sinon'
+import React from 'react';
+import { default as Adaguc } from './Adaguc';
+import { default as adagucReducer } from '../../reducers/adagucReducer';
+import actions from '../../actions/adaguc';
+import { shallow } from 'enzyme';
+import sinon from 'sinon';
+
 describe('(Component) Adaguc', () => {
-  let _globalState
-  let _dispatchSpy
+  let _globalState;
+  let _dispatchSpy;
   beforeEach(() => {
     _globalState = {
       adagucProperties: {
@@ -44,17 +45,17 @@ describe('(Component) Adaguc', () => {
           isInEditMode: false
         }
       }
-    }
+    };
     _dispatchSpy = sinon.spy((action) => {
       _globalState = {
         ..._globalState,
         adagucProperties: adagucReducer(_globalState.adagucProperties, action)
-      }
-    })
-  })
+      };
+    });
+  });
 
   it('Renders a div', () => {
-    const _component = shallow(<Adaguc adagucProperties={_globalState.adagucProperties} dispatch={_dispatchSpy} actions={actions} />)
-    expect(_component.type()).to.eql('div')
-  })
-})
+    const _component = shallow(<Adaguc adagucProperties={_globalState.adagucProperties} dispatch={_dispatchSpy} actions={actions} />);
+    expect(_component.type()).to.eql('div');
+  });
+});

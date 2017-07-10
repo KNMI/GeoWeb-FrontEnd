@@ -1,14 +1,14 @@
-import React from 'react'
-import {default as ManagementPanel} from './ManagementPanel'
-import {mount} from 'enzyme'
+import React from 'react';
+import { default as ManagementPanel } from './ManagementPanel';
+import { mount } from 'enzyme';
 
 describe('(Component) ManagementPanel', () => {
-  let _component
+  let _component;
   beforeEach(() => {
-    _component = mount(<ManagementPanel />)
-  })
+    _component = mount(<ManagementPanel />);
+  });
 
   it('Can render', () => {
-    expect(_component.type()).to.equal(ManagementPanel)
-  })
-})
+    expect(_component.type()).to.equal(ManagementPanel);
+  });
+});

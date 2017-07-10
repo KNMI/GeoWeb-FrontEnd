@@ -1,6 +1,6 @@
-import React from 'react'
-import {default as TimeseriesComponent} from './TimeseriesComponent'
-import {mount} from 'enzyme'
+import React from 'react';
+import { default as TimeseriesComponent } from './TimeseriesComponent';
+import { mount } from 'enzyme';
 
 const adagucProperties = {
   wmjslayers: {
@@ -16,14 +16,14 @@ const adagucProperties = {
     }
   },
   timedim: '2017-04-06T21:00:00Z'
-}
+};
 
-const emptyDispatch = () => { /* intentionally left blank */ }
-const emptyActions = {}
+const emptyDispatch = () => { /* intentionally left blank */ };
+const emptyActions = {};
 
 describe('(Component) TimeseriesComponent', () => {
   it('Renders a TimeseriesComponent', () => {
-    const _component = mount(<TimeseriesComponent adagucProperties={adagucProperties} dispatch={emptyDispatch} actions={emptyActions} isOpen={false} />)
-    expect(_component.type()).to.eql(TimeseriesComponent)
-  })
-})
+    const _component = mount(<TimeseriesComponent adagucProperties={adagucProperties} dispatch={emptyDispatch} actions={emptyActions} isOpen={false} />);
+    expect(_component.type()).to.eql(TimeseriesComponent);
+  });
+});

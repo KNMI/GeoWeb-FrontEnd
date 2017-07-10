@@ -90,4 +90,4 @@ export const DefaultLocations = [
     y: 52.36,
     availability: []
   }
-]
+];

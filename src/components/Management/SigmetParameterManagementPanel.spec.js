@@ -1,7 +1,7 @@
-import React from 'react'
-import SigmetParameterManagementPanel from './SigmetParameterManagementPanel'
-import Panel from '../Panel'
-import {mount, shallow} from 'enzyme'
+import React from 'react';
+import SigmetParameterManagementPanel from './SigmetParameterManagementPanel';
+import Panel from '../Panel';
+import { mount, shallow } from 'enzyme';
 
 describe('(Component) SigmetParameterManagementPanel', () => {
   const sigmetObj = {
@@ -15,13 +15,13 @@ describe('(Component) SigmetParameterManagementPanel', () => {
         location_indicator_icao: 'EHAA'
       }
     ]
-  }
+  };
   it('Shallow renders a Panel', () => {
-    const _component = shallow(<SigmetParameterManagementPanel sigmetParameters={sigmetObj} />)
-    expect(_component.type()).to.equal(Panel)
-  })
+    const _component = shallow(<SigmetParameterManagementPanel sigmetParameters={sigmetObj} />);
+    expect(_component.type()).to.equal(Panel);
+  });
   it('Renders an SigmetParameterManagementPanel', () => {
-    const _component = mount(<SigmetParameterManagementPanel sigmetParameters={sigmetObj} />)
-    expect(_component.type()).to.equal(SigmetParameterManagementPanel)
-  })
-})
+    const _component = mount(<SigmetParameterManagementPanel sigmetParameters={sigmetObj} />);
+    expect(_component.type()).to.equal(SigmetParameterManagementPanel);
+  });
+});

@@ -1,11 +1,11 @@
-import IndexRoute from './IndexRoute'
-import SigmetsRoute from './SigmetsRoute'
+import IndexRoute from './IndexRoute';
+import SigmetsRoute from './SigmetsRoute';
 
 // Sync route definition
-export default (store) => ({
+export default store => ({
   path: 'products',
   indexRoute: IndexRoute(store),
   childRoutes: [
     SigmetsRoute()
   ]
-})
+});

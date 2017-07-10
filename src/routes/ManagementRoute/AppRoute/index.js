@@ -1,10 +1,10 @@
-import IndexRoute from './IndexRoute'
-import LocationRoute from './LocationRoute'
+import IndexRoute from './IndexRoute';
+import LocationRoute from './LocationRoute';
 
-export default (store) => ({
+export default store => ({
   path: 'app',
   indexRoute: IndexRoute(store),
   childRoutes: [
     LocationRoute()
   ]
-})
+});

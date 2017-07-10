@@ -1,14 +1,14 @@
-const webpack = require('webpack')
-const HtmlWebpackPlugin = require('html-webpack-plugin')
-const project = require('./project.config')
-const debug = require('debug')('app:config:webpack')
-const CopyWebpackPlugin = require('copy-webpack-plugin')
-const WebpackStrip = require('strip-loader')
+const webpack = require('webpack');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const project = require('./project.config');
+const debug = require('debug')('app:config:webpack');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
+const WebpackStrip = require('strip-loader');
 
-const __DEV__ = project.globals.__DEV__
-const __PROD__ = project.globals.__PROD__
+const __DEV__ = project.globals.__DEV__;
+const __PROD__ = project.globals.__PROD__;
 
-debug('Creating awesome webpack configuration.')
+debug('Creating awesome webpack configuration.');
 const webpackConfig = {
   devServer: { historyApiFallback: true },
   name: 'client',
@@ -24,18 +24,18 @@ const webpackConfig = {
   },
 
   module: {}
-}
+};
 // ------------------------------------
 // Entry Points
 // ------------------------------------
-const APP_ENTRY = project.paths.client('main.js')
+const APP_ENTRY = project.paths.client('main.js');
 
 webpackConfig.entry = {
   app: __DEV__
     ? [APP_ENTRY].concat(`webpack-hot-middleware/client?path=${project.compiler_public_path}__webpack_hmr`)
     : [APP_ENTRY],
   libs: project.compiler_vendors
-}
+};
 
 // ------------------------------------
 // Bundle Output
@@ -44,15 +44,15 @@ webpackConfig.output = {
   filename: `[name].[${project.compiler_hash_type}].js`,
   path: project.paths.dist(),
   publicPath: project.compiler_public_path
-}
+};
 
 // ------------------------------------
 // Externals
 // ------------------------------------
-webpackConfig.externals = {}
-webpackConfig.externals['react/lib/ExecutionEnvironment'] = true
-webpackConfig.externals['react/lib/ReactContext'] = true
-webpackConfig.externals['react/addons'] = true
+webpackConfig.externals = {};
+webpackConfig.externals['react/lib/ExecutionEnvironment'] = true;
+webpackConfig.externals['react/lib/ReactContext'] = true;
+webpackConfig.externals['react/addons'] = true;
 
 // ------------------------------------
 // Plugins
@@ -72,16 +72,16 @@ webpackConfig.plugins = [
   new CopyWebpackPlugin([
     { from: 'src/static' }
   ])
-]
+];
 
 if (__DEV__) {
-  debug('Enabling plugins for live development (HMR, NoErrors).')
+  debug('Enabling plugins for live development (HMR, NoErrors).');
   webpackConfig.plugins.push(
     new webpack.HotModuleReplacementPlugin(),
     new webpack.NoEmitOnErrorsPlugin()
-  )
+  );
 } else if (__PROD__) {
-  debug('Enabling plugins for production (OccurenceOrder, Dedupe & UglifyJS).')
+  debug('Enabling plugins for production (OccurenceOrder, Dedupe & UglifyJS).');
   webpackConfig.plugins.push(
     new webpack.optimize.OccurrenceOrderPlugin(),
     new webpack.optimize.UglifyJsPlugin({
@@ -93,7 +93,7 @@ if (__DEV__) {
       sourceMap: true
     }),
     new webpack.optimize.AggressiveMergingPlugin()
-  )
+  );
 }
 
 // ------------------------------------
@@ -115,11 +115,11 @@ webpackConfig.module.rules = [
     loader: 'json-loader',
     enforce: 'pre'
   }
-]
+];
 
 // Remove debug statements in production
 if (__PROD__) {
-  webpackConfig.module.rules.push({ test: /\.js$/, loader: WebpackStrip.loader('debug', 'console.log', 'console.debug') })
+  webpackConfig.module.rules.push({ test: /\.js$/, loader: WebpackStrip.loader('debug', 'console.log', 'console.debug') });
 }
 
 // ------------------------------------
@@ -132,7 +132,7 @@ webpackConfig.module.rules.push({
     'css-loader',
     'sass-loader'
   ]
-})
+});
 
 // File loaders
 webpackConfig.module.rules.push(
@@ -164,6 +164,6 @@ webpackConfig.module.rules.push(
     test: /\.(png|jpg)$/,
     loader: 'url-loader?limit=8192'
   }
-)
+);
 
-module.exports = webpackConfig
+module.exports = webpackConfig;
