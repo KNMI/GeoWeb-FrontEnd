@@ -29,6 +29,11 @@ const ITEMS = [
     link: 'products/sigmets'
   },
   {
+    title: 'TAF',
+    ref:   'TAF',
+    icon:  'sun-o'
+  },
+  {
     title: 'Forecasts',
     ref:   'forecasts',
     icon:  'wpexplorer'

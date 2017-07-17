@@ -14,17 +14,18 @@ import elementResizeEvent from 'element-resize-event';
 import { DefaultLocations } from '../../constants/defaultlocations';
 import { ReadLocations } from '../../utils/admin';
 import { LoadURLPreset } from '../../utils/URLPresets';
-
+import { debounce } from '../../utils/debounce';
 export default class Adaguc extends React.Component {
   constructor () {
     super();
     this.initAdaguc = this.initAdaguc.bind(this);
-    this.resize = this.resize.bind(this);
+    this.resize = debounce(this.resize.bind(this), 50, false);
     this.updateLayer = this.updateLayer.bind(this);
     this.onChangeAnimation = this.onChangeAnimation.bind(this);
     this.timeHandler = this.timeHandler.bind(this);
     this.adagucBeforeDraw = this.adagucBeforeDraw.bind(this);
     this.updateBBOX = this.updateBBOX.bind(this);
+    this.updateDimensions = this.updateDimensions.bind(this);
     this.isAnimating = false;
     this.state = {
       dropdownOpenView: false,
@@ -182,7 +183,23 @@ export default class Adaguc extends React.Component {
     this.webMapJS.draw();
   }
 
+  updateDimensions () {
+    const element = document.querySelector(`#adagucwrapper${this.props.mapId}`).parentNode;
+    const diffWidth = this.state.width - window.innerWidth;
+    const diffHeight = this.state.height - window.innerHeight;
+    // if we go bigger, then there is no problem so only set the size dynamically if the window
+    // becomes smaller
+    if (diffWidth >= 0 && diffHeight >= 0) {
+      this.webMapJS.setSize($(element).width() - diffWidth, $(element).height() - diffHeight);
+      this.webMapJS.draw();
+    }
+    this.setState({ width: window.innerWidth, height: window.innerHeight });
+  }
+
   componentDidMount () {
+    // Keep track of screensize
+    this.setState({ width: window.innerWidth, height: window.innerHeight });
+    window.addEventListener('resize', this.updateDimensions);
     this.initAdaguc(this.refs.adaguc);
   }
   componentWillMount () {
@@ -196,6 +213,8 @@ export default class Adaguc extends React.Component {
 
   /* istanbul ignore next */
   componentWillUnmount () {
+    window.removeEventListener('resize', this.updateDimensions);
+
     // Unbind the resizelistener
     const element = document.querySelector(`#adagucwrapper${this.props.mapId}`).parentNode;
     if (element && element.__resizeTrigger__ && element.__resizeListeners__) {
@@ -377,6 +396,24 @@ export default class Adaguc extends React.Component {
     const baseChanged = this.updateBaselayers(baselayer, prevBaseLayer, overlays, prevOverlays);
     // Set the current layers if the panel becomes active (necessary for the layermanager etc.)
     if (active && (!prevProps.active || layersChanged || baseChanged)) {
+      const numOldLayers = prevProps.layers.panels[this.props.mapId].layers.length + prevProps.layers.panels[this.props.mapId].overlays.length + 1;
+      const numNewLayers = this.webMapJS.getLayers().length + this.webMapJS.getBaseLayers().length;
+
+      // Explicitly set the height of the adaguc window if a layer is added/removed.
+      // If we won't do this, performance in firefox (<= 54) will degrade heavily because
+      // the reflowing of the interface will "oscillate" which takes ~5 seconds to converge
+      // this reduces it to one step, making it usable again.
+      if (numOldLayers !== numNewLayers) {
+        const diff = numNewLayers - numOldLayers;
+        const parentElem = $(document.querySelector(`#adagucwrapper${this.props.mapId}`).parentNode);
+        const oldHeight = parentElem.height();
+        // A layer currently takes up 20 pixels in the layermanager, so reduce the size of ADAGUC
+        // by 20 pixels per layer added/removed
+        const newHeight = oldHeight + (diff * -20);
+        // parentElem.height(newHeight);
+        this.webMapJS.setSize($(parentElem).width(), newHeight);
+        this.webMapJS.draw();
+      }
       dispatch(layerActions.setWMJSLayers({ layers: this.webMapJS.getLayers(), baselayers: this.webMapJS.getBaseLayers() }));
     }
     this.webMapJS.draw();

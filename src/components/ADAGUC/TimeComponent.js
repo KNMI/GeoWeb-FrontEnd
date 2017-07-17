@@ -29,7 +29,7 @@ export default class TimeComponent extends Component {
   }
   /* istanbul ignore next */
   eventOnDimChange () {
-    this.drawCanvas();
+    window.requestAnimationFrame(this.drawCanvas);
   }
 
   /* istanbul ignore next */
@@ -99,7 +99,7 @@ export default class TimeComponent extends Component {
 
   /* istanbul ignore next */
   drawCanvas () {
-    const { timedim } = this.props;
+    const { timedim, wmjslayers } = this.props;
     if (timedim === undefined) {
       return;
     }
@@ -108,10 +108,16 @@ export default class TimeComponent extends Component {
     }
     this.hoverDateDone = this.hoverDate;
     const ctx = this.ctx;
+    if (!ctx) {
+      return;
+    }
     // eslint-disable-next-line no-undef
     const canvasWidth = $(ctx.canvas).width();
     // eslint-disable-next-line no-undef
-    const canvasHeight = $(ctx.canvas).height();
+    const numlayers = wmjslayers.baselayers && wmjslayers.layers ? wmjslayers.baselayers.length + wmjslayers.layers.length + 1 : 2;
+    const canvasHeight = 20 * numlayers;
+
+    // const canvasHeight = $(ctx.canvas).height();
     ctx.fillStyle = '#CCC';
     ctx.fillRect(0, 0, canvasWidth, canvasHeight);
     ctx.strokeStyle = '#FF0000';
@@ -287,11 +293,11 @@ export default class TimeComponent extends Component {
     if (this.timer) {
       clearInterval(this.timer);
     }
-    this.timer = setInterval(this.drawCanvas, 60000);
+    this.timer = setInterval(window.requestAnimationFrame(this.drawCanvas), 60000);
   }
   /* istanbul ignore next */
   componentDidUpdate () {
-    this.drawCanvas();
+    window.requestAnimationFrame(this.drawCanvas);
   }
   /* istanbul ignore next */
   componentWillUnmount () {
@@ -311,7 +317,6 @@ export default class TimeComponent extends Component {
     /* istanbul ignore next */
     try {
       const newDate = this.canvasDateInterval.getDateAtTimeStep(newTimeStep, true);
-      console.log(newDate.toISO8601());
       this.setNewDate(newDate.toISO8601());
     } catch (e) {
       throw new Error('311: ', e);
@@ -339,24 +344,25 @@ export default class TimeComponent extends Component {
 
   /* istanbul ignore next */
   render () {
+    const { wmjslayers } = this.props;
+    const numlayers = wmjslayers.baselayers && wmjslayers.layers ? wmjslayers.baselayers.length + wmjslayers.layers.length + 1 : 2;
+    const height = 20 * numlayers;
     return (
-      <Col>
-        <Row style={{ flex: 1 }}>
-          <Col xs='auto'>
-            <Button outline color='info' onClick={this.handleButtonClickPrevPage}>
-              <Icon name='chevron-left' />
-            </Button>
-          </Col>
-          <Col id='timelineParent'>
-            <CanvasComponent id='timeline' onRenderCanvas={this.onRenderCanvas} onClickB={this.onClickCanvas} />
-          </Col>
-          <Col xs='auto'>
-            <Button outline color='info' onClick={this.handleButtonClickNextPage}>
-              <Icon name='chevron-right' />
-            </Button>
-          </Col>
-        </Row>
-      </Col>
+      <Row style={{ flex: 1 }}>
+        <Col xs='auto'>
+          <Button outline color='info' onClick={this.handleButtonClickPrevPage}>
+            <Icon name='chevron-left' />
+          </Button>
+        </Col>
+        <Col id='timelineParent'>
+          <CanvasComponent id='timeline' onRenderCanvas={this.onRenderCanvas} onClickB={this.onClickCanvas} height={height} />
+        </Col>
+        <Col xs='auto'>
+          <Button outline color='info' onClick={this.handleButtonClickNextPage}>
+            <Icon name='chevron-right' />
+          </Button>
+        </Col>
+      </Row>
     );
   }
 }
