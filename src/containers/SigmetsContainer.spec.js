@@ -19,7 +19,7 @@ describe('(Container) SigmetsContainer', () => {
   });
 
   it('Allows triggering the toggle function', () => {
-    const _component = mount(<SigmetsContainer dispatch={emptyDispatch} actions={emptyActions} />);
+    const _component = mount(<SigmetsContainer dispatch={emptyDispatch} drawActions={emptyActions} />);
     expect(_component.state().isOpen).to.eql(true);
     const evt = new KeyboardEvent('keydown', {
       bubbles: true,

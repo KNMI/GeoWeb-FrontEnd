@@ -15,7 +15,7 @@ export class SinglePanel extends Component {
 }
 class MapPanel extends Component {
   render () {
-    const { title, mapProperties, drawProperties, dispatch, actions } = this.props;
+    const { mapProperties } = this.props;
     switch (mapProperties.layout) {
       case 'dual':
         return (

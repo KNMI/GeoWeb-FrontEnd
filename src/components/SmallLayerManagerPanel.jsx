@@ -29,7 +29,6 @@ class SmallLayerManagerPanel extends Component {
   };
 
   render () {
-    console.log(this.props)
     const { title, dispatch, actions, adagucProperties, layers,mapProperties } = this.props;
     return (
       <Panel title={title} style={{ background: '#EEF' }}>

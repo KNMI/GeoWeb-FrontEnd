@@ -524,7 +524,6 @@ export default class AdagucMapDraw extends Component {
     }
   }
   featureHasChanged (text) {
-    console.log(this.props);
     const { dispatch, actions } = this.props;
     dispatch(actions.updateFeature(this.props.geojson, text));
   }

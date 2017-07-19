@@ -7,7 +7,7 @@ import PropTypes from 'prop-types';
 
 class LayerManagerPanel extends Component {
   render () {
-    const { title, dispatch, actions, adagucProperties, layers, mapProperties } = this.props;
+    const { title, dispatch, adagucProperties, layers, mapProperties } = this.props;
     return (
       <Panel title={title}>
         <Row style={{ flex: 1 }}>
@@ -22,8 +22,11 @@ class LayerManagerPanel extends Component {
 LayerManagerPanel.propTypes = {
   title: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
   dispatch: PropTypes.func.isRequired,
-  actions: PropTypes.object.isRequired,
-  adagucProperties: PropTypes.object
+  layers: PropTypes.object.isRequired,
+  adagucProperties: PropTypes.object,
+  mapProperties: PropTypes.object,
+  adagucActions: PropTypes.object,
+  layerActions: PropTypes.object
 };
 
 export default LayerManagerPanel;

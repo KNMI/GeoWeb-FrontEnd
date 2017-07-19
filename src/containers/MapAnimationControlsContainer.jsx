@@ -39,7 +39,6 @@ class MapAnimationControlsContainer extends Component {
 
   handleAddLayer (e) {
     const { dispatch, layerActions, mapProperties, activeMapId } = this.props;
-    console.log('handleaddlayer: ', this.props)
     const addItem = e[0];
     if (!this.state.overlay) {
       dispatch(layerActions.addLayer({ activeMapId: activeMapId, layer: { service: this.state.selectedSource.service, title: this.state.selectedSource.title, name: addItem.id, label: addItem.label, opacity: 1 }}));

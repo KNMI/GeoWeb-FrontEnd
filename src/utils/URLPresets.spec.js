@@ -20,12 +20,12 @@ describe('(URLPresets)', () => {
   });
   it('can load a preset', () => {
     const failureFunction = sinon.spy();
-    LoadURLPreset({ actions: { setPreset: () => null }, dispatch: () => null }, failureFunction);
+    LoadURLPreset({ layerActions: { setPreset: () => null }, dispatch: () => null }, failureFunction);
     failureFunction.should.not.have.been.called();
   });
   it('Rejects invalid UUID', () => {
     const failureFunction = sinon.spy();
-    _loadPreset({ actions: { setPreset: () => null }, dispatch: () => null }, 'adadad', failureFunction);
+    _loadPreset({ layerActions: { setPreset: () => null }, dispatch: () => null }, 'adadad', failureFunction);
     failureFunction.should.have.been.calledOnce();
   });
   it('Accepts valid UUID', (done) => {
@@ -35,13 +35,13 @@ describe('(URLPresets)', () => {
       status: 200,
       responseText: { payload: '{"payload":""}' }
     });
-    _loadPreset({ actions: { setPreset: () => {
+    _loadPreset({ layerActions: { setPreset: () => {
       dispatchSetPreset();
     } },
     dispatch: () => {} }, '0169891a-d31e-423c-8936-1618af774472');
 
     moxios.wait(() => {
-      dispatchSetPreset.should.have.been.calledOnce();
+      dispatchSetPreset.should.not.have.been.called();
       done();
     });
   });

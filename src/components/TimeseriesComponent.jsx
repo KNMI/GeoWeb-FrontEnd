@@ -124,10 +124,8 @@ export default class TimeseriesComponent extends Component {
 
   /* istanbul ignore next */
   fetchNewLocationData (cursor, wmjslayers, adagucTime) {
-    console.log('Fetching new location data');
     const { location } = cursor;
     const harmlayer = wmjslayers.layers.filter((layer) => layer.service.includes('HARM'))[0];
-    console.log(harmlayer)
     if (!harmlayer) return;
     const refTime = harmlayer.getDimension('reference_time').currentValue;
     this.toggleCanvas();
@@ -227,7 +225,6 @@ LAYERS=&QUERY_LAYERS=air_pressure_at_sea_level,wind__at_10m,dew_point_temperatur
     const { adagucProperties, layers, mapProperties } = nextProps;
     const { cursor } = adagucProperties;
     const { wmjsLayers } = layers;
-    console.log(wmjsLayers, mapProperties, adagucProperties);
     // No layers or not in progtemp mode so no need to draw
     if (!wmjsLayers || !wmjsLayers.layers || mapProperties.mapMode !== 'timeseries') {
       return;
@@ -341,7 +338,6 @@ LAYERS=&QUERY_LAYERS=air_pressure_at_sea_level,wind__at_10m,dew_point_temperatur
   /* istanbul ignore next */
   render () {
     const { cursor, timeDimension } = this.props.adagucProperties;
-    console.log(timeDimension)
     const { wmjsLayers } = this.props.layers;
     if (cursor && !this.state.timeData) {
       this.fetchNewLocationData(cursor, wmjsLayers, timedim);

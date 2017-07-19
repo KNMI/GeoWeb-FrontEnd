@@ -368,7 +368,7 @@ export default class TimeComponent extends Component {
 }
 TimeComponent.propTypes = {
   timedim: PropTypes.string,
-  wmjslayers: PropTypes.object,
+  wmjslayers: PropTypes.array,
   dispatch: PropTypes.func,
   actions: PropTypes.object
 };

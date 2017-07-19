@@ -52,7 +52,6 @@ class LayerName extends Component {
   }
   // istanbul ignore next
   alterLayer (e, wantedLayer) {
-    console.log('layername', this.props);
     const indexInLayerList = e.currentTarget.id;
     this.props.dispatch(this.props.layerActions.alterLayer({ index: indexInLayerList,
       layerType: this.props.target.includes('data')

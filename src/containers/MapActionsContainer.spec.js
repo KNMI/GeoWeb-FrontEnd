@@ -3,17 +3,81 @@ import { default as MapActionsContainer } from './MapActionsContainer';
 import { mount, shallow } from 'enzyme';
 import sinon from 'sinon';
 
-const adagucProperties = {
-  wmjslayers: {
-    layers: [],
-    baselayers: [],
-    overlays: []
+const state = {
+  adagucProperties: {
+    animate: false,
+    sources: [],
+    timeDimension: '2017-07-19T11:32:03Z',
+    cursor: null
   },
-  sources: {
-    data: [{ name: 'testName', title: 'testTitle' }],
-    overlay: [{ name: 'testName', title: 'testTitle' }]
+  mapProperties: {
+    mapCreated: false,
+    activeMapId: 0,
+    layout: 'single',
+    mapMode: 'pan',
+    projectionName: 'EPSG:3857',
+    boundingBox: {
+      title: 'Netherlands',
+      bbox: [
+        314909.3659069278,
+        6470493.345653814,
+        859527.2396033217,
+        7176664.533565958
+      ]
+    }
   },
-  mapMode: 'pan'
+  drawProperties: {
+    geojson: {
+      type: 'FeatureCollection',
+      features: [
+        {
+          type: 'Feature',
+          geometry: {
+            type: 'Polygon',
+            coordinates: []
+          },
+          properties: {
+            prop0: 'value0',
+            prop1: {
+              'this': 'that'
+            }
+          }
+        }
+      ]
+    },
+    measureDistance: {
+      isInEditMode: false
+    }
+  },
+
+  layers: {
+    wmjsLayers: [],
+    baselayer: {
+      service: 'http://geoservices.knmi.nl/cgi-bin/bgmaps.cgi?',
+      name: 'streetmap',
+      title: 'OpenStreetMap',
+      format: 'image/gif',
+      enabled: true
+    },
+    panels: [
+      {
+        overlays: [],
+        layers: []
+      },
+      {
+        overlays: [],
+        layers: []
+      },
+      {
+        overlays: [],
+        layers: []
+      },
+      {
+        overlays: [],
+        layers: []
+      }
+    ]
+  }
 };
 
 const emptyDispatch = () => null;
@@ -24,85 +88,84 @@ const emptyActions = {
 };
 
 describe('(Container) MapActionsContainer', () => {
+  let _deepComponent, _shallowComponent;
+  beforeEach(() => {
+    _deepComponent = mount(<MapActionsContainer
+      user={{}}
+      adagucActions={{ toggleAnimation: () => null, setTimeDimension: () => null }}
+      mapProperties={state.mapProperties} adagucProperties={state.adagucProperties} dispatch={emptyDispatch} actions={emptyActions} />);
+    _shallowComponent = shallow(<MapActionsContainer
+      user={{}}
+      adagucActions={{ toggleAnimation: () => null, setTimeDimension: () => null }}
+      mapProperties={state.mapProperties} adagucProperties={state.adagucProperties} dispatch={emptyDispatch} actions={emptyActions} />);
+  });
   it('Renders a ReactStrap Col', () => {
-    const _component = mount(<MapActionsContainer adagucProperties={adagucProperties} dispatch={emptyDispatch} actions={emptyActions} />);
-    expect(_component.type()).to.eql(MapActionsContainer);
+    expect(_deepComponent.type()).to.eql(MapActionsContainer);
   });
   it('Adds a data layer', () => {
-    const _component = mount(<MapActionsContainer adagucProperties={adagucProperties} dispatch={emptyDispatch} actions={emptyActions} />);
-    expect(_component.type()).to.eql(MapActionsContainer);
+    expect(_deepComponent.type()).to.eql(MapActionsContainer);
   });
+
+  // These ones triggers a Maximum call stack size exceeded error
   // it('Allows for triggering toggleLayerChooser', () => {
-  //   const _component = mount(<MapActionsContainer adagucProperties={adagucProperties} dispatch={emptyDispatch} actions={emptyActions} />);
-  //   _component.instance().toggleLayerChooser();
+  //   _deepComponent.instance().toggleLayerChooser();
+  //   expect('everything').to.be.ok();
+  // });
+  // it('Allows for setting layerChooserOpen state', () => {
+  //   _deepComponent.setState({ layerChooserOpen: true });
   //   expect('everything').to.be.ok();
   // });
   it('Allows for triggering toggleAnimation', () => {
-    const _component = mount(<MapActionsContainer adagucProperties={adagucProperties} dispatch={emptyDispatch} actions={emptyActions} />);
-    _component.instance().toggleAnimation();
+    _deepComponent.instance().toggleAnimation();
     expect('everything').to.be.ok();
   });
   it('Allows for triggering togglePopside', () => {
-    const _component = shallow(<MapActionsContainer adagucProperties={adagucProperties} dispatch={emptyDispatch} actions={emptyActions} />);
-    _component.instance().togglePopside();
+    _shallowComponent.instance().togglePopside();
     expect('everything').to.be.ok();
   });
   it('Allows for triggering goToNow', () => {
     global.getCurrentDateIso8601 = sinon.stub().returns({ toISO8601: () => { /* intentionally left blank */ } });
-    const _component = mount(<MapActionsContainer adagucProperties={adagucProperties} dispatch={emptyDispatch} actions={emptyActions} />);
-    _component.instance().goToNow();
+    _deepComponent.instance().goToNow();
     expect('everything').to.be.ok();
   });
   it('Allows for triggering generateMap', () => {
-    const _component = mount(<MapActionsContainer adagucProperties={adagucProperties} dispatch={emptyDispatch} actions={emptyActions} />);
-    _component.instance().generateMap([{ name: 'testName', text: 'testText' }]);
+    _deepComponent.instance().generateMap([{ name: 'testName', text: 'testText' }]);
     expect('everything').to.be.ok();
   });
   it('Allows for triggering getLayerName', () => {
-    const _component = mount(<MapActionsContainer adagucProperties={adagucProperties} dispatch={emptyDispatch} actions={emptyActions} />);
-    let obs = _component.instance().getLayerName({ title: 'OBS' });
+    let obs = _deepComponent.instance().getLayerName({ title: 'OBS' });
     expect(obs).to.eql('Observations');
-    obs = _component.instance().getLayerName({ title: 'SAT' });
+    obs = _deepComponent.instance().getLayerName({ title: 'SAT' });
     expect(obs).to.eql('Satellite');
-    obs = _component.instance().getLayerName({ title: 'LGT' });
+    obs = _deepComponent.instance().getLayerName({ title: 'LGT' });
     expect(obs).to.eql('Lightning');
-    obs = _component.instance().getLayerName({ title: 'HARM_N25_EXT' });
+    obs = _deepComponent.instance().getLayerName({ title: 'HARM_N25_EXT' });
     expect(obs).to.eql('HARMONIE (EXT)');
-    obs = _component.instance().getLayerName({ title: 'HARM_N25' });
+    obs = _deepComponent.instance().getLayerName({ title: 'HARM_N25' });
     expect(obs).to.eql('HARMONIE');
-    obs = _component.instance().getLayerName({ title: 'OVL' });
+    obs = _deepComponent.instance().getLayerName({ title: 'OVL' });
     expect(obs).to.eql('Overlay');
-    obs = _component.instance().getLayerName({ title: 'RADAR_EXT' });
+    obs = _deepComponent.instance().getLayerName({ title: 'RADAR_EXT' });
     expect(obs).to.eql('Radar (EXT)');
     expect('everything').to.be.ok();
   });
   it('Allows for setting addLayer action state', () => {
-    const _component = mount(<MapActionsContainer adagucProperties={adagucProperties} dispatch={emptyDispatch} actions={emptyActions} />);
-    _component.setState({ action: 'addLayer' });
+    _deepComponent.setState({ action: 'addLayer' });
     expect('everything').to.be.ok();
   });
   it('Allows for setting selectPreset action state', () => {
-    const _component = mount(<MapActionsContainer adagucProperties={adagucProperties} dispatch={emptyDispatch} actions={emptyActions} />);
-    _component.setState({ action: 'selectPreset' });
+    _deepComponent.setState({ action: 'selectPreset' });
     expect('everything').to.be.ok();
   });
   it('Allows for setting collapse state', () => {
-    const _component = mount(<MapActionsContainer adagucProperties={adagucProperties} dispatch={emptyDispatch} actions={emptyActions} />);
-    _component.setState({ collapse: true });
+    _deepComponent.setState({ collapse: true });
     expect('everything').to.be.ok();
   });
   it('Allows for setting popoverOpen state', () => {
-    const _component = shallow(<MapActionsContainer adagucProperties={adagucProperties} dispatch={emptyDispatch} actions={emptyActions} />);
-    _component.setState({ popoverOpen: true });
+    _shallowComponent.setState({ popoverOpen: true });
     expect('everything').to.be.ok();
   });
-  // it('Allows for setting layerChooserOpen state', () => {
-  //   const _component = mount(<MapActionsContainer adagucProperties={adagucProperties} dispatch={emptyDispatch} actions={emptyActions} />);
-  //   _component.setState({ layerChooserOpen: true });
-  //   expect('everything').to.be.ok();
-  // });
   it('Allows for creating a progtemp config', () => {
-    const _component = mount(<MapActionsContainer adagucProperties={adagucProperties} dispatch={emptyDispatch} actions={emptyActions} />);
     const newAdaguc = {
       layers: {
         datalayers: [
@@ -127,7 +190,7 @@ describe('(Container) MapActionsContainer', () => {
       },
       mapMode: 'progtemp'
     };
-    _component.setProps({ adagucProperties: newAdaguc });
+    _deepComponent.setProps({ adagucProperties: newAdaguc });
     expect('everything').to.be.ok();
   });
 });

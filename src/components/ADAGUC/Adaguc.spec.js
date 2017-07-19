@@ -1,7 +1,6 @@
 import React from 'react';
 import { default as Adaguc } from './Adaguc';
-import { default as adagucReducer } from '../../reducers/adagucReducer';
-import actions from '../../actions/adaguc';
+import reducer from '../../redux/reducers';
 import { shallow } from 'enzyme';
 import sinon from 'sinon';
 
@@ -11,51 +10,103 @@ describe('(Component) Adaguc', () => {
   beforeEach(() => {
     _globalState = {
       adagucProperties: {
-        layers: {
-          baselayer: {},
-          panel: [
+        animate: false,
+        sources: {},
+        timeDimension: null,
+        cursor: null
+      },
+      drawProperties: {
+        geojson: {
+          type: 'FeatureCollection',
+          features: [
             {
-              datalayers: [],
-              overlays: []
-            }, {
-              datalayers: [],
-              overlays: []
-            }, {
-              datalayers: [],
-              overlays: []
-            }, {
-              datalayers: [],
-              overlays: []
+              type: 'Feature',
+              geometry: {
+                type: 'Polygon',
+                coordinates: []
+              },
+              properties: {
+                prop0: 'value0',
+                prop1: {
+                  'this': 'that'
+                }
+              }
             }
           ]
         },
-
-        sources: {},
-        boundingBox: null,
-        projectionName: 'EPSG:3857',
-        mapCreated: false,
-        adagucmapdraw: {
-          geojson: {
-            coords: {}
-          },
-          isInEditMode: false,
-          isInDeleteMode: false
-        },
-        adagucmeasuredistance: {
+        measureDistance: {
           isInEditMode: false
         }
-      }
+      },
+      mapProperties: {
+        mapCreated: false,
+        activeMapId: 0,
+        layout: 'single',
+        mapMode: 'pan',
+        projectionName: 'EPSG:3857',
+        boundingBox: {
+          title: 'Netherlands',
+          bbox: [
+            314909.3659069278,
+            6470493.345653814,
+            859527.2396033217,
+            7176664.533565958
+          ]
+        }
+      },
+      userProperties: {
+        isLoggedIn: false,
+        username: '',
+        roles: []
+      },
+      layers: {
+        wmjsLayers: [],
+        baselayer: {
+          service: 'http://geoservices.knmi.nl/cgi-bin/bgmaps.cgi?',
+          name: 'streetmap',
+          title: 'OpenStreetMap',
+          format: 'image/gif',
+          enabled: true
+        },
+        panels: [
+          {
+            overlays: [],
+            layers: []
+          },
+          {
+            overlays: [],
+            layers: []
+          },
+          {
+            overlays: [],
+            layers: []
+          },
+          {
+            overlays: [],
+            layers: []
+          }
+        ]
+      },
+      recentTriggers: [],
+      notifications: []
     };
     _dispatchSpy = sinon.spy((action) => {
-      _globalState = {
-        ..._globalState,
-        adagucProperties: adagucReducer(_globalState.adagucProperties, action)
-      };
+      _globalState = reducer(_globalState, action);
     });
   });
 
   it('Renders a div', () => {
-    const _component = shallow(<Adaguc adagucProperties={_globalState.adagucProperties} dispatch={_dispatchSpy} actions={actions} />);
+    const _component = shallow(<Adaguc
+      active dispatch={_dispatchSpy}
+      layerActions={{}}
+      adagucActions={{}}
+      mapActions={{}}
+      drawActions={{}}
+      adagucProperties={_globalState.adagucProperties}
+      mapProperties={_globalState.mapProperties}
+      layers={_globalState.layers}
+      mapId={0}
+      drawProperties={_globalState.drawProperties} />);
     expect(_component.type()).to.eql('div');
   });
 });

@@ -15,15 +15,18 @@ const emptyObj = {
 describe('(Component) TitleBarContainer', () => {
   let _component;
   const _logoutaction = sinon.spy();
+  const _loginaction = sinon.spy();
 
   beforeEach(() => {
-    _component = mount(<TitleBarContainer actions={{ logout: _logoutaction }} adagucProperties={emptyObj} dispatch={emptyFunc} routes={[{ path: 'testpath' }]} />);
+    _component = mount(<TitleBarContainer
+      user={{ roles: [], isLoggedIn: false }} userActions={{ login: _loginaction, logout: _logoutaction }} adagucProperties={emptyObj} dispatch={emptyFunc} routes={[{ path: 'testpath' }]} />);
   });
   it('Renders nested routes', () => {
     _component = mount(<TitleBarContainer
-      actions={{ logout: _logoutaction }}
+      userActions={{ login: _loginaction, logout: _logoutaction }}
       adagucProperties={emptyObj}
       dispatch={emptyFunc}
+      user={{ roles: [], isLoggedIn: false }}
       routes={[
         { path: 'testpathA', indexRoute: { title: 'testpathAtitle' } },
         { path: 'testpathB', indexRoute: { title: 'testpathBtitle' } },
@@ -51,7 +54,7 @@ describe('(Component) TitleBarContainer', () => {
     const _logoutaction = sinon.spy();
     _component = mount(
       <TitleBarContainer
-        actions={{ logout: _logoutaction }}
+        user={{ roles: [], isLoggedIn: false }} userActions={{ login: _loginaction, logout: _logoutaction }}
         adagucProperties={{ user: { isLoggedIn: true, userName: 'Blah' } }}
         dispatch={emptyFunc}
         routes={[{ path: 'testpath' }]}
@@ -68,7 +71,7 @@ describe('(Component) TitleBarContainer', () => {
     const _loginaction = sinon.spy();
     _component = mount(
       <TitleBarContainer
-        actions={{ login: _loginaction }}
+        user={{ roles: [], isLoggedIn: false }} userActions={{ login: _loginaction, logout: _logoutaction }}
         dispatch={emptyFunc}
         routes={[{ path: 'testpath' }]}
       />
@@ -83,7 +86,7 @@ describe('(Component) TitleBarContainer', () => {
     const _logoutaction = sinon.spy();
     _component = mount(
       <TitleBarContainer
-        actions={{ logout: _logoutaction }}
+        user={{ roles: [], isLoggedIn: false }} userActions={{ login: _loginaction, logout: _logoutaction }}
         dispatch={emptyFunc}
         routes={[{ path: 'testpath' }]}
       />
@@ -102,6 +105,7 @@ describe('(Component) TitleBarContainer', () => {
   it('Checks checkCredentialsOKCallback method with invalid username \'\' ', () => {
     _component = mount(
       <TitleBarContainer
+        user={{ roles: [], isLoggedIn: false }} userActions={{ login: _loginaction, logout: _logoutaction }}
         dispatch={emptyFunc}
         routes={[{ path: 'testpath' }]}
       />
@@ -115,7 +119,7 @@ describe('(Component) TitleBarContainer', () => {
     const _logoutaction = sinon.spy();
     _component = mount(
       <TitleBarContainer
-        actions={{ logout: _logoutaction }}
+        user={{ roles: [], isLoggedIn: false }} userActions={{ login: _loginaction, logout: _logoutaction }}
         adagucProperties={{ user: { isLoggedIn: true, userName: 'Blah' } }}
         dispatch={emptyFunc}
         routes={[{ path: 'testpath' }]}
@@ -129,7 +133,7 @@ describe('(Component) TitleBarContainer', () => {
   it('Calls the setTime function and checks wheter state is updated', () => {
     _component = mount(
       <TitleBarContainer
-        actions={{ logout: _logoutaction }}
+        user={{ roles: [], isLoggedIn: false }} userActions={{ login: _loginaction, logout: _logoutaction }}
         adagucProperties={{ user: { isLoggedIn: true, userName: 'Blah' } }}
         dispatch={emptyFunc}
         routes={[{ path: 'testpath' }]}
