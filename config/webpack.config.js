@@ -3,7 +3,6 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const project = require('./project.config');
 const debug = require('debug')('app:config:webpack');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
-const WebpackStrip = require('strip-loader');
 
 const __DEV__ = project.globals.__DEV__;
 const __PROD__ = project.globals.__PROD__;
@@ -85,10 +84,17 @@ if (__DEV__) {
   webpackConfig.plugins.push(
     new webpack.optimize.OccurrenceOrderPlugin(),
     new webpack.optimize.UglifyJsPlugin({
-      compress: {
-        unused: true,
-        dead_code: true,
-        warnings: false
+      parallel: true,
+      uglifyOptions: {
+        compress: {
+          unused: true,
+          dead_code: true,
+          warnings: false,
+          drop_console: true,
+          drop_debugger: true,
+          conditionals: true,
+          keep_infinity: true
+        }
       },
       sourceMap: true
     }),
@@ -116,11 +122,6 @@ webpackConfig.module.rules = [
     enforce: 'pre'
   }
 ];
-
-// Remove debug statements in production
-if (__PROD__) {
-  webpackConfig.module.rules.push({ test: /\.js$/, loader: WebpackStrip.loader('debug', 'console.log', 'console.debug') });
-}
 
 // ------------------------------------
 // Style Loaders

@@ -180,7 +180,6 @@
     "sass-loader": "^6.0.3",
     "sinon": "^2.1.0",
     "sinon-chai": "^2.9.0",
-    "strip-loader": "^0.1.2",
     "style-loader": "^0.18.2",
     "transform-runtime": "0.0.0",
     "url-loader": "^0.5.8",
