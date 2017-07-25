@@ -1,5 +1,6 @@
 <img src="https://knmi.github.io/GeoWeb-FrontEnd/assets/images/icon.svg" width="100%" height="144">
 
+[![Build Status](https://travis-ci.org/KNMI/GeoWeb-FrontEnd.svg?branch=master)](https://travis-ci.org/KNMI/GeoWeb-FrontEnd)
 [![dependencies status](https://david-dm.org/KNMI/GeoWeb-FrontEnd.svg)](https://david-dm.org/KNMI/GeoWeb-FrontEnd)
 [![devDependencies status](https://david-dm.org/KNMI/GeoWeb-FrontEnd/dev-status.svg)](https://david-dm.org/KNMI/GeoWeb-FrontEnd/?type=dev)
 
