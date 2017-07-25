@@ -1,4 +1,4 @@
-https://david-dm.org/KNMI/GeoWeb-FrontEnd.svg
+![dependencies status](https://david-dm.org/KNMI/GeoWeb-FrontEnd.svg)
 
 # GeoWeb FrontEnd
 
