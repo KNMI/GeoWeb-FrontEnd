@@ -1,4 +1,4 @@
-[![dependencies status](https://david-dm.org/KNMI/GeoWeb-FrontEnd.svg)](https://david-dm.org/KNMI/GeoWeb-FrontEnd.svg)
+[![dependencies status](https://david-dm.org/KNMI/GeoWeb-FrontEnd.svg)](https://david-dm.org/KNMI/GeoWeb-FrontEnd)
 [![devDependencies status](https://david-dm.org/KNMI/GeoWeb-FrontEnd/dev-status.svg)](https://david-dm.org/KNMI/GeoWeb-FrontEnd/?type=dev)
 
 # GeoWeb FrontEnd
