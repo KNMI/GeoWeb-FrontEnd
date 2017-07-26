@@ -4,13 +4,20 @@
 @import "{{ site.theme }}";
 @import url('https://fonts.googleapis.com/css?family=Roboto');
 body {
-  font-family: system-ui, 'Roboto', sans-serif; 
+  font-family: system-ui, 'Roboto', sans-serif;
 }
 .page-header {
   background-color: #01547d;
   background-image: unset;
-  
+
   .project-name:before {
-    content:url('../images/icon.svg');
+    display: inline-block;
+    width: 12rem;
+    height: 8rem;
+    background-image: url(../images/icon.svg);
+    background-size: 12rem 8rem;
+    background-repeat: no-repeat;
+    margin-bottom: -1.5rem;
+    content: "";
   }
 }
