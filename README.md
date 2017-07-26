@@ -1,10 +1,6 @@
 <img src="https://knmi.github.io/GeoWeb-FrontEnd/assets/images/icon.svg" width="100%" height="144">
 
-[![Build Status](https://travis-ci.org/KNMI/GeoWeb-FrontEnd.svg?branch=master)](https://travis-ci.org/KNMI/GeoWeb-FrontEnd)
-[![dependencies status](https://david-dm.org/KNMI/GeoWeb-FrontEnd.svg)](https://david-dm.org/KNMI/GeoWeb-FrontEnd)
-[![devDependencies status](https://david-dm.org/KNMI/GeoWeb-FrontEnd/dev-status.svg)](https://david-dm.org/KNMI/GeoWeb-FrontEnd/?type=dev)
-
-# GeoWeb FrontEnd
+# [GeoWeb FrontEnd](https://knmi.github.io/GeoWeb-FrontEnd/) [![Build Status](https://travis-ci.org/KNMI/GeoWeb-FrontEnd.svg?branch=master)](https://travis-ci.org/KNMI/GeoWeb-FrontEnd) [![dependencies status](https://david-dm.org/KNMI/GeoWeb-FrontEnd.svg)](https://david-dm.org/KNMI/GeoWeb-FrontEnd) [![devDependencies status](https://david-dm.org/KNMI/GeoWeb-FrontEnd/dev-status.svg)](https://david-dm.org/KNMI/GeoWeb-FrontEnd/?type=dev)
 
 The GeoWeb FrontEnd started at the Royal Netherlands Meteorological Institute as part of the GeoWeb Project. This project intends to provide integrated tooling for the Early Warning Center / Weather Room.
 
