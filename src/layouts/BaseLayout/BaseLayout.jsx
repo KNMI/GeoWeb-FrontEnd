@@ -44,36 +44,9 @@ class BaseLayout extends Component {
   }
 
   render () {
-    const { header, leftSideBar, secondLeftSideBar, map, layerManager, rightSideBar } = this.props;
     return (
-      <Container fluid className={this.props.routes[1] && this.props.routes[1].path === 'layout_test' ? 'test' : ''}>
-        <div className='innerContainer'>
-          <Row className='Header' tag='header'>
-            {header || 'Oops'}
-          </Row>
-          <Row className='MainSection'>
-            <Col xs='auto' className='LeftSideBar' tag='aside'>
-              {leftSideBar || 'Oops'}
-            </Col>
-            <Col xs='auto' className='SecondLeftSideBar' tag='aside'>
-              {secondLeftSideBar || 'Oops'}
-            </Col>
-            <Col className='MainViewport'>
-              <Row className='map' tag='main'>
-                {map || 'Oops'}
-              </Row>
-              <Row className='Footer'>
-                {layerManager || 'Oops'}
-              </Row>
-            </Col>
-            <Col xs='auto' className='RightSideBar' tag='aside'>
-              {rightSideBar || 'Oops'}
-            </Col>
-          </Row>
-        </div>
-        <div className='notifications'>
-          <NotificationsSystem theme={theme} />
-        </div>
+      <Container fluid>
+        {this.props.children}
       </Container>
     );
   }

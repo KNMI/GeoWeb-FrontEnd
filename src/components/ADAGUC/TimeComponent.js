@@ -3,9 +3,8 @@ import CanvasComponent from './CanvasComponent.js';
 import { Icon } from 'react-fa';
 import { Button, Col, Row } from 'reactstrap';
 import PropTypes from 'prop-types';
-
+import { debounce } from '../../utils/debounce';
 const elementResizeEvent = require('element-resize-event');
-
 export default class TimeComponent extends Component {
   constructor () {
     super();
@@ -22,6 +21,7 @@ export default class TimeComponent extends Component {
     this.changeDay = this.changeDay.bind(this);
     this.changeHour = this.changeHour.bind(this);
     this.changeMinute = this.changeMinute.bind(this);
+    this.debouncedForceUpdate = debounce(this.forceUpdate, 100, false);
   }
   /* istanbul ignore next */
   eventOnMapDimUpdate () {
@@ -234,7 +234,7 @@ export default class TimeComponent extends Component {
     const isodate = this.toISO8601(value);
     // eslint-disable-next-line no-undef
     const date = parseISO8601DateToDate(isodate);
-    this.props.dispatch(this.props.actions.setTimeDimension(date.toISO8601()));
+    this.props.dispatch(this.props.adagucActions.setTimeDimension(date.toISO8601()));
     this.eventOnDimChange();
   }
   /* istanbul ignore next */
@@ -286,9 +286,7 @@ export default class TimeComponent extends Component {
   /* istanbul ignore next */
   componentDidMount () {
     const element = document.querySelector('#timelineParent');
-    elementResizeEvent(element, () => {
-      this.setState({ });
-    });
+    elementResizeEvent(element, () => this.debouncedForceUpdate());
 
     if (this.timer) {
       clearInterval(this.timer);
@@ -315,12 +313,8 @@ export default class TimeComponent extends Component {
     const s = this.canvasDateInterval.getTimeSteps() - 1;
     const newTimeStep = parseInt(t * s);
     /* istanbul ignore next */
-    try {
-      const newDate = this.canvasDateInterval.getDateAtTimeStep(newTimeStep, true);
-      this.setNewDate(newDate.toISO8601());
-    } catch (e) {
-      throw new Error('311: ', e);
-    }
+    const newDate = this.canvasDateInterval.getDateAtTimeStep(newTimeStep, true);
+    this.setNewDate(newDate.toISO8601());
   }
   /* istanbul ignore next */
   handleButtonClickNow () {
@@ -370,5 +364,6 @@ TimeComponent.propTypes = {
   timedim: PropTypes.string,
   wmjslayers: PropTypes.array,
   dispatch: PropTypes.func,
-  actions: PropTypes.object
+  actions: PropTypes.object,
+  adagucActions: PropTypes.object
 };

@@ -20,10 +20,14 @@ class SmallLayerManagerPanel extends Component {
   }
 
   toggleFullscreen (evt) {
-    if (document.mozCancelFullscreen) {
+    if (document.exitFullscreen) {
+      document.exitFullscreen();
+    } else if (document.mozCancelFullScreen) {
       document.mozCancelFullScreen();
+    } else if (document.webkitExitFullscreen) {
+      document.webkitExitFullscreen();
     } else {
-      document.webkitCancelFullScreen();
+      document.msExitFullscreen();
     }
     hashHistory.goBack();
   };

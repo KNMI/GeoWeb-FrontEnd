@@ -8,11 +8,10 @@ export default class ProgtempManagementPanel extends React.Component {
     super(props);
     this.addAvailable = this.addAvailable.bind(this);
     this.progtempLocations = DefaultLocations;
-    console.log('Start reading progtemp locs');
     ReadLocations((data) => {
       if (data) {
         this.progtempLocations = data;
-        console.log('progtemlocations set');
+        this.setState({ locations: data });
       } else {
         console.log('get progtemlocations failed');
       }
@@ -30,6 +29,9 @@ export default class ProgtempManagementPanel extends React.Component {
     this.setState({ locations: listCpy });
   }
   render () {
+    if (!this.state.locations) {
+      return null;
+    }
     return (
       <Panel style={{ overflowX: 'hidden', overflowY: 'auto' }}>
         <Row style={{ flex: 1 }}>
