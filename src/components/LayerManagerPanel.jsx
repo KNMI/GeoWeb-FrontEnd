@@ -11,10 +11,10 @@ class LayerManagerPanel extends Component {
     return (
       <Panel title={title}>
         <Empty />
-        {/*<Row style={{ flex: 1 }}>
+        <Row style={{ flex: 1 }}>
           <TimeComponent timedim={adagucProperties.timeDimension} wmjslayers={layers.wmjsLayers} dispatch={dispatch} adagucActions={this.props.adagucActions} />
           <LayerManager wmjslayers={layers.wmjsLayers} dispatch={dispatch} layerActions={this.props.layerActions} adagucActions={this.props.adagucActions} activeMapId={mapProperties.activeMapId} />
-        </Row>*/}
+        </Row>
       </Panel>
     );
   }
