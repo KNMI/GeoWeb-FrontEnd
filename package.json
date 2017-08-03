@@ -101,6 +101,7 @@
     "react-fa": "^4.1.2",
     "react-moment": "^0.2.2",
     "react-redux": "^5.0.3",
+    "react-resize-aware": "^2.5.0",
     "react-router": "^3.0.5",
     "react-switch-button": "^2.2.2",
     "reactable": "^0.14.1",
@@ -189,6 +190,7 @@
     "yargs": "^8.0.2"
   },
   "pre-commit": [
-    "lint"
+    "lint",
+    "test"
   ]
 }

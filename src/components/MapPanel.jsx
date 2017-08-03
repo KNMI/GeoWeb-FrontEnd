@@ -1,15 +1,21 @@
 import React, { Component } from 'react';
 import { default as Adaguc } from './ADAGUC/Adaguc';
+import Empty from './Empty';
 import { default as Panel } from './Panel';
 import { Row, Col } from 'reactstrap';
 import PropTypes from 'prop-types';
+import ResizeAware from 'react-resize-aware';
 
 export class SinglePanel extends Component {
   render () {
     const { title, mapProperties, dispatch, mapActions, mapId, drawProperties, layers, adagucProperties } = this.props;
     const { activeMapId } = mapProperties;
     return (<Panel mapActions={mapActions} title={title} mapMode={mapProperties.mapMode} mapId={mapId} dispatch={dispatch} className={mapId === activeMapId ? 'activePanel' : ''}>
-      <Adaguc drawActions={this.props.drawActions} layerActions={this.props.layerActions} mapProperties={mapProperties} adagucActions={this.props.adagucActions} adagucProperties={adagucProperties} layers={layers} drawProperties={drawProperties} mapId={mapId} dispatch={dispatch} mapActions={this.props.mapActions} active={mapId === activeMapId} />
+      <ResizeAware style={{ position: 'relative' }}>
+        <Adaguc drawActions={this.props.drawActions} layerActions={this.props.layerActions} mapProperties={mapProperties}
+          adagucActions={this.props.adagucActions} adagucProperties={adagucProperties} layers={layers} drawProperties={drawProperties}
+          mapId={mapId} dispatch={dispatch} mapActions={this.props.mapActions} active={mapId === activeMapId} />
+      </ResizeAware>
     </Panel>);
   }
 }
@@ -107,7 +113,11 @@ class MapPanel extends Component {
       case 'single':
       default:
         return (
-          <SinglePanel mapId={0} {...this.props} />
+          <Row style={{ flex: 1 }}>
+            <Col xs='12'>
+              <SinglePanel mapId={0} {...this.props} />
+            </Col>
+          </Row>
         );
     }
   }

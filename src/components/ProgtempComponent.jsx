@@ -25,7 +25,7 @@ export default class ProgtempComponent extends Component {
         console.log('retrieved progtemp locations from disk');
         this.progtempLocations = data;
         console.log('progtemlocations set');
-        this.setState();
+        this.forceUpdate();
       } else {
         console.log('get progtemlocations failed');
       }
@@ -140,6 +140,7 @@ export default class ProgtempComponent extends Component {
     if (!canvas) {
       return;
     }
+
     const { PSounding, TSounding, TdSounding, ddSounding, ffSounding, TwSounding, TvSounding } = this.modifyData(this.progtempData, this.referenceTime, timeOffset);
     // eslint-disable-next-line no-undef
     drawProgtemp(canvas, canvasWidth, canvasHeight, PSounding, TSounding, TdSounding, ddSounding, ffSounding, TwSounding, TvSounding);
@@ -151,7 +152,6 @@ export default class ProgtempComponent extends Component {
     const { adagucProperties, layers, mapProperties } = nextProps;
     const { wmjsLayers } = layers;
     const { cursor } = adagucProperties;
-
     // No layers or not in progtemp mode so no need to draw
     if (!wmjsLayers || !wmjsLayers.layers || mapProperties.mapMode !== 'progtemp') {
       return;
@@ -161,7 +161,10 @@ export default class ProgtempComponent extends Component {
     if (wmjsLayers.layers.length > 0 && wmjsLayers.layers.filter((layer) => layer.service && layer.service.includes('HARM')).length > 0) {
       const harmlayer = wmjsLayers.layers.filter((layer) => layer.service && layer.service.includes('HARM'))[0];
       if (!harmlayer) return;
-      this.referenceTime = harmlayer.getDimension('reference_time').currentValue;
+      const referenceTime = harmlayer.getDimension('reference_time').currentValue;
+      if (referenceTime !== this.referenceTime) {
+        this.referenceTime = referenceTime;
+      }
     }
 
     // Refetch data if there is a location change (either due to pre-chosen location or mapclick)
@@ -169,10 +172,10 @@ export default class ProgtempComponent extends Component {
       this.fetchNewLocationData(cursor, wmjsLayers, adagucProperties.timeDimension, this.state.canvasWidth, this.state.canvasHeight);
     }
     // On a new time, the progtemp data needs to be redrawn
-    if (this.props.adagucProperties.timeDimension !== adagucProperties.timeDimension) {
+    // if (this.props.adagucProperties.timeDimension !== adagucProperties.timeDimension) {
       const diff = Math.floor(moment.duration(moment.utc(adagucProperties.timeDimension).diff(moment.utc(this.referenceTime))).asHours());
       this.renderProgtempData(this.state.canvasWidth, this.state.canvasHeight, diff);
-    }
+    // }
   }
   /* istanbul ignore next */
   convertMinSec (loc) {

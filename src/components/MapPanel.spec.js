@@ -1,8 +1,8 @@
 import React from 'react';
 import { default as MapPanel } from './MapPanel';
-import { mount } from 'enzyme';
+import { shallow } from 'enzyme';
 import sinon from 'sinon';
-
+import { Row } from 'reactstrap';
 const state = {
   adagucProperties: {
     animate: false,
@@ -84,7 +84,7 @@ const emptyDispatch = () => { /* intentionally left blank */ };
 const emptyActions = { /* intentionally left blank */ };
 
 describe('(Component) MapPanel', () => {
-  it('Renders a MapPanel', () => {
+  it('Renders a Row', () => {
     global.WMJSMap = sinon.stub().returns({
       addListener: () => null,
       setTimeOffset: () => null,
@@ -92,13 +92,13 @@ describe('(Component) MapPanel', () => {
       setActive: () => null,
       draw: () => null
     });
-    const _component = mount(<MapPanel
+    const _component = shallow(<MapPanel
       adagucProperties={state.adagucProperties}
       drawProperties={state.drawProperties}
       mapProperties={state.mapProperties}
       layers={state.layers}
       dispatch={emptyDispatch}
       actions={emptyActions} />);
-    expect(_component.type()).to.eql(MapPanel);
+    expect(_component.type()).to.eql(Row);
   });
 });

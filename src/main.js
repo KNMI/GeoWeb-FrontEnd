@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import createStore from './store/createStore';
 import AppContainer from './containers/AppContainer';
-
+import routesDefinition from './routes';
 const store = createStore({}, __DEV__);
 // ========================================================
 // Render Setup
@@ -10,7 +10,7 @@ const store = createStore({}, __DEV__);
 const MOUNT_NODE = document.getElementById('root');
 
 let render = () => {
-  const routes = require('./routes/index').default(store);
+  const routes = routesDefinition(store);
   ReactDOM.render(
     <AppContainer store={store} routes={routes} />,
     MOUNT_NODE

@@ -29,7 +29,6 @@
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
   THE SOFTWARE.
 */
-
   var WebMapJSMapNo = 0;
 
 
@@ -494,7 +493,7 @@
       mainElement.style.border = 'none';// "1px solid gray";
       mainElement.style.lineHeight = '0px';
       // mainElement.style.overflow   ='hidden';
-      mainElement.style.display = 'block';
+      mainElement.style.display = 'inline-block';
      // mainElement.style.zIndex     ='10';
 
       // wegbbaseDiv.style.margin     = '0px';
@@ -1263,6 +1262,25 @@
     };
 
     this.setSize = function (w, h) {
+      // this._setSize(w - 50, h);
+      this.resizeWidth = w;
+      this.resizeHeight = h;
+
+      if (!this.resizeTimer) {
+        this.resizeTimer = new WMJSTimer();
+      } else {
+        this.resizeTimer.reset();
+        return;
+      }
+      this.resizeTimer.init(100, function () {
+        _map._setSize((_map.resizeWidth - 20) | 0, (_map.resizeHeight - 5) | 0);
+        _map.resizeTimer = null;
+        _map.draw();
+      });
+    };
+
+    this._setSize = function (w, h) {
+      console.log('call: ', w, h);
       if (!w || !h) return;
       if (enableConsoleDebugging)console.log('setSize(' + w + ',' + h + ')');
       var projinfo = this.getProjection();

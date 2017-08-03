@@ -241,7 +241,7 @@ LAYERS=&QUERY_LAYERS=air_pressure_at_sea_level,wind__at_10m,dew_point_temperatur
     if (cursor && this.props.adagucProperties.cursor !== cursor) {
       this.fetchNewLocationData(cursor, wmjsLayers, adagucProperties.timeDimension);
     }
-    this.setState({ });
+    this.forceUpdate();
   }
   /* istanbul ignore next */
   convertMinSec (loc) {

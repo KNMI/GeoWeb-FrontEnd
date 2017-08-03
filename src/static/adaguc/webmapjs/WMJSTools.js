@@ -78,7 +78,7 @@ function Console (div) {
     element = div;
     if (isDefined(element)) {
       element.style.overflow = 'scroll';
-      element.style.display = 'block';
+      element.style.display = 'inline-block';
       element.style.position = 'absolute';
       element.style.width = '100%';
       element.style.height = '100%';

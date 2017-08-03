@@ -9,7 +9,6 @@ import { BACKEND_SERVER_URL, BACKEND_SERVER_XML2JSON } from '../../constants/bac
 
 import diff from 'deep-diff';
 import moment from 'moment';
-import elementResizeEvent from 'element-resize-event';
 
 import { DefaultLocations } from '../../constants/defaultlocations';
 import { ReadLocations } from '../../utils/admin';
@@ -19,13 +18,12 @@ export default class Adaguc extends React.Component {
   constructor () {
     super();
     this.initAdaguc = this.initAdaguc.bind(this);
-    this.resize = debounce(this.resize.bind(this), 50, false);
+    this.resize = debounce(this.resize.bind(this), 20, false);
     this.updateLayer = this.updateLayer.bind(this);
     this.onChangeAnimation = this.onChangeAnimation.bind(this);
     this.timeHandler = this.timeHandler.bind(this);
     this.adagucBeforeDraw = this.adagucBeforeDraw.bind(this);
     this.updateBBOX = this.updateBBOX.bind(this);
-    this.updateDimensions = this.updateDimensions.bind(this);
     this.isAnimating = false;
     this.state = {
       dropdownOpenView: false,
@@ -67,7 +65,6 @@ export default class Adaguc extends React.Component {
       }
       this.webMapJS.draw();
     }
-
     setTimeout(function () {
       layer.parseLayer(this.updateLayer, true);
     }, 10000);
@@ -86,9 +83,11 @@ export default class Adaguc extends React.Component {
     }
   }
   /* istanbul ignore next */
-  resize () {
-    const element = document.querySelector(`#adagucwrapper${this.props.mapId}`).parentNode;
-    this.webMapJS.setSize($(element).width(), $(element).height());
+  resize (width, height) {
+    // this.webMapJS.setSize(width, height);
+    // this.webMapJS.draw();
+    const element = $(`#adagucwrapper${this.props.mapId}`).closest('.content');
+    this.webMapJS.setSize(element.width(), element.height());
     this.webMapJS.draw();
   }
   /* istanbul ignore next */
@@ -135,17 +134,9 @@ export default class Adaguc extends React.Component {
     }
     // eslint-disable-next-line no-undef
     this.webMapJS = new WMJSMap(adagucMapRef, BACKEND_SERVER_XML2JSON);
-    const element = document.querySelector(`#adagucwrapper${mapId}`);
-    if (!element) {
-      return;
-    }
 
-    const parentElement = element.parentNode;
-    const width = $(parentElement).width();
-    const height = $(parentElement).height();
-    this.webMapJS.setSize(width, height);
-    elementResizeEvent(parentElement, this.resize);
-
+    const element = $(`#adagucwrapper${this.props.mapId}`).closest('.content');
+    this.webMapJS.setSize(element.width(), element.height());
     // Set listener for triggerPoints
     this.webMapJS.addListener('beforecanvasdisplay', this.adagucBeforeDraw, true);
 
@@ -182,24 +173,7 @@ export default class Adaguc extends React.Component {
     }
     this.webMapJS.draw();
   }
-
-  updateDimensions () {
-    const element = document.querySelector(`#adagucwrapper${this.props.mapId}`).parentNode;
-    const diffWidth = this.state.width - window.innerWidth;
-    const diffHeight = this.state.height - window.innerHeight;
-    // if we go bigger, then there is no problem so only set the size dynamically if the window
-    // becomes smaller
-    if (diffWidth >= 0 && diffHeight >= 0) {
-      this.webMapJS.setSize($(element).width() - diffWidth, $(element).height() - diffHeight);
-      this.webMapJS.draw();
-    }
-    this.setState({ width: window.innerWidth, height: window.innerHeight });
-  }
-
   componentDidMount () {
-    // Keep track of screensize
-    this.setState({ width: window.innerWidth, height: window.innerHeight });
-    window.addEventListener('resize', this.updateDimensions);
     this.initAdaguc(this.refs.adaguc);
   }
   componentWillMount () {
@@ -213,14 +187,6 @@ export default class Adaguc extends React.Component {
 
   /* istanbul ignore next */
   componentWillUnmount () {
-    window.removeEventListener('resize', this.updateDimensions);
-
-    // Unbind the resizelistener
-    const element = document.querySelector(`#adagucwrapper${this.props.mapId}`).parentNode;
-    if (element && element.__resizeTrigger__ && element.__resizeListeners__) {
-      console.log('unbound');
-      elementResizeEvent.unbind(element);
-    }
     this.webMapJS.removeListener('beforecanvasdisplay', this.adagucBeforeDraw);
     // Let webmapjs destory itself
     if (this.webMapJS) {
@@ -368,6 +334,9 @@ export default class Adaguc extends React.Component {
   componentDidUpdate (prevProps) {
     // The first time, the map needs to be created. This is when in the previous state the map creation boolean is false
     // Otherwise only change when a new dataset is selected
+    if (prevProps.height !== this.props.height || prevProps.width !== this.props.width) {
+      this.resize(this.props.width, this.props.height);
+    }
     const { mapProperties, adagucProperties, layerActions, layers, active, mapId, dispatch } = this.props;
     const { boundingBox, mapMode } = mapProperties;
     const { timeDimension, animate, cursor } = adagucProperties;
@@ -396,24 +365,7 @@ export default class Adaguc extends React.Component {
     const baseChanged = this.updateBaselayers(baselayer, prevBaseLayer, overlays, prevOverlays);
     // Set the current layers if the panel becomes active (necessary for the layermanager etc.)
     if (active && (!prevProps.active || layersChanged || baseChanged)) {
-      const numOldLayers = prevProps.layers.panels[this.props.mapId].layers.length + prevProps.layers.panels[this.props.mapId].overlays.length + 1;
-      const numNewLayers = this.webMapJS.getLayers().length + this.webMapJS.getBaseLayers().length;
-
-      // Explicitly set the height of the adaguc window if a layer is added/removed.
-      // If we won't do this, performance in firefox (<= 54) will degrade heavily because
-      // the reflowing of the interface will "oscillate" which takes ~5 seconds to converge
-      // this reduces it to one step, making it usable again.
-      if (numOldLayers !== numNewLayers) {
-        const diff = numNewLayers - numOldLayers;
-        const parentElem = $(document.querySelector(`#adagucwrapper${this.props.mapId}`).parentNode);
-        const oldHeight = parentElem.height();
-        // A layer currently takes up 20 pixels in the layermanager, so reduce the size of ADAGUC
-        // by 20 pixels per layer added/removed
-        const newHeight = oldHeight + (diff * -20);
-        // parentElem.height(newHeight);
-        this.webMapJS.setSize($(parentElem).width(), newHeight);
-        this.webMapJS.draw();
-      }
+      this.resize();
       dispatch(layerActions.setWMJSLayers({ layers: this.webMapJS.getLayers(), baselayers: this.webMapJS.getBaseLayers() }));
     }
     this.webMapJS.draw();
@@ -436,9 +388,9 @@ export default class Adaguc extends React.Component {
   render () {
     const { mapProperties, drawProperties, drawActions, dispatch, mapId } = this.props;
     return (
-      <div id={`adagucwrapper${mapId}`}>
+      <div id={`adagucwrapper${mapId}`} style={{ overflow: 'hidden' }}>
         <div ref='adaguc' />
-        <div style={{ margin: '5px 10px 10px 5px ' }}>
+        <div style={{ display: 'none' }}>
           <AdagucMapDraw
             geojson={drawProperties.geojson}
             dispatch={dispatch}
@@ -452,8 +404,8 @@ export default class Adaguc extends React.Component {
             webmapjs={this.webMapJS}
             isInEditMode={mapProperties.mapMode === 'measure'}
           />
-          <ModelTime webmapjs={this.webMapJS} active={this.props.active} />
         </div>
+        <ModelTime webmapjs={this.webMapJS} active={this.props.active} />
       </div>
     );
   }
@@ -470,5 +422,7 @@ Adaguc.propTypes = {
   layers: PropTypes.object,
   mapId: PropTypes.number,
   drawProperties: PropTypes.object,
-  drawActions: PropTypes.object
+  drawActions: PropTypes.object,
+  width: PropTypes.number,
+  height: PropTypes.number
 };

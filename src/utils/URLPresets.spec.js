@@ -38,7 +38,7 @@ describe('(URLPresets)', () => {
     _loadPreset({ layerActions: { setPreset: () => {
       dispatchSetPreset();
     } },
-      dispatch: () => {} }, '0169891a-d31e-423c-8936-1618af774472');
+    dispatch: () => {} }, '0169891a-d31e-423c-8936-1618af774472');
 
     moxios.wait(() => {
       dispatchSetPreset.should.not.have.been.called();
