@@ -1,5 +1,4 @@
 import React from 'react';
-// eslint-disable-next-line no-unused-vars
 import { default as BaseLayout } from './BaseLayout';
 import { shallow, mount } from 'enzyme';
 import { Container } from 'reactstrap';
@@ -13,7 +12,7 @@ const STORE = {
 
 describe('(Layout) BaseLayout', () => {
   it('Renders a Reactstrap Container', () => {
-    const _component = shallow(<BaseLayout routes={[{ title: 'title' }]} />);
+    const _component = shallow(<BaseLayout route={{}} />);
     expect(_component.type()).to.eql(Container);
   });
 
@@ -28,12 +27,5 @@ describe('(Layout) BaseLayout', () => {
     expect(_wrappingComponent.find(BaseLayout)).to.have.length(1);
     _wrappingComponent.find(BaseLayout).get(0).elementToFullScreen(evt);
     expect('everything').to.be.ok();
-  });
-
-  it('Attaches a route based class name', () => {
-    const _wrappingComponent = mount(<Provider store={STORE}><BaseLayout routes={[{ title: 'title' }, { path: 'layout_test' }]} /></Provider>);
-    expect(_wrappingComponent.type()).to.eql(Provider);
-    expect(_wrappingComponent.find(BaseLayout)).to.have.length(1);
-    expect(_wrappingComponent.find('.test')).to.have.length(1);
   });
 });

@@ -84,8 +84,8 @@ export default class Adaguc extends React.Component {
   }
   /* istanbul ignore next */
   resize (width, height) {
-    this.webMapJS.setSize(width, height);
-    this.webMapJS.draw();
+    // this.webMapJS.setSize(width, height);
+    // this.webMapJS.draw();
     const element = $(`#adagucwrapper${this.props.mapId}`).closest('.content');
     this.webMapJS.setSize(element.width(), element.height());
     this.webMapJS.draw();
@@ -388,7 +388,7 @@ export default class Adaguc extends React.Component {
   render () {
     const { mapProperties, drawProperties, drawActions, dispatch, mapId } = this.props;
     return (
-      <div id={`adagucwrapper${mapId}`}>
+      <div id={`adagucwrapper${mapId}`} style={{ overflow: 'hidden' }}>
         <div ref='adaguc' />
         <div style={{ display: 'none' }}>
           <AdagucMapDraw

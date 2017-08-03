@@ -190,6 +190,7 @@
     "yargs": "^8.0.2"
   },
   "pre-commit": [
-    "lint"
+    "lint",
+    "test"
   ]
 }

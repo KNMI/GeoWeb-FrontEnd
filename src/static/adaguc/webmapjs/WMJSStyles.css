@@ -759,7 +759,7 @@ position: absolute;
 .slidertooltip {
     position: absolute;
     z-index: 1020;
-    display: block;
+    display: inline-block;
     padding: 5px;
     font-size: 12px;
     visibility: visible;
@@ -841,7 +841,7 @@ position: absolute;
   background-color:#EEE;padding:4px;margin-bottom:2px;
 
   overflow:'hidden';
-  display:'block';
+  display:'inline-block';
 
   margin:2px;
 
