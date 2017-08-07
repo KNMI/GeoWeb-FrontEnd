@@ -83,7 +83,10 @@ const mapDispatchToLayerManagerProps = function (dispatch) {
 const mapDispatchToSigmetProps = function (dispatch) {
   return ({
     dispatch,
-    drawActions
+    drawActions,
+    mapActions,
+
+    layerActions
   });
 };
 const mapStateToMapProps = state => ({
@@ -96,7 +99,8 @@ const mapStateToMapProps = state => ({
 const mapStateToLayerManagerProps = state => ({
   adagucProperties: state.adagucProperties,
   layers: state.layers,
-  mapProperties: state.mapProperties
+  mapProperties: state.mapProperties,
+  drawProperties: state.drawProperties
 });
 export const createRoutes = (store) => {
   const header = React.createElement(connect(mapStateToHeaderProps, mapDispatchToHeaderProps)(TitleBarContainer));

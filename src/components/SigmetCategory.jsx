@@ -467,9 +467,10 @@ class SigmetCategory extends Component {
     listCpy[0].phenomenon = onlyObj.code;
     this.setState({ list: listCpy });
     const preset = this.sigmetLayers(onlyObj.layerpreset);
-    this.props.dispatch(this.props.mapActions.setLayout(preset.display.type))
+    console.log(preset.area);
+    this.props.dispatch(this.props.mapActions.setLayout(preset.display.type));
     this.props.dispatch(this.props.layerActions.setPreset(preset.layers));
-    this.props.dispatch(this.props.mapActions.setCut({name: 'Custom', bbox: [0, preset.area.bottom, 1, preset.area.top]}))
+    this.props.dispatch(this.props.mapActions.setCut({ name: 'Custom', bbox: [570875, preset.area.bottom, 570875, preset.area.top] }));
   }
 
   setSelectedFir (firList) {
@@ -1008,7 +1009,9 @@ SigmetCategory.propTypes = {
   phenomenonMapping : PropTypes.array,
   dispatch          : PropTypes.func,
   actions           : PropTypes.object,
-  updateParent      : PropTypes.func
+  updateParent      : PropTypes.func,
+  mapActions        : PropTypes.object,
+  layerActions      : PropTypes.object
 };
 
 export default SigmetCategory;
