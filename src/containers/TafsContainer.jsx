@@ -88,7 +88,7 @@ export default class TafsContainer extends Component {
                     </Col>
                   </CardHeader>}
                   <CollapseOmni className='CollapseOmni' isOpen={this.state.isOpen} minSize={0} maxSize={maxSize}>
-                    asdf
+                    TODO
                   </CollapseOmni>
                 </Card>
             )}
