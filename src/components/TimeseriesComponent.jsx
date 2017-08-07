@@ -5,6 +5,7 @@ import { Typeahead } from 'react-bootstrap-typeahead';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 import axios from 'axios';
 import PropTypes from 'prop-types';
+import { HARMONIE_URL } from '../constants/default_services';
 
 export default class TimeseriesComponent extends Component {
   /* istanbul ignore next */
@@ -136,10 +137,7 @@ export default class TimeseriesComponent extends Component {
       } else {
         this.referenceTime = refTime;
       }
-
-      const url = `http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.HARM_N25.cgi?SERVICE=WMS&&SERVICE=WMS&VERSION=1.3.0&REQUEST=GetPointValue&
-LAYERS=&QUERY_LAYERS=air_pressure_at_sea_level,wind__at_10m,dew_point_temperature__at_2m,air_temperature__at_2m,precipitation_flux
-&CRS=EPSG%3A4326&INFO_FORMAT=application/json&time=*&DIM_reference_time=` + this.referenceTime + `&x=` + location.x + `&y=` + location.y;
+      const url = `${HARMONIE_URL}SERVICE=WMS&&SERVICE=WMS&VERSION=1.3.0&REQUEST=GetPointValue&LAYERS=&QUERY_LAYERS=air_pressure_at_sea_level,wind__at_10m,dew_point_temperature__at_2m,air_temperature__at_2m,precipitation_flux&CRS=EPSG%3A4326&INFO_FORMAT=application/json&time=*&DIM_reference_time=` + this.referenceTime + `&x=` + location.x + `&y=` + location.y;
       axios.get(url).then((res) => {
         if (res.data.includes('No data available')) {
           this.toggleCanvas();

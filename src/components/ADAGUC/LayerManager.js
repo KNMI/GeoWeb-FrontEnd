@@ -263,27 +263,7 @@ export default class LayerManager extends Component {
     };
   }
   getLayerName (layer) {
-    if (layer) {
-      switch (layer.service) {
-        case 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.SAT.cgi?':
-          return 'Satellite';
-        case 'http://geoservices.knmi.nl/cgi-bin/HARM_N25.cgi?':
-          return 'HARMONIE (Ext)';
-        case 'http://geoservices.knmi.nl/cgi-bin/RADNL_OPER_R___25PCPRR_L3.cgi?':
-          return 'Radar (Ext)';
-        case 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.RADAR.cgi?':
-          return 'Radar';
-        case 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.HARM_N25.cgi?':
-          return 'HARMONIE';
-        case 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.OBS.cgi?':
-          return 'Observations';
-        case 'http://bvmlab-218-41.knmi.nl/cgi-bin/WWWRADAR3.cgi?':
-          return 'Lightning';
-        default:
-          return layer.serviceTitle;
-      }
-    }
-    return null;
+    return layer ? layer.WMJSService.title : null;
   }
 
   toggleLayer (type, i) {

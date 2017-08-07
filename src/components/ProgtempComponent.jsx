@@ -4,6 +4,7 @@ import { Typeahead } from 'react-bootstrap-typeahead';
 import CanvasComponent from './ADAGUC/CanvasComponent';
 import axios from 'axios';
 import { DefaultLocations } from '../constants/defaultlocations';
+import { MODEL_LEVEL_URL } from '../constants/default_services';
 import { ReadLocations } from '../utils/admin';
 import PropTypes from 'prop-types';
 var moment = require('moment');
@@ -112,9 +113,10 @@ export default class ProgtempComponent extends Component {
     if (location && (refTime !== this.referenceTime || !this.props.adagucProperties.cursor ||
       !this.props.adagucProperties.location || location !== this.props.adagucProperties.cursor.location)) {
       this.referenceTime = refTime;
-      const url = `http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.HARM_N25_ML.cgi?SERVICE=WMS&&SERVICE=WMS&VERSION=1.3.0
+      const url = `${MODEL_LEVEL_URL}SERVICE=WMS&&SERVICE=WMS&VERSION=1.3.0
 &REQUEST=GetPointValue&LAYERS=&QUERY_LAYERS=air_pressure__at_ml,y_wind__at_ml,x_wind__at_ml,dewpoint_temperature__at_ml,air_temperature__at_ml
 &CRS=EPSG%3A4326&INFO_FORMAT=application/json&time=*&DIM_reference_time=` + this.referenceTime + `&x=` + location.x + `&y=` + location.y + `&DIM_modellevel=*`;
+
       this.toggleCanvas();
       axios.get(url).then((res) => {
         if (res.data.includes('No data available')) {
