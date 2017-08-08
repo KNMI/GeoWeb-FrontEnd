@@ -3,38 +3,28 @@ import { Button, Col, Row, Card, CardHeader, Badge } from 'reactstrap';
 import { Icon } from 'react-fa';
 import CollapseOmni from '../components/CollapseOmni';
 import Panel from '../components/Panel';
-
-import { BACKEND_SERVER_URL } from '../constants/backend';
-
-const GET_TAFS_URL = BACKEND_SERVER_URL + '/taf/gettaflist?';
-const SET_TAF_URL = BACKEND_SERVER_URL + '/taf/storetaf';
+import { TAFS_URL } from '../constants/backend';
+import Taf from '../components/Taf';
 const ITEMS = [
   {
-    title: 'Open valid TAFs',
+    title: 'Open active TAFs',
     ref:   'active-tafs',
     icon: 'folder-open',
-    source: GET_TAFS_URL + 'active=true',
-    editable: false
-  },
-  {
-    title: 'Open archived TAFs',
-    ref:  'archived-tafs',
-    icon: 'archive',
-    source: GET_TAFS_URL + 'active=false&status=EXPIRED',
+    source: TAFS_URL + '/tafs?active=true',
     editable: false
   },
   {
     title: 'Open concept TAFs',
     ref:   'concept-tafs',
     icon: 'folder-open-o',
-    source: GET_TAFS_URL + 'active=false&status=CONCEPT',
+    source: TAFS_URL + '/tafs?active=false&status=CONCEPT',
     editable: false
   },
   {
     title: 'Create new TAF',
     ref:   'add-taf',
     icon: 'star-o',
-    source: SET_TAF_URL,
+    source: TAFS_URL,
     editable: true
   }
 ];
@@ -47,6 +37,14 @@ export default class TafsContainer extends Component {
     };
     this.toggle = this.toggle.bind(this);
   }
+
+  // componentDidMount () {
+  //   const activeTafsUrl = TAFS_URL + '/tafs?active=false';
+  //   console.log(activeTafsUrl);
+  //   axios.get(activeTafsUrl).then((e) => {
+  //     this.setState({ tafs: e.data.tafs })//console.log(e);
+  //   });
+  // }
 
   toggle () {
     this.setState({ isOpen: !this.state.isOpen });
@@ -64,33 +62,34 @@ export default class TafsContainer extends Component {
         <CollapseOmni className='CollapseOmni' isOpen={this.state.isOpen} isHorizontal minSize={64} maxSize={maxSize}>
           <Panel className='Panel' title={title}>
             <Col xs='auto' className='accordionsWrapper' style={{ minWidth: maxSize - 32 }}>
-              {ITEMS.map((item, index) =>
-                <Card className='row accordion'>
+              {ITEMS.map((item, index) => {
+                  return <Card className='row accordion' key={index}>
 
-                  {!this.state.isOpen ? <CardHeader>
-                    <Col xs='auto'>
-                      <Icon name={item.icon} />
-                    </Col>
-                    <Col xs='auto'>&nbsp;</Col>
-                    <Col xs='auto'>
-                      {item.notifications > 0 ? <Badge color='danger' pill className='collapsed'>{item.notifications}</Badge> : null}
-                    </Col>
-                  </CardHeader>
-                  : <CardHeader className={maxSize > 0 ? null : 'disabled'} title={title}>
-                    <Col xs='auto'>
-                      <Icon name={item.icon} />
-                    </Col>
-                    <Col style={{ marginLeft: '0.9rem' }}>
-                      {item.title}
-                    </Col>
-                    <Col xs='auto'>
-                      {item.notifications > 0 ? <Badge color='danger' pill>{item.notifications}</Badge> : null}
-                    </Col>
-                  </CardHeader>}
-                  <CollapseOmni className='CollapseOmni' isOpen={this.state.isOpen} minSize={0} maxSize={maxSize}>
-                    TODO
-                  </CollapseOmni>
-                </Card>
+                    {!this.state.isOpen ? <CardHeader>
+                      <Col xs='auto'>
+                        <Icon name={item.icon} />
+                      </Col>
+                      <Col xs='auto'>&nbsp;</Col>
+                      <Col xs='auto'>
+                        {item.notifications > 0 ? <Badge color='danger' pill className='collapsed'>{item.notifications}</Badge> : null}
+                      </Col>
+                    </CardHeader>
+                    : <CardHeader className={maxSize > 0 ? null : 'disabled'} title={title}>
+                      <Col xs='auto'>
+                        <Icon name={item.icon} />
+                      </Col>
+                      <Col style={{ marginLeft: '0.9rem' }}>
+                        {item.title}
+                      </Col>
+                      <Col xs='auto'>
+                        {item.notifications > 0 ? <Badge color='danger' pill>{item.notifications}</Badge> : null}
+                      </Col>
+                    </CardHeader>}
+                    <CollapseOmni className='CollapseOmni' isOpen={this.state.isOpen} minSize={0} maxSize={maxSize}>
+                      <Taf {...item} />
+                    </CollapseOmni>
+                  </Card>;
+                }
             )}
             </Col>
           </Panel>
