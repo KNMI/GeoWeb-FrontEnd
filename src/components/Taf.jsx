@@ -1,13 +1,15 @@
 import React, { Component } from 'react';
 import axios from 'axios';
 import PropTypes from 'prop-types';
-import { Row, Col, Card, CardTitle, CardText } from 'reactstrap';
+import { Col, Card, CardTitle, CardText, CardFooter } from 'reactstrap';
 import CollapseOmni from './CollapseOmni';
 import moment from 'moment';
 import { TAFS_URL } from '../constants/backend';
 export default class Taf extends Component {
   constructor () {
     super();
+    this.deleteTAF = this.deleteTAF.bind(this);
+    this.fetchTAFs = this.fetchTAFs.bind(this);
     this.state = {
       tafs: [],
       expandedTAF: null,
@@ -15,6 +17,10 @@ export default class Taf extends Component {
     };
   }
   componentWillMount () {
+    this.fetchTAFs();
+  }
+
+  fetchTAFs () {
     axios({
       method: 'get',
       url: this.props.source,
@@ -22,6 +28,19 @@ export default class Taf extends Component {
       responseType: 'json'
     }).then(src => {
       this.setState({ tafs: src.data.tafs });
+    }).catch(error => {
+      console.error(error);
+    });
+  }
+
+  deleteTAF (uuid) {
+    console.log(TAFS_URL + '/tafs/' + uuid);
+    axios({
+      method: 'delete',
+      url: TAFS_URL + '/tafs/' + uuid,
+      responseType: 'json'
+    }).then(src => {
+      this.fetchTAFs();
     }).catch(error => {
       console.error(error);
     });
@@ -45,6 +64,7 @@ export default class Taf extends Component {
 
   render () {
     if (this.state.tafs) {
+      console.log(this.state.tafs);
       return <Col style={{ flexDirection: 'column' }}>
         {
           this.state.tafs.map((taf) => {
@@ -52,8 +72,11 @@ export default class Taf extends Component {
               <CardTitle>
                 {taf.previousReportAerodrome ? taf.previousReportAerodrome : 'EWat?'} - {moment.utc(taf.validityStart).format('DD/MM/YYYY - HH:mm UTC')}
               </CardTitle>
-              <CollapseOmni className='CollapseOmni' isOpen={this.state.expandedTAF === taf.uuid} minSize={0} maxSize={69}>
+              <CollapseOmni className='CollapseOmni' isOpen={this.state.expandedTAF === taf.uuid} minSize={0} maxSize={150}>
                 <CardText>{this.state.expandedTAC}</CardText>
+                {taf.status === 'CONCEPT'
+                  ? <CardFooter onClick={(e) => { e.preventDefault(); e.stopPropagation(); this.deleteTAF(taf.uuid); }}>Delete</CardFooter>
+                  : <div />}
               </CollapseOmni>
             </Card>;
           })
