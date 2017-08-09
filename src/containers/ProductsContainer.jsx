@@ -31,7 +31,8 @@ const ITEMS = [
   {
     title: 'TAF',
     ref:   'TAF',
-    icon:  'sun-o'
+    icon:  'sun-o',
+    link: 'products/tafs'
   },
   {
     title: 'Forecasts',

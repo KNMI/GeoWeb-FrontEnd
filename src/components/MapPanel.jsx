@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import { default as Adaguc } from './ADAGUC/Adaguc';
-import Empty from './Empty';
 import { default as Panel } from './Panel';
 import { Row, Col } from 'reactstrap';
 import PropTypes from 'prop-types';

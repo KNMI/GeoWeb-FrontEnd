@@ -27,6 +27,11 @@ const items = [
         eta: '14:30'
       },
       {
+        title: 'Make EHAM TAF',
+        eta: '13:00',
+        link: 'products/tafs'
+      },
+      {
         title: 'Safety Shift Transfer',
         eta: '15:00'
       },
@@ -47,6 +52,10 @@ const items = [
       {
         title: 'SIGMETs',
         link: 'products/sigmets'
+      },
+      {
+        title: 'TAFs',
+        link: 'products/tafs'
       },
       { title: 'Forecasts' },
       { title: 'Analyses' }
@@ -173,9 +182,10 @@ class TasksContainer extends Component {
         <CollapseOmni className='CollapseOmni' isOpen={this.state.isOpen} isHorizontal minSize={64} maxSize={300}>
           <Panel className='Panel' title={title}>
             <Col xs='auto' className='accordionsWrapper'>
-              {notifiedItems.map((item, index) =>
-                <TaskCategory key={index} title={item.title} isOpen={this.state.isOpen && hasFilter} parentCollapsed={!this.state.isOpen}
-                  icon={item.icon} notifications={item.notifications} link={item.link} tasks={item.tasks} />
+              {notifiedItems.map((item, index) => {
+                return <TaskCategory key={index} title={item.title} isOpen={this.state.isOpen && hasFilter} parentCollapsed={!this.state.isOpen}
+                  icon={item.icon} notifications={item.notifications} link={item.link} tasks={item.tasks} />;
+              }
               )}
             </Col>
           </Panel>
@@ -219,44 +229,42 @@ class TaskCategory extends Component {
             {notifications > 0 ? <Badge color='danger' pill className='collapsed'>{notifications}</Badge> : null}
           </Col>
         </CardHeader></Link>
-        : <CardHeader onClick={this.toggle} title={title}>
-          <Col xs='auto'>
-            <Icon name={icon} />
-          </Col>
-          <Col style={{ marginLeft: '0.9rem' }}>
-            {title}
-          </Col>
-          <Col xs='auto'>
-            {notifications > 0 ? <Badge color='danger' pill>{notifications}</Badge> : null}
-          </Col>
-          <Col xs='auto'>
-            <Link to={link} className='row'>
-              <Button outline color='info' disabled={typeof link === 'undefined'}>
-                <Icon name='caret-right' />
-              </Button>
-            </Link>
-          </Col>
-        </CardHeader>}
+          : <CardHeader onClick={this.toggle} title={title}>
+            <Col xs='auto'>
+              <Icon name={icon} />
+            </Col>
+            <Col style={{ marginLeft: '0.9rem' }}>
+              {title}
+            </Col>
+            <Col xs='auto'>
+              {notifications > 0 ? <Badge color='danger' pill>{notifications}</Badge> : null}
+            </Col>
+            <Col xs='auto'>
+              <Link to={link} className='row'>
+                <Button outline color='info' disabled={typeof link === 'undefined'}>
+                  <Icon name='caret-right' />
+                </Button>
+              </Link>
+            </Col>
+          </CardHeader>}
         <CollapseOmni className='CollapseOmni' isOpen={this.state.isOpen} minSize={0} maxSize={40 * tasks.length}>
           <CardBlock>
             <Row>
               <Col className='btn-group-vertical'>
                 {tasks.map((item, i) =>
-                  <Button tag='button' className='row' key={i} disabled={!item.link} >
-                    <Link to={item.link} className='row'>
-                      <Col xs='auto' style={{ paddingRight: '0.4rem' }}>
-                        {item.eta}
-                      </Col>
-                      <Col>
-                        {item.title}
-                      </Col>
-                      <Col xs='auto'>
-                        {item.notifications > 0 ? <Badge pill color='danger'>{item.notifications}</Badge> : null}
-                      </Col>
-                      <Col xs='auto'>
-                        <Icon name='caret-right' className='icon' />
-                      </Col>
-                    </Link>
+                  <Button tag={Link} to={item.link} className='row' key={i} disabled={!item.link} >
+                    <Col xs='auto' style={{ paddingRight: '0.4rem' }}>
+                      {item.eta}
+                    </Col>
+                    <Col>
+                      {item.title}
+                    </Col>
+                    <Col xs='auto'>
+                      {item.notifications > 0 ? <Badge pill color='danger'>{item.notifications}</Badge> : null}
+                    </Col>
+                    <Col xs='auto'>
+                      <Icon name='caret-right' className='icon' />
+                    </Col>
                   </Button>
                 )}
               </Col>

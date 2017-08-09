@@ -18,10 +18,12 @@ import MapActionsContainer from '../containers/MapActionsContainer';
 import TasksContainer from '../containers/TasksContainer';
 import ProductsContainer from '../containers/ProductsContainer';
 import SigmetsContainer from '../containers/SigmetsContainer';
+import TafsContainer from '../containers/TafsContainer';
 import TriggersContainer from '../containers/TriggersContainer';
 import MapPanel from '../components/MapPanel';
 import LayerManagerPanel from '../components/LayerManagerPanel';
 import SmallLayerManagerPanel from '../components/SmallLayerManagerPanel';
+
 import AppManagementPanel from '../components/Management/AppManagementPanel';
 import ProductsManagementPanel from '../components/Management/ProductsManagementPanel';
 import ProgtempManagementPanel from '../components/Management/ProgtempManagementPanel';
@@ -78,6 +80,15 @@ const mapDispatchToLayerManagerProps = function (dispatch) {
     adagucActions
   });
 };
+const mapDispatchToSigmetProps = function (dispatch) {
+  return ({
+    dispatch,
+    drawActions,
+    mapActions,
+
+    layerActions
+  });
+};
 const mapStateToMapProps = state => ({
   drawProperties: { ...state.drawProperties },
   mapProperties: { ...state.mapProperties },
@@ -88,7 +99,8 @@ const mapStateToMapProps = state => ({
 const mapStateToLayerManagerProps = state => ({
   adagucProperties: state.adagucProperties,
   layers: state.layers,
-  mapProperties: state.mapProperties
+  mapProperties: state.mapProperties,
+  drawProperties: state.drawProperties
 });
 export const createRoutes = (store) => {
   const header = React.createElement(connect(mapStateToHeaderProps, mapDispatchToHeaderProps)(TitleBarContainer));
@@ -98,7 +110,8 @@ export const createRoutes = (store) => {
   const layerManager = React.createElement(connect(mapStateToLayerManagerProps, mapDispatchToLayerManagerProps)(LayerManagerPanel));
   const smallLayerManager = React.createElement(connect(mapStateToLayerManagerProps, mapDispatchToLayerManagerProps)(SmallLayerManagerPanel));
   const products = React.createElement(connect(mapStateToLayerManagerProps, mapDispatchToLayerManagerProps)(ProductsContainer));
-  const sigmet = React.createElement(connect(mapStateToLayerManagerProps, mapDispatchToLayerManagerProps)(SigmetsContainer));
+  const sigmet = React.createElement(connect(mapStateToLayerManagerProps, mapDispatchToSigmetProps)(SigmetsContainer));
+  const taf = React.createElement(connect(mapStateToLayerManagerProps, mapDispatchToLayerManagerProps)(TafsContainer));
   const trigger = React.createElement(connect(mapStateToLayerManagerProps, mapDispatchToLayerManagerProps)(TriggersContainer));
   const manageLeft = React.createElement(SidebarContainer);
   const appmanPanel = React.createElement(AppManagementPanel);
@@ -125,6 +138,12 @@ export const createRoutes = (store) => {
               <IndexRoute component={FooteredLayout} viewComponent={map} contextComponent={layerManager} />
             </Route>
           </Route>
+          <Route path='tafs' title='TAFs'>
+            <Route component={SidebarredLayout} secondLeftSidebar={taf} leftSidebar={leftSidebar} rightSidebar={rightSidebar}>
+              <IndexRoute component={FooteredLayout} viewComponent={map} contextComponent={layerManager} />
+            </Route>
+          </Route>
+
         </Route>
         <Route path='monitoring_and_triggers' title='Monitoring & Triggers'>
           <Route component={SidebarredLayout} secondLeftSidebar={trigger} leftSidebar={leftSidebar} rightSidebar={rightSidebar}>
