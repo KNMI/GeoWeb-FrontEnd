@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import axios from 'axios';
 import PropTypes from 'prop-types';
-import { Col, Card, CardTitle, CardText, CardFooter } from 'reactstrap';
+import { Col, Card, CardTitle, CardText, CardFooter, Input, Button } from 'reactstrap';
 import CollapseOmni from './CollapseOmni';
 import moment from 'moment';
 import { TAFS_URL } from '../constants/backend';
@@ -13,17 +13,27 @@ export default class Taf extends Component {
     this.state = {
       tafs: [],
       expandedTAF: null,
-      expandedTAC: null
+      expandedTAC: null,
+      inputValue: ''
     };
   }
   componentWillMount () {
     this.fetchTAFs();
   }
 
-  fetchTAFs () {
+  componentWillReceiveProps (nextprops, nextstate) {
+    if (this.props.latestUpdateTime !== nextprops.latestUpdateTime) {
+      if (this.props.title === 'Open concept TAFs') {
+        this.fetchTAFs();
+      }
+    }
+  }
+
+  fetchTAFs (url) {
+    console.log('fetching tafs');
     axios({
       method: 'get',
-      url: this.props.source,
+      url: url ? url : this.props.source,
       withCredentials: true,
       responseType: 'json'
     }).then(src => {
@@ -50,6 +60,8 @@ export default class Taf extends Component {
     // Clicking the already expanded TAF collapses it
     if (this.state.expandedTAF === uuid) {
       this.setState({ expandedTAF: null, expandedTAC: null });
+    } else if (uuid === 'edit') {
+      this.setState({ expandedTAF: 'edit', expandedTAC: null });
     } else {
       // Selecting a new or another TAF, loads its TAC and sets it to expanded
       axios({
@@ -62,13 +74,40 @@ export default class Taf extends Component {
     }
   }
 
+  addTaf () {
+    axios({
+      method: 'post',
+      url: TAFS_URL + '/tafs',
+      withCredentials: true,
+      data: JSON.stringify(JSON.parse(this.state.inputValue)),
+      headers: { 'Content-Type': 'application/json' }
+    }).then(src => {
+      this.setState({ inputValue: src.data.message });
+      this.props.updateParent();
+    });
+  }
+  updateInputValue (evt) {
+    this.setState({
+      inputValue: evt.target.value
+    });
+  }
   render () {
     if (this.state.tafs) {
-      console.log(this.state.tafs);
       return <Col style={{ flexDirection: 'column' }}>
         {
-          this.state.tafs.map((taf) => {
-            return <Card block onClick={() => this.setExpandedTAF(taf.uuid)}>
+          this.props.editable
+          ? <Card block onClick={() => this.setExpandedTAF('edit')}>
+            <CardTitle>
+              Paste a valid TAF JSON
+            </CardTitle>
+
+            <CollapseOmni className='CollapseOmni' isOpen={this.state.expandedTAF === 'edit'} minSize={0} maxSize={5000}>
+              <Input onClick={(e) => { e.preventDefault(); e.stopPropagation(); }} onChange={evt => this.updateInputValue(evt)} value={this.state.inputValue} type='textarea' name='text' id='tafInput' />
+              <CardFooter onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}><Button onClick={() => this.addTaf()}>Submit</Button></CardFooter>
+            </CollapseOmni>
+          </Card>
+          : this.state.tafs.map((taf) =>
+            <Card block onClick={() => this.setExpandedTAF(taf.uuid)}>
               <CardTitle>
                 {taf.previousReportAerodrome ? taf.previousReportAerodrome : 'EWat?'} - {moment.utc(taf.validityStart).format('DD/MM/YYYY - HH:mm UTC')}
               </CardTitle>
@@ -78,8 +117,8 @@ export default class Taf extends Component {
                   ? <CardFooter onClick={(e) => { e.preventDefault(); e.stopPropagation(); this.deleteTAF(taf.uuid); }}>Delete</CardFooter>
                   : <div />}
               </CollapseOmni>
-            </Card>;
-          })
+            </Card>
+          )
         }
       </Col>
       ;
@@ -90,5 +129,6 @@ export default class Taf extends Component {
 }
 
 Taf.propTypes = {
+  editable: PropTypes.bool,
   source: PropTypes.string
 };

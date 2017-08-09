@@ -5,6 +5,7 @@ import CollapseOmni from '../components/CollapseOmni';
 import Panel from '../components/Panel';
 import { TAFS_URL } from '../constants/backend';
 import Taf from '../components/Taf';
+import moment from 'moment';
 const ITEMS = [
   {
     title: 'Open active TAFs',
@@ -24,7 +25,6 @@ const ITEMS = [
     title: 'Create new TAF',
     ref:   'add-taf',
     icon: 'star-o',
-    source: TAFS_URL,
     editable: true
   }
 ];
@@ -37,14 +37,6 @@ export default class TafsContainer extends Component {
     };
     this.toggle = this.toggle.bind(this);
   }
-
-  // componentDidMount () {
-  //   const activeTafsUrl = TAFS_URL + '/tafs?active=false';
-  //   console.log(activeTafsUrl);
-  //   axios.get(activeTafsUrl).then((e) => {
-  //     this.setState({ tafs: e.data.tafs })//console.log(e);
-  //   });
-  // }
 
   toggle () {
     this.setState({ isOpen: !this.state.isOpen });
@@ -86,7 +78,7 @@ export default class TafsContainer extends Component {
                       </Col>
                     </CardHeader>}
                     <CollapseOmni className='CollapseOmni' isOpen={this.state.isOpen} minSize={0} maxSize={maxSize}>
-                      <Taf {...item} />
+                      <Taf {...item} latestUpdateTime={moment.utc()} updateParent={() => this.forceUpdate()} />
                     </CollapseOmni>
                   </Card>;
                 }
