@@ -10,7 +10,6 @@ class LayerManagerPanel extends Component {
     const { title, dispatch, adagucProperties, layers, mapProperties } = this.props;
     return (
       <Panel title={title}>
-        <Empty />
         <Row style={{ flex: 1 }}>
           <TimeComponent timedim={adagucProperties.timeDimension} wmjslayers={layers.wmjsLayers} dispatch={dispatch} adagucActions={this.props.adagucActions} />
           <LayerManager wmjslayers={layers.wmjsLayers} dispatch={dispatch} layerActions={this.props.layerActions} adagucActions={this.props.adagucActions} activeMapId={mapProperties.activeMapId} />
