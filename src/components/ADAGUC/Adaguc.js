@@ -18,7 +18,7 @@ export default class Adaguc extends React.Component {
   constructor () {
     super();
     this.initAdaguc = this.initAdaguc.bind(this);
-    this.resize = debounce(this.resize.bind(this), 20, false);
+    this.resize = debounce(this.resize.bind(this), 300, false);
     this.updateLayer = this.updateLayer.bind(this);
     this.onChangeAnimation = this.onChangeAnimation.bind(this);
     this.timeHandler = this.timeHandler.bind(this);
@@ -84,11 +84,8 @@ export default class Adaguc extends React.Component {
   }
   /* istanbul ignore next */
   resize (width, height) {
-    // this.webMapJS.setSize(width, height);
-    // this.webMapJS.draw();
     const element = $(`#adagucwrapper${this.props.mapId}`).closest('.content');
     this.webMapJS.setSize(element.width(), element.height());
-    this.webMapJS.draw();
   }
   /* istanbul ignore next */
   updateBBOX () {
@@ -388,7 +385,7 @@ export default class Adaguc extends React.Component {
   render () {
     const { mapProperties, drawProperties, drawActions, dispatch, mapId } = this.props;
     return (
-      <div id={`adagucwrapper${mapId}`} style={{ overflow: 'hidden' }}>
+      <div id={`adagucwrapper${mapId}`} style={{ overflow: 'visible', width: '0', height: '0' }}>
         <div ref='adaguc' />
         <div style={{ display: 'none' }}>
           <AdagucMapDraw

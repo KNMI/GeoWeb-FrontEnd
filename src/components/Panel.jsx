@@ -7,7 +7,7 @@ class Panel extends Component {
     const { title, style, className, mapId, dispatch, mapActions, mapMode } = this.props;
     if (!title) {
       return (
-        <div className={className ? 'Panel ' + className : 'Panel'} onClick={() => {
+        <div className={className ? 'Panel ' + className : 'Panel'} id={`adagucPanel${mapId}`} onClick={() => {
           if (!mapActions) return;
           if (mapMode !== 'progtemp' && mapMode !== 'timeseries' && !className) {
             dispatch(mapActions.setActivePanel(mapId));

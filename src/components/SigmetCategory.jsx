@@ -13,7 +13,8 @@ import DateTimePicker from 'react-datetime';
 import Slider from 'rc-slider';
 import Tooltip from 'rc-tooltip';
 import PropTypes from 'prop-types';
-import { BOUNDING_BOXES } from '../constants/bounding_boxes'
+import { BOUNDING_BOXES } from '../constants/bounding_boxes';
+import { HARMONIE_URL, OVERLAY_URL, OBSERVATIONS_URL, RADAR_URL, LIGHTNING_URL, SATELLITE_URL } from '../constants/default_services';
 const createSliderWithTooltip = Slider.createSliderWithTooltip;
 const Range = createSliderWithTooltip(Slider.Range);
 const Handle = Slider.Handle;
@@ -279,7 +280,7 @@ class SigmetCategory extends Component {
         layers: [
           [
             {
-              service: 'http://geoservices.knmi.nl/cgi-bin/HARM_N25.cgi?',
+              service: HARMONIE_URL,
               title: 'HARM_N25_EXT',
               name: 'precipitation_flux',
               label: 'Prec: Precipitation rate',
@@ -288,7 +289,7 @@ class SigmetCategory extends Component {
               overlay: false
             },
             {
-              service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.OVL.cgi?',
+              service: OVERLAY_URL,
               title: 'OVL',
               name: 'FIR_DEC_2013_EU',
               label: 'FIR areas',
@@ -298,7 +299,7 @@ class SigmetCategory extends Component {
           ],
           [
             {
-              service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.OBS.cgi?',
+              service: OBSERVATIONS_URL,
               title: 'OBS',
               name: '10M/ww',
               label: 'wawa Weather Code (ww)',
@@ -307,7 +308,7 @@ class SigmetCategory extends Component {
               overlay: false
             },
             {
-              service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.OVL.cgi?',
+              service: OVERLAY_URL,
               title: 'OVL',
               name: 'FIR_DEC_2013_EU',
               label: 'FIR areas',
@@ -317,7 +318,7 @@ class SigmetCategory extends Component {
           ],
           [
             {
-              service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.RADAR.cgi?',
+              service: RADAR_URL,
               title: 'RADAR',
               name: 'precipitation',
               label: 'Neerslag',
@@ -325,7 +326,7 @@ class SigmetCategory extends Component {
               enabled: true,
               overlay: false
             }, {
-              service: 'http://bvmlab-218-41.knmi.nl/cgi-bin/WWWRADAR3.cgi?',
+              service: LIGHTNING_URL,
               title: 'LGT',
               name: 'LGT_NL25_LAM_05M',
               label: 'LGT_NL25_LAM_05M',
@@ -334,7 +335,7 @@ class SigmetCategory extends Component {
               overlay: false
             },
             {
-              service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.OVL.cgi?',
+              service: OVERLAY_URL,
               title: 'OVL',
               name: 'FIR_DEC_2013_EU',
               label: 'FIR areas',
@@ -344,7 +345,7 @@ class SigmetCategory extends Component {
           ],
           [
             {
-              service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.OVL.cgi?',
+              service: OVERLAY_URL,
               title: 'OVL',
               name: 'FIR_DEC_2013_EU',
               label: 'FIR areas',
@@ -369,7 +370,7 @@ class SigmetCategory extends Component {
         layers: [
           [
             {
-              service: 'http://geoservices.knmi.nl/cgi-bin/HARM_N25.cgi?',
+              service: HARMONIE_URL,
               title: 'HARM_N25_EXT',
               name: 'precipitation_flux',
               label: 'Prec: Precipitation rate',
@@ -378,7 +379,7 @@ class SigmetCategory extends Component {
               overlay: false
             },
             {
-              service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.OVL.cgi?',
+              service: OVERLAY_URL,
               title: 'OVL',
               name: 'FIR_DEC_2013_EU',
               label: 'FIR areas',
@@ -388,7 +389,7 @@ class SigmetCategory extends Component {
           ],
           [
             {
-              service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.OBS.cgi?',
+              service: OBSERVATIONS_URL,
               title: 'OBS',
               name: '10M/ww',
               label: 'wawa Weather Code (ww)',
@@ -397,7 +398,7 @@ class SigmetCategory extends Component {
               overlay: false
             },
             {
-              service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.OVL.cgi?',
+              service: OVERLAY_URL,
               title: 'OVL',
               name: 'FIR_DEC_2013_EU',
               label: 'FIR areas',
@@ -407,7 +408,7 @@ class SigmetCategory extends Component {
           ],
           [
             {
-              service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.RADAR.cgi?',
+              service: RADAR_URL,
               title: 'RADAR',
               name: 'precipitation',
               label: 'Neerslag',
@@ -415,7 +416,7 @@ class SigmetCategory extends Component {
               enabled: true,
               overlay: false
             }, {
-              service: 'http://bvmlab-218-41.knmi.nl/cgi-bin/WWWRADAR3.cgi?',
+              service: LIGHTNING_URL,
               title: 'LGT',
               name: 'LGT_NL25_LAM_05M',
               label: 'LGT_NL25_LAM_05M',
@@ -424,7 +425,7 @@ class SigmetCategory extends Component {
               overlay: false
             },
             {
-              service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.OVL.cgi?',
+              service: OVERLAY_URL,
               title: 'OVL',
               name: 'FIR_DEC_2013_EU',
               label: 'FIR areas',
@@ -434,7 +435,7 @@ class SigmetCategory extends Component {
           ],
           [
             {
-              service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.SAT.cgi?',
+              service: SATELLITE_URL,
               title: 'SAT',
               name: 'HRV-COMB',
               label: 'RGB-HRV-COMB',
@@ -443,7 +444,7 @@ class SigmetCategory extends Component {
               overlay: false
             },
             {
-              service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.OVL.cgi?',
+              service: OVERLAY_URL,
               title: 'OVL',
               name: 'FIR_DEC_2013_EU',
               label: 'FIR areas',
@@ -466,10 +467,10 @@ class SigmetCategory extends Component {
     listCpy[0].phenomenon = onlyObj.code;
     this.setState({ list: listCpy });
     const preset = this.sigmetLayers(onlyObj.layerpreset);
-    this.props.dispatch(this.props.mapActions.setLayout(preset.display.type))
+    console.log(preset.area);
+    this.props.dispatch(this.props.mapActions.setLayout(preset.display.type));
     this.props.dispatch(this.props.layerActions.setPreset(preset.layers));
-    this.props.dispatch(this.props.mapActions.setCut({name: 'Custom', bbox: [0, preset.area.bottom, 1, preset.area.top]}))
-
+    this.props.dispatch(this.props.mapActions.setCut({ name: 'Custom', bbox: [570875, preset.area.bottom, 570875, preset.area.top] }));
   }
 
   setSelectedFir (firList) {
@@ -1008,7 +1009,9 @@ SigmetCategory.propTypes = {
   phenomenonMapping : PropTypes.array,
   dispatch          : PropTypes.func,
   actions           : PropTypes.object,
-  updateParent      : PropTypes.func
+  updateParent      : PropTypes.func,
+  mapActions        : PropTypes.object,
+  layerActions      : PropTypes.object
 };
 
 export default SigmetCategory;
