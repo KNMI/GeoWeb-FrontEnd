@@ -128,7 +128,7 @@ export default class AdagucMeasureDistance extends Component {
       this.props.dispatch({ type: ADAGUCMEASUREDISTANCE_UPDATE, payload: { distance: h.distance, bearing: h.bearing } });
       this.showLine = true;
     }
-    webmapjs.draw();
+    webmapjs.draw('AdagucMeasureDistance::adagucMouseMove');
     return false;
   }
 
@@ -158,7 +158,7 @@ export default class AdagucMeasureDistance extends Component {
       return;
     }
     const { webmapjs } = this.props;
-    webmapjs.draw();
+    webmapjs.draw('AdagucMeasureDistance::adagucMouseUp');
     return false;
   }
 
@@ -169,15 +169,15 @@ export default class AdagucMeasureDistance extends Component {
       this.props.dispatch({ type: ADAGUCMEASUREDISTANCE_EDITING, payload: { isInEditMode: false } });
       this.isMeasuring = false;
       this.showLine = false;
-      this.props.webmapjs.draw();
+      this.props.webmapjs.draw('AdagucMeasureDistance::handleKeyDown');
     }
   }
 
   /* istanbul ignore next */
   componentWillReceiveProps () {
-    if (this.props.webmapjs !== undefined) {
-      this.props.webmapjs.draw();
-    }
+    // if (this.props.webmapjs !== undefined) {
+    //   this.props.webmapjs.draw('AdagucMeasureDistance::componentWillReceiveProps');
+    // }
   }
 
   componentWillMount () {
@@ -212,7 +212,7 @@ export default class AdagucMeasureDistance extends Component {
         webmapjs.addListener('beforemouseup', this.adagucMouseUp, true);
         this.disabled = false;
       }
-      webmapjs.draw();
+      // webmapjs.draw('AdagucMeasureDistance::render');
     }
     return <div />;
   }

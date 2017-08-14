@@ -299,7 +299,7 @@ export default class AdagucMapDraw extends Component {
     /* The mouse is hovering a vertice, and the mousedown is into effect, move vertice accordingly */
     const ret = this.moveVertex(featureCoords, mouseDown);
     if (ret === false) {
-      webmapjs.draw();
+      webmapjs.draw('AdagucMapDraw::adagucMouseMove');
       return false;
     }
 
@@ -309,7 +309,7 @@ export default class AdagucMapDraw extends Component {
       /* We found a vertex */
       this.selectedEdge = this.EDGE.NONE; /* We found a vertex, not an edge: reset it */
       webmapjs.setCursor('move');
-      webmapjs.draw();
+      webmapjs.draw('AdagucMapDraw::hoverVertex');
       return false;
     }
 
@@ -324,7 +324,7 @@ export default class AdagucMapDraw extends Component {
     }
 
     if (this.selectedEdge !== this.EDGE.NONE) {
-      webmapjs.draw();
+      webmapjs.draw('AdagucMapDraw::adagucMouseMove');
       return false;
     }
 
@@ -336,7 +336,7 @@ export default class AdagucMapDraw extends Component {
       return true means that the map will continue with its own mousehandling
     */
     if (this.mouseIsOverVertexNr === this.VERTEX.NONE && this.selectedEdge === this.EDGE.NONE) {
-      webmapjs.draw();
+      webmapjs.draw('AdagucMapDraw::adagucMouseMove');
       return true; /* False means that this component will take over entire controll.
                      True means that it is still possible to pan and drag the map while editing */
     }
@@ -389,7 +389,7 @@ export default class AdagucMapDraw extends Component {
       featureCoords.push([this.mouseGeoCoord.x, this.mouseGeoCoord.y]);
       this.featureHasChanged('new poly created');
       this.mouseIsOverVertexNr = featureCoords.length - 1;
-      webmapjs.draw();
+      webmapjs.draw('AdagucMapDraw::adagucMouseDown');
       return false;
     }
 
@@ -438,7 +438,7 @@ export default class AdagucMapDraw extends Component {
     this.featureHasChanged('deleteFeature');
     this.selectedEdge = this.EDGE.NONE;
     this.mouseIsOverVertexNr = this.VERTEX.NONE;
-    webmapjs.draw();
+    webmapjs.draw('AdagucMapDraw::deletefeatures');
   }
 
   /* istanbul ignore next */
@@ -494,7 +494,7 @@ export default class AdagucMapDraw extends Component {
         coordinates.pop();
       }
       this.featureHasChanged('cancelEdit');
-      webmapjs.draw();
+      webmapjs.draw('AdagucMapDraw::cancelEdit');
     } else {
       /* When in standard mode or deletefeatures mode, remove any vertex under the mousecursor */
       if (this.editMode === this.EDITMODE.EMPTY || this.editMode === this.EDITMODE.DELETE_FEATURES) {
@@ -544,9 +544,9 @@ export default class AdagucMapDraw extends Component {
     } else if (this.editMode === this.EDITMODE.DELETE_FEATURES) {
       this.editMode = this.EDITMODE.EMPTY;
     }
-    if (this.props.webmapjs) {
-      this.props.webmapjs.draw();
-    }
+    // if (this.props.webmapjs) {
+    //   this.props.webmapjs.draw('AdagucMapDraw::componentWillReceiveProps');
+    // }
     if (nextProps.isInEditMode === false && nextProps.isInDeleteMode === false) {
       this.editMode = this.EDITMODE.EMPTY;
     }
@@ -566,7 +566,7 @@ export default class AdagucMapDraw extends Component {
         webmapjs.addListener('beforemouseup', this.adagucMouseUp, true);
         this.disabled = false;
       }
-      webmapjs.draw();
+      // webmapjs.draw('AdagucMapDraw::render');
     }
     return (<div />);
   }
