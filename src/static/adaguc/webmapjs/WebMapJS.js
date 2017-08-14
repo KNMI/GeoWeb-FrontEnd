@@ -906,14 +906,14 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
         let tilenright = Math.round(((((currentBBOX.right / originShift) * (numTilesAtLevel)) + numTilesAtLevel) / 2) + 0.5);
         let tilentop = Math.round(((numTilesAtLevel - ((currentBBOX.bottom / originShift) * (numTilesAtLevel))) / 2) + 0.5);
 
-        ctx.fillText('level: ' + level, 200, 260);
-        //ctx.fillText('tile_x: ' + tileX, 200, 280);
+        // ctx.fillText('level: ' + level, 200, 260);
+        // //ctx.fillText('tile_x: ' + tileX, 200, 280);
 
-        ctx.fillText('tile_widthmerc: ' + initialResolution / level, 200, 300);
-        ctx.fillText('NumTiles: ' + numTilesAtLevel, 200, 320);
-        // ctx.fillText('numTilesInScreen: ' + numTilesInScreen, 200, 340);
-        ctx.fillText('tilenleft: ' + tilenleft, 200, 360);
-        ctx.fillText('tilenbottom: ' + tilenbottom, 200, 380);
+        // ctx.fillText('tile_widthmerc: ' + initialResolution / level, 200, 300);
+        // ctx.fillText('NumTiles: ' + numTilesAtLevel, 200, 320);
+        // // ctx.fillText('numTilesInScreen: ' + numTilesInScreen, 200, 340);
+        // ctx.fillText('tilenleft: ' + tilenleft, 200, 360);
+        // ctx.fillText('tilenbottom: ' + tilenbottom, 200, 380);
 
         let tileXYZToMercator = (level, x, y) => {
           let tileRes = initialResolution / Math.pow(2, level);
@@ -964,7 +964,7 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
     };
 
     let adagucBeforeDraw = (ctx) => {
-      mercatorToTileXYZ(bbox, updateBBOX, ctx);
+      // mercatorToTileXYZ(bbox, updateBBOX, ctx);
     };
 
     let adagucBeforeCanvasDisplay = (ctx) => {
@@ -979,11 +979,40 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
       }
       ctx.fill();
       ctx.globalAlpha = 1;
+
+
+      // Mouse projected coords
+      if (isDefined(mouseGeoCoordXY)) {
+        let roundingFactor = 1.0 / Math.pow(10, parseInt(Math.log((bbox.right - bbox.left) / width) / Math.log(10)) - 2);
+        if (roundingFactor < 1)roundingFactor = 1;
+        ctx.fillStyle = '#000000';
+        let xText = Math.round(mouseGeoCoordXY.x * roundingFactor) / roundingFactor;
+        let yText = Math.round(mouseGeoCoordXY.y * roundingFactor) / roundingFactor;
+        let units = '';
+        if (srs === 'EPSG:3857') {
+          units = 'meter';
+        }
+        ctx.fillText('CoordXY: (' + xText + ', ' + yText + ') ' + units, 5, height - 40);
+      }
+      // Mouse latlon coords
+      if (isDefined(mouseUpdateCoordinates)) {
+
+        var llCoord = _map.getLatLongFromPixelCoord(mouseUpdateCoordinates);
+
+        if (isDefined(llCoord)) {
+          let roundingFactor = 100;
+          ctx.fillStyle = '#000000';
+          let xText = Math.round(llCoord.x * roundingFactor) / roundingFactor;
+          let yText = Math.round(llCoord.y * roundingFactor) / roundingFactor;
+          ctx.fillText('Lon/Lat: (' + xText + ', ' + yText + ') ' + ' degrees', 5, height - 26);
+        }
+      }
+      ctx.fillStyle = '#000000';
+      ctx.fillText('Map projection: ' + srs, 5, height - 12);
     };
 
     // _map.addListener('beforecanvasstartdraw', adagucBeforeDraw, true);
     _map.addListener('beforecanvasdisplay', adagucBeforeCanvasDisplay, true);
-
     initialized = 1;
   };
 
@@ -2920,49 +2949,13 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
   var resizingBBOXCursor = false;
   var resizingBBOXEnabled = false;
 
+  var mouseGeoCoordXY;
+  var mouseUpdateCoordinates;
+
   this.updateMouseCursorCoordinates = function (coordinates) {
-    return;
-    var geoCoord = _map.getGeoCoordFromPixelCoord(coordinates);
-    var X;
-    var Y;
-    if (isDefined(geoCoord)) {
-      if (geoCoord.x) { X = Math.round(geoCoord.x * 100) / 100; }
-      if (geoCoord.y) { Y = Math.round(geoCoord.y * 100) / 100; }
-    }
-    if (!isDefined(X) || !isDefined(Y)) {
-      coordinatesDiv.innerHTML = '<table class="coordinates"><tr><td>&nbsp;</td></tr><tr><td>' + I18n.projection.text + ': ' + srs + '</td></tr></table>';
-      return;
-    }
-
-    var llCoord = _map.getLatLongFromPixelCoord(coordinates);
-
-    var lon;
-    var lat;
-    if (isDefined(llCoord)) {
-      if (llCoord.x)lon = Math.round(llCoord.x * 100) / 100;
-      if (llCoord.y)lat = Math.round(llCoord.y * 100) / 100;
-    }
-
-    var html = '<div class="webmapjs_coordinates"><table class="webmapjs_coordinates">';
-    if (srs != 'GFI:TIME_ELEVATION') {
-      if (srs != 'EPSG:4326') {
-        var srsText = 'XY';
-
-        html += '<tr><td>' + srsText + ' </td><td>&nbsp;</td><td>(</td><td> ' + X + ' </td><td> , </td><td>' + Y + ' </td><td>)</td></tr>';
-      } else {
-        html += '<tr><td>&nbsp</td></tr>';
-      }
-      if (isDefined(lon) && isDefined(lat)) {
-        html += '<tr><td>LonLat </td><td>&nbsp;</td><td>( </td><td>' + lon + ' </td><td> , </td><td>' + lat + '</td><td> )</td></tr>';
-      }
-    }
-    if (srs == 'GFI:TIME_ELEVATION') {
-      html += '<tr><td>Time:</td><td>' + _map.dateToISO8601(new Date(lon)) + ' </td></tr>';
-      html += '<tr><td>Elevation:</td><td>' + lat + ' </td></tr>';
-    }
-    html += '</table></div>';
-
-    coordinatesDiv.innerHTML = html;
+    mouseUpdateCoordinates = coordinates;
+    mouseGeoCoordXY = _map.getGeoCoordFromPixelCoord(coordinates);
+    _map.draw('updateMouseCursorCoordinates');
   };
 
   this.mouseDownEvent = function (e) {
