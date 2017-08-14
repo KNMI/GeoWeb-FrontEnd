@@ -248,6 +248,58 @@ LayerOpacity.propTypes = {
   layerActions: PropTypes.object
 };
 
+export class LayerModelLevel extends Component {
+  constructor () {
+    super();
+    this.state = {
+      popoverOpen: false
+    };
+    this.togglePopover = this.togglePopover.bind(this);
+    this.alterLayer = this.alterLayer.bind(this);
+  }
+
+  togglePopover () {
+    this.setState({ popoverOpen: !this.state.popoverOpen });
+  }
+
+  alterLayer (value) {
+    this.props.dispatch(this.props.layerActions.alterLayer({ index: this.props.i, layerType: 'data', fieldsNewValuesObj: { modellevel: value }, activeMapId: this.props.activeMapId }));
+  }
+
+  render () {
+    const { i, target, modellevel } = this.props;
+    const marks = {};
+    for (var q = 0; q < modellevel.size(); q += 8) {
+      marks[q] = modellevel.getValueForIndex(q);
+    }
+    return <div>
+      <Popover width={'auto'} key={`modellevelpopover${i}`} isOpen={this.state.popoverOpen} target={target} toggle={this.togglePopover}>
+        <PopoverTitle>Model Level</PopoverTitle>
+        <PopoverContent style={{ height: '15rem', marginBottom: '1rem' }}>
+          <Slider style={{ margin: '1rem' }} onChange={v => this.alterLayer(v)}
+            min={parseInt(modellevel.getValueForIndex(0))} max={parseInt(modellevel.getValueForIndex(modellevel.size() - 1))}
+            step={1} marks={marks} vertical defaultValue={modellevel.currentValue} />
+        </PopoverContent>
+      </Popover>
+
+      <Badge pill className={`alert-${this.props.color}${this.props.editable ? ' editable' : ''}`} onClick={this.togglePopover}>
+        {modellevel.currentValue}
+        <Icon style={{ marginLeft: '0.25rem' }} id={target} name='pencil' />
+      </Badge>
+    </div>;
+  }
+}
+LayerModelLevel.propTypes = {
+  dispatch: PropTypes.func,
+  layerActions: PropTypes.object,
+  i: PropTypes.number,
+  color: PropTypes.string,
+  editable: PropTypes.bool,
+  target: PropTypes.string,
+  modellevel: PropTypes.object,
+  activeMapId: PropTypes.number
+};
+
 export default class LayerManager extends Component {
   constructor () {
     super();
@@ -387,6 +439,7 @@ export default class LayerManager extends Component {
     }
     return layers.map((layer, i) => {
       const refTime = layer.getDimension ? layer.getDimension('reference_time') : null;
+      const modelLevel = layer.getDimension ? layer.getDimension('modellevel') : null;
       return (
         <Row className='layerinfo' key={`lgi${i}`} style={{ marginBottom: '0.1rem' }}>
           <Col xs='auto'><Icon name='chevron-up' onClick={() => dispatch(layerActions.reorderLayers({ direction: 'up', index: i, activeMapId }))} /></Col>
@@ -400,6 +453,9 @@ export default class LayerManager extends Component {
             target={`datalayerstyle${i}`} i={i} dispatch={dispatch} layerActions={this.props.layerActions} />
           <LayerOpacity color='info' editable activeMapId={activeMapId} layer={layer} target={`datalayeropacity${i}`} i={i} dispatch={dispatch} layerActions={this.props.layerActions} />
           {refTime ? <LayerModelRun color='info' refTime={refTime.currentValue} /> : <div />}
+          {modelLevel ? <LayerModelLevel color='info' editable activeMapId={activeMapId} layer={layer}
+            target={`datalayermodellevel${i}`} i={i} dispatch={dispatch} layerActions={this.props.layerActions} modellevel={modelLevel} /> : <div />}
+
         </Row>);
     });
   }

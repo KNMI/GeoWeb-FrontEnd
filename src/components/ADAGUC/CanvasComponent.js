@@ -26,14 +26,8 @@ export default class CanvasComponent extends Component {
     if (!this.refs || !this.refs.canvas) {
       return;
     }
-    this.width = $('#timelineParent').width();
-    this.height = this.props.height || $('#timelineParent').height();
-    // const parentWidth = canvas.parentElement.getBoundingClientRect().width;
-    // const parentHeight = this.props.height || canvas.parentElement.getBoundingClientRect().height;
-    // console.log(parentWidth, parentHeight)
-    // if (this.width === parentWidth && this.height === parentHeight) {
-    //   return;
-    // }
+    this.width = this.props.width || $(`#${this.props.parentId}`).width();
+    this.height = this.props.height || $(`#${this.props.parentId}`).height();
     const onClickCanvas = this.props.onClickB;
     const mousemove = this.props.onMouseMove;
     if (!this.initialized) {
@@ -64,13 +58,8 @@ export default class CanvasComponent extends Component {
   /* istanbul ignore next */
   render () {
     this.updateCanvas();
-    // if (this.props.width && this.props.height && this.props.style) {
-    //   return <canvas ref='canvas' style={this.props.style} width={this.props.width} height={this.props.height} id={this.props.id} />;
-    // } else if (this.props.width && this.props.height) {
-    //   return <canvas ref='canvas' width={this.props.width} height={this.props.height} id={this.props.id} />;
-    // }
     return (
-      <canvas ref='canvas' id={this.props.id} height={this.props.height} {...this.props} />
+      <canvas ref='canvas' {...this.props} />
     );
   }
 }
@@ -78,9 +67,10 @@ export default class CanvasComponent extends Component {
 CanvasComponent.propTypes = {
   onRenderCanvas: PropTypes.func,
   onClickB: PropTypes.func,
-  id: PropTypes.string,
   onMouseMove: PropTypes.func,
-  height: PropTypes.number
+  height: PropTypes.number,
+  width: PropTypes.string,
+  parentId: PropTypes.string
 };
 
 CanvasComponent.defaultProps = {

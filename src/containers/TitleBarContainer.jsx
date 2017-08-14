@@ -153,7 +153,6 @@ class TitleBarContainer extends Component {
     const { dispatch, mapActions, adagucActions } = this.props;
     const defaultURLs = ['getServices', 'getOverlayServices'].map((url) => BACKEND_SERVER_URL + '/' + url);
     const allURLs = [...defaultURLs];
-    console.log(allURLs)
     axios.all(allURLs.map((req) => axios.get(req, { withCredentials: true }))).then(
       axios.spread((services, overlays) => {
         dispatch(mapActions.createMap());

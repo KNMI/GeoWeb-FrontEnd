@@ -116,7 +116,7 @@ export default class ProgtempComponent extends Component {
       const url = `${MODEL_LEVEL_URL}SERVICE=WMS&&SERVICE=WMS&VERSION=1.3.0
 &REQUEST=GetPointValue&LAYERS=&QUERY_LAYERS=air_pressure__at_ml,y_wind__at_ml,x_wind__at_ml,dewpoint_temperature__at_ml,air_temperature__at_ml
 &CRS=EPSG%3A4326&INFO_FORMAT=application/json&time=*&DIM_reference_time=` + this.referenceTime + `&x=` + location.x + `&y=` + location.y + `&DIM_modellevel=*`;
-
+  console.log(url);
       this.toggleCanvas();
       axios.get(url).then((res) => {
         if (res.data.includes('No data available')) {
@@ -124,6 +124,7 @@ export default class ProgtempComponent extends Component {
           this.toggleCanvas();
           return;
         }
+        console.log(res.data);
         this.toggleCanvas();
         this.progtempData = res.data;
         this.renderProgtempData(canvasWidth, canvasHeight, Math.floor(moment.duration(moment.utc(adagucTime).diff(moment.utc(this.referenceTime))).asHours()));

@@ -1262,25 +1262,11 @@
     };
 
     this.setSize = function (w, h) {
-      // this._setSize(w - 50, h);
-      this.resizeWidth = w;
-      this.resizeHeight = h;
-
-      if (!this.resizeTimer) {
-        this.resizeTimer = new WMJSTimer();
-      } else {
-        this.resizeTimer.reset();
-        return;
-      }
-      this.resizeTimer.init(100, function () {
-        _map._setSize((_map.resizeWidth - 20) | 0, (_map.resizeHeight - 5) | 0);
-        _map.resizeTimer = null;
-        _map.draw();
-      });
+      _map._setSize(w, h);
+      _map.draw();
     };
 
     this._setSize = function (w, h) {
-      console.log('call: ', w, h);
       if (!w || !h) return;
       if (enableConsoleDebugging)console.log('setSize(' + w + ',' + h + ')');
       var projinfo = this.getProjection();

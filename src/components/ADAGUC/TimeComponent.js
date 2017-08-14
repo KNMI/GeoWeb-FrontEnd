@@ -4,6 +4,7 @@ import { Icon } from 'react-fa';
 import { Button, Col, Row } from 'reactstrap';
 import PropTypes from 'prop-types';
 import { debounce } from '../../utils/debounce';
+import $ from 'jquery';
 const elementResizeEvent = require('element-resize-event');
 export default class TimeComponent extends Component {
   constructor () {
@@ -116,8 +117,6 @@ export default class TimeComponent extends Component {
     // eslint-disable-next-line no-undef
     const numlayers = wmjslayers.baselayers && wmjslayers.layers ? wmjslayers.baselayers.length + wmjslayers.layers.length + 1 : 2;
     const canvasHeight = 20 * numlayers;
-
-    // const canvasHeight = $(ctx.canvas).height();
     ctx.fillStyle = '#CCC';
     ctx.fillRect(0, 0, canvasWidth, canvasHeight);
     ctx.strokeStyle = '#FF0000';
@@ -349,7 +348,7 @@ export default class TimeComponent extends Component {
           </Button>
         </Col>
         <Col id='timelineParent'>
-          <CanvasComponent id='timeline' onRenderCanvas={this.onRenderCanvas} onClickB={this.onClickCanvas} height={height} />
+          <CanvasComponent id='timeline' onRenderCanvas={this.onRenderCanvas} onClickB={this.onClickCanvas} height={height} width={$('#timelineParent').width()} parentId='timelineParent' />
         </Col>
         <Col xs='auto'>
           <Button outline color='info' onClick={this.handleButtonClickNextPage}>
