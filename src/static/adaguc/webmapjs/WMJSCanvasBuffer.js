@@ -61,13 +61,41 @@ var WMJSCanvasBuffer = function (webmapJSCallback, _type, _imageStore, w, h) {
     _this.layers = [];
   };
 
+
+  // var drawTimer = new WMJSDebouncer();
+  // var drawTimerBusy = false;
+  // var drawTimerPending = false;
+  // var drawTimernewbbox;
+  // var drawTimerloadedbbox;
+
+  // this.display = function (newbbox, loadedbbox) {
+
+  //   drawTimernewbbox = newbbox;
+  //   drawTimerloadedbbox = loadedbbox;
+  //   if (drawTimerBusy === true) {
+  //     _this.canvas.show();
+  //     if (drawTimerPending === true) {
+  //       return;
+  //     }
+  //     drawTimerPending = true;
+  //     drawTimer.init(25, () => {
+  //       drawTimerBusy = false;
+  //       drawTimerPending = false;
+  //       _this._display(drawTimernewbbox, drawTimerloadedbbox);
+  //     });
+  //     return;
+  //   }
+  //   drawTimerBusy = true;
+  //   _this._display(drawTimernewbbox, drawTimerloadedbbox);
+  // };
+
   this.display = function (newbbox, loadedbbox) {
+
     //console.log('======= WMJSCanvasBuffer:display'+newbbox);
     if ((newbbox && !loadedbbox)) {
       console.log('skipping WMJSCanvasBuffer:display because newbbox is undefined');
       return;
     }
-
 
     _this.hidden = false;
     ctx.globalAlpha = 1;
@@ -128,12 +156,17 @@ var WMJSCanvasBuffer = function (webmapJSCallback, _type, _imageStore, w, h) {
             // var legendW = parseInt(el.width) ;
             // var legendH = parseInt(el.height) ;
             // console.log(legendW, legendH, width, height);
-            var imageX = parseInt(coord1.x);
-            var imageY = parseInt(coord1.y);
-            var imageW = (parseInt(coord2.x) - imageX);
-            var imageH = (parseInt(coord2.y) - imageY);
-            console.log(imageX,imageY,imageW,imageH, ctx.canvas.width, ctx.canvas.height );
-            ctx.drawImage(el, imageX, imageY, imageW,imageH);
+            var imageX = parseInt(coord1.x + 0.5);
+            var imageY = parseInt(coord1.y + 0.5);
+            var imageW = parseInt((coord2.x - coord1.x) + 0.5);
+            var imageH = parseInt((coord2.y - coord1.y) + 0.5);
+
+            if ((imageW) === parseInt(ctx.canvas.width) && (imageH) === parseInt(ctx.canvas.height)) {
+              ctx.drawImage(el, imageX, imageY);
+            } else {
+              // console.log('slow', imageX,imageY,imageW,imageH, ctx.canvas.width, ctx.canvas.height );
+              ctx.drawImage(el, imageX, imageY, imageW,imageH);
+            }
           } else {
             var legendW = parseInt(el.width) ;
             var legendH = parseInt(el.height) ;
