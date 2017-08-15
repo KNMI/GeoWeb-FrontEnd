@@ -1817,6 +1817,7 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
    * API Function called to draw the layers, fires getmap request and shows the layers on the screen
    */
   this.draw = function (animationList) {
+    console.log('draw');
     if (enableConsoleDebugging)console.log('draw:' + animationList);
 
     if (_map.isAnimating) {
