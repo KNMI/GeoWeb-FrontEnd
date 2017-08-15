@@ -132,7 +132,7 @@ var WMJSCanvasBuffer = function (webmapJSCallback, _type, _imageStore, w, h) {
             var imageY = parseInt(coord1.y);
             var imageW = (parseInt(coord2.x) - imageX);
             var imageH = (parseInt(coord2.y) - imageY);
-            // console.log(imageX,imageY,imageW,imageH);
+            console.log(imageX,imageY,imageW,imageH, ctx.canvas.width, ctx.canvas.height );
             ctx.drawImage(el, imageX, imageY, imageW,imageH);
           } else {
             var legendW = parseInt(el.width) ;
