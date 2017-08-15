@@ -18,12 +18,13 @@ export default class Adaguc extends React.Component {
   constructor () {
     super();
     this.initAdaguc = this.initAdaguc.bind(this);
-    this.resize = debounce(this.resize.bind(this), 300, false);
+    // this.resize = debounce(this.resize.bind(this), 300, false);
+    this.resize = this.resize.bind(this);
     this.updateLayer = this.updateLayer.bind(this);
     this.onChangeAnimation = this.onChangeAnimation.bind(this);
     this.timeHandler = this.timeHandler.bind(this);
     this.adagucBeforeDraw = this.adagucBeforeDraw.bind(this);
-    this.updateBBOX = this.updateBBOX.bind(this);
+    this.updateBBOX = debounce(this.updateBBOX.bind(this), 300, false);
     this.isAnimating = false;
     this.state = {
       dropdownOpenView: false,
@@ -66,7 +67,7 @@ export default class Adaguc extends React.Component {
       if (adagucProperties.timeDimension) {
         this.webMapJS.setDimension('time', adagucProperties.timeDimension, true);
       }
-      this.webMapJS.draw();
+      this.webMapJS.draw('66');
     }
     setTimeout(function () {
       layer.parseLayer((layer) => this.updateLayer(layer, datalayer), true);
@@ -91,9 +92,11 @@ export default class Adaguc extends React.Component {
     this.webMapJS.setSize(element.width(), element.height());
   }
   /* istanbul ignore next */
-  updateBBOX () {
+  updateBBOX (wmjsmap) {
+    if (wmjsmap === undefined) return;
+    let bbox = wmjsmap.getBBOX();
+    if (bbox === undefined) return;
     const { dispatch, mapActions } = this.props;
-    const bbox = this.webMapJS.getBBOX();
     dispatch(mapActions.setCut({ title: 'Custom', bbox: [bbox.left, bbox.bottom, bbox.right, bbox.top] }));
   }
 
@@ -143,8 +146,8 @@ export default class Adaguc extends React.Component {
     // Set the initial projection
     this.webMapJS.setProjection(mapProperties.projectionName);
     this.webMapJS.setBBOX(mapProperties.boundingBox.bbox.join());
-    this.webMapJS.addListener('onscroll', this.updateBBOX, true);
-    this.webMapJS.addListener('mapdragend', this.updateBBOX, true);
+
+    this.webMapJS.addListener('aftersetbbox', this.updateBBOX, true);
 
     // Set the baselayer and possible overlays
     this.updateBaselayers(baselayer, {}, panels[mapId].overlays, {});
@@ -171,7 +174,7 @@ export default class Adaguc extends React.Component {
       dispatch(adagucActions.setTimeDimension(currentDate.toISO8601()));
       dispatch(layerActions.setWMJSLayers({ layers: this.webMapJS.getLayers(), baselayers: this.webMapJS.getBaseLayers() }));
     }
-    this.webMapJS.draw();
+    this.webMapJS.draw('171');
   }
   componentDidMount () {
     this.initAdaguc(this.refs.adaguc);
@@ -217,7 +220,9 @@ export default class Adaguc extends React.Component {
   updateBoundingBox (boundingBox, prevBoundingBox) {
     if (boundingBox !== prevBoundingBox) {
       // eslint-disable-next-line no-undef
-      this.webMapJS.setBBOX(boundingBox.bbox.join());
+      if (this.webMapJS.setBBOX(boundingBox.bbox.join()) === true) {
+        this.webMapJS.draw();
+      }
     }
   }
 
@@ -226,6 +231,7 @@ export default class Adaguc extends React.Component {
     if (timedim !== prevTime) {
       // eslint-disable-next-line no-undef
       this.webMapJS.setDimension('time', timedim, true);
+      this.webMapJS.draw();
     }
   }
 
@@ -371,7 +377,7 @@ export default class Adaguc extends React.Component {
       this.resize();
       dispatch(layerActions.setWMJSLayers({ layers: this.webMapJS.getLayers(), baselayers: this.webMapJS.getBaseLayers() }));
     }
-    this.webMapJS.draw();
+    // this.webMapJS.draw('368');
   }
 
   /* istanbul ignore next */

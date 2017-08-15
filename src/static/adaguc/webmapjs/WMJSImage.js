@@ -6,13 +6,27 @@
 
 var WMJSImage = function (src, callback, __type) {
   var _this = this;
+
+
+  var _srcLoaded;
+  var _isLoaded;
+  var _isLoading;
+  var _hasError;
+  var _opacity;
+
+  _this.init = function () {
+    _srcLoaded = 'undefined image';
+    _isLoaded = false;
+    _isLoading = false;
+    _hasError = false;
+    _opacity = 1;
+  };
+
+  _this.init();
+
   this.srcToLoad = src;
-  var _srcLoaded = 'undefined image';
-  var _isLoaded = false;
-  var _isLoading = false;
-  var _hasError = false;
   var _type = __type;
-  var _opacity = 1;
+
   var loadEventCallback = callback;
 
   _this.isLoaded = function () {
@@ -50,11 +64,7 @@ var WMJSImage = function (src, callback, __type) {
   };
 
   _this.clear = function () {
-    _srcLoaded = 'undefined image';
-    this.srcToLoad = '';
-    _isLoaded = false;
-    _isLoading = false;
-    _hasError = false;
+    _this.init();
   };
 
   _this.getSrc = function () {

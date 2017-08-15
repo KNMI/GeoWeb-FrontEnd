@@ -1,6 +1,6 @@
 
 var WMJSCanvasBuffer = function (webmapJSCallback, _type, _imageStore, w, h) {
-  // console.log("WMJSCanvasBuffer created with "+w+","+h);
+  console.log("WMJSCanvasBuffer created with "+w+","+h);
   var _this = this;
 
   this.canvas =
@@ -45,7 +45,7 @@ var WMJSCanvasBuffer = function (webmapJSCallback, _type, _imageStore, w, h) {
     // console.log("WMJSCanvasBuffer:statDivBufferImageLoaded");
 
     for (var j = 0; j < _this.layers.length; j++) {
-      if (_this.layers[j].isLoaded() == false) {
+      if (_this.layers[j].isLoaded() === false) {
         return;
       }
     }
@@ -62,7 +62,12 @@ var WMJSCanvasBuffer = function (webmapJSCallback, _type, _imageStore, w, h) {
   };
 
   this.display = function (newbbox, loadedbbox) {
-    // console.log('======= WMJSCanvasBuffer:display'+newbbox);
+    //console.log('======= WMJSCanvasBuffer:display'+newbbox);
+    if ((newbbox && !loadedbbox)) {
+      console.log('skipping WMJSCanvasBuffer:display because newbbox is undefined');
+      return;
+    }
+
 
     _this.hidden = false;
     ctx.globalAlpha = 1;
@@ -75,7 +80,11 @@ var WMJSCanvasBuffer = function (webmapJSCallback, _type, _imageStore, w, h) {
       ctx.rect(0, 0, width, height);
       ctx.fillStyle = 'white';
       ctx.fill();
+      webmapJSCallback.triggerEvent('beforecanvasstartdraw', ctx);
     }
+
+
+
       // if (type === 'legendbuffer') {
     //   ctx.fillStyle = 'transparent';
     // }
@@ -128,7 +137,7 @@ var WMJSCanvasBuffer = function (webmapJSCallback, _type, _imageStore, w, h) {
           } else {
             var legendW = parseInt(el.width) ;
             var legendH = parseInt(el.height) ;
-            console.log(legendW, legendH, width, height);
+            // console.log(legendW, legendH, width, height);
             ctx.drawImage(el, 0, 0, width, height);
           }
         }
