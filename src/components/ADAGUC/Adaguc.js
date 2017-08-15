@@ -43,7 +43,7 @@ export default class Adaguc extends React.Component {
   }
 
   /* istanbul ignore next */
-  updateLayer (layer) {
+  updateLayer (layer, datalayer) {
     this.webMapJS.setAnimationDelay(200);
     if (!layer) {
       return;
@@ -56,6 +56,9 @@ export default class Adaguc extends React.Component {
     if (layer.getDimension('reference_time')) {
       layer.setDimension('reference_time', layer.getDimension('reference_time').getValueForIndex(layer.getDimension('reference_time').size() - 1), false);
     }
+    if (datalayer.modellevel) {
+      layer.setDimension('modellevel', datalayer.modellevel);
+    }
 
     if (this.isAnimating) {
       this.webMapJS.drawAutomatic(moment().utc().subtract(4, 'hours'), moment().utc().add(48, 'hours'));
@@ -67,7 +70,7 @@ export default class Adaguc extends React.Component {
       this.webMapJS.draw('66');
     }
     setTimeout(function () {
-      layer.parseLayer(this.updateLayer, true);
+      layer.parseLayer((layer) => this.updateLayer(layer, datalayer), true);
     }, 10000);
   }
   /* istanbul ignore next */
@@ -310,8 +313,8 @@ export default class Adaguc extends React.Component {
           datalayer.enabled = 'enabled' in datalayer ? datalayer.enabled : true;
           // eslint-disable-next-line no-undef
           const newDataLayer = new WMJSLayer(datalayer);
-          newDataLayer.setAutoUpdate(true, moment.duration(2, 'minutes').asMilliseconds(), this.updateLayer);
-          newDataLayer.onReady = this.updateLayer;
+          newDataLayer.setAutoUpdate(true, moment.duration(2, 'minutes').asMilliseconds(), (layer) => this.updateLayer(layer, datalayer));
+          newDataLayer.onReady = (layer) => this.updateLayer(layer, datalayer);
           return newDataLayer;
         });
         this.webMapJS.removeAllLayers();
@@ -325,6 +328,9 @@ export default class Adaguc extends React.Component {
           layers[i].name = currDataLayers[i].name;
           layers[i].label = currDataLayers[i].label;
           layers[i].currentStyle = currDataLayers[i].style || layers[i].currentStyle;
+          if (currDataLayers[i].modellevel) {
+            layers[i].setDimension('modellevel', currDataLayers[i].modellevel);
+          }
           this.webMapJS.getListener().triggerEvent('onmapdimupdate');
         }
       }

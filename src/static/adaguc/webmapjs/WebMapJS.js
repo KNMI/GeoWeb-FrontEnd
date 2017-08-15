@@ -1396,6 +1396,7 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
     }
   };
 
+
   this.resizeWidth=-1;
   this.resizeHeight=-1;
 
@@ -1451,6 +1452,7 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
       projinfo.bbox.top = 90;
       _map.setProjection(projinfo.srs, projinfo.bbox);
     }
+
 //       baseDiv.style.width=width+'px';
 //       baseDiv.style.height=height+'px';
     baseDiv.css({ width:width, height:height });

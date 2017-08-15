@@ -66,10 +66,10 @@ class MapActionContainer extends Component {
     const defaultURLs = ['getServices', 'getOverlayServices'].map((url) => BACKEND_SERVER_URL + '/' + url);
     const allURLs = [...defaultURLs];
     axios.all(allURLs.map((req) => axios.get(req, { withCredentials: true }))).then(
-      axios.spread((services, overlays) => {
-        dispatch(actions.createMap([...services.data, ...JSON.parse(localStorage.getItem('geoweb')).personal_urls], overlays.data[0]))}
+      axios.spread((services, overlays) =>
+        dispatch(actions.createMap([...services.data, ...JSON.parse(localStorage.getItem('geoweb')).personal_urls], overlays.data[0]))
       )
-    ).catch((e) => console.error('Error!: ', e.response));
+    );
   }
 
   handleAddSource (e) {

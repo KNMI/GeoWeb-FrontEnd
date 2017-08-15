@@ -46,7 +46,6 @@ export default class Taf extends Component {
   }
 
   deleteTAF (uuid) {
-    console.log(TAFS_URL + '/tafs/' + uuid);
     axios({
       method: 'delete',
       url: TAFS_URL + '/tafs/' + uuid,
