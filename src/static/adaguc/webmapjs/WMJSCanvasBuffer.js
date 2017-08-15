@@ -164,7 +164,7 @@ var WMJSCanvasBuffer = function (webmapJSCallback, _type, _imageStore, w, h) {
             if ((imageW) === parseInt(ctx.canvas.width) && (imageH) === parseInt(ctx.canvas.height)) {
               ctx.drawImage(el, imageX, imageY);
             } else {
-              // console.log('slow', imageX,imageY,imageW,imageH, ctx.canvas.width, ctx.canvas.height );
+              //console.log('slow', imageX,imageY,imageW,imageH, ctx.canvas.width, ctx.canvas.height );
               ctx.drawImage(el, imageX, imageY, imageW,imageH);
             }
           } else {
