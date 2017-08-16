@@ -69,7 +69,7 @@ export default class Adaguc extends React.Component {
       }
       this.webMapJS.draw('66');
     }
-    setTimeout(function () {
+    setTimeout(() => {
       layer.parseLayer((layer) => this.updateLayer(layer, datalayer), true);
     }, 10000);
   }

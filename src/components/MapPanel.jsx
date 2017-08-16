@@ -125,14 +125,17 @@ SinglePanel.propTypes = {
   title: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
   mapProperties: PropTypes.object.isRequired,
   dispatch: PropTypes.func.isRequired,
-  actions: PropTypes.object.isRequired,
-  mapId: PropTypes.number.isRequired
+  mapActions: PropTypes.object.isRequired,
+  drawProperties: PropTypes.object.isRequired,
+  layers: PropTypes.object.isRequired,
+  adagucProperties: PropTypes.object.isRequired,
+  mapId: PropTypes.number.isRequired,
+  drawActions: PropTypes.object.isRequired,
+  layerActions: PropTypes.object.isRequired,
+  adagucActions: PropTypes.object.isRequired
 };
 MapPanel.propTypes = {
-  title: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
-  mapProperties: PropTypes.object.isRequired,
-  dispatch: PropTypes.func.isRequired,
-  actions: PropTypes.object.isRequired
+  mapProperties: PropTypes.object.isRequired
 };
 
 export default MapPanel;

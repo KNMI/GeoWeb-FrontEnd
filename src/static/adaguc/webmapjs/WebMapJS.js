@@ -1409,7 +1409,11 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
     // this._setSize(w - 50, h);
     this.resizeWidth = w;
     this.resizeHeight = h;
-    _map._setSize((_map.resizeWidth) | 0, (_map.resizeHeight) | 0);
+    /**
+    Enable following line to enable smooth scaling during resize transitions. Is heavier for browser.
+    */
+    /*_map._setSize((_map.resizeWidth) | 0, (_map.resizeHeight) | 0);*/
+
     if (!this.resizeTimer) {
       this.resizeTimer = new WMJSTimer();
     } else {
@@ -1417,7 +1421,7 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
       return;
     }
 
-    this.resizeTimer.init(100, function () {
+    this.resizeTimer.init(200, function () {
       _map._setSize((_map.resizeWidth) | 0, (_map.resizeHeight) | 0);
       _map.resizeTimer = null;
 
@@ -1813,11 +1817,31 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
       this.draw(dates);
     }
   };
+
+  var drawTimer = new WMJSDebouncer();
+  var drawTimerBusy = false;
+  var drawTimerPending = false;
+  var drawTimerAnimationList;
+
+  this.draw = function (animationList) {
+    drawTimerAnimationList = animationList;
+    if (drawTimerBusy === true) {
+      if (drawTimerPending === true) return;
+      drawTimerPending = true;
+      drawTimer.init(10, () => {
+        drawTimerBusy = false;
+        drawTimerPending = false;
+        _map._draw(drawTimerAnimationList);
+      });
+      return;
+    }
+    drawTimerBusy = true;
+    _map._draw(drawTimerAnimationList);
+  };
   /**
    * API Function called to draw the layers, fires getmap request and shows the layers on the screen
    */
-  this.draw = function (animationList) {
-    console.log('draw');
+  this._draw = function (animationList) {
     if (enableConsoleDebugging)console.log('draw:' + animationList);
 
     if (_map.isAnimating) {

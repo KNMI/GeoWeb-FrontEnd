@@ -1,24 +1,44 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import $ from 'jquery';
+
 export default class CanvasComponent extends Component {
   constructor () {
     super();
     this.updateCanvas = this.updateCanvas.bind(this);
+    this.handleMouseMoveEvent = this.handleMouseMoveEvent.bind(this);
+    this.handleClickEvent = this.handleClickEvent.bind(this);
     this.width = 300;
     this.height = 150;
   }
 
+  handleMouseMoveEvent (event) {
+    const onClickCanvas = this.props.onClickB;
+    const mousemove = this.props.onMouseMove;
+    const x = event.layerX;
+    const y = event.layerY;
+    if (event.buttons === 1) {
+      onClickCanvas(x, y);
+    }
+    mousemove(x, y);
+  }
+
+  handleClickEvent (event) {
+    const onClickCanvas = this.props.onClickB;
+    const x = event.layerX;
+    const y = event.layerY;
+    onClickCanvas(x, y);
+  }
+
   /* istanbul ignore next */
   componentDidMount () {
+    this.refs.canvas.addEventListener('mousemove', this.handleMouseMoveEvent);
+    this.refs.canvas.addEventListener('click', this.handleClickEvent);
     this.updateCanvas();
-    this.height = this.props.height;
-    const ctx = this.refs.canvas.getContext('2d');
-    if (!ctx) {
-      return;
-    }
+  }
 
-    ctx.canvas.height = this.height;
+  componentWillUnmount () {
+    this.refs.canvas.removeEventListener('mousemove', this.handleMouseMoveEvent);
+    this.refs.canvas.removeEventListener('click', this.handleClickEvent);
   }
 
   /* istanbul ignore next */
@@ -26,32 +46,15 @@ export default class CanvasComponent extends Component {
     if (!this.refs || !this.refs.canvas) {
       return;
     }
-    this.width = this.props.width || $(`#${this.props.parentId}`).width();
-    this.height = this.props.height || $(`#${this.props.parentId}`).height();
-    const onClickCanvas = this.props.onClickB;
-    const mousemove = this.props.onMouseMove;
-    if (!this.initialized) {
-      this.refs.canvas.addEventListener('mousemove', (event) => {
-        const x = event.layerX;
-        const y = event.layerY;
-        if (event.buttons === 1) {
-          onClickCanvas(x, y);
-        }
-        mousemove(x, y);
-      });
-      this.refs.canvas.addEventListener('click', (event) => {
-        const x = event.layerX;
-        const y = event.layerY;
-        onClickCanvas(x, y);
-      });
-      this.initialized = true;
-    }
+    this.width = parseInt(this.refs.container.clientWidth);
+    this.height = parseInt(this.refs.container.clientHeight);
+
     const ctx = this.refs.canvas.getContext('2d');
     if (!ctx) {
       return;
     }
-    ctx.canvas.width = this.width;
-    ctx.canvas.height = this.height;
+    if (parseInt(ctx.canvas.height) !== this.height) ctx.canvas.height = this.height;
+    if (parseInt(ctx.canvas.width) !== this.width) ctx.canvas.width = this.width;
     this.props.onRenderCanvas(ctx);
   }
 
@@ -59,7 +62,11 @@ export default class CanvasComponent extends Component {
   render () {
     this.updateCanvas();
     return (
-      <canvas ref='canvas' {...this.props} />
+      <div ref='container' style={{ border: 'none', width: 'inherit', height: 'inherit', overflow: 'hidden' }} >
+        <div style={{ overflow: 'visible', width:0, height:0 }} >
+          <canvas ref='canvas' style={{ width: this.width + 'px', height: this.height + 'px', display: 'block' }} />
+        </div>
+      </div>
     );
   }
 }
@@ -67,10 +74,7 @@ export default class CanvasComponent extends Component {
 CanvasComponent.propTypes = {
   onRenderCanvas: PropTypes.func,
   onClickB: PropTypes.func,
-  onMouseMove: PropTypes.func,
-  height: PropTypes.number,
-  width: PropTypes.string,
-  parentId: PropTypes.string
+  onMouseMove: PropTypes.func
 };
 
 CanvasComponent.defaultProps = {

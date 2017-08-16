@@ -18,7 +18,7 @@ const reorderLayers = createAction(REORDER_LAYER);
 const setWMJSLayers = createAction(SET_WMJSLAYERS);
 
 const INITIAL_STATE = {
-  wmjsLayers: [],
+  wmjsLayers: {},
   baselayer: MAP_STYLES[1],
   panels: [
     {

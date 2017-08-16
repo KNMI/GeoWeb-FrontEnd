@@ -36,6 +36,8 @@ const mapStateToHeaderProps = state => ({
   title: 'header',
   user: { ...state.userProperties },
   layout: state.mapProperties.layout,
+  mapProperties: state.mapProperties,
+  layers: state.layers,
   userActions
 });
 const mapDispatchToHeaderProps = function (dispatch) {

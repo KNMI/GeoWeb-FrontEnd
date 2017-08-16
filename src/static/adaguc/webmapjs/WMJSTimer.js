@@ -58,3 +58,17 @@ function WMJSTimer () {
     }
   }
 };
+
+var WMJSDebouncer = function () {
+  var isRunning = false;
+  var milliseconds = 10;
+  this.init = function (ms, functionhandler) {
+    milliseconds = ms;
+    if (milliseconds < 10) milliseconds = 10;
+    if (isRunning === false) {
+      self.setTimeout(function () { isRunning = false; functionhandler(); }, milliseconds);
+      isRunning = true;
+    }
+  };
+
+};

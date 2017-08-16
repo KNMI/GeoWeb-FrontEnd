@@ -62,12 +62,12 @@ class MapActionContainer extends Component {
     }
   }
   getServices () {
-    const { dispatch, actions } = this.props;
+    const { dispatch, mapActions } = this.props;
     const defaultURLs = ['getServices', 'getOverlayServices'].map((url) => BACKEND_SERVER_URL + '/' + url);
     const allURLs = [...defaultURLs];
     axios.all(allURLs.map((req) => axios.get(req, { withCredentials: true }))).then(
       axios.spread((services, overlays) =>
-        dispatch(actions.createMap([...services.data, ...JSON.parse(localStorage.getItem('geoweb')).personal_urls], overlays.data[0]))
+        dispatch(mapActions.createMap([...services.data, ...JSON.parse(localStorage.getItem('geoweb')).personal_urls], overlays.data[0]))
       )
     );
   }
@@ -93,7 +93,14 @@ class MapActionContainer extends Component {
       }
       localStorage.setItem('geoweb', JSON.stringify(items));
       this.getServices();
-      getCap.getLayerObjectsFlat((layers) => this.props.dispatch(this.props.layerActions.addLayer({ activeMapId: this.props.mapProperties.activeMapId, layer: {...layers[0], service: getCap.service }})));
+      getCap.getLayerObjectsFlat((layers) => this.props.dispatch(this.props.layerActions.addLayer(
+        {
+          activeMapId: this.props.mapProperties.activeMapId,
+          layer: {
+            ...layers[0],
+            service: getCap.service
+          }
+        })));
       this.toggleLayerChooser();
     }, (error) => {
       this.setState({ getCapBusy: false });
@@ -133,9 +140,25 @@ class MapActionContainer extends Component {
     const { dispatch, layerActions, mapProperties } = this.props;
     const addItem = e[0];
     if (!this.state.overlay) {
-      dispatch(layerActions.addLayer({ activeMapId: mapProperties.activeMapId, layer: { service: this.state.selectedSource.service, title: this.state.selectedSource.title, name: addItem.id, label: addItem.label, opacity: 1 }}));
+      dispatch(layerActions.addLayer({
+        activeMapId: mapProperties.activeMapId,
+        layer: {
+          service: this.state.selectedSource.service,
+          title: this.state.selectedSource.title,
+          name: addItem.id,
+          label: addItem.label,
+          opacity: 1
+        }
+      }));
     } else {
-      dispatch(layerActions.addOverlaysLayer({ activeMapId: mapProperties.activeMapId, layer: { service: this.state.selectedSource.service, title: this.state.selectedSource.title, name: addItem.id, label: addItem.label }}));
+      dispatch(layerActions.addOverlaysLayer({
+        activeMapId: mapProperties.activeMapId,
+        layer: {
+          service: this.state.selectedSource.service,
+          title: this.state.selectedSource.title,
+          name: addItem.id,
+          label: addItem.label }
+      }));
     }
     this.setState({
       layerChooserOpen: false,
@@ -238,7 +261,7 @@ class MapActionContainer extends Component {
   renderSourceSelector () {
     const { adagucProperties } = this.props;
     const { sources } = adagucProperties;
-    return <div>{sources.map((src, i) => <Button id={src.name} key={i} onClick={this.handleSourceClick}>{this.getLayerName(src)}</Button>)}</div>
+    return <div>{sources.map((src, i) => <Button id={src.name} key={i} onClick={this.handleSourceClick}>{this.getLayerName(src)}</Button>)}</div>;
   }
   renderPresetSelector () {
     return <Typeahead ref={ref => { this._typeahead = ref; }} filterBy={['name', 'keywords']} labelKey='name' options={this.state.presets} onChange={(ph) => this.setPreset(ph)} />;
@@ -269,12 +292,15 @@ class MapActionContainer extends Component {
   setPreset (preset) {
     const { dispatch, layerActions, mapActions } = this.props;
     const thePreset = preset[0];
-    if(thePreset.area)
-      dispatch(mapActions.setCut({name: 'Custom', bbox: [0, thePreset.area.bottom, 1, thePreset.area.top]}))
-    if(thePreset.display)
-      dispatch(mapActions.setLayout(thePreset.display.type))
-    if(thePreset.layers)
-      dispatch(layerActions.setPreset(thePreset.layers))
+    if (thePreset.area) {
+      dispatch(mapActions.setCut({ name: 'Custom', bbox: [0, thePreset.area.bottom, 1, thePreset.area.top] }));
+    }
+    if (thePreset.display) {
+      dispatch(mapActions.setLayout(thePreset.display.type));
+    }
+    if (thePreset.layers) {
+      dispatch(layerActions.setPreset(thePreset.layers));
+    }
     this.setState({
       layerChooserOpen: false,
       activeTab: '1',
@@ -288,15 +314,17 @@ class MapActionContainer extends Component {
 
   renderProgtempPopover (adagucTime) {
     if (this.state.progTempPopOverOpen) {
-      const { dispatch, adagucActions, layers,mapProperties } = this.props;
-      return <ProgtempComponent mapProperties={mapProperties} layers={layers} adagucProperties={this.props.adagucProperties} isOpen={this.state.progTempPopOverOpen} dispatch={dispatch} adagucActions={adagucActions} />;
+      const { dispatch, adagucActions, layers, mapProperties } = this.props;
+      return <ProgtempComponent mapProperties={mapProperties} layers={layers} adagucProperties={this.props.adagucProperties}
+        isOpen={this.state.progTempPopOverOpen} dispatch={dispatch} adagucActions={adagucActions} />;
     }
   }
 
   renderTimeseriesPopover (adagucTime) {
     if (this.state.timeSeriesPopOverOpen) {
       const { dispatch } = this.props;
-      return <TimeseriesComponent mapProperties={this.props.mapProperties} layers={this.props.layers} adagucProperties={this.props.adagucProperties} adagucActions={this.props.adagucActions} isOpen={this.state.timeSeriesPopOverOpen} dispatch={dispatch} />;
+      return <TimeseriesComponent mapProperties={this.props.mapProperties} layers={this.props.layers} adagucProperties={this.props.adagucProperties}
+        adagucActions={this.props.adagucActions} isOpen={this.state.timeSeriesPopOverOpen} dispatch={dispatch} />;
     }
   }
   renderLayerChooser () {
@@ -334,8 +362,8 @@ class MapActionContainer extends Component {
             {this.state.action === 'addLayer'
               ? this.renderSourceSelector()
               : this.state.action === 'selectPreset'
-              ? this.renderPresetSelector()
-              : this.renderURLInput()}
+                ? this.renderPresetSelector()
+                : this.renderURLInput()}
           </TabPane>
           <TabPane tabId='3'>
             <Typeahead ref='layerSelectorTypeRef' onChange={this.handleAddLayer} options={this.state.layers ? this.state.layers : []} autoFocus />
@@ -423,8 +451,13 @@ class MapActionContainer extends Component {
 MapActionContainer.propTypes = {
   title: PropTypes.string,
   dispatch: PropTypes.func.isRequired,
-  actions: PropTypes.object.isRequired,
-  adagucProperties: PropTypes.object
+  mapProperties: PropTypes.object,
+  adagucProperties: PropTypes.object,
+  adagucActions: PropTypes.object,
+  layers: PropTypes.object,
+  layerActions: PropTypes.object,
+  mapActions: PropTypes.object,
+  user: PropTypes.object
 };
 
 export default MapActionContainer;

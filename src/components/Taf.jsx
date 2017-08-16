@@ -39,7 +39,9 @@ export default class Taf extends Component {
       withCredentials: true,
       responseType: 'json'
     }).then(src => {
-      this.setState({ tafs: src.data.tafs });
+      if (src.data && src.data.tafs) {
+        this.setState({ tafs: src.data.tafs });
+      }
     }).catch(error => {
       console.error(error);
     });
@@ -136,7 +138,7 @@ export default class Taf extends Component {
               </CollapseOmni>
             </Card>
             : this.state.tafs.filter((taf) => this.state.tafTypeSelections.includes(taf.type) || this.state.tafTypeSelections.length === 0).map((taf) =>{
-              return <Card block onClick={() => this.setExpandedTAF(taf.uuid)}>
+              return <Card key={taf.uuid} block onClick={() => this.setExpandedTAF(taf.uuid)}>
                 <CardTitle>
                   {taf.previousReportAerodrome ? taf.previousReportAerodrome : 'EWat?'} - {moment.utc(taf.validityStart).format('DD/MM/YYYY - HH:mm UTC')}
                 </CardTitle>

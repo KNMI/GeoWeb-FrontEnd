@@ -46,7 +46,7 @@ Panel.propTypes = {
   className: PropTypes.string,
   mapId: PropTypes.number,
   dispatch: PropTypes.func,
-  actions: PropTypes.object,
+  mapActions: PropTypes.object,
   mapMode: PropTypes.string
 };
 
