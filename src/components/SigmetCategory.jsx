@@ -14,7 +14,7 @@ import Slider from 'rc-slider';
 import Tooltip from 'rc-tooltip';
 import PropTypes from 'prop-types';
 import { BOUNDING_BOXES } from '../constants/bounding_boxes';
-import { HARMONIE_URL, OVERLAY_URL, OBSERVATIONS_URL, RADAR_URL, LIGHTNING_URL, SATELLITE_URL } from '../constants/default_services';
+import { HARMONIE_URL, HARMONIE_ML_URL, OVERLAY_URL, OBSERVATIONS_URL, RADAR_URL, LIGHTNING_URL, SATELLITE_URL } from '../constants/default_services';
 const createSliderWithTooltip = Slider.createSliderWithTooltip;
 const Range = createSliderWithTooltip(Slider.Range);
 const Handle = Slider.Handle;
@@ -264,199 +264,319 @@ class SigmetCategory extends Component {
     });
   }
 
-  sigmetLayers(p) {
-    if (p === 'sigmet_layer_TS') {
-      return (
-      {
-        area: {
-          bottom: BOUNDING_BOXES[1].bbox[1],
-          top: BOUNDING_BOXES[1].bbox[3],
-          crs: "EPSG:3857"
-        },
-        display: {
-          npanels: 4,
-          type: 'quaduneven'
-        },
-        layers: [
-          [
-            {
-              service: HARMONIE_URL,
-              title: 'HARM_N25_EXT',
-              name: 'precipitation_flux',
-              label: 'Prec: Precipitation rate',
-              opacity: 1,
-              enabled: true,
-              overlay: false
+  sigmetLayers (p) {
+    switch (p) {
+      case 'sigmet_layer_TS':
+        return (
+          {
+            area: {
+              bottom: BOUNDING_BOXES[1].bbox[1],
+              top: BOUNDING_BOXES[1].bbox[3],
+              crs: 'EPSG:3857'
             },
-            {
-              service: OVERLAY_URL,
-              title: 'OVL',
-              name: 'FIR_DEC_2013_EU',
-              label: 'FIR areas',
-              enabled: true,
-              overlay: true
-            }
-          ],
-          [
-            {
-              service: OBSERVATIONS_URL,
-              title: 'OBS',
-              name: '10M/ww',
-              label: 'wawa Weather Code (ww)',
-              enabled: true,
-              opacity: 1,
-              overlay: false
+            display: {
+              npanels: 4,
+              type: 'quaduneven'
             },
-            {
-              service: OVERLAY_URL,
-              title: 'OVL',
-              name: 'FIR_DEC_2013_EU',
-              label: 'FIR areas',
-              enabled: true,
-              overlay: true
-            }
-          ],
-          [
-            {
-              service: RADAR_URL,
-              title: 'RADAR',
-              name: 'precipitation',
-              label: 'Neerslag',
-              opacity: 1,
-              enabled: true,
-              overlay: false
-            }, {
-              service: LIGHTNING_URL,
-              title: 'LGT',
-              name: 'LGT_NL25_LAM_05M',
-              label: 'LGT_NL25_LAM_05M',
-              enabled: true,
-              opacity: 1,
-              overlay: false
+            layers: [
+              [
+                {
+                  service: HARMONIE_URL,
+                  title: 'HARM_N25_EXT',
+                  name: 'precipitation_flux',
+                  label: 'Prec: Precipitation rate',
+                  opacity: 1,
+                  enabled: true,
+                  overlay: false
+                },
+                {
+                  service: OVERLAY_URL,
+                  title: 'OVL',
+                  name: 'FIR_DEC_2013_EU',
+                  label: 'FIR areas',
+                  enabled: true,
+                  overlay: true
+                }
+              ],
+              [
+                {
+                  service: OBSERVATIONS_URL,
+                  title: 'OBS',
+                  name: '10M/ww',
+                  label: 'wawa Weather Code (ww)',
+                  enabled: true,
+                  opacity: 1,
+                  overlay: false
+                },
+                {
+                  service: OVERLAY_URL,
+                  title: 'OVL',
+                  name: 'FIR_DEC_2013_EU',
+                  label: 'FIR areas',
+                  enabled: true,
+                  overlay: true
+                }
+              ],
+              [
+                {
+                  service: RADAR_URL,
+                  title: 'RADAR',
+                  name: 'precipitation',
+                  label: 'Neerslag',
+                  opacity: 1,
+                  enabled: true,
+                  overlay: false
+                }, {
+                  service: LIGHTNING_URL,
+                  title: 'LGT',
+                  name: 'LGT_NL25_LAM_05M',
+                  label: 'LGT_NL25_LAM_05M',
+                  enabled: true,
+                  opacity: 1,
+                  overlay: false
+                },
+                {
+                  service: OVERLAY_URL,
+                  title: 'OVL',
+                  name: 'FIR_DEC_2013_EU',
+                  label: 'FIR areas',
+                  enabled: true,
+                  overlay: true
+                }
+              ],
+              [
+                {
+                  service: OVERLAY_URL,
+                  title: 'OVL',
+                  name: 'FIR_DEC_2013_EU',
+                  label: 'FIR areas',
+                  enabled: true,
+                  overlay: true
+                }
+              ]
+            ]
+          }
+        );
+
+      case 'sigmet_layer_SEV_TURB':
+        return (
+          {
+            area: {
+              bottom: BOUNDING_BOXES[1].bbox[1],
+              top: BOUNDING_BOXES[1].bbox[3],
+              crs: 'EPSG:3857'
             },
-            {
-              service: OVERLAY_URL,
-              title: 'OVL',
-              name: 'FIR_DEC_2013_EU',
-              label: 'FIR areas',
-              enabled: true,
-              overlay: true
-            }
-          ],
-          [
-            {
-              service: OVERLAY_URL,
-              title: 'OVL',
-              name: 'FIR_DEC_2013_EU',
-              label: 'FIR areas',
-              enabled: true,
-              overlay: true
-            }
-          ]
-        ]
-      });
-    } else {
-      return (
-      {
-        area: {
-          bottom: BOUNDING_BOXES[1].bbox[1],
-          top: BOUNDING_BOXES[1].bbox[3],
-          crs: "EPSG:3857"
-        },
-        display: {
-          npanels: 4,
-          type: 'quaduneven'
-        },
-        layers: [
-          [
-            {
-              service: HARMONIE_URL,
-              title: 'HARM_N25_EXT',
-              name: 'precipitation_flux',
-              label: 'Prec: Precipitation rate',
-              opacity: 1,
-              enabled: true,
-              overlay: false
+            display: {
+              npanels: 4,
+              type: 'quaduneven'
             },
-            {
-              service: OVERLAY_URL,
-              title: 'OVL',
-              name: 'FIR_DEC_2013_EU',
-              label: 'FIR areas',
-              enabled: true,
-              overlay: true
-            }
-          ],
-          [
-            {
-              service: OBSERVATIONS_URL,
-              title: 'OBS',
-              name: '10M/ww',
-              label: 'wawa Weather Code (ww)',
-              enabled: true,
-              opacity: 1,
-              overlay: false
+            layers: [
+              [
+                {
+                  service: OVERLAY_URL,
+                  title: 'OVL',
+                  name: 'FIR_DEC_2013_EU',
+                  label: 'FIR areas',
+                  overlay: true
+                },
+                {
+                  service: HARMONIE_ML_URL,
+                  title: 'ADAGUC WMS Service for Geoweb',
+                  name: 'wind__at_ml',
+                  label: 'Wind flags (ML)',
+                  opacity: 1,
+                  enabled: true,
+                  modellevel: 17,
+                  style: 'Windbarbs_mps/barbshaded',
+                  styleTitle: 'Wind barbs+sh',
+                  overlay: false
+                }
+              ], [], [],
+              [
+                {
+                  service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.OBS.cgi?',
+                  title: 'OBS',
+                  name: '10M/derived/windforce',
+                  label: 'Wind force',
+                  opacity: 1,
+                  enabled: true,
+                  style: 'bftalldiscvec/barb',
+                  styleTitle: 'bftalldiscvec/barb',
+                  overlay: false
+                },
+                {
+                  service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.OVL.cgi?',
+                  title: 'OVL',
+                  name: 'FIR_DEC_2013_EU',
+                  label: 'FIR areas',
+                  overlay: true
+                }
+              ]
+            ]
+          }
+        );
+      case 'sigmet_layer_SEV_ICE':
+        return (
+          {
+            area: {
+              bottom: BOUNDING_BOXES[1].bbox[1],
+              top: BOUNDING_BOXES[1].bbox[3],
+              crs: 'EPSG:3857'
             },
-            {
-              service: OVERLAY_URL,
-              title: 'OVL',
-              name: 'FIR_DEC_2013_EU',
-              label: 'FIR areas',
-              enabled: true,
-              overlay: true
-            }
-          ],
-          [
-            {
-              service: RADAR_URL,
-              title: 'RADAR',
-              name: 'precipitation',
-              label: 'Neerslag',
-              opacity: 1,
-              enabled: true,
-              overlay: false
-            }, {
-              service: LIGHTNING_URL,
-              title: 'LGT',
-              name: 'LGT_NL25_LAM_05M',
-              label: 'LGT_NL25_LAM_05M',
-              enabled: true,
-              opacity: 1,
-              overlay: false
+            display: {
+              npanels: 4,
+              type: 'quaduneven'
             },
-            {
-              service: OVERLAY_URL,
-              title: 'OVL',
-              name: 'FIR_DEC_2013_EU',
-              label: 'FIR areas',
-              enabled: true,
-              overlay: true
-            }
-          ],
-          [
-            {
-              service: SATELLITE_URL,
-              title: 'SAT',
-              name: 'HRV-COMB',
-              label: 'RGB-HRV-COMB',
-              enabled: true,
-              opacity: 1,
-              overlay: false
+            layers: [
+              [
+                {
+                  service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.SAT.cgi?',
+                  title: 'SAT',
+                  name: 'HRVIS',
+                  label: 'HRVIS',
+                  opacity: 1,
+                  enabled: true,
+                  overlay: false
+                },
+                {
+                  service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.RADAR.cgi?',
+                  title: 'RADAR',
+                  name: 'precipitation_eur',
+                  label: 'Neerslag EUR',
+                  opacity: 1,
+                  overlay: false
+                }
+              ], [], [],
+              [
+                {
+                  service: OBSERVATIONS_URL,
+                  title: 'OBS',
+                  name: '10M/td',
+                  label: 'Dew Point Temperature 1.5m 1 Min Average (td)',
+                  opacity: 1,
+                  enabled: true,
+                  style: 'auto/nearest',
+                  styleTitle: 'auto/nearest',
+                  overlay: false
+                },
+                {
+                  service: OBSERVATIONS_URL,
+                  title: 'OBS',
+                  name: '10M/ta',
+                  label: 'Air Temperature 1 Min Average (ta)',
+                  opacity: 1,
+                  enabled: true,
+                  style: 'temperaturedisc/point',
+                  styleTitle: 'temperaturedisc/point',
+                  overlay: false
+                }
+              ]
+            ]
+          }
+        );
+
+      default:
+        return (
+          {
+            area: {
+              bottom: BOUNDING_BOXES[1].bbox[1],
+              top: BOUNDING_BOXES[1].bbox[3],
+              crs: 'EPSG:3857'
             },
-            {
-              service: OVERLAY_URL,
-              title: 'OVL',
-              name: 'FIR_DEC_2013_EU',
-              label: 'FIR areas',
-              enabled: true,
-              overlay: true
-            }
-          ]
-        ]
-      });
+            display: {
+              npanels: 4,
+              type: 'quaduneven'
+            },
+            layers: [
+              [
+                {
+                  service: HARMONIE_URL,
+                  title: 'HARM_N25_EXT',
+                  name: 'precipitation_flux',
+                  label: 'Prec: Precipitation rate',
+                  opacity: 1,
+                  enabled: true,
+                  overlay: false
+                },
+                {
+                  service: OVERLAY_URL,
+                  title: 'OVL',
+                  name: 'FIR_DEC_2013_EU',
+                  label: 'FIR areas',
+                  enabled: true,
+                  overlay: true
+                }
+              ],
+              [
+                {
+                  service: OBSERVATIONS_URL,
+                  title: 'OBS',
+                  name: '10M/ww',
+                  label: 'wawa Weather Code (ww)',
+                  enabled: true,
+                  opacity: 1,
+                  overlay: false
+                },
+                {
+                  service: OVERLAY_URL,
+                  title: 'OVL',
+                  name: 'FIR_DEC_2013_EU',
+                  label: 'FIR areas',
+                  enabled: true,
+                  overlay: true
+                }
+              ],
+              [
+                {
+                  service: RADAR_URL,
+                  title: 'RADAR',
+                  name: 'precipitation',
+                  label: 'Neerslag',
+                  opacity: 1,
+                  enabled: true,
+                  overlay: false
+                }, {
+                  service: LIGHTNING_URL,
+                  title: 'LGT',
+                  name: 'LGT_NL25_LAM_05M',
+                  label: 'LGT_NL25_LAM_05M',
+                  enabled: true,
+                  opacity: 1,
+                  overlay: false
+                },
+                {
+                  service: OVERLAY_URL,
+                  title: 'OVL',
+                  name: 'FIR_DEC_2013_EU',
+                  label: 'FIR areas',
+                  enabled: true,
+                  overlay: true
+                }
+              ],
+              [
+                {
+                  service: SATELLITE_URL,
+                  title: 'SAT',
+                  name: 'HRV-COMB',
+                  label: 'RGB-HRV-COMB',
+                  enabled: true,
+                  opacity: 1,
+                  overlay: false
+                },
+                {
+                  service: OVERLAY_URL,
+                  title: 'OVL',
+                  name: 'FIR_DEC_2013_EU',
+                  label: 'FIR areas',
+                  enabled: true,
+                  overlay: true
+                }
+              ]
+            ]
+          }
+        );
     }
   };
-
 
   setSelectedPhenomenon (phenomenonList) {
     if (phenomenonList.length === 0) {
@@ -467,7 +587,6 @@ class SigmetCategory extends Component {
     listCpy[0].phenomenon = onlyObj.code;
     this.setState({ list: listCpy });
     const preset = this.sigmetLayers(onlyObj.layerpreset);
-    console.log(preset.area);
     this.props.dispatch(this.props.mapActions.setLayout(preset.display.type));
     this.props.dispatch(this.props.layerActions.setPreset(preset.layers));
     this.props.dispatch(this.props.mapActions.setCut({ name: 'Custom', bbox: [570875, preset.area.bottom, 570875, preset.area.top] }));

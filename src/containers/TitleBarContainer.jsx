@@ -7,12 +7,8 @@ import { UserRoles } from '../constants/userroles';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import axios from 'axios';
 import uuidV4 from 'uuid/v4';
-import { Navbar, NavbarBrand, Row, Col, Nav, NavLink, Breadcrumb, BreadcrumbItem, Collapse,
-ButtonGroup, Popover, Form,
-FormGroup,
-Label,
-PopoverContent, PopoverTitle, InputGroupButton,
-  Modal, ModalHeader, ModalBody, ModalFooter, Button, InputGroup, Input, FormText } from 'reactstrap';
+import { Navbar, NavbarBrand, Row, Col, Nav, NavLink, Breadcrumb, BreadcrumbItem, Collapse, Popover, Form, FormGroup, Label, PopoverContent,
+  PopoverTitle, ButtonGroup, InputGroupButton, Modal, ModalHeader, ModalBody, ModalFooter, Button, InputGroup, Input, FormText } from 'reactstrap';
 import { Link, hashHistory } from 'react-router';
 import { BACKEND_SERVER_URL } from '../constants/backend';
 import PropTypes from 'prop-types';
@@ -78,7 +74,7 @@ class TitleBarContainer extends Component {
       withCredentials: true,
       responseType: 'json'
     }).then(this.gotTriggersCallback)
-    .catch(this.errorTriggersCallback);
+      .catch(this.errorTriggersCallback);
   }
 
   getTriggerTitle (trigger) {
@@ -121,27 +117,27 @@ class TitleBarContainer extends Component {
     if (result.data.length > 0) {
       result.data.filter((notification) => !this.seen(notification)).filter((trigger) =>
         !this.props.notifications.some((not) => not.id === trigger.uuid)).sort((a, b) => this.diffWrtNow(a.triggerdate, b.triggerdate)).slice(0, 3).forEach((trigger, i) => {
-          this.props.dispatch(addNotification({
-            title: this.getTriggerTitle(trigger),
-            message: this.getTriggerMessage(trigger),
-            position: 'bl',
-            id: trigger.uuid,
-            raw: trigger,
-            status: 'error',
-            buttons: [
-              {
-                name: 'Discard',
-                primary: true
-              }, {
-                name: 'Where',
-                onClick: (e) => { e.stopPropagation(); this.handleTriggerClick(trigger.locations); }
-              }
-            ],
-            dismissible: false,
-            dismissAfter: 0,
-            allowHTML: true
-          }));
-        });
+        this.props.dispatch(addNotification({
+          title: this.getTriggerTitle(trigger),
+          message: this.getTriggerMessage(trigger),
+          position: 'bl',
+          id: trigger.uuid,
+          raw: trigger,
+          status: 'error',
+          buttons: [
+            {
+              name: 'Discard',
+              primary: true
+            }, {
+              name: 'Where',
+              onClick: (e) => { e.stopPropagation(); this.handleTriggerClick(trigger.locations); }
+            }
+          ],
+          dismissible: false,
+          dismissAfter: 0,
+          allowHTML: true
+        }));
+      });
     }
   }
 
@@ -153,7 +149,6 @@ class TitleBarContainer extends Component {
     const { dispatch, mapActions, adagucActions } = this.props;
     const defaultURLs = ['getServices', 'getOverlayServices'].map((url) => BACKEND_SERVER_URL + '/' + url);
     const allURLs = [...defaultURLs];
-    console.log(allURLs)
     axios.all(allURLs.map((req) => axios.get(req, { withCredentials: true }))).then(
       axios.spread((services, overlays) => {
         dispatch(mapActions.createMap());
@@ -400,9 +395,9 @@ class TitleBarContainer extends Component {
       npanels: numPanels
     };
     const bbox = {
-      top: this.props.bbox[3],
-      bottom: this.props.bbox[1],
-      crs: this.props.projectionName
+      top: this.props.mapProperties.boundingBox.bbox[3],
+      bottom: this.props.mapProperties.boundingBox.bbox[1],
+      crs: this.props.mapProperties.projectionName
     };
     let layerConfig = [];
     this.props.layers.panels.forEach((panel, i) => {
@@ -535,17 +530,17 @@ class TitleBarContainer extends Component {
                 </FormGroup>
               </Col>
               {hasRoleADMIN
-               ? <Col xs='6'>
-                 <FormGroup>
-                   <Label for='roleSelect'>Save for</Label>
-                   <Input type='select' name='roleSelect' id='roleSelect'>
-                     <option value='user' >Me</option>
-                     <option value='MET'>Role Meteorologist</option>
-                     <option value='system'>System wide</option>
-                   </Input>
-                 </FormGroup>
-               </Col>
-               : ''}
+                ? <Col xs='6'>
+                  <FormGroup>
+                    <Label for='roleSelect'>Save for</Label>
+                    <Input type='select' name='roleSelect' id='roleSelect'>
+                      <option value='user' >Me</option>
+                      <option value='MET'>Role Meteorologist</option>
+                      <option value='system'>System wide</option>
+                    </Input>
+                  </FormGroup>
+                </Col>
+                : ''}
             </Row>
           </FormGroup>
         </Form>
@@ -698,22 +693,24 @@ class LayoutDropDown extends Component {
 
 LayoutDropDown.propTypes = {
   dispatch: PropTypes.func.isRequired,
-  actions: PropTypes.object.isRequired
+  mapActions: PropTypes.object
 };
 
 TitleBarContainer.propTypes = {
   adagucProperties: PropTypes.object,
   recentTriggers: PropTypes.array,
   notifications: PropTypes.array,
-  isLoggedIn: PropTypes.bool,
   loginModal: PropTypes.bool,
-  userName: PropTypes.string,
-  roles: PropTypes.array,
   routes: PropTypes.array,
   dispatch: PropTypes.func,
   actions: PropTypes.object,
   layout: PropTypes.string,
   layers: PropTypes.object,
+  user: PropTypes.object,
+  userActions: PropTypes.object,
+  mapProperties: PropTypes.object,
+  mapActions: PropTypes.object,
+  adagucActions: PropTypes.object,
   bbox: PropTypes.array,
   projectionName: PropTypes.string
 };

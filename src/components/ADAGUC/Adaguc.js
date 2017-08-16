@@ -4,26 +4,25 @@ import AdagucMapDraw from './AdagucMapDraw.js';
 import AdagucMeasureDistance from './AdagucMeasureDistance.js';
 import axios from 'axios';
 import ModelTime from './ModelTime';
-import $ from 'jquery';
 import { BACKEND_SERVER_URL, BACKEND_SERVER_XML2JSON } from '../../constants/backend';
-
 import diff from 'deep-diff';
 import moment from 'moment';
-
 import { DefaultLocations } from '../../constants/defaultlocations';
 import { ReadLocations } from '../../utils/admin';
 import { LoadURLPreset } from '../../utils/URLPresets';
 import { debounce } from '../../utils/debounce';
+var elementResizeEvent = require('element-resize-event');
+
 export default class Adaguc extends React.Component {
   constructor () {
     super();
     this.initAdaguc = this.initAdaguc.bind(this);
-    this.resize = debounce(this.resize.bind(this), 20, false);
+    this.resize = debounce(this.resize.bind(this), 100, false);
     this.updateLayer = this.updateLayer.bind(this);
     this.onChangeAnimation = this.onChangeAnimation.bind(this);
     this.timeHandler = this.timeHandler.bind(this);
     this.adagucBeforeDraw = this.adagucBeforeDraw.bind(this);
-    this.updateBBOX = this.updateBBOX.bind(this);
+    this.updateBBOX = debounce(this.updateBBOX.bind(this), 300, false);
     this.isAnimating = false;
     this.state = {
       dropdownOpenView: false,
@@ -42,7 +41,7 @@ export default class Adaguc extends React.Component {
   }
 
   /* istanbul ignore next */
-  updateLayer (layer) {
+  updateLayer (layer, datalayer) {
     this.webMapJS.setAnimationDelay(200);
     if (!layer) {
       return;
@@ -55,6 +54,9 @@ export default class Adaguc extends React.Component {
     if (layer.getDimension('reference_time')) {
       layer.setDimension('reference_time', layer.getDimension('reference_time').getValueForIndex(layer.getDimension('reference_time').size() - 1), false);
     }
+    if (datalayer.modellevel) {
+      layer.setDimension('modellevel', datalayer.modellevel.toString());
+    }
 
     if (this.isAnimating) {
       this.webMapJS.drawAutomatic(moment().utc().subtract(4, 'hours'), moment().utc().add(48, 'hours'));
@@ -63,10 +65,10 @@ export default class Adaguc extends React.Component {
       if (adagucProperties.timeDimension) {
         this.webMapJS.setDimension('time', adagucProperties.timeDimension, true);
       }
-      this.webMapJS.draw();
+      this.webMapJS.draw('66');
     }
-    setTimeout(function () {
-      layer.parseLayer(this.updateLayer, true);
+    setTimeout(() => {
+      layer.parseLayer((layer) => this.updateLayer(layer, datalayer), true);
     }, 10000);
   }
   /* istanbul ignore next */
@@ -83,17 +85,19 @@ export default class Adaguc extends React.Component {
     }
   }
   /* istanbul ignore next */
-  resize (width, height) {
-    // this.webMapJS.setSize(width, height);
-    // this.webMapJS.draw();
-    const element = $(`#adagucwrapper${this.props.mapId}`).closest('.content');
-    this.webMapJS.setSize(element.width(), element.height());
-    this.webMapJS.draw();
+  resize () {
+    console.log('resize');
+    const element = this.refs.adaguccontainer;
+    if (element) {
+      this.webMapJS.setSize(element.clientWidth, element.clientHeight);
+    }
   }
   /* istanbul ignore next */
-  updateBBOX () {
+  updateBBOX (wmjsmap) {
+    if (!wmjsmap) return;
+    let bbox = wmjsmap.getBBOX();
+    if (bbox === undefined) return;
     const { dispatch, mapActions } = this.props;
-    const bbox = this.webMapJS.getBBOX();
     dispatch(mapActions.setCut({ title: 'Custom', bbox: [bbox.left, bbox.bottom, bbox.right, bbox.top] }));
   }
 
@@ -135,16 +139,15 @@ export default class Adaguc extends React.Component {
     // eslint-disable-next-line no-undef
     this.webMapJS = new WMJSMap(adagucMapRef, BACKEND_SERVER_XML2JSON);
 
-    const element = $(`#adagucwrapper${this.props.mapId}`).closest('.content');
-    this.webMapJS.setSize(element.width(), element.height());
+    this.resize();
     // Set listener for triggerPoints
     this.webMapJS.addListener('beforecanvasdisplay', this.adagucBeforeDraw, true);
 
     // Set the initial projection
     this.webMapJS.setProjection(mapProperties.projectionName);
     this.webMapJS.setBBOX(mapProperties.boundingBox.bbox.join());
-    this.webMapJS.addListener('onscroll', this.updateBBOX, true);
-    this.webMapJS.addListener('mapdragend', this.updateBBOX, true);
+
+    this.webMapJS.addListener('aftersetbbox', this.updateBBOX, true);
 
     // Set the baselayer and possible overlays
     this.updateBaselayers(baselayer, {}, panels[mapId].overlays, {});
@@ -171,11 +174,14 @@ export default class Adaguc extends React.Component {
       dispatch(adagucActions.setTimeDimension(currentDate.toISO8601()));
       dispatch(layerActions.setWMJSLayers({ layers: this.webMapJS.getLayers(), baselayers: this.webMapJS.getBaseLayers() }));
     }
-    this.webMapJS.draw();
+    this.webMapJS.draw('171');
   }
+
   componentDidMount () {
     this.initAdaguc(this.refs.adaguc);
+    elementResizeEvent(this.refs.adaguccontainer, () => this.resize());
   }
+
   componentWillMount () {
     /* Component will unmount, set flag that map is not created */
     const { mapProperties } = this.props;
@@ -217,7 +223,9 @@ export default class Adaguc extends React.Component {
   updateBoundingBox (boundingBox, prevBoundingBox) {
     if (boundingBox !== prevBoundingBox) {
       // eslint-disable-next-line no-undef
-      this.webMapJS.setBBOX(boundingBox.bbox.join());
+      if (this.webMapJS.setBBOX(boundingBox.bbox.join()) === true) {
+        this.webMapJS.draw();
+      }
     }
   }
 
@@ -226,6 +234,7 @@ export default class Adaguc extends React.Component {
     if (timedim !== prevTime) {
       // eslint-disable-next-line no-undef
       this.webMapJS.setDimension('time', timedim, true);
+      this.webMapJS.draw();
     }
   }
 
@@ -307,8 +316,8 @@ export default class Adaguc extends React.Component {
           datalayer.enabled = 'enabled' in datalayer ? datalayer.enabled : true;
           // eslint-disable-next-line no-undef
           const newDataLayer = new WMJSLayer(datalayer);
-          newDataLayer.setAutoUpdate(true, moment.duration(2, 'minutes').asMilliseconds(), this.updateLayer);
-          newDataLayer.onReady = this.updateLayer;
+          newDataLayer.setAutoUpdate(true, moment.duration(2, 'minutes').asMilliseconds(), (layer) => this.updateLayer(layer, datalayer));
+          newDataLayer.onReady = (layer) => this.updateLayer(layer, datalayer);
           return newDataLayer;
         });
         this.webMapJS.removeAllLayers();
@@ -322,6 +331,9 @@ export default class Adaguc extends React.Component {
           layers[i].name = currDataLayers[i].name;
           layers[i].label = currDataLayers[i].label;
           layers[i].currentStyle = currDataLayers[i].style || layers[i].currentStyle;
+          if (currDataLayers[i].modellevel) {
+            layers[i].setDimension('modellevel', currDataLayers[i].modellevel.toString());
+          }
           this.webMapJS.getListener().triggerEvent('onmapdimupdate');
         }
       }
@@ -332,11 +344,6 @@ export default class Adaguc extends React.Component {
 
   /* istanbul ignore next */
   componentDidUpdate (prevProps) {
-    // The first time, the map needs to be created. This is when in the previous state the map creation boolean is false
-    // Otherwise only change when a new dataset is selected
-    if (prevProps.height !== this.props.height || prevProps.width !== this.props.width) {
-      this.resize(this.props.width, this.props.height);
-    }
     const { mapProperties, adagucProperties, layerActions, layers, active, mapId, dispatch } = this.props;
     const { boundingBox, mapMode } = mapProperties;
     const { timeDimension, animate, cursor } = adagucProperties;
@@ -368,7 +375,7 @@ export default class Adaguc extends React.Component {
       this.resize();
       dispatch(layerActions.setWMJSLayers({ layers: this.webMapJS.getLayers(), baselayers: this.webMapJS.getBaseLayers() }));
     }
-    this.webMapJS.draw();
+    // this.webMapJS.draw('368');
   }
 
   /* istanbul ignore next */
@@ -386,10 +393,12 @@ export default class Adaguc extends React.Component {
     });
   }
   render () {
-    const { mapProperties, drawProperties, drawActions, dispatch, mapId } = this.props;
+    const { mapProperties, drawProperties, drawActions, dispatch } = this.props;
     return (
-      <div id={`adagucwrapper${mapId}`} style={{ overflow: 'hidden' }}>
-        <div ref='adaguc' />
+      <div ref='adaguccontainer' style={{ border: 'none', width: 'inherit', height: 'inherit', overflow: 'hidden' }}>
+        <div style={{ overflow: 'visible', width:0, height:0 }} >
+          <div ref='adaguc' />
+        </div>
         <div style={{ display: 'none' }}>
           <AdagucMapDraw
             geojson={drawProperties.geojson}
@@ -398,6 +407,8 @@ export default class Adaguc extends React.Component {
             isInDeleteMode={mapProperties.mapMode === 'delete'}
             webmapjs={this.webMapJS}
             actions={drawActions}
+            deletePolygonCallback={() => dispatch(this.props.mapActions.setMapMode('draw'))}
+            exitDrawModeCallback={() => dispatch(this.props.mapActions.setMapMode('pan'))}
           />
           <AdagucMeasureDistance
             dispatch={dispatch}
@@ -422,7 +433,5 @@ Adaguc.propTypes = {
   layers: PropTypes.object,
   mapId: PropTypes.number,
   drawProperties: PropTypes.object,
-  drawActions: PropTypes.object,
-  width: PropTypes.number,
-  height: PropTypes.number
+  drawActions: PropTypes.object
 };

@@ -7,14 +7,14 @@ class Panel extends Component {
     const { title, style, className, mapId, dispatch, mapActions, mapMode } = this.props;
     if (!title) {
       return (
-        <div className={className ? 'Panel ' + className : 'Panel'} onClick={() => {
+        <div className={className ? 'Panel ' + className : 'Panel'} id={`adagucPanel${mapId}`} onClick={() => {
           if (!mapActions) return;
           if (mapMode !== 'progtemp' && mapMode !== 'timeseries' && !className) {
             dispatch(mapActions.setActivePanel(mapId));
           }
         }}>
           <Row className='title notitle' style={style} />
-          <Row className='content notitle' style={style}>
+          <Row className='content notitle' style={{ ...style, height: '100%' }}>
             {this.props.children}
           </Row>
         </div>
@@ -46,7 +46,7 @@ Panel.propTypes = {
   className: PropTypes.string,
   mapId: PropTypes.number,
   dispatch: PropTypes.func,
-  actions: PropTypes.object,
+  mapActions: PropTypes.object,
   mapMode: PropTypes.string
 };
 

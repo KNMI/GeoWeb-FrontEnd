@@ -4,7 +4,7 @@ import { Icon } from 'react-fa';
 import { Button, Col, Row } from 'reactstrap';
 import PropTypes from 'prop-types';
 import { debounce } from '../../utils/debounce';
-const elementResizeEvent = require('element-resize-event');
+
 export default class TimeComponent extends Component {
   constructor () {
     super();
@@ -12,7 +12,7 @@ export default class TimeComponent extends Component {
     this.eventOnDimChange = this.eventOnDimChange.bind(this);
     this.eventOnMapDimUpdate = this.eventOnMapDimUpdate.bind(this);
     this.drawCanvas = this.drawCanvas.bind(this);
-    this.onClickCanvas = this.onClickCanvas.bind(this);
+    this.onCanvasClick = this.onCanvasClick.bind(this);
     this.handleButtonClickPrevPage = this.handleButtonClickPrevPage.bind(this);
     this.handleButtonClickNextPage = this.handleButtonClickNextPage.bind(this);
     this.handleButtonClickNow = this.handleButtonClickNow.bind(this);
@@ -47,7 +47,7 @@ export default class TimeComponent extends Component {
       ctx.fillRect(x + 0.5, canvasHeight - 16 + 0.5, width * scaleWidth + 0.5, 15);
       ctx.strokeRect(x + 0.5, canvasHeight - 16 + 0.5, width * scaleWidth + 0.5, 15);
       ctx.fillStyle = '#000';
-      ctx.fillText(`${dateAtTimeStep.getUTCHours()}H`, pos * scaleWidth + 3, canvasHeight - 3);
+      ctx.fillText(dateAtTimeStep.getUTCHours() + 'H', pos * scaleWidth + 3, canvasHeight - 3);
     }
   }
 
@@ -112,12 +112,22 @@ export default class TimeComponent extends Component {
       return;
     }
     // eslint-disable-next-line no-undef
-    const canvasWidth = $(ctx.canvas).width();
+    const canvasWidth = ctx.canvas.width;
     // eslint-disable-next-line no-undef
     const numlayers = wmjslayers.baselayers && wmjslayers.layers ? wmjslayers.baselayers.length + wmjslayers.layers.length + 1 : 2;
     const canvasHeight = 20 * numlayers;
 
-    // const canvasHeight = $(ctx.canvas).height();
+    if (this.canvasHeight === canvasHeight &&
+     this.timedim === timedim &&
+     this.ctxCanvasHeight === ctx.canvas.height &&
+     this.ctxCanvasWidth === ctx.canvas.width) {
+      return;
+    }
+    this.canvasHeight = canvasHeight;
+    this.timedim = timedim;
+    this.ctxCanvasHeight = ctx.canvas.height;
+    this.ctxCanvasWidth = ctx.canvas.width;
+
     ctx.fillStyle = '#CCC';
     ctx.fillRect(0, 0, canvasWidth, canvasHeight);
     ctx.strokeStyle = '#FF0000';
@@ -146,7 +156,7 @@ export default class TimeComponent extends Component {
     this.startDate.add(new DateInterval(0, 0, 0, 0, 0, 0));
     // eslint-disable-next-line no-undef
     this.endDate.add(new DateInterval(0, 0, 0, this.timeWidth, 0, 0));
-    const canvasDateIntervalStr = `${this.startDate.toISO8601()}/${this.endDate.toISO8601()}/PT1M`;
+    const canvasDateIntervalStr = this.startDate.toISO8601() + '/' + this.endDate.toISO8601() + '/PT1M';
     // eslint-disable-next-line
     this.canvasDateInterval = new parseISOTimeRangeDuration(canvasDateIntervalStr);
     let sliderCurrentIndex = -1;
@@ -159,7 +169,7 @@ export default class TimeComponent extends Component {
     const sliderMapIndex = this.canvasDateInterval.getTimeStepFromISODate(timedim);
     const sliderStopIndex = this.canvasDateInterval.getTimeStepFromISODate(this.endDate.toISO8601());
 
-    const canvasDateIntervalStrHour = `${this.startDate.toISO8601()}/${this.endDate.toISO8601()}/PT1H`;
+    const canvasDateIntervalStrHour = this.startDate.toISO8601() + '/' + this.endDate.toISO8601() + '/PT1H';
     // eslint-disable-next-line
     const canvasDateIntervalHour = new parseISOTimeRangeDuration(canvasDateIntervalStrHour);
     const timeBlockStartIndex = canvasDateIntervalHour.getTimeStepFromDate(this.startDate);
@@ -212,11 +222,11 @@ export default class TimeComponent extends Component {
   toISO8601 (value) {
     function prf (input, width) {
       // print decimal with fixed length (preceding zero's)
-      let string = `${input}`;
+      let string = input + '';
       const len = width - string.length;
       let zeros = '';
       for (let j = 0; j < len; j++) {
-        zeros += `0${zeros}`;
+        zeros += '0' + zeros;
       }
       string = zeros + string;
       return string;
@@ -224,7 +234,13 @@ export default class TimeComponent extends Component {
     if (typeof value === 'string') {
       return value;
     }
-    return `${prf(value.year, 4)}-${prf(value.month, 2)}-${prf(value.day, 2)}T${prf(value.hour, 2)}:${prf(value.minute, 2)}:${prf(value.second, 2)}Z`;
+    let iso = prf(value.year, 4) +
+    '-' + prf(value.month, 2) +
+    '-' + prf(value.day, 2) +
+    'T' + prf(value.hour, 2) +
+    ':' + prf(value.minute, 2) +
+    ':' + prf(value.second, 2) + 'Z';
+    return iso;
   }
   /* istanbul ignore next */
   setNewDate (value) {
@@ -285,9 +301,6 @@ export default class TimeComponent extends Component {
   }
   /* istanbul ignore next */
   componentDidMount () {
-    const element = document.querySelector('#timelineParent');
-    elementResizeEvent(element, () => this.debouncedForceUpdate());
-
     if (this.timer) {
       clearInterval(this.timer);
     }
@@ -308,7 +321,7 @@ export default class TimeComponent extends Component {
     this.ctx = ctx;
   }
   /* istanbul ignore next */
-  onClickCanvas (x) {
+  onCanvasClick (x) {
     const t = x / this.ctx.canvas.clientWidth;
     const s = this.canvasDateInterval.getTimeSteps() - 1;
     const newTimeStep = parseInt(t * s);
@@ -348,8 +361,8 @@ export default class TimeComponent extends Component {
             <Icon name='chevron-left' />
           </Button>
         </Col>
-        <Col id='timelineParent'>
-          <CanvasComponent id='timeline' onRenderCanvas={this.onRenderCanvas} onClickB={this.onClickCanvas} height={height} />
+        <Col style={{ height: height }}>
+          <CanvasComponent onRenderCanvas={this.onRenderCanvas} onCanvasClick={this.onCanvasClick} />
         </Col>
         <Col xs='auto'>
           <Button outline color='info' onClick={this.handleButtonClickNextPage}>
@@ -362,7 +375,7 @@ export default class TimeComponent extends Component {
 }
 TimeComponent.propTypes = {
   timedim: PropTypes.string,
-  wmjslayers: PropTypes.array,
+  wmjslayers: PropTypes.object,
   dispatch: PropTypes.func,
   actions: PropTypes.object,
   adagucActions: PropTypes.object
