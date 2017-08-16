@@ -1,6 +1,6 @@
 
 var WMJSCanvasBuffer = function (webmapJSCallback, _type, _imageStore, w, h) {
-  console.log("WMJSCanvasBuffer created with "+w+","+h);
+  // console.log("WMJSCanvasBuffer created with "+w+","+h);
   var _this = this;
 
   this.canvas =

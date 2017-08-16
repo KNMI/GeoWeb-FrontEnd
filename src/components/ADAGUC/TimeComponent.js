@@ -99,7 +99,6 @@ export default class TimeComponent extends Component {
 
   /* istanbul ignore next */
   drawCanvas () {
-    console.log('drawCanvas');
     const { timedim, wmjslayers } = this.props;
     if (timedim === undefined) {
       return;
