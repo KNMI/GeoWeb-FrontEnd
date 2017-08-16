@@ -8,6 +8,7 @@ import cloneDeep from 'lodash/cloneDeep';
 import { BACKEND_SERVER_URL } from '../constants/backend';
 import axios from 'axios';
 import PropTypes from 'prop-types';
+import { Link } from 'react-router';
 
 const GET_SIGMETS_URL = BACKEND_SERVER_URL + '/sigmet/getsigmetlist?';
 const SET_SIGMET_URL = BACKEND_SERVER_URL + '/sigmet/storesigmet';
@@ -140,6 +141,9 @@ class SigmetsContainer extends Component {
     let title = <Row>
       <Button color='primary' onClick={this.toggle} title={this.state.isOpen ? 'Collapse panel' : 'Expand panel'}>
         <Icon name={this.state.isOpen ? 'angle-double-left' : 'angle-double-right'} />
+      </Button>
+      <Button color='primary' tag={Link} to='/' style={{ marginLeft: '0.25rem', visibility: this.state.isOpen ? 'visible' : 'hidden' }}>
+        Exit
       </Button>
     </Row>;
     return (
