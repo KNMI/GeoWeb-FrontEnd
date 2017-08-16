@@ -401,7 +401,7 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
   };
   // Is called when the WebMapJS object is created
   function constructor () {
-    console.log('creating new WMJSMAP');
+    // console.log('creating new WMJSMAP');
     var baseDivId = makeComponentId('baseDiv');
     jQuery('<div/>', {
       id:baseDivId,
