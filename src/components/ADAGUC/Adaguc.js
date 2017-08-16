@@ -4,22 +4,20 @@ import AdagucMapDraw from './AdagucMapDraw.js';
 import AdagucMeasureDistance from './AdagucMeasureDistance.js';
 import axios from 'axios';
 import ModelTime from './ModelTime';
-import $ from 'jquery';
 import { BACKEND_SERVER_URL, BACKEND_SERVER_XML2JSON } from '../../constants/backend';
-
 import diff from 'deep-diff';
 import moment from 'moment';
-
 import { DefaultLocations } from '../../constants/defaultlocations';
 import { ReadLocations } from '../../utils/admin';
 import { LoadURLPreset } from '../../utils/URLPresets';
 import { debounce } from '../../utils/debounce';
+var elementResizeEvent = require('element-resize-event');
+
 export default class Adaguc extends React.Component {
   constructor () {
     super();
     this.initAdaguc = this.initAdaguc.bind(this);
-    // this.resize = debounce(this.resize.bind(this), 300, false);
-    this.resize = this.resize.bind(this);
+    this.resize = debounce(this.resize.bind(this), 100, false);
     this.updateLayer = this.updateLayer.bind(this);
     this.onChangeAnimation = this.onChangeAnimation.bind(this);
     this.timeHandler = this.timeHandler.bind(this);
@@ -87,9 +85,12 @@ export default class Adaguc extends React.Component {
     }
   }
   /* istanbul ignore next */
-  resize (width, height) {
-    const element = $(`#adagucwrapper${this.props.mapId}`).closest('.content');
-    this.webMapJS.setSize(element.width(), element.height());
+  resize () {
+    console.log('resize');
+    const element = this.refs.adaguccontainer;
+    if (element) {
+      this.webMapJS.setSize(element.clientWidth, element.clientHeight);
+    }
   }
   /* istanbul ignore next */
   updateBBOX (wmjsmap) {
@@ -138,8 +139,7 @@ export default class Adaguc extends React.Component {
     // eslint-disable-next-line no-undef
     this.webMapJS = new WMJSMap(adagucMapRef, BACKEND_SERVER_XML2JSON);
 
-    const element = $(`#adagucwrapper${this.props.mapId}`).closest('.content');
-    this.webMapJS.setSize(element.width(), element.height());
+    this.resize();
     // Set listener for triggerPoints
     this.webMapJS.addListener('beforecanvasdisplay', this.adagucBeforeDraw, true);
 
@@ -176,9 +176,12 @@ export default class Adaguc extends React.Component {
     }
     this.webMapJS.draw('171');
   }
+
   componentDidMount () {
     this.initAdaguc(this.refs.adaguc);
+    elementResizeEvent(this.refs.adaguccontainer, () => this.resize());
   }
+
   componentWillMount () {
     /* Component will unmount, set flag that map is not created */
     const { mapProperties } = this.props;
@@ -341,11 +344,6 @@ export default class Adaguc extends React.Component {
 
   /* istanbul ignore next */
   componentDidUpdate (prevProps) {
-    // The first time, the map needs to be created. This is when in the previous state the map creation boolean is false
-    // Otherwise only change when a new dataset is selected
-    if (prevProps.height !== this.props.height || prevProps.width !== this.props.width) {
-      this.resize(this.props.width, this.props.height);
-    }
     const { mapProperties, adagucProperties, layerActions, layers, active, mapId, dispatch } = this.props;
     const { boundingBox, mapMode } = mapProperties;
     const { timeDimension, animate, cursor } = adagucProperties;
@@ -395,10 +393,12 @@ export default class Adaguc extends React.Component {
     });
   }
   render () {
-    const { mapProperties, drawProperties, drawActions, dispatch, mapId } = this.props;
+    const { mapProperties, drawProperties, drawActions, dispatch } = this.props;
     return (
-      <div id={`adagucwrapper${mapId}`} style={{ overflow: 'visible', width: '0', height: '0' }}>
-        <div ref='adaguc' />
+      <div ref='adaguccontainer' style={{ border: 'none', width: 'inherit', height: 'inherit', overflow: 'hidden' }}>
+        <div style={{ overflow: 'visible', width:0, height:0 }} >
+          <div ref='adaguc' />
+        </div>
         <div style={{ display: 'none' }}>
           <AdagucMapDraw
             geojson={drawProperties.geojson}
@@ -433,7 +433,5 @@ Adaguc.propTypes = {
   layers: PropTypes.object,
   mapId: PropTypes.number,
   drawProperties: PropTypes.object,
-  drawActions: PropTypes.object,
-  width: PropTypes.number,
-  height: PropTypes.number
+  drawActions: PropTypes.object
 };

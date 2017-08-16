@@ -12,21 +12,19 @@ export default class CanvasComponent extends Component {
   }
 
   handleMouseMoveEvent (event) {
-    const onClickCanvas = this.props.onClickB;
     const mousemove = this.props.onMouseMove;
     const x = event.layerX;
     const y = event.layerY;
     if (event.buttons === 1) {
-      onClickCanvas(x, y);
+      this.props.onCanvasClick(x, y);
     }
     mousemove(x, y);
   }
 
   handleClickEvent (event) {
-    const onClickCanvas = this.props.onClickB;
     const x = event.layerX;
     const y = event.layerY;
-    onClickCanvas(x, y);
+    this.props.onCanvasClick(x, y);
   }
 
   /* istanbul ignore next */
@@ -73,12 +71,12 @@ export default class CanvasComponent extends Component {
 
 CanvasComponent.propTypes = {
   onRenderCanvas: PropTypes.func,
-  onClickB: PropTypes.func,
+  onCanvasClick: PropTypes.func,
   onMouseMove: PropTypes.func
 };
 
 CanvasComponent.defaultProps = {
   onRenderCanvas: () => { /* intentionally left blank */ },
-  onClickB: () => { /* intentionally left blank */ },
+  onCanvasClick: () => { /* intentionally left blank */ },
   onMouseMove: () => { /* intentionally left blank */ }
 };

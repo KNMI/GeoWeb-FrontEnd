@@ -14,7 +14,7 @@ class Panel extends Component {
           }
         }}>
           <Row className='title notitle' style={style} />
-          <Row className='content notitle' style={style}>
+          <Row className='content notitle' style={{ ...style, height: '100%' }}>
             {this.props.children}
           </Row>
         </div>

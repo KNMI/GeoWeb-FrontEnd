@@ -12,7 +12,7 @@ export default class TimeComponent extends Component {
     this.eventOnDimChange = this.eventOnDimChange.bind(this);
     this.eventOnMapDimUpdate = this.eventOnMapDimUpdate.bind(this);
     this.drawCanvas = this.drawCanvas.bind(this);
-    this.onClickCanvas = this.onClickCanvas.bind(this);
+    this.onCanvasClick = this.onCanvasClick.bind(this);
     this.handleButtonClickPrevPage = this.handleButtonClickPrevPage.bind(this);
     this.handleButtonClickNextPage = this.handleButtonClickNextPage.bind(this);
     this.handleButtonClickNow = this.handleButtonClickNow.bind(this);
@@ -320,7 +320,7 @@ export default class TimeComponent extends Component {
     this.ctx = ctx;
   }
   /* istanbul ignore next */
-  onClickCanvas (x) {
+  onCanvasClick (x) {
     const t = x / this.ctx.canvas.clientWidth;
     const s = this.canvasDateInterval.getTimeSteps() - 1;
     const newTimeStep = parseInt(t * s);
@@ -361,7 +361,7 @@ export default class TimeComponent extends Component {
           </Button>
         </Col>
         <Col style={{ height: height }}>
-          <CanvasComponent id='timeline' onRenderCanvas={this.onRenderCanvas} onClickB={this.onClickCanvas} />
+          <CanvasComponent onRenderCanvas={this.onRenderCanvas} onCanvasClick={this.onCanvasClick} />
         </Col>
         <Col xs='auto'>
           <Button outline color='info' onClick={this.handleButtonClickNextPage}>
