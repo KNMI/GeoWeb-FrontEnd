@@ -234,12 +234,13 @@ export default class TimeComponent extends Component {
     if (typeof value === 'string') {
       return value;
     }
-    return prf(value.year, 4) +
-    '-' + prf(value.month + 1, 2) +
+    let iso = prf(value.year, 4) +
+    '-' + prf(value.month, 2) +
     '-' + prf(value.day, 2) +
     'T' + prf(value.hour, 2) +
     ':' + prf(value.minute, 2) +
     ':' + prf(value.second, 2) + 'Z';
+    return iso;
   }
   /* istanbul ignore next */
   setNewDate (value) {
