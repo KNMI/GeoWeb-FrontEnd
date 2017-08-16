@@ -409,6 +409,14 @@ export default class AdagucMapDraw extends Component {
     return false; /* False means that this component will take over entire controll.
                      True means that it is still possible to pan and drag the map while editing */
   }
+
+  deletePolygon (index) {
+    const featureIndex = 0;
+    const feature = this.props.geojson.features[featureIndex];
+    feature.geometry.coordinates.splice(index, 1);
+    this.props.dispatch(this.props.mapActions.setMapMode('draw'));
+  }
+
   /* istanbul ignore next */
   deleteFeature () {
     /* Deletes any features under the mousecursor */
@@ -426,14 +434,14 @@ export default class AdagucMapDraw extends Component {
       /* Remove edge of polygon */
       if (featureCoords.length <= 3) {
         /* Remove the polygon completely if it can not have an area */
-        feature.geometry.coordinates.splice(this.snappedPolygonIndex, 1);
+        this.deletePolygon(this.snappedPolygonIndex);
       } else {
         /* Remove edge of polygon */
         featureCoords.splice(this.mouseIsOverVertexNr, 1);
       }
     } else {
       /* Remove the polygon completely */
-      feature.geometry.coordinates.splice(this.snappedPolygonIndex, 1);
+      this.deletePolygon(this.snappedPolygonIndex);
     }
     this.featureHasChanged('deleteFeature');
     this.selectedEdge = this.EDGE.NONE;
@@ -576,6 +584,7 @@ AdagucMapDraw.propTypes = {
   webmapjs: PropTypes.object,
   geojson: PropTypes.object,
   actions: PropTypes.object,
+  mapActions: PropTypes.object,
   dispatch: PropTypes.func.isRequired,
   isInEditMode: PropTypes.bool,
   isInDeleteMode: PropTypes.bool

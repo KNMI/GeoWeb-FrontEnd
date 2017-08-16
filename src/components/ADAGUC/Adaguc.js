@@ -57,7 +57,7 @@ export default class Adaguc extends React.Component {
       layer.setDimension('reference_time', layer.getDimension('reference_time').getValueForIndex(layer.getDimension('reference_time').size() - 1), false);
     }
     if (datalayer.modellevel) {
-      layer.setDimension('modellevel', datalayer.modellevel);
+      layer.setDimension('modellevel', datalayer.modellevel.toString());
     }
 
     if (this.isAnimating) {
@@ -329,7 +329,7 @@ export default class Adaguc extends React.Component {
           layers[i].label = currDataLayers[i].label;
           layers[i].currentStyle = currDataLayers[i].style || layers[i].currentStyle;
           if (currDataLayers[i].modellevel) {
-            layers[i].setDimension('modellevel', currDataLayers[i].modellevel);
+            layers[i].setDimension('modellevel', currDataLayers[i].modellevel.toString());
           }
           this.webMapJS.getListener().triggerEvent('onmapdimupdate');
         }
@@ -407,6 +407,7 @@ export default class Adaguc extends React.Component {
             isInDeleteMode={mapProperties.mapMode === 'delete'}
             webmapjs={this.webMapJS}
             actions={drawActions}
+            mapActions={this.props.mapActions}
           />
           <AdagucMeasureDistance
             dispatch={dispatch}
