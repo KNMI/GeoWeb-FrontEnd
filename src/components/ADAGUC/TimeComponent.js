@@ -116,6 +116,18 @@ export default class TimeComponent extends Component {
     // eslint-disable-next-line no-undef
     const numlayers = wmjslayers.baselayers && wmjslayers.layers ? wmjslayers.baselayers.length + wmjslayers.layers.length + 1 : 2;
     const canvasHeight = 20 * numlayers;
+
+    if (this.canvasHeight === canvasHeight &&
+     this.timedim === timedim &&
+     this.ctxCanvasHeight === ctx.canvas.height &&
+     this.ctxCanvasWidth === ctx.canvas.width) {
+      return;
+    }
+    this.canvasHeight = canvasHeight;
+    this.timedim = timedim;
+    this.ctxCanvasHeight = ctx.canvas.height;
+    this.ctxCanvasWidth = ctx.canvas.width;
+
     ctx.fillStyle = '#CCC';
     ctx.fillRect(0, 0, canvasWidth, canvasHeight);
     ctx.strokeStyle = '#FF0000';
