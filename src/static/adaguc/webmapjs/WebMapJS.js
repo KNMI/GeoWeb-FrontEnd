@@ -982,6 +982,7 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
 
 
       // Mouse projected coords
+      ctx.font = '12px Helvetica';
       if (isDefined(mouseGeoCoordXY)) {
         let roundingFactor = 1.0 / Math.pow(10, parseInt(Math.log((bbox.right - bbox.left) / width) / Math.log(10)) - 2);
         if (roundingFactor < 1)roundingFactor = 1;
@@ -1004,7 +1005,7 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
           ctx.fillStyle = '#000000';
           let xText = Math.round(llCoord.x * roundingFactor) / roundingFactor;
           let yText = Math.round(llCoord.y * roundingFactor) / roundingFactor;
-          ctx.fillText('Lon/Lat: (' + xText + ', ' + yText + ') ' + ' degrees', 5, height - 26);
+          ctx.fillText('Lon/Lat: (' + xText.toFixed(2) + ', ' + yText.toFixed(2) + ') ' + ' degrees', 5, height - 26);
         }
       }
       ctx.fillStyle = '#000000';

@@ -93,7 +93,7 @@ export default class Adaguc extends React.Component {
   }
   /* istanbul ignore next */
   updateBBOX (wmjsmap) {
-    if (wmjsmap === undefined) return;
+    if (!wmjsmap) return;
     let bbox = wmjsmap.getBBOX();
     if (bbox === undefined) return;
     const { dispatch, mapActions } = this.props;
@@ -407,7 +407,8 @@ export default class Adaguc extends React.Component {
             isInDeleteMode={mapProperties.mapMode === 'delete'}
             webmapjs={this.webMapJS}
             actions={drawActions}
-            mapActions={this.props.mapActions}
+            deletePolygonCallback={() => dispatch(this.props.mapActions.setMapMode('draw'))}
+            exitDrawModeCallback={() => dispatch(this.props.mapActions.setMapMode('pan'))}
           />
           <AdagucMeasureDistance
             dispatch={dispatch}

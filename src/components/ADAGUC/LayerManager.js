@@ -486,7 +486,6 @@ export default class LayerManager extends Component {
   }
 
   render () {
-    console.log(this.props.wmjslayers)
     return (
       <Col xs='auto' style={{ minWidth: '40rem', flexDirection: 'column' }}>
         {this.renderOverLayerSet(this.state.overlays)}

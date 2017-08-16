@@ -379,7 +379,6 @@ class TitleBarContainer extends Component {
   }
 
   makePresetObj (presetName, saveLayers, savePanelLayout, saveBoundingBox, role) {
-    console.log(this.props)
     let numPanels;
     if (/quad/.test(this.props.layout)) {
       numPanels = 4;

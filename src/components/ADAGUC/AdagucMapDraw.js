@@ -414,7 +414,9 @@ export default class AdagucMapDraw extends Component {
     const featureIndex = 0;
     const feature = this.props.geojson.features[featureIndex];
     feature.geometry.coordinates.splice(index, 1);
-    this.props.dispatch(this.props.mapActions.setMapMode('draw'));
+    if (this.props.deletePolygonCallback) {
+      this.props.deletePolygonCallback();
+    }
   }
 
   /* istanbul ignore next */
@@ -514,6 +516,9 @@ export default class AdagucMapDraw extends Component {
   handleKeyDown (event) {
     const ESCAPE_KEY = 27;
     if (event.keyCode === ESCAPE_KEY) {
+      if (this.props.exitDrawModeCallback && (this.editMode === this.EDITMODE.EMPTY || this.editMode === this.EDITMODE.DELETE_FEATURES)) {
+        this.props.exitDrawModeCallback();
+      }
       this.cancelEdit(true);
     }
   }
@@ -584,7 +589,8 @@ AdagucMapDraw.propTypes = {
   webmapjs: PropTypes.object,
   geojson: PropTypes.object,
   actions: PropTypes.object,
-  mapActions: PropTypes.object,
+  deletePolygonCallback: PropTypes.func,
+  exitDrawModeCallback: PropTypes.func,
   dispatch: PropTypes.func.isRequired,
   isInEditMode: PropTypes.bool,
   isInDeleteMode: PropTypes.bool

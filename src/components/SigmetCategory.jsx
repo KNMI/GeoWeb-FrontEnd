@@ -265,7 +265,6 @@ class SigmetCategory extends Component {
   }
 
   sigmetLayers (p) {
-    console.log(p);
     switch (p) {
       case 'sigmet_layer_TS':
         return (

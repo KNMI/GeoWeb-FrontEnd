@@ -35,7 +35,7 @@ function WMJSBBOX (left, bottom, right, top) {
   this.setBBOX = function (left, bottom, right, top) {
   // Make sure that left is defined, otherwise fill in defaults and leave
 
-    if (left == undefined) {
+    if (left === undefined || left === null) {
       this.left = -180;  // 0
       this.bottom = -90; // 1`
       this.right = 180;  // 2
@@ -50,7 +50,7 @@ function WMJSBBOX (left, bottom, right, top) {
       // a bbox object is given, so it is not a string
         var a = left;
       // alert(typeof(a.left)+" "+a.length);
-        if (a.length == undefined) {
+        if (a.length === undefined || a.length === null) {
           left = a.left;
           bottom = a.bottom;
           right = a.right;
@@ -65,7 +65,7 @@ function WMJSBBOX (left, bottom, right, top) {
       // a string like "-180,-90,180,90" is given
         try {
           var a = left.split(',');
-          if (a.length != 4)error("Invalid map bounding box: '" + left + "'");
+          if (a.length !== 4)error("Invalid map bounding box: '" + left + "'");
           left = parseFloat(a[0]);
           bottom = parseFloat(a[1]);
           right = parseFloat(a[2]);
@@ -75,7 +75,8 @@ function WMJSBBOX (left, bottom, right, top) {
       }
     }
   // Some safety checks on obtained values...
-    if (left == undefined || bottom == undefined || right == undefined || top == undefined) {
+    if (left === undefined || bottom === undefined || right === undefined || top === undefined ||
+        left === null || bottom === null || right === null || top === null) {
     // error("Invalid BBOX: "+this.toString());
       if (left == undefined)left = -180;
       if (right == undefined)right = 180;
