@@ -69,7 +69,7 @@ export default class Adaguc extends React.Component {
     }
     setTimeout(() => {
       layer.parseLayer((layer) => this.updateLayer(layer, datalayer), true);
-    }, 10000);
+    }, 60000);
   }
   /* istanbul ignore next */
   timeHandler () {
