@@ -87,7 +87,7 @@ var bgMapImageStore; // GLOBAL BACKGROUND MAP IMAGE STORE
 var maxAnimationSteps = 1000;
 legendImageStore = new WMJSImageStore(maxAnimationSteps * 5, 'wmjslegendbuffer');
 getMapImageStore = new WMJSImageStore(maxAnimationSteps * 5, 'wmjsimagebuffer');
-bgMapImageStore = new WMJSImageStore(5000, 'wmjsimagebuffer');
+bgMapImageStore = new WMJSImageStore(5000, 'wmjsimagebuffer', {randomizer:false});
 
 /**
   * WMJSMap class
@@ -345,7 +345,6 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
                   maxWidth += w;
                   if (maxHeight < h)maxHeight = h;
                 }
-                legendDivBuffer[legendDivBufferToLoad].setPosition(width - maxWidth, height - maxHeight);
                 legendDivBuffer[legendDivBufferToLoad].display();
                 legendDivBuffer[1 - legendDivBufferToLoad].hide();
               } catch (e) {
@@ -881,91 +880,21 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
 
     wmjsAnimate = new WMJSAnimate(_map);
 
-
     bgMapImageStore.addLoadEventCallback(_map.draw);
-
-    let mercatorToTileXYZ = (currentBBOX, newBBOX, ctx) => {
-      let pi = Math.PI;
-      let tileSize = 256;
-      let initialResolution = 2 * pi * 6378137 / tileSize;
-      let screenWidth = width;
-      let originShift = 2 * pi * 6378137 / 2.0;
-      let bboxw = currentBBOX.right - currentBBOX.left;
-      let levelF = Math.log((originShift * 2) / ((bboxw / screenWidth) * 256)) / Math.log(2);
-      let level = parseInt(levelF);
-
-      let drawBGTiles = (level) => {
-        if (level < 1) level = 1;
-        if (level > 17) level = 17;
-        let home = 'http://bhw485.knmi.nl:8080/osm/tiles/';
-        // let home = 'http://b.tile.openstreetmap.org/' + level + '/' + x + '/' + (y) + '.png?';
-        let numTilesAtLevel = Math.pow(2, level);
-
-        let tilenleft = Math.round(((((currentBBOX.left / originShift) * (numTilesAtLevel)) + numTilesAtLevel) / 2) + 0.5);
-        let tilenbottom = Math.round(((numTilesAtLevel - ((currentBBOX.top / originShift) * (numTilesAtLevel))) / 2) + 0.5);
-        let tilenright = Math.round(((((currentBBOX.right / originShift) * (numTilesAtLevel)) + numTilesAtLevel) / 2) + 0.5);
-        let tilentop = Math.round(((numTilesAtLevel - ((currentBBOX.bottom / originShift) * (numTilesAtLevel))) / 2) + 0.5);
-
-        // ctx.fillText('level: ' + level, 200, 260);
-        // //ctx.fillText('tile_x: ' + tileX, 200, 280);
-
-        // ctx.fillText('tile_widthmerc: ' + initialResolution / level, 200, 300);
-        // ctx.fillText('NumTiles: ' + numTilesAtLevel, 200, 320);
-        // // ctx.fillText('numTilesInScreen: ' + numTilesInScreen, 200, 340);
-        // ctx.fillText('tilenleft: ' + tilenleft, 200, 360);
-        // ctx.fillText('tilenbottom: ' + tilenbottom, 200, 380);
-
-        let tileXYZToMercator = (level, x, y) => {
-          let tileRes = initialResolution / Math.pow(2, level);
-          let p = { x: x * tileRes - originShift,
-                    y: originShift - y * tileRes };
-          return p;
-        };
-        let getTileBounds = (level, x, y) => {
-          let p1 = tileXYZToMercator(level, (x) * 256, (y) * 256);
-          let p2 = tileXYZToMercator(level, (x + 1) * 256, (y + 1) * 256);
-          return { left:p1.x, bottom:p1.y, right:p2.x, top: p2.y };
-        };
-        let drawTile = (ctx, level, x, y) => {
-
-          let bounds = getTileBounds(level, x, y);
-          let bl = _map.getPixelCoordFromGeoCoord({ x: bounds.left, y: bounds.bottom }, newBBOX, width, height);
-          let tr = _map.getPixelCoordFromGeoCoord({ x: bounds.right, y: bounds.top }, newBBOX, width, height);
-
-          let imageURL = home + level + '/' + x + '/' + (y) + '.png?';
-          let image = bgMapImageStore.getImage(imageURL);
-          if (image.isLoaded() === false && image.hasError() === false && image.isLoading() === false) {
-            image.load();
-          }
-
-          if (image.isLoaded()) {
-            try {
-              ctx.drawImage(image.getElement()[0], parseInt(bl.x), parseInt(bl.y), parseInt(tr.x - bl.x) + 1, parseInt(tr.y - bl.y) + 1);
-            } catch (e) {
-            //  console.log(e);
+    let adagucBeforeDraw = (ctx) => {
+       if (baseLayers) {
+        for (var l = 0; l < baseLayers.length; l++) {
+          if (baseLayers[l].enabled) {
+            if (baseLayers[l].keepOnTop === false) {
+              if (baseLayers[l].type && baseLayers[l].type !== 'twms') continue;
+              WMJSTileRenderer(bbox, updateBBOX, srs, width, height, ctx, bgMapImageStore, WMJSTileRendererTileSettings, baseLayers[l].name);
             }
           }
-        };
-
-        if (tilenbottom < 1)tilenbottom = 1; if (tilenbottom >= numTilesAtLevel)tilenbottom = numTilesAtLevel - 1;
-        if (tilenleft < 1)tilenleft = 1; if (tilenleft >= numTilesAtLevel)tilenleft = numTilesAtLevel - 1;
-        if (tilentop < 1)tilentop = 1; if (tilentop >= numTilesAtLevel)tilentop = numTilesAtLevel - 1;
-        if (tilenright < 1)tilenright = 1; if (tilenright >= numTilesAtLevel)tilenright = numTilesAtLevel - 1;
-        if (tilentop - tilenbottom > 10) return;
-        if (tilenright - tilenleft > 10) return;
-        for (let ty = tilenbottom - 1; ty < tilentop; ty++) {
-          for (let tx = tilenleft - 1; tx < tilenright; tx++) {
-            drawTile(ctx, level, tx, ty);
-          }
         }
-      };
-      drawBGTiles(level);
-
+      }
     };
 
-    let adagucBeforeDraw = (ctx) => {
-      // mercatorToTileXYZ(bbox, updateBBOX, ctx);
-    };
+    _map.addListener('beforecanvasstartdraw', adagucBeforeDraw, true);
 
     let adagucBeforeCanvasDisplay = (ctx) => {
       ctx.beginPath();
@@ -1012,7 +941,7 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
       ctx.fillText('Map projection: ' + srs, 5, height - 12);
     };
 
-    // _map.addListener('beforecanvasstartdraw', adagucBeforeDraw, true);
+
     _map.addListener('beforecanvasdisplay', adagucBeforeCanvasDisplay, true);
     initialized = 1;
   };
@@ -1465,16 +1394,12 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
     _map.repositionMapPin();
     _map.showBoundingBox();
     if (divBuffer.length > 1) {
-      divBuffer[0].setPosition(0, 0);
       divBuffer[0].resize(_map.getWidth(), _map.getHeight());
-      divBuffer[1].setPosition(0, 0);
       divBuffer[1].resize(_map.getWidth(), _map.getHeight());
     }
 
     if (legendDivBuffer.length > 1) {
-      legendDivBuffer[0].setPosition(0, 0);
       legendDivBuffer[0].resize(_map.getWidth(), _map.getHeight());
-      legendDivBuffer[1].setPosition(0, 0);
       legendDivBuffer[1].resize(_map.getWidth(), _map.getHeight());
     }
     _map.repositionLegendGraphic(true);
@@ -1540,7 +1465,6 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
 
     // GetFeatureInfo timeseries in the mapview
     if (srs == 'GFI:TIME_ELEVATION') {
-      // http://bhw485.knmi.nl:8080/cgi-bin/eprofile.cgi?SERVICE=WMS&REQUEST=GetFeatureInfo&VERSION=1.3.0&LAYERS=beta_raw&QUERY_LAYERS=beta_raw&CRS=EPSG%3A3857&BBOX=29109.947643979103,6500000,1190890.052356021,7200000&WIDTH=1585&HEIGHT=600&I=707&J=556&FORMAT=image/gif&INFO_FORMAT=image/png&STYLES=&&time=2016-04-01T00:00:00Z/2016-04-02T10:00:00Z&elevAtion=10/5000&showlegend=true
       var x = 707;
       var y = 557;
       var _bbox = '29109.947643979103,6500000,1190890.052356021,7200000';
@@ -1851,50 +1775,8 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
     }
     if (enableConsoleDebugging)console.log('drawnBBOX.setBBOX(bbox)');
     drawnBBOX.setBBOX(bbox);
-    /*
-    if(isDefined(_map.drawDelayTimer)==false){
-      _map.drawDelayTimer = new WMJSTimer();
-
-    }
-
-    var defaultDelay = 1;
-
-    var currentBBOX = divBuffer[newSwapBuffer].bbox;
-    var currentSRS = divBuffer[newSwapBuffer].srs;
-    var bboxToDo = updateBBOX;
-    var srsToDo = updateSRS;
-    //var currentImages = divBuffer[newSwapBuffer].images;
-    if(isDefined(bboxToDo)&&isDefined(srsToDo)){
-      //if(bboxToDo.equals(bbox)==false)
-      {
-        if(srsToDo == currentSRS){
-          //divBuffer[newSwapBuffer].setPosition(parseInt(0),parseInt(0));
-          var right   = (bboxToDo.right- currentBBOX.right)/(currentBBOX.right-currentBBOX.left);
-          var top  = (bboxToDo.top- currentBBOX.top)/(currentBBOX.top-currentBBOX.bottom);
-          var left   = (bboxToDo.left- currentBBOX.left)/(currentBBOX.right-currentBBOX.left);
-          var bottom    = (bboxToDo.bottom- currentBBOX.bottom)/(currentBBOX.top-currentBBOX.bottom);
-          var l =( left  *_map.getWidth());
-          var t =-(top   *_map.getHeight());
-          var r =( right  *_map.getWidth());
-          var b =-(bottom   *_map.getHeight());
-//             divBuffer[newSwapBuffer].setPosition(l,t);
-//             divBuffer[newSwapBuffer].setSize((_map.getWidth()+(r-l)),(_map.getHeight()+(b-t)));
-          defaultDelay = 3000;
-          if(mouseWheelBusy == 1){
-            defaultDelay = 3000;
-          }
-        }
-      }
-
-    }
-
-    if(defaultDelay == 1){ */
     _map.drawAndLoad(animationList);
-//       }else{
-//         _map.drawDelayTimer.init(defaultDelay, function(){_map.drawAndLoad(animationList); });
-//       }
   };
-
 
   this.drawAndLoad = function (animationList) {
     callBack.triggerEvent('beforedraw');
@@ -2032,7 +1914,8 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
       if (baseLayers) {
         for (var l = 0; l < baseLayers.length; l++) {
           if (baseLayers[l].enabled) {
-            if (baseLayers[l].keepOnTop == false) {
+            if (baseLayers[l].keepOnTop === false) {
+              if (baseLayers[l].type && baseLayers[l].type === 'twms') continue;
               numBaseLayers++;
               request = buildWMSGetMapRequest(baseLayers[l]);
 
@@ -2250,8 +2133,8 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
       flyZoomToBBOXCurrent.top * z1 + flyZoomToBBOXNew.top * flyZoomToBBOXScaler);
     updateBoundingBox(nbbox);
     flyZoomToBBOXTimerLoop += 1;
-    flyZoomToBBOXScaler += 0.1;
-    if (flyZoomToBBOXTimerLoop > 9) {
+    flyZoomToBBOXScaler += (1 / 6);
+    if (flyZoomToBBOXTimerLoop > 5) {
       flyZoomToBBOXTimerLoop = 0;
       flyZoomToBBOXScaler = 0;
       _map.zoomTo(nbbox);
@@ -2316,11 +2199,11 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
     var zoomW;
     var zoomH;
     if (delta < 0) {
-      zoomW = w * -0.4;
-      zoomH = h * -0.4;
+      zoomW = w * -0.3;
+      zoomH = h * -0.3;
     } else {
-      zoomW = w * 0.25;// delta;
-      zoomH = h * 0.25;//* delta;
+      zoomW = w * 0.20;// delta;
+      zoomH = h * 0.20;//* delta;
     }
     var newLeft = updateBBOX.left + zoomW;
     var newTop = updateBBOX.top + zoomH;

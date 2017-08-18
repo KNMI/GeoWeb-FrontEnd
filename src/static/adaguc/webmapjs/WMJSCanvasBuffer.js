@@ -3,10 +3,7 @@ var WMJSCanvasBuffer = function (webmapJSCallback, _type, _imageStore, w, h) {
   // console.log("WMJSCanvasBuffer created with "+w+","+h);
   var _this = this;
 
-  this.canvas =
-    $('<canvas/>', { 'class':'WMJSCanvasBuffer' })
-    .width(w)
-    .height(h);
+  this.canvas = $('<canvas/>', { 'class':'WMJSCanvasBuffer' }).width(w).height(h);
 
   var ctx = _this.canvas[0].getContext('2d');
   ctx.canvas.width = w;
@@ -19,8 +16,6 @@ var WMJSCanvasBuffer = function (webmapJSCallback, _type, _imageStore, w, h) {
   this.layers = [];
   var width = w;
   var height = h;
-  var imageWidth = w;
-  var imageHeight = h;
   var type = _type;
 
   if (type === 'imagebuffer') {
@@ -138,19 +133,22 @@ var WMJSCanvasBuffer = function (webmapJSCallback, _type, _imageStore, w, h) {
         ctx.globalAlpha = op;
         var el = _this.layerstodisplay[j].getElement()[0];
         if (type === 'legendbuffer') {
-          ctx.beginPath();
-          // ctx.fillStyle = '#FFFFFF';
-          // ctx.lineWidth = 0.3;
-          // ctx.strokeStyle = '#000000';
           var legendW = parseInt(el.width) + 4;
-          var legendH = parseInt(el.height) + 2;
+          var legendH = parseInt(el.height) + 4;
           legendPosX += (legendW + 4);
-          var legendX = width - legendPosX;
-          var legendY = height - (legendH);
-          // ctx.rect(parseInt(legendX) + 0.5, parseInt(legendY) + 0.5, legendW, legendH);
-          // ctx.fill();
-          // ctx.stroke();
-          ctx.drawImage(el, legendX + 2, legendY + 2);
+          var legendX = width - legendPosX + 2;
+          var legendY = height - (legendH) - 2;
+          ctx.beginPath();
+          ctx.fillStyle = '#FFFFFF';
+          ctx.lineWidth = 0.3;
+          ctx.globalAlpha = 0.5;
+          ctx.strokeStyle = '#000000';
+
+          ctx.rect(parseInt(legendX) + 0.5, parseInt(legendY) + 0.5, legendW, legendH);
+          ctx.fill();
+          ctx.stroke();
+          ctx.globalAlpha = 1.0;
+          ctx.drawImage(el, legendX, legendY);
         } else {
           if (newbbox) {
             // var legendW = parseInt(el.width) ;
@@ -164,13 +162,10 @@ var WMJSCanvasBuffer = function (webmapJSCallback, _type, _imageStore, w, h) {
             if ((imageW) === parseInt(ctx.canvas.width) && (imageH) === parseInt(ctx.canvas.height)) {
               ctx.drawImage(el, imageX, imageY);
             } else {
-              //console.log('slow', imageX,imageY,imageW,imageH, ctx.canvas.width, ctx.canvas.height );
-              ctx.drawImage(el, imageX, imageY, imageW,imageH);
+              // console.log('slow', imageX,imageY,imageW,imageH, ctx.canvas.width, ctx.canvas.height );
+              ctx.drawImage(el, imageX, imageY, imageW, imageH);
             }
           } else {
-            var legendW = parseInt(el.width) ;
-            var legendH = parseInt(el.height) ;
-            // console.log(legendW, legendH, width, height);
             ctx.drawImage(el, 0, 0, width, height);
           }
         }
@@ -190,7 +185,7 @@ var WMJSCanvasBuffer = function (webmapJSCallback, _type, _imageStore, w, h) {
   };
 
   this.finishedLoading = function () {
-//     console.log("======= WMJSCanvasBuffer:finishedLoading");
+    // console.log("======= WMJSCanvasBuffer:finishedLoading");
     if (_this.ready) return;
     _this.ready = true;
     for (var j = 0; j < _this.layers.length; j++) {
@@ -206,37 +201,19 @@ var WMJSCanvasBuffer = function (webmapJSCallback, _type, _imageStore, w, h) {
   };
 
   this.setPosition = function (x, y) {
-//     if(isNaN(x)||isNaN(y)){
-//       x=0;y=0;
-//     }
-//     _this.canvas.css({top: y, left: x});
-//      for(var j=0;j<this.layers.length;j++){
-//       this.layers[j].setPosition(x,y);
-//     }
+    console.log('setPosition is deprecated');
   };
 
   this.setSize = function (w, h) {
-//     w=parseInt(w);
-//     h=parseInt(h);
-//     imageWidth = w;
-//     imageHeight = h;
-//     _this.canvas.width(w);
-//     _this.canvas.height(h);
-//     for(var j=0;j<this.layers.length;j++){
-//       this.layers[j].setSize(w,h);
-//     }
-
-//    console.log("WMJSCanvasBuffer setSize with "+w+","+h);
+    console.log('setSize is deprecated');
   };
 
   this.resize = function (w, h) {
     w = parseInt(w);
     h = parseInt(h);
+    if (width === w && height === h) return;
     width = w;
     height = h;
-    imageWidth = w;
-    imageHeight = h;
-    _this.setSize(w, h);
     _this.canvas.width(w);
     _this.canvas.height(h);
     ctx.canvas.height = h;
@@ -244,7 +221,7 @@ var WMJSCanvasBuffer = function (webmapJSCallback, _type, _imageStore, w, h) {
   };
 
   this.load = function (callback) {
-    if (_this.ready == false) {
+    if (_this.ready === false) {
       // console.log(" ===== Still busy ====== ");
       return;
     }
@@ -260,24 +237,24 @@ var WMJSCanvasBuffer = function (webmapJSCallback, _type, _imageStore, w, h) {
     for (var j = 0; j < this.layers.length; j++) {
       _this.layers[j].loadThisOne = false;
 
-      if (_this.layers[j].isLoaded() == false) {
+      if (_this.layers[j].isLoaded() === false) {
         _this.layers[j].loadThisOne = true;
         _this.nrLoading++;
       }
     }
     // console.log("WMJSCanvasBuffer.nrLoading = "+this.nrLoading +" nrImages = "+this.layers.length );
-    if (this.nrLoading == 0) {
+    if (this.nrLoading === 0) {
       statDivBufferImageLoaded();
     } else {
       if (type === 'imagebuffer') { debug('GetMap:'); }
       if (type === 'legendbuffer') { debug('GetLegendGraphic:'); }
-      for (var j = 0; j < this.layers.length; j++) {
-        if (this.layers[j].loadThisOne == true) {
-          debug("<a target=\'_blank\' href='" + this.layers[j].getSrc() + "'>" + this.layers[j].getSrc() + '</a>', false);
+      for (let j = 0; j < this.layers.length; j++) {
+        if (this.layers[j].loadThisOne === true) {
+          debug("<a target='_blank' href='" + this.layers[j].getSrc() + "'>" + this.layers[j].getSrc() + '</a>', false);
         }
       }
 
-      for (var j = 0; j < this.layers.length; j++) {
+      for (let j = 0; j < this.layers.length; j++) {
         if (this.layers[j].loadThisOne === true) {
           // console.log('WMJSCanvasBuffer.loading = ' + this.layers[j].getSrc());
           this.layers[j].load();
@@ -305,21 +282,12 @@ var WMJSCanvasBuffer = function (webmapJSCallback, _type, _imageStore, w, h) {
   var currentbbox;
   var currentnewbbox;
   this.setBBOX = function (newbbox, loadedbbox) {
-    if (currentbbox === loadedbbox + '' && currentnewbbox == newbbox + '') return;
+    if (currentbbox === loadedbbox + '' && currentnewbbox === newbbox + '') return;
     currentbbox = loadedbbox + '';
     currentnewbbox = newbbox + '';
     if (_this.hidden === false) {
       _this.display(newbbox, loadedbbox);
     }
-
-//     var b1  = _this.bbox;
-//     var b2  = newbbox;
-//     var coord1=getPixelCoordFromGeoCoord({x:b1.left,y:b1.top},b2);
-//     var coord2=getPixelCoordFromGeoCoord({x:b1.right,y:b1.bottom},b2);
-//     _this.setPosition(coord1.x,coord1.y);
-//     _this.setSize((coord2.x-coord1.x),(coord2.y-coord1.y));
-
-//    imageStore.setBBOX(_this.bbox,newbbox,width,height);
   };
 
   this.setOpacity = function (layerIndex, opacity) {
@@ -329,7 +297,7 @@ var WMJSCanvasBuffer = function (webmapJSCallback, _type, _imageStore, w, h) {
     }
     var op = parseFloat(opacity);
 
-    if (this.layers[layerIndex].getOpacity() != op) {
+    if (this.layers[layerIndex].getOpacity() !== op) {
       this.layers[layerIndex].setOpacity(op);
     }
   };
@@ -338,4 +306,3 @@ var WMJSCanvasBuffer = function (webmapJSCallback, _type, _imageStore, w, h) {
     return _this.canvas;
   };
 };
-

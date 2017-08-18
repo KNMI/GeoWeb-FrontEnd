@@ -17,6 +17,38 @@ const INITIAL_STATE = {
     ]
   }
 };
+// const INITIAL_STATE1 = {
+//   mapCreated: false,
+//   activeMapId: 0,
+//   layout: 'single',
+//   mapMode: 'pan',
+//   projectionName: 'EPSG:4326',
+//   boundingBox: {
+//     title: 'Netherlands',
+//     bbox: [
+//       -180,
+//       -90,
+//       180,
+//       90
+//     ]
+//   }
+// };
+// const INITIAL_STATE2 = {
+//   mapCreated: false,
+//   activeMapId: 0,
+//   layout: 'single',
+//   mapMode: 'pan',
+//   projectionName: 'EPSG:28992',
+//   boundingBox: {
+//     title: 'Netherlands',
+//     bbox: [
+//       -533300.398890045,
+//       106728.523934,
+//       798551.4130350449,
+//       900797.90076
+//     ]
+//   }
+// };
 // Actions
 const CREATE_MAP = 'CREATE_MAP';
 const SET_CUT = 'SET_CUT';

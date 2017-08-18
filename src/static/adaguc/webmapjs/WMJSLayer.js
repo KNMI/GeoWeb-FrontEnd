@@ -22,6 +22,7 @@ function WMJSLayer (options) {
   this.wms130bboxcompatibilitymode = false;
   this.version = WMSVersion.version111;
   this.path = '';
+  this.type = 'wms';
   this.objectpath = [];
   // Extensions compatible with ncWMS WMS extensions on http://www.resc.rdg.ac.uk/trac/ncWMS/wiki/WmsExtensions
   this.wmsextensions = function (options) {
@@ -790,5 +791,6 @@ function WMJSLayer (options) {
     if (options.transparent === true) { this.transparent = true; }
     if (options.transparent === false) { this.transparent = false; }
     if (isDefined(options.onReady)) { this.onReady = options.onReady; this.parseLayer(undefined, undefined, 'WMJSLayer::configOptions'); }
+    if (isDefined(options.type)) { this.type = options.type; }
   }
 };

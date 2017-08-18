@@ -1,5 +1,5 @@
 
-var WMJSImageStore = function (maxNumberOfImages, _type) {
+var WMJSImageStore = function (maxNumberOfImages, _type, options) {
   // console.log("Creating new Imagestore");
   // this.images = [];
   this.imagesbysrc = {};
@@ -80,7 +80,7 @@ var WMJSImageStore = function (maxNumberOfImages, _type) {
     if (getKeys(_this.imagesbysrc).length < maxNumberOfImages) {
       // console.log("Creating new image: "+this.images.length);
       // console.log(type);
-      image = new WMJSImage(src, imageLoadEventCallback, type);
+      image = new WMJSImage(src, imageLoadEventCallback, type, options);
       image.setSource(src);
       image.KVP = WMJSKVP(src);
       _this.imagesbysrc[src] = image;
@@ -105,7 +105,7 @@ var WMJSImageStore = function (maxNumberOfImages, _type) {
       }
       console.log('Reusing image ' + imageId + ' with lifetime ' + minImageLife);
       if (imageId === -1) {
-        alert('not enough cache for ' + type);
+        console.error('not enough cache for ' + type);
         imageId = 0;
         return;
       }
