@@ -934,7 +934,8 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
           ctx.fillStyle = '#000000';
           let xText = Math.round(llCoord.x * roundingFactor) / roundingFactor;
           let yText = Math.round(llCoord.y * roundingFactor) / roundingFactor;
-          ctx.fillText('Lon/Lat: (' + xText.toFixed(2) + ', ' + yText.toFixed(2) + ') ' + ' degrees', 5, height - 26);
+          ctx.fillText('Lat/Lon: (' + yText.toFixed(2) + ', ' + xText.toFixed(2) + ') ' + ' degrees', 5, height - 26);
+          // ctx.fillText('Lon/Lat: (' + xText.toFixed(2) + ', ' + yText.toFixed(2) + ') ' + ' degrees', 5, height - 26);
         }
       }
       ctx.fillStyle = '#000000';
