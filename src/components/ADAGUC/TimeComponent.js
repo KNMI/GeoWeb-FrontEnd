@@ -99,7 +99,7 @@ export default class TimeComponent extends Component {
 
   /* istanbul ignore next */
   drawCanvas () {
-    const { timedim, wmjslayers } = this.props;
+    const { timedim } = this.props;
     if (timedim === undefined) {
       return;
     }
@@ -114,8 +114,7 @@ export default class TimeComponent extends Component {
     // eslint-disable-next-line no-undef
     const canvasWidth = ctx.canvas.width;
     // eslint-disable-next-line no-undef
-    const numlayers = wmjslayers.baselayers && wmjslayers.layers ? wmjslayers.baselayers.length + wmjslayers.layers.length + 1 : 2;
-    const canvasHeight = 20 * numlayers;
+    const canvasHeight = ctx.canvas.height;
 
     if (this.canvasHeight === canvasHeight &&
      this.timedim === timedim &&
@@ -361,7 +360,7 @@ export default class TimeComponent extends Component {
             <Icon name='chevron-left' />
           </Button>
         </Col>
-        <Col style={{ height: height }}>
+        <Col style={{ height: height < 120 ? 120 : height }}>
           <CanvasComponent onRenderCanvas={this.onRenderCanvas} onCanvasClick={this.onCanvasClick} />
         </Col>
         <Col xs='auto'>

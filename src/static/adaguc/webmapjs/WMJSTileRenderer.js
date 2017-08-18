@@ -137,7 +137,7 @@ var WMJSTileRendererTileSettings = {
       maxLevel: 12,
       origX:-285401.92,
       origY:903401.92,
-      resolution:3251.206502413005,
+      resolution:3440.64,
       tileServerType: 'arcgisonline',
       copyRight: 'Basiskaart bronnen: Esri Nederland, Esri, Kadaster, CBS en Rijkswaterstaat'
     }
@@ -157,7 +157,7 @@ var WMJSTileRendererTileSettings = {
       maxLevel: 12,
       origX:-285401.92,
       origY:903401.92,
-      resolution:3251.206502413005,
+      resolution:3440.64,
       tileServerType: 'arcgisonline',
       copyRight: 'Basiskaart bronnen: Esri Nederland, Esri, Kadaster, CBS, Min VROM, Rijkswaterstaat en gemeenten: Rotterdam, Breda, Tilburg'
     }
@@ -200,7 +200,7 @@ var WMJSTileRendererTileSettings = {
       maxLevel: 12,
       origX:-285401.92,
       origY:903401.92,
-      resolution:3251.206502413005,
+      resolution:3440.64,
       tileServerType: 'arcgisonline',
       copyRight: 'Basiskaart bronnen: PDOK, Kadaster, OpenStreetMap'
     }
@@ -227,7 +227,7 @@ var WMJSTileRendererTileSettings = {
       copyRight: 'NPS - Natural Earth II'
     },
     'EPSG:3575': {
-      home: 'http://geoservices.knmi.nl/tiledbasemaps/NaturalEarth2/EPSG3857/',
+      home: 'http://geoservices.knmi.nl/tiledbasemaps/NaturalEarth2/EPSG3575/',
       minLevel: 1,
       maxLevel: 6,
       origX:-13000000,

@@ -138,6 +138,7 @@ export default class Adaguc extends React.Component {
     }
     // eslint-disable-next-line no-undef
     this.webMapJS = new WMJSMap(adagucMapRef, BACKEND_SERVER_XML2JSON);
+    this.webMapJS.setBaseURL('./adaguc/webmapjs/');
 
     this.resize();
     // Set listener for triggerPoints
@@ -224,7 +225,7 @@ export default class Adaguc extends React.Component {
     if (boundingBox !== prevBoundingBox) {
       // eslint-disable-next-line no-undef
       if (this.webMapJS.setBBOX(boundingBox.bbox.join()) === true) {
-        this.webMapJS.draw();
+        this.webMapJS.draw('updateBoundingBox');
       }
     }
   }
@@ -234,7 +235,7 @@ export default class Adaguc extends React.Component {
     if (timedim !== prevTime) {
       // eslint-disable-next-line no-undef
       this.webMapJS.setDimension('time', timedim, true);
-      this.webMapJS.draw();
+      this.webMapJS.draw('updateTime');
     }
   }
 
