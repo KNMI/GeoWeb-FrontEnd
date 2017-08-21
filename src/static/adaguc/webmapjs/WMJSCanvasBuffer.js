@@ -169,9 +169,9 @@ var WMJSCanvasBuffer = function (webmapJSCallback, _type, _imageStore, w, h) {
             ctx.drawImage(el, 0, 0, width, height);
           }
         }
-      } else {
+      } /*else {
         error("<a target=\'_blank\' href='" + _this.layerstodisplay[j].getSrc() + "'>" + _this.layerstodisplay[j].getSrc() + '</a>', false);
-      }
+      }*/
     }
     ctx.globalAlpha = 1;
     if (type === 'imagebuffer') {
