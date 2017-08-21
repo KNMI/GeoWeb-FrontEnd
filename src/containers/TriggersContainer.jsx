@@ -4,7 +4,7 @@ import Icon from 'react-fa';
 import CollapseOmni from '../components/CollapseOmni';
 import TriggerCategory from '../components/TriggerCategory';
 import Panel from '../components/Panel';
-import cloneDeep from 'lodash/cloneDeep';
+import cloneDeep from 'lodash.clonedeep';
 import moment from 'moment';
 import PropTypes from 'prop-types';
 

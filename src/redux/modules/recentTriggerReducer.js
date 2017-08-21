@@ -1,4 +1,4 @@
-import cloneDeep from 'lodash/cloneDeep';
+import cloneDeep from 'lodash.clonedeep';
 import moment from 'moment';
 import { createAction, handleActions } from 'redux-actions';
 
