@@ -492,96 +492,6 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
     baseDiv.append(loadingDiv);
 
 
-//       jQuery('<div/>', {
-//         id: makeComponentId('fooslider'),
-//         css:{
-//           position:'absolute',
-//           right:'10px',
-//           bottom:'20px',
-//           width:'220px',
-//           zIndex:3000
-//         },
-//         mousedown:function(event){
-//           event.stopPropagation();
-//           preventdefault_event(event);
-//         }
-//       }).appendTo(baseDiv);
-
-    // jQuery('<div/>', {
-    //   id: makeComponentId('buttonzoomin'),
-    //   css:{
-    //     position:'absolute',
-    //     right:'30px',
-    //     top:'-8px',
-    //     width:'48px',
-    //     height:'48px',
-    //     margin:'0px',
-    //     padding:'0px',
-    //     zIndex:3000
-    //   },
-    //   mousedown:function (event) {
-    //     event.stopPropagation();
-    //     preventdefault_event(event);
-    //   },
-    //   click:function () {
-    //     _map.zoomIn();
-    //   }
-
-    // }).appendTo(baseDiv);
-
-    // var buttonZoomBox = jQuery('<div/>', {
-    //   id: makeComponentId('buttonzoombox'),
-    //   css:{
-    //     position:'absolute',
-    //     right:'30px',
-    //     top:'42px',
-    //     width:'48px',
-    //     height:'48px',
-    //     margin:'0px',
-    //     padding:'0px',
-    //     zIndex:3000
-    //   },
-    //   mousedown:function (event) {
-    //     event.stopPropagation();
-    //     preventdefault_event(event);
-    //   },
-    //   click:function () {
-    //     _map.setMapModeZoomBoxIn();
-    //     buttonZoomBox.iconbutton({ icons: { primary: 'wmjs-icon-zoombox-activated' } });
-    //     buttonDragMap.iconbutton({ icons: { primary: 'wmjs-icon-dragpan' } });
-    //     // if(mapMode=='zoom'){
-    //       // buttonZoomBox.iconbutton({icons: {primary: 'wmjs-icon-zoombox-activated'}});
-
-    //     // }else{
-    //       // buttonZoomBox.iconbutton({icons: {primary: 'wmjs-icon-zoombox'}});
-
-    //      // }
-    //   }
-
-    // }).appendTo(baseDiv);
-
-    // jQuery('<div/>', {
-    //   id: makeComponentId('buttonzoomhome'),
-    //   css:{
-    //     position:'absolute',
-    //     right:'30px',
-    //     top:'87px',
-    //     width:'48px',
-    //     height:'48px',
-    //     margin:'0px',
-    //     padding:'0px',
-    //     zIndex:3000
-    //   },
-    //   mousedown:function (event) {
-    //     event.stopPropagation();
-    //     preventdefault_event(event);
-    //   },
-    //   click:function () {
-    //     _map.zoomToLayer();
-    //   }
-
-    // }).appendTo(baseDiv);
-
     /* ONLY VISIBLE IF USERNAME FOR GEONAMES API IS SET */
     if (typeof (defaultUsernameSearch) !== 'undefined') {
       /* Creating the div for the input */
@@ -615,91 +525,6 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
       });
     }
 
-    // var buttonDragMap = jQuery('<div/>', {
-    //   id: makeComponentId('buttondragmap'),
-    //   css:{
-    //     position:'absolute',
-    //     right:'30px',
-    //     top:'135px',
-    //     width:'48px',
-    //     height:'48px',
-    //     margin:'0px',
-    //     padding:'0px',
-    //     zIndex:3000
-    //   },
-    //   mousedown:function (event) {
-    //     event.stopPropagation();
-    //     preventdefault_event(event);
-    //   },
-    //   click:function () {
-    //     _map.setMapModePan();
-    //      // if(mapMode=='pan'){
-    //     buttonDragMap.iconbutton({ icons: { primary: 'wmjs-icon-dragpan-activated' } });
-    //     buttonZoomBox.iconbutton({ icons: { primary: 'wmjs-icon-zoombox' } });
-    //      // }else{
-    //       // buttonDragMap.iconbutton({icons: {primary: 'wmjs-icon-dragpan'}});
-    //      // }
-    //   }
-
-    // }).appendTo(baseDiv);
-
-    // jQuery('<div/>', {
-    //   id: makeComponentId('buttonzoomout'),
-    //   css:{
-    //     position:'absolute',
-    //     right:'30px',
-    //     top:'181px',
-    //     width:'48px',
-    //     height:'48px',
-    //     margin:'0px',
-    //     padding:'0px',
-    //     zIndex:2000
-    //   },
-    //   mousedown:function (event) {
-    //     event.stopPropagation();
-    //     preventdefault_event(event);
-    //   },
-    //   mouseup:function (event) {
-    //     event.stopPropagation();
-    //     preventdefault_event(event);
-    //   },
-    //   click:function (event) {
-    //     event.stopPropagation();
-    //     preventdefault_event(event);
-    //     _map.zoomOut();
-    //   }
-
-    // }).appendTo(baseDiv);
-    $('#' + makeComponentId('buttonzoomout')).click(function (event) {
-      event.stopPropagation();
-// do something
-    });
-   // $('#'+makeComponentId('fooslider')).slider();
-
-    $('#' + makeComponentId('buttonzoomin')).iconbutton({ text:false, icons:{ primary:'wmjs-icon-zoomin' } });
-    $('#' + makeComponentId('buttonzoomhome')).iconbutton({ text:false, icons:{ primary:'wmjs-icon-zoomhome' } });
-    $('#' + makeComponentId('buttonzoombox')).iconbutton({ text:false, icons:{ primary:'wmjs-icon-zoombox' } });
-    $('#' + makeComponentId('buttondragmap')).iconbutton({ text:false, icons:{ primary:'wmjs-icon-dragpan-activated' } });
-    $('#' + makeComponentId('buttonzoomout')).iconbutton({ text:false, icons:{ primary:'wmjs-icon-zoomout' } });
-
-/*
-    for(var j=0;j<2;j++){
-      gfiDialogList.push(createDialog({x:Math.random()*600+100,y:Math.random()*600+100}));
-    }
-
-*/
-
-    // createDialog('d2',250,250);
-
-    // $( '#'+makeComponentId('dialog1')).dialog('option', 'position', [50, 50] );
-    // $( '#'+makeComponentId('dialog1')).dialog('option', 'zIndex', 3000 );
-    // $( '#'+makeComponentId('dialog1')).appendTo(baseDiv);
-
-    // $(baseDiv).mousedown( function(e){ _map.mouseDownEvent(e);;});
-
-    // mainElement.style.zIndex=1;
-    // mainElement.style.display='block';
-    // wegbbaseDiv.style.border='none';//1px solid #444';
     // wegbbaseDiv.style.backgroundColor= '#FFF';
 
     // Attach events
@@ -735,7 +560,7 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
     wmjsAnimate = new WMJSAnimate(_map);
 
     bgMapImageStore.addLoadEventCallback(function(img){_map.draw('bgMapImageStore loaded');});
-    let adagucBeforeDraw = (ctx) => {
+    let adagucBeforeDraw = function (ctx) {
        if (baseLayers) {
         for (var l = 0; l < baseLayers.length; l++) {
           if (baseLayers[l].enabled) {
@@ -750,7 +575,7 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
 
     _map.addListener('beforecanvasstartdraw', adagucBeforeDraw, true);
 
-    let drawTextBG = (ctx, txt, x, y, fontSize) => {
+    let drawTextBG = function (ctx, txt, x, y, fontSize) {
       ctx.textBaseline = 'top';
       ctx.fillStyle = '#FFF';
       ctx.globalAlpha = 0.75;
@@ -761,7 +586,7 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
       ctx.fillText(txt, x, y + 2);
     };
 
-    let adagucBeforeCanvasDisplay = (ctx) => {
+    let adagucBeforeCanvasDisplay = function (ctx) {
       // Map header
       ctx.beginPath();
       ctx.rect(0, 0, width, mapHeader.height);
@@ -789,7 +614,7 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
 
       // ScaleBar
       if (showScaleBarInMap === true) {
-        let getScaleBarProperties = () => {
+        let getScaleBarProperties = function () {
           let desiredWidth = 25;
           let realWidth = 0;
           let numMapUnits = 1.0 / 10000000.0;
@@ -2104,7 +1929,7 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
   var flyZoomToBBOXContinueNew = new WMJSBBOX();
   var flyZoomToBBOXTimerFuncBusy = 0;
   var flyZoomToBBOXTimerFuncBusyAndContinue = 0;
-  var flyZoomToBBOXTimerFunc = () => {
+  var flyZoomToBBOXTimerFunc = function () {
     flyZoomToBBOXScaler = (flyZoomToBBOXTimerLoop / flyZoomToBBOXTimerSteps);
     let z1 = 1 - flyZoomToBBOXScaler;
     flyZoomToBBOXFly.left = flyZoomToBBOXCurrent.left * z1 + flyZoomToBBOXNew.left * flyZoomToBBOXScaler;
@@ -2133,7 +1958,7 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
     flyZoomToBBOXTimer.init(10, flyZoomToBBOXTimerFunc);
   };
 
-  var flyZoomToBBOXStop = (currentbox, newbox) => {
+  var flyZoomToBBOXStop = function (currentbox, newbox) {
     if (flyZoomToBBOXTimerFuncBusy) {
       _map.setBBOX(flyZoomToBBOXFly);
     }
@@ -2142,7 +1967,7 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
     flyZoomToBBOXTimer.stop();
 
   };
-  var flyZoomToBBOXStartZoom = (currentbox, newbox) => {
+  var flyZoomToBBOXStartZoom = function (currentbox, newbox) {
     if (flyZoomToBBOXTimerFuncBusy === 1) {
       flyZoomToBBOXContinueNew.copy(newbox);
       flyZoomToBBOXTimerFuncBusyAndContinue = 1;

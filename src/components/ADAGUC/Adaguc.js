@@ -11,6 +11,7 @@ import { DefaultLocations } from '../../constants/defaultlocations';
 import { ReadLocations } from '../../utils/admin';
 import { LoadURLPreset } from '../../utils/URLPresets';
 import { debounce } from '../../utils/debounce';
+require('babel-polyfill');
 var elementResizeEvent = require('element-resize-event');
 
 export default class Adaguc extends React.Component {

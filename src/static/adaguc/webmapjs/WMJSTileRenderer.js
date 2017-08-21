@@ -50,7 +50,7 @@ var WMJSTileRenderer = function (currentBBOX, newBBOX, srs, width, height, ctx, 
   let levelF = Math.log((Math.abs(originShiftX2 - originShiftX)) / ((bboxw / screenWidth) * tileSize)) / Math.log(2);
   let level = parseInt(levelF);
 
-  let drawBGTiles = (level) => {
+  let drawBGTiles = function (level) {
     let home = tileSettings.home;
     let tileServerType = tileSettings.tileServerType; // 'osm' or 'argisonline'
     if (level < tileSettings.minLevel) level = tileSettings.minLevel;
@@ -63,24 +63,24 @@ var WMJSTileRenderer = function (currentBBOX, newBBOX, srs, width, height, ctx, 
     let tilentop = parseInt(Math.round((numTilesAtLevelY - ((((currentBBOX.bottom - originShiftY2) / tileSetHeight) * numTilesAtLevelY))) + 0.5));
     let tilenbottom = parseInt(Math.round((numTilesAtLevelY - ((((currentBBOX.top - originShiftY2) / tileSetHeight) * numTilesAtLevelY))) + 0.5));
 
-    let tileXYZToMercator = (level, x, y) => {
+    let tileXYZToMercator = function (level, x, y) {
       let tileRes = initialResolution / Math.pow(2, level);
       let p = { x: x * tileRes + (originShiftX), y:  originShiftY - y * tileRes };
       return p;
     };
-    let getTileBounds = (level, x, y) => {
+    let getTileBounds = function (level, x, y) {
       let p1 = tileXYZToMercator(level, (x) * tileSize, (y) * tileSize);
       let p2 = tileXYZToMercator(level, (x + 1) * tileSize, (y + 1) * tileSize);
       return { left:p1.x, bottom:p1.y, right:p2.x, top: p2.y };
     };
 
-    let getPixelCoordFromGeoCoord = (coordinates, b, w, h) => {
+    let getPixelCoordFromGeoCoord = function (coordinates, b, w, h) {
       var x = (w * (coordinates.x - b.left)) / (b.right - b.left);
       var y = (h * (coordinates.y - b.top)) / (b.bottom - b.top);
       return { x:parseFloat(x), y:parseFloat(y) };
     };
 
-    let drawTile = (ctx, level, x, y) => {
+    let drawTile = function (ctx, level, x, y) {
       let bounds = getTileBounds(level, x, y);
       let bl = getPixelCoordFromGeoCoord({ x: bounds.left, y: bounds.bottom }, newBBOX, width, height);
       let tr = getPixelCoordFromGeoCoord({ x: bounds.right, y: bounds.top }, newBBOX, width, height);
