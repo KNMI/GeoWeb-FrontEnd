@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { Button, Col, Row, InputGroupButton, InputGroup, Input, Badge, Card, CardHeader, CardBlock } from 'reactstrap';
 import { Link } from 'react-router';
 import Icon from 'react-fa';
-import cloneDeep from 'lodash/cloneDeep';
+import cloneDeep from 'lodash.clonedeep';
 import CollapseOmni from '../components/CollapseOmni';
 import Panel from '../components/Panel';
 import PropTypes from 'prop-types';

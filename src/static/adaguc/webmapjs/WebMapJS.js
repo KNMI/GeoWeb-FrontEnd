@@ -734,7 +734,7 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
         if (srs === 'EPSG:3857') {
           units = 'meter';
         }
-        ctx.fillText('CoordXY: (' + xText + ', ' + yText + ') ' + units, 5, height - 50);
+        ctx.fillText('CoordYX: (' + yText + ', ' + xText + ') ' + units, 5, height - 40);
       }
       // Mouse latlon coords
       if (isDefined(mouseUpdateCoordinates)) {
