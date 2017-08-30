@@ -138,14 +138,14 @@ export default class Taf extends Component {
               </CollapseOmni>
             </Card>
             : this.state.tafs.filter((taf) => this.state.tafTypeSelections.includes(taf.type) || this.state.tafTypeSelections.length === 0).map((taf) =>{
-              return <Card key={taf.uuid} block onClick={() => this.setExpandedTAF(taf.uuid)}>
+              return <Card key={taf.uuid} block onClick={() => this.setExpandedTAF(taf.metadata.uuid)}>
                 <CardTitle>
-                  {taf.previousReportAerodrome ? taf.previousReportAerodrome : 'EWat?'} - {moment.utc(taf.validityStart).format('DD/MM/YYYY - HH:mm UTC')}
+                  {taf.metadata ? taf.metadata.location : 'EWat?'} - {moment.utc(taf.metadata.validityStart).format('DD/MM/YYYY - HH:mm UTC')}
                 </CardTitle>
-                <CollapseOmni className='CollapseOmni' isOpen={this.state.expandedTAF === taf.uuid} minSize={0} maxSize={200}>
+                <CollapseOmni className='CollapseOmni' isOpen={this.state.expandedTAF === taf.metadata.uuid} minSize={0} maxSize={200}>
                   <CardText onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>{this.state.expandedTAC}</CardText>
-                  {taf.status === 'CONCEPT'
-                    ? <CardFooter onClick={(e) => { e.preventDefault(); e.stopPropagation(); this.deleteTAF(taf.uuid); }}>
+                  {taf.metadata.status === 'concept'
+                    ? <CardFooter onClick={(e) => { e.preventDefault(); e.stopPropagation(); this.deleteTAF(taf.metadata.uuid); }}>
                       <Button color='primary'>Delete</Button>
                     </CardFooter>
                     : <div />}
