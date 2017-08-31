@@ -78,6 +78,10 @@ export default class Taf extends Component {
   }
 
   addTaf () {
+    const flatten = list => list.reduce(
+      (a, b) => a.concat(Array.isArray(b) ? flatten(b) : b), []
+    );
+
     axios({
       method: 'post',
       url: TAFS_URL + '/tafs',
@@ -87,6 +91,10 @@ export default class Taf extends Component {
     }).then(src => {
       this.setState({ inputValue: src.data.message });
       this.props.updateParent();
+    }).catch(error => {
+      const errors = JSON.parse(error.response.data.errors);
+      const allErrors = flatten(Object.values(errors).filter(v => Array.isArray(v)));
+      alert('TAF contains syntax errors!\n' + allErrors.join('\n'));
     });
   }
   updateInputValue (evt) {
@@ -137,7 +145,7 @@ export default class Taf extends Component {
                 </CardFooter>
               </CollapseOmni>
             </Card>
-            : this.state.tafs.filter((taf) => this.state.tafTypeSelections.includes(taf.type) || this.state.tafTypeSelections.length === 0).map((taf) =>{
+            : this.state.tafs.filter((taf) => this.state.tafTypeSelections.includes(taf.type) || this.state.tafTypeSelections.length === 0).map((taf) => {
               return <Card key={taf.uuid} block onClick={() => this.setExpandedTAF(taf.metadata.uuid)}>
                 <CardTitle>
                   {taf.metadata ? taf.metadata.location : 'EWat?'} - {moment.utc(taf.metadata.validityStart).format('DD/MM/YYYY - HH:mm UTC')}
@@ -150,8 +158,8 @@ export default class Taf extends Component {
                     </CardFooter>
                     : <div />}
                 </CollapseOmni>
-              </Card>}
-            )
+              </Card>;
+            })
         }
       </Col>
       ;
@@ -165,5 +173,6 @@ Taf.propTypes = {
   editable: PropTypes.bool,
   source: PropTypes.string,
   latestUpdateTime: PropTypes.object,
-  title: PropTypes.string
+  title: PropTypes.string,
+  updateParent: PropTypes.func
 };
