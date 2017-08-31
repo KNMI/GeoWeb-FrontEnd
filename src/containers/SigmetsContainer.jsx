@@ -4,7 +4,7 @@ import Icon from 'react-fa';
 import CollapseOmni from '../components/CollapseOmni';
 import SigmetCategory from '../components/SigmetCategory';
 import Panel from '../components/Panel';
-import cloneDeep from 'lodash/cloneDeep';
+import cloneDeep from 'lodash.clonedeep';
 import { BACKEND_SERVER_URL } from '../constants/backend';
 import axios from 'axios';
 import PropTypes from 'prop-types';

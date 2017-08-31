@@ -47,9 +47,6 @@ export default class Adaguc extends React.Component {
       return;
     }
     this.webMapJS.stopAnimating();
-    if (this.props.active) {
-      this.props.dispatch(this.props.layerActions.setWMJSLayers({ layers: this.webMapJS.getLayers(), baselayers: this.webMapJS.getBaseLayers() }));
-    }
     layer.onReady = undefined;
     if (layer.getDimension('reference_time')) {
       layer.setDimension('reference_time', layer.getDimension('reference_time').getValueForIndex(layer.getDimension('reference_time').size() - 1), false);
@@ -172,6 +169,7 @@ export default class Adaguc extends React.Component {
     const currentDate = getCurrentDateIso8601();
     if (this.props.active) {
       dispatch(adagucActions.setTimeDimension(currentDate.toISO8601()));
+      console.log('176');
       dispatch(layerActions.setWMJSLayers({ layers: this.webMapJS.getLayers(), baselayers: this.webMapJS.getBaseLayers() }));
     }
     this.webMapJS.draw('171');
@@ -372,6 +370,7 @@ export default class Adaguc extends React.Component {
     const baseChanged = this.updateBaselayers(baselayer, prevBaseLayer, overlays, prevOverlays);
     // Set the current layers if the panel becomes active (necessary for the layermanager etc.)
     if (active && (!prevProps.active || layersChanged || baseChanged)) {
+      console.log('377');
       this.resize();
       dispatch(layerActions.setWMJSLayers({ layers: this.webMapJS.getLayers(), baselayers: this.webMapJS.getBaseLayers() }));
     }

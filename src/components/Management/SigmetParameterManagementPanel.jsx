@@ -5,7 +5,7 @@ import { Input, Card, Button, CardTitle, CardText, Row, Col } from 'reactstrap';
 import { Icon } from 'react-fa';
 import { BACKEND_SERVER_URL } from '../../constants/backend.js';
 import axios from 'axios';
-import cloneDeep from 'lodash/cloneDeep';
+import cloneDeep from 'lodash.clonedeep';
 import PropTypes from 'prop-types';
 
 export default class SigmetParameterManagementPanel extends React.Component {

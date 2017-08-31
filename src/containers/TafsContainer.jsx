@@ -18,7 +18,7 @@ const ITEMS = [
     title: 'Open concept TAFs',
     ref:   'concept-tafs',
     icon: 'folder-open-o',
-    source: TAFS_URL + '/tafs?active=false&status=CONCEPT',
+    source: TAFS_URL + '/tafs?active=false&status=concept',
     editable: false
   },
   {

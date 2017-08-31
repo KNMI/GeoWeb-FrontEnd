@@ -78,6 +78,10 @@ export default class Taf extends Component {
   }
 
   addTaf () {
+    const flatten = list => list.reduce(
+      (a, b) => a.concat(Array.isArray(b) ? flatten(b) : b), []
+    );
+
     axios({
       method: 'post',
       url: TAFS_URL + '/tafs',
@@ -87,6 +91,10 @@ export default class Taf extends Component {
     }).then(src => {
       this.setState({ inputValue: src.data.message });
       this.props.updateParent();
+    }).catch(error => {
+      const errors = JSON.parse(error.response.data.errors);
+      const allErrors = flatten(Object.values(errors).filter(v => Array.isArray(v)));
+      alert('TAF contains syntax errors!\n' + allErrors.join('\n'));
     });
   }
   updateInputValue (evt) {
@@ -137,21 +145,21 @@ export default class Taf extends Component {
                 </CardFooter>
               </CollapseOmni>
             </Card>
-            : this.state.tafs.filter((taf) => this.state.tafTypeSelections.includes(taf.type) || this.state.tafTypeSelections.length === 0).map((taf) =>{
-              return <Card key={taf.uuid} block onClick={() => this.setExpandedTAF(taf.uuid)}>
+            : this.state.tafs.filter((taf) => this.state.tafTypeSelections.includes(taf.type) || this.state.tafTypeSelections.length === 0).map((taf) => {
+              return <Card key={taf.uuid} block onClick={() => this.setExpandedTAF(taf.metadata.uuid)}>
                 <CardTitle>
-                  {taf.previousReportAerodrome ? taf.previousReportAerodrome : 'EWat?'} - {moment.utc(taf.validityStart).format('DD/MM/YYYY - HH:mm UTC')}
+                  {taf.metadata ? taf.metadata.location : 'EWat?'} - {moment.utc(taf.metadata.validityStart).format('DD/MM/YYYY - HH:mm UTC')}
                 </CardTitle>
-                <CollapseOmni className='CollapseOmni' isOpen={this.state.expandedTAF === taf.uuid} minSize={0} maxSize={200}>
+                <CollapseOmni className='CollapseOmni' isOpen={this.state.expandedTAF === taf.metadata.uuid} minSize={0} maxSize={200}>
                   <CardText onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>{this.state.expandedTAC}</CardText>
-                  {taf.status === 'CONCEPT'
-                    ? <CardFooter onClick={(e) => { e.preventDefault(); e.stopPropagation(); this.deleteTAF(taf.uuid); }}>
+                  {taf.metadata.status === 'concept'
+                    ? <CardFooter onClick={(e) => { e.preventDefault(); e.stopPropagation(); this.deleteTAF(taf.metadata.uuid); }}>
                       <Button color='primary'>Delete</Button>
                     </CardFooter>
                     : <div />}
                 </CollapseOmni>
-              </Card>}
-            )
+              </Card>;
+            })
         }
       </Col>
       ;
@@ -165,5 +173,6 @@ Taf.propTypes = {
   editable: PropTypes.bool,
   source: PropTypes.string,
   latestUpdateTime: PropTypes.object,
-  title: PropTypes.string
+  title: PropTypes.string,
+  updateParent: PropTypes.func
 };
