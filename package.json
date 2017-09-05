@@ -100,6 +100,8 @@
     "react-copy-to-clipboard": "^5.0.0",
     "react-dom": "^15.6.1",
     "react-fa": "^4.1.2",
+    "react-json-edit": "^0.3.1",
+    "react-json-tree": "^0.10.9",
     "react-moment": "^0.6.3",
     "react-redux": "^5.0.3",
     "react-router": "^3.0.5",
@@ -189,5 +191,10 @@
     "webpack-dev-middleware": "^1.10.1",
     "webpack-hot-middleware": "^2.18.0",
     "yargs": "^8.0.2"
-  }
+  },
+  "pre-commit": [
+    "lint",
+    "validate",
+    "test"
+  ]
 }

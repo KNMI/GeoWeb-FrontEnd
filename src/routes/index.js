@@ -27,6 +27,8 @@ import SmallLayerManagerPanel from '../components/SmallLayerManagerPanel';
 import AppManagementPanel from '../components/Management/AppManagementPanel';
 import ProductsManagementPanel from '../components/Management/ProductsManagementPanel';
 import ProgtempManagementPanel from '../components/Management/ProgtempManagementPanel';
+import TafManagementPanel from '../components/Management/TafManagementPanel';
+import TafValidationManagementPanel from '../components/Management/TafValidationManagementPanel';
 import SigmetManagementPanel from '../components/Management/SigmetManagementPanel';
 import SigmetParameterManagementPanel from '../components/Management/SigmetParameterManagementPanel';
 import LocationManagementPanel from '../components/Management/LocationManagementPanel';
@@ -119,6 +121,8 @@ export const createRoutes = (store) => {
   const appmanPanel = React.createElement(AppManagementPanel);
   const prodmanPanel = React.createElement(ProductsManagementPanel);
   const progmanPanel = React.createElement(ProgtempManagementPanel);
+  const tafmanPanel = React.createElement(TafManagementPanel);
+  const tafValidmanPanel = React.createElement(TafValidationManagementPanel);
   const sigmanPanel = React.createElement(SigmetManagementPanel);
   const sigparmanPanel = React.createElement(SigmetParameterManagementPanel);
   const locmanPanel = React.createElement(LocationManagementPanel);
@@ -182,6 +186,16 @@ export const createRoutes = (store) => {
                 <Route path='parameters' title='Parameters'>
                   <Route>
                     <IndexRoute component={FooteredLayout} viewComponent={sigparmanPanel} />
+                  </Route>
+                </Route>
+              </Route>
+              <Route path='taf' title='TAF'>
+                <Route>
+                  <IndexRoute component={FooteredLayout} viewComponent={tafmanPanel} />
+                </Route>
+                <Route path='validation' title='Validation'>
+                  <Route>
+                    <IndexRoute component={FooteredLayout} viewComponent={tafValidmanPanel} />
                   </Route>
                 </Route>
               </Route>

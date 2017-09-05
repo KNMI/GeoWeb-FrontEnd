@@ -14,6 +14,10 @@ export default class ProductsManagementPanel extends React.Component {
         title: 'SIGMET',
         text: 'Configuratie voor SIGMET',
         link: linkBase + 'sigmet'
+      }, {
+        title: 'TAF',
+        text: 'Configuratie voor de TAF',
+        link: linkBase + 'taf'
       }
     ];
 
@@ -21,18 +25,18 @@ export default class ProductsManagementPanel extends React.Component {
       <Panel>
         <Row className='managementRow'>
           {
-          items.map((item, i) => {
-            return (
-              <Card className='col-auto loc-card' block key={i}>
-                <CardTitle>{item.title}</CardTitle>
-                <CardText>{item.text}</CardText>
-                <Link to={item.link} className='row'>
-                  <Button>Bewerk</Button>
-                </Link>
-              </Card>
-            );
-          })
-        }
+            items.map((item, i) => {
+              return (
+                <Card className='col-auto loc-card' block key={i}>
+                  <CardTitle>{item.title}</CardTitle>
+                  <CardText>{item.text}</CardText>
+                  <Link to={item.link} className='row'>
+                    <Button>Bewerk</Button>
+                  </Link>
+                </Card>
+              );
+            })
+          }
         </Row>
       </Panel>
     );

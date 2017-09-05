@@ -2,24 +2,14 @@ import React from 'react';
 import { Card, Button, CardTitle, CardText, Row } from 'reactstrap';
 import { Link } from 'react-router';
 import Panel from '../Panel';
-export default class SigmetManagementPanel extends React.Component {
+export default class TafManagementPanel extends React.Component {
   render () {
-    const linkBase = 'manage/products/sigmet/';
+    const linkBase = 'manage/products/taf/';
     const items = [
       {
-        title: 'Parameters',
-        text: 'Configuratie van verscheidene parameters',
-        link: linkBase + 'parameters'
-      }, {
-        title: 'Fenomenen',
-        text: 'Configuratie voor SIGMET fenomenen',
-        link: linkBase + 'phenomena',
-        disabled: true
-      }, {
-        title: 'Lagen',
-        text: 'Standaardlagen voor fenomenen',
-        link: linkBase + 'layers',
-        disabled: true
+        title: 'Validatieregels',
+        text: 'Configuratie van de validatieregels',
+        link: linkBase + 'validation'
       }
     ];
 
