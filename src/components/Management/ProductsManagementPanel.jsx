@@ -7,16 +7,16 @@ export default class ProductsManagementPanel extends React.Component {
     const linkBase = 'manage/products/';
     const items = [
       {
-        title: 'Bijvoet',
-        text: 'Configuratie voor het Bijvoet-diagram',
+        title: 'Progtemp',
+        text: 'Configuration of the Progtemp-graph',
         link: linkBase + 'progtemp'
       }, {
         title: 'SIGMET',
-        text: 'Configuratie voor SIGMET',
+        text: 'Configuration of the SIGMET',
         link: linkBase + 'sigmet'
       }, {
         title: 'TAF',
-        text: 'Configuratie voor de TAF',
+        text: 'Configuration of the TAF',
         link: linkBase + 'taf'
       }
     ];
@@ -31,7 +31,7 @@ export default class ProductsManagementPanel extends React.Component {
                   <CardTitle>{item.title}</CardTitle>
                   <CardText>{item.text}</CardText>
                   <Link to={item.link} className='row'>
-                    <Button>Bewerk</Button>
+                    <Button>Edit</Button>
                   </Link>
                 </Card>
               );

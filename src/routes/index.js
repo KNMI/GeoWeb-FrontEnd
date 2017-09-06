@@ -27,6 +27,7 @@ import SmallLayerManagerPanel from '../components/SmallLayerManagerPanel';
 import AppManagementPanel from '../components/Management/AppManagementPanel';
 import ProductsManagementPanel from '../components/Management/ProductsManagementPanel';
 import ProgtempManagementPanel from '../components/Management/ProgtempManagementPanel';
+import ManagementPanel from '../components/Management/ManagementPanel';
 import TafManagementPanel from '../components/Management/TafManagementPanel';
 import TafValidationManagementPanel from '../components/Management/TafValidationManagementPanel';
 import SigmetManagementPanel from '../components/Management/SigmetManagementPanel';
@@ -126,6 +127,7 @@ export const createRoutes = (store) => {
   const sigmanPanel = React.createElement(SigmetManagementPanel);
   const sigparmanPanel = React.createElement(SigmetParameterManagementPanel);
   const locmanPanel = React.createElement(LocationManagementPanel);
+  const manPanel = React.createElement(ManagementPanel);
   return (
     /* Default route */
     <Route path='/' component={BaseLayout} title='GeoWeb'>
@@ -158,7 +160,7 @@ export const createRoutes = (store) => {
         </Route>
         <Route path='manage' title='Management'>
           <Route component={SidebarredLayout} leftSidebar={manageLeft}>
-            <IndexRoute />
+            <IndexRoute component={FooteredLayout} viewComponent={manPanel} />
             <Route path='app' title='Application'>
               <Route>
                 <IndexRoute component={FooteredLayout} viewComponent={appmanPanel} />

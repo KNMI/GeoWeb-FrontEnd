@@ -22,7 +22,6 @@ export default class Adaguc extends React.Component {
     this.timeHandler = this.timeHandler.bind(this);
     this.adagucBeforeDraw = this.adagucBeforeDraw.bind(this);
     this.updateBBOX = debounce(this.updateBBOX.bind(this), 300, false);
-    this.isAnimating = false;
     this.state = {
       dropdownOpenView: false,
       modal: false,
@@ -40,6 +39,7 @@ export default class Adaguc extends React.Component {
 
   /* istanbul ignore next */
   updateLayer (layer, datalayer) {
+    const shouldAnimate = this.props.adagucProperties.animate && this.props.active;
     this.webMapJS.setAnimationDelay(200);
     if (!layer) {
       return;
@@ -53,7 +53,7 @@ export default class Adaguc extends React.Component {
       layer.setDimension('modellevel', datalayer.modellevel.toString());
     }
 
-    if (this.isAnimating) {
+    if (shouldAnimate) {
       this.webMapJS.drawAutomatic(moment().utc().subtract(4, 'hours'), moment().utc().add(48, 'hours'));
     } else {
       const { adagucProperties } = this.props;
@@ -346,9 +346,6 @@ export default class Adaguc extends React.Component {
     this.updateTime(timeDimension, prevProps.adagucProperties.timeDimension || null);
     this.updateMapMode(mapMode, prevProps.mapProperties.mapMode, active);
 
-    // Update animation -- animate iff animate is set and the panel is active.
-    this.onChangeAnimation(active && animate);
-
     // Track cursor if necessary
     const prevCursor = prevProps.adagucProperties.cursor;
     if (cursor && cursor.location && cursor !== prevCursor) {
@@ -361,18 +358,22 @@ export default class Adaguc extends React.Component {
     const prevOverlays = prevActivePanel.overlays;
     const layersChanged = this.updateLayers(activePanel.layers, prevActivePanel.layers);
     const baseChanged = this.updateBaselayers(baselayer, prevBaseLayer, overlays, prevOverlays);
+
+    // Update animation -- animate iff animate is set and the panel is active.
+    this.onChangeAnimation(active && animate);
+
     // Set the current layers if the panel becomes active (necessary for the layermanager etc.)
     if (active && (!prevProps.active || layersChanged || baseChanged)) {
       this.resize();
       dispatch(layerActions.setWMJSLayers({ layers: this.webMapJS.getLayers(), baselayers: this.webMapJS.getBaseLayers() }));
     }
+
     this.webMapJS.draw('368');
   }
 
   /* istanbul ignore next */
-  onChangeAnimation (value) {
-    this.isAnimating = value;
-    if (this.isAnimating) {
+  onChangeAnimation (shouldAnimate) {
+    if (shouldAnimate) {
       this.webMapJS.drawAutomatic(moment().utc().subtract(4, 'hours'), moment().utc().add(48, 'hours'));
     } else {
       this.webMapJS.stopAnimating();

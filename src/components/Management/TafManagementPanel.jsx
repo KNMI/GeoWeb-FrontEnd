@@ -7,8 +7,8 @@ export default class TafManagementPanel extends React.Component {
     const linkBase = 'manage/products/taf/';
     const items = [
       {
-        title: 'Validatieregels',
-        text: 'Configuratie van de validatieregels',
+        title: 'Validation rules',
+        text: 'Configuration of the validation rules',
         link: linkBase + 'validation'
       }
     ];
@@ -23,7 +23,7 @@ export default class TafManagementPanel extends React.Component {
                   <CardTitle>{item.title}</CardTitle>
                   <CardText>{item.text}</CardText>
                   <Link to={item.link} className='row'>
-                    <Button disabled={item.disabled === true}>Bewerk</Button>
+                    <Button disabled={item.disabled === true}>Edit</Button>
                   </Link>
                 </Card>
               );

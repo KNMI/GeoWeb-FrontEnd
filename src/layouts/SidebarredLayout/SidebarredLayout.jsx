@@ -5,7 +5,7 @@ export default class SidebarredLayout extends Component {
     const { route } = this.props;
     const { leftSidebar, secondLeftSidebar, rightSidebar } = route;
     return (
-      <div style={{ flex: 1 }}>
+      <div style={{ flex: 1, maxWidth: '100%' }}>
         {leftSidebar
           ? <Col xs='auto' className='LeftSideBar' tag='aside'>
             {leftSidebar}
