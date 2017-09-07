@@ -156,15 +156,11 @@ webpackConfig.module.rules.push(
   {
     // IE11 only file, which can also use woff
     test: /\.eot(\?.*)?$/,
-    loader: 'null-loader'
-  },
-  {
-    test: /\*fonts\*\/\.svg(\?.*)?$/,
-    loader: 'null-loader'
+    loader: 'file-loader?prefix=fonts/&name=[path][name].[ext]'
   },
   {
     test: /\.svg(\?.*)?$/,
-    loader: 'url-loader?mimetype=image/svg+xml'
+    loader: 'url-loader?prefix=fonts/&name=[path][name].[ext]&limit=10000&mimetype=image/svg+xml'
   },
   {
     test: /\.(png|jpg)$/,

@@ -12,7 +12,6 @@ import { ReadLocations } from '../../utils/admin';
 import { LoadURLPreset } from '../../utils/URLPresets';
 import { debounce } from '../../utils/debounce';
 var elementResizeEvent = require('element-resize-event');
-
 export default class Adaguc extends React.Component {
   constructor () {
     super();
@@ -23,13 +22,11 @@ export default class Adaguc extends React.Component {
     this.timeHandler = this.timeHandler.bind(this);
     this.adagucBeforeDraw = this.adagucBeforeDraw.bind(this);
     this.updateBBOX = debounce(this.updateBBOX.bind(this), 300, false);
-    this.isAnimating = false;
     this.state = {
       dropdownOpenView: false,
       modal: false,
       activeTab: '1',
-      inSigmetModus: false,
-      time: undefined
+      inSigmetModus: false
     };
     this.toggleView = this.toggleView.bind(this);
     this.progtempLocations = DefaultLocations;
@@ -42,6 +39,7 @@ export default class Adaguc extends React.Component {
 
   /* istanbul ignore next */
   updateLayer (layer, datalayer) {
+    const shouldAnimate = this.props.adagucProperties.animate && this.props.active;
     this.webMapJS.setAnimationDelay(200);
     if (!layer) {
       return;
@@ -55,7 +53,7 @@ export default class Adaguc extends React.Component {
       layer.setDimension('modellevel', datalayer.modellevel.toString());
     }
 
-    if (this.isAnimating) {
+    if (shouldAnimate) {
       this.webMapJS.drawAutomatic(moment().utc().subtract(4, 'hours'), moment().utc().add(48, 'hours'));
     } else {
       const { adagucProperties } = this.props;
@@ -64,9 +62,6 @@ export default class Adaguc extends React.Component {
       }
       this.webMapJS.draw('66');
     }
-    setTimeout(() => {
-      layer.parseLayer((layer) => this.updateLayer(layer, datalayer), true);
-    }, 60000);
   }
   /* istanbul ignore next */
   timeHandler () {
@@ -83,7 +78,6 @@ export default class Adaguc extends React.Component {
   }
   /* istanbul ignore next */
   resize () {
-    console.log('resize');
     const element = this.refs.adaguccontainer;
     if (element) {
       this.webMapJS.setSize(element.clientWidth, element.clientHeight);
@@ -169,7 +163,6 @@ export default class Adaguc extends React.Component {
     const currentDate = getCurrentDateIso8601();
     if (this.props.active) {
       dispatch(adagucActions.setTimeDimension(currentDate.toISO8601()));
-      console.log('176');
       dispatch(layerActions.setWMJSLayers({ layers: this.webMapJS.getLayers(), baselayers: this.webMapJS.getBaseLayers() }));
     }
     this.webMapJS.draw('171');
@@ -307,7 +300,7 @@ export default class Adaguc extends React.Component {
   // Returns true when the layers are actually different w.r.t. prev layers, otherwise false
   /* istanbul ignore next */
   updateLayers (currDataLayers, prevDataLayers) {
-    if (currDataLayers !== prevDataLayers) {
+    if (diff(currDataLayers, prevDataLayers)) {
       if (this.orderChanged(currDataLayers, prevDataLayers)) {
         this.webMapJS.stopAnimating();
         const newDatalayers = currDataLayers.map((datalayer) => {
@@ -353,9 +346,6 @@ export default class Adaguc extends React.Component {
     this.updateTime(timeDimension, prevProps.adagucProperties.timeDimension || null);
     this.updateMapMode(mapMode, prevProps.mapProperties.mapMode, active);
 
-    // Update animation -- animate iff animate is set and the panel is active.
-    this.onChangeAnimation(active && animate);
-
     // Track cursor if necessary
     const prevCursor = prevProps.adagucProperties.cursor;
     if (cursor && cursor.location && cursor !== prevCursor) {
@@ -368,23 +358,27 @@ export default class Adaguc extends React.Component {
     const prevOverlays = prevActivePanel.overlays;
     const layersChanged = this.updateLayers(activePanel.layers, prevActivePanel.layers);
     const baseChanged = this.updateBaselayers(baselayer, prevBaseLayer, overlays, prevOverlays);
+
+    // Update animation -- animate iff animate is set and the panel is active.
+    this.onChangeAnimation(active && animate);
+
     // Set the current layers if the panel becomes active (necessary for the layermanager etc.)
     if (active && (!prevProps.active || layersChanged || baseChanged)) {
-      console.log('377');
       this.resize();
       dispatch(layerActions.setWMJSLayers({ layers: this.webMapJS.getLayers(), baselayers: this.webMapJS.getBaseLayers() }));
     }
-    // this.webMapJS.draw('368');
+
+    this.webMapJS.draw('368');
   }
 
   /* istanbul ignore next */
-  onChangeAnimation (value) {
-    this.isAnimating = value;
-    if (this.isAnimating) {
+  onChangeAnimation (shouldAnimate) {
+    if (shouldAnimate) {
       this.webMapJS.drawAutomatic(moment().utc().subtract(4, 'hours'), moment().utc().add(48, 'hours'));
     } else {
       this.webMapJS.stopAnimating();
     }
+    this.webMapJS.draw('385');
   }
   toggleView () {
     this.setState({

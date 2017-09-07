@@ -1,6 +1,5 @@
 import React from 'react';
-import { TabContent, TabPane, Nav, NavItem, NavLink, Card, Button, CardTitle, CardText, Row, Col } from 'reactstrap';
-import classnames from 'classnames';
+import { Card, Button, CardTitle, CardText, Row } from 'reactstrap';
 import { Link } from 'react-router';
 import Panel from '../Panel';
 export default class AppManagementPanel extends React.Component {
@@ -9,10 +8,10 @@ export default class AppManagementPanel extends React.Component {
       <Panel>
         <Row className='managementRow'>
           <Card className='col-auto loc-card' block>
-            <CardTitle>Locaties</CardTitle>
-            <CardText>De lijst met vaste locaties.</CardText>
+            <CardTitle>Locations</CardTitle>
+            <CardText>Edit the list of available locations</CardText>
             <Link to='manage/app/locations' className='row'>
-              <Button>Bewerk</Button>
+              <Button>Edit</Button>
             </Link>
           </Card>
         </Row>
