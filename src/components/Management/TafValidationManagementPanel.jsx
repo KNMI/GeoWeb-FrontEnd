@@ -15,12 +15,20 @@ export default class TafValidationManagementPanel extends React.Component {
       edit: false
     };
     this.reset = this.reset.bind(this);
+    this.saveJsonSchema = this.saveJsonSchema.bind(this);
   }
   componentDidMount () {
     axios.get('http://localhost:8080/admin/validation/schema/taf').then((r) => this.setState({ schema: cloneDeep(r.data), tempSchema: cloneDeep(r.data) }));
   }
   reset () {
     this.setState({ tempSchema: cloneDeep(this.state.schema) });
+  }
+  saveJsonSchema (schema) {
+    axios({
+      method: 'post',
+      url: 'http://localhost:8080/admin/validation/schema/taf',
+      data: schema
+    }).then(() => console.log('done'));
   }
   render () {
     // Theme with light background
