@@ -11,6 +11,7 @@ import { DefaultLocations } from '../../constants/defaultlocations';
 import { ReadLocations } from '../../utils/admin';
 import { LoadURLPreset } from '../../utils/URLPresets';
 import { debounce } from '../../utils/debounce';
+require('babel-polyfill');
 var elementResizeEvent = require('element-resize-event');
 export default class Adaguc extends React.Component {
   constructor () {
@@ -129,6 +130,7 @@ export default class Adaguc extends React.Component {
     }
     // eslint-disable-next-line no-undef
     this.webMapJS = new WMJSMap(adagucMapRef, BACKEND_SERVER_XML2JSON);
+    this.webMapJS.setBaseURL('./adaguc/webmapjs/');
 
     this.resize();
     // Set listener for triggerPoints
@@ -215,7 +217,7 @@ export default class Adaguc extends React.Component {
     if (boundingBox !== prevBoundingBox) {
       // eslint-disable-next-line no-undef
       if (this.webMapJS.setBBOX(boundingBox.bbox.join()) === true) {
-        this.webMapJS.draw();
+        this.webMapJS.draw('updateBoundingBox');
       }
     }
   }
@@ -225,7 +227,7 @@ export default class Adaguc extends React.Component {
     if (timedim !== prevTime) {
       // eslint-disable-next-line no-undef
       this.webMapJS.setDimension('time', timedim, true);
-      this.webMapJS.draw();
+      this.webMapJS.draw('updateTime');
     }
   }
 

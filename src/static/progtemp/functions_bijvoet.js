@@ -1160,7 +1160,7 @@ function calcCAPES (PCCL, PEL, TCCL, TdCCLinCelsius, TELinCelsius, PSounding, TS
       muPrclTp = muParcelTop;
     }
   // TODO was niet commentaar
-  delete PCCL_MU,TCCL_MU;
+  // delete PCCL_MU,TCCL_MU;
   }
   // alert('P '+PSounding[muPrclBttm]+' muParcelBottom '+muParcelBottom+ ' muPrclBttm '+muPrclBttm+' P '+PSounding[muPrclTp]+' muParcelTop '+muParcelTop+' muPrclTp '+muPrclTp);
   // MUcape -->end<--
@@ -1243,7 +1243,7 @@ function calcCAPES (PCCL, PEL, TCCL, TdCCLinCelsius, TELinCelsius, PSounding, TS
   // alert('T '+TSounding[TindexAbvCCL_MU]+' Td '+TdSounding[TindexAbvCCL_MU]+' P '+PSounding[TindexAbvCCL_MU]);
   var output = new Array(Math.round(sbCAPE), Math.round(Tmucape), Math.round(mlCAPE), Math.round(twCAPE), Math.round(sbCIN), Math.round(Tmucin), Math.round(mlCIN), Math.round(twCIN));
   // TODO was niet commentaar
-  delete PCCL_SB,TCCL_SB,PCCL_ML,TCCL_ML;
+  // delete PCCL_SB,TCCL_SB,PCCL_ML,TCCL_ML;
   return output;
 }
 

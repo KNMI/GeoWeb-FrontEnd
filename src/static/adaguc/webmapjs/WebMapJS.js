@@ -1,7 +1,7 @@
 /*
  * Name        : WebMapJS.js
  * Author      : MaartenPlieger (plieger at knmi.nl)
- * Version     : 0.5 (June 2011)
+ * Version     : 0.7 (September 2017)
  * Description : This is a basic interface for portrayal of OGC WMS services
  * Copyright KNMI
  */
@@ -87,8 +87,21 @@ var bgMapImageStore; // GLOBAL BACKGROUND MAP IMAGE STORE
 var maxAnimationSteps = 1000;
 legendImageStore = new WMJSImageStore(maxAnimationSteps * 5, 'wmjslegendbuffer');
 getMapImageStore = new WMJSImageStore(maxAnimationSteps * 5, 'wmjsimagebuffer');
-bgMapImageStore = new WMJSImageStore(5000, 'wmjsimagebuffer');
-
+bgMapImageStore = new WMJSImageStore(5000, 'wmjsimagebuffer', {randomizer:false});
+var setBaseURL = function (_baseURL) {
+  base = _baseURL;
+  //base_plus_dir = base + 'adaguc/webmapjs';
+  noimage = base + '/img/blank.gif?';
+  loadingImageSrc = base + '/img/ajax-loader.gif';
+  WMSControlsImageSrc = base + '/img/mapcontrols.gif';
+  mapPinImageSrc = base + '/img/dot.gif';
+  console.log(mapPinImageSrc);
+  if (!isDefined(scaleBarURL)) {
+    scaleBarURL = base + '/php/makeScaleBar.php?';
+  }
+  xml2jsonrequestURL =  base + '/php/xml2jsonrequest.php?'
+};
+/**
 /**
   * WMJSMap class
   */
@@ -96,20 +109,15 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
 
   this.setBaseURL = function (_baseURL) {
     base = _baseURL;
-    base_plus_dir = base + 'adaguc/webmapjs';
-    noimage = base_plus_dir + '/img/blank.gif?';
-    loadingImageSrc = base_plus_dir + '/img/ajax-loader.gif';
-    WMSControlsImageSrc = base_plus_dir + '/img/mapcontrols.gif';
-    mapPinImageSrc = base_plus_dir + '/img/dot.gif';
+    //base_plus_dir = base + 'adaguc/webmapjs';
+    noimage = base + '/img/blank.gif?';
+    loadingImageSrc = base + '/img/ajax-loader.gif';
+    WMSControlsImageSrc = base + '/img/mapcontrols.gif';
+    mapPinImageSrc = base + '/img/dot.gif';
+
     if (!isDefined(scaleBarURL)) {
-      scaleBarURL = base_plus_dir + '/php/makeScaleBar.php?';
+      scaleBarURL = base + '/php/makeScaleBar.php?';
     }
-    // mapPinImageSrc = base+'/img/punaise_info.png';
-
-    // divMapPin.innerHTML        = '<img src=\''+mapPinImageSrc+'\'>';
-
-    // xml2jsonrequestURL = base + '/php/xml2jsonrequest.php?';
-    // requestProxy=base+'/php/MakeRequest.php?';
   };
   this.setBaseURL(base);
 
@@ -118,7 +126,6 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
   };
 
   var mainElement = _element;
-  // var baseDiv = document.createElement('div');
   try {
     if (isDefined(_xml2jsonrequestURL)) {
       xml2jsonrequestURL = _xml2jsonrequestURL;
@@ -137,7 +144,6 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
     scaleBarURL = base + '/php/makeScaleBar.php?';
   }
   var baseDiv;
-  var overlayDiv;
 
   var mainTimeSlider;
   var srs;
@@ -158,12 +164,10 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
   _map.renderer = 'WMJSCanvasBuffer';
   var layersBusy = 0;
   var mapBusy = false;
-  var scaleBarDiv = document.createElement('div');
-  var coordinatesDiv = document.createElement('div');
+
 
   var divZoomBox = document.createElement('div');
   var divBoundingBox = document.createElement('div');
-  var divControls = document.createElement('div');
   var divMapPin = document.createElement('div');
   var divDimInfo = document.createElement('div');
 
@@ -345,7 +349,6 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
                   maxWidth += w;
                   if (maxHeight < h)maxHeight = h;
                 }
-                legendDivBuffer[legendDivBufferToLoad].setPosition(width - maxWidth, height - maxHeight);
                 legendDivBuffer[legendDivBufferToLoad].display();
                 legendDivBuffer[1 - legendDivBufferToLoad].hide();
               } catch (e) {
@@ -374,30 +377,23 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
     callBack.triggerEvent('onlegendready');
   };
 
+  var setTimeOffsetValue = '';
+  var setMessageValue = '';
+
   this.setMessage = function (message) {
     if (!message || message === '') {
-      messageDiv.css({
-        zIndex:100,
-        display: 'none'
-      });
+      setMessageValue = '';
     } else {
-      messageDiv.css({
-        zIndex:100,
-        display: 'inline-block',
-        backgroundColor: 'rgba(255, 255, 255, 0.75',
-        float: 'right',
-        padding: '1rem'
-      });
+      setMessageValue = message;
     }
-    messageDiv.html(message);
   };
-  this.setTimeOffset = function (message) {
-    if(!message || message === '')
-      timeoffsetDiv.css({display: 'none'});
-    else
-      timeoffsetDiv.css({display: 'unset'});
 
-    timeoffsetDiv.html(message);
+  this.setTimeOffset = function (message) {
+    if (!message || message === '') {
+      setTimeOffsetValue = '';
+    } else {
+      setTimeOffsetValue = message;
+    }
   };
   // Is called when the WebMapJS object is created
   function constructor () {
@@ -420,98 +416,13 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
     }).appendTo(mainElement);
     baseDiv = $('#' + baseDivId);
 
-    var overlayDivId = makeComponentId('overlayDiv');
-    jQuery('<div/>', {
-      id:overlayDivId,
-      css:{
-        position:'relative',
-        overflow:'hidden',
-        zIndex:100,
-        width:mainElement.style.width - 2,
-        height:mainElement.style.height - 2,
-        border:'0px  solid black',
-        margin:0,
-        padding:0,
-        clear:'both',
-        left:'0px',
-        top:'0px',
-        boxSizing: 'border-box',
-        pointerEvents:'none',
-        background:'none',
-        backgroundColor:'none'
-
-      }
-    }).appendTo(baseDiv);
-
-    overlayDiv = $('#' + overlayDivId);
-
-    var messageDivId = makeComponentId('messageDiv');
-    jQuery('<div/>', {
-      id:messageDivId,
-      css:{
-        display: 'none'
-      }
-    }).appendTo(overlayDiv);
-    messageDiv = $('#' + messageDivId);
-    var timeoffsetContainerDivId = makeComponentId('timeoffsetContainerDiv');
-    jQuery('<div/>', {
-      id:timeoffsetContainerDivId,
-      css: {
-        padding: '1rem',
-        position: 'absolute',
-        bottom: '0',
-        // left: '50%',
-        width: '100%',
-        textAlign: 'center',
-        fontSize: '1.3rem'
-      }
-    }).appendTo(overlayDiv);
-    timeoffsetContainerDiv = $('#' + timeoffsetContainerDivId);
-
-    var timeoffsetDivId = makeComponentId('timeoffsetDiv');
-    jQuery('<div/>', {
-      id:timeoffsetDivId,
-      css: {
-        zIndex:100,
-        backgroundColor: 'rgba(255, 255, 255, 0.75)',
-        padding: '0 1rem 1rem 1rem'
-      }
-    }).appendTo(timeoffsetContainerDiv);
-    timeoffsetDiv = $('#' + timeoffsetDivId);
-
     baseDiv.css('cursor', 'default');
-    // _map.setMapModePan();
-
-    // mainElement.style.left='0px';
-    // mainElement.style.top='0px';
-    // mainElement.style.position   ='relative';
-
-    // wegbaseDiv.style.width=mainElement.style.width;
-    // wegbbaseDiv.style.height=mainElement.style.height;
-
-    // mainElement.appendChild(baseDiv);
 
     mainElement.style.margin = '0px';
     mainElement.style.padding = '0px';
     mainElement.style.border = 'none';// "1px solid gray";
     mainElement.style.lineHeight = '0px';
-    // mainElement.style.overflow   ='hidden';
     mainElement.style.display = 'inline-block';
-   // mainElement.style.zIndex     ='10';
-
-    // wegbbaseDiv.style.margin     = '0px';
-    // wegbbaseDiv.style.padding    = '0px';
-    // wegbbaseDiv.style.lineHeight = '0px';
-    // wegbbaseDiv.style.overflow   ='hidden';
-    // baseDiv.style.zIndex     ='10';
-    // baseDiv.style.left='0px';
-    // baseDiv.style.top='0px';
-    // wegbbaseDiv.style.position   ='relative';
-
-    // baseDiv.style.background='#8080FF';
-
-    // wegbbaseDiv.onselectstart = function(){return false;};
-    // wegbbaseDiv.ondrag = function(){return false;};
 
     // Attach zoombox
     divZoomBox.style.position = 'absolute';
@@ -538,11 +449,6 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
     divBoundingBox.style.margin = '0px';
     divBoundingBox.style.padding = '0px';
     divBoundingBox.style.lineHeight = '0';
-    // divBoundingBox.style.background = '#FFFFFF';
-    // divBoundingBox.style.opacity    = '0.15';               // Gecko
-    // divBoundingBox.style.filter     = 'alpha(opacity=15)';  // Windows
-    // 'rgba(255,255,255,0.15)';
-
     divBoundingBox.style.left = '0px';
     divBoundingBox.style.top = '0px';
     divBoundingBox.style.width = '100px';
@@ -551,29 +457,6 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
     divBoundingBox.oncontextmenu = function () { return false; };
     baseDiv.append(divBoundingBox);
 
-    // Attach control divs
-    divControls.style.position = 'absolute';
-    divControls.style.display = 'none';
-    divControls.style.border = '0px solid #808080';
-    divControls.style.margin = '0px';
-    divControls.style.padding = '4px';
-    divControls.style.lineHeight = '0';
-    divControls.style.background = 'none';
-    divControls.style.left = '5px';
-    divControls.style.top = '0px';
-
-    divControls.style.width = '32px';
-    divControls.style.height = '138px';
-
-    divControls.style.zIndex = 2000;
-
-    // divControls.style.float=true;
-
-    divControls.oncontextmenu = function () { return false; };
-
-    // TODO:
-    // Document.body
-    baseDiv.append(divControls);
    // return;
     // Attach divMapPin
     divMapPin.style.position = 'absolute';
@@ -609,125 +492,7 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
     // Attach loading image
 
     baseDiv.append(loadingDiv);
-    // loadingDiv.hide();
 
-    scaleBarDiv.style.display = 'none';
-    scaleBarDiv.style.position = 'absolute';
-    scaleBarDiv.style.zIndex = 800;
-    scaleBarDiv.style.background = 'none';
-    scaleBarDiv.style.display = '';
-    scaleBarDiv.style.left = '4px';
-    scaleBarDiv.style.bottom = '4px';
-    scaleBarDiv.style.width = '400px';
-    // scaleBarDiv.style.border='2px solid black';
-    scaleBarDiv.style.height = '20px';
-    baseDiv.append(scaleBarDiv);
-
-    coordinatesDiv.style.display = 'none';
-    coordinatesDiv.style.position = 'absolute';
-    coordinatesDiv.style.zIndex = 800;
-    coordinatesDiv.style.background = 'none';
-    coordinatesDiv.style.display = '';
-    coordinatesDiv.style.left = '4px';
-    coordinatesDiv.style.bottom = '25px';
-//
-    coordinatesDiv.style.lineHeight = '10px';
-    coordinatesDiv.style.fontSize = '9px';
-    coordinatesDiv.style.fontStyle = 'normal';
-    coordinatesDiv.style.fontFamily = 'Verdana, Arial, Helvetica';
-    coordinatesDiv.style.padding = '0px';
-    coordinatesDiv.style.margin = '0px';
-    baseDiv.append(coordinatesDiv);
-
-//       jQuery('<div/>', {
-//         id: makeComponentId('fooslider'),
-//         css:{
-//           position:'absolute',
-//           right:'10px',
-//           bottom:'20px',
-//           width:'220px',
-//           zIndex:3000
-//         },
-//         mousedown:function(event){
-//           event.stopPropagation();
-//           preventdefault_event(event);
-//         }
-//       }).appendTo(baseDiv);
-
-    // jQuery('<div/>', {
-    //   id: makeComponentId('buttonzoomin'),
-    //   css:{
-    //     position:'absolute',
-    //     right:'30px',
-    //     top:'-8px',
-    //     width:'48px',
-    //     height:'48px',
-    //     margin:'0px',
-    //     padding:'0px',
-    //     zIndex:3000
-    //   },
-    //   mousedown:function (event) {
-    //     event.stopPropagation();
-    //     preventdefault_event(event);
-    //   },
-    //   click:function () {
-    //     _map.zoomIn();
-    //   }
-
-    // }).appendTo(baseDiv);
-
-    // var buttonZoomBox = jQuery('<div/>', {
-    //   id: makeComponentId('buttonzoombox'),
-    //   css:{
-    //     position:'absolute',
-    //     right:'30px',
-    //     top:'42px',
-    //     width:'48px',
-    //     height:'48px',
-    //     margin:'0px',
-    //     padding:'0px',
-    //     zIndex:3000
-    //   },
-    //   mousedown:function (event) {
-    //     event.stopPropagation();
-    //     preventdefault_event(event);
-    //   },
-    //   click:function () {
-    //     _map.setMapModeZoomBoxIn();
-    //     buttonZoomBox.iconbutton({ icons: { primary: 'wmjs-icon-zoombox-activated' } });
-    //     buttonDragMap.iconbutton({ icons: { primary: 'wmjs-icon-dragpan' } });
-    //     // if(mapMode=='zoom'){
-    //       // buttonZoomBox.iconbutton({icons: {primary: 'wmjs-icon-zoombox-activated'}});
-
-    //     // }else{
-    //       // buttonZoomBox.iconbutton({icons: {primary: 'wmjs-icon-zoombox'}});
-
-    //      // }
-    //   }
-
-    // }).appendTo(baseDiv);
-
-    // jQuery('<div/>', {
-    //   id: makeComponentId('buttonzoomhome'),
-    //   css:{
-    //     position:'absolute',
-    //     right:'30px',
-    //     top:'87px',
-    //     width:'48px',
-    //     height:'48px',
-    //     margin:'0px',
-    //     padding:'0px',
-    //     zIndex:3000
-    //   },
-    //   mousedown:function (event) {
-    //     event.stopPropagation();
-    //     preventdefault_event(event);
-    //   },
-    //   click:function () {
-    //     _map.zoomToLayer();
-    //   }
-
-    // }).appendTo(baseDiv);
 
     /* ONLY VISIBLE IF USERNAME FOR GEONAMES API IS SET */
     if (typeof (defaultUsernameSearch) !== 'undefined') {
@@ -746,7 +511,7 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
         id: makeComponentId('searchboxbutton'),
         mousedown:function (event) { event.stopPropagation(); },
         click:function () {
-          var value = $('#searchtextfield').attr('value');
+          var value = $('#searchtextfield').val();//attr('value');
           _map.searchForLocation(value);
         } })
       .addClass('webmapjs_locationbutton')
@@ -755,98 +520,13 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
       /* On Enter */
       $('#searchtextfield').keypress(function (e) {
         if (e.which == 13) {
-          var value = $('#searchtextfield').attr('value');
+          var value = $('#searchtextfield').val();//('value');
           _map.searchForLocation(value);
           return false;
         }
       });
     }
 
-    // var buttonDragMap = jQuery('<div/>', {
-    //   id: makeComponentId('buttondragmap'),
-    //   css:{
-    //     position:'absolute',
-    //     right:'30px',
-    //     top:'135px',
-    //     width:'48px',
-    //     height:'48px',
-    //     margin:'0px',
-    //     padding:'0px',
-    //     zIndex:3000
-    //   },
-    //   mousedown:function (event) {
-    //     event.stopPropagation();
-    //     preventdefault_event(event);
-    //   },
-    //   click:function () {
-    //     _map.setMapModePan();
-    //      // if(mapMode=='pan'){
-    //     buttonDragMap.iconbutton({ icons: { primary: 'wmjs-icon-dragpan-activated' } });
-    //     buttonZoomBox.iconbutton({ icons: { primary: 'wmjs-icon-zoombox' } });
-    //      // }else{
-    //       // buttonDragMap.iconbutton({icons: {primary: 'wmjs-icon-dragpan'}});
-    //      // }
-    //   }
-
-    // }).appendTo(baseDiv);
-
-    // jQuery('<div/>', {
-    //   id: makeComponentId('buttonzoomout'),
-    //   css:{
-    //     position:'absolute',
-    //     right:'30px',
-    //     top:'181px',
-    //     width:'48px',
-    //     height:'48px',
-    //     margin:'0px',
-    //     padding:'0px',
-    //     zIndex:2000
-    //   },
-    //   mousedown:function (event) {
-    //     event.stopPropagation();
-    //     preventdefault_event(event);
-    //   },
-    //   mouseup:function (event) {
-    //     event.stopPropagation();
-    //     preventdefault_event(event);
-    //   },
-    //   click:function (event) {
-    //     event.stopPropagation();
-    //     preventdefault_event(event);
-    //     _map.zoomOut();
-    //   }
-
-    // }).appendTo(baseDiv);
-    $('#' + makeComponentId('buttonzoomout')).click(function (event) {
-      event.stopPropagation();
-// do something
-    });
-   // $('#'+makeComponentId('fooslider')).slider();
-
-    $('#' + makeComponentId('buttonzoomin')).iconbutton({ text:false, icons:{ primary:'wmjs-icon-zoomin' } });
-    $('#' + makeComponentId('buttonzoomhome')).iconbutton({ text:false, icons:{ primary:'wmjs-icon-zoomhome' } });
-    $('#' + makeComponentId('buttonzoombox')).iconbutton({ text:false, icons:{ primary:'wmjs-icon-zoombox' } });
-    $('#' + makeComponentId('buttondragmap')).iconbutton({ text:false, icons:{ primary:'wmjs-icon-dragpan-activated' } });
-    $('#' + makeComponentId('buttonzoomout')).iconbutton({ text:false, icons:{ primary:'wmjs-icon-zoomout' } });
-
-/*
-    for(var j=0;j<2;j++){
-      gfiDialogList.push(createDialog({x:Math.random()*600+100,y:Math.random()*600+100}));
-    }
-
-*/
-
-    // createDialog('d2',250,250);
-
-    // $( '#'+makeComponentId('dialog1')).dialog('option', 'position', [50, 50] );
-    // $( '#'+makeComponentId('dialog1')).dialog('option', 'zIndex', 3000 );
-    // $( '#'+makeComponentId('dialog1')).appendTo(baseDiv);
-
-    // $(baseDiv).mousedown( function(e){ _map.mouseDownEvent(e);;});
-
-    // mainElement.style.zIndex=1;
-    // mainElement.style.display='block';
-    // wegbbaseDiv.style.border='none';//1px solid #444';
     // wegbbaseDiv.style.backgroundColor= '#FFF';
 
     // Attach events
@@ -858,7 +538,6 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
     bbox.top = 90;
     srs = 'EPSG:4326';
     _map.setSize(mainElement.style.width, mainElement.style.height);
-
     // IMAGE buffers
     for (var j = 0; j < 2; j++) {
       let d = new WMJSCanvasBuffer(callBack, 'imagebuffer', getMapImageStore, _map.getWidth(), _map.getHeight());
@@ -876,98 +555,41 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
       legendDivBuffer.push(d);
     }
 
-    callBack.addToCallback('draw', _map.draw, true);
+    callBack.addToCallback('display', _map.display, true);
+    callBack.addToCallback('draw', function () {console.log('draw event triggered externally, skipping'); }, true);
     // callBack.addToCallback("drawbuffers",_map.flipBuffers,true);
 
     wmjsAnimate = new WMJSAnimate(_map);
 
-
-    bgMapImageStore.addLoadEventCallback(_map.draw);
-
-    let mercatorToTileXYZ = (currentBBOX, newBBOX, ctx) => {
-      let pi = Math.PI;
-      let tileSize = 256;
-      let initialResolution = 2 * pi * 6378137 / tileSize;
-      let screenWidth = width;
-      let originShift = 2 * pi * 6378137 / 2.0;
-      let bboxw = currentBBOX.right - currentBBOX.left;
-      let levelF = Math.log((originShift * 2) / ((bboxw / screenWidth) * 256)) / Math.log(2);
-      let level = parseInt(levelF);
-
-      let drawBGTiles = (level) => {
-        if (level < 1) level = 1;
-        if (level > 17) level = 17;
-        let home = 'http://bhw485.knmi.nl:8080/osm/tiles/';
-        // let home = 'http://b.tile.openstreetmap.org/' + level + '/' + x + '/' + (y) + '.png?';
-        let numTilesAtLevel = Math.pow(2, level);
-
-        let tilenleft = Math.round(((((currentBBOX.left / originShift) * (numTilesAtLevel)) + numTilesAtLevel) / 2) + 0.5);
-        let tilenbottom = Math.round(((numTilesAtLevel - ((currentBBOX.top / originShift) * (numTilesAtLevel))) / 2) + 0.5);
-        let tilenright = Math.round(((((currentBBOX.right / originShift) * (numTilesAtLevel)) + numTilesAtLevel) / 2) + 0.5);
-        let tilentop = Math.round(((numTilesAtLevel - ((currentBBOX.bottom / originShift) * (numTilesAtLevel))) / 2) + 0.5);
-
-        // ctx.fillText('level: ' + level, 200, 260);
-        // //ctx.fillText('tile_x: ' + tileX, 200, 280);
-
-        // ctx.fillText('tile_widthmerc: ' + initialResolution / level, 200, 300);
-        // ctx.fillText('NumTiles: ' + numTilesAtLevel, 200, 320);
-        // // ctx.fillText('numTilesInScreen: ' + numTilesInScreen, 200, 340);
-        // ctx.fillText('tilenleft: ' + tilenleft, 200, 360);
-        // ctx.fillText('tilenbottom: ' + tilenbottom, 200, 380);
-
-        let tileXYZToMercator = (level, x, y) => {
-          let tileRes = initialResolution / Math.pow(2, level);
-          let p = { x: x * tileRes - originShift,
-                    y: originShift - y * tileRes };
-          return p;
-        };
-        let getTileBounds = (level, x, y) => {
-          let p1 = tileXYZToMercator(level, (x) * 256, (y) * 256);
-          let p2 = tileXYZToMercator(level, (x + 1) * 256, (y + 1) * 256);
-          return { left:p1.x, bottom:p1.y, right:p2.x, top: p2.y };
-        };
-        let drawTile = (ctx, level, x, y) => {
-
-          let bounds = getTileBounds(level, x, y);
-          let bl = _map.getPixelCoordFromGeoCoord({ x: bounds.left, y: bounds.bottom }, newBBOX, width, height);
-          let tr = _map.getPixelCoordFromGeoCoord({ x: bounds.right, y: bounds.top }, newBBOX, width, height);
-
-          let imageURL = home + level + '/' + x + '/' + (y) + '.png?';
-          let image = bgMapImageStore.getImage(imageURL);
-          if (image.isLoaded() === false && image.hasError() === false && image.isLoading() === false) {
-            image.load();
-          }
-
-          if (image.isLoaded()) {
-            try {
-              ctx.drawImage(image.getElement()[0], parseInt(bl.x), parseInt(bl.y), parseInt(tr.x - bl.x) + 1, parseInt(tr.y - bl.y) + 1);
-            } catch (e) {
-            //  console.log(e);
+    bgMapImageStore.addLoadEventCallback(function(img){_map.draw('bgMapImageStore loaded');});
+    let adagucBeforeDraw = function (ctx) {
+       if (baseLayers) {
+        for (var l = 0; l < baseLayers.length; l++) {
+          if (baseLayers[l].enabled) {
+            if (baseLayers[l].keepOnTop === false) {
+              if (baseLayers[l].type && baseLayers[l].type !== 'twms') continue;
+              WMJSTileRenderer(bbox, updateBBOX, srs, width, height, ctx, bgMapImageStore, WMJSTileRendererTileSettings, baseLayers[l].name);
             }
           }
-        };
-
-        if (tilenbottom < 1)tilenbottom = 1; if (tilenbottom >= numTilesAtLevel)tilenbottom = numTilesAtLevel - 1;
-        if (tilenleft < 1)tilenleft = 1; if (tilenleft >= numTilesAtLevel)tilenleft = numTilesAtLevel - 1;
-        if (tilentop < 1)tilentop = 1; if (tilentop >= numTilesAtLevel)tilentop = numTilesAtLevel - 1;
-        if (tilenright < 1)tilenright = 1; if (tilenright >= numTilesAtLevel)tilenright = numTilesAtLevel - 1;
-        if (tilentop - tilenbottom > 10) return;
-        if (tilenright - tilenleft > 10) return;
-        for (let ty = tilenbottom - 1; ty < tilentop; ty++) {
-          for (let tx = tilenleft - 1; tx < tilenright; tx++) {
-            drawTile(ctx, level, tx, ty);
-          }
         }
-      };
-      drawBGTiles(level);
-
+      }
     };
 
-    let adagucBeforeDraw = (ctx) => {
-      // mercatorToTileXYZ(bbox, updateBBOX, ctx);
+    _map.addListener('beforecanvasstartdraw', adagucBeforeDraw, true);
+
+    let drawTextBG = function (ctx, txt, x, y, fontSize) {
+      ctx.textBaseline = 'top';
+      ctx.fillStyle = '#FFF';
+      ctx.globalAlpha = 0.75;
+      const width = ctx.measureText(txt).width;
+      ctx.fillRect(x - 8, y - 8, width + 16, parseInt(fontSize) + 14);
+      ctx.fillStyle = '#444';
+      ctx.globalAlpha = 1.0;
+      ctx.fillText(txt, x, y + 2);
     };
 
-    let adagucBeforeCanvasDisplay = (ctx) => {
+    let adagucBeforeCanvasDisplay = function (ctx) {
+      // Map header
       ctx.beginPath();
       ctx.rect(0, 0, width, mapHeader.height);
       if (mapIsActivated === false) {
@@ -980,9 +602,130 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
       ctx.fill();
       ctx.globalAlpha = 1;
 
+      // Time offset message
+      if (setTimeOffsetValue !== '') {
+        ctx.font = '20px Helvetica';
+        drawTextBG(ctx, setTimeOffsetValue, (width / 2) - 70, height - 26, 20);
+      }
+
+      // Set message value
+      if (setMessageValue !== '') {
+        ctx.font = '15px Helvetica';
+        drawTextBG(ctx, setMessageValue, (width / 2) - 70, 2, 15);
+      }
+
+      // ScaleBar
+      if (showScaleBarInMap === true) {
+        let getScaleBarProperties = function () {
+          let desiredWidth = 25;
+          let realWidth = 0;
+          let numMapUnits = 1.0 / 10000000.0;
+
+          let boxWidth = updateBBOX.right - updateBBOX.left;
+          let pixelsPerUnit = width / boxWidth;
+          if (pixelsPerUnit <= 0) {
+            return;
+          }
+
+          let a = desiredWidth / pixelsPerUnit;
+
+          let divFactor = 0;
+          do {
+            numMapUnits *= 10.0;
+            divFactor = a / numMapUnits;
+            if (divFactor === 0) return;
+            realWidth = desiredWidth / divFactor;
+          } while (realWidth < desiredWidth);
+
+          do {
+            numMapUnits /= 2.0;
+            divFactor = a / numMapUnits;
+            if (divFactor === 0) return;
+            realWidth = desiredWidth / divFactor;
+          } while (realWidth > desiredWidth);
+
+          do {
+            numMapUnits *= 1.2;
+            divFactor = a / numMapUnits;
+            if (divFactor === 0) return;
+            realWidth = desiredWidth / divFactor;
+          } while (realWidth < desiredWidth);
+
+          let roundedMapUnits = numMapUnits;
+
+          let d = Math.pow(10, Math.round(Math.log10(numMapUnits) + 0.5) - 1);
+
+          roundedMapUnits = Math.round(roundedMapUnits / d);
+          if (roundedMapUnits < 2.5)roundedMapUnits = 2.5;
+          if (roundedMapUnits > 2.5 && roundedMapUnits < 7.5)roundedMapUnits = 5;
+          if (roundedMapUnits > 7.5)roundedMapUnits = 10;
+          roundedMapUnits = (roundedMapUnits * d);
+          divFactor = (desiredWidth / pixelsPerUnit) / roundedMapUnits;
+          realWidth = desiredWidth / divFactor;
+          return { width:parseInt(realWidth), mapunits: roundedMapUnits };
+        };
+        let scaleBarProps = getScaleBarProperties();
+        if (scaleBarProps) {
+          let offsetX = 7.5;
+          let offsetY = height - 25.5;
+          let scaleBarHeight = 23;
+          ctx.beginPath();
+          ctx.lineWidth = 2.5;
+          ctx.fillStyle = '#000';
+          ctx.strokeStyle = '#000';
+          ctx.font = '9px Helvetica';
+          ctx.textBaseline = 'middle';
+          for (let j = 0; j < 2; j++) {
+            ctx.moveTo(offsetX, scaleBarHeight - 2 - j + offsetY);
+            ctx.lineTo(scaleBarProps.width * 2 + offsetX + 1, scaleBarHeight - 2 - j + offsetY);
+          }
+
+          let subDivXW = parseInt(Math.round(scaleBarProps.width / 5));
+          ctx.lineWidth = 0.5;
+          for (let j = 1; j < 5; j++) {
+            ctx.moveTo(offsetX + subDivXW * j, scaleBarHeight - 2 + offsetY);
+            ctx.lineTo(offsetX + subDivXW * j, scaleBarHeight - 2 - 5 + offsetY);
+          }
+          ctx.lineWidth = 1.0;
+          ctx.moveTo(offsetX, scaleBarHeight - 2 + offsetY);
+          ctx.lineTo(offsetX, scaleBarHeight - 2 - 7 + offsetY);
+          ctx.moveTo(offsetX + scaleBarProps.width, scaleBarHeight - 2 + offsetY);
+          ctx.lineTo(offsetX + scaleBarProps.width, scaleBarHeight - 2 - 7 + offsetY);
+          ctx.moveTo(offsetX + scaleBarProps.width * 2 + 1, scaleBarHeight - 2 + offsetY);
+          ctx.lineTo(offsetX + scaleBarProps.width * 2 + 1, scaleBarHeight - 2 - 7 + offsetY);
+
+          let units = '';
+          if (srs === 'EPSG:3411') units = 'meter';
+          if (srs === 'EPSG:3412') units = 'meter';
+          if (srs === 'EPSG:3575') units = 'meter';
+          if (srs === 'EPSG:4326') units = 'degrees';
+          if (srs === 'EPSG:28992') units = 'meter';
+          if (srs === 'EPSG:32661') units = 'meter';
+          if (srs === 'EPSG:3857') units = 'meter';
+          if (srs === 'EPSG:900913') units = 'meter';
+          if (srs === 'EPSG:102100') units = 'meter';
+
+          if (units === 'meter') {
+            if (scaleBarProps.mapunits > 1000) {
+              scaleBarProps.mapunits /= 1000;
+              units = 'km';
+            }
+          }
+          ctx.fillText('0', offsetX - 3, 12 + offsetY);
+
+          // valueStr.print("%g",(p.mapunits));
+          let valueStr = scaleBarProps.mapunits.toPrecision() + '';
+          ctx.fillText(valueStr, offsetX + scaleBarProps.width - valueStr.length * 2.5 + 0, 12 + offsetY);
+          valueStr = (scaleBarProps.mapunits * 2).toPrecision() + '';
+          ctx.fillText(valueStr, offsetX + scaleBarProps.width * 2 - valueStr.length * 2.5 + 0, 12 + offsetY);
+          ctx.fillText(units, offsetX + scaleBarProps.width * 2 + 10, 18 + offsetY);
+          ctx.stroke();
+        }
+      }
 
       // Mouse projected coords
-      ctx.font = '12px Helvetica';
+      ctx.font = '10px Helvetica';
+      ctx.textBaseline = 'middle';
       if (isDefined(mouseGeoCoordXY)) {
         let roundingFactor = 1.0 / Math.pow(10, parseInt(Math.log((bbox.right - bbox.left) / width) / Math.log(10)) - 2);
         if (roundingFactor < 1)roundingFactor = 1;
@@ -993,8 +736,7 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
         if (srs === 'EPSG:3857') {
           units = 'meter';
         }
-        // ctx.fillText('CoordXY: (' + xText + ', ' + yText + ') ' + units, 5, height - 40);
-        ctx.fillText('CoordYX: (' + yText + ', ' + xText + ') ' + units, 5, height - 40);
+        ctx.fillText('CoordYX: (' + yText + ', ' + xText + ') ' + units, 5, height - 50);
       }
       // Mouse latlon coords
       if (isDefined(mouseUpdateCoordinates)) {
@@ -1006,15 +748,15 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
           ctx.fillStyle = '#000000';
           let xText = Math.round(llCoord.x * roundingFactor) / roundingFactor;
           let yText = Math.round(llCoord.y * roundingFactor) / roundingFactor;
-          ctx.fillText('Lat/Lon: (' + yText.toFixed(2) + ', ' + xText.toFixed(2) + ') ' + ' degrees', 5, height - 26);
+          ctx.fillText('Lat/Lon: (' + yText.toFixed(2) + ', ' + xText.toFixed(2) + ') ' + ' degrees', 5, height - 38);
           // ctx.fillText('Lon/Lat: (' + xText.toFixed(2) + ', ' + yText.toFixed(2) + ') ' + ' degrees', 5, height - 26);
         }
       }
       ctx.fillStyle = '#000000';
-      ctx.fillText('Map projection: ' + srs, 5, height - 12);
+      ctx.fillText('Map projection: ' + srs, 5, height - 26);
     };
 
-    // _map.addListener('beforecanvasstartdraw', adagucBeforeDraw, true);
+
     _map.addListener('beforecanvasdisplay', adagucBeforeCanvasDisplay, true);
     initialized = 1;
   };
@@ -1401,6 +1143,8 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
 
   this.resizeWidth=-1;
   this.resizeHeight=-1;
+  var resizeTimerBusy = false;
+  var resizeTimer = new WMJSTimer();
 
   this.setSize = function (w, h) {
     if (enableConsoleDebugging)console.log('setSize', w, h);
@@ -1410,24 +1154,21 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
     }
     // return;
     // this._setSize(w - 50, h);
-    this.resizeWidth = w;
-    this.resizeHeight = h;
+    this.resizeWidth = parseInt(w);
+    this.resizeHeight = parseInt(h);
     /**
     Enable following line to enable smooth scaling during resize transitions. Is heavier for browser.
     */
-    /*_map._setSize((_map.resizeWidth) | 0, (_map.resizeHeight) | 0);*/
+    // _map._setSize((_map.resizeWidth) | 0, (_map.resizeHeight) | 0);
 
-    if (!this.resizeTimer) {
-      this.resizeTimer = new WMJSTimer();
-    } else {
-      this.resizeTimer.reset();
+    if (resizeTimerBusy === false) {
+      resizeTimerBusy = true;
+      _map._setSize(_map.resizeWidth, _map.resizeHeight);
       return;
     }
-
-    this.resizeTimer.init(200, function () {
-      _map._setSize((_map.resizeWidth) | 0, (_map.resizeHeight) | 0);
-      _map.resizeTimer = null;
-
+    resizeTimer.init(200, function () {
+       resizeTimerBusy = false;
+      _map._setSize(_map.resizeWidth, _map.resizeHeight);
       _map.draw('resizeTimer');
     });
   };
@@ -1458,7 +1199,6 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
 //       baseDiv.style.height=height+'px';
     baseDiv.css({ width:width, height:height });
 
-    overlayDiv.css({ width:width, height:height });
 
     mainElement.style.width = width + 'px';
     mainElement.style.height = height + 'px';
@@ -1467,16 +1207,12 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
     _map.repositionMapPin();
     _map.showBoundingBox();
     if (divBuffer.length > 1) {
-      divBuffer[0].setPosition(0, 0);
       divBuffer[0].resize(_map.getWidth(), _map.getHeight());
-      divBuffer[1].setPosition(0, 0);
       divBuffer[1].resize(_map.getWidth(), _map.getHeight());
     }
 
     if (legendDivBuffer.length > 1) {
-      legendDivBuffer[0].setPosition(0, 0);
       legendDivBuffer[0].resize(_map.getWidth(), _map.getHeight());
-      legendDivBuffer[1].setPosition(0, 0);
       legendDivBuffer[1].resize(_map.getWidth(), _map.getHeight());
     }
     _map.repositionLegendGraphic(true);
@@ -1542,7 +1278,6 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
 
     // GetFeatureInfo timeseries in the mapview
     if (srs == 'GFI:TIME_ELEVATION') {
-      // http://bhw485.knmi.nl:8080/cgi-bin/eprofile.cgi?SERVICE=WMS&REQUEST=GetFeatureInfo&VERSION=1.3.0&LAYERS=beta_raw&QUERY_LAYERS=beta_raw&CRS=EPSG%3A3857&BBOX=29109.947643979103,6500000,1190890.052356021,7200000&WIDTH=1585&HEIGHT=600&I=707&J=556&FORMAT=image/gif&INFO_FORMAT=image/png&STYLES=&&time=2016-04-01T00:00:00Z/2016-04-02T10:00:00Z&elevAtion=10/5000&showlegend=true
       var x = 707;
       var y = 557;
       var _bbox = '29109.947643979103,6500000,1190890.052356021,7200000';
@@ -1635,7 +1370,6 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
   };
 
   var makeInfoHTML = function () {
-    return;
     try {
       // Create the layerinformation table
       var infoHTML = '<table class="myTable">';
@@ -1727,37 +1461,13 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
   var showScaleBarInMap = true;
   this.showScaleBar = function () {
     showScaleBarInMap = true;
-    if (scaleBarDiv.img) {
-      scaleBarDiv.img.style.display = '';
-    }
+    console.log('todo showScaleBar');
   };
   this.hideScaleBar = function () {
     showScaleBarInMap = false;
-    if (scaleBarDiv.img) {
-      scaleBarDiv.img.style.display = 'none';
-    }
+    console.log('todo hideScaleBar');
   };
 
-  var drawScaleBar = function () {
-    if (showScaleBarInMap == false) {
-      return;
-    }
-//       if(!scaleBarDiv.img){
-//         scaleBarDiv.img = document.createElement('img');
-//         scaleBarDiv.appendChild(scaleBarDiv.img);
-//         scaleBarDiv.img.style.left='0px';
-//         scaleBarDiv.img.style.top='0px';
-//
-//       }
-//
-//
-//       var src = scaleBarURL + "BBOXWIDTH="+(bbox.right-bbox.left)+"&WIDTH="+width+"&SRS="+srs;
-//       if(scaleBarDiv.img.srcToLoad != src){
-//         scaleBarDiv.img.srcToLoad = src;
-//         scaleBarDiv.img.src = src;
-//       }
-//
-  };
 
   this.getMaxNumberOfAnimations = function () {
     return maxAnimationSteps;
@@ -1826,85 +1536,58 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
   var drawTimerPending = false;
   var drawTimerAnimationList;
 
+  this.display = function () {
+    divBuffer[currentSwapBuffer].display(updateBBOX, loadedBBOX);
+    // divBuffer[currentSwapBuffer].display();
+    if (enableConsoleDebugging)console.log('drawnBBOX.setBBOX(bbox)');
+    drawnBBOX.setBBOX(bbox);
+  };
+
   this.draw = function (animationList) {
-    drawTimerAnimationList = animationList;
-    if (drawTimerBusy === true) {
-      if (drawTimerPending === true) return;
-      drawTimerPending = true;
-      drawTimer.init(10, () => {
-        drawTimerBusy = false;
-        drawTimerPending = false;
-        _map._draw(drawTimerAnimationList);
-      });
+
+    if (_map.isAnimating ) {
+      if (enableConsoleDebugging)console.log('ANIMATING: Skipping draw:' + animationList);
       return;
     }
-    drawTimerBusy = true;
-    _map._draw(drawTimerAnimationList);
+//     drawTimerAnimationList = animationList;
+//     if (drawTimerBusy === true) {
+//       if (drawTimerPending === true) return;
+//       drawTimerPending = true;
+//       drawTimer.init(10, () => {
+//         drawTimerBusy = false;
+//         drawTimerPending = false;
+//         _map._draw(drawTimerAnimationList);
+//       });
+//       return;
+//     }
+//     drawTimerBusy = true;
+    _map._draw(animationList);
   };
   /**
    * API Function called to draw the layers, fires getmap request and shows the layers on the screen
    */
   this._draw = function (animationList) {
+
     if (enableConsoleDebugging)console.log('draw:' + animationList);
 
-    if (_map.isAnimating) {
-      if (enableConsoleDebugging)console.log('ANIMATING: Skipping draw:' + animationList);
-      return;
-    }
+
     if (enableConsoleDebugging)console.log('drawnBBOX.setBBOX(bbox)');
     drawnBBOX.setBBOX(bbox);
-    /*
-    if(isDefined(_map.drawDelayTimer)==false){
-      _map.drawDelayTimer = new WMJSTimer();
-
-    }
-
-    var defaultDelay = 1;
-
-    var currentBBOX = divBuffer[newSwapBuffer].bbox;
-    var currentSRS = divBuffer[newSwapBuffer].srs;
-    var bboxToDo = updateBBOX;
-    var srsToDo = updateSRS;
-    //var currentImages = divBuffer[newSwapBuffer].images;
-    if(isDefined(bboxToDo)&&isDefined(srsToDo)){
-      //if(bboxToDo.equals(bbox)==false)
-      {
-        if(srsToDo == currentSRS){
-          //divBuffer[newSwapBuffer].setPosition(parseInt(0),parseInt(0));
-          var right   = (bboxToDo.right- currentBBOX.right)/(currentBBOX.right-currentBBOX.left);
-          var top  = (bboxToDo.top- currentBBOX.top)/(currentBBOX.top-currentBBOX.bottom);
-          var left   = (bboxToDo.left- currentBBOX.left)/(currentBBOX.right-currentBBOX.left);
-          var bottom    = (bboxToDo.bottom- currentBBOX.bottom)/(currentBBOX.top-currentBBOX.bottom);
-          var l =( left  *_map.getWidth());
-          var t =-(top   *_map.getHeight());
-          var r =( right  *_map.getWidth());
-          var b =-(bottom   *_map.getHeight());
-//             divBuffer[newSwapBuffer].setPosition(l,t);
-//             divBuffer[newSwapBuffer].setSize((_map.getWidth()+(r-l)),(_map.getHeight()+(b-t)));
-          defaultDelay = 3000;
-          if(mouseWheelBusy == 1){
-            defaultDelay = 3000;
-          }
-        }
-      }
-
-    }
-
-    if(defaultDelay == 1){ */
-    _map.drawAndLoad(animationList);
-//       }else{
-//         _map.drawDelayTimer.init(defaultDelay, function(){_map.drawAndLoad(animationList); });
-//       }
+    _drawAndLoad(animationList);
   };
 
+  var _drawAndLoad = function (animationList) {
+    if(width < 4 || height < 4 ) {
+      console.log('map too small, skipping');
+      return;
+    }
 
-  this.drawAndLoad = function (animationList) {
     callBack.triggerEvent('beforedraw');
 
     // debug("WebMapJS::draw():"+animationList);
     // alert(animationList);
-    if (_map.isAnimating == false) {
-      if (animationList != undefined) {
+    if (_map.isAnimating === false) {
+      if (animationList !== undefined) {
         if (typeof (animationList) === 'object') {
           if (animationList.length > 0) {
             if (animationList.length > maxAnimationSteps) {
@@ -2022,7 +1705,7 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
 //         return;
 //       }
 
-    drawScaleBar();
+
 //       drawBusy=1;
 
     function loadLayers () {
@@ -2034,7 +1717,8 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
       if (baseLayers) {
         for (var l = 0; l < baseLayers.length; l++) {
           if (baseLayers[l].enabled) {
-            if (baseLayers[l].keepOnTop == false) {
+            if (baseLayers[l].keepOnTop === false) {
+              if (baseLayers[l].type && baseLayers[l].type === 'twms') continue;
               numBaseLayers++;
               request = buildWMSGetMapRequest(baseLayers[l]);
 
@@ -2124,6 +1808,7 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
     divBuffer[currentSwapBuffer].mapbbox = updateBBOX;
     _map.showBoundingBox(divBoundingBox.bbox, updateBBOX);
     callBack.triggerEvent('onupdatebbox', updateBBOX);
+    _map.repositionMapPin(_mapbbox);
   };
 
 
@@ -2186,6 +1871,8 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
 
   _map.redrawBuffer = function () {
     divBuffer[currentSwapBuffer].display();
+    if (enableConsoleDebugging)console.log('drawnBBOX.setBBOX(bbox)');
+    drawnBBOX.setBBOX(bbox);
   };
 
   this.addBaseLayers = function (layer) {
@@ -2233,30 +1920,33 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
   };
 
   var mouseWheelBusy = 0;
-  var mouseWheelBusyDelayTimer = new WMJSTimer();
 
-  var flyZoomToBBOXTimerLoop = 0;
-  var flyZoomToBBOXTimer = new WMJSTimer();
-  var flyZoomToBBOXScaler=0;
+  var flyZoomToBBOXTimerStart = 1;
+  var flyZoomToBBOXTimerSteps = 6;
+  var flyZoomToBBOXTimerLoop;
+  var flyZoomToBBOXTimer = new WMJSDebouncer();
+  var flyZoomToBBOXScaler = 0;
   var flyZoomToBBOXCurrent = new WMJSBBOX();
+  var flyZoomToBBOXFly = new WMJSBBOX();
   var flyZoomToBBOXNew = new WMJSBBOX();
   var flyZoomToBBOXContinueNew = new WMJSBBOX();
   var flyZoomToBBOXTimerFuncBusy = 0;
-  var flyZoomToBBOXTimerFuncBusyAndContinue= 0;
-  var flyZoomToBBOXTimerFunc = () => {
+  var flyZoomToBBOXTimerFuncBusyAndContinue = 0;
+  var flyZoomToBBOXTimerFunc = function () {
+    flyZoomToBBOXScaler = (flyZoomToBBOXTimerLoop / flyZoomToBBOXTimerSteps);
     let z1 = 1 - flyZoomToBBOXScaler;
-    var nbbox = new WMJSBBOX (
-      flyZoomToBBOXCurrent.left * z1 + flyZoomToBBOXNew.left * flyZoomToBBOXScaler,
-      flyZoomToBBOXCurrent.bottom * z1 + flyZoomToBBOXNew.bottom * flyZoomToBBOXScaler,
-      flyZoomToBBOXCurrent.right * z1 + flyZoomToBBOXNew.right * flyZoomToBBOXScaler,
-      flyZoomToBBOXCurrent.top * z1 + flyZoomToBBOXNew.top * flyZoomToBBOXScaler);
-    updateBoundingBox(nbbox);
+    flyZoomToBBOXFly.left = flyZoomToBBOXCurrent.left * z1 + flyZoomToBBOXNew.left * flyZoomToBBOXScaler;
+    flyZoomToBBOXFly.bottom = flyZoomToBBOXCurrent.bottom * z1 + flyZoomToBBOXNew.bottom * flyZoomToBBOXScaler;
+    flyZoomToBBOXFly.right = flyZoomToBBOXCurrent.right * z1 + flyZoomToBBOXNew.right * flyZoomToBBOXScaler;
+    flyZoomToBBOXFly.top = flyZoomToBBOXCurrent.top * z1 + flyZoomToBBOXNew.top * flyZoomToBBOXScaler;
+    updateBoundingBox(flyZoomToBBOXFly);
+
     flyZoomToBBOXTimerLoop += 1;
-    flyZoomToBBOXScaler += 0.1;
-    if (flyZoomToBBOXTimerLoop > 9) {
-      flyZoomToBBOXTimerLoop = 0;
-      flyZoomToBBOXScaler = 0;
-      _map.zoomTo(nbbox);
+
+    if (flyZoomToBBOXTimerLoop > flyZoomToBBOXTimerSteps) {
+      flyZoomToBBOXTimerLoop = flyZoomToBBOXTimerStart;
+      _map.setBBOX(flyZoomToBBOXFly);
+      _map.display();
       if (flyZoomToBBOXTimerFuncBusyAndContinue === 0) {
         flyZoomToBBOXTimerFuncBusyAndContinue = 0;
         flyZoomToBBOXTimerFuncBusy = 0;
@@ -2271,7 +1961,16 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
     flyZoomToBBOXTimer.init(10, flyZoomToBBOXTimerFunc);
   };
 
-  var flyZoomToBBOXStartZoom = (currentbox, newbox) => {
+  var flyZoomToBBOXStop = function (currentbox, newbox) {
+    if (flyZoomToBBOXTimerFuncBusy) {
+      _map.setBBOX(flyZoomToBBOXFly);
+    }
+    flyZoomToBBOXTimerFuncBusyAndContinue = 0;
+    flyZoomToBBOXTimerFuncBusy = 0;
+    flyZoomToBBOXTimer.stop();
+
+  };
+  var flyZoomToBBOXStartZoom = function (currentbox, newbox) {
     if (flyZoomToBBOXTimerFuncBusy === 1) {
       flyZoomToBBOXContinueNew.copy(newbox);
       flyZoomToBBOXTimerFuncBusyAndContinue = 1;
@@ -2279,8 +1978,8 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
     }
     flyZoomToBBOXCurrent.copy(currentbox);
     flyZoomToBBOXNew.copy(newbox);
-    flyZoomToBBOXTimerLoop = 0;
-    flyZoomToBBOXScaler = 0;
+    flyZoomToBBOXTimerLoop = flyZoomToBBOXTimerStart;
+    flyZoomToBBOXTimerFuncBusyAndContinue = 0;
     if (flyZoomToBBOXTimerFuncBusy === 0) {
       flyZoomToBBOXTimerFuncBusy = 1;
       flyZoomToBBOXTimerFunc();
@@ -2290,11 +1989,13 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
   // this.mouseWheel = function(delta){
   let mouseWheelEventBBOXCurrent = new WMJSBBOX();
   let mouseWheelEventBBOXNew = new WMJSBBOX();
-  this.mouseWheelEvent = function (event, delta, deltaX, deltaY) {
 
+
+  this.mouseWheelEvent = function (event, delta, deltaX, deltaY) {
+    /*console.log('mousewheelevent');
     event.stopPropagation();
     preventdefault_event(event);
-    // alert(element.top);
+    */// alert(element.top);
     // if(drawBusy==1)return;
     if (mouseWheelBusy == 1) return;
     mouseWheelBusy = 1;
@@ -2318,8 +2019,8 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
     var zoomW;
     var zoomH;
     if (delta < 0) {
-      zoomW = w * -0.4;
-      zoomH = h * -0.4;
+      zoomW = w * -0.35;
+      zoomH = h * -0.35;
     } else {
       zoomW = w * 0.25;// delta;
       zoomH = h * 0.25;//* delta;
@@ -2357,24 +2058,10 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
     mouseWheelEventBBOXNew.top = newTop;
 
 
-
-    flyZoomToBBOXStartZoom(mouseWheelEventBBOXCurrent, mouseWheelEventBBOXNew);
     mouseWheelBusy =0;
+    flyZoomToBBOXStartZoom(mouseWheelEventBBOXCurrent, mouseWheelEventBBOXNew);
+
     return;
-
-    updateBoundingBox(updateBBOX);
-      // _map.zoomTo(new WMJSBBOX(newLeft,newBottom,newRight,newTop));
-      // _map.repositionMapPin();
-    /* }else{
-      var a=(bbox.right-bbox.left)*0.02;
-
-      _map.zoomTo(new WMJSBBOX(bbox.left-a,bbox.bottom-a,bbox.right+a,bbox.top+a));
-    } */
-    mouseWheelBusy = 0;
-    _map.zoomTo(updateBBOX);
-    mouseWheelBusyDelayTimer.init(250, function () { controlsBusy = false; _map.draw('mouseWheelEvent'); });
-    callBack.triggerEvent('onscroll', updateBBOX);
-    // _map.zoomTo(bbox);_map.draw("mouseWheelEvent");
   };
 
   var pinchStart1, pinchStart2;
@@ -2815,13 +2502,15 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
     _map.showMapPin();
   };
 
-  this.repositionMapPin = function () {
-    var newpos = _map.getPixelCoordFromGeoCoord({ x:divMapPin.geoPosX, y:divMapPin.geoPosY });
-    _map.setMapPin(newpos.x, newpos.y);
+  this.repositionMapPin = function (_bbox) {
+    var b = bbox;
+    if(isDefined(_bbox))b = _bbox;
+    var newpos = _map.getPixelCoordFromGeoCoord({ x:divMapPin.geoPosX, y:divMapPin.geoPosY },b);
+    _map.setMapPin(newpos.x, newpos.y, b);
     // debug(newpos.x+)
   };
 
-  this.setMapPin = function (_x, _y) {
+  this.setMapPin = function (_x, _y, _bbox) {
     var x = _x;
     var y = _y;
 
@@ -2839,7 +2528,7 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
     divMapPin.exactY = parseFloat(y);
     debug('Input coords: ' + _x + ', ' + _y);
     debug('Exact coords: ' + divMapPin.exactX + ', ' + divMapPin.exactY);
-    var geopos = _map.getGeoCoordFromPixelCoord({ x:divMapPin.exactX, y:divMapPin.exactY });
+    var geopos = _map.getGeoCoordFromPixelCoord({ x:divMapPin.exactX, y:divMapPin.exactY }, _bbox);
     divMapPin.geoPosX = geopos.x;
     divMapPin.geoPosY = geopos.y;
     divMapPin.style.left = divMapPin.x - 5 + 'px';
@@ -2983,7 +2672,7 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
   this.updateMouseCursorCoordinates = function (coordinates) {
     mouseUpdateCoordinates = coordinates;
     mouseGeoCoordXY = _map.getGeoCoordFromPixelCoord(coordinates);
-    _map.draw('updateMouseCursorCoordinates');
+    _map.display('updateMouseCursorCoordinates');
   };
 
   this.mouseDownEvent = function (e) {
@@ -3229,6 +2918,7 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
   var mapPanning = 0;
   var mapPanStartGeoCoords;
   var mapPanStart = function (_x, _y) {
+    flyZoomToBBOXStop();
     // if(drawBusy==1||mapBusy)return;
     baseDiv.css('cursor', 'move');
     var x = parseInt(_x); var y = parseInt(_y);
@@ -3242,7 +2932,7 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
     mapPanning = 1;
     if (enableConsoleDebugging)console.log('updateBBOX.setBBOX(drawnBBOX)');
     updateBBOX.setBBOX(drawnBBOX);
-    mapPanStartGeoCoords = _map.getGeoCoordFromPixelCoord({ x:x, y:y }, drawnBBOX);
+    mapPanStartGeoCoords = _map.getGeoCoordFromPixelCoord({ x:x, y:y }, bbox);
   };
 
   var mapPan = function (_x, _y) {
@@ -3253,14 +2943,14 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
       mapPanEnd(x, y);
       return;
     }
-    var mapPanGeoCoords = _map.getGeoCoordFromPixelCoord({ x:x, y:y }, drawnBBOX);
+
+    var mapPanGeoCoords = _map.getGeoCoordFromPixelCoord({ x:x, y:y }, updateBBOX);
     var diff_x = mapPanGeoCoords.x - mapPanStartGeoCoords.x;
     var diff_y = mapPanGeoCoords.y - mapPanStartGeoCoords.y;
-    _map.setMapPin(divMapPin.oldx + (diff_x / (bbox.right - bbox.left)) * width, divMapPin.oldy + (diff_y / (bbox.bottom - bbox.top)) * height);
-    updateBBOX.left = drawnBBOX.left - diff_x;
-    updateBBOX.bottom = drawnBBOX.bottom - diff_y;
-    updateBBOX.right = drawnBBOX.right - diff_x;
-    updateBBOX.top = drawnBBOX.top - diff_y;
+    updateBBOX.left = updateBBOX.left - diff_x;
+    updateBBOX.bottom = updateBBOX.bottom - diff_y;
+    updateBBOX.right = updateBBOX.right - diff_x;
+    updateBBOX.top = updateBBOX.top - diff_y;
     updateBoundingBox(updateBBOX);
   };
 
@@ -3271,12 +2961,10 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
     if (mapPanning == 0) return;
     mapPanning = 0;
 
+
     var mapPanGeoCoords = _map.getGeoCoordFromPixelCoord({ x:x, y:y }, drawnBBOX);
     var diff_x = mapPanGeoCoords.x - mapPanStartGeoCoords.x;
     var diff_y = mapPanGeoCoords.y - mapPanStartGeoCoords.y;
-    mapPanStartGeoCoords = _map.getGeoCoordFromPixelCoord({ x:x, y:y }, drawnBBOX);
-    _map.setMapPin(divMapPin.oldx + (diff_x / (bbox.right - bbox.left)) * width, divMapPin.oldy + (diff_y / (bbox.bottom - bbox.top)) * height);
-
     updateBBOX.left = drawnBBOX.left - diff_x;
     updateBBOX.bottom = drawnBBOX.bottom - diff_y;
     updateBBOX.right = drawnBBOX.right - diff_x;
@@ -3284,17 +2972,15 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
     updateBoundingBox(updateBBOX);
     _map.zoomTo(updateBBOX);
     _map.draw('mapPanEnd');
-    return;
-
-    for (var j = 0; j < gfiDialogList.length; j++) {
-      if (gfiDialogList[j].hasBeenDragged == false) {
-        if (gfiDialogList[j].moveToMouseCursor == true) {
-          gfiDialogList[j].setXY(gfiDialogList[j].origX + x, gfiDialogList[j].origY + y);
-          gfiDialogList[j].origX = gfiDialogList[j].origX + x;
-          gfiDialogList[j].origY = gfiDialogList[j].origY + y;
-        }
-      }
-    }
+//     for (var j = 0; j < gfiDialogList.length; j++) {
+//       if (gfiDialogList[j].hasBeenDragged == false) {
+//         if (gfiDialogList[j].moveToMouseCursor == true) {
+//           gfiDialogList[j].setXY(gfiDialogList[j].origX + x, gfiDialogList[j].origY + y);
+//           gfiDialogList[j].origX = gfiDialogList[j].origX + x;
+//           gfiDialogList[j].origY = gfiDialogList[j].origY + y;
+//         }
+//       }
+//     }
   };
 
   var mapZooming = 0;
@@ -3419,7 +3105,6 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
 
     var resetMapPinAndDialogs = function () {
       var newpos = _map.getPixelCoordFromGeoCoord({ x:divMapPin.geoPosX, y:divMapPin.geoPosY });
-      _map.setMapPin(newpos.x, newpos.y);
       for (var j = 0; j < gfiDialogList.length; j++) {
         var newpos = _map.getPixelCoordFromGeoCoord({ x:gfiDialogList[j].geoPosX, y:gfiDialogList[j].geoPosY });
         if (gfiDialogList[j].hasBeenDragged == false) {
@@ -3491,6 +3176,7 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
   };
 
   this.WCJSSearchRequest = function (searchDefinition) {
+    console.log(searchDefinition);
     /* ------------ */
     /*  Validation  */
     /* ------------ */
@@ -3503,8 +3189,7 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
       return;
     }
 
-    if (typeof (geoNamesURL) === 'undefined' ||
-      typeof (knmiGeoNamesURL) === 'undefined') {
+    if (typeof (geoNamesURL) === 'undefined' && typeof (knmiGeoNamesURL) === 'undefined') {
       error(I18n.no_urls_in_config.text);
       return;
     }
@@ -3530,7 +3215,17 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
      * First attempt if getting the lat/lng from GeoNames.org.
      * If not succesful, try our own SQLite3 DB.
      */
-    var urlKNMIGeoNames = knmiGeoNamesURL.replace('{searchTerm}', searchDef);
+    var urlKNMIGeoNames;
+    if (typeof (knmiGeoNamesURL) !== 'undefined') {
+      urlKNMIGeoNames = knmiGeoNamesURL.replace('{searchTerm}', searchDef);
+    }else{
+      /* If only geonames is configured, try this instead */
+      var urlApiGeonames = geoNamesURL.replace('{searchTerm}', searchDef)
+       .replace('{username}', defaultUsernameSearch);
+       console.log('urlApiGeonames', urlApiGeonames);
+      _map.WCJSSearchRequestGeoNames(urlApiGeonames);
+      return;
+    }
 
     /* Debugging text */
     debug(I18n.debug_searching_location.text);
@@ -3556,6 +3251,7 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
       if ($(obj).length === 0) {
         var urlApiGeonames = geoNamesURL.replace('{searchTerm}', searchDef)
           .replace('{username}', defaultUsernameSearch);
+        console.log('urlApiGeonames', urlApiGeonames);
         _map.WCJSSearchRequestGeoNames(urlApiGeonames);
         return;
       }
@@ -3821,9 +3517,7 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
   this.setBBOX = function (left, bottom, right, top) {
     if (enableConsoleDebugging)console.log('setBBOX');
 
-    if (bbox.equals(left, bottom, right, top) === true) {
-      return false;
-    }
+
     bbox.setBBOX(left, bottom, right, top);
     resizeBBOX.setBBOX(bbox);
 
@@ -3880,6 +3574,7 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
 //         }
 //         bbox.setBBOX(newbbox);
 //       }
+
     updateBBOX.setBBOX(bbox);
     drawnBBOX.setBBOX(bbox);
      // Undo part
@@ -3901,6 +3596,9 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
     DoRedo = 0;
     DoUndo = 0;
     // console.log('triggerEvent::afterbboxupdate', bbox);
+    if (bbox.equals(left, bottom, right, top) === true) {
+      return false;
+    }
     callBack.triggerEvent('aftersetbbox', _map);
     return true;
   };
@@ -3929,158 +3627,6 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
     _map.WCJSSearchRequest(searchParam);
   };
 
-  this.hideControls = function () {
-    divControls.style.display = 'none';
-    $('#' + makeComponentId('buttonzoomin')).hide();
-    $('#' + makeComponentId('buttonzoomout')).hide();
-    $('#' + makeComponentId('buttondragmap')).hide();
-    $('#' + makeComponentId('buttonzoombox')).hide();
-    $('#' + makeComponentId('buttonzoomhome')).hide();
-  };
-
-  this.addControls = function (controlOptions) {
-    divControls.style.display = '';
-
-    function addButton (src, call, radiogroup, uncall) {
-      var element = new Image();
-      element.style.margin = '0px';
-      element.style.padding = '2px 0px 2px 0px';
-      element.style.border = '0px solid #000000';
-      element.src = src;
-
-      element.unselect = function () {
-        element.style.background = 'none';
-        element.style.padding = '2px 0px 2px 0px';
-        element.setOpacity(1.0);
-        element.style.border = '0px solid #000000';
-        element.isSelected = undefined;
-      };
-      element.select = function () {
-        // element.style.background='#FFF';
-        // element.style.borderLeft='1px dashed #888';
-        // element.style.borderBottom='1px dashed #888';
-        element.setOpacity(0.6);
-        element.style.padding = '4px 0px 2px 4px';
-        element.isSelected = true;
-      };
-      element.setOpacity = function (opacity) {
-        var op = parseFloat(opacity);
-        element.style.opacity = op * 1.0;               // Gecko
-        element.style.filter = 'alpha(opacity=' + op * 100.0 + ')';  // Windows
-        if (opacity == 1) { element.style.filter = ''; }
-      };
-      element.myClick = function (e) {
-        preventdefault_event(e);
-        var mouseClickX = (getClick_X(e) - elementPosition.left);
-        var mouseClickY = (getClick_Y(e) - elementPosition.top);
-
-        if (element.radiogroup) {
-          for (var j = 0; j < divControls.childNodes.length; j++) {
-            if (divControls.childNodes[j].radiogroup) {
-              if (divControls.childNodes[j].radiogroup == element.radiogroup) {
-                if (element == divControls.childNodes[j]) {
-                  if (element.isSelected == undefined) {
-                    divControls.childNodes[j].select();
-                    call();
-                  } else {
-                    divControls.childNodes[j].unselect();
-                    uncall();
-                  }
-                } else {
-                  divControls.childNodes[j].unselect();
-                }
-              }
-            }
-          }
-        } else {
-          call(mouseClickX, mouseClickY - 2);
-        }
-      };
-      // element.style.zIndex=20;
-      // element.addEventListener('click',element.myClick,false);
-      element.onclick = element.myClick;
-      // element.onselectstart = function(){return false;};
-      // element.ondrag = function(){return false;};
-      // element.oncontextmenu    = function(){return false;};
-
-      if (radiogroup) {
-        element.radiogroup = radiogroup;
-      }
-      divControls.appendChild(element);
-    }
-    // addButton('./img/full_extent.png',function(){_map.zoomToLayer(_map.getActiveLayer());});
-    // addButton('./img/drag.png',_map.setMapModePan,'radiogroup1',_map.setMapModeNone);
-    // addButton('./img/zoom_box.png',_map.setMapModeZoomBoxIn,'radiogroup1',_map.setMapModeNone);
-    // addButton('./img/zoom_out.png',function(){_map.zoomOut();});
-    // addButton('./img/zoom_in.png',function(){_map.zoomIn();});
-
-    addButton(WMSControlsImageSrc, function (x, y) {
-      _map.setMapModeNone();
-
-      var a = (bbox.right - bbox.left) * 0.25;
-      if (x >= 0 && x < 18 && y >= 20 && y < 38)_map.zoomTo(new WMJSBBOX(bbox.left - a, bbox.bottom, bbox.right - a, bbox.top));// left
-      if (x >= 20 && x < 38 && y >= 0 && y < 18)_map.zoomTo(new WMJSBBOX(bbox.left, bbox.bottom + a, bbox.right, bbox.top + a));// up
-      if (x >= 40 && x < 58 && y >= 20 && y < 38)_map.zoomTo(new WMJSBBOX(bbox.left + a, bbox.bottom, bbox.right + a, bbox.top));// right
-      if (x >= 20 && x < 38 && y >= 40 && y < 58)_map.zoomTo(new WMJSBBOX(bbox.left, bbox.bottom - a, bbox.right, bbox.top - a));// down
-      if (x >= 20 && x < 38 && y >= 20 && y < 38) { _map.setMapModeNone(); _map.zoomToLayer(_map.getActiveLayer()); }// fullextent
-
-      if (x >= 0 && x < 18 && y >= 64 && y < 90)_map.setMapModeZoomBoxIn();// Zoom box
-      if (x >= 20 && x < 38 && y >= 64 && y < 90)_map.setMapModePan();// pan
-      if (x >= 40 && x < 58 && y >= 64 && y < 90)_map.setMapModeGetInfo();// Get info.
-
-      if (x >= 20 && x < 38 && y >= 90 && y < 106)_map.zoomIn();// zoomin
-      if (x >= 20 && x < 38 && y >= 110 && y < 126)_map.zoomOut();// zoomout
-        /* if(x>25){
-          changeTime(+1);
-        }else changeTime(-1); */
-    });
-    divControls.style.height = '156px';
-    var onresize = function () {
-      divControls.style.left = 5 + 'px'; ;
-      divControls.style.top = _map.getSize().height - parseInt(divControls.style.height) + 'px';
-    };
-    onresize();
-    _map.addListener('onresize', onresize, true);
-
-    var changeTime = function (timeStepDelta) {
-      var layer = _map.getActiveLayer();
-      if (layer.timeRange) {
-        var dim = layer.dimensions[0];
-        if (dim.name == 'time') {
-          var currentISODate = _map.getDimension(dim.name).currentValue;
-          var currentStep = layer.timeRange.getTimeStepFromISODate(currentISODate);
-
-          currentStep += timeStepDelta;
-          if (currentStep < 0)currentStep = 0; if (currentStep > layer.timeRange.getTimeSteps())currentStep = layer.timeRange.getTimeSteps();
-          var newISODate = layer.timeRange.getDateAtTimeStep(currentStep).toISO8601();
-          _map.setDimension(dim.name, newISODate);
-          _map.draw('changeTime');
-        }
-      }
-    };
-
-    var onlayersready = function () {
-      var layer = _map.getActiveLayer();
-      var dim = layer.dimensions[0];
-      if (dim.name == 'time') {
-        if (!layer.timeRange) {
-          layer.timeRange = new parseISOTimeRangeDuration(dim.values);
-        }
-      }
-    };
-    _map.addListener('onlayersready', onlayersready, true);
-
-    if (controlOptions) {
-      if (controlOptions.showGetFeatureInfoWindow) {
-        var ongetfeaturestart = function (data) {
-        };
-        var ongetfeatureinfoready = function (data) {
-        };
-        _map.addListener('beforegetfeatureinfo', ongetfeaturestart, true);
-        _map.addListener('ongetfeatureinfoready', ongetfeatureinfoready, true);
-      }
-    }
-  };
 
   this.displayLegendInMap = function (_displayLegendInMap) {
     displayLegendInMap = _displayLegendInMap;
@@ -4109,10 +3655,6 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
   this.hideBoundingBox = function () {
     divBoundingBox.style.display = 'none';
     divBoundingBox.displayed = false;
-  };
-
-  this.getOverlayElement = function () {
-    return overlayDiv;
   };
 
   this.setDebugFunction = function (debugFunction) { debug = debugFunction; };
