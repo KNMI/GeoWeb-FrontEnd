@@ -27,18 +27,18 @@ export default class SigmetManagementPanel extends React.Component {
       <Panel>
         <Row className='managementRow'>
           {
-          items.map((item, i) => {
-            return (
-              <Card className='col-auto loc-card' block key={i}>
-                <CardTitle>{item.title}</CardTitle>
-                <CardText>{item.text}</CardText>
-                <Link to={item.link} className='row'>
-                  <Button disabled={item.disabled === true}>Bewerk</Button>
-                </Link>
-              </Card>
-            );
-          })
-        }
+            items.map((item, i) => {
+              return (
+                <Card className='col-auto loc-card' block key={i}>
+                  <CardTitle>{item.title}</CardTitle>
+                  <CardText>{item.text}</CardText>
+                  <Link to={item.link} className='row'>
+                    <Button disabled={item.disabled === true}>Bewerk</Button>
+                  </Link>
+                </Card>
+              );
+            })
+          }
         </Row>
       </Panel>
     );
