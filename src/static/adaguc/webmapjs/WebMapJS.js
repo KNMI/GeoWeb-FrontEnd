@@ -213,6 +213,7 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
 
   var currentCursor = 'default';
   var mapIsActivated = false;
+  var isMapHeaderEnabled = false;
 
   var loadingDiv = $('<div class="WMJSDivBuffer-loading"/>', {});
   var initialized = 0;
@@ -396,14 +397,24 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
   // Is called when the WebMapJS object is created
   function constructor () {
     // console.log('creating new WMJSMAP');
+    
+    
+    
+    if(!mainElement.style.height){
+      mainElement.style.height = '1px';
+    }
+    if(!mainElement.style.width){
+      mainElement.style.width = '1px';
+    }
+    
     var baseDivId = makeComponentId('baseDiv');
     jQuery('<div/>', {
       id:baseDivId,
       css:{
         position:'relative',
         overflow:'hidden',
-        width:mainElement.style.width,
-        height:mainElement.style.height,
+        width:mainElement.clientWidth,
+        height:mainElement.clientHeight,
         border:'0px  solid black',
         margin:0,
         padding:0,
@@ -472,6 +483,8 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
     divMapPin.style.height = '100px';
     divMapPin.style.zIndex = 1000;
     divMapPin.oncontextmenu = function () { return false; };
+    divMapPin.innerHTML = '<img src=\'' + mapPinImageSrc + '\'>';
+    divMapPin.style.display = '';
 
     baseDiv.append(divMapPin);
     // Attach divDimInfo
@@ -509,7 +522,7 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
         id: makeComponentId('searchboxbutton'),
         mousedown:function (event) { event.stopPropagation(); },
         click:function () {
-          var value = $('#searchtextfield').attr('value');
+          var value = $('#searchtextfield').val();//attr('value');
           _map.searchForLocation(value);
         } })
       .addClass('webmapjs_locationbutton')
@@ -518,7 +531,7 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
       /* On Enter */
       $('#searchtextfield').keypress(function (e) {
         if (e.which == 13) {
-          var value = $('#searchtextfield').attr('value');
+          var value = $('#searchtextfield').val();//('value');
           _map.searchForLocation(value);
           return false;
         }
@@ -535,7 +548,7 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
     bbox.right = 180;
     bbox.top = 90;
     srs = 'EPSG:4326';
-    _map.setSize(mainElement.style.width, mainElement.style.height);
+    _map.setSize(mainElement.clientWidth, mainElement.clientHeight);
     // IMAGE buffers
     for (var j = 0; j < 2; j++) {
       let d = new WMJSCanvasBuffer(callBack, 'imagebuffer', getMapImageStore, _map.getWidth(), _map.getHeight());
@@ -588,17 +601,19 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
 
     let adagucBeforeCanvasDisplay = function (ctx) {
       // Map header
-      ctx.beginPath();
-      ctx.rect(0, 0, width, mapHeader.height);
-      if (mapIsActivated === false) {
-        ctx.globalAlpha = mapHeader.hovering ? mapHeader.hover.opacity : mapHeader.fill.opacity;
-        ctx.fillStyle = mapHeader.hovering ? mapHeader.hover.color : mapHeader.fill.color;
-      } else {
-        ctx.globalAlpha = mapHeader.hovering ? mapHeader.hoverSelected.opacity : mapHeader.selected.opacity;
-        ctx.fillStyle = mapHeader.hovering ? mapHeader.hoverSelected.color : mapHeader.selected.color;
+      if(isMapHeaderEnabled){
+        ctx.beginPath();
+        ctx.rect(0, 0, width, mapHeader.height);
+        if (mapIsActivated === false) {
+          ctx.globalAlpha = mapHeader.hovering ? mapHeader.hover.opacity : mapHeader.fill.opacity;
+          ctx.fillStyle = mapHeader.hovering ? mapHeader.hover.color : mapHeader.fill.color;
+        } else {
+          ctx.globalAlpha = mapHeader.hovering ? mapHeader.hoverSelected.opacity : mapHeader.selected.opacity;
+          ctx.fillStyle = mapHeader.hovering ? mapHeader.hoverSelected.color : mapHeader.selected.color;
+        }
+        ctx.fill();
+        ctx.globalAlpha = 1;
       }
-      ctx.fill();
-      ctx.globalAlpha = 1;
 
       // Time offset message
       if (setTimeOffsetValue !== '') {
@@ -734,7 +749,7 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
         if (srs === 'EPSG:3857') {
           units = 'meter';
         }
-        ctx.fillText('CoordYX: (' + yText + ', ' + xText + ') ' + units, 5, height - 40);
+        ctx.fillText('CoordYX: (' + yText + ', ' + xText + ') ' + units, 5, height - 50);
       }
       // Mouse latlon coords
       if (isDefined(mouseUpdateCoordinates)) {
@@ -905,6 +920,7 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
   /* Indicate weather this map component is active or not */
   this.setActive = function (active) {
     mapIsActivated = active;
+    isMapHeaderEnabled = true;
   };
 
   this.setActiveLayer = function (layer) {
@@ -1610,6 +1626,11 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
         }
       }
     }
+    
+    if(width < 4 || height < 4 ) {
+      console.log('map too small, skipping');
+      return;
+    }
 
 /*    if (_map.isAnimating == true) {
       for (var j = 0; j < _map.animationList.length; j++) {
@@ -1806,6 +1827,7 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
     divBuffer[currentSwapBuffer].mapbbox = updateBBOX;
     _map.showBoundingBox(divBoundingBox.bbox, updateBBOX);
     callBack.triggerEvent('onupdatebbox', updateBBOX);
+    _map.repositionMapPin(_mapbbox);
   };
 
 
@@ -1919,7 +1941,7 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
   var mouseWheelBusy = 0;
 
   var flyZoomToBBOXTimerStart = 1;
-  var flyZoomToBBOXTimerSteps = 6;
+  var flyZoomToBBOXTimerSteps = 4;
   var flyZoomToBBOXTimerLoop;
   var flyZoomToBBOXTimer = new WMJSDebouncer();
   var flyZoomToBBOXScaler = 0;
@@ -1955,7 +1977,7 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
       }
       return;
     }
-    flyZoomToBBOXTimer.init(10, flyZoomToBBOXTimerFunc);
+    flyZoomToBBOXTimer.init(20, flyZoomToBBOXTimerFunc);
   };
 
   var flyZoomToBBOXStop = function (currentbox, newbox) {
@@ -1989,10 +2011,10 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
 
 
   this.mouseWheelEvent = function (event, delta, deltaX, deltaY) {
-    /*console.log('mousewheelevent');
+    // console.log('mousewheelevent');
     event.stopPropagation();
     preventdefault_event(event);
-    */// alert(element.top);
+    
     // if(drawBusy==1)return;
     if (mouseWheelBusy == 1) return;
     mouseWheelBusy = 1;
@@ -2499,13 +2521,15 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
     _map.showMapPin();
   };
 
-  this.repositionMapPin = function () {
-    var newpos = _map.getPixelCoordFromGeoCoord({ x:divMapPin.geoPosX, y:divMapPin.geoPosY });
-    _map.setMapPin(newpos.x, newpos.y);
+  this.repositionMapPin = function (_bbox) {
+    var b = bbox;
+    if(isDefined(_bbox))b = _bbox;
+    var newpos = _map.getPixelCoordFromGeoCoord({ x:divMapPin.geoPosX, y:divMapPin.geoPosY },b);
+    _map.setMapPin(newpos.x, newpos.y, b);
     // debug(newpos.x+)
   };
 
-  this.setMapPin = function (_x, _y) {
+  this.setMapPin = function (_x, _y, _bbox) {
     var x = _x;
     var y = _y;
 
@@ -2523,7 +2547,7 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
     divMapPin.exactY = parseFloat(y);
     debug('Input coords: ' + _x + ', ' + _y);
     debug('Exact coords: ' + divMapPin.exactX + ', ' + divMapPin.exactY);
-    var geopos = _map.getGeoCoordFromPixelCoord({ x:divMapPin.exactX, y:divMapPin.exactY });
+    var geopos = _map.getGeoCoordFromPixelCoord({ x:divMapPin.exactX, y:divMapPin.exactY }, _bbox);
     divMapPin.geoPosX = geopos.x;
     divMapPin.geoPosY = geopos.y;
     divMapPin.style.left = divMapPin.x - 5 + 'px';
@@ -2536,7 +2560,7 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
   };
 
   this.showMapPin = function () {
-    divMapPin.innerHTML = '<img src=\'' + mapPinImageSrc + '\'>';
+    console.log('showMapPin');
     divMapPin.style.display = '';
   };
 
@@ -2604,7 +2628,7 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
   };
 
   this.mouseDown = function (mouseCoordX, mouseCoordY, event) {
-
+  console.log(mapMode);
 
     var shiftKey = false;
     if (event) {
@@ -2877,6 +2901,9 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
               _map.showMapPin();
               callBack.triggerEvent('beforegetfeatureinfo');
               _map.getFeatureInfo(mouseDownX, mouseDownY);
+            }else{
+              _map.setMapPin(mouseDownX, mouseDownY);
+              _map.showMapPin();
             }
           }
         }
@@ -2927,21 +2954,21 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
     mapPanning = 1;
     if (enableConsoleDebugging)console.log('updateBBOX.setBBOX(drawnBBOX)');
     updateBBOX.setBBOX(drawnBBOX);
-    mapPanStartGeoCoords = _map.getGeoCoordFromPixelCoord({ x:x, y:y }, drawnBBOX);
+    mapPanStartGeoCoords = _map.getGeoCoordFromPixelCoord({ x:x, y:y }, bbox);
   };
 
   var mapPan = function (_x, _y) {
     if (mapPanning == 0) return;
     var x = parseInt(_x); var y = parseInt(_y);
 
-    if (mouseX < 0 || mouseY < 0 || mouseX > parseInt(mainElement.style.width) || mouseY > parseInt(mainElement.style.height)) {
+    if (mouseX < 0 || mouseY < 0 || mouseX > parseInt(mainElement.clientWidth) || mouseY > parseInt(mainElement.clientHeight)) {
       mapPanEnd(x, y);
       return;
     }
+    
     var mapPanGeoCoords = _map.getGeoCoordFromPixelCoord({ x:x, y:y }, updateBBOX);
     var diff_x = mapPanGeoCoords.x - mapPanStartGeoCoords.x;
     var diff_y = mapPanGeoCoords.y - mapPanStartGeoCoords.y;
-    _map.setMapPin(divMapPin.oldx + (diff_x / (bbox.right - bbox.left)) * width, divMapPin.oldy + (diff_y / (bbox.bottom - bbox.top)) * height);
     updateBBOX.left = updateBBOX.left - diff_x;
     updateBBOX.bottom = updateBBOX.bottom - diff_y;
     updateBBOX.right = updateBBOX.right - diff_x;
@@ -2956,12 +2983,10 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
     if (mapPanning == 0) return;
     mapPanning = 0;
 
+    
     var mapPanGeoCoords = _map.getGeoCoordFromPixelCoord({ x:x, y:y }, drawnBBOX);
     var diff_x = mapPanGeoCoords.x - mapPanStartGeoCoords.x;
     var diff_y = mapPanGeoCoords.y - mapPanStartGeoCoords.y;
-    mapPanStartGeoCoords = _map.getGeoCoordFromPixelCoord({ x:x, y:y }, drawnBBOX);
-    _map.setMapPin(divMapPin.oldx + (diff_x / (bbox.right - bbox.left)) * width, divMapPin.oldy + (diff_y / (bbox.bottom - bbox.top)) * height);
-
     updateBBOX.left = drawnBBOX.left - diff_x;
     updateBBOX.bottom = drawnBBOX.bottom - diff_y;
     updateBBOX.right = drawnBBOX.right - diff_x;
@@ -2969,7 +2994,6 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
     updateBoundingBox(updateBBOX);
     _map.zoomTo(updateBBOX);
     _map.draw('mapPanEnd');
-
 //     for (var j = 0; j < gfiDialogList.length; j++) {
 //       if (gfiDialogList[j].hasBeenDragged == false) {
 //         if (gfiDialogList[j].moveToMouseCursor == true) {
@@ -3103,7 +3127,6 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
 
     var resetMapPinAndDialogs = function () {
       var newpos = _map.getPixelCoordFromGeoCoord({ x:divMapPin.geoPosX, y:divMapPin.geoPosY });
-      _map.setMapPin(newpos.x, newpos.y);
       for (var j = 0; j < gfiDialogList.length; j++) {
         var newpos = _map.getPixelCoordFromGeoCoord({ x:gfiDialogList[j].geoPosX, y:gfiDialogList[j].geoPosY });
         if (gfiDialogList[j].hasBeenDragged == false) {
@@ -3175,6 +3198,7 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
   };
 
   this.WCJSSearchRequest = function (searchDefinition) {
+    console.log(searchDefinition);
     /* ------------ */
     /*  Validation  */
     /* ------------ */
@@ -3187,8 +3211,7 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
       return;
     }
 
-    if (typeof (geoNamesURL) === 'undefined' ||
-      typeof (knmiGeoNamesURL) === 'undefined') {
+    if (typeof (geoNamesURL) === 'undefined' && typeof (knmiGeoNamesURL) === 'undefined') {
       error(I18n.no_urls_in_config.text);
       return;
     }
@@ -3214,7 +3237,17 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
      * First attempt if getting the lat/lng from GeoNames.org.
      * If not succesful, try our own SQLite3 DB.
      */
-    var urlKNMIGeoNames = knmiGeoNamesURL.replace('{searchTerm}', searchDef);
+    var urlKNMIGeoNames;
+    if (typeof (knmiGeoNamesURL) !== 'undefined') {
+      urlKNMIGeoNames = knmiGeoNamesURL.replace('{searchTerm}', searchDef);
+    }else{
+      /* If only geonames is configured, try this instead */
+      var urlApiGeonames = geoNamesURL.replace('{searchTerm}', searchDef)
+       .replace('{username}', defaultUsernameSearch);
+       console.log('urlApiGeonames', urlApiGeonames);
+      _map.WCJSSearchRequestGeoNames(urlApiGeonames);
+      return;
+    }
 
     /* Debugging text */
     debug(I18n.debug_searching_location.text);
@@ -3240,6 +3273,7 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
       if ($(obj).length === 0) {
         var urlApiGeonames = geoNamesURL.replace('{searchTerm}', searchDef)
           .replace('{username}', defaultUsernameSearch);
+        console.log('urlApiGeonames', urlApiGeonames);
         _map.WCJSSearchRequestGeoNames(urlApiGeonames);
         return;
       }
