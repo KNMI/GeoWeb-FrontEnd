@@ -4,10 +4,15 @@
   * image._srcLoaded the loaded source
   */
 
-var WMJSImage = function (src, callback, __type) {
+var WMJSImage = function (src, callback, __type, options) {
   var _this = this;
 
-
+  var randomize = true;
+  if (isDefined(options) && isDefined(options.randomizer)) {
+    if (options.randomizer === false) {
+      randomize = false;
+    }
+  }
   var _srcLoaded;
   var _isLoaded;
   var _isLoading;
@@ -102,7 +107,11 @@ var WMJSImage = function (src, callback, __type) {
     el.error(function () {
       loadEvent(_this, true);
     });
-    el.attr('src', this.srcToLoad + '&' + Math.random());
+    if (randomize) {
+      el.attr('src', this.srcToLoad + '&' + Math.random());
+    } else {
+      el.attr('src', this.srcToLoad);
+    }
   };
 
   // var setImageProps = function(image){
