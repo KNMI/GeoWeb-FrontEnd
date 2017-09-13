@@ -63,7 +63,10 @@ export default class Adaguc extends React.Component {
       }
       this.webMapJS.draw('66');
     }
+
+    this.props.dispatch(this.props.layerActions.setWMJSLayers({ layers: this.webMapJS.getLayers(), baselayers: this.webMapJS.getBaseLayers() }));
   }
+
   /* istanbul ignore next */
   timeHandler () {
     const wmjstime = this.webMapJS.getDimension('time').currentValue;

@@ -640,7 +640,7 @@ class TitleBarContainer extends Component {
           <Col xs='auto'>
             <Nav>
               <NavLink className='active' onClick={this.toggleLoginModal} ><Icon name='user' id='loginIcon' />{isLoggedIn ? ' ' + username : ' Sign in'}</NavLink>
-              {hasRoleADMIN ? <Link to='manage/app' className='active nav-link'><Icon name='cog' /></Link> : '' }
+              {hasRoleADMIN ? <Link to='manage' className='active nav-link'><Icon name='cog' /></Link> : '' }
               <LayoutDropDown dispatch={this.props.dispatch} mapActions={this.props.mapActions} />
               <NavLink className='active' onClick={this.toggleFullscreen} ><Icon name='expand' /></NavLink>
               {isLoggedIn

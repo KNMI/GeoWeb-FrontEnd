@@ -6,6 +6,8 @@ import cloneDeep from 'lodash.clonedeep';
 import JSONTree from 'react-json-tree';
 import { JsonEditor } from 'react-json-edit';
 import diff from 'deep-diff';
+import { BACKEND_SERVER_URL } from '../../constants/backend';
+
 export default class TafValidationManagementPanel extends React.Component {
   constructor () {
     super();
@@ -18,7 +20,7 @@ export default class TafValidationManagementPanel extends React.Component {
     this.saveJsonSchema = this.saveJsonSchema.bind(this);
   }
   componentDidMount () {
-    axios.get('http://localhost:8080/admin/validation/schema/taf').then((r) => this.setState({ schema: cloneDeep(r.data), tempSchema: cloneDeep(r.data) }));
+    axios.get(BACKEND_SERVER_URL + '/admin/validation/schema/taf').then((r) => this.setState({ schema: cloneDeep(r.data), tempSchema: cloneDeep(r.data) }));
   }
   reset () {
     this.setState({ tempSchema: cloneDeep(this.state.schema) });
@@ -26,7 +28,7 @@ export default class TafValidationManagementPanel extends React.Component {
   saveJsonSchema (schema) {
     axios({
       method: 'post',
-      url: 'http://localhost:8080/admin/validation/schema/taf',
+      url: BACKEND_SERVER_URL + '/admin/validation/schema/taf',
       data: schema
     }).then(() => console.log('done'));
   }
