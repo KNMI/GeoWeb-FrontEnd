@@ -22,14 +22,22 @@ export default class ModelTime extends Component {
       this.resetState();
       return;
     }
-
     const adagucTime = moment.utc(this.props.webmapjs.getDimension('time').currentValue);
-    const now = moment(moment.utc().format('YYYY-MM-DDTHH:mm:ss'));
-    const hourDifference = Math.floor(moment.duration(adagucTime.diff(now)).asHours());
-    if (hourDifference > 0) {
-      this.setState({ display: `${adagucTime.format('ddd D HH:mm').toString()} (+${hourDifference - 1})` });
+    const adaStart = moment.utc(this.props.webmapjs.getDimension('time').currentValue).startOf('hour');
+    const now = moment.utc();
+    const nowStart = now.startOf('hour');
+    const ms = adaStart.diff(nowStart);
+    const d = moment.duration(ms);
+
+    const hourDifference = parseInt(d.asHours());
+    if (hourDifference >= 0) {
+      this.setState({ display: `${adagucTime.format('ddd D HH:mm').toString()} (+${hourDifference})` });
     } else {
-      this.setState({ display: `${adagucTime.format('ddd D HH:mm').toString()} (${hourDifference})` });
+      if (hourDifference < 0) {
+        this.setState({ display: `${adagucTime.format('ddd D HH:mm').toString()} (${hourDifference})` });
+      } else {
+        this.setState({ display: null });
+      }
     }
   }
 
@@ -38,12 +46,20 @@ export default class ModelTime extends Component {
     this.setState({ display: '' });
   }
 
+  componentWillUnmount () {
+    this.listenersInitialized = false;
+    const { webmapjs } = this.props;
+    webmapjs.removeListener('ondimchange', this.updateState);
+    webmapjs.removeListener('onmapdimupdate', this.updateState);
+    webmapjs.removeListener('onmapdimchange', this.updateState);
+  }
+
   /* istanbul ignore next */
   render () {
     const { webmapjs } = this.props;
 
     if (webmapjs !== undefined) {
-      if (this.listenersInitialized === undefined) {
+      if (!this.listenersInitialized) {
         this.listenersInitialized = true;
         webmapjs.addListener('ondimchange', this.updateState, true);
         webmapjs.addListener('onmapdimupdate', this.updateState, true);

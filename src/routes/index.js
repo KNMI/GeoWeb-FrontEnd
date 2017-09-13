@@ -30,6 +30,7 @@ import ProgtempManagementPanel from '../components/Management/ProgtempManagement
 import ManagementPanel from '../components/Management/ManagementPanel';
 import TafManagementPanel from '../components/Management/TafManagementPanel';
 import TafValidationManagementPanel from '../components/Management/TafValidationManagementPanel';
+import TafExampleTafManagementPanel from '../components/Management/TafExampleTafManagementPanel';
 import SigmetManagementPanel from '../components/Management/SigmetManagementPanel';
 import SigmetParameterManagementPanel from '../components/Management/SigmetParameterManagementPanel';
 import LocationManagementPanel from '../components/Management/LocationManagementPanel';
@@ -107,6 +108,8 @@ const mapStateToLayerManagerProps = state => ({
   mapProperties: state.mapProperties,
   drawProperties: state.drawProperties
 });
+
+// TODO: research this; http://henleyedition.com/implicit-code-splitting-with-react-router-and-webpack/
 export const createRoutes = (store) => {
   const header = React.createElement(connect(mapStateToHeaderProps, mapDispatchToHeaderProps)(TitleBarContainer));
   const leftSidebar = React.createElement(connect(mapStateToSidebarProps)(TasksContainer));
@@ -124,6 +127,7 @@ export const createRoutes = (store) => {
   const progmanPanel = React.createElement(ProgtempManagementPanel);
   const tafmanPanel = React.createElement(TafManagementPanel);
   const tafValidmanPanel = React.createElement(TafValidationManagementPanel);
+  const tafexTafmanPanel = React.createElement(TafExampleTafManagementPanel);
   const sigmanPanel = React.createElement(SigmetManagementPanel);
   const sigparmanPanel = React.createElement(SigmetParameterManagementPanel);
   const locmanPanel = React.createElement(LocationManagementPanel);
@@ -198,6 +202,11 @@ export const createRoutes = (store) => {
                 <Route path='validation' title='Validation'>
                   <Route>
                     <IndexRoute component={FooteredLayout} viewComponent={tafValidmanPanel} />
+                  </Route>
+                </Route>
+                <Route path='example_tafs' title='Example TAFs'>
+                  <Route>
+                    <IndexRoute component={FooteredLayout} viewComponent={tafexTafmanPanel} />
                   </Route>
                 </Route>
               </Route>

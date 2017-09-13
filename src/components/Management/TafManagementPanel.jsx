@@ -10,6 +10,11 @@ export default class TafManagementPanel extends React.Component {
         title: 'Validation rules',
         text: 'Configuration of the validation rules',
         link: linkBase + 'validation'
+      },
+      {
+        title: 'Example TAFs',
+        text: 'Test a schema against these TAFs to ensure correctness of the schema',
+        link: linkBase + 'example_tafs'
       }
     ];
 
