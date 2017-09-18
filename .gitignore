@@ -9,3 +9,5 @@ coverage
 utils/latest
 .idea/
 .nyc_output
+
+src/static/config.js
