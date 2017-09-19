@@ -251,6 +251,7 @@ function plotIsobars (ctx, isobars, T_THETAn, T_THETAx, imgx, imgy) {
 }
 
 function plotTTd (ctx, PSounding, TSounding, color, lineWidth, imgx, imgy) {
+  if (!(PSounding && TSounding)) return;
   T_PRESR   = 100000;
   ctx.beginPath();
   theta = TempPres(T_PRESR, PSounding[0], TSounding[0], 's');
@@ -361,6 +362,7 @@ function drawRotatedText (ctx, canvasWidth, canvasHeight) {
 }
 
 function plotWindbarbs (ctx, PSounding, ddSounding, ffSounding, color, imgx, imgy) {
+  if (!(PSounding && ddSounding && ffSounding)) return;
   for (var i = 0; i < PSounding.length; i++) {
     if ((i / 2) % 2 == 0) { plotTemp = 309.15; }    else { plotTemp = 311.70; }
     coords = thetas_p2plot(plotTemp, PSounding[i], imgx, imgy);
@@ -373,12 +375,13 @@ function plotWindbarbs (ctx, PSounding, ddSounding, ffSounding, color, imgx, img
 
 function plotLineaal (ctx, PSounding, colorft, colorkm, imgx, imgy) {
   // Plot hoogtevoeten/meters als lineaal aan de rechterkant
+  if (!PSounding) return;
   T_X   = 313.55;
   T_X   = 313.55;
   T_P   = 15000;
   ctx.beginPath();
-  coords_bottom  =  thetas_p2plot(T_X, PSounding[0], imgx, imgy);
-  coords_top    =  thetas_p2plot(T_X, T_P, imgx, imgy);
+  coords_bottom  =  thetas_p2plot(T_X, PSounding[PSounding.length - 1], imgx + 3, imgy);
+  coords_top    =  thetas_p2plot(T_X, T_P, imgx + 3, imgy);
   ctx.moveTo(coords_bottom[0], coords_bottom[1]);
   ctx.lineTo(coords_top[0], coords_top[1]);
   ctx.strokeStyle = colorft;
@@ -401,7 +404,7 @@ function plotLineaal (ctx, PSounding, colorft, colorkm, imgx, imgy) {
 
   // feet
   for (var m = 500; m <= 4500; m += 500) {
-    coords = thetas_p2plot(T_X, fl2pres(m * 0.3048, PSounding[0]), imgx, imgy);
+    coords = thetas_p2plot(T_X, fl2pres(m * 0.3048, PSounding[PSounding.length - 1]), imgx, imgy);
     if (m % 500 == 0 && m % 1000 != 0) {
       ctx.beginPath();
       ctx.moveTo((coords[0]), coords[1]);
@@ -423,7 +426,7 @@ function plotLineaal (ctx, PSounding, colorft, colorkm, imgx, imgy) {
   }
 
   for (var m = 5000; m <= 44000; m += 1000) {
-    coords = thetas_p2plot(T_X, fl2pres(m * 0.3048, PSounding[0]), imgx, imgy);
+    coords = thetas_p2plot(T_X, fl2pres(m * 0.3048, PSounding[PSounding.length - 1]), imgx, imgy);
     ctx.beginPath();
     ctx.moveTo((coords[0]), coords[1]);
     ctx.lineTo((coords[0] + 4), coords[1]);
@@ -448,7 +451,7 @@ function plotLineaal (ctx, PSounding, colorft, colorkm, imgx, imgy) {
   }
 
   for (m = 1000; m <= 13000; m += 1000) {
-    coords = thetas_p2plot(T_X, fl2pres(m, PSounding[0]), imgx, imgy);
+    coords = thetas_p2plot(T_X, fl2pres(m, PSounding[PSounding.length - 1]), imgx, imgy);
     ctx.beginPath();
     ctx.moveTo((coords[0]), coords[1]);
     ctx.lineTo((coords[0] + 6), coords[1]);
@@ -632,14 +635,14 @@ function barb2image (ctx, i, j, ff, dd, size, color) {
 // hodo begin
 
 /* Hodogram */
-function plotHodo (canvas, canvasWidth, canvasHeight, PSounding, TSounding, TdSounding, ddSounding, ffSounding, TwSounding) {
+function plotHodo (ctx, canvasWidth, canvasHeight, PSounding, TSounding, TdSounding, ddSounding, ffSounding, TwSounding) {
+  if (!(PSounding && TSounding && TdSounding && ddSounding && ffSounding && TwSounding)) return;
   T_PRESN   = 15000;
   T_PRESX   = 106000;
   T_THETAN  = 253.15;
   T_THETAX   = 313.15;
   DEG2RAD = (Math.PI / 180);  /* Conversion from degrees to radians. */
   // Plot Hodo Borders
-  var ctx = canvas.getContext('2d');
   coords_left_bottom = thetas_p2plot(T_THETAN, T_PRESX, canvasWidth, canvasHeight);  //, &i0,&j0
   var i0  = coords_left_bottom[0];
   var j0  = coords_left_bottom[1];
@@ -651,11 +654,11 @@ function plotHodo (canvas, canvasWidth, canvasHeight, PSounding, TSounding, TdSo
   var l0  = coords3[1];
   ctx.beginPath();
   ctx.rect(i0, j1, k0 - i0, l0 - j1);
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
   ctx.fill();
-  ctx.lineWidth = 1;
-  ctx.strokeStyle = 'grey';
-  ctx.stroke();
+  // ctx.lineWidth = 1;
+  // ctx.strokeStyle = 'grey';
+  // ctx.stroke();
   ctx.closePath();
 
   // Plot hodo center cross
@@ -702,10 +705,10 @@ function plotHodo (canvas, canvasWidth, canvasHeight, PSounding, TSounding, TdSo
 
   // Plot Winds in hodograph
   j1 = -1;
-  for (var i = 0; i < PSounding.length; i++) {
+  for (var i = PSounding.length; i >= 0; i--) {
     ctx.beginPath();
     if (j1 > -1) {
-      Psfc = PSounding[0];
+      Psfc = PSounding[PSounding.length - 1];
       pres = PSounding[i];
       x3 = x1 + (ffSounding[i] / 0.5144) * Math.cos(DEG2RAD * (ddSounding[i] + 90));
       y3 = y1 + (ffSounding[i] / 0.5144) * Math.sin(DEG2RAD * (ddSounding[i] + 90));
@@ -815,10 +818,8 @@ fclose(fp);
 
 // hodo end
 
-function drawProgtempBg (canvas, canvasWidth, canvasHeight) {
-  var ctx = canvas.getContext('2d');
-  ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-
+function drawProgtempBg (ctx, canvasWidth, canvasHeight) {
+  if (!ctx) return;
     // Set variabelen:
   var wetAndDryAdiabats = new Array(-20, -15, -10, -5, 0, 5, 10, 15, 20, 25, 30, 35, 40);
   var isotherms = new Array(); for (var i = -50; i <= 40; i++) { isotherms.push(i); }
@@ -834,8 +835,7 @@ function drawProgtempBg (canvas, canvasWidth, canvasHeight) {
   drawRotatedText(ctx, canvasWidth, canvasHeight);
 }
 
-function drawProgtemp (canvas, canvasWidth, canvasHeight, PSounding, TSounding, TdSounding, ddSounding, ffSounding, TwSounding, TvSounding) {
-  var ctx = canvas.getContext('2d');
+function drawProgtemp (ctx, canvasWidth, canvasHeight, PSounding, TSounding, TdSounding, ddSounding, ffSounding, TwSounding, TvSounding) {
   ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
     // Plot T/Td/Tw/Tv
@@ -848,7 +848,7 @@ function drawProgtemp (canvas, canvasWidth, canvasHeight, PSounding, TSounding, 
 }
 
 var PSfc, CCL, TCCL, ELHeightFt, TELinCelsius, PCCL, PEL;
-function setProgtempInputAndDraw (fcH, jsonArray, canvas, canvasWidth, canvasHeight) {
+function setProgtempInputAndDraw (fcH, jsonArray, ctx, canvasWidth, canvasHeight) {
   var tempArray = jsonArray['fcH' + fcH];  // set tempArray
   var PSounding = new Array(); for (var i = 0; i < tempArray[0].P.length; i++) { PSounding.push(tempArray[0].P[i]); }
   PSfc = PSounding[0];
@@ -859,8 +859,8 @@ function setProgtempInputAndDraw (fcH, jsonArray, canvas, canvasWidth, canvasHei
     // Tw en Tv kunnen ook vooraf berekend worden om javascript te versnellen @ optimaliseren later
   var TwSounding = new Array();  for (var i = 0; i < TSounding.length; i++) { TwSounding.push(calc_Tw(TSounding[i], TdSounding[i], PSounding[i])); }
   var TvSounding = new Array();  for (var i = 0; i < TSounding.length; i++) { TvSounding.push(calc_Tv(TSounding[i], TdSounding[i], PSounding[i])); }
-  drawProgtemp(canvas, canvasWidth, canvasHeight, PSounding, TSounding, TdSounding, ddSounding, ffSounding, TwSounding, TvSounding);
-  plotHodo(canvas, canvasWidth, canvasHeight, PSounding, TSounding, TdSounding, ddSounding, ffSounding, TwSounding);
+  drawProgtemp(ctx, canvasWidth, canvasHeight, PSounding, TSounding, TdSounding, ddSounding, ffSounding, TwSounding, TvSounding);
+  plotHodo(ctx, canvasWidth, canvasHeight, PSounding, TSounding, TdSounding, ddSounding, ffSounding, TwSounding);
   var CCLinfo = determineCCL(canvas, PSounding, TSounding, TdSounding, canvasWidth, canvasHeight);
   CCL = CCLinfo[0];
   TCCL = CCLinfo[1];

@@ -9,6 +9,9 @@ export default class CanvasComponent extends Component {
     this.handleClickEvent = this.handleClickEvent.bind(this);
     this.width = 300;
     this.height = 150;
+    this.state = {
+      drawn: false
+    };
   }
 
   handleMouseMoveEvent (event) {
@@ -29,40 +32,44 @@ export default class CanvasComponent extends Component {
 
   /* istanbul ignore next */
   componentDidMount () {
-    this.refs.canvas.addEventListener('mousemove', this.handleMouseMoveEvent);
-    this.refs.canvas.addEventListener('click', this.handleClickEvent);
+    this.canvas.addEventListener('mousemove', this.handleMouseMoveEvent);
+    this.canvas.addEventListener('click', this.handleClickEvent);
     this.updateCanvas();
   }
 
   componentWillUnmount () {
-    this.refs.canvas.removeEventListener('mousemove', this.handleMouseMoveEvent);
-    this.refs.canvas.removeEventListener('click', this.handleClickEvent);
+    this.canvas.removeEventListener('mousemove', this.handleMouseMoveEvent);
+    this.canvas.removeEventListener('click', this.handleClickEvent);
   }
 
   /* istanbul ignore next */
   updateCanvas () {
-    if (!this.refs || !this.refs.canvas) {
+    if (!this.container || !this.canvas || (this.props.drawOnce && this.state.drawn)) {
       return;
     }
-    this.width = parseInt(this.refs.container.clientWidth);
-    this.height = parseInt(this.refs.container.clientHeight);
+    this.width = parseInt(this.container.clientWidth);
+    this.height = parseInt(this.container.clientHeight);
 
-    const ctx = this.refs.canvas.getContext('2d');
+    const ctx = this.canvas.getContext('2d');
     if (!ctx) {
       return;
     }
     if (parseInt(ctx.canvas.height) !== this.height) ctx.canvas.height = this.height;
     if (parseInt(ctx.canvas.width) !== this.width) ctx.canvas.width = this.width;
-    this.props.onRenderCanvas(ctx);
+    if (this.props.drawOnce) {
+      this.setState({ drawn: true });
+    }
+    this.props.onRenderCanvas(ctx, this.width, this.height);
   }
 
   /* istanbul ignore next */
   render () {
     this.updateCanvas();
+
     return (
-      <div ref='container' style={{ border: 'none', width: 'inherit', height: 'inherit', overflow: 'hidden' }} >
+      <div ref={(container) => { this.container = container; }} style={{ ...this.props.style, border: 'none', width: 'inherit', height: 'inherit', overflow: 'hidden' }} >
         <div style={{ overflow: 'visible', width:0, height:0 }} >
-          <canvas ref='canvas' style={{ width: this.width + 'px', height: this.height + 'px', display: 'block' }} />
+          <canvas ref={(canvas) => { this.canvas = canvas; }} style={{ width: this.width + 'px', height: this.height + 'px', display: 'block' }} />
         </div>
       </div>
     );
@@ -72,7 +79,9 @@ export default class CanvasComponent extends Component {
 CanvasComponent.propTypes = {
   onRenderCanvas: PropTypes.func,
   onCanvasClick: PropTypes.func,
-  onMouseMove: PropTypes.func
+  style: PropTypes.object,
+  onMouseMove: PropTypes.func,
+  drawOnce: PropTypes.bool
 };
 
 CanvasComponent.defaultProps = {
