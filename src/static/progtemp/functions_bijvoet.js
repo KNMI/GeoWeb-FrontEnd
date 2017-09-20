@@ -380,8 +380,8 @@ function plotLineaal (ctx, PSounding, colorft, colorkm, imgx, imgy) {
   T_X   = 313.55;
   T_P   = 15000;
   ctx.beginPath();
-  coords_bottom  =  thetas_p2plot(T_X, PSounding[PSounding.length - 1], imgx + 3, imgy);
-  coords_top    =  thetas_p2plot(T_X, T_P, imgx + 3, imgy);
+  coords_bottom  =  thetas_p2plot(T_X, PSounding[PSounding.length - 1], imgx, imgy);
+  coords_top    =  thetas_p2plot(T_X, T_P, imgx, imgy);
   ctx.moveTo(coords_bottom[0], coords_bottom[1]);
   ctx.lineTo(coords_top[0], coords_top[1]);
   ctx.strokeStyle = colorft;
