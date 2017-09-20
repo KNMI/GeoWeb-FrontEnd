@@ -15,6 +15,7 @@ export default class ProgtempPopoverComponent extends Component {
     super();
     this.setChosenLocation = this.setChosenLocation.bind(this);
     this.getLocationAsString = this.getLocationAsString.bind(this);
+    this.clearTypeAhead = this.clearTypeAhead.bind(this);
     this.state = {
       locationDropdownOpen: false,
       selectedModel: 'HARMONIE'
@@ -22,11 +23,9 @@ export default class ProgtempPopoverComponent extends Component {
     this.progtempLocations = DefaultLocations;
     ReadLocations((data) => {
       if (data) {
-        console.log('retrieved progtemp locations from disk');
         this.progtempLocations = data;
-        console.log('progtemlocations set');
       } else {
-        console.log('get progtemlocations failed');
+        console.error('get progtemlocations failed');
       }
     });
   }
@@ -59,7 +58,31 @@ export default class ProgtempPopoverComponent extends Component {
   }
   /* istanbul ignore next */
   setChosenLocation (loc) {
-    this.props.dispatch(this.props.adagucActions.setCursorLocation(loc[0]));
+    const { dispatch, adagucActions } = this.props;
+
+    // Only dispatch a new location and don't unset it
+    // (this happens when the typeahead is cleared because this is a change from its filled state)
+    if (loc.length > 0) {
+      dispatch(adagucActions.setCursorLocation(loc[0]));
+    }
+  }
+
+  clearTypeAhead () {
+    if (!this._typeahead) return;
+    if (!this._typeahead.getInstance()) return;
+
+    this._typeahead.getInstance().clear();
+  }
+
+  componentDidUpdate (prevProps) {
+    const { cursor } = this.props.adagucProperties;
+
+    // Clear the Typeahead if previously a location was selected from the dropdown
+    // and now a location is selected by clicking on the map
+    const prevCursor = prevProps.adagucProperties.cursor;
+    if (cursor && cursor.location && !cursor.location.name && prevCursor && prevCursor.location && prevCursor.location.name) {
+      this.clearTypeAhead();
+    }
   }
 
   getLocationAsString () {
@@ -93,7 +116,7 @@ export default class ProgtempPopoverComponent extends Component {
             <Button id='caret'>{this.state.selectedModel || 'Select model'}</Button>
             <DropdownToggle caret />
             <DropdownMenu>
-              <DropdownItem onClick={() => { this.setReferenceTime('HARMONIE'); this.setState({ selectedModel: 'HARMONIE' })}}>HARMONIE</DropdownItem>
+              <DropdownItem onClick={() => { this.setReferenceTime('HARMONIE'); this.setState({ selectedModel: 'HARMONIE' }); }}>HARMONIE</DropdownItem>
             </DropdownMenu>
           </ButtonDropdown>
         </Row>

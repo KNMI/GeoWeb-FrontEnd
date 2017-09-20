@@ -25,6 +25,7 @@ export default class ProgtempComponent extends Component {
   }
 
   modifyData (data, referenceTime, timeOffset) {
+    if (!data) return {};
     function fetchData (data, referenceTime, timeOffset, name) {
       if (!data) return null;
       let selectedData = data.filter((obj) => obj.name === name)[0].data;
@@ -87,17 +88,9 @@ export default class ProgtempComponent extends Component {
     plotHodo(ctx, canvasWidth, canvasHeight, PSounding, TSounding, TdSounding, ddSounding, ffSounding, TwSounding);
   }
 
-  shouldComponentUpdate (nextProps, nextState) {
-    const changeInCursor = !!diff(this.props.location, nextProps.location);
-    const changeInTime = !!diff(this.props.time, nextProps.time);
-    const changeInState = !!diff(this.state, nextState);
-
-    const shouldUpdate = changeInCursor || changeInTime || changeInState;
-    return shouldUpdate;
-  }
-
   setModelData (model, location) {
     let url;
+    if (!(model && location)) return;
     switch (model.toUpperCase()) {
       default:
         url = `${MODEL_LEVEL_URL}SERVICE=WMS&VERSION=1.3.0&REQUEST=GetPointValue&LAYERS=&
@@ -111,6 +104,7 @@ INFO_FORMAT=application/json&time=*&DIM_reference_time=` + this.props.referenceT
   }
 
   fetchAndRender (model, location) {
+    if (!(model && location)) return;
     this.setState({ isLoading: true });
     this.setModelData(model, location).then(() => {
       this.renderProgtempData(this.progtempContext, this.width, this.height, this.props.time.format('YYYY-MM-DDTHH:mm:ss') + 'Z');
@@ -119,7 +113,9 @@ INFO_FORMAT=application/json&time=*&DIM_reference_time=` + this.props.referenceT
   }
 
   componentWillUpdate (nextProps, nextState) {
-    if (nextProps.selectedModel !== this.props.selectedModel || nextProps.location !== this.props.location) {
+    if (nextProps.selectedModel !== this.props.selectedModel ||
+        nextProps.location !== this.props.location ||
+        nextProps.referenceTime !== this.props.referenceTime) {
       this.fetchAndRender(nextProps.selectedModel, nextProps.location);
     } else {
       this.renderProgtempData(this.progtempContext, this.width, this.height, nextProps.time.format('YYYY-MM-DDTHH:mm:ss') + 'Z');
