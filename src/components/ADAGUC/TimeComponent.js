@@ -53,6 +53,7 @@ export default class TimeComponent extends Component {
 
   /* istanbul ignore next */
   drawLayerBlocks (ctx, canvasWidth, sliderStopIndex, sliderMapIndex, scaleWidth) {
+    // TODO: if only time changes just redraw that part?
     const layers = this.props.wmjslayers.layers;
     const overlayers = this.props.wmjslayers.baselayers.filter(layer => layer.keepOnTop === true);
     const layerHeight = 20;
@@ -99,7 +100,7 @@ export default class TimeComponent extends Component {
 
   /* istanbul ignore next */
   drawCanvas () {
-    const { timedim } = this.props;
+    const { timedim, wmjslayers } = this.props;
     if (timedim === undefined) {
       return;
     }
@@ -114,14 +115,9 @@ export default class TimeComponent extends Component {
     // eslint-disable-next-line no-undef
     const canvasWidth = ctx.canvas.width;
     // eslint-disable-next-line no-undef
-    const canvasHeight = ctx.canvas.height;
+    const numlayers = wmjslayers.baselayers && wmjslayers.layers ? wmjslayers.baselayers.length + wmjslayers.layers.length + 1 : 2;
+    const canvasHeight = 20 * numlayers;
 
-    if (this.canvasHeight === canvasHeight &&
-     this.timedim === timedim &&
-     this.ctxCanvasHeight === ctx.canvas.height &&
-     this.ctxCanvasWidth === ctx.canvas.width) {
-      return;
-    }
     this.canvasHeight = canvasHeight;
     this.timedim = timedim;
     this.ctxCanvasHeight = ctx.canvas.height;
@@ -360,7 +356,7 @@ export default class TimeComponent extends Component {
             <Icon name='chevron-left' />
           </Button>
         </Col>
-        <Col style={{ height: height < 120 ? 120 : height }}>
+        <Col style={{ height: height }}>
           <CanvasComponent onRenderCanvas={this.onRenderCanvas} onCanvasClick={this.onCanvasClick} />
         </Col>
         <Col xs='auto'>

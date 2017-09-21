@@ -63,7 +63,10 @@ export default class Adaguc extends React.Component {
       }
       this.webMapJS.draw('66');
     }
+
+    this.props.dispatch(this.props.layerActions.setWMJSLayers({ layers: this.webMapJS.getLayers(), baselayers: this.webMapJS.getBaseLayers() }));
   }
+
   /* istanbul ignore next */
   timeHandler () {
     const wmjstime = this.webMapJS.getDimension('time').currentValue;
@@ -362,7 +365,9 @@ export default class Adaguc extends React.Component {
     const baseChanged = this.updateBaselayers(baselayer, prevBaseLayer, overlays, prevOverlays);
 
     // Update animation -- animate iff animate is set and the panel is active.
-    this.onChangeAnimation(active && animate);
+    if (prevProps.adagucProperties.animate !== animate) {
+      this.onChangeAnimation(active && animate);
+    }
 
     // Set the current layers if the panel becomes active (necessary for the layermanager etc.)
     if (active && (!prevProps.active || layersChanged || baseChanged)) {

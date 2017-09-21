@@ -6,7 +6,7 @@ import { BOUNDING_BOXES } from '../constants/bounding_boxes';
 import { Icon } from 'react-fa';
 import classnames from 'classnames';
 import { Typeahead } from 'react-bootstrap-typeahead';
-import ProgtempComponent from '../components/ProgtempComponent';
+import ProgtempPopoverComponent from '../components/ProgtempPopoverComponent';
 import TimeseriesComponent from '../components/TimeseriesComponent';
 import { BACKEND_SERVER_URL } from '../constants/backend';
 import axios from 'axios';
@@ -315,7 +315,7 @@ class MapActionContainer extends Component {
   renderProgtempPopover (adagucTime) {
     if (this.state.progTempPopOverOpen) {
       const { dispatch, adagucActions, layers, mapProperties } = this.props;
-      return <ProgtempComponent mapProperties={mapProperties} layers={layers} adagucProperties={this.props.adagucProperties}
+      return <ProgtempPopoverComponent mapProperties={mapProperties} layers={layers} adagucProperties={this.props.adagucProperties}
         isOpen={this.state.progTempPopOverOpen} dispatch={dispatch} adagucActions={adagucActions} />;
     }
   }
