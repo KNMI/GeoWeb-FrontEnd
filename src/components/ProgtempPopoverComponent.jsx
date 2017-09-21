@@ -41,7 +41,7 @@ export default class ProgtempPopoverComponent extends Component {
         refUrl = `${MODEL_LEVEL_URL}SERVICE=WMS&VERSION=1.3.0&REQUEST=GetReferenceTimes&LAYERS=air_pressure__at_ml`;
         break;
     }
-    return axios.get(refUrl).then((r) => this.setState({ referenceTime: r.data[0] }));
+    return axios.get(refUrl).then((r) => this.setState({ referenceTime: moment.utc(r.data[0]) }));
   }
 
   convertMinSec (loc) {
@@ -70,7 +70,6 @@ export default class ProgtempPopoverComponent extends Component {
   clearTypeAhead () {
     if (!this._typeahead) return;
     if (!this._typeahead.getInstance()) return;
-
     this._typeahead.getInstance().clear();
   }
 
@@ -89,9 +88,9 @@ export default class ProgtempPopoverComponent extends Component {
     const { cursor } = this.props.adagucProperties;
     if (cursor && cursor.location) {
       if (cursor.location.name) {
-        return cursor.location.name;
+        return <span>Location from list: <strong>{cursor.location.name}</strong></span>;
       } else {
-        return 'Location: ' + this.convertMinSec(cursor.location.x) + ', ' + this.convertMinSec(cursor.location.y);
+        return <span>Location from map: <strong>{this.convertMinSec(cursor.location.x) + ', ' + this.convertMinSec(cursor.location.y)}</strong></span>;
       }
     } else {
       return 'Select location';
@@ -104,17 +103,20 @@ export default class ProgtempPopoverComponent extends Component {
     const adaStart = moment.utc(this.props.adagucProperties.timeDimension).startOf('hour');
     return (
       <Popover placement='left' isOpen={this.props.isOpen} target='progtemp_button'>
-        <PopoverTitle>{this.getLocationAsString(cursor)}</PopoverTitle>
+        <PopoverTitle>Reference time: <strong>{this.state.referenceTime ? this.state.referenceTime.format('ddd DD, HH:mm UTC') : '??'}</strong></PopoverTitle>
         <ProgtempComponent location={cursor ? cursor.location : null} referenceTime={this.state.referenceTime}
           selectedModel={this.state.selectedModel} time={adaStart} className='popover-content'
           style={{ height: '600px', marginLeft: '-3.6rem', marginRight: '1.4rem' }} />
-
+        <Row style={{ padding: '0 0 1rem 1rem' }}>
+          {this.getLocationAsString(cursor)}
+        </Row>
         <Row>
           <Typeahead ref={ref => { this._typeahead = ref; }}
-            onChange={this.setChosenLocation} options={this.progtempLocations} labelKey='name' placeholder='Type to select default location' submitFormOnEnter />
+            onChange={this.setChosenLocation} options={this.progtempLocations} labelKey='name' placeholder='Search ICAO location' submitFormOnEnter />
           <ButtonDropdown isOpen={this.state.locationDropdownOpen} toggle={() => { this.setState({ locationDropdownOpen: !this.state.locationDropdownOpen }); }}>
-            <Button id='caret'>{this.state.selectedModel || 'Select model'}</Button>
-            <DropdownToggle caret />
+            <DropdownToggle caret>
+              {this.state.selectedModel || 'Select model'}
+            </DropdownToggle>
             <DropdownMenu>
               <DropdownItem onClick={() => { this.setReferenceTime('HARMONIE'); this.setState({ selectedModel: 'HARMONIE' }); }}>HARMONIE</DropdownItem>
             </DropdownMenu>

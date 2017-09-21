@@ -69,13 +69,14 @@ export default class ProgtempComponent extends Component {
       }
       return { Tw, Tv };
     }
+    const refTimeStr = this.props.referenceTime.format('YYYY-MM-DDTHH:mm:ss') + 'Z';
 
-    let pressureData = fetchData(data, referenceTime, timeOffset, 'air_pressure__at_ml');
-    let airTemp = fetchData(data, referenceTime, timeOffset, 'air_temperature__at_ml');
-    let windXData = fetchData(data, referenceTime, timeOffset, 'x_wind__at_ml');
-    let windYData = fetchData(data, referenceTime, timeOffset, 'y_wind__at_ml');
+    let pressureData = fetchData(data, refTimeStr, timeOffset, 'air_pressure__at_ml');
+    let airTemp = fetchData(data, refTimeStr, timeOffset, 'air_temperature__at_ml');
+    let windXData = fetchData(data, refTimeStr, timeOffset, 'x_wind__at_ml');
+    let windYData = fetchData(data, refTimeStr, timeOffset, 'y_wind__at_ml');
     let { windSpeed, windDirection } = getWindInfo(windXData, windYData);
-    let dewTemp = fetchData(data, referenceTime, timeOffset, 'dewpoint_temperature__at_ml');
+    let dewTemp = fetchData(data, refTimeStr, timeOffset, 'dewpoint_temperature__at_ml');
     let { Tw, Tv } = computeTwTv(airTemp, dewTemp, pressureData);
     return { PSounding: pressureData, TSounding: airTemp, TdSounding: dewTemp, ddSounding: windDirection, ffSounding: windSpeed, TwSounding: Tw, TvSounding: Tv };
   }
@@ -90,12 +91,13 @@ export default class ProgtempComponent extends Component {
 
   setModelData (model, location) {
     let url;
-    if (!(model && location)) return;
+    if (!(model && location && this.props.referenceTime)) return;
+    const refTimeStr = this.props.referenceTime.format('YYYY-MM-DDTHH:mm:ss') + 'Z';
     switch (model.toUpperCase()) {
       default:
         url = `${MODEL_LEVEL_URL}SERVICE=WMS&VERSION=1.3.0&REQUEST=GetPointValue&LAYERS=&
 QUERY_LAYERS=air_pressure__at_ml,y_wind__at_ml,x_wind__at_ml,dewpoint_temperature__at_ml,air_temperature__at_ml&CRS=EPSG%3A4326&
-INFO_FORMAT=application/json&time=*&DIM_reference_time=` + this.props.referenceTime + `&x=` + location.x + `&y=` + location.y + `&DIM_modellevel=*`;
+INFO_FORMAT=application/json&time=*&DIM_reference_time=` + refTimeStr + `&x=` + location.x + `&y=` + location.y + `&DIM_modellevel=*`;
         break;
     }
     return axios.get(url).then((d) => {
@@ -143,6 +145,6 @@ ProgtempComponent.propTypes = {
   style: PropTypes.object,
   time: PropTypes.object,
   selectedModel: PropTypes.string.isRequired,
-  referenceTime: PropTypes.string.isRequired,
+  referenceTime: PropTypes.object.isRequired,
   location: PropTypes.object
 };
