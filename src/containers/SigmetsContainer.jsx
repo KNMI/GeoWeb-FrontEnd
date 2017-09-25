@@ -150,7 +150,7 @@ class SigmetsContainer extends Component {
       <Col className='SigmetsContainer'>
         <CollapseOmni className='CollapseOmni' isOpen={this.state.isOpen} isHorizontal minSize={64} maxSize={maxSize}>
           <Panel className='Panel' title={title}>
-            <Col xs='auto' className='accordionsWrapper' style={{ minWidth: maxSize - 32 }}>
+            <Col xs='auto' className='accordionsWrapper' style={{ minWidth: this.state.isOpen ? maxSize - 32 : 'unset' }}>
               {ITEMS.map((item, index) =>
                 <SigmetCategory phenomenonMapping={this.state.phenomena || []} adagucProperties={this.props.adagucProperties}
                   key={index} title={item.title} parentCollapsed={!this.state.isOpen} drawProperties={this.props.drawProperties}
@@ -172,6 +172,10 @@ class SigmetsContainer extends Component {
 
 SigmetsContainer.propTypes = {
   adagucProperties: PropTypes.object,
+  drawActions: PropTypes.object,
+  drawProperties: PropTypes.object,
+  mapActions: PropTypes.object,
+  layerActions: PropTypes.object,
   dispatch: PropTypes.func,
   actions: PropTypes.object
 };
