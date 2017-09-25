@@ -101,6 +101,15 @@ export default class ProgtempPopoverComponent extends Component {
   render () {
     const { cursor } = this.props.adagucProperties;
     const adaStart = moment.utc(this.props.adagucProperties.timeDimension).startOf('hour');
+    if (!this.state.referenceTime) {
+      return (
+        <div>
+          <p>
+            Reference time not set.
+          </p>
+        </div>
+      );
+    }
     return (
       <Popover placement='left' isOpen={this.props.isOpen} target='progtemp_button'>
         <PopoverTitle>Reference time: <strong>{this.state.referenceTime ? this.state.referenceTime.format('ddd DD, HH:mm UTC') : '??'}</strong></PopoverTitle>

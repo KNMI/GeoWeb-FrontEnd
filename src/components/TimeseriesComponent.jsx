@@ -1,11 +1,11 @@
 import React, { Component } from 'react';
 import { Popover, PopoverTitle, PopoverContent } from 'reactstrap';
-var moment = require('moment');
 import { Typeahead } from 'react-bootstrap-typeahead';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 import axios from 'axios';
 import PropTypes from 'prop-types';
 import { HARMONIE_URL } from '../constants/default_services';
+var moment = require('moment');
 
 export default class TimeseriesComponent extends Component {
   /* istanbul ignore next */
@@ -411,5 +411,5 @@ TimeseriesComponent.propTypes = {
   adagucProperties: PropTypes.object.isRequired,
   isOpen: PropTypes.bool.isRequired,
   dispatch: PropTypes.func.isRequired,
-  actions: PropTypes.object.isRequired
+  adagucActions: PropTypes.object.isRequired
 };
