@@ -1922,7 +1922,7 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
   var mouseWheelBusy = 0;
 
   var flyZoomToBBOXTimerStart = 1;
-  var flyZoomToBBOXTimerSteps = 6;
+  var flyZoomToBBOXTimerSteps = 1;
   var flyZoomToBBOXTimerLoop;
   var flyZoomToBBOXTimer = new WMJSDebouncer();
   var flyZoomToBBOXScaler = 0;
@@ -2019,11 +2019,11 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
     var zoomW;
     var zoomH;
     if (delta < 0) {
-      zoomW = w * -0.35;
-      zoomH = h * -0.35;
+      zoomW = w * -0.15;
+      zoomH = h * -0.15;
     } else {
-      zoomW = w * 0.25;// delta;
-      zoomH = h * 0.25;//* delta;
+      zoomW = w * 0.1;// delta;
+      zoomH = h * 0.1;//* delta;
     }
     var newLeft = updateBBOX.left + zoomW;
     var newTop = updateBBOX.top + zoomH;
