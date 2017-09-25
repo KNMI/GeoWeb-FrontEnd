@@ -20,5 +20,6 @@ export const getConfig = function () {
     c = Object.assign({}, configDefault, config || {});
   }
   console.log('Using config:', c);
+  console.log('Front end version :', c.version);
   return c;
 };
