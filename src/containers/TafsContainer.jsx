@@ -7,13 +7,13 @@ import { TAFS_URL } from '../constants/backend';
 import Taf from '../components/Taf';
 import moment from 'moment';
 const ITEMS = [
-  {
+  /*{
     title: 'Open active TAFs',
     ref:   'active-tafs',
     icon: 'folder-open',
     source: TAFS_URL + '/tafs?active=true',
     editable: false
-  },
+  },*/
   {
     title: 'Open concept TAFs',
     ref:   'concept-tafs',

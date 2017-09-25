@@ -13,6 +13,8 @@ import { Typeahead } from 'react-bootstrap-typeahead';
 import DateTimePicker from 'react-datetime';
 import Slider from 'rc-slider';
 import Tooltip from 'rc-tooltip';
+import SortableComponent from '../components/SortableTable';
+
 import PropTypes from 'prop-types';
 import { BOUNDING_BOXES } from '../constants/bounding_boxes';
 import { HARMONIE_URL, HARMONIE_ML_URL, OVERLAY_URL, OBSERVATIONS_URL, RADAR_URL, LIGHTNING_URL, SATELLITE_URL } from '../constants/default_services';
@@ -895,11 +897,11 @@ class TafCategory extends Component {
             <Row>
               <Col className='btn-group-vertical'>
                 {this.state.list.map((item, index) =>
-                  <Button tag='div' className={'Sigmet row' + (selectedIndex === index ? ' active' : '')}
+                  <Button tag='div' className={'TafStyle row' + (selectedIndex === index ? ' active' : '')}
                     key={index} onClick={(evt) => { this.handleSigmetClick(evt, index); }} title={item.phenomenonHRT} >
                     <Row>
                       <Col xs='2'>
-                        <Badge color='success'>ICAO location</Badge>
+                        <Badge >Location</Badge>
                       </Col>
                       <Col xs='2'>
                         { editable
@@ -924,143 +926,47 @@ class TafCategory extends Component {
                         <Input disabled value={moment().utc().add(31, 'hour').format('DD-MM-YYYY HH:00')} />
                       </Col>
                     </Row>
-                    <Row style={editable ? { minHeight: '2rem' } : null}>
-                      <Col xs='3'>
-                        <Badge color='success'>What</Badge>
-                      </Col>
-                      <Col xs='9'>
-                        { editable
-                          ? <Typeahead style={{ width: '100%' }} filterBy={['name', 'code']} labelKey='name'
-                            options={this.getPhenomena()} onChange={(phenomenonList) => this.setSelectedPhenomenon(phenomenonList)}
-                            onClick={(evt) => console.log(evt)} />
-                          : <span style={{ fontWeight: 'bold' }}>{item.phenomenonHRT}</span>
-                        }
-                      </Col>
-                    </Row>
-                    <Row style={editable ? { marginTop: '0.19rem', minHeight: '2rem' } : null}>
-                      <Col xs={{ size: 9, offset: 3 }}>
-                        { editable
-                          ? <SwitchButton name='obsfcstswitch' mode='select'
-                            labelRight='Observed' label='Forecast' defaultChecked={item.obs_or_forecast.obs} onChange={(evt) => this.setSelectedObservedForecast(evt.target.checked)} />
-                          : <span>{item.obs_or_forecast.obs ? 'Observed' : 'Forecast'}</span>
-                        }
-                      </Col>
-                    </Row>
-                    <Row className='section'>
-                      <Col xs='3'>
-                        <Badge color='success'>When</Badge>
-                      </Col>
-                    </Row>
-                    <Row style={editable ? { paddingTop: '0.19rem', minHeight: '2rem' } : { paddingTop: '0.19rem' }}>
-                      <Col xs={{ size: 2, offset: 1 }}>
-                        <Badge>From</Badge>
-                      </Col>
-                      <Col xs='9'>
-                        {editable
-                          ? <DateTimePicker style={{ width: '100%' }} dateFormat={DATE_FORMAT} timeFormat={TIME_FORMAT} utc
-                            onChange={(validFrom) => this.setSelectedValidFromMoment(validFrom)}
-                            isValidDate={(curr, selected) => curr.isAfter(moment().utc().subtract(1, 'day')) &&
-                              curr.isBefore(moment().utc().add(this.getParameters().hoursbeforevalidity, 'hour'))}
-                            timeConstraints={{ hours: {
-                              min: moment().utc().hour(),
-                              max: (moment().utc().hour() + this.getParameters().hoursbeforevalidity)
-                            } }} />
-                          : <Moment format={DATE_TIME_FORMAT} date={item.validdate} />
-                        }
-                      </Col>
-                    </Row>
-                    <Row style={editable ? { paddingTop: '0.19rem', minHeight: '2.5rem' } : { paddingTop: '0.19rem' }}>
-                      <Col xs={{ size: 2, offset: 1 }}>
-                        <Badge>Until</Badge>
-                      </Col>
-                      <Col xs='9'>
-                        {editable
-                          ? <DateTimePicker style={{ width: '100%' }} dateFormat={DATE_FORMAT} timeFormat={TIME_FORMAT} utc
-                            onChange={(validUntil) => this.setSelectedValidUntilMoment(validUntil)}
-                            isValidDate={(curr, selected) => curr.isAfter(moment(this.state.list[0].validdate).subtract(1, 'day')) &&
-                              curr.isBefore(moment(this.state.list[0].validdate).add(this.getParameters().maxhoursofvalidity, 'hour'))}
-                            timeConstraints={{ hours: {
-                              min: moment(this.state.list[0].validdate).hour(),
-                              max: (moment(this.state.list[0].validdate).hour() + this.getParameters().maxhoursofvalidity)
-                            } }} />
-                          : <Moment format={DATE_TIME_FORMAT} date={item.validdate_end} />
-                        }
-                      </Col>
-                    </Row>
-                    <Row className='section' style={editable ? { minHeight: '2.5rem' } : null}>
-                      <Col xs='3'>
-                        <Badge color='success'>Where</Badge>
-                      </Col>
-                      <Col xs='9'>
-                        {editable
-                          ? <Typeahead style={{ width: '100%' }} filterBy={['firname', 'location_indicator_icao']} labelKey='firname'
-                            options={this.getParameters().firareas} onChange={(firList) => this.setSelectedFir(firList)} defaultValue={this.getParameters().firareas[0]} />
-                          : <span>{item.firname || '--'}</span>
-                        }
-                      </Col>
-                    </Row>
-                    <Row>
-                      <Col xs={{ size: 9, offset: 3 }}>
-                        {item.location_indicator_icao}
-                      </Col>
-                    </Row>
-                    <Row className='section'>
-                      <Col xs='3'>
-                        <Badge color='success'>Progress</Badge>
-                      </Col>
-                      <Col xs='9'>
-                        {item.movement.stationary ? 'Stationary' : 'Move' }
-                      </Col>
-                    </Row>
-                    <Row>
-                      <Col xs={{ size: 9, offset: 3 }}>
-                        {item.change === 'NC' ? 'No change' : '' }
-                      </Col>
-                    </Row>
-                    <Row>
-                      <Col xs={{ size: 9, offset: 3 }}>
-                        {item.forecast_position}
-                      </Col>
-                    </Row>
-                    <Row className='section'>
-                      <Col xs='3'>
-                        <Badge color='success'>Issued at</Badge>
-                      </Col>
-                      <Col xs='9'>
-                        {editable
-                          ? '--'
-                          : <Moment format={DATE_TIME_FORMAT} date={item.issuedate} />
-                        }
-                      </Col>
-                    </Row>
-                    <Row>
-                      <Col xs={{ size: 9, offset: 3 }}>
-                        {item.location_indicator_mwo}
-                      </Col>
-                    </Row>
-                    {editable
-                      ? ''
-                      : <Row>
-                        <Col xs={{ size: 3, offset: 3 }}>
-                          <Badge>Sequence</Badge>
-                        </Col>
-                        <Col xs='6'>
-                          {item.sequence}
-                        </Col>
-                      </Row>
-                    }
-                    {editable
-                      ? <Row>
-                        <Col xs='12'>
-                          <Input onClick={(e) => { e.preventDefault(); e.stopPropagation(); }} onChange={evt => this.updateInputValue(evt)}
-                            value={this.state.inputValue} type='textarea' name='text' id='tafInput' />
-                        </Col>
-                        <CardFooter onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
-                          <Button color='primary' onClick={() => this.addTaf()}>Submit</Button>
-                        </CardFooter>
-                      </Row>
-                      : ''
-                    }
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>
+                            <Badge>Prob</Badge>
+                          </th>
+                          <th>
+                            <Badge>Change</Badge>
+                          </th>
+                          <th>
+                            <Badge>Valid period</Badge>
+                          </th>
+                          <th>
+                            <Badge>Wind</Badge>
+                          </th>
+                          <th>
+                            <Badge>Visibility</Badge>
+                          </th>
+                          <th>
+                            <Badge>Weather</Badge>
+                          </th>
+                          <th>
+                            <Badge>Weather</Badge>
+                          </th>
+                          <th>
+                            <Badge>Weather</Badge>
+                          </th>
+                          <th>
+                            <Badge>Cloud</Badge>
+                          </th>
+                          <th>
+                            <Badge>Cloud</Badge>
+                          </th>
+                          <th>
+                            <Badge>Cloud</Badge>
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody />
+                    </table>
+                    <SortableComponent />
                   </Button>
                 )}
               </Col>

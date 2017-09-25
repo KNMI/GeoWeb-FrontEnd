@@ -656,3 +656,39 @@ span.fa {
 .RightSideBar {
   width:4rem;
 }
+
+
+/* TafStyle's */
+
+.TafStyle .badge {
+  border-radius:0;
+  padding:1em;
+  margin:auto;
+}
+.accordion .TafStyle .badge {
+  width: 100%;
+  border:none;
+}
+
+.accordion .TafStyle .bootstrap-typeahead,
+.accordion .TafStyle .bootstrap-typeahead-input {
+  width: 100%;
+}
+
+.accordion .TafStyle .btn-group .btn {
+  padding: 0.19rem 0.5rem;
+}
+
+.TafStyle .btn-primary {
+  padding: 0.5rem 0.7rem;
+}
+
+.accordion .card-block .TafStyle.row.btn {
+  flex-direction: column;
+  padding: 0.19rem;
+  line-height: 1.4rem;
+}
+
+.accordion .card-block .TafStyle.row.btn .row {
+  flex-direction: row;
+}

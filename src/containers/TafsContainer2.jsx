@@ -11,7 +11,7 @@ import PropTypes from 'prop-types';
 import { Link } from 'react-router';
 
 const ITEMS = [
-  {
+  /*{
     title: 'Open active TAFs',
     ref:   'active-tafs',
     icon: 'folder-open',
@@ -24,7 +24,7 @@ const ITEMS = [
     icon: 'folder-open-o',
     source: TAFS_URL + '/tafs?active=false&status=concept',
     editable: false
-  },
+  },*/
   {
     title: 'Create new TAF',
     ref:   'add-taf',
@@ -86,7 +86,7 @@ class TafsContainer extends Component {
                   key={index} title={item.title} parentCollapsed={!this.state.isOpen} drawProperties={this.props.drawProperties}
                   mapActions={this.props.mapActions} layerActions={this.props.layerActions}
                   icon={item.icon} source={item.source} editable={item.editable} latestUpdateTime={this.state.latestUpdateTime}
-                  isOpen={this.state.isOpen && this.state.isOpenCategory[item.ref]}
+                  isOpen
                   selectedIndex={typeof this.state.selectedItem.index !== 'undefined' && this.state.selectedItem.category === item.ref ? this.state.selectedItem.index : -1}
                   selectMethod={(index, geo) => this.select(item.ref, index, geo)} toggleMethod={() => this.toggleCategory(item.ref)}
                   dispatch={this.props.dispatch} actions={this.props.actions}
