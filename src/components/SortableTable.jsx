@@ -23,7 +23,7 @@ let getWindTAC = (taf) => {
 let getChangeTAC = (taf) => {
   if (taf) {
     if (taf.changeType) {
-      if (taf.changeType.indexOf('PROB') !== -1) {
+      if (taf.changeType.indexOf('PROB') === -1) {
         return taf.changeType;
       }
     }
@@ -34,7 +34,7 @@ let getChangeTAC = (taf) => {
 let getProbTAC = (taf) => {
   if (taf) {
     if (taf.changeType) {
-      if (taf.changeType.indexOf('PROB') === -1) {
+      if (taf.changeType.indexOf('PROB') !== -1) {
         return taf.changeType;
       }
     }
