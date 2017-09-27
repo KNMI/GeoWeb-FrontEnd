@@ -153,4 +153,7 @@ if (overrides) {
   debug('No environment overrides found, defaults will be used.');
 }
 
+/* https://github.com/erikras/react-redux-universal-hot-example/issues/70 */
+config.compiler_quiet = false;
+
 module.exports = config;

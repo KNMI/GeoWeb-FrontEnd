@@ -5,6 +5,7 @@ import { Col, Card, CardTitle, CardText, CardFooter, Input, Button, ButtonGroup 
 import CollapseOmni from './CollapseOmni';
 import moment from 'moment';
 import { TAFS_URL } from '../constants/backend';
+import SortableComponent from '../components/SortableTable';
 export default class Taf extends Component {
   constructor () {
     super();
@@ -15,6 +16,7 @@ export default class Taf extends Component {
       tafs: [],
       expandedTAF: null,
       expandedTAC: null,
+      expandedJSON: null,
       inputValue: '',
       tafTypeSelections: []
     };
@@ -41,6 +43,7 @@ export default class Taf extends Component {
     }).then(src => {
       if (src.data && src.data.tafs) {
         this.setState({ tafs: src.data.tafs });
+        this.setExpandedTAF('4bc6317f-b17b-4324-943e-dc5c44442e50');
       }
     }).catch(error => {
       console.error(error);
@@ -61,9 +64,10 @@ export default class Taf extends Component {
 
   setExpandedTAF (uuid) {
     // Clicking the already expanded TAF collapses it
-    if (this.state.expandedTAF === uuid) {
-      this.setState({ expandedTAF: null, expandedTAC: null });
-    } else if (uuid === 'edit') {
+    // if (this.state.expandedTAF === uuid) {
+    //   this.setState({ expandedTAF: null, expandedTAC: null });
+    // } else
+    if (uuid === 'edit') {
       this.setState({ expandedTAF: 'edit', expandedTAC: null });
     } else {
       // Selecting a new or another TAF, loads its TAC and sets it to expanded
@@ -74,6 +78,16 @@ export default class Taf extends Component {
         responseType: 'text',
         headers: { 'Accept': 'text/plain' }
       }).then(src => this.setState({ expandedTAF: uuid, expandedTAC: src.data }));
+      axios({
+        method: 'get',
+        url: TAFS_URL + '/tafs/' + uuid,
+        withCredentials: true,
+        responseType: 'json',
+        headers: { 'Accept': 'application/json' }
+      }).then(src => {
+        this.setState({ expandedTAF: uuid, expandedJSON: src.data });
+      }
+      );
     }
   }
 
@@ -137,7 +151,7 @@ export default class Taf extends Component {
                 Paste a valid TAF JSON
               </CardTitle>
 
-              <CollapseOmni className='CollapseOmni' isOpen={this.state.expandedTAF === 'edit'} minSize={0} maxSize={200}>
+              <CollapseOmni className='CollapseOmni' isOpen={this.state.expandedTAF === 'edit'} minSize={0}>
                 <Input onClick={(e) => { e.preventDefault(); e.stopPropagation(); }} onChange={evt => this.updateInputValue(evt)}
                   value={this.state.inputValue} type='textarea' name='text' id='tafInput' />
                 <CardFooter onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
@@ -147,16 +161,23 @@ export default class Taf extends Component {
             </Card>
             : this.state.tafs.filter((taf) => this.state.tafTypeSelections.includes(taf.type) || this.state.tafTypeSelections.length === 0).map((taf) => {
               return <Card key={taf.uuid} block onClick={() => this.setExpandedTAF(taf.metadata.uuid)}>
+
                 <CardTitle>
                   {taf.metadata ? taf.metadata.location : 'EWat?'} - {moment.utc(taf.metadata.validityStart).format('DD/MM/YYYY - HH:mm UTC')}
                 </CardTitle>
-                <CollapseOmni className='CollapseOmni' isOpen={this.state.expandedTAF === taf.metadata.uuid} minSize={0} maxSize={200}>
-                  <CardText onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>{this.state.expandedTAC}</CardText>
-                  {taf.metadata.status === 'concept'
-                    ? <CardFooter onClick={(e) => { e.preventDefault(); e.stopPropagation(); this.deleteTAF(taf.metadata.uuid); }}>
-                      <Button color='primary'>Delete</Button>
-                    </CardFooter>
-                    : <div />}
+                <CollapseOmni className='CollapseOmni' isOpen={this.state.expandedTAF === taf.metadata.uuid} minSize={0}>
+                  <div style={{ display:'block' }} >
+                    <div style={{ display:'flex' }} >
+                      <CardText onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>{this.state.expandedTAC}</CardText>
+                      {taf.metadata.status === 'concept'
+                        ? <CardFooter onClick={(e) => { e.preventDefault(); e.stopPropagation(); this.deleteTAF(taf.metadata.uuid); }}>
+                          <Button color='primary'>Delete</Button>
+                        </CardFooter>
+                        : <div />}
+                    </div>
+                    <div style={{ width:'100%', height:'1px', margin:'1px' }} />
+                    <SortableComponent taf={this.state.expandedJSON} />
+                  </div>
                 </CollapseOmni>
               </Card>;
             })

@@ -897,7 +897,7 @@ class TafCategory extends Component {
             <Row>
               <Col className='btn-group-vertical'>
                 {this.state.list.map((item, index) =>
-                  <Button tag='div' className={'TafStyle row' + (selectedIndex === index ? ' active' : '')}
+                  <div style={{ backgroundColor:'#DDD' }} tag='div' className={'TafStyle row' + (selectedIndex === index ? ' active' : '')}
                     key={index} onClick={(evt) => { this.handleSigmetClick(evt, index); }} title={item.phenomenonHRT} >
                     <Row>
                       <Col xs='2'>
@@ -926,48 +926,8 @@ class TafCategory extends Component {
                         <Input disabled value={moment().utc().add(31, 'hour').format('DD-MM-YYYY HH:00')} />
                       </Col>
                     </Row>
-                    <table>
-                      <thead>
-                        <tr>
-                          <th>
-                            <Badge>Prob</Badge>
-                          </th>
-                          <th>
-                            <Badge>Change</Badge>
-                          </th>
-                          <th>
-                            <Badge>Valid period</Badge>
-                          </th>
-                          <th>
-                            <Badge>Wind</Badge>
-                          </th>
-                          <th>
-                            <Badge>Visibility</Badge>
-                          </th>
-                          <th>
-                            <Badge>Weather</Badge>
-                          </th>
-                          <th>
-                            <Badge>Weather</Badge>
-                          </th>
-                          <th>
-                            <Badge>Weather</Badge>
-                          </th>
-                          <th>
-                            <Badge>Cloud</Badge>
-                          </th>
-                          <th>
-                            <Badge>Cloud</Badge>
-                          </th>
-                          <th>
-                            <Badge>Cloud</Badge>
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody />
-                    </table>
                     <SortableComponent />
-                  </Button>
+                  </div>
                 )}
               </Col>
             </Row>

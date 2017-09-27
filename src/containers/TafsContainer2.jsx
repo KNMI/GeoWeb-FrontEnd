@@ -11,20 +11,20 @@ import PropTypes from 'prop-types';
 import { Link } from 'react-router';
 
 const ITEMS = [
-  /*{
+  {
     title: 'Open active TAFs',
     ref:   'active-tafs',
     icon: 'folder-open',
-    source: TAFS_URL + '/tafs?active=true',
-    editable: false
+    source: TAFS_URL + '/tafs?active=false',
+    editable: true
   },
   {
     title: 'Open concept TAFs',
     ref:   'concept-tafs',
     icon: 'folder-open-o',
     source: TAFS_URL + '/tafs?active=false&status=concept',
-    editable: false
-  },*/
+    editable: true
+  },
   {
     title: 'Create new TAF',
     ref:   'add-taf',

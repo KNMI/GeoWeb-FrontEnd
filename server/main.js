@@ -15,21 +15,26 @@ app.use(compress());
 // Apply Webpack HMR Middleware
 // ------------------------------------
 if (project.env === 'development') {
+  debug('Creating webpack', webpackConfig);
+
   const compiler = webpack(webpackConfig);
 
-  debug('Enabling webpack dev and HMR middleware');
+  debug('Enabling webpack dev and HMR middleware', project);
+
   app.use(require('webpack-dev-middleware')(compiler, {
     publicPath: webpackConfig.output.publicPath,
     contentBase: project.paths.client(),
     hot: true,
     quiet: project.compiler_quiet,
     noInfo: project.compiler_quiet,
+    cache: true,
     lazy: false,
     stats: project.compiler_stats
   }));
 
   app.use(require('webpack-hot-middleware')(compiler, {
-    path: '/__webpack_hmr'
+    path: '/__webpack_hmr',
+    cache: true
   }));
 
   // Serve static assets from ~/static since Webpack is unaware of

@@ -692,3 +692,48 @@ span.fa {
 .accordion .card-block .TafStyle.row.btn .row {
   flex-direction: row;
 }
+
+.noselect {
+  -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+     -khtml-user-select: none; /* Konqueror HTML */
+       -moz-user-select: none; /* Firefox */
+        -ms-user-select: none; /* Internet Explorer/Edge */
+            user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome and Opera */
+}
+
+.TafStyle table{
+  border-collapse: collapse;
+  width: 100%;
+  margin-top:.1em;
+}
+.TafStyle th{
+  background-color: #5cb85c;
+  color: white;
+  white-space: nowrap;
+  text-align:center;
+  font-size: 75%;
+  font-weight: bold;
+  height:2.4em;
+}
+
+.TafStyle td{
+  white-space: nowrap;
+  text-align:center;
+  font-size: 11px;
+}
+
+.TafStyle input{
+  text-align:center;
+  background-color: #fff;
+  background-image: none;
+  background-clip: padding-box;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 0.25rem;
+  transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
+  font-size: 11px;
+
+}
+
+

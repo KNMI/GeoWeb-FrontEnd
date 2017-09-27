@@ -43,7 +43,7 @@ export default class TafsContainer extends Component {
   }
 
   render () {
-    const maxSize = 1280;
+    const maxSize = 1100;
     let title = <Row>
       <Button color='primary' onClick={this.toggle} title={this.state.isOpen ? 'Collapse panel' : 'Expand panel'}>
         <Icon name={this.state.isOpen ? 'angle-double-left' : 'angle-double-right'} />
@@ -53,7 +53,7 @@ export default class TafsContainer extends Component {
       <Col className='TafsContainer'>
         <CollapseOmni className='CollapseOmni' isOpen={this.state.isOpen} isHorizontal minSize={64} maxSize={maxSize}>
           <Panel className='Panel' title={title}>
-            <Col xs='auto' className='accordionsWrapper' style={{ minWidth: maxSize - 32 }}>
+            <Col xs='auto' className='accordionsWrapper' style={{ width: this.state.isOpen ? maxSize - 32 : 32 }}>
               {ITEMS.map((item, index) => {
                 return <Card className='row accordion' key={index}>
 

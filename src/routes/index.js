@@ -18,7 +18,7 @@ import MapActionsContainer from '../containers/MapActionsContainer';
 import TasksContainer from '../containers/TasksContainer';
 import ProductsContainer from '../containers/ProductsContainer';
 import SigmetsContainer from '../containers/SigmetsContainer';
-import TafsContainer from '../containers/TafsContainer2';
+import TafsContainer from '../containers/TafsContainer';
 import TriggersContainer from '../containers/TriggersContainer';
 import MapPanel from '../components/MapPanel';
 import LayerManagerPanel from '../components/LayerManagerPanel';
