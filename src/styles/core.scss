@@ -656,3 +656,94 @@ span.fa {
 .RightSideBar {
   width:4rem;
 }
+
+
+/* TafStyle's */
+
+.TafStyle .badge {
+  border-radius:0;
+  padding:1em;
+  margin:auto;
+}
+.accordion .TafStyle .badge {
+  width: 100%;
+  border:none;
+}
+
+.accordion .TafStyle .bootstrap-typeahead,
+.accordion .TafStyle .bootstrap-typeahead-input {
+  width: 100%;
+}
+
+.accordion .TafStyle .btn-group .btn {
+  padding: 0.19rem 0.5rem;
+}
+
+.TafStyle .btn-primary {
+  padding: 0.5rem 0.7rem;
+}
+
+.accordion .card-block .TafStyle.row.btn {
+  flex-direction: column;
+  padding: 0.19rem;
+  line-height: 1.4rem;
+}
+
+.accordion .card-block .TafStyle.row.btn .row {
+  flex-direction: row;
+}
+
+.noselect {
+  -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+     -khtml-user-select: none; /* Konqueror HTML */
+       -moz-user-select: none; /* Firefox */
+        -ms-user-select: none; /* Internet Explorer/Edge */
+            user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome and Opera */
+}
+
+.TACnotEditable {
+  background-color:#DDD;
+  font-weight:bold;
+  border-left:1px solid white;
+  border-right:1px solid white;
+}
+
+.TACbold {
+  font-weight:bold;
+}
+
+.TafStyle table{
+  border-collapse: collapse;
+  width: 100%;
+  margin-top:.1em;
+}
+.TafStyle th{
+  background-color: #5cb85c;
+  color: white;
+  white-space: nowrap;
+  text-align:center;
+  font-weight: bold;
+}
+
+.TafStyle td{
+  white-space: nowrap;
+  text-align:center;
+  font-size: 12px;
+}
+
+.TafStyle input{
+  width:100%;
+  text-align:center;
+  background-color: #fff;
+  background-image: none;
+  background-clip: padding-box;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 0.25rem;
+  transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
+  font-size: 12px;
+
+}
+
+

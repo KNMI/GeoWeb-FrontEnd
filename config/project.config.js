@@ -42,7 +42,45 @@ const config = {
     'react',
     'react-redux',
     'react-router',
-    'redux'
+    'redux',
+    'axios',
+    'babel-polyfill',
+    'bootstrap',
+    'deep-diff',
+    'element-resize-event',
+    'es6-enum',
+    'eslint-plugin-standard',
+    // 'extract-text-webpack-plugin',
+    // 'fs-extra',
+    // 'html-webpack-plugin',
+    'ip',
+    'jquery',
+    'lodash.clonedeep',
+    'lodash.isempty',
+    'lodash.omit',
+    'moment',
+    'moment-timezone',
+    'rc-slider',
+    'react-addons-css-transition-group',
+    'react-addons-transition-group',
+    'react-bootstrap-typeahead',
+    'react-copy-to-clipboard',
+    'react-dom',
+    'react-fa',
+    'react-json-edit',
+    'react-json-tree',
+    'react-moment',
+    'react-switch-button',
+    'reactable',
+    'reactstrap',
+    'reapop',
+    'reapop-theme-wybo',
+    'recharts',
+    'redux-actions',
+    'redux-thunk',
+    'uuid',
+    'validator'
+
   ]
 };
 
@@ -114,5 +152,8 @@ if (overrides) {
 } else {
   debug('No environment overrides found, defaults will be used.');
 }
+
+/* https://github.com/erikras/react-redux-universal-hot-example/issues/70 */
+config.compiler_quiet = false;
 
 module.exports = config;
