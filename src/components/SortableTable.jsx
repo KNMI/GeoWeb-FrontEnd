@@ -331,25 +331,48 @@ class SortableComponent extends Component {
   };
 
   componentWillReceiveProps (nextProps) {
-    if (nextProps.taf && nextProps.taf.changegroups) {
-      if (this.changegroupsSet === true) return;
-      this.changegroupsSet = true;
-      this.setState({
-        items: nextProps.taf.changegroups
-      });
-    } else {
-      this.setState({
-        items: []
-      });
+    console.log(nextProps);
+    let json = null;
+    if (nextProps.taf) {
+      if (typeof nextProps.taf === 'string') {
+        try {
+          json = JSON.parse(nextProps.taf);
+        } catch (e) {
+          console.log(e);
+        }
+      } else {
+        json = nextProps.taf;
+      }
+
+      if (json !== null) {
+        if (json.changegroups) {
+          let uuid = null;
+          if (json.metadata && json.metadata.uuid) {
+            uuid = json.metadata.uuid;
+          }
+          if (this.changegroupsSet === uuid && nextProps.update !== true) return;
+          this.changegroupsSet = uuid;
+
+          this.setState({
+            items: json.changegroups
+          });
+          return;
+        }
+      }
     }
+    this.setState({
+      items: []
+    });
   }
+
   render () {
     return <SortableList items={this.state.items} taf={this.props.taf} onSortEnd={this.onSortEnd} />;
   }
 }
 
 SortableComponent.propTypes = {
-  taf: PropTypes.object
+  taf: PropTypes.object,
+  update: PropTypes.bool
 };
 
 export default SortableComponent;

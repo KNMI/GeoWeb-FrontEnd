@@ -112,8 +112,15 @@ export default class Taf extends Component {
     });
   }
   updateInputValue (evt) {
+    let jsonValue = null;
+    try {
+      jsonValue = JSON.parse(evt.target.value);
+    } catch (e) {
+      console.log(e);
+    }
     this.setState({
-      inputValue: evt.target.value
+      inputValue: evt.target.value,
+      inputValueJSON: jsonValue
     });
   }
   onCheckboxBtnClick (selected) {
@@ -147,10 +154,10 @@ export default class Taf extends Component {
         {
           this.props.editable
             ? <Card block onClick={() => this.setExpandedTAF('edit')}>
+              <SortableComponent taf={this.state.inputValueJSON} update />
               <CardTitle>
                 Paste a valid TAF JSON
               </CardTitle>
-              <SortableComponent />
 
               <CollapseOmni className='CollapseOmni' isOpen={this.state.expandedTAF === 'edit'} minSize={0}>
                 <Input onClick={(e) => { e.preventDefault(); e.stopPropagation(); }} onChange={evt => this.updateInputValue(evt)}
@@ -159,6 +166,7 @@ export default class Taf extends Component {
                   <Button color='primary' onClick={() => this.addTaf()}>Submit</Button>
                 </CardFooter>
               </CollapseOmni>
+
             </Card>
             : this.state.tafs.filter((taf) => this.state.tafTypeSelections.includes(taf.type) || this.state.tafTypeSelections.length === 0).map((taf, index) => {
               return <Card key={index} block onClick={() => this.setExpandedTAF(taf.metadata.uuid)}>
