@@ -34,7 +34,6 @@ export default class Taf extends Component {
   }
 
   fetchTAFs (url) {
-    console.log('fetching tafs');
     axios({
       method: 'get',
       url: url || this.props.source,
@@ -43,7 +42,8 @@ export default class Taf extends Component {
     }).then(src => {
       if (src.data && src.data.tafs) {
         this.setState({ tafs: src.data.tafs });
-        this.setExpandedTAF('4bc6317f-b17b-4324-943e-dc5c44442e50');
+        // this.setExpandedTAF('4bc6317f-b17b-4324-943e-dc5c44442e50');
+        // this.setExpandedTAF('6f533de6-aed8-4a42-b226-0be62e37d03a');
       }
     }).catch(error => {
       console.error(error);
@@ -150,6 +150,7 @@ export default class Taf extends Component {
               <CardTitle>
                 Paste a valid TAF JSON
               </CardTitle>
+              <SortableComponent />
 
               <CollapseOmni className='CollapseOmni' isOpen={this.state.expandedTAF === 'edit'} minSize={0}>
                 <Input onClick={(e) => { e.preventDefault(); e.stopPropagation(); }} onChange={evt => this.updateInputValue(evt)}
@@ -159,8 +160,8 @@ export default class Taf extends Component {
                 </CardFooter>
               </CollapseOmni>
             </Card>
-            : this.state.tafs.filter((taf) => this.state.tafTypeSelections.includes(taf.type) || this.state.tafTypeSelections.length === 0).map((taf) => {
-              return <Card key={taf.uuid} block onClick={() => this.setExpandedTAF(taf.metadata.uuid)}>
+            : this.state.tafs.filter((taf) => this.state.tafTypeSelections.includes(taf.type) || this.state.tafTypeSelections.length === 0).map((taf, index) => {
+              return <Card key={index} block onClick={() => this.setExpandedTAF(taf.metadata.uuid)}>
 
                 <CardTitle>
                   {taf.metadata ? taf.metadata.location : 'EWat?'} - {moment.utc(taf.metadata.validityStart).format('DD/MM/YYYY - HH:mm UTC')}

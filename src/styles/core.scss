@@ -703,6 +703,17 @@ span.fa {
                                   supported by Chrome and Opera */
 }
 
+.TACnotEditable {
+  background-color:#DDD;
+  font-weight:bold;
+  border-left:1px solid white;
+  border-right:1px solid white;
+}
+
+.TACbold {
+  font-weight:bold;
+}
+
 .TafStyle table{
   border-collapse: collapse;
   width: 100%;
@@ -713,18 +724,17 @@ span.fa {
   color: white;
   white-space: nowrap;
   text-align:center;
-  font-size: 75%;
   font-weight: bold;
-  height:2.4em;
 }
 
 .TafStyle td{
   white-space: nowrap;
   text-align:center;
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .TafStyle input{
+  width:100%;
   text-align:center;
   background-color: #fff;
   background-image: none;
@@ -732,7 +742,7 @@ span.fa {
   border: 1px solid rgba(0, 0, 0, 0.15);
   border-radius: 0.25rem;
   transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
-  font-size: 11px;
+  font-size: 12px;
 
 }
 

@@ -1578,7 +1578,7 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
 
   var _drawAndLoad = function (animationList) {
     if(width < 4 || height < 4 ) {
-      console.log('map too small, skipping');
+      // console.log('map too small, skipping');
       return;
     }
 

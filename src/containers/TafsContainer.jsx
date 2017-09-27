@@ -7,21 +7,19 @@ import { TAFS_URL } from '../constants/backend';
 import Taf from '../components/Taf';
 import moment from 'moment';
 const ITEMS = [
-  /*{
+  {
     title: 'Open active TAFs',
     ref:   'active-tafs',
     icon: 'folder-open',
     source: TAFS_URL + '/tafs?active=true',
     editable: false
-  },*/
-  {
+  }, {
     title: 'Open concept TAFs',
     ref:   'concept-tafs',
     icon: 'folder-open-o',
     source: TAFS_URL + '/tafs?active=false&status=concept',
     editable: false
-  },
-  {
+  }, {
     title: 'Create new TAF',
     ref:   'add-taf',
     icon: 'star-o',
@@ -43,7 +41,7 @@ export default class TafsContainer extends Component {
   }
 
   render () {
-    const maxSize = 1100;
+    const maxSize = parseInt(window.innerWidth) - 300;
     let title = <Row>
       <Button color='primary' onClick={this.toggle} title={this.state.isOpen ? 'Collapse panel' : 'Expand panel'}>
         <Icon name={this.state.isOpen ? 'angle-double-left' : 'angle-double-right'} />
