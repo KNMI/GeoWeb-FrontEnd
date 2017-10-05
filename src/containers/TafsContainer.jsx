@@ -12,36 +12,56 @@ const ITEMS = [
     ref:   'active-tafs',
     icon: 'folder-open',
     source: TAFS_URL + '/tafs?active=true',
-    editable: false
+    editable: false,
+    tafEditable: false,
+    isOpenCategory: false
   }, {
     title: 'Open concept TAFs',
     ref:   'concept-tafs',
     icon: 'folder-open-o',
     source: TAFS_URL + '/tafs?active=false&status=concept',
-    editable: false
+    editable: false,
+    tafEditable: true,
+    isOpenCategory: false
   }, {
     title: 'Create new TAF',
     ref:   'add-taf',
     icon: 'star-o',
-    editable: true
+    editable: true,
+    tafEditable: true,
+    isOpenCategory: true
   }
 ];
 
 export default class TafsContainer extends Component {
   constructor () {
     super();
+    let isOpenCategory = {};
+    ITEMS.forEach((item, index) => {
+      isOpenCategory[item.ref] = item.isOpenCategory;
+    });
     this.state = {
-      isOpen: true
+      isOpen: true,
+      isOpenCategory: isOpenCategory
     };
     this.toggle = this.toggle.bind(this);
+    this.toggleCategory = this.toggleCategory.bind(this);
   }
 
   toggle () {
+    /* Toggles expand left /right of TAF product panel */
     this.setState({ isOpen: !this.state.isOpen });
   }
 
+  toggleCategory (category) {
+    console.log(category);
+    let isOpenCategory = Object.assign({}, this.state.isOpenCategory);
+    isOpenCategory[category] = !this.state.isOpenCategory[category];
+    this.setState({ isOpenCategory: isOpenCategory });
+  }
+
   render () {
-    const maxSize = parseInt(window.innerWidth) - 300;
+    const maxSize = parseInt(screen.width) - 200;
     let title = <Row>
       <Button color='primary' onClick={this.toggle} title={this.state.isOpen ? 'Collapse panel' : 'Expand panel'}>
         <Icon name={this.state.isOpen ? 'angle-double-left' : 'angle-double-right'} />
@@ -53,18 +73,19 @@ export default class TafsContainer extends Component {
           <Panel className='Panel' title={title}>
             <Col xs='auto' className='accordionsWrapper' style={{ width: this.state.isOpen ? maxSize - 32 : 32 }}>
               {ITEMS.map((item, index) => {
-                return <Card className='row accordion' key={index}>
+                return <Card className='row accordion' key={index} >
 
-                  {!this.state.isOpen ? <CardHeader>
-                    <Col xs='auto'>
-                      <Icon name={item.icon} />
-                    </Col>
-                    <Col xs='auto'>&nbsp;</Col>
-                    <Col xs='auto'>
-                      {item.notifications > 0 ? <Badge color='danger' pill className='collapsed'>{item.notifications}</Badge> : null}
-                    </Col>
-                  </CardHeader>
-                    : <CardHeader className={maxSize > 0 ? null : 'disabled'} title={title}>
+                  {!this.state.isOpen
+                    ? <CardHeader >
+                      <Col xs='auto'>
+                        <Icon name={item.icon} />
+                      </Col>
+                      <Col xs='auto'>&nbsp;</Col>
+                      <Col xs='auto'>
+                        {item.notifications > 0 ? <Badge color='danger' pill className='collapsed'>{item.notifications}</Badge> : null}
+                      </Col>
+                    </CardHeader>
+                    : <CardHeader className={maxSize > 0 ? null : 'disabled'} title={title} onClick={() => { this.toggleCategory(item.ref); }}>
                       <Col xs='auto'>
                         <Icon name={item.icon} />
                       </Col>
@@ -74,10 +95,14 @@ export default class TafsContainer extends Component {
                       <Col xs='auto'>
                         {item.notifications > 0 ? <Badge color='danger' pill>{item.notifications}</Badge> : null}
                       </Col>
-                    </CardHeader>}
-                  <CollapseOmni className='CollapseOmni' isOpen={this.state.isOpen} minSize={0} maxSize={maxSize}>
-                    <Taf {...item} latestUpdateTime={moment.utc()} updateParent={() => this.forceUpdate()} />
-                  </CollapseOmni>
+                    </CardHeader>
+                  }
+                  { this.state.isOpenCategory[item.ref]
+                    ? <CollapseOmni className='CollapseOmni' isOpen={this.state.isOpen} minSize={0} maxSize={maxSize}>
+                      <Taf {...item} latestUpdateTime={moment.utc()} updateParent={() => this.forceUpdate()} />
+                    </CollapseOmni> : ''
+                  }
+
                 </Card>;
               }
               )}

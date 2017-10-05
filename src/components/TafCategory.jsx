@@ -1,957 +1,800 @@
 import React, { Component } from 'react';
-import { Button, ButtonGroup, Input, Col, Row, Badge, Card, CardHeader, CardBlock, CardFooter } from 'reactstrap';
-import Moment from 'react-moment';
-import moment from 'moment';
+import { SortableContainer, SortableElement, arrayMove } from 'react-sortable-hoc';
 import Icon from 'react-fa';
-import axios from 'axios';
-import cloneDeep from 'lodash.clonedeep';
-import isEmpty from 'lodash.isempty';
-import CollapseOmni from '../components/CollapseOmni';
-import SwitchButton from 'react-switch-button/lib/react-switch-button.js';
-import 'react-switch-button/dist/react-switch-button.css';
-import { Typeahead } from 'react-bootstrap-typeahead';
-import DateTimePicker from 'react-datetime';
-import Slider from 'rc-slider';
-import Tooltip from 'rc-tooltip';
-import SortableComponent from '../components/SortableTable';
-
 import PropTypes from 'prop-types';
-import { BOUNDING_BOXES } from '../constants/bounding_boxes';
-import { HARMONIE_URL, HARMONIE_ML_URL, OVERLAY_URL, OBSERVATIONS_URL, RADAR_URL, LIGHTNING_URL, SATELLITE_URL } from '../constants/default_services';
-const createSliderWithTooltip = Slider.createSliderWithTooltip;
-const Range = createSliderWithTooltip(Slider.Range);
-const Handle = Slider.Handle;
+import moment from 'moment';
+import { Button } from 'reactstrap';
 
-const DATE_FORMAT = 'YYYY MMM DD - ';
-const TIME_FORMAT = 'HH:mm UTC';
-const DATE_TIME_FORMAT = 'YYYY MMM DD - HH:mm UTC';
-const SEPARATOR = '_';
-const TAG_NAMES = {
-  DIV: 'div',
-  SPAN: 'span'
+/* ----- The following functions transform TAC Codes to TAF JSON codes */
+let fromTACToWind = (value) => {
+  if (value === null) return {};
+  let obj = {
+    direction: value.substring(0, 3) === 'VRB' ? 'VRB' : parseInt(value.substring(0, 3)),
+    speed: parseInt(value.substring(3, 5)),
+    gusts: value.indexOf('G') !== -1 ? parseInt(value.substring(6, 8)) : null,
+    unit: value.length > 5 ? value.slice(-2) : 'KT'
+  };
+  return obj;
 };
-const UNIT_M = 'm';
-const UNIT_FL = 'FL';
-const UNIT_FT = 'ft';
-const EMPTY_GEO_JSON = {
-  type: 'FeatureCollection',
-  features: [
-    {
-      type: 'Feature',
-      geometry: {
-        type: 'Polygon',
-        coordinates: []
-      },
-      properties: {
-        prop0: 'value0'
+
+let fromTACToValidStart = (value) => {
+  if (value && value.length > 3) {
+    let issueTime = moment().utc().date(parseInt(value.substring(0, 2))).hour(parseInt(value.substring(2, 4))).format('YYYY-MM-DDTHH:00:00');
+    return issueTime + 'Z';
+  }
+  return null;
+};
+
+let fromTACToValidEnd = (value) => {
+  if (value && value.length > 8) {
+    let issueTime = moment().utc().date(parseInt(value.substring(5, 7))).hour(parseInt(value.substring(7, 9))).format('YYYY-MM-DDTHH:00:00');
+    return issueTime + 'Z';
+  }
+  return null;
+};
+
+let fromTACToVisibility = (value) => {
+  if (value === null || value === undefined) {
+    return null;
+  }
+  if (value === '9999') {
+    return {
+      value:9999,
+      unit: null
+    };
+  } else {
+    if (value.indexOf('KM') !== -1) {
+      return {
+        value: parseInt(value.substring(0, 2)),
+        unit: 'KM'
+      };
+    } else if (value.indexOf('SM') !== -1) {
+      return {
+        value: parseInt(value.substring(0, 1)),
+        unit: 'SM'
+      };
+    } else {
+      return {
+        value: parseInt(value.substring(0, 4)),
+        unit: 'M'
+      };
+    }
+  }
+};
+
+let fromTACToWeather = (_value) => {
+  let value = _value;
+  if (!value) {
+    return 'isNSW';
+  }
+  let qualifier = 'moderate';
+  if (value.startsWith('+')) {
+    qualifier = 'heavy';
+    value = _value.substring(1);
+  } else if (value.startsWith('-')) {
+    qualifier = 'light';
+    value = _value.substring(1);
+  } else if (value.startsWith('VC')) {
+    qualifier = 'vicinity';
+    value = _value.substring(2);
+  }
+
+  let tacDescriptor = value.substring(0, 2);
+  let descriptor = null; for (let key in descriptorMap) if (tacDescriptor === descriptorMap[key]) { descriptor = key; break; }
+
+  let phenomenas = [];
+  for (let p = descriptor ? 2 : 0; p < value.length; p = p + 2) {
+    let tacPhenomena = value.substring(p, p + 2);
+    for (let key in phenomenaMap) if (tacPhenomena === phenomenaMap[key]) { phenomenas.push(key); break; }
+  }
+  let obj = {
+    descriptor:descriptor,
+    phenomena: phenomenas,
+    qualifier: qualifier
+  };
+  return obj;
+};
+
+let fromTACToClouds = (value) => {
+  if (value === null || value === undefined) {
+    return null;
+  } else if (value === '') {
+    return null;
+  }
+  console.log(value);
+  let ret = {
+    amount:value.substring(0, 3),
+    height:parseInt(value.substring(3, 6)),
+    mod: value.length > 6 ? value.slice(6 - value.length) : null
+  };
+  console.log(ret);
+  return ret;
+};
+
+let getTACWeatherArray = (cg) => {
+  let weatherObj = [];
+  for (let w = 0; w < 3; w++) {
+    let weatherInput = fromTACToWeather(cg.input['weather' + w]);
+    if (weatherInput !== null) {
+      weatherObj.push(weatherInput);
+    }
+  }
+  if (weatherObj.length === 0) {
+    weatherObj = 'NSW';
+  }
+  return weatherObj;
+};
+
+let getTACCloudsArray = (cg) => {
+  let cloudsObj = [];
+  for (let c = 0; c < 3; c++) {
+    let cloudsInput = fromTACToClouds(cg.input['clouds' + c]);
+    if (cloudsInput !== null) {
+      cloudsObj.push(cloudsInput);
+    }
+  }
+  if (cloudsObj.length === 0) {
+    cloudsObj = 'NSC';
+  }
+  return cloudsObj;
+};
+
+let createTAFJSONFromInput = (_taf) => {
+  let taf = Object.assign({}, _taf);
+  if (!taf.forecast) taf.forecast = {};
+  taf.forecast.wind = fromTACToWind(taf.input.wind);
+  taf.forecast.visibility = fromTACToVisibility(taf.input.visibility);
+  taf.forecast.weather = getTACWeatherArray(taf);
+  taf.forecast.clouds = getTACCloudsArray(taf);
+
+  delete taf.input;
+  for (let j = 0; j < taf.changegroups.length; j++) {
+    if (!taf.changegroups[j].forecast) taf.changegroups[j].forecast = {};
+    taf.changegroups[j].changeType = !taf.changegroups[j].input.change ? taf.changegroups[j].input.prob : taf.changegroups[j].input.change;
+    taf.changegroups[j].changeStart = fromTACToValidStart(taf.changegroups[j].input.valid);
+    taf.changegroups[j].changeEnd = fromTACToValidEnd(taf.changegroups[j].input.valid);
+    taf.changegroups[j].forecast.wind = fromTACToWind(taf.changegroups[j].input.wind);
+    taf.changegroups[j].forecast.visibility = fromTACToVisibility(taf.changegroups[j].input.visibility);
+    taf.changegroups[j].forecast.weather = getTACWeatherArray(taf.changegroups[j]);
+    taf.changegroups[j].forecast.clouds = getTACCloudsArray(taf.changegroups[j]);
+    delete taf.changegroups[j].input;
+  }
+  return taf;
+};
+
+/* ------ Helper functions for rsetting and remembering local state ----- */
+
+let setInputItem = (taf, name, value) => {
+  if (!taf) return value;
+  if (!taf.input) taf.input = {};
+  taf.input[name] = value === null ? '' : '' + value;
+  return value;
+};
+
+let getInputItem = (taf, name) => {
+  if (taf && taf.input && taf.input[name] !== undefined) return taf.input[name];
+  return null;
+};
+
+/* ----- The following functions TAF JSON codes to TAC codes used in input fields ------ */
+let getWindTAC = (taf) => {
+  let value = getInputItem(taf, 'wind'); if (value !== null) return value;
+  if (!taf) return null;
+  if (taf.forecast && taf.forecast.wind) {
+    if (!taf.forecast.wind.direction) return setInputItem(taf, 'wind', '');
+    value = ('00' + taf.forecast.wind.direction).slice(-3) + '' + (('0' + (!taf.forecast.wind.speed ? 0 : taf.forecast.wind.speed))).slice(-2);
+    if (taf.forecast.wind.gusts) {
+      value += 'G' + ('0' + taf.forecast.wind.gusts).slice(-2);
+    }
+    // value += taf.forecast.wind.unit; <---- Not common practice to show KT in input field
+  }
+  return setInputItem(taf, 'wind', value);
+};
+
+let getChangeTAC = (taf) => {
+  let value = getInputItem(taf, 'change'); if (value !== null) return value;
+
+  if (!taf) return null;
+
+  if (taf.changeType) {
+    if (taf.changeType.indexOf('PROB') === -1) {
+      return setInputItem(taf, 'change', taf.changeType);
+    }
+  }
+
+  return null;
+};
+
+let getProbTAC = (taf) => {
+  let value = getInputItem(taf, 'prob'); if (value !== null) return value;
+  if (taf) {
+    if (taf.changeType) {
+      if (taf.changeType.indexOf('PROB') !== -1) {
+        return setInputItem(taf, 'prob', taf.changeType);
       }
     }
-  ]
-};
-const EMPTY_SIGMET = {
-  geojson                   : EMPTY_GEO_JSON,
-  phenomenon                : '',
-  obs_or_forecast           : {
-    obs                     : true
-  },
-  level                     : {
-    lev1                    : {
-      value                 : 100.0,
-      unit                  : 'FL'
-    }
-  },
-  movement                  : {
-    stationary              : true
-  },
-  change                    : 'NC',
-  forecast_position         : '',
-  issuedate                 : '',
-  validdate                 : moment().utc().format(),
-  validdate_end              : moment().utc().add(4, 'hour').format(),
-  firname                   : '',
-  location_indicator_icao   : '',
-  location_indicator_mwo    : 'EHDB',
-  uuid                      : '00000000-0000-0000-0000-000000000000',
-  status                    : 'PRODUCTION'
+  }
+  return null;
 };
 
-const FALLBACK_PARAMS = {
-  maxhoursofvalidity      : 4,
-  hoursbeforevalidity     : 4,
-  firareas                : [
-    {
-      location_indicator_icao   : 'EHAA',
-      firname                   : 'AMSTERDAM FIR',
-      areapreset                : 'NL_FIR'
+// Save en Send ipv Submit
+// Meerdere concepten open
+
+const qualifierMap = {
+  light:'-',
+  moderate:'',
+  heavy:'+',
+  vicinity:'VC'
+};
+
+const descriptorMap = {
+  shallow: 'MI',
+  patches: 'BC',
+  partial: 'PR',
+  'low drifting': 'DR',
+  blowing: 'BL',
+  showers: 'SH',
+  thunderstorm: 'TS',
+  freezing: 'FZ'
+};
+
+const phenomenaMap = {
+  'drizzle': 'DZ',
+  'rain': 'RA',
+  'snow': 'SN',
+  'snow grains': 'SG',
+  'ice pellets': 'PL',
+  'hail': 'GR',
+  'small hail': 'GS',
+  'unknown precipitation': 'UP',
+  'mist': 'BR',
+  'fog': 'FG',
+  'smoke': 'FU',
+  'volcanic ash': 'VA',
+  'widespread dust': 'DU',
+  'sand': 'SA',
+  'haze': 'HZ',
+  'dust': 'PO',
+  'squalls': 'SQ',
+  'funnel clouds': 'FC',
+  'sandstorm': 'SS',
+  'duststorm': 'DS'
+};
+
+let getVisibilityTAC = (taf) => {
+  let value = getInputItem(taf, 'visibility'); if (value !== null) return value;
+  if (taf && taf.forecast && taf.forecast.visibility && taf.forecast.visibility.value) {
+    if (taf.forecast.visibility.unit) {
+      if (taf.forecast.visibility.unit === 'KM') {
+        return setInputItem(taf, 'visibility', ('0' + taf.forecast.visibility.value).slice(-2) + taf.forecast.visibility.unit);
+      } else {
+        return setInputItem(taf, 'visibility', ('000' + taf.forecast.visibility.value).slice(-4));
+      }
+    } else {
+      return setInputItem(taf, 'visibility', taf.forecast.visibility.value);
     }
-  ],
-  location_indicator_wmo  :'EHDB'
+  }
+  return null;
+};
+
+let getWeatherTAC = (taf, index) => {
+  let value = getInputItem(taf, 'weather' + index); if (value !== null) return value;
+  if (taf && taf.forecast && taf.forecast.weather) {
+    if (typeof taf.forecast.weather === 'string') {
+      // NSW
+      return null;
+    }
+    if (index >= taf.forecast.weather.length) return null;
+    let weather = taf.forecast.weather[index];
+    let TACString = '';
+    if (weather.qualifier) {
+      TACString += qualifierMap[weather.qualifier];
+    }
+    if (weather.descriptor) {
+      TACString += descriptorMap[weather.descriptor];
+    }
+    if (weather.phenomena) {
+      if (typeof taf.forecast.weather === 'string') {
+        TACString += phenomenaMap[weather.phenomena];
+      } else {
+        for (let p = 0; p < weather.phenomena.length; p++) {
+          TACString += phenomenaMap[weather.phenomena[p]];
+        }
+      }
+    }
+    return setInputItem(taf, 'weather' + index, TACString);
+  }
+  return null;
+};
+
+let getCloudsTAC = (taf, index) => {
+  let value = getInputItem(taf, 'clouds' + index); if (value !== null) return value;
+  if (taf && taf.forecast && taf.forecast.clouds) {
+    if (typeof taf.forecast.clouds === 'string') {
+      return null;
+    }
+    if (index >= taf.forecast.clouds.length) return null;
+    let clouds = taf.forecast.clouds[index];
+    if (clouds.amount && clouds.height) {
+      return setInputItem(taf, 'clouds' + index, clouds.amount + ('00' + clouds.height).slice(-3) + (clouds.mod ? clouds.mod : ''));
+    }
+  }
+  return null;
+};
+
+let getValidPeriodTAC = (taf) => {
+  let value = getInputItem(taf, 'valid'); if (value !== null) return value;
+  let dateToDDHH = (dateString) => {
+    var day = moment(dateString);
+    day.utc();
+    return ('0' + day.date()).slice(-2) + '' + ('0' + day.hour()).slice(-2);
+  };
+  let validityStart = null;
+  let validityEnd = null;
+  if (taf) {
+    if (taf.metadata) {
+      validityStart = taf.metadata.validityStart;
+      validityEnd = taf.metadata.validityEnd;
+    } else {
+      validityStart = taf.changeStart;
+      validityEnd = taf.changeEnd;
+    }
+  }
+  if (!validityStart || !validityEnd) return setInputItem(taf, 'valid', '');
+  let validityStartTAC = dateToDDHH(validityStart);
+  let validityEndTAC;
+  if (validityEnd) {
+    validityEndTAC = '/' + dateToDDHH(validityEnd);
+  }
+  return setInputItem(taf, 'valid', validityStartTAC + validityEndTAC);
+};
+
+class TACColumn extends Component {
+  componentDidMount () {
+    let { focusRefId } = this.props;
+    if (focusRefId) {
+      this.refs[focusRefId].focus();
+    }
+  }
+  render () {
+    let { value, rowIndex, colIndex, onChange, onKeyUp, editable, onFocusOut } = this.props;
+    let v = '';
+    switch (colIndex) {
+      case 0:
+        return (<td className='noselect' >{ editable ? <Icon style={{ cursor:'pointer' }} name='bars' /> : null } </td>);
+      case 1:
+        v = getProbTAC(value); break;
+      case 2:
+        v = getChangeTAC(value); break;
+      case 3:
+        v = getValidPeriodTAC(value); break;
+      case 4:
+        v = getWindTAC(value); break;
+      case 5:
+        v = getVisibilityTAC(value); break;
+      case 6: case 7: case 8:
+        v = getWeatherTAC(value, colIndex - 6); break;
+      case 9: case 10: case 11:
+        v = getCloudsTAC(value, colIndex - 9); break;
+    }
+    if (editable) {
+      return (<td><input
+        ref='inputfield'
+        value={!v ? '' : v}
+        onKeyUp={(evt) => { onKeyUp(evt, rowIndex, colIndex, v); }}
+        onBlur={() => { onFocusOut(); }}
+        onChange={(evt) => { onChange(evt, rowIndex, colIndex); }} />
+      </td>);
+    } else {
+      return (<td><input value={!v ? '' : v} disabled /></td>);
+    }
+  }
+};
+
+TACColumn.propTypes = {
+  value: PropTypes.object,
+  onChange: PropTypes.func,
+  onKeyUp: PropTypes.func,
+  rowIndex: PropTypes.number,
+  colIndex: PropTypes.number,
+  editable : PropTypes.bool,
+  onFocusOut: PropTypes.func,
+  focusRefId: PropTypes.string
+};
+
+class ChangeGroup extends Component {
+  render () {
+    let { value, onChange, onKeyUp, rowIndex, onDeleteRow, editable, onFocusOut, focusRefId } = this.props;
+    let cols = [];
+    for (let colIndex = 0; colIndex < 12; colIndex++) {
+      cols.push((<TACColumn
+        ref={'column_' + colIndex}
+        key={cols.length}
+        value={value}
+        rowIndex={rowIndex}
+        colIndex={colIndex}
+        onChange={onChange}
+        onKeyUp={onKeyUp}
+        editable={editable}
+        onFocusOut={onFocusOut}
+        focusRefId={focusRefId} />));
+    }
+    if (editable) {
+      cols.push(
+        <td key='removerow' style={{ cursor:'pointer' }}>
+          <Button size='sm' color='secondary' onClick={() => { onDeleteRow(rowIndex); }}><Icon style={{ cursor:'pointer' }} name={'remove'} /></Button>
+        </td>);
+    }
+    return (
+      <tr>
+        {cols}
+      </tr>
+    );
+  }
+};
+
+ChangeGroup.propTypes = {
+  value: PropTypes.object,
+  onChange: PropTypes.func,
+  onKeyUp: PropTypes.func,
+  rowIndex: PropTypes.number,
+  onDeleteRow: PropTypes.func,
+  editable : PropTypes.bool,
+  onFocusOut: PropTypes.func,
+  focusRefId: PropTypes.string
+};
+
+class SortableChangeGroup extends SortableElement(() => {}) { // { value, onChange, onKeyUp, rowIndex, onDeleteRow, onFocusOut, focusRefId }) => {
+  render () {
+    let { value, onChange, onKeyUp, rowIndex, onDeleteRow, onFocusOut, focusRefId } = this.props;
+    return (<ChangeGroup
+      ref='sortablechangegroup'
+      value={value}
+      onChange={onChange}
+      onKeyUp={onKeyUp}
+      rowIndex={rowIndex}
+      onDeleteRow={onDeleteRow}
+      editable
+      onFocusOut={onFocusOut}
+      focusRefId={focusRefId} />);
+  }
+};
+
+SortableChangeGroup.propTypes = {
+  value: PropTypes.object,
+  onChange: PropTypes.func,
+  onKeyUp: PropTypes.func,
+  rowIndex: PropTypes.number,
+  onDeleteRow: PropTypes.func,
+  editable : PropTypes.bool,
+  onFocusOut: PropTypes.func,
+  focusRefId: PropTypes.string
+};
+
+class BaseForecast extends Component {
+  render () {
+    let { value, onChange, onKeyUp, editable, onFocusOut } = this.props;
+    let cols = [];
+    let location = 'EHAM';
+    if (value && value.metadata && value.metadata.location) location = value.metadata.location;
+    let issueTime = moment().utc().add(1, 'hour').format('DD-MM-YYYY HH:00');
+    if (value && value.metadata && value.metadata.issueTime) {
+      issueTime = value.metadata.issueTime;
+    }
+    cols.push(<td key={cols.length} className='noselect' >&nbsp;</td>);
+    cols.push(<td key={cols.length} className='TACnotEditable'>{location}</td>);
+    cols.push(<td key={cols.length} className='TACnotEditable'>{issueTime}</td>);
+    cols.push(<td key={cols.length} className='TACnotEditable'>{getValidPeriodTAC(value)}</td>);
+    for (let j = 4; j < 12; j++) {
+      cols.push(
+        (<TACColumn
+          ref={'column_' + j}
+          key={cols.length}
+          value={value}
+          rowIndex={-1}
+          colIndex={j}
+          onChange={onChange}
+          onKeyUp={onKeyUp}
+          editable={editable}
+          onFocusOut={onFocusOut} />));
+    }
+    return (
+      <tr>
+        {cols}
+      </tr>
+    );
+  }
+};
+
+BaseForecast.propTypes = {
+  value: PropTypes.object,
+  onChange: PropTypes.func,
+  onKeyUp: PropTypes.func,
+  editable : PropTypes.bool,
+  onFocusOut: PropTypes.func
+};
+
+class TafTable extends SortableContainer(() => {}) { // =
+  render () {
+    let { tafJSON, onChange, onKeyUp, onAddRow, onDeleteRow, editable, onFocusOut, focusRefId } = this.props;
+    if (!tafJSON || !tafJSON.changegroups) {
+      tafJSON = {
+        forecast:{},
+        changegroups:[]
+      };
+    }
+    return (
+      <table className='TafStyle'>
+        <thead>
+          <tr>
+            <th style={{ padding:'0 1em 0 1em' }}>&nbsp;</th>
+            <th>Location</th>
+            <th>Issue time</th>
+            <th>Valid period</th>
+            <th>Wind</th>
+            <th>Visibility</th>
+            <th>Weather</th>
+            <th>Weather</th>
+            <th>Weather</th>
+            <th>Cloud</th>
+            <th>Cloud</th>
+            <th>Cloud</th>
+            <th>&nbsp;</th>
+          </tr>
+        </thead>
+        <tbody>
+          <BaseForecast ref={'baseforecast'} value={tafJSON} onChange={onChange} onKeyUp={onKeyUp} onDeleteRow={onDeleteRow}
+            onFocusOut={onFocusOut} focusRefId={focusRefId} editable />
+        </tbody>
+
+        <thead>
+          <tr>
+            <th>&nbsp;</th>
+            <th>Prob</th>
+            <th>Change</th>
+            <th>Valid period</th>
+            <th>Wind</th>
+            <th>Visibility</th>
+            <th>Weather</th>
+            <th>Weather</th>
+            <th>Weather</th>
+            <th>Cloud</th>
+            <th>Cloud</th>
+            <th>Cloud</th>
+            <th>&nbsp;</th>
+          </tr>
+        </thead>
+        <tbody>
+          {tafJSON.changegroups.map((value, index) => {
+            if (editable) {
+              return (<SortableChangeGroup ref={'changegroup_' + index} key={`item-${index}`} index={index} rowIndex={index} value={value} onChange={onChange} onKeyUp={onKeyUp} onDeleteRow={onDeleteRow}
+                onFocusOut={onFocusOut} focusRefId={focusRefId} />);
+            } else {
+              return (<ChangeGroup key={`item-${index}`} index={index} rowIndex={index} value={value} onChange={onChange} onKeyUp={onKeyUp} onDeleteRow={onDeleteRow}
+                onFocusOut={onFocusOut} />);
+            }
+          })}
+          { editable
+            ? <tr>
+              {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map((index, value) => { return (<td key={index} >&nbsp;</td>); })}
+              <td key='addrow'><Button size='sm' color='secondary' onClick={() => { onAddRow(); }}><Icon style={{ cursor:'pointer' }} name={'plus'} /></Button></td>
+            </tr> : null
+          }
+        </tbody>
+      </table>
+    );
+  }
+};
+TafTable.propTypes = {
+  tafJSON: PropTypes.object,
+  onChange: PropTypes.func,
+  onKeyUp: PropTypes.func,
+  onAddRow: PropTypes.func,
+  onDeleteRow: PropTypes.func,
+  editable : PropTypes.bool,
+  onFocusOut: PropTypes.func,
+  focusRefId: PropTypes.string
 };
 
 class TafCategory extends Component {
   constructor (props) {
     super(props);
-    this.onObsOrFcstClick = this.onObsOrFcstClick.bind(this);
-    this.handleSigmetClick = this.handleSigmetClick.bind(this);
-    this.saveSigmet = this.saveSigmet.bind(this);
-    this.savedSigmetCallback = this.savedSigmetCallback.bind(this);
-    this.getExistingSigmets = this.getExistingSigmets.bind(this);
-    this.gotExistingSigmetsCallback = this.gotExistingSigmetsCallback.bind(this);
-    this.setTops = this.setTops.bind(this);
+    this.onSortEnd = this.onSortEnd.bind(this);
+    this.onChange = this.onChange.bind(this);
+    this.onKeyUp = this.onKeyUp.bind(this);
+    this.onAddRow = this.onAddRow.bind(this);
+    this.onDeleteRow = this.onDeleteRow.bind(this);
+    this.onFocusOut = this.onFocusOut.bind(this);
+    this.updateTACtoTAFJSONtoTac = this.updateTACtoTAFJSONtoTac.bind(this);
+
+    let TAFStartHour = moment().utc().hour();
+    TAFStartHour = TAFStartHour + 6;
+    TAFStartHour = parseInt(TAFStartHour / 6);
+    TAFStartHour = TAFStartHour * (6);
     this.state = {
-      isOpen: props.isOpen,
-      list: [EMPTY_SIGMET],
-      renderRange: false,
-      lowerUnit: UNIT_FL
+      tafJSON: {
+        forecast:{},
+        metadata:{
+          validityStart: moment().utc().hour(TAFStartHour).add(0, 'hour').format('YYYY-MM-DDTHH:00:00') + 'Z',
+          validityEnd: moment().utc().hour(TAFStartHour).add(30, 'hour').format('YYYY-MM-DDTHH:00:00') + 'Z'
+        },
+        changegroups:[]
+      }
     };
-  }
-
-  // get Human Readable Text for Code
-  getHRT4code (code) {
-    const { phenomenonMapping } = this.props;
-    const UNKNOWN = 'Unknown';
-    if (!phenomenonMapping) {
-      return UNKNOWN;
-    }
-    if (typeof code === 'undefined') {
-      return UNKNOWN;
-    }
-    const codeFragments = code.split(SEPARATOR);
-    if (codeFragments.length < 2) {
-      return UNKNOWN;
-    }
-    let result = '';
-    let variantIndex;
-    let additionIndex;
-    let effectiveMapping = cloneDeep(phenomenonMapping).filter((item) => item.phenomenon.code === code);
-    if (effectiveMapping.length !== 1) {
-      effectiveMapping = cloneDeep(phenomenonMapping).map((item) => {
-        if (item.variants.length > 0) {
-          variantIndex = item.variants.findIndex((variant) => codeFragments[0].startsWith(variant.code));
-          if (variantIndex > -1) {
-            item.variants = [item.variants[variantIndex]];
-            return item;
-          }
-        } else if (item.phenomenon.code.startsWith(codeFragments[0])) {
-          return item;
-        }
-      }).filter((item) => typeof item !== 'undefined').filter((item) => {
-        if (item.variants.length > 0) {
-          return codeFragments[1].startsWith(item.phenomenon.code);
-        } else {
-          return true;
-        }
-      }).map((item) => {
-        if (item.additions.length > 0) {
-          additionIndex = item.additions.findIndex((addition) => codeFragments[1].endsWith(addition.code));
-          if (additionIndex > -1) {
-            item.additions = [item.additions[additionIndex]];
-            return item;
-          } else if (codeFragments.length > 2) {
-            additionIndex = item.additions.findIndex((addition) => codeFragments[2].endsWith(addition.code));
-            if (additionIndex > -1) {
-              item.additions = [item.additions[additionIndex]];
-              return item;
-            }
-          }
-        }
-        item.additions = [];
-        return item;
-      });
-    }
-    if (effectiveMapping.length === 1) {
-      if (effectiveMapping[0].variants.length === 1) {
-        result = effectiveMapping[0].variants[0].name + ' ' + effectiveMapping[0].phenomenon.name.toLowerCase();
-      } else if (effectiveMapping[0].variants.length === 0) {
-        result = effectiveMapping[0].phenomenon.name;
-      } else {
-        result = UNKNOWN;
-      }
-      if (effectiveMapping[0].additions.length === 1) {
-        result += ' ' + effectiveMapping[0].additions[0].name;
-      }
-      return result;
-    }
-    return UNKNOWN;
-  }
-
-  getPhenomena () {
-    const { phenomenonMapping } = this.props;
-    let result = [];
-    phenomenonMapping.forEach((item) => {
-      if (item.variants.length === 0) {
-        const res = {
-          name: item.phenomenon.name,
-          code: item.phenomenon.code,
-          layerpreset: item.phenomenon.layerpreset
-        };
-        item.additions.forEach((addition) => {
-          result.push({
-            name: res.name + ' ' + addition.name,
-            code: res.code + SEPARATOR + addition.code,
-            layerpreset: item.phenomenon.layerpreset
-          });
-        });
-        result.push(res);
-      } else {
-        item.variants.forEach((variant) => {
-          const res = {
-            name: variant.name + ' ' + item.phenomenon.name.toLowerCase(),
-            code: variant.code + SEPARATOR + item.phenomenon.code,
-            layerpreset: item.phenomenon.layerpreset
-          };
-          item.additions.forEach((addition) => {
-            result.push({
-              name: res.name + ' ' + addition.name,
-              code: res.code + addition.code,
-              layerpreset: item.phenomenon.layerpreset
-            });
-          });
-          result.push(res);
-        });
-      }
-    });
-    return result;
-  }
-
-  getParameters () {
-    let { parameters } = this.props;
-    if (isEmpty(parameters)) {
-      parameters = FALLBACK_PARAMS;
-    }
-    return parameters;
-  }
-
-  hasTagName (element, tagName) {
-    return element.tagName.toLowerCase() === tagName;
-  }
-
-  handleSigmetClick (evt, index) {
-    let shouldContinue = false;
-    if (!this.props.editable) {
-      shouldContinue = true;
-    } else if (this.props.selectedIndex !== 0) {
-      shouldContinue = true;
-    } else if (this.hasTagName(evt.target, TAG_NAMES.DIV) && evt.target.classList.contains('row')) {
-      shouldContinue = true;
-    } else if (this.hasTagName(evt.target, TAG_NAMES.SPAN) && evt.target.classList.contains('badge')) {
-      shouldContinue = true;
-    }
-
-    if (shouldContinue) {
-      this.props.selectMethod(index, this.state.list[index].geojson);
-    }
-  }
-
-  onObsOrFcstClick (obsSelected) {
-    const newList = cloneDeep(this.state.list);
-    newList[0].obs_or_forecast.obs = obsSelected;
-    this.setState({ list: newList });
-  }
-
-  saveSigmet (evt) {
-    evt.preventDefault();
-    const newList = cloneDeep(this.state.list);
-    newList[0].geojson = this.props.drawProperties.geojson;
-    this.setState({ list: newList });
-    axios({
-      method: 'post',
-      url: this.props.source,
-      withCredentials: true,
-      responseType: 'json',
-      data: newList[0]
-    }).then(src => {
-      this.savedSigmetCallback(src);
-    }).catch(error => {
-      this.couldntSaveSigmetCallback(error.response);
-    });
-  }
-
-  sigmetLayers (p) {
-    switch (p) {
-      case 'sigmet_layer_TS':
-        return (
-          {
-            area: {
-              bottom: BOUNDING_BOXES[1].bbox[1],
-              top: BOUNDING_BOXES[1].bbox[3],
-              crs: 'EPSG:3857'
-            },
-            display: {
-              npanels: 4,
-              type: 'quaduneven'
-            },
-            layers: [
-              [
-                {
-                  service: HARMONIE_URL,
-                  title: 'HARM_N25_EXT',
-                  name: 'precipitation_flux',
-                  label: 'Prec: Precipitation rate',
-                  opacity: 1,
-                  enabled: true,
-                  overlay: false
-                },
-                {
-                  service: OVERLAY_URL,
-                  title: 'OVL',
-                  name: 'FIR_DEC_2013_EU',
-                  label: 'FIR areas',
-                  enabled: true,
-                  overlay: true
-                }
-              ],
-              [
-                {
-                  service: OBSERVATIONS_URL,
-                  title: 'OBS',
-                  name: '10M/ww',
-                  label: 'wawa Weather Code (ww)',
-                  enabled: true,
-                  opacity: 1,
-                  overlay: false
-                },
-                {
-                  service: OVERLAY_URL,
-                  title: 'OVL',
-                  name: 'FIR_DEC_2013_EU',
-                  label: 'FIR areas',
-                  enabled: true,
-                  overlay: true
-                }
-              ],
-              [
-                {
-                  service: RADAR_URL,
-                  title: 'RADAR',
-                  name: 'precipitation',
-                  label: 'Neerslag',
-                  opacity: 1,
-                  enabled: true,
-                  overlay: false
-                }, {
-                  service: LIGHTNING_URL,
-                  title: 'LGT',
-                  name: 'LGT_NL25_LAM_05M',
-                  label: 'LGT_NL25_LAM_05M',
-                  enabled: true,
-                  opacity: 1,
-                  overlay: false
-                },
-                {
-                  service: OVERLAY_URL,
-                  title: 'OVL',
-                  name: 'FIR_DEC_2013_EU',
-                  label: 'FIR areas',
-                  enabled: true,
-                  overlay: true
-                }
-              ],
-              [
-                {
-                  service: OVERLAY_URL,
-                  title: 'OVL',
-                  name: 'FIR_DEC_2013_EU',
-                  label: 'FIR areas',
-                  enabled: true,
-                  overlay: true
-                }
-              ]
-            ]
-          }
-        );
-
-      case 'sigmet_layer_SEV_TURB':
-        return (
-          {
-            area: {
-              bottom: BOUNDING_BOXES[1].bbox[1],
-              top: BOUNDING_BOXES[1].bbox[3],
-              crs: 'EPSG:3857'
-            },
-            display: {
-              npanels: 4,
-              type: 'quaduneven'
-            },
-            layers: [
-              [
-                {
-                  service: OVERLAY_URL,
-                  title: 'OVL',
-                  name: 'FIR_DEC_2013_EU',
-                  label: 'FIR areas',
-                  overlay: true
-                },
-                {
-                  service: HARMONIE_ML_URL,
-                  title: 'ADAGUC WMS Service for Geoweb',
-                  name: 'wind__at_ml',
-                  label: 'Wind flags (ML)',
-                  opacity: 1,
-                  enabled: true,
-                  modellevel: 17,
-                  style: 'Windbarbs_mps/barbshaded',
-                  styleTitle: 'Wind barbs+sh',
-                  overlay: false
-                }
-              ], [], [],
-              [
-                {
-                  service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.OBS.cgi?',
-                  title: 'OBS',
-                  name: '10M/derived/windforce',
-                  label: 'Wind force',
-                  opacity: 1,
-                  enabled: true,
-                  style: 'bftalldiscvec/barb',
-                  styleTitle: 'bftalldiscvec/barb',
-                  overlay: false
-                },
-                {
-                  service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.OVL.cgi?',
-                  title: 'OVL',
-                  name: 'FIR_DEC_2013_EU',
-                  label: 'FIR areas',
-                  overlay: true
-                }
-              ]
-            ]
-          }
-        );
-      case 'sigmet_layer_SEV_ICE':
-        return (
-          {
-            area: {
-              bottom: BOUNDING_BOXES[1].bbox[1],
-              top: BOUNDING_BOXES[1].bbox[3],
-              crs: 'EPSG:3857'
-            },
-            display: {
-              npanels: 4,
-              type: 'quaduneven'
-            },
-            layers: [
-              [
-                {
-                  service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.SAT.cgi?',
-                  title: 'SAT',
-                  name: 'HRVIS',
-                  label: 'HRVIS',
-                  opacity: 1,
-                  enabled: true,
-                  overlay: false
-                },
-                {
-                  service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.RADAR.cgi?',
-                  title: 'RADAR',
-                  name: 'precipitation_eur',
-                  label: 'Neerslag EUR',
-                  opacity: 1,
-                  overlay: false
-                }
-              ], [], [],
-              [
-                {
-                  service: OBSERVATIONS_URL,
-                  title: 'OBS',
-                  name: '10M/td',
-                  label: 'Dew Point Temperature 1.5m 1 Min Average (td)',
-                  opacity: 1,
-                  enabled: true,
-                  style: 'auto/nearest',
-                  styleTitle: 'auto/nearest',
-                  overlay: false
-                },
-                {
-                  service: OBSERVATIONS_URL,
-                  title: 'OBS',
-                  name: '10M/ta',
-                  label: 'Air Temperature 1 Min Average (ta)',
-                  opacity: 1,
-                  enabled: true,
-                  style: 'temperaturedisc/point',
-                  styleTitle: 'temperaturedisc/point',
-                  overlay: false
-                }
-              ]
-            ]
-          }
-        );
-
-      default:
-        return (
-          {
-            area: {
-              bottom: BOUNDING_BOXES[1].bbox[1],
-              top: BOUNDING_BOXES[1].bbox[3],
-              crs: 'EPSG:3857'
-            },
-            display: {
-              npanels: 4,
-              type: 'quaduneven'
-            },
-            layers: [
-              [
-                {
-                  service: HARMONIE_URL,
-                  title: 'HARM_N25_EXT',
-                  name: 'precipitation_flux',
-                  label: 'Prec: Precipitation rate',
-                  opacity: 1,
-                  enabled: true,
-                  overlay: false
-                },
-                {
-                  service: OVERLAY_URL,
-                  title: 'OVL',
-                  name: 'FIR_DEC_2013_EU',
-                  label: 'FIR areas',
-                  enabled: true,
-                  overlay: true
-                }
-              ],
-              [
-                {
-                  service: OBSERVATIONS_URL,
-                  title: 'OBS',
-                  name: '10M/ww',
-                  label: 'wawa Weather Code (ww)',
-                  enabled: true,
-                  opacity: 1,
-                  overlay: false
-                },
-                {
-                  service: OVERLAY_URL,
-                  title: 'OVL',
-                  name: 'FIR_DEC_2013_EU',
-                  label: 'FIR areas',
-                  enabled: true,
-                  overlay: true
-                }
-              ],
-              [
-                {
-                  service: RADAR_URL,
-                  title: 'RADAR',
-                  name: 'precipitation',
-                  label: 'Neerslag',
-                  opacity: 1,
-                  enabled: true,
-                  overlay: false
-                }, {
-                  service: LIGHTNING_URL,
-                  title: 'LGT',
-                  name: 'LGT_NL25_LAM_05M',
-                  label: 'LGT_NL25_LAM_05M',
-                  enabled: true,
-                  opacity: 1,
-                  overlay: false
-                },
-                {
-                  service: OVERLAY_URL,
-                  title: 'OVL',
-                  name: 'FIR_DEC_2013_EU',
-                  label: 'FIR areas',
-                  enabled: true,
-                  overlay: true
-                }
-              ],
-              [
-                {
-                  service: SATELLITE_URL,
-                  title: 'SAT',
-                  name: 'HRV-COMB',
-                  label: 'RGB-HRV-COMB',
-                  enabled: true,
-                  opacity: 1,
-                  overlay: false
-                },
-                {
-                  service: OVERLAY_URL,
-                  title: 'OVL',
-                  name: 'FIR_DEC_2013_EU',
-                  label: 'FIR areas',
-                  enabled: true,
-                  overlay: true
-                }
-              ]
-            ]
-          }
-        );
-    }
   };
 
-  setSelectedPhenomenon (phenomenonList) {
-    if (phenomenonList.length === 0) {
-      return;
+  onSortEnd ({ oldIndex, newIndex }) {
+    // console.log('state from sort');
+    this.state.tafJSON.changegroups = arrayMove(this.state.tafJSON.changegroups, oldIndex, newIndex);
+    this.setState({
+      tafJSON: this.state.tafJSON
+    });
+  };
+
+  setTACColumnInput (value, rowIndex, colIndex, tafRow) {
+    if (!tafRow) {
+      console.log('returning because tafRow missing');
+      return tafRow;
     }
-    const onlyObj = phenomenonList[0];
-    let listCpy = cloneDeep(this.state.list);
-    listCpy[0].phenomenon = onlyObj.code;
-    this.setState({ list: listCpy });
-    const preset = this.sigmetLayers(onlyObj.layerpreset);
-    this.props.dispatch(this.props.mapActions.setLayout(preset.display.type));
-    this.props.dispatch(this.props.layerActions.setPreset(preset.layers));
-    this.props.dispatch(this.props.mapActions.setCut({ name: 'Custom', bbox: [570875, preset.area.bottom, 570875, preset.area.top] }));
-  }
-
-  setSelectedFir (firList) {
-    if (firList.length === 0) {
-      return;
+    if (!tafRow.forecast) {
+      tafRow.forecast = {};
     }
-    const firObj = firList[0];
-    let listCpy = cloneDeep(this.state.list);
-    listCpy[0].firname = firObj.firname;
-    listCpy[0].location_indicator_icao = firObj.location_indicator_icao;
-    this.setState({ list: listCpy });
+    if (!tafRow.input) tafRow.input = {};
+    switch (colIndex) {
+      case 1:
+        tafRow.input.prob = value; break;
+      case 2:
+        tafRow.input.change = value; break;
+      case 3:
+        tafRow.input.valid = value; break;
+      case 4:
+        tafRow.input.wind = value; break;
+      case 5:
+        tafRow.input.visibility = value; break;
+      case 6: case 7: case 8:
+        tafRow.input['weather' + (colIndex - 6)] = value; break;
+      case 9: case 10: case 11:
+        tafRow.input['clouds' + (colIndex - 9)] = value; break;
+    }
+    return tafRow;
   }
 
-  setSelectedObservedForecast (isObserved) {
-    let listCpy = cloneDeep(this.state.list);
-    listCpy[0].obs_or_forecast = { obs: isObserved };
-    this.setState({ list: listCpy });
-  }
-
-  setSelectedValidFromMoment (validFrom) {
-    let listCpy = cloneDeep(this.state.list);
-    listCpy[0].validdate = validFrom.utc().format();
-    this.setState({ list: listCpy });
-  }
-
-  setSelectedValidUntilMoment (validUntil) {
-    let listCpy = cloneDeep(this.state.list);
-    listCpy[0].validdate_end = validUntil.utc().format();
-    this.setState({ list: listCpy });
-  }
-
-  getExistingSigmets () {
-    axios({
-      method: 'get',
-      url: this.props.source,
-      withCredentials: true,
-      responseType: 'json'
-    }).then(src => {
-      this.gotExistingSigmetsCallback(src);
-    }).catch(error => {
-      this.gotExistingSigmetsCallback(error.response);
+  /*
+    rowIndex -1 means forcast, others are changegroups
+  */
+  onChange (event, rowIndex, colIndex) {
+    let fieldVal = event.target.value;
+    if (fieldVal === undefined || fieldVal === null) fieldVal = '-';
+    let newTaf = Object.assign({}, this.state.tafJSON);
+    this.setTACColumnInput(fieldVal, rowIndex, colIndex, rowIndex >= 0 ? newTaf.changegroups[rowIndex] : newTaf);
+    // console.log('state from input');
+    this.setState({
+      tafJSON: newTaf
     });
   }
 
-  setEmptySigmet () {
-    this.setState({ list: [EMPTY_SIGMET] });
-  }
-
-  gotExistingSigmetsCallback (message) {
-    let sigmetsList = message && message.data && message.data.sigmets ? message.data.sigmets : [];
-    sigmetsList.forEach((sigmet) => {
-      sigmet.phenomenonHRT = this.getHRT4code(sigmet.phenomenon);
+  updateTACtoTAFJSONtoTac () {
+    /* First from form inputs to TAF JSON */
+    let newTAFJSON = createTAFJSONFromInput(this.state.tafJSON);
+    if (!newTAFJSON) {
+      console.log('error newTAFJSON is null');
+      return;
+    }
+    newTAFJSON.metadata.uuid = null;
+    /* Then update state and inputs will be rendered from JSON */
+    this.setState({
+      tafJSON: Object.assign({}, newTAFJSON)
     });
-    this.setState({ list: sigmetsList });
+    return newTAFJSON;
   }
 
-  savedSigmetCallback (message) {
-    this.setState({ isOpen: false, list: [EMPTY_SIGMET] });
-    if (this.props.selectedIndex === 0) {
-      this.props.selectMethod(0);
+  onKeyUp (event, row, col, inputValue) {
+    if (event.keyCode === 13) {
+      this.onAddRow();
+    }
+    if (event.keyCode === 27) {
+      this.updateTACtoTAFJSONtoTac();
+    }
+    if (this.state.tafJSON.changegroups.length > 0) {
+      if (event.keyCode === 38) { // KEY ARROW UP
+        if (row === 0) { // Up from changegroup to baseforecast
+          this.refs['taftable'].refs['baseforecast'].refs['column_' + col].refs['inputfield'].focus();
+        } else if (row > 0) { // Up from changegroup to changegroup
+          this.refs['taftable'].refs['changegroup_' + (row - 1)].refs['sortablechangegroup'].refs['column_' + col].refs['inputfield'].focus();
+        }
+      }
+      if (event.keyCode === 40) { // KEY ARROW DOWN
+        if (row === -1) { // Down from baseforecast to changegroup
+          this.refs['taftable'].refs['changegroup_' + (row + 1)].refs['sortablechangegroup'].refs['column_' + col].refs['inputfield'].focus();
+        } else if (row >= 0 && row < (this.state.tafJSON.changegroups.length - 1)) { // Down from changegroup to changegroup
+          this.refs['taftable'].refs['changegroup_' + (row + 1)].refs['sortablechangegroup'].refs['column_' + col].refs['inputfield'].focus();
+        }
+      }
     }
   }
 
-  couldntSaveSigmetCallback (message) {
-    console.log('Error while trying to save SIGMET', message);
-    if (this.props.selectedIndex === 0) {
-      this.props.selectMethod(0);
-    }
+  onAddRow () {
+    let changeGroups = this.state.tafJSON.changegroups;
+    changeGroups.push({});
+    this.setState({
+      tafJSON: this.state.tafJSON
+    });
   }
 
-  componentWillMount () {
-    if (this.props.editable) {
-      this.setEmptySigmet();
-    } else {
-      this.getExistingSigmets(this.props.source);
-    }
+  onFocusOut () {
+    console.log('onFocusOut', this.updateTACtoTAFJSONtoTac());
+  }
+
+  onDeleteRow (rowIndex) {
+    let changeGroups = this.state.tafJSON.changegroups;
+    changeGroups.splice(rowIndex, 1);
+    this.setState({
+      tafJSON: this.state.tafJSON
+    });
+    console.log(rowIndex);
+  };
+
+  shouldComponentUpdate (nextProps, nextState) {
+    return true;
   }
 
   componentWillReceiveProps (nextProps) {
-    if (typeof nextProps.isOpen !== 'undefined') {
-      this.setState({ isOpen: nextProps.isOpen });
-    }
-  }
-
-  marks (flightLevelValues, unit) {
-    let retObj = {
-      0: 'Surface',
-      400: 'Above'
-    };
-
-    switch (unit) {
-      case UNIT_M:
-        const prettyNumbers = flightLevelValues.map((val) => Math.round((val * 30.48) / 500) * 500);
-        prettyNumbers.map((val) => { retObj[Math.round(val / 30.48)] = val + ' ' + UNIT_M; });
-        break;
-      case UNIT_FT:
-        flightLevelValues.map((val) => { retObj[val] = val * 100 + ' ' + UNIT_FT; });
-        break;
-      case UNIT_FL:
-      default:
-        flightLevelValues.map((val) => { retObj[val] = UNIT_FL + ' ' + val; });
-        break;
-    }
-    return retObj;
-  };
-
-  tooltip (flightLevel, unit) {
-    if (flightLevel === 400) {
-      return 'Above';
-    }
-    if (flightLevel === 0) {
-      return 'Surface';
-    }
-    switch (unit) {
-      case UNIT_M:
-        return Math.round((flightLevel * 30.48) / 100) * 100 + ' ' + UNIT_M;
-      case UNIT_FT:
-        return flightLevel * 100 + ' ' + UNIT_FT;
-      case UNIT_FL:
-        return UNIT_FL + ' ' + flightLevel;
-      default:
-        break;
-    }
-  };
-
-  showLevels (level) {
-    if (!level.lev1) {
-      return '';
-    }
-    let result = '';
-    switch (level.lev1.unit) {
-      case 'SFC':
-        if (!level.lev2) {
-          return '';
-        }
-        result = 'Between surface and ';
-        if (level.lev2.unit === UNIT_FL) {
-          result += UNIT_FL + level.lev2.value;
-        } else {
-          result += level.lev2.value + level.lev2.unit === UNIT_M ? 'm' : 'ft';
-        }
-        return result;
-      case 'TOP':
-        return 'Tops at FL' + level.lev1.value;
-      case 'TOP_ABV':
-        return 'Tops above FL' + level.lev1.value;
-      case 'ABV':
-        return 'Above FL' + level.lev1.value;
-    }
-
-    if (!level.lev2) {
-      let result = 'At ';
-      if (level.lev1.unit === UNIT_FL) {
-        result += 'FL' + level.lev1.value;
-      } else {
-        result += level.lev1.value + level.lev1.unit === UNIT_M ? 'm' : 'ft';
-      }
-      return result;
-    } else {
-      let result = 'Between ';
-      if (level.lev1.unit === UNIT_FL) {
-        result += 'FL' + level.lev1.value + ' and FL' + level.lev2.value;
-      } else if (level.lev1.unit === UNIT_M) {
-        result += level.lev1.value + 'm and ' + level.lev2.value + 'm';
-      } else {
-        result += level.lev1.value + 'ft and ' + level.lev2.value + 'ft';
-      }
-      return result;
-    }
-  }
-
-  setTops (evt) {
-    let newPartialState = { tops: evt.target.checked };
-    if (newPartialState.tops) {
-      newPartialState['lowerUnit'] = UNIT_FL;
-    }
-    this.setState(newPartialState);
-  }
-
-  setSigmetLevel (value) {
-    let listCpy = cloneDeep(this.state.list);
-    if (value.length === 0) {
-      return;
-    }
-    if (value.length === 1) {
-      // Slider was used
-      const val = value[0];
-      const isTop = this.state.tops;
-      if (isTop) {
-        listCpy[0].level.lev1 = { unit: 'TOP', value: val };
-      } else {
-        switch (this.state.lowerUnit) {
-          case UNIT_M:
-            const meterVal = Math.round((val * 30.48) / 100) * 100;
-            listCpy[0].level.lev1 = { unit: 'M', value: meterVal };
-            break;
-          case UNIT_FT:
-            const feetVal = val * 100;
-            listCpy[0].level.lev1 = { unit: 'FT', value: feetVal };
-            break;
-          case UNIT_FL:
-          default:
-            listCpy[0].level.lev1 = { unit: 'FL', value: val };
-            break;
-        }
-      }
-    } else {
-      // value.length === 2
-      const lowerVal = value[0];
-      const upperVal = value[1];
-      if (lowerVal >= upperVal) {
-        return;
-      }
-      if (lowerVal === 0) {
-        // SFC
-        listCpy[0].level.lev1 = { unit: 'SFC', value: 0 };
-        switch (this.state.lowerUnit) {
-          case UNIT_M:
-            const meterVal = Math.round((lowerVal * 30.48) / 100) * 100;
-            listCpy[0].level.lev2 = { unit: 'M', value: meterVal };
-            break;
-          case UNIT_FT:
-            const feetVal = lowerVal * 100;
-            listCpy[0].level.lev2 = { unit: 'FT', value: feetVal };
-            break;
-          case UNIT_FL:
-          default:
-            listCpy[0].level.lev2 = { unit: 'FL', value: lowerVal };
-            break;
-        }
-      } else if (upperVal === 400) {
-        // Above
-        listCpy[0].level.lev1 = { unit: this.state.tops ? 'TOP_ABV' : 'ABV', value: 0 };
-        switch (this.state.lowerUnit) {
-          case UNIT_M:
-            break;
-          case UNIT_FT:
-            break;
-          case UNIT_FL:
-          default:
-            listCpy[0].level.lev2 = { unit: 'FL', value: lowerVal };
-            break;
+    let tafJSON = null;
+    if (nextProps.taf) {
+      if (typeof nextProps.taf === 'string') {
+        try {
+          tafJSON = JSON.parse(nextProps.taf);
+        } catch (e) {
+          console.log(e);
         }
       } else {
-        // Between
-        switch (this.state.lowerUnit) {
-          case UNIT_M:
-            const lowerMeterVal = Math.round((lowerVal * 30.48) / 100) * 100;
-            const upperMeterVal = Math.round((upperVal * 30.48) / 100) * 100;
-            listCpy[0].level.lev1 = { unit: 'M', value: lowerMeterVal };
-            listCpy[0].level.lev2 = { unit: 'M', value: upperMeterVal };
-            break;
-          case UNIT_FT:
-            const lowerFeetVal = lowerVal * 100;
-            const upperFeetVal = upperVal * 100;
-            listCpy[0].level.lev1 = { unit: 'FT', value: lowerFeetVal };
-            listCpy[0].level.lev2 = { unit: 'FT', value: upperFeetVal };
-            break;
-          case UNIT_FL:
-          default:
-            listCpy[0].level.lev1 = { unit: 'FL', value: lowerVal };
-            listCpy[0].level.lev2 = { unit: 'FL', value: upperVal };
-            break;
+        tafJSON = nextProps.taf;
+      }
+      if (tafJSON !== null) {
+        if (tafJSON.changegroups) {
+          let uuid = null;
+          if (tafJSON.metadata && tafJSON.metadata.uuid) {
+            uuid = tafJSON.metadata.uuid;
+          }
+          if (this.changegroupsSet === uuid) return;
+          this.changegroupsSet = uuid;
+          // console.log('state from props');
+          this.setState({
+            tafJSON: Object.assign({}, tafJSON)
+          });
         }
       }
     }
-    this.setState({ list: listCpy });
   }
 
   render () {
-    const { title, icon, parentCollapsed, editable, selectedIndex, toggleMethod } = this.props;
-    const notifications = !editable ? this.state.list.length : 0;
-    let maxSize = this.state.list ? 500 * this.state.list.length : 0;
-    if (editable) {
-      maxSize = 900;
-    }
-
     return (
-      <Card className='row accordion'>
-        {parentCollapsed ? <CardHeader>
-          <Col xs='auto'>
-            <Icon name={icon} />
-          </Col>
-          <Col xs='auto'>&nbsp;</Col>
-          <Col xs='auto'>
-            {notifications > 0 ? <Badge color='danger' pill className='collapsed'>{notifications}</Badge> : null}
-          </Col>
-        </CardHeader>
-          : <CardHeader onClick={maxSize > 0 ? toggleMethod : null} className={maxSize > 0 ? null : 'disabled'} title={title}>
-            <Col xs='auto'>
-              <Icon name={icon} />
-            </Col>
-            <Col style={{ marginLeft: '0.9rem' }}>
-              {title}
-            </Col>
-            <Col xs='auto'>
-              {notifications > 0 ? <Badge color='danger' pill>{notifications}</Badge> : null}
-            </Col>
-          </CardHeader>}
-        <CollapseOmni className='CollapseOmni' isOpen={this.state.isOpen} minSize={0} maxSize={maxSize}>
-          <CardBlock>
-            <Row>
-              <Col className='btn-group-vertical'>
-                {this.state.list.map((item, index) =>
-                  <div style={{ backgroundColor:'#DDD' }} tag='div' className={'TafStyle row' + (selectedIndex === index ? ' active' : '')}
-                    key={index} onClick={(evt) => { this.handleSigmetClick(evt, index); }} title={item.phenomenonHRT} >
-                    <Row>
-                      <Col xs='2'>
-                        <Badge >Location</Badge>
-                      </Col>
-                      <Col xs='2'>
-                        { editable
-                          ? <Typeahead style={{ width: '100%' }} filterBy={['name']} labelKey='name' disabled='disabled'
-                            options={[ { name: 'EHAM' }, { name: 'EHRD' } ]} onClick={(evt) => console.log(evt)} defaultSelected={['EHAM']} />
-                          : <span style={{ fontWeight: 'bold' }}>&lt;&lt;ICAO location&gt;&gt;</span>
-                        }
-                      </Col>
-                      <Col xs='2'>
-                        <Badge color='success'>Valid period</Badge>
-                      </Col>
-                      <Col xs='1'>
-                        <Badge>From</Badge>
-                      </Col>
-                      <Col xs='2'>
-                        <Input disabled value={moment().utc().add(1, 'hour').format('DD-MM-YYYY HH:00')} />
-                      </Col>
-                      <Col xs='1'>
-                        <Badge>Until</Badge>
-                      </Col>
-                      <Col xs='2'>
-                        <Input disabled value={moment().utc().add(31, 'hour').format('DD-MM-YYYY HH:00')} />
-                      </Col>
-                    </Row>
-                    <SortableComponent />
-                  </div>
-                )}
-              </Col>
-            </Row>
-          </CardBlock>
-        </CollapseOmni>
-      </Card>);
+      <div style={{ margin: '0px', padding:'0px', overflow:'auto', display:'inline-block' }}>
+        <div style={{ backgroundColor:'#EEE', padding:'5px' }}>
+          <TafTable
+            ref={'taftable'}
+            tafJSON={this.state.tafJSON}
+            onSortEnd={this.onSortEnd}
+            onChange={this.onChange}
+            onKeyUp={this.onKeyUp}
+            onAddRow={this.onAddRow}
+            onDeleteRow={this.onDeleteRow}
+            editable={this.props.editable}
+            onFocusOut={this.onFocusOut}
+            focusRefId={''} />
+        </div>
+        <div style={{ float:'right' }}>
+          <Button color='primary' onClick={() => { this.props.saveTaf(createTAFJSONFromInput(this.state.tafJSON)); }} >Save</Button>
+          <Button onClick={() => { alert('Sending a TAF out is not yet implemented'); }} color='primary'>Send</Button>
+        </div>
+      </div>);
   }
 }
 
 TafCategory.propTypes = {
-  isOpen        : PropTypes.bool,
-  title         : PropTypes.string.isRequired,
-  icon          : PropTypes.string,
-  source        : PropTypes.string,
-  editable      : PropTypes.bool,
-  selectedIndex : PropTypes.number,
-  selectMethod  : PropTypes.func,
-  toggleMethod  : PropTypes.func,
-  parameters    : PropTypes.object,
-  parentCollapsed   : PropTypes.bool,
-  phenomenonMapping : PropTypes.array,
-  dispatch          : PropTypes.func,
-  mapActions        : PropTypes.object,
-  layerActions      : PropTypes.object
+  taf: PropTypes.object,
+  saveTaf :PropTypes.func,
+  editable: PropTypes.bool
 };
 
 export default TafCategory;
