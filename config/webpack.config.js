@@ -2,8 +2,8 @@ const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const project = require('./project.config');
 const debug = require('debug')('app:config:webpack');
-const WebpackStrip = require('strip-loader');
-
+// const WebpackStrip = require('strip-loader');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 const __DEV__ = project.globals.__DEV__;
 const __PROD__ = project.globals.__PROD__;
 
@@ -61,13 +61,16 @@ webpackConfig.plugins = [
   new HtmlWebpackPlugin({
     template : project.paths.client('index.html'),
     hash     : false,
-    favicon  : project.paths.public('favicon.ico'),
+    favicon: project.paths.client('components/assets/icon.ico'),
     filename : 'index.html',
     inject   : 'body',
     minify   : {
       collapseWhitespace : true
     }
-  })
+  }),
+  new CopyWebpackPlugin([
+    { from: 'src/static' }
+  ])
 ];
 
 if (__DEV__) {
@@ -114,9 +117,9 @@ webpackConfig.module.rules = [
 ];
 
 // Remove debug statements in production
-if (__PROD__) {
-  webpackConfig.module.rules.push({ test: /\.js$/, loader: WebpackStrip.loader('debug', 'console.log', 'console.debug') });
-}
+// if (__PROD__) {
+//   webpackConfig.module.rules.push({ test: /\.js$/, loader: WebpackStrip.loader('debug', 'console.log', 'console.debug') });
+// }
 
 // ------------------------------------
 // Style Loaders
