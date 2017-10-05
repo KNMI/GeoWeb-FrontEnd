@@ -5,7 +5,7 @@ import { Col, Card, CardTitle, CardText, CardFooter, Input, Button, ButtonGroup 
 import CollapseOmni from './CollapseOmni';
 import moment from 'moment';
 import { TAFS_URL } from '../constants/backend';
-import SortableComponent from '../components/SortableTable';
+import TafCategory from '../components/TafCategory';
 export default class Taf extends Component {
   constructor () {
     super();
@@ -91,6 +91,28 @@ export default class Taf extends Component {
     }
   }
 
+  saveTaf (tafDATAJSON) {
+    console.log('tafDATAJSON', tafDATAJSON);
+    const flatten = list => list.reduce(
+      (a, b) => a.concat(Array.isArray(b) ? flatten(b) : b), []
+    );
+
+    axios({
+      method: 'post',
+      url: TAFS_URL + '/tafs',
+      withCredentials: true,
+      data: JSON.stringify(tafDATAJSON),
+      headers: { 'Content-Type': 'application/json' }
+    }).then(src => {
+      this.setState({ inputValue: src.data.message });
+      this.props.updateParent();
+    }).catch(error => {
+      const errors = JSON.parse(error.response.data.errors);
+      const allErrors = flatten(Object.values(errors).filter(v => Array.isArray(v)));
+      alert('TAF contains syntax errors!\n' + allErrors.join('\n'));
+    });
+  }
+
   addTaf () {
     const flatten = list => list.reduce(
       (a, b) => a.concat(Array.isArray(b) ? flatten(b) : b), []
@@ -154,23 +176,11 @@ export default class Taf extends Component {
         {
           this.props.editable
             ? <Card block onClick={() => this.setExpandedTAF('edit')}>
-              <SortableComponent taf={this.state.inputValueJSON} update />
-              <CardTitle>
-                Paste a valid TAF JSON
-              </CardTitle>
-
-              <CollapseOmni className='CollapseOmni' isOpen={this.state.expandedTAF === 'edit'} minSize={0}>
-                <Input onClick={(e) => { e.preventDefault(); e.stopPropagation(); }} onChange={evt => this.updateInputValue(evt)}
-                  value={this.state.inputValue} type='textarea' name='text' id='tafInput' />
-                <CardFooter onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
-                  <Button color='primary' onClick={() => this.addTaf()}>Submit</Button>
-                </CardFooter>
-              </CollapseOmni>
+              <TafCategory taf={this.state.inputValueJSON} update editable={this.props.tafEditable} saveTaf={this.saveTaf} />
 
             </Card>
             : this.state.tafs.filter((taf) => this.state.tafTypeSelections.includes(taf.type) || this.state.tafTypeSelections.length === 0).map((taf, index) => {
               return <Card key={index} block onClick={() => this.setExpandedTAF(taf.metadata.uuid)}>
-
                 <CardTitle>
                   {taf.metadata ? taf.metadata.location : 'EWat?'} - {moment.utc(taf.metadata.validityStart).format('DD/MM/YYYY - HH:mm UTC')}
                 </CardTitle>
@@ -185,7 +195,7 @@ export default class Taf extends Component {
                         : <div />}
                     </div>
                     <div style={{ width:'100%', height:'1px', margin:'1px' }} />
-                    <SortableComponent taf={this.state.expandedJSON} />
+                    <TafCategory taf={this.state.expandedJSON} editable={this.props.tafEditable} saveTaf={this.saveTaf} />
                   </div>
                 </CollapseOmni>
               </Card>;
@@ -201,6 +211,8 @@ export default class Taf extends Component {
 
 Taf.propTypes = {
   editable: PropTypes.bool,
+  tafEditable: PropTypes.bool,
+  isOpen: PropTypes.bool,
   source: PropTypes.string,
   latestUpdateTime: PropTypes.object,
   title: PropTypes.string,

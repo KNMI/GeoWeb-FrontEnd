@@ -2,7 +2,7 @@ const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const project = require('./project.config');
 const debug = require('debug')('app:config:webpack');
-const CopyWebpackPlugin = require('copy-webpack-plugin');
+const WebpackStrip = require('strip-loader');
 
 const __DEV__ = project.globals.__DEV__;
 const __PROD__ = project.globals.__PROD__;
@@ -10,16 +10,16 @@ const __PROD__ = project.globals.__PROD__;
 debug('Creating awesome webpack configuration.');
 const webpackConfig = {
   devServer: { historyApiFallback: true },
-  name: 'client',
-  target: 'web',
-  devtool: project.compiler_devtool,
-  resolve: {
-    modules: [
+  name     : 'client',
+  target   : 'web',
+  devtool  : project.compiler_devtool,
+  resolve  : {
+    modules    : [
       project.paths.client(),
       'node_modules'
     ],
-    extensions: ['.js', '.jsx', '.json'],
-    enforceExtension: false
+    extensions : ['.js', '.jsx', '.json'],
+    enforceExtension : false
   },
 
   module: {}
@@ -30,7 +30,7 @@ const webpackConfig = {
 const APP_ENTRY = project.paths.client('main.js');
 
 webpackConfig.entry = {
-  app: __DEV__
+  app : __DEV__
     ? [APP_ENTRY].concat(`webpack-hot-middleware/client?path=${project.compiler_public_path}__webpack_hmr`)
     : [APP_ENTRY],
   libs: project.compiler_vendors
@@ -40,9 +40,9 @@ webpackConfig.entry = {
 // Bundle Output
 // ------------------------------------
 webpackConfig.output = {
-  filename: `[name].[${project.compiler_hash_type}].js`,
-  path: project.paths.dist(),
-  publicPath: project.compiler_public_path
+  filename   : `[name].[${project.compiler_hash_type}].js`,
+  path       : project.paths.dist(),
+  publicPath : project.compiler_public_path
 };
 
 // ------------------------------------
@@ -59,18 +59,15 @@ webpackConfig.externals['react/addons'] = true;
 webpackConfig.plugins = [
   new webpack.DefinePlugin(project.globals),
   new HtmlWebpackPlugin({
-    template: project.paths.client('index.html'),
-    hash: false,
-    favicon: project.paths.client('components/assets/icon.ico'),
-    filename: 'index.html',
-    inject: 'body',
-    minify: {
-      collapseWhitespace: true
+    template : project.paths.client('index.html'),
+    hash     : false,
+    favicon  : project.paths.public('favicon.ico'),
+    filename : 'index.html',
+    inject   : 'body',
+    minify   : {
+      collapseWhitespace : true
     }
-  }),
-  new CopyWebpackPlugin([
-    { from: 'src/static' }
-  ])
+  })
 ];
 
 if (__DEV__) {
@@ -84,17 +81,10 @@ if (__DEV__) {
   webpackConfig.plugins.push(
     new webpack.optimize.OccurrenceOrderPlugin(),
     new webpack.optimize.UglifyJsPlugin({
-      parallel: true,
-      uglifyOptions: {
-        compress: {
-          unused: true,
-          dead_code: true,
-          warnings: false,
-          drop_console: true,
-          drop_debugger: true,
-          conditionals: true,
-          keep_infinity: true
-        }
+      compress : {
+        unused    : true,
+        dead_code : true,
+        warnings  : false
       },
       sourceMap: true
     }),
@@ -110,25 +100,30 @@ if (__DEV__) {
 // /(node_modules|test|\.(test|spec)\.js$)/
 webpackConfig.module.rules = [
   {
-    test: /\.(js|jsx)$/,
-    exclude: /(node_modules|static)/,
-    loader: 'babel-loader',
-    options: project.compiler_babel,
-    enforce: 'pre'
+    test    : /\.(js|jsx)$/,
+    exclude : /(node_modules|static)/,
+    loader  : 'babel-loader',
+    options : project.compiler_babel,
+    enforce : 'pre'
   },
   {
-    test: /\.json$/,
-    loader: 'json-loader',
-    enforce: 'pre'
+    test    : /\.json$/,
+    loader  : 'json-loader',
+    enforce : 'pre'
   }
 ];
+
+// Remove debug statements in production
+if (__PROD__) {
+  webpackConfig.module.rules.push({ test: /\.js$/, loader: WebpackStrip.loader('debug', 'console.log', 'console.debug') });
+}
 
 // ------------------------------------
 // Style Loaders
 // ------------------------------------
 webpackConfig.module.rules.push({
-  test: /\.s?css$/,
-  use: [
+  test    : /\.s?css$/,
+  use : [
     'style-loader',
     'css-loader',
     'sass-loader'
@@ -154,7 +149,6 @@ webpackConfig.module.rules.push(
     loader: 'url-loader?prefix=fonts/&name=[path][name].[ext]&limit=10000&mimetype=application/octet-stream'
   },
   {
-    // IE11 only file, which can also use woff
     test: /\.eot(\?.*)?$/,
     loader: 'file-loader?prefix=fonts/&name=[path][name].[ext]'
   },
