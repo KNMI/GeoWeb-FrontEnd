@@ -12,7 +12,7 @@ let fromTACToWind = (value) => {
     direction: value.substring(0, 3) === 'VRB' ? 'VRB' : parseInt(value.substring(0, 3)),
     speed: parseInt(value.substring(3, 5)),
     gusts: value.indexOf('G') !== -1 ? parseInt(value.substring(6, 8)) : null,
-    unit: value.length > 5 ? value.slice(-2) : 'KT'
+    unit: 'KT'
   };
   return obj;
 };
@@ -64,8 +64,8 @@ let fromTACToVisibility = (value) => {
 
 let fromTACToWeather = (_value) => {
   let value = _value;
-  if (!value) {
-    return 'isNSW';
+  if (!value || value === 'NSW' || value === '') {
+    return null;
   }
   let qualifier = 'moderate';
   if (value.startsWith('+')) {
@@ -96,18 +96,26 @@ let fromTACToWeather = (_value) => {
 };
 
 let fromTACToClouds = (value) => {
-  if (value === null || value === undefined) {
-    return null;
-  } else if (value === '') {
-    return null;
+  let ret = null;
+  if (!value || value === 'NSC' || value === '') {
+    return ret;
   }
-  console.log(value);
-  let ret = {
-    amount:value.substring(0, 3),
-    height:parseInt(value.substring(3, 6)),
-    mod: value.length > 6 ? value.slice(6 - value.length) : null
-  };
-  console.log(ret);
+
+  if (value.startsWith('VV')) {
+    // Two letter cloud codes, like VV001
+    ret = {
+      amount:value.substring(0, 2),
+      height:parseInt(value.substring(2, 5)),
+      mod: value.length > 5 ? value.slice(5 - value.length) : null
+    };
+  } else {
+    // All three letter cloud codes
+    ret = {
+      amount:value.substring(0, 3),
+      height:parseInt(value.substring(3, 6)),
+      mod: value.length > 6 ? value.slice(6 - value.length) : null
+    };
+  }
   return ret;
 };
 
@@ -116,6 +124,9 @@ let getTACWeatherArray = (cg) => {
   for (let w = 0; w < 3; w++) {
     let weatherInput = fromTACToWeather(cg.input['weather' + w]);
     if (weatherInput !== null) {
+      if (w === 0 && (weatherInput === 'NSW' || weatherInput === '' || weatherInput === null)) {
+        return 'NSW';
+      }
       weatherObj.push(weatherInput);
     }
   }
@@ -127,9 +138,12 @@ let getTACWeatherArray = (cg) => {
 
 let getTACCloudsArray = (cg) => {
   let cloudsObj = [];
-  for (let c = 0; c < 3; c++) {
+  for (let c = 0; c < 4; c++) {
     let cloudsInput = fromTACToClouds(cg.input['clouds' + c]);
     if (cloudsInput !== null) {
+      if (c === 0 && (cloudsInput === 'isNSC' || cloudsInput === '' || cloudsInput === null)) {
+        return 'NSC';
+      }
       cloudsObj.push(cloudsInput);
     }
   }
@@ -139,9 +153,34 @@ let getTACCloudsArray = (cg) => {
   return cloudsObj;
 };
 
+let removeAllNullProps = (_taf) => {
+  let iterate = (obj, stack) => {
+    for (var property in obj) {
+      if (obj.hasOwnProperty(property)) {
+        if (obj[property] === null) {
+          delete obj[property];
+        } else {
+          if (typeof obj[property] === 'object') {
+            iterate(obj[property], stack + '.' + property);
+          } else {
+            // console.log(stack + '->' + property + '   ' + obj[property]);
+          }
+        }
+      }
+    }
+  };
+  iterate(_taf, '');
+  return _taf;
+};
+
 let createTAFJSONFromInput = (_taf) => {
   let taf = Object.assign({}, _taf);
   if (!taf.forecast) taf.forecast = {};
+  if (!taf.metadata) taf.metadata = {};
+
+  taf.metadata.status = 'concept';
+  taf.metadata.type = 'normal';
+
   taf.forecast.wind = fromTACToWind(taf.input.wind);
   taf.forecast.visibility = fromTACToVisibility(taf.input.visibility);
   taf.forecast.weather = getTACWeatherArray(taf);
@@ -150,7 +189,11 @@ let createTAFJSONFromInput = (_taf) => {
   delete taf.input;
   for (let j = 0; j < taf.changegroups.length; j++) {
     if (!taf.changegroups[j].forecast) taf.changegroups[j].forecast = {};
-    taf.changegroups[j].changeType = !taf.changegroups[j].input.change ? taf.changegroups[j].input.prob : taf.changegroups[j].input.change;
+    // PROB and CHANGE are one string in json
+    taf.changegroups[j].changeType =
+      (taf.changegroups[j].input.prob ? taf.changegroups[j].input.prob : '') +
+      (taf.changegroups[j].input.change && taf.changegroups[j].input.prob ? ' ' : '') +
+      (taf.changegroups[j].input.change ? taf.changegroups[j].input.change : '');
     taf.changegroups[j].changeStart = fromTACToValidStart(taf.changegroups[j].input.valid);
     taf.changegroups[j].changeEnd = fromTACToValidEnd(taf.changegroups[j].input.valid);
     taf.changegroups[j].forecast.wind = fromTACToWind(taf.changegroups[j].input.wind);
@@ -159,10 +202,10 @@ let createTAFJSONFromInput = (_taf) => {
     taf.changegroups[j].forecast.clouds = getTACCloudsArray(taf.changegroups[j]);
     delete taf.changegroups[j].input;
   }
-  return taf;
+  return removeAllNullProps(taf);
 };
 
-/* ------ Helper functions for rsetting and remembering local state ----- */
+/* ------ Helper functions for setting and remembering local state ----- */
 
 let setInputItem = (taf, name, value) => {
   if (!taf) return value;
@@ -199,6 +242,10 @@ let getChangeTAC = (taf) => {
   if (taf.changeType) {
     if (taf.changeType.indexOf('PROB') === -1) {
       return setInputItem(taf, 'change', taf.changeType);
+    } else {
+      if (taf.changeType.indexOf(' ') !== -1) {
+        return setInputItem(taf, 'change', taf.changeType.split(' ')[1]);
+      }
     }
   }
 
@@ -210,7 +257,11 @@ let getProbTAC = (taf) => {
   if (taf) {
     if (taf.changeType) {
       if (taf.changeType.indexOf('PROB') !== -1) {
-        return setInputItem(taf, 'prob', taf.changeType);
+        if (taf.changeType.indexOf(' ') !== -1) {
+          return setInputItem(taf, 'prob', taf.changeType.split(' ')[0]);
+        } else {
+          return setInputItem(taf, 'prob', taf.changeType);
+        }
       }
     }
   }
@@ -281,6 +332,9 @@ let getWeatherTAC = (taf, index) => {
   let value = getInputItem(taf, 'weather' + index); if (value !== null) return value;
   if (taf && taf.forecast && taf.forecast.weather) {
     if (typeof taf.forecast.weather === 'string') {
+      if (index === 0) {
+        return '';
+      }
       // NSW
       return null;
     }
@@ -311,6 +365,9 @@ let getCloudsTAC = (taf, index) => {
   let value = getInputItem(taf, 'clouds' + index); if (value !== null) return value;
   if (taf && taf.forecast && taf.forecast.clouds) {
     if (typeof taf.forecast.clouds === 'string') {
+      if (index === 0) {
+        return ''; // taf.forecast.clouds;
+      }
       return null;
     }
     if (index >= taf.forecast.clouds.length) return null;
@@ -374,7 +431,7 @@ class TACColumn extends Component {
         v = getVisibilityTAC(value); break;
       case 6: case 7: case 8:
         v = getWeatherTAC(value, colIndex - 6); break;
-      case 9: case 10: case 11:
+      case 9: case 10: case 11: case 12:
         v = getCloudsTAC(value, colIndex - 9); break;
     }
     if (editable) {
@@ -406,7 +463,7 @@ class ChangeGroup extends Component {
   render () {
     let { value, onChange, onKeyUp, rowIndex, onDeleteRow, editable, onFocusOut, focusRefId } = this.props;
     let cols = [];
-    for (let colIndex = 0; colIndex < 12; colIndex++) {
+    for (let colIndex = 0; colIndex < 13; colIndex++) {
       cols.push((<TACColumn
         ref={'column_' + colIndex}
         key={cols.length}
@@ -476,16 +533,24 @@ class BaseForecast extends Component {
     let { value, onChange, onKeyUp, editable, onFocusOut } = this.props;
     let cols = [];
     let location = 'EHAM';
-    if (value && value.metadata && value.metadata.location) location = value.metadata.location;
+    if (value && value.metadata && value.metadata.location) {
+      location = value.metadata.location;
+    } else {
+      if (!value.metadata) value.metadata = {};
+      value.metadata.location = location;
+    }
     let issueTime = moment().utc().add(1, 'hour').format('DD-MM-YYYY HH:00');
     if (value && value.metadata && value.metadata.issueTime) {
       issueTime = value.metadata.issueTime;
+    } else {
+      if (!value.metadata) value.metadata = {};
+      value.metadata.issueTime = moment().utc().add(1, 'hour').format('YYYY-MM-DDTHH:00:00') + 'Z';
     }
     cols.push(<td key={cols.length} className='noselect' >&nbsp;</td>);
     cols.push(<td key={cols.length} className='TACnotEditable'>{location}</td>);
     cols.push(<td key={cols.length} className='TACnotEditable'>{issueTime}</td>);
     cols.push(<td key={cols.length} className='TACnotEditable'>{getValidPeriodTAC(value)}</td>);
-    for (let j = 4; j < 12; j++) {
+    for (let j = 4; j < 13; j++) {
       cols.push(
         (<TACColumn
           ref={'column_' + j}
@@ -539,6 +604,7 @@ class TafTable extends SortableContainer(() => {}) { // =
             <th>Cloud</th>
             <th>Cloud</th>
             <th>Cloud</th>
+            <th>Cloud</th>
             <th>&nbsp;</th>
           </tr>
         </thead>
@@ -561,13 +627,20 @@ class TafTable extends SortableContainer(() => {}) { // =
             <th>Cloud</th>
             <th>Cloud</th>
             <th>Cloud</th>
+            <th>Cloud</th>
             <th>&nbsp;</th>
           </tr>
         </thead>
         <tbody>
           {tafJSON.changegroups.map((value, index) => {
             if (editable) {
-              return (<SortableChangeGroup ref={'changegroup_' + index} key={`item-${index}`} index={index} rowIndex={index} value={value} onChange={onChange} onKeyUp={onKeyUp} onDeleteRow={onDeleteRow}
+              return (<SortableChangeGroup
+                ref={'changegroup_' + index}
+                key={`item-${index}`}
+                index={index}
+                rowIndex={index}
+                value={value}
+                onChange={onChange} onKeyUp={onKeyUp} onDeleteRow={onDeleteRow}
                 onFocusOut={onFocusOut} focusRefId={focusRefId} />);
             } else {
               return (<ChangeGroup key={`item-${index}`} index={index} rowIndex={index} value={value} onChange={onChange} onKeyUp={onKeyUp} onDeleteRow={onDeleteRow}
@@ -576,7 +649,7 @@ class TafTable extends SortableContainer(() => {}) { // =
           })}
           { editable
             ? <tr>
-              {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map((index, value) => { return (<td key={index} >&nbsp;</td>); })}
+              {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((index, value) => { return (<td key={index} >&nbsp;</td>); })}
               <td key='addrow'><Button size='sm' color='secondary' onClick={() => { onAddRow(); }}><Icon style={{ cursor:'pointer' }} name={'plus'} /></Button></td>
             </tr> : null
           }
@@ -653,7 +726,7 @@ class TafCategory extends Component {
         tafRow.input.visibility = value; break;
       case 6: case 7: case 8:
         tafRow.input['weather' + (colIndex - 6)] = value; break;
-      case 9: case 10: case 11:
+      case 9: case 10: case 11: case 12:
         tafRow.input['clouds' + (colIndex - 9)] = value; break;
     }
     return tafRow;
@@ -664,7 +737,8 @@ class TafCategory extends Component {
   */
   onChange (event, rowIndex, colIndex) {
     let fieldVal = event.target.value;
-    if (fieldVal === undefined || fieldVal === null) fieldVal = '-';
+    if (fieldVal === undefined || fieldVal === null) fieldVal = '';
+    fieldVal = fieldVal.toUpperCase();
     let newTaf = Object.assign({}, this.state.tafJSON);
     this.setTACColumnInput(fieldVal, rowIndex, colIndex, rowIndex >= 0 ? newTaf.changegroups[rowIndex] : newTaf);
     // console.log('state from input');
@@ -722,7 +796,7 @@ class TafCategory extends Component {
   }
 
   onFocusOut () {
-    console.log('onFocusOut', this.updateTACtoTAFJSONtoTac());
+    this.updateTACtoTAFJSONtoTac();
   }
 
   onDeleteRow (rowIndex) {
