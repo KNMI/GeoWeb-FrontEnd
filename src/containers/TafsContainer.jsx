@@ -4,7 +4,7 @@ import { Icon } from 'react-fa';
 import CollapseOmni from '../components/CollapseOmni';
 import Panel from '../components/Panel';
 import { TAFS_URL } from '../constants/backend';
-import Taf from '../components/Taf';
+import Taf from '../components/Taf/Taf';
 import moment from 'moment';
 const ITEMS = [
   {
