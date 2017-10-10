@@ -14,6 +14,7 @@ export default class Taf extends Component {
     super();
     this.deleteTAF = this.deleteTAF.bind(this);
     this.fetchTAFs = this.fetchTAFs.bind(this);
+    this.saveTaf = this.saveTaf.bind(this);
     this.onCheckboxBtnClick = this.onCheckboxBtnClick.bind(this);
     this.state = {
       tafs: [],
@@ -110,6 +111,7 @@ export default class Taf extends Component {
       this.setState({ inputValue: src.data.message });
       this.props.updateParent();
     }).catch(error => {
+      console.log('Error occured', error);
       const errors = JSON.parse(error.response.data.errors);
       const allErrors = flatten(Object.values(errors).filter(v => Array.isArray(v)));
       alert('TAF contains syntax errors!\n' + allErrors.join('\n'));

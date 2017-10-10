@@ -210,6 +210,12 @@ export const createTAFJSONFromInput = (_taf) => {
   taf.forecast.weather = getTACWeatherArray(taf);
   taf.forecast.clouds = getTACCloudsArray(taf);
 
+  if (!taf.forecast.visibility && taf.forecast.weather === 'NSW' && taf.forecast.clouds === 'NSC') {
+    taf.forecast.weather = null;
+    taf.forecast.clouds = null;
+    taf.forecast.caVOK = true;
+  }
+
   delete taf.input;
   for (let j = 0; j < taf.changegroups.length; j++) {
     if (!taf.changegroups[j].forecast) taf.changegroups[j].forecast = {};
@@ -224,6 +230,13 @@ export const createTAFJSONFromInput = (_taf) => {
     taf.changegroups[j].forecast.visibility = fromTACToVisibility(taf.changegroups[j].input.visibility);
     taf.changegroups[j].forecast.weather = getTACWeatherArray(taf.changegroups[j]);
     taf.changegroups[j].forecast.clouds = getTACCloudsArray(taf.changegroups[j]);
+
+    if (!taf.changegroups[j].visibility && taf.changegroups[j].weather === 'NSW' && taf.changegroups[j].clouds === 'NSC') {
+      taf.changegroups[j].weather = null;
+      taf.changegroups[j].clouds = null;
+      taf.changegroups[j].caVOK = true;
+    }
+
     delete taf.changegroups[j].input;
   }
   return removeAllNullProps(taf);
