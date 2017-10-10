@@ -2,7 +2,6 @@ import moment from 'moment';
 import { descriptorMap, phenomenaMap } from './TafWeatherMaps';
 
 /* ----- The following functions transform TAC Codes to TAF JSON codes */
-
 const fromTACToWind = (value) => {
   if (value === null) return {};
   let obj = {
@@ -116,7 +115,7 @@ const fromTACToClouds = (value) => {
   return ret;
 };
 
-export const getTACWeatherArray = (cg) => {
+const getTACWeatherArray = (cg) => {
   let weatherObj = [];
   for (let w = 0; w < 3; w++) {
     let weatherInput = fromTACToWeather(cg.input['weather' + w]);
@@ -168,6 +167,34 @@ const removeAllNullProps = (_taf) => {
   };
   iterate(_taf, '');
   return _taf;
+};
+
+export const setTACColumnInput = (value, rowIndex, colIndex, tafRow) => {
+  if (!tafRow) {
+    console.log('returning because tafRow missing');
+    return tafRow;
+  }
+  if (!tafRow.forecast) {
+    tafRow.forecast = {};
+  }
+  if (!tafRow.input) tafRow.input = {};
+  switch (colIndex) {
+    case 1:
+      tafRow.input.prob = value; break;
+    case 2:
+      tafRow.input.change = value; break;
+    case 3:
+      tafRow.input.valid = value; break;
+    case 4:
+      tafRow.input.wind = value; break;
+    case 5:
+      tafRow.input.visibility = value; break;
+    case 6: case 7: case 8:
+      tafRow.input['weather' + (colIndex - 6)] = value; break;
+    case 9: case 10: case 11: case 12:
+      tafRow.input['clouds' + (colIndex - 9)] = value; break;
+  }
+  return tafRow;
 };
 
 export const createTAFJSONFromInput = (_taf) => {

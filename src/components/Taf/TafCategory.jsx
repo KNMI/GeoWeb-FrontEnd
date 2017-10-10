@@ -3,19 +3,20 @@ import { arrayMove } from 'react-sortable-hoc';
 import PropTypes from 'prop-types';
 import moment from 'moment';
 import { Button } from 'reactstrap';
-import { createTAFJSONFromInput } from './FromTacCodeToTafjson';
+import { createTAFJSONFromInput, setTACColumnInput } from './FromTacCodeToTafjson';
 import TafTable from './TafTable';
 
 /**
-  TafCategory is the component which renders an editable and sortable TAC table.
+  TafCategory is the component which renders an editable and sortable TAF table.
+  The UI is generated from a TAF JSON and it can generate/update TAF JSON from user input
+
   The component hierarchy is structured as follows:
 
-                    TACColumn->BaseForecast-> \
-                                                -> TafTable->TafCategory->Taf
-TACColumn->ChangeGroup->SortableChangeGroup-> /
+                                  TACColumn(s) -> BaseForecast -> \
+                                                                    --> TafTable -> TafCategory -> Taf
+      TACColumn(s) -> ChangeGroup(s) -> SortableChangeGroup(s) -> /
 
 */
-
 class TafCategory extends Component {
   constructor (props) {
     super(props);
@@ -43,57 +44,27 @@ class TafCategory extends Component {
     };
   };
 
-  onSortEnd ({ oldIndex, newIndex }) {
-    // console.log('state from sort');
-    this.state.tafJSON.changegroups = arrayMove(this.state.tafJSON.changegroups, oldIndex, newIndex);
-    this.setState({
-      tafJSON: this.state.tafJSON
-    });
-  };
-
-  setTACColumnInput (value, rowIndex, colIndex, tafRow) {
-    if (!tafRow) {
-      console.log('returning because tafRow missing');
-      return tafRow;
-    }
-    if (!tafRow.forecast) {
-      tafRow.forecast = {};
-    }
-    if (!tafRow.input) tafRow.input = {};
-    switch (colIndex) {
-      case 1:
-        tafRow.input.prob = value; break;
-      case 2:
-        tafRow.input.change = value; break;
-      case 3:
-        tafRow.input.valid = value; break;
-      case 4:
-        tafRow.input.wind = value; break;
-      case 5:
-        tafRow.input.visibility = value; break;
-      case 6: case 7: case 8:
-        tafRow.input['weather' + (colIndex - 6)] = value; break;
-      case 9: case 10: case 11: case 12:
-        tafRow.input['clouds' + (colIndex - 9)] = value; break;
-    }
-    return tafRow;
-  }
-
   /*
-    rowIndex -1 means forcast, others are changegroups
+    Event handler which handles change events from all input (TAC) fields.
+    - colIndex is the corresponding TACColumn
+    - rowIndex -1 means BaseForecast, other values (>= 0) are ChangeGroups
   */
   onChange (event, rowIndex, colIndex) {
     let fieldVal = event.target.value;
     if (fieldVal === undefined || fieldVal === null) fieldVal = '';
     fieldVal = fieldVal.toUpperCase();
     let newTaf = Object.assign({}, this.state.tafJSON);
-    this.setTACColumnInput(fieldVal, rowIndex, colIndex, rowIndex >= 0 ? newTaf.changegroups[rowIndex] : newTaf);
-    // console.log('state from input');
+    setTACColumnInput(fieldVal, rowIndex, colIndex, rowIndex >= 0 ? newTaf.changegroups[rowIndex] : newTaf);
     this.setState({
       tafJSON: newTaf
     });
   }
 
+  /*
+    Function to update whole UI, roundtrip from TAC->JSON->TAC
+    - First TAC fields are converted to TAF json object.
+    - Second, TAC fields are rendered from TAF json (by setState)
+  */
   updateTACtoTAFJSONtoTac () {
     /* First from form inputs to TAF JSON */
     let newTAFJSON = createTAFJSONFromInput(this.state.tafJSON);
@@ -109,6 +80,9 @@ class TafCategory extends Component {
     return newTAFJSON;
   }
 
+  /*
+    Event handler which handles keyUp events from input fields. E.g. arrow keys, Enter key, Esc key, etc...
+  */
   onKeyUp (event, row, col, inputValue) {
     if (event.keyCode === 13) {
       this.onAddRow();
@@ -134,6 +108,17 @@ class TafCategory extends Component {
     }
   }
 
+  /*
+    Event handler that is called upon jumping out of an input field.
+  */
+  onFocusOut () {
+    this.updateTACtoTAFJSONtoTac();
+  }
+
+  /*
+    This function adds a new changegroup to the TAF.
+    This method is for example fired upon clicking the 'Add row button' next to changegroups.
+  */
   onAddRow () {
     let changeGroups = this.state.tafJSON.changegroups;
     changeGroups.push({});
@@ -142,10 +127,9 @@ class TafCategory extends Component {
     });
   }
 
-  onFocusOut () {
-    this.updateTACtoTAFJSONtoTac();
-  }
-
+  /*
+    This function removes a changeGroup by given rowIndex.
+  */
   onDeleteRow (rowIndex) {
     let changeGroups = this.state.tafJSON.changegroups;
     changeGroups.splice(rowIndex, 1);
@@ -153,6 +137,16 @@ class TafCategory extends Component {
       tafJSON: this.state.tafJSON
     });
     console.log(rowIndex);
+  };
+
+  /*
+    Callback function called by SortableElement and SortableContainer when changegroups are sorted by Drag and Drop
+  */
+  onSortEnd ({ oldIndex, newIndex }) {
+    this.state.tafJSON.changegroups = arrayMove(this.state.tafJSON.changegroups, oldIndex, newIndex);
+    this.setState({
+      tafJSON: this.state.tafJSON
+    });
   };
 
   shouldComponentUpdate (nextProps, nextState) {
@@ -201,8 +195,7 @@ class TafCategory extends Component {
             onAddRow={this.onAddRow}
             onDeleteRow={this.onDeleteRow}
             editable={this.props.editable}
-            onFocusOut={this.onFocusOut}
-            focusRefId={''} />
+            onFocusOut={this.onFocusOut} />
         </div>
         <div style={{ float:'right' }}>
           <Button color='primary' onClick={() => { this.props.saveTaf(createTAFJSONFromInput(this.state.tafJSON)); }} >Save</Button>

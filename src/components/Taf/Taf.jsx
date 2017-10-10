@@ -6,6 +6,9 @@ import CollapseOmni from '../CollapseOmni';
 import moment from 'moment';
 import { TAFS_URL } from '../../constants/backend';
 import TafCategory from './TafCategory';
+/*
+  Renders multiple TafCategories, provides additional functions for loading and saving, and has functions for filtering on type and status.
+*/
 export default class Taf extends Component {
   constructor () {
     super();
