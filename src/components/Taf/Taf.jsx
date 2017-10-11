@@ -1,13 +1,11 @@
 import React, { Component } from 'react';
 import axios from 'axios';
 import PropTypes from 'prop-types';
-import { Col, Card, CardTitle, CardText, CardFooter, Input, Button, ButtonGroup } from 'reactstrap';
-import CollapseOmni from './CollapseOmni';
+import { Col, Card, CardTitle, CardText, CardFooter, Button, ButtonGroup } from 'reactstrap';
+import CollapseOmni from '../CollapseOmni';
 import moment from 'moment';
-import { TAFS_URL } from '../constants/backend';
-import TafCategory from '../components/TafCategory';
-import { Link } from 'react-router';
-import { BACKEND_SERVER_URL } from '../constants/backend';
+import { BACKEND_SERVER_URL, TAFS_URL } from '../../constants/backend';
+import TafCategory from './TafCategory';
 export default class Taf extends Component {
   constructor () {
     super();
