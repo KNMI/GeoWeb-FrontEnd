@@ -7,7 +7,7 @@ import { Icon } from 'react-fa';
 import classnames from 'classnames';
 import { Typeahead } from 'react-bootstrap-typeahead';
 import ProgtempPopoverComponent from '../components/ProgtempPopoverComponent';
-import TimeseriesComponent from '../components/TimeseriesComponent';
+import TimeseriesPopoverComponent from '../components/TimeseriesPopoverComponent';
 import { BACKEND_SERVER_URL } from '../constants/backend';
 import axios from 'axios';
 import PropTypes from 'prop-types';
@@ -323,7 +323,7 @@ class MapActionContainer extends Component {
   renderTimeseriesPopover (adagucTime) {
     if (this.state.timeSeriesPopOverOpen) {
       const { dispatch } = this.props;
-      return <TimeseriesComponent mapProperties={this.props.mapProperties} layers={this.props.layers} adagucProperties={this.props.adagucProperties}
+      return <TimeseriesPopoverComponent mapProperties={this.props.mapProperties} layers={this.props.layers} adagucProperties={this.props.adagucProperties}
         adagucActions={this.props.adagucActions} isOpen={this.state.timeSeriesPopOverOpen} dispatch={dispatch} />;
     }
   }

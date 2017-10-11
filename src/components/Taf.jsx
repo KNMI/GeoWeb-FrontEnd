@@ -6,6 +6,8 @@ import CollapseOmni from './CollapseOmni';
 import moment from 'moment';
 import { TAFS_URL } from '../constants/backend';
 import TafCategory from '../components/TafCategory';
+import { Link } from 'react-router';
+import { BACKEND_SERVER_URL } from '../constants/backend';
 export default class Taf extends Component {
   constructor () {
     super();
@@ -189,8 +191,11 @@ export default class Taf extends Component {
                     <div style={{ display:'flex' }} >
                       <CardText onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>{this.state.expandedTAC}</CardText>
                       {taf.metadata.status === 'concept'
-                        ? <CardFooter onClick={(e) => { e.preventDefault(); e.stopPropagation(); this.deleteTAF(taf.metadata.uuid); }}>
-                          <Button color='primary'>Delete</Button>
+                        ? <CardFooter>
+                          <a href={BACKEND_SERVER_URL + '/tafs/' + taf.metadata.uuid}>
+                            <Button color='primary'>Show IWXXM</Button>
+                          </a>
+                          <Button onClick={(e) => { e.preventDefault(); e.stopPropagation(); this.deleteTAF(taf.metadata.uuid); }} color='danger'>Delete</Button>
                         </CardFooter>
                         : <div />}
                     </div>

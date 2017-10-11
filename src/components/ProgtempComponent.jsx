@@ -16,12 +16,24 @@ export default class ProgtempComponent extends Component {
     this.modifyData = this.modifyData.bind(this);
     this.state = {
       progtempData: null,
-      isLoading: false
+      isLoading: false,
+      cachedImage: {}
     };
   }
-  renderProgtempBackground (ctx, canvasWidth, canvasHeight) {
-    // eslint-disable-next-line no-undef
-    drawProgtempBg(ctx, canvasWidth, canvasHeight);
+  renderProgtempBackground (ctx, w, h) {
+    ctx.clearRect(0, 0, w, h);
+    if (this.state.cachedImage && this.state.cachedImage.width === w && this.state.cachedImage.height === h) {
+      ctx.putImageData(this.state.cachedImage, 0, 0);
+    } else {
+      // eslint-disable-next-line no-undef
+      drawProgtempBg(ctx, w, h);
+      const bg = ctx.getImageData(0, 0, w, h);
+      if (bg) {
+        this.setState({ cachedImage: bg });
+      }
+      this.width = w;
+      this.height = h;
+    }
   }
 
   modifyData (data, referenceTime, timeOffset) {
@@ -82,11 +94,13 @@ export default class ProgtempComponent extends Component {
   }
 
   renderProgtempData (ctx, canvasWidth, canvasHeight, progtempTime) {
-    const { PSounding, TSounding, TdSounding, ddSounding, ffSounding, TwSounding, TvSounding } = this.modifyData(this.state.progtempData, this.props.referenceTime, progtempTime);
-    // eslint-disable-next-line no-undef
-    drawProgtemp(ctx, canvasWidth, canvasHeight, PSounding, TSounding, TdSounding, ddSounding, ffSounding, TwSounding, TvSounding);
-    // eslint-disable-next-line no-undef
-    plotHodo(ctx, canvasWidth, canvasHeight, PSounding, TSounding, TdSounding, ddSounding, ffSounding, TwSounding);
+    if (!this.state.isLoading && ctx) {
+      const { PSounding, TSounding, TdSounding, ddSounding, ffSounding, TwSounding, TvSounding } = this.modifyData(this.state.progtempData, this.props.referenceTime, progtempTime);
+      // eslint-disable-next-line no-undef
+      drawProgtemp(ctx, canvasWidth, canvasHeight, PSounding, TSounding, TdSounding, ddSounding, ffSounding, TwSounding, TvSounding);
+      // eslint-disable-next-line no-undef
+      plotHodo(ctx, canvasWidth, canvasHeight, PSounding, TSounding, TdSounding, ddSounding, ffSounding, TwSounding);
+    }
   }
 
   setModelData (model, location) {
@@ -128,14 +142,13 @@ INFO_FORMAT=application/json&time=*&DIM_reference_time=` + refTimeStr + `&x=` + 
     const { time, className, style } = this.props;
     return (
       <div className={className} style={style}>
-        <CanvasComponent drawOnce onRenderCanvas={(ctx, w, h) => {
+        <CanvasComponent onRenderCanvas={(ctx, w, h) => {
+          this.width = w;
+          this.height = h;
           this.renderProgtempBackground(ctx, w, h);
-        }} />
-        <CanvasComponent isLoading={this.state.isLoading} style={{ marginTop: '-600px' }} onRenderCanvas={(ctx, w, h) => {
-          this.progtempContext = ctx;
           this.renderProgtempData(ctx, w, h, time.format('YYYY-MM-DDTHH:mm:ss') + 'Z');
         }} />
-        <LoadingComponent isLoading={this.state.isLoading} style={{ width: '50px', height: '50px', marginTop: '-590px', marginLeft: '4rem' }} />
+        <LoadingComponent isLoading={this.state.isLoading} style={{ width: '50px', height: '50px', marginTop: '-' + (this.height - this.height / 50), marginLeft: '4rem' }} />
       </div>);
   }
 }

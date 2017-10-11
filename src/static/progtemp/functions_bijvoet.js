@@ -833,12 +833,12 @@ function drawProgtempBg (ctx, canvasWidth, canvasHeight) {
   plotWetadiabats(ctx, wetAndDryAdiabats, canvasWidth, canvasHeight);
   plotIsobars(ctx, isobars, 253.15, 313.15, canvasWidth, canvasHeight);
   drawRotatedText(ctx, canvasWidth, canvasHeight);
+  return ctx.getImageData(0, 0, canvasWidth, canvasHeight);
 }
 
 function drawProgtemp (ctx, canvasWidth, canvasHeight, PSounding, TSounding, TdSounding, ddSounding, ffSounding, TwSounding, TvSounding) {
-  ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-
     // Plot T/Td/Tw/Tv
+
   plotTTd(ctx, PSounding, TSounding, '#ff0000', 1.5, canvasWidth, canvasHeight);
   plotTTd(ctx, PSounding, TdSounding, '#0000ff', 1.5, canvasWidth, canvasHeight);
   plotTTd(ctx, PSounding, TwSounding, '#000000', 0.8, canvasWidth, canvasHeight);

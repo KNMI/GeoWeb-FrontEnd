@@ -6,11 +6,9 @@ import { DefaultLocations } from '../constants/defaultlocations';
 import { MODEL_LEVEL_URL } from '../constants/default_services';
 import { ReadLocations } from '../utils/admin';
 import PropTypes from 'prop-types';
-import ProgtempComponent from './ProgtempComponent';
+import TimeseriesComponent from './TimeseriesComponent';
 var moment = require('moment');
 
-// TODO: Generalize this component to make one PopoverComponent
-// such that we can remove this one and TimeseriesPopoverComponent
 export default class ProgtempPopoverComponent extends Component {
   /* istanbul ignore next */
   constructor () {
@@ -107,11 +105,10 @@ export default class ProgtempPopoverComponent extends Component {
       return null;
     }
     return (
-      <Popover placement='left' isOpen={this.props.isOpen} target='progtemp_button'>
+      <Popover placement='left' isOpen={this.props.isOpen} target='timeseries_button'>
         <PopoverTitle>Reference time: <strong>{this.state.referenceTime ? this.state.referenceTime.format('ddd DD, HH:mm UTC') : '??'}</strong></PopoverTitle>
-        <ProgtempComponent location={cursor ? cursor.location : null} referenceTime={this.state.referenceTime}
-          selectedModel={this.state.selectedModel} time={adaStart} className='popover-content'
-          style={{ height: '600px', marginLeft: '-3.6rem', marginRight: '1.4rem' }} />
+        <TimeseriesComponent location={cursor ? cursor.location : null} referenceTime={this.state.referenceTime}
+          selectedModel={this.state.selectedModel} time={adaStart} />
         <Row style={{ padding: '0 0 1rem 1rem' }}>
           {this.getLocationAsString(cursor)}
         </Row>
