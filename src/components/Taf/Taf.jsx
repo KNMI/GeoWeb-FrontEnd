@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import { Col, Card, CardTitle, CardText, CardFooter, Button, ButtonGroup } from 'reactstrap';
 import CollapseOmni from '../CollapseOmni';
 import moment from 'moment';
-import { TAFS_URL } from '../../constants/backend';
+import { BACKEND_SERVER_URL, TAFS_URL } from '../../constants/backend';
 import TafCategory from './TafCategory';
 export default class Taf extends Component {
   constructor () {
@@ -189,8 +189,11 @@ export default class Taf extends Component {
                     <div style={{ display:'flex' }} >
                       <CardText onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>{this.state.expandedTAC}</CardText>
                       {taf.metadata.status === 'concept'
-                        ? <CardFooter onClick={(e) => { e.preventDefault(); e.stopPropagation(); this.deleteTAF(taf.metadata.uuid); }}>
-                          <Button color='primary'>Delete</Button>
+                        ? <CardFooter>
+                          <a href={BACKEND_SERVER_URL + '/tafs/' + taf.metadata.uuid}>
+                            <Button color='primary'>Show IWXXM</Button>
+                          </a>
+                          <Button onClick={(e) => { e.preventDefault(); e.stopPropagation(); this.deleteTAF(taf.metadata.uuid); }} color='danger'>Delete</Button>
                         </CardFooter>
                         : <div />}
                     </div>

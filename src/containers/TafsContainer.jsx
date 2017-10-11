@@ -61,7 +61,12 @@ export default class TafsContainer extends Component {
   }
 
   render () {
-    const maxSize = parseInt(screen.width) - 200;
+    // ugh
+    let maxSize = parseInt(screen.width);
+    if (document.getElementsByClassName('RightSideBar')[0]) {
+      maxSize -= 2 * document.getElementsByClassName('RightSideBar')[0].clientWidth;
+      maxSize += 10;
+    }
     let title = <Row>
       <Button color='primary' onClick={this.toggle} title={this.state.isOpen ? 'Collapse panel' : 'Expand panel'}>
         <Icon name={this.state.isOpen ? 'angle-double-left' : 'angle-double-right'} />

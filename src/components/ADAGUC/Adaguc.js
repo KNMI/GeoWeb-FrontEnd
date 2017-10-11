@@ -144,6 +144,7 @@ export default class Adaguc extends React.Component {
     this.webMapJS.setBBOX(mapProperties.boundingBox.bbox.join());
 
     this.webMapJS.addListener('aftersetbbox', this.updateBBOX, true);
+    this.webMapJS.addListener('mouseclicked', e => this.findClosestCursorLoc(e), true);
 
     // Set the baselayer and possible overlays
     this.updateBaselayers(baselayer, {}, panels[mapId].overlays, {});
@@ -238,22 +239,6 @@ export default class Adaguc extends React.Component {
   updateMapMode (mapMode, prevMapMode, active) {
     // Update mapmode
     if (mapMode !== prevMapMode) {
-      const listenerModi = ['progtemp', 'timeseries'];
-
-      const removeListeners = listenerModi.some(mode => prevMapMode === mode && mapMode !== mode);
-
-      const registerListeners = listenerModi.some(mode => prevMapMode !== mode && mapMode === mode);
-      // Remove listeners if switching away from progtemp or timeseries
-      if (removeListeners) {
-        this.webMapJS.removeListener('mouseclicked');
-        this.webMapJS.enableInlineGetFeatureInfo(true);
-      }
-
-      // Register listeners if switching to progtemp or timeseries
-      if (registerListeners) {
-        this.webMapJS.enableInlineGetFeatureInfo(false);
-        this.webMapJS.addListener('mouseclicked', e => this.findClosestCursorLoc(e), true);
-      }
       // Reset the message, it will be re-set if necessary
       this.webMapJS.setMessage('');
       switch (mapMode) {

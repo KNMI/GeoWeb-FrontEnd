@@ -1,18 +1,49 @@
 import React, { Component } from 'react';
-import { default as Adaguc } from './ADAGUC/Adaguc';
-import { default as Panel } from './Panel';
+import Adaguc from './ADAGUC/Adaguc';
+import Panel from './Panel';
 import { Row, Col } from 'reactstrap';
 import PropTypes from 'prop-types';
-
+import ProgtempComponent from './ProgtempComponent';
+import { MODEL_LEVEL_URL } from '../constants/default_services';
+import axios from 'axios';
+import moment from 'moment';
 export class SinglePanel extends Component {
+  constructor () {
+    super();
+    this.state = {
+      model: 'HARMONIE'
+    };
+  }
+  componentWillMount () {
+    let refUrl;
+    switch (this.state.model.toUpperCase()) {
+      default:
+        refUrl = `${MODEL_LEVEL_URL}SERVICE=WMS&VERSION=1.3.0&REQUEST=GetReferenceTimes&LAYERS=air_pressure__at_ml`;
+        break;
+    }
+    return axios.get(refUrl).then((r) => this.setState({ referenceTime: moment.utc(r.data[0]) }));
+  }
+
   render () {
     const { title, mapProperties, dispatch, mapActions, mapId, drawProperties, layers, adagucProperties } = this.props;
     const { activeMapId } = mapProperties;
-    return (<Panel mapActions={mapActions} title={title} mapMode={mapProperties.mapMode} mapId={mapId} dispatch={dispatch} className={mapId === activeMapId ? 'activePanel' : ''}>
-      <Adaguc drawActions={this.props.drawActions} layerActions={this.props.layerActions} mapProperties={mapProperties}
-        adagucActions={this.props.adagucActions} adagucProperties={adagucProperties} layers={layers} drawProperties={drawProperties}
-        mapId={mapId} dispatch={dispatch} mapActions={this.props.mapActions} active={mapId === activeMapId} />
-    </Panel>);
+    if (mapId % 2 === 0) {
+      return (<Panel mapActions={mapActions} title={title} mapMode={mapProperties.mapMode} mapId={mapId} dispatch={dispatch} className={mapId === activeMapId ? 'activePanel' : ''}>
+        <Adaguc drawActions={this.props.drawActions} layerActions={this.props.layerActions} mapProperties={mapProperties}
+          adagucActions={this.props.adagucActions} adagucProperties={adagucProperties} layers={layers} drawProperties={drawProperties}
+          mapId={mapId} dispatch={dispatch} mapActions={this.props.mapActions} active={mapId === activeMapId} />
+      </Panel>);
+    } else {
+      const { cursor } = this.props.adagucProperties;
+      const adaStart = moment.utc(this.props.adagucProperties.timeDimension).startOf('hour');
+      if (this.state.referenceTime && this.state.model && cursor) {
+        return <Panel>
+          <ProgtempComponent location={cursor ? cursor.location : null} referenceTime={this.state.referenceTime}
+            selectedModel={this.state.model} time={adaStart} style={{ height: '100%', width: '100%', marginLeft: '-3.6rem', marginRight: '1.4rem' }} />
+        </Panel>;
+      }
+      return <div />;
+    }
   }
 }
 class MapPanel extends Component {

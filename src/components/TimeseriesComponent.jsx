@@ -13,7 +13,7 @@ export default class TimeseriesComponent extends Component {
     super();
     this.state = {
       canvasWidth: 480,
-      canvasHeight: 800,
+      canvasHeight: 500,
       timeData: []
     };
     this.setChosenLocation = this.setChosenLocation.bind(this);
@@ -21,91 +21,8 @@ export default class TimeseriesComponent extends Component {
     this.toggleCanvas = this.toggleCanvas.bind(this);
     this.getLabels = this.getLabels.bind(this);
     this.getUnits = this.getUnits.bind(this);
-    this.progtempLocations = [
-      {
-        name: 'EHAM',
-        x: 4.77,
-        y: 52.30
-      }, {
-        name: 'EHRD',
-        x: 4.42,
-        y: 51.95
-      }, {
-        name: 'EHTW',
-        x: 6.98,
-        y: 52.28
-      }, {
-        name: 'EHBK',
-        x: 5.76,
-        y: 50.95
-      }, {
-        name: 'EHFS',
-        x: 3.68,
-        y: 51.46
-      }, {
-        name: 'EHDB',
-        x: 5.18,
-        y: 52.12
-      }, {
-        name: 'EHGG',
-        x: 6.57,
-        y: 53.10
-      }, {
-        name: 'EHKD',
-        x: 4.74,
-        y: 52.93
-      }, {
-        name: 'EHAK',
-        x: 3.81,
-        y: 55.399
-      }, {
-        name: 'EHDV',
-        x: 2.28,
-        y: 53.36
-      }, {
-        name: 'EHFZ',
-        x: 3.94,
-        y: 54.12
-      }, {
-        name: 'EHFD',
-        x: 4.67,
-        y: 54.83
-      }, {
-        name: 'EHHW',
-        x: 6.04,
-        y: 52.037
-      }, {
-        name: 'EHKV',
-        x: 3.68,
-        y: 53.23
-      }, {
-        name: 'EHMG',
-        x: 4.93,
-        y: 53.63
-      }, {
-        name: 'EHMA',
-        x: 5.94,
-        y: 53.54
-      }, {
-        name: 'EHQE',
-        x: 4.15,
-        y: 52.92
-      }, {
-        name: 'EHPG',
-        x: 3.3416,
-        y: 52.36
-      }
-    ];
   }
 
-  componentDidMount () {
-    if (this._typeahead) {
-      const instance = this._typeahead.getInstance();
-      if (instance) {
-        instance.focus();
-      }
-    }
-  }
   /* istanbul ignore next */
   customTooltip (props, labels, units) {
     if (props.payload.length > 0) {
@@ -122,32 +39,20 @@ export default class TimeseriesComponent extends Component {
       return <div />;
     }
   }
-
-  /* istanbul ignore next */
-  fetchNewLocationData (cursor, wmjslayers, adagucTime) {
-    const { location } = cursor;
-    const harmlayer = wmjslayers.layers.filter((layer) => layer.service.includes('HARM'))[0];
-    if (!harmlayer) return;
-    const refTime = harmlayer.getDimension('reference_time').currentValue;
-    this.toggleCanvas();
-    if (location && (refTime !== this.referenceTime || !this.props.adagucProperties.cursor ||
-      !this.props.adagucProperties.location || location !== this.props.adagucProperties.cursor.location)) {
-      if (refTime.slice(-1) !== 'Z') {
-        this.referenceTime = refTime + 'Z';
-      } else {
-        this.referenceTime = refTime;
-      }
-      const url = `${HARMONIE_URL}SERVICE=WMS&&SERVICE=WMS&VERSION=1.3.0&REQUEST=GetPointValue&LAYERS=&QUERY_LAYERS=air_pressure_at_sea_level,wind__at_10m,dew_point_temperature__at_2m,air_temperature__at_2m,precipitation_flux&CRS=EPSG%3A4326&INFO_FORMAT=application/json&time=*&DIM_reference_time=` + this.referenceTime + `&x=` + location.x + `&y=` + location.y;
-      axios.get(url).then((res) => {
-        if (res.data.includes('No data available')) {
-          this.toggleCanvas();
-          console.error('no data');
-          return;
-        }
-        this.toggleCanvas();
-        this.setState({ origData: res.data, timeData: this.modifyData(res.data) });
-      });
+  setModelData (model, location) {
+    let url;
+    if (!(model && location && this.props.referenceTime)) return;
+    const refTimeStr = this.props.referenceTime.format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+    switch (model.toUpperCase()) {
+      default:
+        url = `${HARMONIE_URL}SERVICE=WMS&&SERVICE=WMS&VERSION=1.3.0&REQUEST=GetPointValue&LAYERS=&QUERY_LAYERS=
+air_pressure_at_sea_level,wind__at_10m,dew_point_temperature__at_2m,air_temperature__at_2m,precipitation_flux&CRS=EPSG%3A4326&
+INFO_FORMAT=application/json&time=*&DIM_reference_time=` + refTimeStr + `&x=` + location.x + `&y=` + location.y;
+        break;
     }
+    return axios.get(url).then((d) => {
+      this.setState({ timeData: this.modifyData(d.data), origData: d.data });
+    });
   }
 
   // Remap the data from GetPointInfo to an object containing the relevant data at a reference time
@@ -155,6 +60,7 @@ export default class TimeseriesComponent extends Component {
   /* istanbul ignore next */
   modifyData (data) {
     if (!data) return;
+    console.log(data)
     function remap (obj, refTime) {
       let newObj = [];
       Object.keys(obj).map((k) => { newObj.push({ 'date': k, 'value': parseFloat(obj[k][refTime]) }); });
@@ -180,13 +86,15 @@ export default class TimeseriesComponent extends Component {
       const obj = arr.filter((o) => o.date === currDate)[0];
       return obj.value;
     }
+    const refTimeStr = this.props.referenceTime.format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+
     const windData = data.filter((d) => d.name === 'wind__at_10m');
-    const pressureData = remap(data.filter((d) => d.name === 'air_pressure_at_sea_level')[0].data, this.referenceTime);
-    const windX = remap(windData.filter((d) => d.standard_name === 'x_wind')[0].data, this.referenceTime);
-    const windY = remap(windData.filter((d) => d.standard_name === 'y_wind')[0].data, this.referenceTime);
-    const dewData = remap(data.filter((d) => d.name === 'dew_point_temperature__at_2m')[0].data, this.referenceTime);
-    const tempData = remap(data.filter((d) => d.name === 'air_temperature__at_2m')[0].data, this.referenceTime);
-    const rainData = remap(data.filter((d) => d.name === 'precipitation_flux')[0].data, this.referenceTime);
+    const pressureData = remap(data.filter((d) => d.name === 'air_pressure_at_sea_level')[0].data, refTimeStr);
+    const windX = remap(windData.filter((d) => d.standard_name === 'x_wind')[0].data, refTimeStr);
+    const windY = remap(windData.filter((d) => d.standard_name === 'y_wind')[0].data, refTimeStr);
+    const dewData = remap(data.filter((d) => d.name === 'dew_point_temperature__at_2m')[0].data, refTimeStr);
+    const tempData = remap(data.filter((d) => d.name === 'air_temperature__at_2m')[0].data, refTimeStr);
+    const rainData = remap(data.filter((d) => d.name === 'precipitation_flux')[0].data, refTimeStr);
     const windDataMapped = getWindInfo(windX, windY);
     const windSpeedData = windDataMapped.windSpeed;
 
@@ -218,29 +126,7 @@ export default class TimeseriesComponent extends Component {
     this.setState({ minPressure, maxPressure });
     return returnArr;
   }
-  /* istanbul ignore next */
-  componentWillReceiveProps (nextProps) {
-    const { adagucProperties, layers, mapProperties } = nextProps;
-    const { cursor } = adagucProperties;
-    const { wmjsLayers } = layers;
-    // No layers or not in progtemp mode so no need to draw
-    if (!wmjsLayers || !wmjsLayers.layers || mapProperties.mapMode !== 'timeseries') {
-      return;
-    }
 
-    // If there is no HARMONIE layer we can also abort.
-    if (wmjsLayers.layers.length > 0 && wmjsLayers.layers.filter((layer) => layer.service && layer.service.includes('HARM')).length > 0) {
-      const harmlayer = wmjsLayers.layers.filter((layer) => layer.service && layer.service.includes('HARM'))[0];
-      if (!harmlayer) return;
-      this.referenceTime = harmlayer.getDimension('reference_time').currentValue;
-    }
-
-    // Refetch data if there is a location change (either due to pre-chosen location or mapclick)
-    if (cursor && this.props.adagucProperties.cursor !== cursor) {
-      this.fetchNewLocationData(cursor, wmjsLayers, adagucProperties.timeDimension);
-    }
-    this.forceUpdate();
-  }
   /* istanbul ignore next */
   convertMinSec (loc) {
     function padLeft (nr, n, str) {
@@ -273,7 +159,7 @@ export default class TimeseriesComponent extends Component {
     const { cx, cy, stroke, key } = props;
     if (cx === +cx && cy === +cy) {
       const dotDate = moment.utc(props.payload.date, 'MMM DD HH:mm');
-      const adagucDate = moment.utc(this.props.adagucProperties.timeDimension);
+      const adagucDate = moment.utc(this.props.time);
       if (dotDate.hour() === adagucDate.hour() && dotDate.day() === adagucDate.day() && dotDate.month() === adagucDate.month() && dotDate.year() === adagucDate.year()) {
         return <circle cx={cx} cy={cy} r={3} stroke={stroke} fill={stroke} key={key} />;
       } else {
@@ -333,25 +219,34 @@ export default class TimeseriesComponent extends Component {
     });
     return retData;
   }
+  fetchAndRender (model, location) {
+    if (!(model && location)) return;
+    this.setState({ isLoading: true });
+    this.setModelData(model, location).then(() => {
+      this.renderProgtempData(this.progtempContext, this.width, this.height, this.props.time.format('YYYY-MM-DDTHH:mm:ss') + 'Z');
+      this.setState({ isLoading: false });
+    }).catch(() => this.setState({ isLoading: false }));
+  }
+
+  componentWillUpdate (nextProps, nextState) {
+    if (nextProps.selectedModel !== this.props.selectedModel ||
+        nextProps.location !== this.props.location ||
+        nextProps.referenceTime !== this.props.referenceTime) {
+      this.fetchAndRender(nextProps.selectedModel, nextProps.location);
+    }
+  }
   /* istanbul ignore next */
   render () {
-    const { cursor, timeDimension } = this.props.adagucProperties;
-    const { wmjsLayers } = this.props.layers;
-    if (cursor && !this.state.timeData) {
-      this.fetchNewLocationData(cursor, wmjsLayers, timedim);
-    }
+    const { location, time, className, style } = this.props;
     const maxWidth = this.state.canvasWidth + 'px';
     const maxHeight = this.state.canvasHeight + 'px';
-    return (<Popover placement='left' isOpen={this.props.isOpen} target='timeseries_button' id='timePopover'>
-      {cursor && cursor.location
-        ? <PopoverTitle>Location: {cursor.location.name ? cursor.location.name : this.convertMinSec(cursor.location.x) + ', ' + this.convertMinSec(cursor.location.y)}</PopoverTitle>
-        : <div />
-      }
-      <PopoverContent style={{ maxWidth: maxWidth, maxHeight: maxHeight }}>
+    console.log(this.state);
+    return (
+      <div className={className} style={style}>
         {this.state.timeData.length > 0
           ? <div>
-            <LineChart width={this.state.canvasWidth} height={this.state.canvasHeight / 5.0} data={this.state.timeData}
-              margin={{ top: 10, left: 10, right: 10, bottom: 10 }}>
+            <LineChart width={this.state.canvasWidth} height={this.state.canvasHeight / 4.0} data={this.state.timeData}
+              margin={{ top: 0, left: 0, right: 10, bottom: 10 }}>
               <XAxis dataKey='date' />
               <YAxis />
               <Legend margin={{ top: 0 }} verticalAlign='top' payload={[ { type: 'line', value: this.getLabels(['air_temp']), color: '#ff0000' },
@@ -361,8 +256,8 @@ export default class TimeseriesComponent extends Component {
               <Line type='monotone' dataKey='air_temp' stroke='#ff0000' dot={this.renderDots} />
               <Line type='monotone' dataKey='dew_point_temp' stroke='#0000ff' dot={this.renderDots} />
             </LineChart>
-            <LineChart width={this.state.canvasWidth} height={this.state.canvasHeight / 5.0} data={this.state.timeData}
-              margin={{ top: 10, left: 10, right: 10, bottom: 10 }}>
+            <LineChart width={this.state.canvasWidth} height={this.state.canvasHeight / 4.0} data={this.state.timeData}
+              margin={{ top: 0, left: 0, right: 10, bottom: 10 }}>
               <XAxis dataKey='date' />
               <YAxis domain={[0, 360]} />
               <Legend margin={{ top: 0 }} verticalAlign='top' payload={[ { type: 'line', value: this.getLabels(['wind_dir']), color: '#ff7300' } ]} />
@@ -370,8 +265,8 @@ export default class TimeseriesComponent extends Component {
               <CartesianGrid stroke='#f5f5f5' />
               <Line type='monotone' dataKey='wind_dir' stroke='#ff7300' dot={this.renderDots} />
             </LineChart>
-            <LineChart width={this.state.canvasWidth} height={this.state.canvasHeight / 5.0} data={this.state.timeData}
-              margin={{ top: 10, left: 10, right: 10, bottom: 10 }}>
+            <LineChart width={this.state.canvasWidth} height={this.state.canvasHeight / 4.0} data={this.state.timeData}
+              margin={{ top: 0, left: 0, right: 10, bottom: 10 }}>
               <XAxis dataKey='date' />
               <YAxis />
               <Legend margin={{ top: 0 }} verticalAlign='top' payload={[ { type: 'line', value: this.getLabels(['wind_speed']), color: '#ff7300' } ]} />
@@ -379,8 +274,8 @@ export default class TimeseriesComponent extends Component {
               <CartesianGrid stroke='#f5f5f5' />
               <Line type='monotone' dataKey='wind_speed' stroke='#ff7300' dot={this.renderDots} />
             </LineChart>
-            <LineChart width={this.state.canvasWidth} height={this.state.canvasHeight / 5.0} data={this.state.timeData}
-              margin={{ top: 10, left: 10, right: 10, bottom: 10 }}>
+            <LineChart width={this.state.canvasWidth} height={this.state.canvasHeight / 4.0} data={this.state.timeData}
+              margin={{ top: 0, left: 0, right: 10, bottom: 10 }}>
               <XAxis dataKey='date' />
               <YAxis />
               <Legend margin={{ top: 0 }} verticalAlign='top' payload={[ { type: 'line', value: this.getLabels(['precipitation']), color: '#ff7300' } ]} />
@@ -388,8 +283,8 @@ export default class TimeseriesComponent extends Component {
               <CartesianGrid stroke='#f5f5f5' />
               <Line type='monotone' dataKey='precipitation' stroke='#ff7300' dot={this.renderDots} />
             </LineChart>
-            <LineChart width={this.state.canvasWidth} height={this.state.canvasHeight / 5.0} data={this.state.timeData}
-              margin={{ top: 10, left: 10, right: 10, bottom: 10 }}>
+            <LineChart width={this.state.canvasWidth} height={this.state.canvasHeight / 4.0} data={this.state.timeData}
+              margin={{ top: 0, left: 0, right: 10, bottom: 10 }}>
               <XAxis dataKey='date' />
               <YAxis domain={['auto', 'auto']} />
               <Legend margin={{ top: 0 }} verticalAlign='top' payload={[ { type: 'line', value: this.getLabels(['pressure']), color: '#ff7300' } ]} />
@@ -398,13 +293,9 @@ export default class TimeseriesComponent extends Component {
               <Line type='monotone' dataKey='pressure' stroke='#ff7300' dot={this.renderDots} />
             </LineChart>
           </div>
-         : <div style={{ width: maxWidth, height: maxHeight }} />
+          : <div style={{ width: maxWidth, height: maxHeight }} />
         }
-        <div className='canvasLoadingOverlay timeOverlay' ref='canvasLoadingOverlay' />
-        <Typeahead ref={ref => { this._typeahead = ref; }}
-          onChange={this.setChosenLocation} options={this.progtempLocations} labelKey='name' placeholder='Type to select default location' submitFormOnEnter />
-      </PopoverContent>
-    </Popover>);
+      </div>);
   }
 }
 TimeseriesComponent.propTypes = {
