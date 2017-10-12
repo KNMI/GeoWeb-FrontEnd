@@ -15,7 +15,7 @@ let getInputItem = (taf, name) => {
   return null;
 };
 
-/* ----- The following functions TAF JSON codes to TAC codes used in input fields ------ */
+/* ----- The following functions transforms a TAF JSON forecast or changegroup to TAC code ------ */
 
 export const getWindTAC = (taf) => {
   let value = getInputItem(taf, 'wind'); if (value !== null) return value;

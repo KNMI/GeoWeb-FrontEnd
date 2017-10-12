@@ -1,3 +1,6 @@
+/*
+  Maps to construct TAC from JSON Weather and vice versa.
+*/
 export const qualifierMap = {
   light:'-',
   moderate:'',

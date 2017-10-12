@@ -3,13 +3,10 @@ import Icon from 'react-fa';
 import PropTypes from 'prop-types';
 import { getProbTAC, getChangeTAC, getValidPeriodTAC, getWindTAC, getVisibilityTAC, getWeatherTAC, getCloudsTAC } from './TafjsonToTacFields';
 
+/*
+  Input columns to compose a BaseForecast or ChangeGroup
+*/
 class TACColumn extends Component {
-  componentDidMount () {
-    let { focusRefId } = this.props;
-    if (focusRefId) {
-      this.refs[focusRefId].focus();
-    }
-  }
   render () {
     let { value, rowIndex, colIndex, onChange, onKeyUp, editable, onFocusOut } = this.props;
     let v = '';
@@ -52,8 +49,7 @@ TACColumn.propTypes = {
   rowIndex: PropTypes.number,
   colIndex: PropTypes.number,
   editable : PropTypes.bool,
-  onFocusOut: PropTypes.func,
-  focusRefId: PropTypes.string
+  onFocusOut: PropTypes.func
 };
 
 export default TACColumn;
