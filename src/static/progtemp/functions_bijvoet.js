@@ -702,16 +702,16 @@ function plotHodo (ctx, canvasWidth, canvasHeight, PSounding, TSounding, TdSound
   y1 = j1 + (l0 - j1) / 2; // for later use
   x2 = x1;
   y2 = y1;
-
+  const scaleFactor = 100.0 * (2.0 / (k0 - i0));
   // Plot Winds in hodograph
   j1 = -1;
   for (var i = PSounding.length; i >= 0; i--) {
     ctx.beginPath();
     if (j1 > -1) {
-      Psfc = PSounding[PSounding.length - 1];
-      pres = PSounding[i];
-      x3 = x1 + (ffSounding[i] / 0.5144) * Math.cos(DEG2RAD * (ddSounding[i] + 90));
-      y3 = y1 + (ffSounding[i] / 0.5144) * Math.sin(DEG2RAD * (ddSounding[i] + 90));
+      const Psfc = PSounding[PSounding.length - 1];
+      const pres = PSounding[i];
+      x3 = x1 + ((ffSounding[i] / 0.5144) * Math.cos(DEG2RAD * (ddSounding[i] + 90))) / scaleFactor;
+      y3 = y1 + ((ffSounding[i] / 0.5144) * Math.sin(DEG2RAD * (ddSounding[i] + 90))) / scaleFactor;
       ctx.lineWidth = 2;
       if (pres2fl(pres, Psfc) > 0 && pres2fl(pres, Psfc) / 0.3048 < 100) {
         ctx.strokeStyle = 'blue';
