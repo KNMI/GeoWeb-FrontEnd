@@ -50,6 +50,7 @@ class TafCategory extends Component {
     - rowIndex -1 means BaseForecast, other values (>= 0) are ChangeGroups
   */
   onChange (event, rowIndex, colIndex) {
+    console.log('onChange');
     let fieldVal = event.target.value;
     if (fieldVal === undefined || fieldVal === null) fieldVal = '';
     fieldVal = fieldVal.toUpperCase();
@@ -112,7 +113,8 @@ class TafCategory extends Component {
     Event handler that is called upon jumping out of an input field.
   */
   onFocusOut () {
-    this.updateTACtoTAFJSONtoTac();
+    console.log('onFocusOut');
+    // this.updateTACtoTAFJSONtoTac();
   }
 
   /*

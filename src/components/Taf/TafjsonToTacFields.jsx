@@ -3,11 +3,14 @@ import { qualifierMap, descriptorMap, phenomenaMap } from './TafWeatherMaps';
 
 /* ------ Helper functions for setting and remembering input values ----- */
 
-let setInputItem = (taf, name, value) => {
+let setTACItem = (taf, name, value) => {
   if (!taf) return value;
+  if (!taf.tac) taf.tac = {};
+  taf.tac[name] = value === null ? '' : '' + value;
   if (!taf.input) taf.input = {};
-  taf.input[name] = value === null ? '' : '' + value;
-  return value;
+  if (!taf.input[name]) taf.input[name] = '';
+
+  return getInputItem(taf, name);
 };
 
 let getInputItem = (taf, name) => {
@@ -21,14 +24,14 @@ export const getWindTAC = (taf) => {
   let value = getInputItem(taf, 'wind'); if (value !== null) return value;
   if (!taf) return null;
   if (taf.forecast && taf.forecast.wind) {
-    if (!taf.forecast.wind.direction) return setInputItem(taf, 'wind', '');
+    if (!taf.forecast.wind.direction) return setTACItem(taf, 'wind', '');
     value = ('00' + taf.forecast.wind.direction).slice(-3) + '' + (('0' + (!taf.forecast.wind.speed ? 0 : taf.forecast.wind.speed))).slice(-2);
     if (taf.forecast.wind.gusts) {
       value += 'G' + ('0' + taf.forecast.wind.gusts).slice(-2);
     }
     // value += taf.forecast.wind.unit; <---- Not common practice to show KT in input field
   }
-  return setInputItem(taf, 'wind', value);
+  return setTACItem(taf, 'wind', value);
 };
 
 export const getChangeTAC = (taf) => {
@@ -38,10 +41,10 @@ export const getChangeTAC = (taf) => {
 
   if (taf.changeType) {
     if (taf.changeType.indexOf('PROB') === -1) {
-      return setInputItem(taf, 'change', taf.changeType);
+      return setTACItem(taf, 'change', taf.changeType);
     } else {
       if (taf.changeType.indexOf(' ') !== -1) {
-        return setInputItem(taf, 'change', taf.changeType.split(' ')[1]);
+        return setTACItem(taf, 'change', taf.changeType.split(' ')[1]);
       }
     }
   }
@@ -55,9 +58,9 @@ export const getProbTAC = (taf) => {
     if (taf.changeType) {
       if (taf.changeType.indexOf('PROB') !== -1) {
         if (taf.changeType.indexOf(' ') !== -1) {
-          return setInputItem(taf, 'prob', taf.changeType.split(' ')[0]);
+          return setTACItem(taf, 'prob', taf.changeType.split(' ')[0]);
         } else {
-          return setInputItem(taf, 'prob', taf.changeType);
+          return setTACItem(taf, 'prob', taf.changeType);
         }
       }
     }
@@ -70,12 +73,12 @@ export const getVisibilityTAC = (taf) => {
   if (taf && taf.forecast && taf.forecast.visibility && taf.forecast.visibility.value) {
     if (taf.forecast.visibility.unit) {
       if (taf.forecast.visibility.unit === 'KM') {
-        return setInputItem(taf, 'visibility', ('0' + taf.forecast.visibility.value).slice(-2) + taf.forecast.visibility.unit);
+        return setTACItem(taf, 'visibility', ('0' + taf.forecast.visibility.value).slice(-2) + taf.forecast.visibility.unit);
       } else {
-        return setInputItem(taf, 'visibility', ('000' + taf.forecast.visibility.value).slice(-4));
+        return setTACItem(taf, 'visibility', ('000' + taf.forecast.visibility.value).slice(-4));
       }
     } else {
-      return setInputItem(taf, 'visibility', taf.forecast.visibility.value);
+      return setTACItem(taf, 'visibility', taf.forecast.visibility.value);
     }
   }
   return null;
@@ -109,7 +112,7 @@ export const getWeatherTAC = (taf, index) => {
         }
       }
     }
-    return setInputItem(taf, 'weather' + index, TACString);
+    return setTACItem(taf, 'weather' + index, TACString);
   }
   return null;
 };
@@ -126,7 +129,7 @@ export const getCloudsTAC = (taf, index) => {
     if (index >= taf.forecast.clouds.length) return null;
     let clouds = taf.forecast.clouds[index];
     if (clouds.amount && clouds.height) {
-      return setInputItem(taf, 'clouds' + index, clouds.amount + ('00' + clouds.height).slice(-3) + (clouds.mod ? clouds.mod : ''));
+      return setTACItem(taf, 'clouds' + index, clouds.amount + ('00' + clouds.height).slice(-3) + (clouds.mod ? clouds.mod : ''));
     }
   }
   return null;
@@ -150,11 +153,11 @@ export const getValidPeriodTAC = (taf) => {
       validityEnd = taf.changeEnd;
     }
   }
-  if (!validityStart || !validityEnd) return setInputItem(taf, 'valid', '');
+  if (!validityStart || !validityEnd) return setTACItem(taf, 'valid', '');
   let validityStartTAC = dateToDDHH(validityStart);
   let validityEndTAC;
   if (validityEnd) {
     validityEndTAC = '/' + dateToDDHH(validityEnd);
   }
-  return setInputItem(taf, 'valid', validityStartTAC + validityEndTAC);
+  return setTACItem(taf, 'valid', validityStartTAC + validityEndTAC);
 };

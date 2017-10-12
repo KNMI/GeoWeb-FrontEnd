@@ -3,7 +3,7 @@ import { descriptorMap, phenomenaMap } from './TafWeatherMaps';
 
 /* ----- The following functions transform TAC Codes to TAF JSON codes */
 const fromTACToWind = (value) => {
-  if (value === null) return {};
+  if (!value) return {};
   let obj = {
     direction: value.substring(0, 3) === 'VRB' ? 'VRB' : parseInt(value.substring(0, 3)),
     speed: parseInt(value.substring(3, 5)),
@@ -201,6 +201,7 @@ export const createTAFJSONFromInput = (_taf) => {
   let taf = Object.assign({}, _taf);
   if (!taf.forecast) taf.forecast = {};
   if (!taf.metadata) taf.metadata = {};
+  if (!taf.input) taf.input = {};
 
   taf.metadata.status = 'concept';
   taf.metadata.type = 'normal';
