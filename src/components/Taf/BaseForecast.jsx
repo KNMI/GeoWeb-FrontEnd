@@ -4,6 +4,9 @@ import PropTypes from 'prop-types';
 import { getValidPeriodTAC } from './TafjsonToTacFields';
 import TACColumn from './TACColumn';
 
+/*
+  BaseForecast of TAF editor, it is the top row visible in the UI.
+*/
 class BaseForecast extends Component {
   render () {
     let { value, onChange, onKeyUp, editable, onFocusOut } = this.props;

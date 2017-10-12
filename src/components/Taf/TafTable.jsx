@@ -7,9 +7,12 @@ import ChangeGroup from './ChangeGroup';
 import BaseForecast from './BaseForecast';
 import SortableChangeGroup from './SortableChangeGroup';
 
+/*
+  TafTable uses BaseForecast and ChangeGroup with table headers to render an well aligned and editable TAC UI.
+*/
 class TafTable extends SortableContainer(() => {}) { // =
   render () {
-    let { tafJSON, onChange, onKeyUp, onAddRow, onDeleteRow, editable, onFocusOut, focusRefId } = this.props;
+    let { tafJSON, onChange, onKeyUp, onAddRow, onDeleteRow, editable, onFocusOut } = this.props;
     if (!tafJSON || !tafJSON.changegroups) {
       tafJSON = {
         forecast:{},
@@ -38,7 +41,7 @@ class TafTable extends SortableContainer(() => {}) { // =
         </thead>
         <tbody>
           <BaseForecast ref={'baseforecast'} value={tafJSON} onChange={onChange} onKeyUp={onKeyUp} onDeleteRow={onDeleteRow}
-            onFocusOut={onFocusOut} focusRefId={focusRefId} editable />
+            onFocusOut={onFocusOut} editable />
         </tbody>
 
         <thead>
@@ -68,8 +71,10 @@ class TafTable extends SortableContainer(() => {}) { // =
                 index={index}
                 rowIndex={index}
                 value={value}
-                onChange={onChange} onKeyUp={onKeyUp} onDeleteRow={onDeleteRow}
-                onFocusOut={onFocusOut} focusRefId={focusRefId} />);
+                onChange={onChange}
+                onKeyUp={onKeyUp}
+                onDeleteRow={onDeleteRow}
+                onFocusOut={onFocusOut} />);
             } else {
               return (<ChangeGroup key={`item-${index}`} index={index} rowIndex={index} value={value} onChange={onChange} onKeyUp={onKeyUp} onDeleteRow={onDeleteRow}
                 onFocusOut={onFocusOut} />);
@@ -93,8 +98,7 @@ TafTable.propTypes = {
   onAddRow: PropTypes.func,
   onDeleteRow: PropTypes.func,
   editable : PropTypes.bool,
-  onFocusOut: PropTypes.func,
-  focusRefId: PropTypes.string
+  onFocusOut: PropTypes.func
 };
 
 export default TafTable;
