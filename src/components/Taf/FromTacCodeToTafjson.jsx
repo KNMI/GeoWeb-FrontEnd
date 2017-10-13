@@ -149,26 +149,39 @@ const getTACCloudsArray = (cg) => {
   return cloudsObj;
 };
 
-const removeAllNullProps = (_taf) => {
-  let iterate = (obj, stack) => {
-    for (var property in obj) {
+export const cloneObjectAndSkipNullProps = (_taf) => {
+  let newTaf = {};
+  let iterate = (obj, newObj) => {
+    for (let property in obj) {
       if (obj.hasOwnProperty(property)) {
-        if (obj[property] === null) {
-          delete obj[property];
-        } else {
+        if (obj[property] !== null) {
           if (typeof obj[property] === 'object') {
-            iterate(obj[property], stack + '.' + property);
+            if (Object.prototype.toString.call(obj[property]) === '[object Array]') {
+              newObj[property] = [];
+            } else {
+              newObj[property] = {};
+            }
+            iterate(obj[property], newObj[property]);
           } else {
-            // console.log(stack + '->' + property + '   ' + obj[property]);
+            if (Object.prototype.toString.call(obj[property]) === '[object Array]') {
+              for (let j = 0; j < obj.obj[property].length; j++) {
+                newObj[property].push(cloneObjectAndSkipNullProps(obj[property][j]));
+              }
+            } else {
+              newObj[property] = obj[property];
+            }
           }
         }
       }
     }
   };
-  iterate(_taf, '');
-  return _taf;
+  iterate(_taf, newTaf);
+  return newTaf;
 };
 
+/*
+  Onchange handler from input fields. Adds and sets input properties in TAFJSON object.
+*/
 export const setTACColumnInput = (value, rowIndex, colIndex, tafRow) => {
   if (!tafRow) {
     console.log('returning because tafRow missing');
@@ -197,8 +210,34 @@ export const setTACColumnInput = (value, rowIndex, colIndex, tafRow) => {
   return tafRow;
 };
 
+/*
+  Removes input properties from baseforecast and changegroups
+*/
+export const removeInputPropsFromTafJSON = (_taf) => {
+  let taf = cloneObjectAndSkipNullProps(_taf);
+  if (taf) {
+    if (taf.input) {
+      delete taf.input;
+    }
+    if (taf.changegroups) {
+      for (let j = 0; j < taf.changegroups.length; j++) {
+        if (taf.changegroups[j].input) {
+          delete taf.changegroups[j].input;
+        }
+      }
+    }
+  }
+  return taf;
+};
+
+/*
+  Updates TAFJSON objects from input properties, e.g. TAC Codes become TAFJSON objects.
+  Input properties are kept, TAFJSON objects are updated.
+  To post a valid TAFJSON to the server, input properties need to be removed from the TAFJSON;
+   use removeInputPropsFromTafJSON afterwards.
+*/
 export const createTAFJSONFromInput = (_taf) => {
-  let taf = Object.assign({}, _taf);
+  let taf = cloneObjectAndSkipNullProps(_taf);
   if (!taf.forecast) taf.forecast = {};
   if (!taf.metadata) taf.metadata = {};
   if (!taf.input) taf.input = {};
@@ -206,20 +245,23 @@ export const createTAFJSONFromInput = (_taf) => {
   taf.metadata.status = 'concept';
   taf.metadata.type = 'normal';
 
+  taf.metadata.validate = null;
+
   taf.forecast.wind = fromTACToWind(taf.input.wind);
   taf.forecast.visibility = fromTACToVisibility(taf.input.visibility);
   taf.forecast.weather = getTACWeatherArray(taf);
   taf.forecast.clouds = getTACCloudsArray(taf);
 
+  taf.forecast.caVOK = null;
   if (!taf.forecast.visibility && taf.forecast.weather === 'NSW' && taf.forecast.clouds === 'NSC') {
     taf.forecast.weather = null;
     taf.forecast.clouds = null;
     taf.forecast.caVOK = true;
   }
 
-  delete taf.input;
   for (let j = 0; j < taf.changegroups.length; j++) {
     if (!taf.changegroups[j].forecast) taf.changegroups[j].forecast = {};
+    if (!taf.changegroups[j].input) taf.changegroups[j].input = {};
     // PROB and CHANGE are one string in json
     taf.changegroups[j].changeType =
       (taf.changegroups[j].input.prob ? taf.changegroups[j].input.prob : '') +
@@ -232,13 +274,12 @@ export const createTAFJSONFromInput = (_taf) => {
     taf.changegroups[j].forecast.weather = getTACWeatherArray(taf.changegroups[j]);
     taf.changegroups[j].forecast.clouds = getTACCloudsArray(taf.changegroups[j]);
 
+    taf.changegroups[j].caVOK = null;
     if (!taf.changegroups[j].visibility && taf.changegroups[j].weather === 'NSW' && taf.changegroups[j].clouds === 'NSC') {
       taf.changegroups[j].weather = null;
       taf.changegroups[j].clouds = null;
       taf.changegroups[j].caVOK = true;
     }
-
-    delete taf.changegroups[j].input;
   }
-  return removeAllNullProps(taf);
+  return cloneObjectAndSkipNullProps(taf);
 };

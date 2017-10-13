@@ -28,7 +28,7 @@ class BaseForecast extends Component {
     cols.push(<td key={cols.length} className='noselect' >&nbsp;</td>);
     cols.push(<td key={cols.length} className='TACnotEditable'>{location}</td>);
     cols.push(<td key={cols.length} className='TACnotEditable'>{issueTime}</td>);
-    cols.push(<td key={cols.length} className='TACnotEditable'>{getValidPeriodTAC(value)}</td>);
+    cols.push(<td key={cols.length} className='TACnotEditable'>{getValidPeriodTAC(value).tacValue}</td>);
     for (let j = 4; j < 13; j++) {
       cols.push(
         (<TACColumn
@@ -40,7 +40,9 @@ class BaseForecast extends Component {
           onChange={onChange}
           onKeyUp={onKeyUp}
           editable={editable}
-          onFocusOut={onFocusOut} />));
+          onFocusOut={onFocusOut}
+          validation={this.props.validation}
+        />));
     }
     return (
       <tr>
@@ -55,7 +57,8 @@ BaseForecast.propTypes = {
   onChange: PropTypes.func,
   onKeyUp: PropTypes.func,
   editable : PropTypes.bool,
-  onFocusOut: PropTypes.func
+  onFocusOut: PropTypes.func,
+  validation: PropTypes.object
 };
 
 export default BaseForecast;

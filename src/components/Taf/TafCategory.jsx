@@ -3,7 +3,7 @@ import { arrayMove } from 'react-sortable-hoc';
 import PropTypes from 'prop-types';
 import moment from 'moment';
 import { Button } from 'reactstrap';
-import { createTAFJSONFromInput, setTACColumnInput } from './FromTacCodeToTafjson';
+import { createTAFJSONFromInput, setTACColumnInput, removeInputPropsFromTafJSON, cloneObjectAndSkipNullProps } from './FromTacCodeToTafjson';
 import TafTable from './TafTable';
 
 /**
@@ -50,14 +50,13 @@ class TafCategory extends Component {
     - rowIndex -1 means BaseForecast, other values (>= 0) are ChangeGroups
   */
   onChange (event, rowIndex, colIndex) {
-    console.log('onChange');
     let fieldVal = event.target.value;
     if (fieldVal === undefined || fieldVal === null) fieldVal = '';
     fieldVal = fieldVal.toUpperCase();
-    let newTaf = Object.assign({}, this.state.tafJSON);
-    setTACColumnInput(fieldVal, rowIndex, colIndex, rowIndex >= 0 ? newTaf.changegroups[rowIndex] : newTaf);
+    let clonedTafState = cloneObjectAndSkipNullProps(this.state.tafJSON);
+    setTACColumnInput(fieldVal, rowIndex, colIndex, rowIndex >= 0 ? clonedTafState.changegroups[rowIndex] : clonedTafState);
     this.setState({
-      tafJSON: newTaf
+      tafJSON: createTAFJSONFromInput(clonedTafState)
     });
   }
 
@@ -68,15 +67,14 @@ class TafCategory extends Component {
   */
   updateTACtoTAFJSONtoTac () {
     /* First from form inputs to TAF JSON */
-    let newTAFJSON = createTAFJSONFromInput(this.state.tafJSON);
+    let newTAFJSON = removeInputPropsFromTafJSON(createTAFJSONFromInput(this.state.tafJSON));
     if (!newTAFJSON) {
       console.log('error newTAFJSON is null');
       return;
     }
-    newTAFJSON.metadata.uuid = null;
     /* Then update state and inputs will be rendered from JSON */
     this.setState({
-      tafJSON: Object.assign({}, newTAFJSON)
+      tafJSON: newTAFJSON
     });
     return newTAFJSON;
   }
@@ -113,8 +111,9 @@ class TafCategory extends Component {
     Event handler that is called upon jumping out of an input field.
   */
   onFocusOut () {
-    console.log('onFocusOut');
-    // this.updateTACtoTAFJSONtoTac();
+    this.updateTACtoTAFJSONtoTac();
+    let taf = removeInputPropsFromTafJSON(createTAFJSONFromInput(this.state.tafJSON));
+    this.props.validateTaf(taf);
   }
 
   /*
@@ -122,10 +121,10 @@ class TafCategory extends Component {
     This method is for example fired upon clicking the 'Add row button' next to changegroups.
   */
   onAddRow () {
-    let changeGroups = this.state.tafJSON.changegroups;
-    changeGroups.push({});
+    let newTaf = cloneObjectAndSkipNullProps(this.state.tafJSON);
+    newTaf.changegroups.push({});
     this.setState({
-      tafJSON: this.state.tafJSON
+      tafJSON: newTaf
     });
   }
 
@@ -133,21 +132,21 @@ class TafCategory extends Component {
     This function removes a changeGroup by given rowIndex.
   */
   onDeleteRow (rowIndex) {
-    let changeGroups = this.state.tafJSON.changegroups;
-    changeGroups.splice(rowIndex, 1);
+    let newTaf = cloneObjectAndSkipNullProps(this.state.tafJSON);
+    newTaf.changegroups.splice(rowIndex, 1);
     this.setState({
-      tafJSON: this.state.tafJSON
+      tafJSON: newTaf
     });
-    console.log(rowIndex);
   };
 
   /*
     Callback function called by SortableElement and SortableContainer when changegroups are sorted by Drag and Drop
   */
   onSortEnd ({ oldIndex, newIndex }) {
-    this.state.tafJSON.changegroups = arrayMove(this.state.tafJSON.changegroups, oldIndex, newIndex);
+    let newTaf = cloneObjectAndSkipNullProps(this.state.tafJSON);
+    newTaf.changegroups = arrayMove(newTaf.changegroups, oldIndex, newIndex);
     this.setState({
-      tafJSON: this.state.tafJSON
+      tafJSON: newTaf
     });
   };
 
@@ -156,6 +155,9 @@ class TafCategory extends Component {
   }
 
   componentWillReceiveProps (nextProps) {
+    this.setState({
+      validation: nextProps.validation
+    });
     let tafJSON = null;
     if (nextProps.taf) {
       if (typeof nextProps.taf === 'string') {
@@ -175,7 +177,6 @@ class TafCategory extends Component {
           }
           if (this.changegroupsSet === uuid) return;
           this.changegroupsSet = uuid;
-          // console.log('state from props');
           this.setState({
             tafJSON: Object.assign({}, tafJSON)
           });
@@ -185,11 +186,16 @@ class TafCategory extends Component {
   }
 
   render () {
+    const flatten = list => list.reduce(
+      (a, b) => a.concat(Array.isArray(b) ? flatten(b) : b), []
+    );
     return (
       <div style={{ margin: '0px', padding:'0px', overflow:'auto', display:'inline-block' }}>
+        <div>{this.state.tafJSON.metadata.uuid}</div>
         <div style={{ backgroundColor:'#EEE', padding:'5px' }}>
           <TafTable
             ref={'taftable'}
+            validation={this.state.validation}
             tafJSON={this.state.tafJSON}
             onSortEnd={this.onSortEnd}
             onChange={this.onChange}
@@ -200,9 +206,19 @@ class TafCategory extends Component {
             onFocusOut={this.onFocusOut} />
         </div>
         <div style={{ float:'right' }}>
-          <Button color='primary' onClick={() => { this.props.saveTaf(createTAFJSONFromInput(this.state.tafJSON)); }} >Save</Button>
+          <Button color='primary' onClick={() => {
+            let taf = removeInputPropsFromTafJSON(createTAFJSONFromInput(this.state.tafJSON));
+            this.props.saveTaf(taf);
+          }} >Save</Button>
           <Button onClick={() => { alert('Sending a TAF out is not yet implemented'); }} color='primary'>Send</Button>
         </div>
+        { this.state.validation
+          ? <div style={{ backgroundColor:'#FAA' }} >
+            { (flatten(Object.values(this.state.validation).filter(v => Array.isArray(v)))).map((value, index) => {
+              return (<div key={'errmessageno' + index}>{index} - {value}</div>);
+            })}
+          </div> : null
+        }
       </div>);
   }
 }
@@ -210,7 +226,9 @@ class TafCategory extends Component {
 TafCategory.propTypes = {
   taf: PropTypes.object,
   saveTaf :PropTypes.func,
-  editable: PropTypes.bool
+  validateTaf :PropTypes.func,
+  editable: PropTypes.bool,
+  validation:PropTypes.object
 };
 
 export default TafCategory;
