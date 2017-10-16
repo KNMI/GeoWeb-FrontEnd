@@ -15,6 +15,7 @@ export default class Taf extends Component {
     this.deleteTAF = this.deleteTAF.bind(this);
     this.fetchTAFs = this.fetchTAFs.bind(this);
     this.saveTaf = this.saveTaf.bind(this);
+    this.validateTaf = this.validateTaf.bind(this);
     this.onCheckboxBtnClick = this.onCheckboxBtnClick.bind(this);
     this.state = {
       tafs: [],
@@ -95,6 +96,27 @@ export default class Taf extends Component {
     }
   }
 
+  validateTaf (tafDATAJSON) {
+    axios({
+      method: 'post',
+      url: TAFS_URL + '/tafs/verify',
+      withCredentials: true,
+      data: JSON.stringify(tafDATAJSON),
+      headers: { 'Content-Type': 'application/json' }
+    }).then(src => {
+      console.log(src.data.message);
+      if (src.data && src.data.errors) {
+        this.setState({
+          validationReport:JSON.parse(src.data.errors)
+        });
+      } else {
+        this.setState({
+          validationReport:null
+        });
+      }
+    });
+  }
+
   saveTaf (tafDATAJSON) {
     console.log('tafDATAJSON', tafDATAJSON);
     const flatten = list => list.reduce(
@@ -108,11 +130,23 @@ export default class Taf extends Component {
       data: JSON.stringify(tafDATAJSON),
       headers: { 'Content-Type': 'application/json' }
     }).then(src => {
-      this.setState({ inputValue: src.data.message });
+      console.log(src.data.message);
+      this.setState({ inputValue: src.data.message, validationReport:null });
       this.props.updateParent();
     }).catch(error => {
-      console.log('Error occured', error);
       const errors = JSON.parse(error.response.data.errors);
+      console.log('Error occured', errors);
+      this.setState({
+        validationReport:errors
+      });
+      // if (error.response && error.response.status) {
+      //   if (error.response.status === 400) {
+      //     alert('Server code 400');
+      //     return 0;
+      //   };
+      // }
+
+      // const errors = JSON.parse(error.response.data.errors);
       const allErrors = flatten(Object.values(errors).filter(v => Array.isArray(v)));
       alert('TAF contains syntax errors!\n' + allErrors.join('\n'));
     });
@@ -130,7 +164,7 @@ export default class Taf extends Component {
       data: JSON.stringify(JSON.parse(this.state.inputValue)),
       headers: { 'Content-Type': 'application/json' }
     }).then(src => {
-      this.setState({ inputValue: src.data.message });
+      this.setState({ inputValue: src.data.message, validationReport:null });
       this.props.updateParent();
     }).catch(error => {
       const errors = JSON.parse(error.response.data.errors);
@@ -147,7 +181,8 @@ export default class Taf extends Component {
     }
     this.setState({
       inputValue: evt.target.value,
-      inputValueJSON: jsonValue
+      inputValueJSON: jsonValue,
+      validationReport:null
     });
   }
   onCheckboxBtnClick (selected) {
@@ -181,7 +216,7 @@ export default class Taf extends Component {
         {
           this.props.editable
             ? <Card block onClick={() => this.setExpandedTAF('edit')}>
-              <TafCategory taf={this.state.inputValueJSON} update editable={this.props.tafEditable} saveTaf={this.saveTaf} />
+              <TafCategory taf={this.state.inputValueJSON} validation={this.state.validationReport} update editable={this.props.tafEditable} saveTaf={this.saveTaf} validateTaf={this.validateTaf} />
 
             </Card>
             : this.state.tafs.filter((taf) => this.state.tafTypeSelections.includes(taf.type) || this.state.tafTypeSelections.length === 0).map((taf, index) => {
@@ -203,7 +238,7 @@ export default class Taf extends Component {
                         : <div />}
                     </div>
                     <div style={{ width:'100%', height:'1px', margin:'1px' }} />
-                    <TafCategory taf={this.state.expandedJSON} editable={this.props.tafEditable} saveTaf={this.saveTaf} />
+                    <TafCategory taf={this.state.expandedJSON} validation={this.state.validationReport} editable={this.props.tafEditable} saveTaf={this.saveTaf} validateTaf={this.validateTaf} />
                   </div>
                 </CollapseOmni>
               </Card>;

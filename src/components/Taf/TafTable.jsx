@@ -41,7 +41,7 @@ class TafTable extends SortableContainer(() => {}) { // =
         </thead>
         <tbody>
           <BaseForecast ref={'baseforecast'} value={tafJSON} onChange={onChange} onKeyUp={onKeyUp} onDeleteRow={onDeleteRow}
-            onFocusOut={onFocusOut} editable />
+            onFocusOut={onFocusOut} editable validation={this.props.validation} />
         </tbody>
 
         <thead>
@@ -74,7 +74,7 @@ class TafTable extends SortableContainer(() => {}) { // =
                 onChange={onChange}
                 onKeyUp={onKeyUp}
                 onDeleteRow={onDeleteRow}
-                onFocusOut={onFocusOut} />);
+                onFocusOut={onFocusOut} validation={this.props.validation} />);
             } else {
               return (<ChangeGroup key={`item-${index}`} index={index} rowIndex={index} value={value} onChange={onChange} onKeyUp={onKeyUp} onDeleteRow={onDeleteRow}
                 onFocusOut={onFocusOut} />);
@@ -98,7 +98,8 @@ TafTable.propTypes = {
   onAddRow: PropTypes.func,
   onDeleteRow: PropTypes.func,
   editable : PropTypes.bool,
-  onFocusOut: PropTypes.func
+  onFocusOut: PropTypes.func,
+  validation:PropTypes.object
 };
 
 export default TafTable;

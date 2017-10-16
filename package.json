@@ -29,7 +29,7 @@
       }
     },
     "dev": {
-      "command": "nodemon bin/dev-server --ignore dist --ignore coverage --ignore tests --ignore src",
+      "command": "nodemon bin/dev-server --ignore dist --ignore coverage --ignore tests --ignore node_modules --ignore utils",
       "env": {
         "NODE_ENV": "development",
         "DEBUG": "app:*"
@@ -168,7 +168,7 @@
     "mocha": "^3.5.2",
     "moxios": "^0.4.0",
     "node-sass": "^4.5.2",
-    "nodemon": "^1.11.0",
+    "nodemon": "1.10.0",
     "normalize.css": "^7.0.0",
     "null-loader": "^0.1.1",
     "nyc": "^11.2.1",
