@@ -191,7 +191,7 @@ function WMJSMap (_element, _xml2jsonrequestURL) {
   var divBuffer = [];
 
   var mapHeader = {
-    height:30,
+    height:0,
     fill:{
       color:'#EEE',
       opacity:0.4

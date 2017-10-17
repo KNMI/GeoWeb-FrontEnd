@@ -1,8 +1,8 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import Enum from 'es6-enum';
 
-export default class AdagucMapDraw extends Component {
+export default class AdagucMapDraw extends PureComponent {
   constructor () {
     super();
     this.EDITMODE = Enum('EMPTY', 'DELETE_FEATURES', 'ADD_POLYGON');

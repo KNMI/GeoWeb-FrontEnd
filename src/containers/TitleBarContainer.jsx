@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import Icon from 'react-fa';
 import GeoWebLogo from '../components/assets/icon.svg';
 import { CheckIfUserHasRole } from '../utils/user';
@@ -22,7 +22,7 @@ const browserFullScreenRequests = [
   'webkitRequestFullScreen'
 ];
 
-class TitleBarContainer extends Component {
+class TitleBarContainer extends PureComponent {
   constructor (props) {
     super(props);
     this.setTime = this.setTime.bind(this);
@@ -659,7 +659,7 @@ class TitleBarContainer extends Component {
   }
 }
 
-class LayoutDropDown extends Component {
+class LayoutDropDown extends PureComponent {
   constructor () {
     super();
     this.postLayout = this.postLayout.bind(this);

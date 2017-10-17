@@ -1,10 +1,10 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import { default as LayerManager } from './ADAGUC/LayerManager';
 import { default as TimeComponent } from './ADAGUC/TimeComponent';
 import { default as Panel } from './Panel';
 import { Row } from 'reactstrap';
 import PropTypes from 'prop-types';
-class LayerManagerPanel extends Component {
+class LayerManagerPanel extends PureComponent {
   render () {
     const { title, dispatch, adagucProperties, layers, mapProperties } = this.props;
     return (

@@ -1,11 +1,11 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { haverSine } from '../../utils/Distance';
 
 export const ADAGUCMEASUREDISTANCE_EDITING = 'ADAGUCMEASUREDISTANCE_EDITING';
 export const ADAGUCMEASUREDISTANCE_UPDATE = 'ADAGUCMEASUREDISTANCE_UPDATE';
 
-export default class AdagucMeasureDistance extends Component {
+export default class AdagucMeasureDistance extends PureComponent {
   constructor () {
     super();
     this.drawVertice = this.drawVertice.bind(this);

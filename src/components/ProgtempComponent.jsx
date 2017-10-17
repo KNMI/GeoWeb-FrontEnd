@@ -1,12 +1,10 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import CanvasComponent from './ADAGUC/CanvasComponent';
-import diff from 'deep-diff';
 import { MODEL_LEVEL_URL } from '../constants/default_services';
 import axios from 'axios';
-import LoadingComponent from './LoadingComponent';
 import PropTypes from 'prop-types';
 
-export default class ProgtempComponent extends Component {
+export default class ProgtempComponent extends PureComponent {
   constructor () {
     super();
     this.renderProgtempData = this.renderProgtempData.bind(this);
@@ -122,10 +120,13 @@ INFO_FORMAT=application/json&time=*&DIM_reference_time=` + refTimeStr + `&x=` + 
   fetchAndRender (model, location) {
     if (!(model && location)) return;
     this.setState({ isLoading: true });
-    this.setModelData(model, location).then(() => {
-      this.renderProgtempData(this.progtempContext, this.width, this.height, this.props.time.format('YYYY-MM-DDTHH:mm:ss') + 'Z');
-      this.setState({ isLoading: false });
-    }).catch(() => this.setState({ isLoading: false }));
+    const m = this.setModelData(model, location);
+    if (m) {
+      m.then(() => {
+        this.renderProgtempData(this.progtempContext, this.width, this.height, this.props.time.format('YYYY-MM-DDTHH:mm:ss') + 'Z');
+        this.setState({ isLoading: false });
+      }).catch(() => this.setState({ isLoading: false }));
+    }
   }
 
   componentWillUpdate (nextProps, nextState) {
@@ -138,6 +139,10 @@ INFO_FORMAT=application/json&time=*&DIM_reference_time=` + refTimeStr + `&x=` + 
     }
   }
 
+  componentDidMount () {
+    this.fetchAndRender(this.props.selectedModel, this.props.location);
+  }
+
   render () {
     const { time, className, style } = this.props;
     return (
@@ -148,7 +153,6 @@ INFO_FORMAT=application/json&time=*&DIM_reference_time=` + refTimeStr + `&x=` + 
           this.renderProgtempBackground(ctx, w, h);
           this.renderProgtempData(ctx, w, h, time.format('YYYY-MM-DDTHH:mm:ss') + 'Z');
         }} />
-        <LoadingComponent isLoading={this.state.isLoading} style={{ width: '50px', height: '50px', marginTop: '-' + (this.height - this.height / 50), marginLeft: '4rem' }} />
       </div>);
   }
 }

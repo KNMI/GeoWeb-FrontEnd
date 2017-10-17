@@ -1,19 +1,15 @@
-import React, { Component } from 'react';
-import { Popover, PopoverTitle, PopoverContent } from 'reactstrap';
-import { Typeahead } from 'react-bootstrap-typeahead';
+import React, { PureComponent } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 import axios from 'axios';
 import PropTypes from 'prop-types';
 import { HARMONIE_URL } from '../constants/default_services';
 var moment = require('moment');
 
-export default class TimeseriesComponent extends Component {
+export default class TimeseriesComponent extends PureComponent {
   /* istanbul ignore next */
   constructor () {
     super();
     this.state = {
-      canvasWidth: 480,
-      canvasHeight: 500,
       timeData: []
     };
     this.setChosenLocation = this.setChosenLocation.bind(this);
@@ -60,7 +56,6 @@ INFO_FORMAT=application/json&time=*&DIM_reference_time=` + refTimeStr + `&x=` + 
   /* istanbul ignore next */
   modifyData (data) {
     if (!data) return;
-    console.log(data)
     function remap (obj, refTime) {
       let newObj = [];
       Object.keys(obj).map((k) => { newObj.push({ 'date': k, 'value': parseFloat(obj[k][refTime]) }); });
@@ -222,10 +217,17 @@ INFO_FORMAT=application/json&time=*&DIM_reference_time=` + refTimeStr + `&x=` + 
   fetchAndRender (model, location) {
     if (!(model && location)) return;
     this.setState({ isLoading: true });
-    this.setModelData(model, location).then(() => {
-      this.renderProgtempData(this.progtempContext, this.width, this.height, this.props.time.format('YYYY-MM-DDTHH:mm:ss') + 'Z');
-      this.setState({ isLoading: false });
-    }).catch(() => this.setState({ isLoading: false }));
+    const m = this.setModelData(model, location);
+    if (m) {
+      m.then(() => {
+        this.renderProgtempData(this.progtempContext, this.width, this.height, this.props.time.format('YYYY-MM-DDTHH:mm:ss') + 'Z');
+        this.setState({ isLoading: false });
+      }).catch(() => this.setState({ isLoading: false }));
+    }
+  }
+
+  componentDidMount () {
+    this.fetchAndRender(this.props.selectedModel, this.props.location);
   }
 
   componentWillUpdate (nextProps, nextState) {
@@ -237,15 +239,12 @@ INFO_FORMAT=application/json&time=*&DIM_reference_time=` + refTimeStr + `&x=` + 
   }
   /* istanbul ignore next */
   render () {
-    const { location, time, className, style } = this.props;
-    const maxWidth = this.state.canvasWidth + 'px';
-    const maxHeight = this.state.canvasHeight + 'px';
-    console.log(this.state);
+    const { location, time, className, style, width, height } = this.props;
     return (
-      <div className={className} style={style}>
+      <div className={className} style={{...style, overflowY: 'hidden' }}>
         {this.state.timeData.length > 0
-          ? <div>
-            <LineChart width={this.state.canvasWidth} height={this.state.canvasHeight / 4.0} data={this.state.timeData}
+          ? <div style={{ flexDirection: 'column' }}>
+            <LineChart width={this.props.width} height={this.props.height / 5.0} data={this.state.timeData}
               margin={{ top: 0, left: 0, right: 10, bottom: 10 }}>
               <XAxis dataKey='date' />
               <YAxis />
@@ -256,7 +255,7 @@ INFO_FORMAT=application/json&time=*&DIM_reference_time=` + refTimeStr + `&x=` + 
               <Line type='monotone' dataKey='air_temp' stroke='#ff0000' dot={this.renderDots} />
               <Line type='monotone' dataKey='dew_point_temp' stroke='#0000ff' dot={this.renderDots} />
             </LineChart>
-            <LineChart width={this.state.canvasWidth} height={this.state.canvasHeight / 4.0} data={this.state.timeData}
+            <LineChart width={this.props.width} height={this.props.height / 5.0} data={this.state.timeData}
               margin={{ top: 0, left: 0, right: 10, bottom: 10 }}>
               <XAxis dataKey='date' />
               <YAxis domain={[0, 360]} />
@@ -265,7 +264,7 @@ INFO_FORMAT=application/json&time=*&DIM_reference_time=` + refTimeStr + `&x=` + 
               <CartesianGrid stroke='#f5f5f5' />
               <Line type='monotone' dataKey='wind_dir' stroke='#ff7300' dot={this.renderDots} />
             </LineChart>
-            <LineChart width={this.state.canvasWidth} height={this.state.canvasHeight / 4.0} data={this.state.timeData}
+            <LineChart width={this.props.width} height={this.props.height / 5.0} data={this.state.timeData}
               margin={{ top: 0, left: 0, right: 10, bottom: 10 }}>
               <XAxis dataKey='date' />
               <YAxis />
@@ -274,7 +273,7 @@ INFO_FORMAT=application/json&time=*&DIM_reference_time=` + refTimeStr + `&x=` + 
               <CartesianGrid stroke='#f5f5f5' />
               <Line type='monotone' dataKey='wind_speed' stroke='#ff7300' dot={this.renderDots} />
             </LineChart>
-            <LineChart width={this.state.canvasWidth} height={this.state.canvasHeight / 4.0} data={this.state.timeData}
+            <LineChart width={this.props.width} height={this.props.height / 5.0} data={this.state.timeData}
               margin={{ top: 0, left: 0, right: 10, bottom: 10 }}>
               <XAxis dataKey='date' />
               <YAxis />
@@ -283,7 +282,7 @@ INFO_FORMAT=application/json&time=*&DIM_reference_time=` + refTimeStr + `&x=` + 
               <CartesianGrid stroke='#f5f5f5' />
               <Line type='monotone' dataKey='precipitation' stroke='#ff7300' dot={this.renderDots} />
             </LineChart>
-            <LineChart width={this.state.canvasWidth} height={this.state.canvasHeight / 4.0} data={this.state.timeData}
+            <LineChart width={this.props.width} height={this.props.height / 5.0} data={this.state.timeData}
               margin={{ top: 0, left: 0, right: 10, bottom: 10 }}>
               <XAxis dataKey='date' />
               <YAxis domain={['auto', 'auto']} />
@@ -293,7 +292,7 @@ INFO_FORMAT=application/json&time=*&DIM_reference_time=` + refTimeStr + `&x=` + 
               <Line type='monotone' dataKey='pressure' stroke='#ff7300' dot={this.renderDots} />
             </LineChart>
           </div>
-          : <div style={{ width: maxWidth, height: maxHeight }} />
+          : <div style={{ width: this.props.width + 'px', height: this.props.height + 'px' }} />
         }
       </div>);
   }
