@@ -56,9 +56,9 @@ class Panel extends PureComponent {
     if (panelOpts.some((t) => t === this.props.type)) {
       if (location) {
         if (location.name) {
-          return <span style={{ lineHeight: '2rem', verticalAlign: 'middle' }}>Location from list: <strong>{location.name}</strong></span>;
+          return <span style={{ lineHeight: '2rem', verticalAlign: 'middle' }}>Location: <strong>{location.name}</strong></span>;
         } else {
-          return <span style={{ lineHeight: '2rem', verticalAlign: 'middle' }}>Location from map: <strong>{this.convertMinSec(location.x) + ', ' + this.convertMinSec(location.y)}</strong></span>;
+          return <span style={{ lineHeight: '2rem', verticalAlign: 'middle' }}>Location: <strong>{this.convertMinSec(location.x) + ', ' + this.convertMinSec(location.y)}</strong></span>;
         }
       } else {
         return <span style={{ lineHeight: '2rem', verticalAlign: 'middle' }}>&hellip;or click on the map</span>;
@@ -69,9 +69,8 @@ class Panel extends PureComponent {
   locationSetter () {
     const panelOpts = ['TIMESERIES', 'PROGTEMP'];
     if (panelOpts.some((t) => t === this.props.type)) {
-      return <div style={{ marginRight: '0.25rem' }}>
-        <Typeahead ref={ref => { this._typeahead = ref; }}
-          onChange={this.setChosenLocation} options={this.props.locations || []} labelKey='name' placeholder='Select ICAO location&hellip;' submitFormOnEnter />
+      return <div style={{ marginRight: '0.25rem', maxWidth: '13rem' }}>
+        <Typeahead ref={ref => { this._typeahead = ref; }} onChange={this.setChosenLocation} options={this.props.locations || []} labelKey='name' placeholder='Select ICAO location&hellip;' submitFormOnEnter />
       </div>;
     }
   }

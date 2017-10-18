@@ -44,10 +44,12 @@ export class SinglePanel extends PureComponent {
     switch (type.toUpperCase()) {
       case 'TIMESERIES':
         const panel = document.getElementById('timeseriesPanel');
-        return <Panel location={cursor ? cursor.location : null} adagucActions={adagucActions} locations={this.progtempLocations} referenceTime={this.state.referenceTime} active={mapId === activeMapId} mapId={mapId} dispatch={dispatch} layerActions={layerActions} id='timeseriesPanel' type={type} >
+        return <Panel location={cursor ? cursor.location : null} adagucActions={adagucActions} locations={this.progtempLocations}
+          referenceTime={this.state.referenceTime} active={mapId === activeMapId} mapId={mapId} dispatch={dispatch}
+          layerActions={layerActions} id='timeseriesPanel' type={type} style={{ overflow: 'hidden' }}>
           <TimeseriesComponent location={cursor ? cursor.location : null} referenceTime={this.state.referenceTime}
-            selectedModel={this.state.model} time={adaStart} width={panel ? panel.clientWidth - 21.12 : 100}
-            height={panel ? panel.clientHeight - 21.12 : 100} />
+            selectedModel={this.state.model} time={adaStart} width={panel ? panel.clientWidth - 22 : 100}
+            height={panel ? panel.clientHeight : 100} />
         </Panel>;
       case 'PROGTEMP':
         return <Panel location={cursor ? cursor.location : null} adagucActions={adagucActions} locations={this.progtempLocations} referenceTime={this.state.referenceTime} active={mapId === activeMapId} mapId={mapId} dispatch={dispatch} layerActions={layerActions} id='progtempPanel' type={type} >
