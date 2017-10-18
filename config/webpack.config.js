@@ -70,7 +70,10 @@ webpackConfig.plugins = [
   }),
   new CopyWebpackPlugin([
     { from: 'src/static' }
-  ])
+  ]),
+  new webpack.optimize.CommonsChunkPlugin({
+    name: 'commons'
+  })
 ];
 
 if (__DEV__) {
