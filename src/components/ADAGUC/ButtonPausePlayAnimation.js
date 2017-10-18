@@ -1,9 +1,9 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import { Button } from 'reactstrap';
 import { Icon } from 'react-fa';
 import PropTypes from 'prop-types';
 
-export default class ButtonPausePlayAnimation extends Component {
+export default class ButtonPausePlayAnimation extends PureComponent {
   constructor () {
     super();
     this.handleClick = this.handleClick.bind(this);

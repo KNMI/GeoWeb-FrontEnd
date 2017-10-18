@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import { Popover,
   PopoverTitle,
   PopoverContent, Badge, Col, Row } from 'reactstrap';
@@ -10,7 +10,7 @@ require('rc-slider/assets/index.css');
 // ----------------------------------------- \\
 // Rendering of the layersource with popover \\
 // ----------------------------------------- \\
-class LayerSource extends Component {
+class LayerSource extends PureComponent {
   render () {
     return <Badge pill className={`alert-${this.props.color}`}>{this.props.name}</Badge>;
   }
@@ -23,7 +23,7 @@ LayerSource.propTypes = {
 // --------------------------------------- \\
 // Rendering of the layername with popover \\
 // --------------------------------------- \\
-class LayerName extends Component {
+class LayerName extends PureComponent {
   constructor () {
     super();
     this.togglePopover = this.togglePopover.bind(this);
@@ -92,7 +92,7 @@ LayerName.propTypes = {
 // ---------------------------------------- \\
 // Rendering of the layerstyle with popover \\
 // ---------------------------------------- \\
-class LayerStyle extends Component {
+class LayerStyle extends PureComponent {
   constructor () {
     super();
     this.state = {
@@ -164,7 +164,7 @@ LayerStyle.propTypes = {
   editable: PropTypes.bool
 };
 
-class LayerModelRun extends Component {
+class LayerModelRun extends PureComponent {
   render () {
     return <Badge pill className={`alert-${this.props.color}`}>{this.props.refTime}</Badge>;
   }
@@ -178,7 +178,7 @@ LayerModelRun.propTypes = {
 // ---------------------------------------- \\
 // Rendering of the layerstyle with popover \\
 // ---------------------------------------- \\
-class LayerOpacity extends Component {
+class LayerOpacity extends PureComponent {
   constructor () {
     super();
     this.state = {
@@ -248,7 +248,7 @@ LayerOpacity.propTypes = {
   layerActions: PropTypes.object
 };
 
-export class LayerModelLevel extends Component {
+export class LayerModelLevel extends PureComponent {
   constructor () {
     super();
     this.state = {
@@ -300,7 +300,7 @@ LayerModelLevel.propTypes = {
   activeMapId: PropTypes.number
 };
 
-export default class LayerManager extends Component {
+export default class LayerManager extends PureComponent {
   constructor () {
     super();
     this.deleteLayer = this.deleteLayer.bind(this);

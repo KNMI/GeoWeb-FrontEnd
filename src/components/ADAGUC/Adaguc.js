@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import AdagucMapDraw from './AdagucMapDraw.js';
 import AdagucMeasureDistance from './AdagucMeasureDistance.js';
@@ -13,7 +13,7 @@ import { LoadURLPreset } from '../../utils/URLPresets';
 import { debounce } from '../../utils/debounce';
 require('babel-polyfill');
 var elementResizeEvent = require('element-resize-event');
-export default class Adaguc extends React.Component {
+export default class Adaguc extends PureComponent {
   constructor () {
     super();
     this.initAdaguc = this.initAdaguc.bind(this);
@@ -41,11 +41,11 @@ export default class Adaguc extends React.Component {
   /* istanbul ignore next */
   updateLayer (layer, datalayer) {
     const shouldAnimate = this.props.adagucProperties.animate && this.props.active;
-    this.webMapJS.setAnimationDelay(200);
     if (!layer) {
       return;
     }
     this.webMapJS.stopAnimating();
+    this.webMapJS.setAnimationDelay(0);
     layer.onReady = undefined;
     if (layer.getDimension('reference_time')) {
       layer.setDimension('reference_time', layer.getDimension('reference_time').getValueForIndex(layer.getDimension('reference_time').size() - 1), false);

@@ -8,6 +8,7 @@ const SET_PRESET = 'SET_PRESET';
 const ALTER_LAYER = 'ALTER_LAYER';
 const REORDER_LAYER = 'REORDER_LAYER';
 const SET_WMJSLAYERS = 'SET_WMJSLAYERS';
+const SET_PANEL_TYPE = 'SET_PANEL_TYPE';
 
 const addLayer = createAction(ADD_LAYER);
 const addOverlaysLayer = createAction(ADD_OVERLAY_LAYER);
@@ -16,6 +17,7 @@ const setPreset = createAction(SET_PRESET);
 const alterLayer = createAction(ALTER_LAYER);
 const reorderLayers = createAction(REORDER_LAYER);
 const setWMJSLayers = createAction(SET_WMJSLAYERS);
+const setPanelType = createAction(SET_PANEL_TYPE);
 
 const INITIAL_STATE = {
   wmjsLayers: {},
@@ -23,25 +25,30 @@ const INITIAL_STATE = {
   panels: [
     {
       overlays: [],
-      layers: []
+      layers: [],
+      type: 'ADAGUC'
     },
     {
       overlays: [],
-      layers: []
+      layers: [],
+      type: 'TIMESERIES'
     },
     {
       overlays: [],
-      layers: []
+      layers: [],
+      type: 'PROGTEMP'
     },
     {
       overlays: [],
-      layers: []
+      layers: [],
+      type: 'ADAGUC'
     }
   ]
 };
 
 export const actions = {
   addLayer,
+  setPanelType,
   addOverlaysLayer,
   deleteLayer,
   setPreset,
@@ -51,6 +58,13 @@ export const actions = {
 };
 
 export default handleActions({
+  [SET_PANEL_TYPE]: (state, { payload }) => {
+    const mapId = payload.mapId;
+    const panel = { ...state.panels[mapId], type: payload.type };
+    const panelsCpy = [...state.panels];
+    panelsCpy[mapId] = panel;
+    return { ...state, panels: panelsCpy };
+  },
   [ADD_LAYER]: (state, { payload }) => {
     const activeMapId = payload.activeMapId;
     const layer = { ...payload.layer };
@@ -144,19 +158,23 @@ export default handleActions({
     const panels = [
       {
         overlays: [],
-        layers: []
+        layers: [],
+        type: 'ADAGUC'
       },
       {
         overlays: [],
-        layers: []
+        layers: [],
+        type: 'PROGTEMP'
       },
       {
         overlays: [],
-        layers: []
+        layers: [],
+        type: 'TIMESERIES'
       },
       {
         overlays: [],
-        layers: []
+        layers: [],
+        type: 'ADAGUC'
       }
     ];
 

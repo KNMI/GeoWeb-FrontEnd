@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import { Button, Col, Row, Popover, InputGroup, Input, InputGroupButton, PopoverContent,
   ButtonGroup, TabContent, TabPane, Nav, NavItem, NavLink, Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
 import Panel from '../components/Panel';
@@ -13,7 +13,7 @@ import axios from 'axios';
 import PropTypes from 'prop-types';
 var moment = require('moment');
 
-class MapActionContainer extends Component {
+class MapActionContainer extends PureComponent {
   constructor (props) {
     super(props);
     // Toggles

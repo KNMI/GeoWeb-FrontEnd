@@ -1,23 +1,20 @@
-import React, { Component } from 'react';
-import { Popover, PopoverTitle, PopoverContent } from 'reactstrap';
-import { Typeahead } from 'react-bootstrap-typeahead';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
+import React, { PureComponent } from 'react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import axios from 'axios';
 import PropTypes from 'prop-types';
 import { HARMONIE_URL } from '../constants/default_services';
 var moment = require('moment');
 
-export default class TimeseriesComponent extends Component {
+export default class TimeseriesComponent extends PureComponent {
   /* istanbul ignore next */
   constructor () {
     super();
     this.state = {
-      canvasWidth: 480,
-      canvasHeight: 500,
       timeData: []
     };
     this.setChosenLocation = this.setChosenLocation.bind(this);
-    this.renderDots = this.renderDots.bind(this);
+    this.setSelectedDot = this.setSelectedDot.bind(this);
+    this.renderDot = this.renderDot.bind(this);
     this.toggleCanvas = this.toggleCanvas.bind(this);
     this.getLabels = this.getLabels.bind(this);
     this.getUnits = this.getUnits.bind(this);
@@ -55,12 +52,25 @@ INFO_FORMAT=application/json&time=*&DIM_reference_time=` + refTimeStr + `&x=` + 
     });
   }
 
+  setSelectedDot (time) {
+    const dataLines = ['air_temp', 'dew_point_temp', 'wind_dir', 'wind_speed', 'precipitation', 'pressure'];
+
+    const points = document.querySelectorAll('.dot');
+    if (points && points.length > 0) {
+      points.forEach((p) => { p.setAttribute('fill', '#ffffff'); });
+    }
+    dataLines.map((d) => {
+      const point = document.getElementById(d + '-' + time);
+      if (point) {
+        point.setAttribute('fill', point.getAttribute('stroke'));
+      }
+    });
+  }
   // Remap the data from GetPointInfo to an object containing the relevant data at a reference time
   // such that it can be directly plotted in a graph.
   /* istanbul ignore next */
   modifyData (data) {
     if (!data) return;
-    console.log(data)
     function remap (obj, refTime) {
       let newObj = [];
       Object.keys(obj).map((k) => { newObj.push({ 'date': k, 'value': parseFloat(obj[k][refTime]) }); });
@@ -155,20 +165,15 @@ INFO_FORMAT=application/json&time=*&DIM_reference_time=` + refTimeStr + `&x=` + 
     }
   }
   /* istanbul ignore next */
-  renderDots (props) {
+  renderDot (name, props) {
     const { cx, cy, stroke, key } = props;
     if (cx === +cx && cy === +cy) {
       const dotDate = moment.utc(props.payload.date, 'MMM DD HH:mm');
-      const adagucDate = moment.utc(this.props.time);
-      if (dotDate.hour() === adagucDate.hour() && dotDate.day() === adagucDate.day() && dotDate.month() === adagucDate.month() && dotDate.year() === adagucDate.year()) {
-        return <circle cx={cx} cy={cy} r={3} stroke={stroke} fill={stroke} key={key} />;
-      } else {
-        return <circle cx={cx} cy={cy} r={3} stroke={stroke} fill='#ffffff' key={key} />;
-      }
+      return <circle className='dot' id={name + '-' + dotDate.format('YYYYMMDD-HHmm')} cx={cx} cy={cy} r={3} stroke={stroke} fill='#ffffff' key={key} />;
     }
-
     return null;
   }
+
   /* istanbul ignore next */
   getLabels (data) {
     let retData = [];
@@ -222,10 +227,35 @@ INFO_FORMAT=application/json&time=*&DIM_reference_time=` + refTimeStr + `&x=` + 
   fetchAndRender (model, location) {
     if (!(model && location)) return;
     this.setState({ isLoading: true });
-    this.setModelData(model, location).then(() => {
-      this.renderProgtempData(this.progtempContext, this.width, this.height, this.props.time.format('YYYY-MM-DDTHH:mm:ss') + 'Z');
-      this.setState({ isLoading: false });
-    }).catch(() => this.setState({ isLoading: false }));
+    const m = this.setModelData(model, location);
+    if (m) {
+      m.then(() => {
+        this.setState({ isLoading: false });
+      }).catch(() => this.setState({ isLoading: false }));
+    }
+  }
+
+  componentDidMount () {
+    this.fetchAndRender(this.props.selectedModel, this.props.location);
+  }
+
+  shouldComponentUpdate (nextProps, nextState) {
+    // Modifying the DOM yourself in a shouldComponentUpdate?
+    // ☒ Heel normaal
+    // ☐ Niet normaal
+    // #normaaldoen
+    if (nextProps.selectedModel === this.props.selectedModel &&
+        nextProps.location === this.props.location &&
+        nextProps.referenceTime === this.props.referenceTime &&
+        nextState.isLoading === this.state.isLoading &&
+        nextProps.time !== this.props.time) {
+      this.setSelectedDot(nextProps.time.startOf('hour').format('YYYYMMDD-HHmm'));
+      return false;
+    }
+    return nextProps.selectedModel !== this.props.selectedModel ||
+           nextProps.location !== this.props.location ||
+           nextProps.referenceTime !== this.props.referenceTime ||
+           nextState.isLoading !== this.state.isLoading;
   }
 
   componentWillUpdate (nextProps, nextState) {
@@ -237,63 +267,65 @@ INFO_FORMAT=application/json&time=*&DIM_reference_time=` + refTimeStr + `&x=` + 
   }
   /* istanbul ignore next */
   render () {
-    const { location, time, className, style } = this.props;
-    const maxWidth = this.state.canvasWidth + 'px';
-    const maxHeight = this.state.canvasHeight + 'px';
-    console.log(this.state);
+    const { location, time, className, style, width, height } = this.props;
     return (
-      <div className={className} style={style}>
+      <div className={className} style={{ ...style, overflowY: 'hidden', height: '100%', maxHeight: '100%' }}>
         {this.state.timeData.length > 0
-          ? <div>
-            <LineChart width={this.state.canvasWidth} height={this.state.canvasHeight / 4.0} data={this.state.timeData}
-              margin={{ top: 0, left: 0, right: 10, bottom: 10 }}>
-              <XAxis dataKey='date' />
-              <YAxis />
-              <Legend margin={{ top: 0 }} verticalAlign='top' payload={[ { type: 'line', value: this.getLabels(['air_temp']), color: '#ff0000' },
-                { type: 'line', value: this.getLabels(['dew_point_temp']), color: '#0000ff' } ]} />
-              <Tooltip content={(props) => this.customTooltip(props, this.getLabels(['air_temp', 'dew_point_temp']), this.getUnits(['air_temp', 'dew_point_temp']))} />
-              <CartesianGrid stroke='#f5f5f5' />
-              <Line type='monotone' dataKey='air_temp' stroke='#ff0000' dot={this.renderDots} />
-              <Line type='monotone' dataKey='dew_point_temp' stroke='#0000ff' dot={this.renderDots} />
-            </LineChart>
-            <LineChart width={this.state.canvasWidth} height={this.state.canvasHeight / 4.0} data={this.state.timeData}
-              margin={{ top: 0, left: 0, right: 10, bottom: 10 }}>
-              <XAxis dataKey='date' />
-              <YAxis domain={[0, 360]} />
-              <Legend margin={{ top: 0 }} verticalAlign='top' payload={[ { type: 'line', value: this.getLabels(['wind_dir']), color: '#ff7300' } ]} />
-              <Tooltip content={(props) => this.customTooltip(props, this.getLabels(['wind_dir']), '°')} />
-              <CartesianGrid stroke='#f5f5f5' />
-              <Line type='monotone' dataKey='wind_dir' stroke='#ff7300' dot={this.renderDots} />
-            </LineChart>
-            <LineChart width={this.state.canvasWidth} height={this.state.canvasHeight / 4.0} data={this.state.timeData}
-              margin={{ top: 0, left: 0, right: 10, bottom: 10 }}>
-              <XAxis dataKey='date' />
-              <YAxis />
-              <Legend margin={{ top: 0 }} verticalAlign='top' payload={[ { type: 'line', value: this.getLabels(['wind_speed']), color: '#ff7300' } ]} />
-              <Tooltip content={(props) => this.customTooltip(props, this.getLabels(['wind_speed']), this.getUnits(['wind_speed']))} />
-              <CartesianGrid stroke='#f5f5f5' />
-              <Line type='monotone' dataKey='wind_speed' stroke='#ff7300' dot={this.renderDots} />
-            </LineChart>
-            <LineChart width={this.state.canvasWidth} height={this.state.canvasHeight / 4.0} data={this.state.timeData}
-              margin={{ top: 0, left: 0, right: 10, bottom: 10 }}>
-              <XAxis dataKey='date' />
-              <YAxis />
-              <Legend margin={{ top: 0 }} verticalAlign='top' payload={[ { type: 'line', value: this.getLabels(['precipitation']), color: '#ff7300' } ]} />
-              <Tooltip content={(props) => this.customTooltip(props, this.getLabels(['precipitation']), this.getUnits(['precipitation']))} />
-              <CartesianGrid stroke='#f5f5f5' />
-              <Line type='monotone' dataKey='precipitation' stroke='#ff7300' dot={this.renderDots} />
-            </LineChart>
-            <LineChart width={this.state.canvasWidth} height={this.state.canvasHeight / 4.0} data={this.state.timeData}
-              margin={{ top: 0, left: 0, right: 10, bottom: 10 }}>
-              <XAxis dataKey='date' />
-              <YAxis domain={['auto', 'auto']} />
-              <Legend margin={{ top: 0 }} verticalAlign='top' payload={[ { type: 'line', value: this.getLabels(['pressure']), color: '#ff7300' } ]} />
-              <Tooltip content={(props) => this.customTooltip(props, this.getLabels(['pressure']), this.getUnits(['pressure']))} />
-              <CartesianGrid stroke='#f5f5f5' />
-              <Line type='monotone' dataKey='pressure' stroke='#ff7300' dot={this.renderDots} />
-            </LineChart>
+          ? <div style={{ flexDirection: 'column' }}>
+            <ResponsiveContainer width={width} height={'20%'}>
+              <LineChart data={this.state.timeData} margin={{ top: 0, left: 0, right: 10, bottom: 0 }}>
+                <XAxis dataKey='date' />
+                <YAxis />
+                <Legend margin={{ top: 0 }} verticalAlign='top' payload={[ { type: 'line', value: this.getLabels(['air_temp']), color: '#ff0000' },
+                  { type: 'line', value: this.getLabels(['dew_point_temp']), color: '#0000ff' } ]} />
+                <Tooltip content={(props) => this.customTooltip(props, this.getLabels(['air_temp', 'dew_point_temp']), this.getUnits(['air_temp', 'dew_point_temp']))} />
+                <CartesianGrid stroke='#f5f5f5' />
+                <Line dot={(props) => this.renderDot('air_temp', props)} isAnimationActive={false} type='monotone' dataKey='air_temp' stroke='#ff0000' />
+                <Line dot={(props) => this.renderDot('dew_point_temp', props)} isAnimationActive={false} type='monotone' dataKey='dew_point_temp' stroke='#0000ff' />
+              </LineChart>
+            </ResponsiveContainer>
+            <ResponsiveContainer width={width} height={'20%'}>
+              <LineChart data={this.state.timeData} margin={{ top: 0, left: 0, right: 10, bottom: 0 }}>
+                <XAxis dataKey='date' />
+                <YAxis domain={[0, 360]} />
+                <Legend margin={{ top: 0 }} verticalAlign='top' payload={[ { type: 'line', value: this.getLabels(['wind_dir']), color: '#ff7300' } ]} />
+                <Tooltip content={(props) => this.customTooltip(props, this.getLabels(['wind_dir']), '°')} />
+                <CartesianGrid stroke='#f5f5f5' />
+                <Line dot={(props) => this.renderDot('wind_dir', props)} isAnimationActive={false} type='monotone' dataKey='wind_dir' stroke='#ff7300' />
+              </LineChart>
+            </ResponsiveContainer>
+            <ResponsiveContainer width={width} height={'20%'}>
+              <LineChart data={this.state.timeData} margin={{ top: 0, left: 0, right: 10, bottom: 0 }}>
+                <XAxis dataKey='date' />
+                <YAxis />
+                <Legend margin={{ top: 0 }} verticalAlign='top' payload={[ { type: 'line', value: this.getLabels(['wind_speed']), color: '#ff7300' } ]} />
+                <Tooltip content={(props) => this.customTooltip(props, this.getLabels(['wind_speed']), this.getUnits(['wind_speed']))} />
+                <CartesianGrid stroke='#f5f5f5' />
+                <Line dot={(props) => this.renderDot('wind_speed', props)} isAnimationActive={false} type='monotone' dataKey='wind_speed' stroke='#ff7300' />
+              </LineChart>
+            </ResponsiveContainer>
+            <ResponsiveContainer width={width} height={'20%'}>
+              <LineChart data={this.state.timeData} margin={{ top: 0, left: 0, right: 10, bottom: 0 }}>
+                <XAxis dataKey='date' />
+                <YAxis />
+                <Legend margin={{ top: 0 }} verticalAlign='top' payload={[ { type: 'line', value: this.getLabels(['precipitation']), color: '#ff7300' } ]} />
+                <Tooltip content={(props) => this.customTooltip(props, this.getLabels(['precipitation']), this.getUnits(['precipitation']))} />
+                <CartesianGrid stroke='#f5f5f5' />
+                <Line dot={(props) => this.renderDot('precipitation', props)} isAnimationActive={false} type='monotone' dataKey='precipitation' stroke='#ff7300' />
+              </LineChart>
+            </ResponsiveContainer>
+            <ResponsiveContainer width={width} height={'20%'}>
+              <LineChart data={this.state.timeData} margin={{ top: 0, left: 0, right: 10, bottom: 0 }}>
+                <XAxis dataKey='date' />
+                <YAxis domain={['auto', 'auto']} />
+                <Legend margin={{ top: 0 }} verticalAlign='top' payload={[ { type: 'line', value: this.getLabels(['pressure']), color: '#ff7300' } ]} />
+                <Tooltip content={(props) => this.customTooltip(props, this.getLabels(['pressure']), this.getUnits(['pressure']))} />
+                <CartesianGrid stroke='#f5f5f5' />
+                <Line dot={(props) => this.renderDot('pressure', props)} isAnimationActive={false} type='monotone' dataKey='pressure' stroke='#ff7300' />
+              </LineChart>
+            </ResponsiveContainer>
           </div>
-          : <div style={{ width: maxWidth, height: maxHeight }} />
+          : <div />
         }
       </div>);
   }
