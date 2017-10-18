@@ -45,7 +45,7 @@ export default class Adaguc extends PureComponent {
       return;
     }
     this.webMapJS.stopAnimating();
-    this.webMapJS.setAnimationDelay(0);
+    this.webMapJS.setAnimationDelay(200);
     layer.onReady = undefined;
     if (layer.getDimension('reference_time')) {
       layer.setDimension('reference_time', layer.getDimension('reference_time').getValueForIndex(layer.getDimension('reference_time').size() - 1), false);
