@@ -11,3 +11,4 @@ utils/latest
 .nyc_output
 
 src/static/config.js
+src/static/_config.js

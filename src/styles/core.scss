@@ -736,11 +736,23 @@ span.fa {
 .TafStyle input {
   width:100%;
   text-align:center;
-  background-color: #fff;
   background-image: none;
   background-clip: padding-box;
   border: 1px solid rgba(0, 0, 0, 0.15);
   border-radius: 0.25rem;
   transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
   font-size: 12px;
+}
+
+.TACColumnEmpty {
+  background-color: #FFF;
+}
+.TACColumnOK {
+  background-color: #EFD;
+}
+.TACColumnWarning {
+  background-color: #DDD;
+}
+.TACColumnError {
+  background-color: #F55;
 }

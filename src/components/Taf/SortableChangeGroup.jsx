@@ -17,7 +17,9 @@ class SortableChangeGroup extends SortableElement(() => {}) {
       rowIndex={rowIndex}
       onDeleteRow={onDeleteRow}
       editable
-      onFocusOut={onFocusOut} />);
+      onFocusOut={onFocusOut}
+      validation={this.props.validation}
+    />);
   }
 };
 
@@ -28,7 +30,8 @@ SortableChangeGroup.propTypes = {
   rowIndex: PropTypes.number,
   onDeleteRow: PropTypes.func,
   editable : PropTypes.bool,
-  onFocusOut: PropTypes.func
+  onFocusOut: PropTypes.func,
+  validation: PropTypes.object
 };
 
 export default SortableChangeGroup;
