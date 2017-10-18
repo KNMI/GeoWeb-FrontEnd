@@ -230,7 +230,6 @@ INFO_FORMAT=application/json&time=*&DIM_reference_time=` + refTimeStr + `&x=` + 
     const m = this.setModelData(model, location);
     if (m) {
       m.then(() => {
-        // this.renderProgtempData(this.progtempContext, this.width, this.height, this.props.time.format('YYYY-MM-DDTHH:mm:ss') + 'Z');
         this.setState({ isLoading: false });
       }).catch(() => this.setState({ isLoading: false }));
     }
