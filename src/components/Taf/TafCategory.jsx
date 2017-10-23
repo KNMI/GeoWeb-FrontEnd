@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { arrayMove } from 'react-sortable-hoc';
 import PropTypes from 'prop-types';
+import TimeSchedule from '../TimeSchedule';
 import moment from 'moment';
 import { Button } from 'reactstrap';
 import { createTAFJSONFromInput, setTACColumnInput, removeInputPropsFromTafJSON, cloneObjectAndSkipNullProps } from './FromTacCodeToTafjson';
@@ -219,6 +220,7 @@ class TafCategory extends Component {
             })}
           </div> : null
         }
+        <TimeSchedule />
       </div>);
   }
 }
