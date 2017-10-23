@@ -20,7 +20,7 @@ class TafTable extends SortableContainer(() => {}) { // =
       };
     }
     return (
-      <table className='TafStyle'>
+      <table className='TafStyle TafStyleTable'>
         <thead>
           <tr>
             <th style={{ padding:'0 1em 0 1em' }}>&nbsp;</th>

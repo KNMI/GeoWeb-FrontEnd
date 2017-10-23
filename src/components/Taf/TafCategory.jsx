@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { arrayMove } from 'react-sortable-hoc';
 import PropTypes from 'prop-types';
 import moment from 'moment';
-import { Button } from 'reactstrap';
+import { Button, Row, Col } from 'reactstrap';
 import { createTAFJSONFromInput, setTACColumnInput, removeInputPropsFromTafJSON, cloneObjectAndSkipNullProps } from './FromTacCodeToTafjson';
 import TafTable from './TafTable';
 
@@ -27,6 +27,7 @@ class TafCategory extends Component {
     this.onDeleteRow = this.onDeleteRow.bind(this);
     this.onFocusOut = this.onFocusOut.bind(this);
     this.updateTACtoTAFJSONtoTac = this.updateTACtoTAFJSONtoTac.bind(this);
+    this.validateTAF = this.validateTAF.bind(this);
 
     let TAFStartHour = moment().utc().hour();
     TAFStartHour = TAFStartHour + 6;
@@ -58,6 +59,13 @@ class TafCategory extends Component {
     this.setState({
       tafJSON: createTAFJSONFromInput(clonedTafState)
     });
+    this.validateTAF(clonedTafState);
+  }
+
+  validateTAF (tafJSON) {
+    // Validate typed settings
+    let taf = removeInputPropsFromTafJSON(createTAFJSONFromInput(tafJSON));
+    this.props.validateTaf(taf);
   }
 
   /*
@@ -114,8 +122,7 @@ class TafCategory extends Component {
   */
   onFocusOut () {
     this.updateTACtoTAFJSONtoTac();
-    let taf = removeInputPropsFromTafJSON(createTAFJSONFromInput(this.state.tafJSON));
-    this.props.validateTaf(taf);
+    this.validateTAF(this.state.tafJSON);
   }
 
   /*
@@ -128,6 +135,7 @@ class TafCategory extends Component {
     this.setState({
       tafJSON: newTaf
     });
+    this.validateTAF(newTaf);
   }
 
   /*
@@ -136,9 +144,11 @@ class TafCategory extends Component {
   onDeleteRow (rowIndex) {
     let newTaf = cloneObjectAndSkipNullProps(this.state.tafJSON);
     newTaf.changegroups.splice(rowIndex, 1);
+    this.props.validateTaf(newTaf);
     this.setState({
       tafJSON: newTaf
     });
+    this.validateTAF(newTaf);
   };
 
   /*
@@ -150,6 +160,7 @@ class TafCategory extends Component {
     this.setState({
       tafJSON: newTaf
     });
+    this.validateTAF(newTaf);
   };
 
   shouldComponentUpdate (nextProps, nextState) {
@@ -196,41 +207,52 @@ class TafCategory extends Component {
     if (this.state.validationReport && this.state.validationReport.errors) {
       validationErrors = JSON.parse(this.state.validationReport.errors);
     }
-    if (this.state.validationReport && this.state.validationReport.succeeded === true){
+    if (this.state.validationReport && this.state.validationReport.succeeded === true) {
       validationSucceeded = true;
     }
 
     return (
-      <div style={{ margin: '0px', padding:'0px', overflow:'auto', display:'inline-block' }}>
-        <div>{this.state.tafJSON.metadata.uuid}</div>
-        <div style={{ backgroundColor:'#EEE', padding:'5px' }}>
-          <TafTable
-            ref={'taftable'}
-            validationReport={this.state.validationReport}
-            tafJSON={this.state.tafJSON}
-            onSortEnd={this.onSortEnd}
-            onChange={this.onChange}
-            onKeyUp={this.onKeyUp}
-            onAddRow={this.onAddRow}
-            onDeleteRow={this.onDeleteRow}
-            editable={this.props.editable}
-            onFocusOut={this.onFocusOut} />
-        </div>
-        <div style={{ float:'right' }}>
-          <Button color='primary' onClick={() => {
-            let taf = removeInputPropsFromTafJSON(createTAFJSONFromInput(this.state.tafJSON));
-            this.props.saveTaf(taf);
-          }} >Save</Button>
-          <Button onClick={() => { alert('Sending a TAF out is not yet implemented'); }} color='primary'>Send</Button>
-        </div>
+      <div style={{ margin: '0px', padding:'4px', backgroundColor:'#EEE', flexDirection:'column', flex: 1 }}>
+        <Row style={{ flex: 'unset' }}>
+          <Col>{this.state.tafJSON.metadata.uuid}</Col>
+        </Row>
+        <Row>
+          <Col>
+            <TafTable
+              ref={'taftable'}
+              validationReport={this.state.validationReport}
+              tafJSON={this.state.tafJSON}
+              onSortEnd={this.onSortEnd}
+              onChange={this.onChange}
+              onKeyUp={this.onKeyUp}
+              onAddRow={this.onAddRow}
+              onDeleteRow={this.onDeleteRow}
+              editable={this.props.editable}
+              onFocusOut={this.onFocusOut} />
+          </Col>
+        </Row>
         { this.state.validationReport
-          ? <div className={validationSucceeded ? 'TAFValidationReportSuccess' : 'TAFValidationReportError'} >
-            <div><b>{this.state.validationReport.message}</b></div>
-            { validationErrors ? (flatten(Object.values(validationErrors).filter(v => Array.isArray(v)))).map((value, index) => {
-              return (<div key={'errmessageno' + index}>{index} - {value}</div>);
-            }) : null}
-          </div> : null
+          ? <Row className={validationSucceeded ? 'TAFValidationReportSuccess' : 'TAFValidationReportError'} style={{ flex: 'unset' }} >
+            <Col style={{ flexDirection: 'column' }}>
+              <div><b>{this.state.validationReport.message}</b></div>
+              { validationErrors ? (flatten(Object.values(validationErrors).filter(v => Array.isArray(v)))).map((value, index) => {
+                return (<div key={'errmessageno' + index}>{(index + 1)} - {value}</div>);
+              }) : null}
+            </Col>
+          </Row> : null
         }
+        <Row style={{ flex: 'unset' }}>
+          <Col />
+          <Col xs='auto'>
+            <Button color='primary' onClick={() => {
+              let taf = removeInputPropsFromTafJSON(createTAFJSONFromInput(this.state.tafJSON));
+              this.props.saveTaf(taf);
+            }} >Save</Button>
+          </Col>
+          <Col xs='auto'>
+            <Button disabled={!validationSucceeded} onClick={() => { alert('Sending a TAF out is not yet implemented'); }} color='primary'>Send</Button>
+          </Col>
+        </Row>
       </div>);
   }
 }

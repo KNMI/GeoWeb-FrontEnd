@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import axios from 'axios';
 import PropTypes from 'prop-types';
-import { Col, Card, CardTitle, CardText, CardFooter, Button, ButtonGroup } from 'reactstrap';
+import { Col, Row, Card, CardTitle, CardText, CardFooter, Button, ButtonGroup } from 'reactstrap';
 import CollapseOmni from '../CollapseOmni';
 import moment from 'moment';
 import { BACKEND_SERVER_URL, TAFS_URL } from '../../constants/backend';
@@ -224,7 +224,12 @@ export default class Taf extends Component {
         {
           this.props.editable
             ? <Card block onClick={() => this.setExpandedTAF('edit')}>
-              <TafCategory taf={this.state.inputValueJSON} validationReport={this.state.validationReport} update editable={this.props.tafEditable} saveTaf={this.saveTaf} validateTaf={this.validateTaf} />
+              <TafCategory
+                taf={this.state.inputValueJSON}
+                validationReport={this.state.validationReport}
+                update editable={this.props.tafEditable}
+                saveTaf={this.saveTaf}
+                validateTaf={this.validateTaf} />
 
             </Card>
             : this.state.tafs.filter((taf) => this.state.tafTypeSelections.includes(taf.type) || this.state.tafTypeSelections.length === 0).map((taf, index) => {
@@ -232,22 +237,29 @@ export default class Taf extends Component {
                 <CardTitle>
                   {taf.metadata ? taf.metadata.location : 'EWat?'} - {moment.utc(taf.metadata.validityStart).format('DD/MM/YYYY - HH:mm UTC')}
                 </CardTitle>
-                <CollapseOmni className='CollapseOmni' isOpen={this.state.expandedTAF === taf.metadata.uuid} minSize={0}>
-                  <div style={{ display:'block' }} >
-                    <div style={{ display:'flex' }} >
+                <CollapseOmni className='CollapseOmni' style={{ flexDirection: 'column' }} isOpen={this.state.expandedTAF === taf.metadata.uuid} minSize={0} maxSize={'800pt'}>
+                  <Row>
+                    <Col>
                       <CardText onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>{this.state.expandedTAC}</CardText>
-                      {taf.metadata.status === 'concept'
-                        ? <CardFooter>
-                          <a href={BACKEND_SERVER_URL + '/tafs/' + taf.metadata.uuid}>
-                            <Button color='primary'>Show IWXXM</Button>
-                          </a>
-                          <Button onClick={(e) => { e.preventDefault(); e.stopPropagation(); this.deleteTAF(taf.metadata.uuid); }} color='danger'>Delete</Button>
-                        </CardFooter>
-                        : <div />}
-                    </div>
-                    <div style={{ width:'100%', height:'1px', margin:'1px' }} />
-                    <TafCategory taf={this.state.expandedJSON} validationReport={this.state.validationReport} editable={this.props.tafEditable} saveTaf={this.saveTaf} validateTaf={this.validateTaf} />
-                  </div>
+                    </Col>
+                  </Row>
+                  {taf.metadata.status === 'concept'
+                    ? <Row>
+                      <Col />
+                      <Col xs='auto'>
+                        <a href={BACKEND_SERVER_URL + '/tafs/' + taf.metadata.uuid} target='_blank'>
+                          <Button color='primary'>Show IWXXM</Button>
+                        </a>
+                      </Col>
+                      <Col xs='auto'>
+                        <Button onClick={(e) => { e.preventDefault(); e.stopPropagation(); this.deleteTAF(taf.metadata.uuid); }} color='danger'>Delete</Button>
+                      </Col>
+                    </Row> : null }
+                  <Row>
+                    <Col>
+                      <TafCategory taf={this.state.expandedJSON} validationReport={this.state.validationReport} editable={this.props.tafEditable} saveTaf={this.saveTaf} validateTaf={this.validateTaf} />
+                    </Col>
+                  </Row>
                 </CollapseOmni>
               </Card>;
             })
