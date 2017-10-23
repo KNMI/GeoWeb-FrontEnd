@@ -713,7 +713,7 @@ span.fa {
   font-weight:bold;
 }
 
-.TafStyle table{
+.TafStyleTable{
   border-collapse: collapse;
   width: 100%;
   margin-top:.1em;
@@ -737,7 +737,6 @@ span.fa {
   text-align:center;
   background-image: none;
   background-clip: padding-box;
-  border: 1px solid rgba(0, 0, 0, 0.15);
   border-radius: 0.25rem;
   transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
   font-size: 12px;
@@ -745,13 +744,33 @@ span.fa {
 
 .TACColumnEmpty {
   background-color: #FFF;
+  border: 1px solid rgba(0, 0, 0, 0.15);
 }
 .TACColumnOK {
-  background-color: #EFD;
+  background-color: #DFF2BF;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  color:black;/*#4F8A10;*/
 }
 .TACColumnWarning {
-  background-color: #DDD;
+  /* Input cannot be converted to JSON */
+  background-color: #FEEFB3;
+  color: black; /*#9F6000;*/
+  border: 1px solid rgba(0, 0, 0, 0.15);
 }
 .TACColumnError {
-  background-color: #F55;
+  /* Validation returns an error */
+  border: 1px solid red;
+}
+.TAFValidationReportSuccess {
+  padding:4px 8px 4px 8px;
+  margin: 8px 0px 8px 0px;
+  background-color: #DFF2BF;
+  color:black;/*#4F8A10;*/
+}
+
+.TAFValidationReportError {
+  padding:4px 8px 4px 8px;
+  margin: 8px 2px 8px 2px;
+  background-color: #FFBABA;
+  color: #D8000C;
 }

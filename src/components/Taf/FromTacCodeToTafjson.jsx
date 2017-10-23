@@ -33,6 +33,12 @@ const fromTACToVisibility = (value) => {
   if (value === null || value === undefined) {
     return null;
   }
+  if (value === 'CAVOK') {
+    return {
+      value:'CAVOK',
+      unit: null
+    };
+  }
   if (value === '9999') {
     return {
       value:9999,
@@ -60,8 +66,11 @@ const fromTACToVisibility = (value) => {
 
 const fromTACToWeather = (_value) => {
   let value = _value;
-  if (!value || value === 'NSW' || value === '') {
+  if (!value || value === '') {
     return null;
+  }
+  if (value === 'NSW') {
+    return 'NSW';
   }
   let qualifier = 'moderate';
   if (value.startsWith('+')) {
@@ -93,8 +102,11 @@ const fromTACToWeather = (_value) => {
 
 const fromTACToClouds = (value) => {
   let ret = null;
-  if (!value || value === 'NSC' || value === '') {
-    return ret;
+  if (!value || value === '') {
+    return null;
+  }
+  if (value === 'NSC') {
+    return 'NSC';
   }
 
   if (value.startsWith('VV')) {
@@ -237,6 +249,7 @@ export const removeInputPropsFromTafJSON = (_taf) => {
    use removeInputPropsFromTafJSON afterwards.
 */
 export const createTAFJSONFromInput = (_taf) => {
+  console.log('createTAFJSONFromInput');
   let taf = cloneObjectAndSkipNullProps(_taf);
   if (!taf.forecast) taf.forecast = {};
   if (!taf.metadata) taf.metadata = {};
@@ -253,12 +266,15 @@ export const createTAFJSONFromInput = (_taf) => {
   taf.forecast.clouds = getTACCloudsArray(taf);
 
   taf.forecast.caVOK = null;
-  if (!taf.forecast.visibility && taf.forecast.weather === 'NSW' && taf.forecast.clouds === 'NSC') {
-    taf.forecast.weather = null;
-    taf.forecast.clouds = null;
+
+  if (taf.forecast.visibility && taf.forecast.visibility.value === 'CAVOK') {
     taf.forecast.caVOK = true;
+    taf.forecast.visibility = null;
+    if (taf.forecast.weather === 'NSW') taf.forecast.weather = null;
+    if (taf.forecast.clouds === 'NSC') taf.forecast.clouds = null;
   }
 
+  console.log('CAVOK=' + taf.forecast.caVOK);
   for (let j = 0; j < taf.changegroups.length; j++) {
     if (!taf.changegroups[j].forecast) taf.changegroups[j].forecast = {};
     if (!taf.changegroups[j].input) taf.changegroups[j].input = {};
@@ -275,11 +291,14 @@ export const createTAFJSONFromInput = (_taf) => {
     taf.changegroups[j].forecast.clouds = getTACCloudsArray(taf.changegroups[j]);
 
     taf.changegroups[j].caVOK = null;
-    if (!taf.changegroups[j].visibility && taf.changegroups[j].weather === 'NSW' && taf.changegroups[j].clouds === 'NSC') {
-      taf.changegroups[j].weather = null;
-      taf.changegroups[j].clouds = null;
+    if (taf.changegroups[j].visibility && taf.changegroups[j].visibility.value === 'CAVOK') {
       taf.changegroups[j].caVOK = true;
+      taf.changegroups[j].visibility = null;
+      if (taf.changegroups[j].weather === 'NSW') taf.changegroups[j].weather = null;
+      if (taf.changegroups[j].clouds === 'NSC') taf.changegroups[j].clouds = null;
     }
   }
-  return cloneObjectAndSkipNullProps(taf);
+  let newTAF = cloneObjectAndSkipNullProps(taf);
+  console.log(newTAF);
+  return newTAF;
 };

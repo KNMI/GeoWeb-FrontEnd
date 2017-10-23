@@ -68,53 +68,46 @@ export default class TafsContainer extends Component {
       maxSize += 10;
     }
 
-    let title = <Row>
-      <Button color='primary' onClick={this.toggle} title={this.state.isOpen ? 'Collapse panel' : 'Expand panel'}>
-        <Icon name={this.state.isOpen ? 'angle-double-left' : 'angle-double-right'} />
-      </Button>
-    </Row>;
     return (
       <Col className='TafsContainer'>
-        <CollapseOmni className='CollapseOmni' isOpen={this.state.isOpen} isHorizontal minSize={64} maxSize={maxSize}>
-          <Panel className='Panel' title={title}>
-            <Col xs='auto' className='accordionsWrapper' style={{ width: this.state.isOpen ? maxSize - 32 : 32 }}>
-              {ITEMS.map((item, index) => {
-                return <Card className='row accordion' key={index} >
+        <Panel className='Panel'>
+          <Col style={{ flexDirection: 'column' }}>
+            {ITEMS.map((item, index) => {
+              return <Card className='row accordion' key={index} >
 
-                  {!this.state.isOpen
-                    ? <CardHeader >
-                      <Col xs='auto'>
-                        <Icon name={item.icon} />
-                      </Col>
-                      <Col xs='auto'>&nbsp;</Col>
-                      <Col xs='auto'>
-                        {item.notifications > 0 ? <Badge color='danger' pill className='collapsed'>{item.notifications}</Badge> : null}
-                      </Col>
-                    </CardHeader>
-                    : <CardHeader className={maxSize > 0 ? null : 'disabled'} title={title} onClick={() => { this.toggleCategory(item.ref); }}>
-                      <Col xs='auto'>
-                        <Icon name={item.icon} />
-                      </Col>
-                      <Col style={{ marginLeft: '0.9rem' }}>
-                        {item.title}
-                      </Col>
-                      <Col xs='auto'>
-                        {item.notifications > 0 ? <Badge color='danger' pill>{item.notifications}</Badge> : null}
-                      </Col>
-                    </CardHeader>
-                  }
-                  { this.state.isOpenCategory[item.ref]
-                    ? <CollapseOmni className='CollapseOmni' isOpen={this.state.isOpen} minSize={0} maxSize={maxSize}>
-                      <Taf {...item} latestUpdateTime={moment.utc()} updateParent={() => this.forceUpdate()} />
-                    </CollapseOmni> : ''
-                  }
+                {!this.state.isOpen
+                  ? <CardHeader >
+                    <Col xs='auto'>
+                      <Icon name={item.icon} />
+                    </Col>
+                    <Col xs='auto'>&nbsp;</Col>
+                    <Col xs='auto'>
+                      {item.notifications > 0 ? <Badge color='danger' pill className='collapsed'>{item.notifications}</Badge> : null}
+                    </Col>
+                  </CardHeader>
+                  : <CardHeader className={maxSize > 0 ? null : 'disabled'} onClick={() => { this.toggleCategory(item.ref); }}>
+                    <Col xs='auto'>
+                      <Icon name={item.icon} />
+                    </Col>
+                    <Col style={{ marginLeft: '0.9rem' }}>
+                      {item.title}
+                    </Col>
+                    <Col xs='auto'>
+                      {item.notifications > 0 ? <Badge color='danger' pill>{item.notifications}</Badge> : null}
+                    </Col>
+                  </CardHeader>
+                }
+                { this.state.isOpenCategory[item.ref]
+                  ? <CollapseOmni className='CollapseOmni' isOpen={this.state.isOpen} minSize={0} maxSize={maxSize}>
+                    <Taf {...item} latestUpdateTime={moment.utc()} updateParent={() => this.forceUpdate()} />
+                  </CollapseOmni> : ''
+                }
 
-                </Card>;
-              }
-              )}
-            </Col>
-          </Panel>
-        </CollapseOmni>
+              </Card>;
+            }
+            )}
+          </Col>
+        </Panel>
       </Col>);
   }
 }
