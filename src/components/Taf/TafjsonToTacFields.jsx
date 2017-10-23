@@ -111,6 +111,13 @@ export const getProbTAC = (taf) => {
 export const getVisibilityTAC = (taf) => {
   let value = null;
   if (!taf) return returnTACCodeAndInputValue(taf, 'visibility', value);
+  if (taf && taf.forecast && taf.forecast.caVOK === true) {
+    return returnTACCodeAndInputValue(taf, 'visibility', 'CAVOK');
+  }
+  if (taf && taf.forecast && taf.forecast.weather === 'NSW' && taf.forecast.clouds === 'NSC' &&
+    (taf.forecast.visibility === 9999)) {
+    return returnTACCodeAndInputValue(taf, 'visibility', 'CAVOK');
+  }
   if (taf && taf.forecast && taf.forecast.visibility && taf.forecast.visibility.value) {
     if (taf.forecast.visibility.unit) {
       if (taf.forecast.visibility.unit === 'KM') {

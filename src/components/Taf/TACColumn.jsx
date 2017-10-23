@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import Icon from 'react-fa';
 import PropTypes from 'prop-types';
-import { Tooltip } from 'reactstrap';
+import classNames from 'classnames';
 import { getInputValueAndTACValueFromForecast } from './TafjsonToTacFields';
 
 /*
@@ -17,17 +17,17 @@ class TACColumn extends Component {
 
     let valueObject = getInputValueAndTACValueFromForecast(value, colIndex);
     let v = valueObject.inputValue === null ? valueObject.tacValue : valueObject.inputValue;
-    let className = 'TACColumnEmpty';
+    let TACColumnOK = false;
+    let TACColumnError = false;
+    let TACColumnWarning = false;
     if (valueObject.inputValue) {
       if (valueObject.inputValue === valueObject.tacValue) {
-        className = 'TACColumnOK';
+        TACColumnOK = true;
       } else {
-        className = 'TACColumnWarning';
+        TACColumnWarning = true;
       }
     }
     let validationReport = null;
-    let hasError = false;
-    let errorMessage = '';
     if (this.props.validationReport && this.props.validationReport.errors) validationReport = JSON.parse(this.props.validationReport.errors);
     if (validationReport) {
       let line = null;
@@ -51,9 +51,7 @@ class TACColumn extends Component {
         let key = line + type;
         for (let errorKey in validationReport) {
           if (errorKey.startsWith(key)) {
-            className = 'TACColumnError';
-            errorMessage = validationReport[errorKey];
-            hasError = true;
+            TACColumnError = true;
           }
         }
       }
@@ -61,14 +59,12 @@ class TACColumn extends Component {
     if (editable) {
       return (<td>
         <input
-          className={className}
-          id={'taccol' + colIndex + '_' + rowIndex} // TODO ID's are UGLY! NEEDED FOR REACTSTRAP TOOLTIP!!! HORRIBLE!!
+          className={classNames({ TACColumnEmpty:true, TACColumnOK: TACColumnOK, TACColumnError: TACColumnError, TACColumnWarning: TACColumnWarning })}
           ref='inputfield'
           value={!v ? '' : v}
           onKeyUp={(evt) => { onKeyUp(evt, rowIndex, colIndex, v); }}
           onBlur={() => { onFocusOut(); }}
           onChange={(evt) => { onChange(evt, rowIndex, colIndex); }} />
-        { /* <Tooltip isOpen={hasError} target={'taccol' + colIndex + '_' + rowIndex} >{errorMessage}</Tooltip> */ }
       </td>);
     } else {
       return (<td><input value={!v ? '' : v} disabled /></td>);
