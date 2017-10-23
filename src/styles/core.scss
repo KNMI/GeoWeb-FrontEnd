@@ -753,5 +753,14 @@ span.fa {
   background-color: #DDD;
 }
 .TACColumnError {
-  background-color: #F55;
+  background-color: #FBB;
+}
+.TAFValidationReportSuccess {
+  padding:5px;
+  background-color: #EFD;
+}
+
+.TAFValidationReportError {
+  padding:5px;
+  background-color: #FBB;
 }

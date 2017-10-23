@@ -88,6 +88,8 @@ class TafCategory extends Component {
     }
     if (event.keyCode === 27) {
       this.updateTACtoTAFJSONtoTac();
+      let taf = removeInputPropsFromTafJSON(createTAFJSONFromInput(this.state.tafJSON));
+      this.props.validateTaf(taf);
     }
     if (this.state.tafJSON.changegroups.length > 0) {
       if (event.keyCode === 38) { // KEY ARROW UP
@@ -156,7 +158,7 @@ class TafCategory extends Component {
 
   componentWillReceiveProps (nextProps) {
     this.setState({
-      validation: nextProps.validation
+      validationReport: nextProps.validationReport
     });
     let tafJSON = null;
     if (nextProps.taf) {
@@ -189,13 +191,22 @@ class TafCategory extends Component {
     const flatten = list => list.reduce(
       (a, b) => a.concat(Array.isArray(b) ? flatten(b) : b), []
     );
+    let validationErrors = null;
+    let validationSucceeded = false;
+    if (this.state.validationReport && this.state.validationReport.errors) {
+      validationErrors = JSON.parse(this.state.validationReport.errors);
+    }
+    if (this.state.validationReport && this.state.validationReport.succeeded === true){
+      validationSucceeded = true;
+    }
+
     return (
       <div style={{ margin: '0px', padding:'0px', overflow:'auto', display:'inline-block' }}>
         <div>{this.state.tafJSON.metadata.uuid}</div>
         <div style={{ backgroundColor:'#EEE', padding:'5px' }}>
           <TafTable
             ref={'taftable'}
-            validation={this.state.validation}
+            validationReport={this.state.validationReport}
             tafJSON={this.state.tafJSON}
             onSortEnd={this.onSortEnd}
             onChange={this.onChange}
@@ -212,11 +223,12 @@ class TafCategory extends Component {
           }} >Save</Button>
           <Button onClick={() => { alert('Sending a TAF out is not yet implemented'); }} color='primary'>Send</Button>
         </div>
-        { this.state.validation
-          ? <div style={{ backgroundColor:'#FAA' }} >
-            { (flatten(Object.values(this.state.validation).filter(v => Array.isArray(v)))).map((value, index) => {
+        { this.state.validationReport
+          ? <div className={validationSucceeded ? 'TAFValidationReportSuccess' : 'TAFValidationReportError'} >
+            <div><b>{this.state.validationReport.message}</b></div>
+            { validationErrors ? (flatten(Object.values(validationErrors).filter(v => Array.isArray(v)))).map((value, index) => {
               return (<div key={'errmessageno' + index}>{index} - {value}</div>);
-            })}
+            }) : null}
           </div> : null
         }
       </div>);
@@ -228,7 +240,7 @@ TafCategory.propTypes = {
   saveTaf :PropTypes.func,
   validateTaf :PropTypes.func,
   editable: PropTypes.bool,
-  validation:PropTypes.object
+  validationReport:PropTypes.object
 };
 
 export default TafCategory;
