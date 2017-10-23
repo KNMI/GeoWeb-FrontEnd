@@ -103,17 +103,25 @@ export default class Taf extends Component {
       withCredentials: true,
       data: JSON.stringify(tafDATAJSON),
       headers: { 'Content-Type': 'application/json' }
-    }).then(src => {
-      console.log(src.data.message);
-      if (src.data && src.data.errors) {
-        this.setState({
-          validationReport:JSON.parse(src.data.errors)
-        });
-      } else {
-        this.setState({
-          validationReport:null
-        });
+    }).then(
+      response => {
+        console.log(response.data.errors);
+        console.log(response.data.message);
+        if (response.data) {
+          this.setState({
+            validationReport:response.data
+          });
+        } else {
+          this.setState({
+            validationReport:null
+          });
+        }
       }
+    ).catch(error => {
+      console.log(error);
+      this.setState({
+        validationReport:{ message: 'Invalid repsonse from TAF verify servlet [/tafs/verify].' }
+      });
     });
   }
 
@@ -216,7 +224,7 @@ export default class Taf extends Component {
         {
           this.props.editable
             ? <Card block onClick={() => this.setExpandedTAF('edit')}>
-              <TafCategory taf={this.state.inputValueJSON} validation={this.state.validationReport} update editable={this.props.tafEditable} saveTaf={this.saveTaf} validateTaf={this.validateTaf} />
+              <TafCategory taf={this.state.inputValueJSON} validationReport={this.state.validationReport} update editable={this.props.tafEditable} saveTaf={this.saveTaf} validateTaf={this.validateTaf} />
 
             </Card>
             : this.state.tafs.filter((taf) => this.state.tafTypeSelections.includes(taf.type) || this.state.tafTypeSelections.length === 0).map((taf, index) => {
@@ -238,7 +246,7 @@ export default class Taf extends Component {
                         : <div />}
                     </div>
                     <div style={{ width:'100%', height:'1px', margin:'1px' }} />
-                    <TafCategory taf={this.state.expandedJSON} validation={this.state.validationReport} editable={this.props.tafEditable} saveTaf={this.saveTaf} validateTaf={this.validateTaf} />
+                    <TafCategory taf={this.state.expandedJSON} validationReport={this.state.validationReport} editable={this.props.tafEditable} saveTaf={this.saveTaf} validateTaf={this.validateTaf} />
                   </div>
                 </CollapseOmni>
               </Card>;

@@ -28,7 +28,7 @@ class TACColumn extends Component {
     let validationReport = null;
     let hasError = false;
     let errorMessage = '';
-    if (this.props.validation) validationReport = this.props.validation;
+    if (this.props.validationReport && this.props.validationReport.errors) validationReport = JSON.parse(this.props.validationReport.errors);
     if (validationReport) {
       let line = null;
       if (rowIndex === -1) {
@@ -42,7 +42,7 @@ class TACColumn extends Component {
         case 2: type = '/changegroup'; break;
         case 3: type = '/validity'; break;
         case 4: type = '/wind'; break;
-        case 5: type = '/visibilty'; break;
+        case 5: type = '/visibility'; break;
         case 6: case 7: case 8: type = '/weather/' + (colIndex - 6); break;
         case 9: case 10: case 11: case 12: type = '/clouds/' + (colIndex - 9); break;
       }
@@ -84,7 +84,7 @@ TACColumn.propTypes = {
   colIndex: PropTypes.number,
   editable : PropTypes.bool,
   onFocusOut: PropTypes.func,
-  validation: PropTypes.object
+  validationReport: PropTypes.object
 };
 
 export default TACColumn;
