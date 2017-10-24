@@ -212,9 +212,12 @@ class TafCategory extends Component {
       validationSucceeded = true;
     }
 
+    let tafJson = removeInputPropsFromTafJSON(createTAFJSONFromInput(this.state.tafJSON));
+    console.log(tafJson);
+
     return (
-      <Row style={{ flexDirection: 'column' }}>
-        <Row>
+      <Row className='TafCategory'>
+        <Row style={{ flex: 'auto' }}>
           <Col style={{ margin: '0px', padding:'4px', backgroundColor:'#EEE', flexDirection:'column', flex: 1 }}>
             <Row style={{ flex: 'unset' }}>
               <Col>{this.state.tafJSON.metadata.uuid}</Col>
@@ -258,9 +261,9 @@ class TafCategory extends Component {
             </Row>
           </Col>
         </Row>
-        <Row>
+        <Row style={{ flex: 'auto' }}>
           <Col>
-            <TimeSchedule />
+            <TimeSchedule startMoment={moment(tafJson.metadata.validityStart)} endMoment={moment(tafJson.metadata.validityEnd)} />
           </Col>
         </Row>
       </Row>
