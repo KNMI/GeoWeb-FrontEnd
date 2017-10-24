@@ -14,7 +14,7 @@ class TimeSchedule extends PureComponent {
   }
 
   render () {
-    const { startMoment, endMoment, majorTickInterval, minorTickInterval, zoomed } = this.props;
+    const { startMoment, endMoment, majorTickInterval, minorTickInterval, items, zoomed } = this.props;
 
     console.log('Zoomed', zoomed);
 
@@ -40,19 +40,26 @@ class TimeSchedule extends PureComponent {
 
     return <Row className='TimeSchedule'>
       <Col>
-        <Row>
+        <Row style={{ minHeight: '2rem' }}>
+          <Col style={{ flexBasis: marginMajorBasis, maxWidth: marginMajorBasis }} />
+          <Col style={{ backgroundColor: 'orange', borderRadius: '0.1rem', padding: '0.4rem' }}>
+            <strong>Clouds:</strong> {items[0].properties.clouds}
+          </Col>
+        </Row>
+        <Row style={{ minHeight: '1rem' }} />
+        <Row className='marks'>
           <Col style={{ flexBasis: marginMajorBasis, maxWidth: marginMajorBasis }} />
           <Col className='tick' style={{ flexBasis: intervalMajorBasis, maxWidth: intervalMajorBasis }} />
           {majorTicks.map((tick, index) => <Col className='tick' key={'tickMajorTop' + index} style={{ flexBasis: intervalMajorBasis, maxWidth: intervalMajorBasis }} />)}
           <Col className='tick' style={{ flexBasis: marginMajorBasis, maxWidth: marginMajorBasis }} />
         </Row>
-        <Row>
+        <Row className='axis marks'>
           <Col style={{ flexBasis: marginMajorBasis, maxWidth: marginMajorBasis }} />
           <Col className='tick' style={{ flexBasis: intervalMinorBasis, maxWidth: intervalMinorBasis }} />
           {minorTicks.map((tick, index) => <Col className='tick' key={'tickMinor' + index} style={{ flexBasis: intervalMinorBasis, maxWidth: intervalMinorBasis }} />)}
           <Col className='tick' style={{ flexBasis: marginMajorBasis, maxWidth: marginMajorBasis }} />
         </Row>
-        <Row>
+        <Row className='marks'>
           <Col style={{ flexBasis: marginMajorBasis, maxWidth: marginMajorBasis }} />
           <Col className='tick' style={{ flexBasis: intervalMajorBasis, maxWidth: intervalMajorBasis }} />
           {majorTicks.map((tick, index) => <Col className='tick' key={'tickMajorBottom' + index} style={{ flexBasis: intervalMajorBasis, maxWidth: intervalMajorBasis }} />)}
@@ -70,10 +77,11 @@ class TimeSchedule extends PureComponent {
 
 TimeSchedule.defaultProps = {
   zoomed: false,
-  startMoment: moment().add(-12, 'hour'),
+  startMoment: moment().subtract(12, 'hour'),
   endMoment: moment().add(12, 'hour'),
   majorTickInterval: moment.duration(6, 'hour'),
-  minorTickInterval: moment.duration(1, 'hour')
+  minorTickInterval: moment.duration(1, 'hour'),
+  items: { start: moment().subtract(12, 'hour'), end: moment().add(12, 'hour'), properties: [] }
 };
 
 TimeSchedule.propTypes = {
@@ -81,7 +89,8 @@ TimeSchedule.propTypes = {
   startMoment: MomentPropTypes.momentObj,
   endMoment: MomentPropTypes.momentObj,
   majorTickInterval: MomentPropTypes.momentDurationObj,
-  minorTickInterval: MomentPropTypes.momentDurationObj
+  minorTickInterval: MomentPropTypes.momentDurationObj,
+  items: PropTypes.array
 };
 
 export default TimeSchedule;

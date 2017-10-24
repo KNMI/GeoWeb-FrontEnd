@@ -263,7 +263,8 @@ class TafCategory extends Component {
         </Row>
         <Row style={{ flex: 'auto' }}>
           <Col>
-            <TimeSchedule startMoment={moment(tafJson.metadata.validityStart)} endMoment={moment(tafJson.metadata.validityEnd)} />
+            <TimeSchedule startMoment={moment(tafJson.metadata.validityStart)} endMoment={moment(tafJson.metadata.validityEnd)}
+              items={[{ start: moment(tafJson.metadata.validityStart), end: moment(tafJson.metadata.validityEnd), properties: tafJson.forecast }]} />
           </Col>
         </Row>
       </Row>
