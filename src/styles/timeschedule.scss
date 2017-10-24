@@ -16,7 +16,7 @@ div.TimeSchedule > div.col > div.row.marks:not(:last-child) {
   max-height: 0.3rem;
 }
 
-div.TimeSchedule > div.col > div.row.marks > div.col{
+div.TimeSchedule > div.col > div.row > div.col{
   flex-grow: 0;
   flex-shrink: 0;
 }
@@ -35,4 +35,11 @@ div.TimeSchedule > div.col > div.row.marks > div.col{
 
 .TimeSchedule .row:last-child .tick {
   border: none;
+}
+
+.TimeSchedule .scheduleHighlight {
+  margin-top: 0.4rem;
+  background-color: orange;
+  border-radius: 0.2rem;
+  padding: 0.4rem;
 }

@@ -120,7 +120,7 @@ export default class Taf extends Component {
     ).catch(error => {
       console.log(error);
       this.setState({
-        validationReport:{ message: 'Invalid repsonse from TAF verify servlet [/tafs/verify].' }
+        validationReport:{ message: 'Invalid response from TAF verify servlet [/tafs/verify].' }
       });
     });
   }
