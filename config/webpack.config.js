@@ -99,7 +99,8 @@ if (__DEV__) {
           keep_infinity: true
         }
       },
-      sourceMap: true
+      sourceMap: false,
+      warnings: false
     }),
     new webpack.optimize.AggressiveMergingPlugin()
   );

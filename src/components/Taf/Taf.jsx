@@ -120,7 +120,7 @@ export default class Taf extends Component {
     ).catch(error => {
       console.log(error);
       this.setState({
-        validationReport:{ message: 'Invalid repsonse from TAF verify servlet [/tafs/verify].' }
+        validationReport:{ message: 'Invalid response from TAF verify servlet [/tafs/verify].' }
       });
     });
   }
@@ -224,20 +224,23 @@ export default class Taf extends Component {
         {
           this.props.editable
             ? <Card block onClick={() => this.setExpandedTAF('edit')}>
-              <TafCategory
-                taf={this.state.inputValueJSON}
-                validationReport={this.state.validationReport}
-                update editable={this.props.tafEditable}
-                saveTaf={this.saveTaf}
-                validateTaf={this.validateTaf} />
-
+              <Row>
+                <Col>
+                  <TafCategory
+                    taf={this.state.inputValueJSON}
+                    validationReport={this.state.validationReport}
+                    update editable={this.props.tafEditable}
+                    saveTaf={this.saveTaf}
+                    validateTaf={this.validateTaf} />
+                </Col>
+              </Row>
             </Card>
             : this.state.tafs.filter((taf) => this.state.tafTypeSelections.includes(taf.type) || this.state.tafTypeSelections.length === 0).map((taf, index) => {
               return <Card key={index} block onClick={() => this.setExpandedTAF(taf.metadata.uuid)}>
                 <CardTitle>
                   {taf.metadata ? taf.metadata.location : 'EWat?'} - {moment.utc(taf.metadata.validityStart).format('DD/MM/YYYY - HH:mm UTC')}
                 </CardTitle>
-                <CollapseOmni className='CollapseOmni' style={{ flexDirection: 'column' }} isOpen={this.state.expandedTAF === taf.metadata.uuid} minSize={0} maxSize={'800pt'}>
+                <CollapseOmni className='CollapseOmni' style={{ flexDirection: 'column' }} isOpen={this.state.expandedTAF === taf.metadata.uuid} minSize={0} maxSize={800}>
                   <Row>
                     <Col>
                       <CardText onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>{this.state.expandedTAC}</CardText>

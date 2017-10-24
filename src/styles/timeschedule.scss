@@ -1,0 +1,45 @@
+div.TimeSchedule {
+  flex: 1;
+  padding: 0.5rem;
+}
+
+div.TimeSchedule > div.col {
+  flex-direction: column;
+}
+
+div.TimeSchedule > div.col > div.row.marks {
+  flex: auto;
+}
+
+div.TimeSchedule > div.col > div.row.marks:not(:last-child) {
+  min-height: 0.25rem;
+  max-height: 0.3rem;
+}
+
+div.TimeSchedule > div.col > div.row > div.col{
+  flex-grow: 0;
+  flex-shrink: 0;
+}
+
+.TimeSchedule div.row .tick {
+  justify-content: center;
+}
+
+.TimeSchedule div.row.marks .tick {
+  border-left: 0.1rem solid red;
+}
+
+.TimeSchedule > div.col .row.axis .tick:not(:last-child) {
+  border-bottom: 0.1rem solid red;
+}
+
+.TimeSchedule .row:last-child .tick {
+  border: none;
+}
+
+.TimeSchedule .scheduleHighlight {
+  margin-top: 0.4rem;
+  background-color: orange;
+  border-radius: 0.2rem;
+  padding: 0.4rem;
+}
