@@ -249,7 +249,7 @@ export const removeInputPropsFromTafJSON = (_taf) => {
    use removeInputPropsFromTafJSON afterwards.
 */
 export const createTAFJSONFromInput = (_taf) => {
-  console.log('createTAFJSONFromInput');
+  console.log('createTAFJSONFromInput', JSON.stringify(_taf));
   let taf = cloneObjectAndSkipNullProps(_taf);
   if (!taf.forecast) taf.forecast = {};
   if (!taf.metadata) taf.metadata = {};
@@ -299,6 +299,6 @@ export const createTAFJSONFromInput = (_taf) => {
     }
   }
   let newTAF = cloneObjectAndSkipNullProps(taf);
-  console.log(newTAF);
+  console.log("newTAF", JSON.stringify(newTAF));
   return newTAF;
 };

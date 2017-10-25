@@ -40,7 +40,7 @@ class ChangeGroup extends Component {
 };
 
 ChangeGroup.propTypes = {
-  value: PropTypes.object,
+  value: PropTypes.object.isRequired,
   onChange: PropTypes.func,
   onKeyUp: PropTypes.func,
   rowIndex: PropTypes.number,

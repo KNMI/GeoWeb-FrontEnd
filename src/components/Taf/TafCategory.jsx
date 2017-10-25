@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import { arrayMove } from 'react-sortable-hoc';
 import PropTypes from 'prop-types';
-import TimeSchedule from '../TimeSchedule';
 import moment from 'moment';
 import { Button, Row, Col } from 'reactstrap';
 import { createTAFJSONFromInput, setTACColumnInput, removeInputPropsFromTafJSON, cloneObjectAndSkipNullProps } from './FromTacCodeToTafjson';
@@ -212,64 +211,49 @@ class TafCategory extends Component {
       validationSucceeded = true;
     }
 
-    const tafJson = removeInputPropsFromTafJSON(createTAFJSONFromInput(this.state.tafJSON));
-    const items = [];
-    items.push({ start: moment(tafJson.metadata.validityStart), end: moment(tafJson.metadata.validityEnd), properties: tafJson.forecast });
-    tafJson.changegroups.map(group => items.push({ start: moment(group.changeStart), end: moment(group.changeEnd), properties: group.forecast }));
-
     return (
-      <Row className='TafCategory'>
-        <Row style={{ flex: 'auto' }}>
-          <Col style={{ margin: '0px', padding:'4px', backgroundColor:'#EEE', flexDirection:'column', flex: 1 }}>
-            <Row style={{ flex: 'unset' }}>
-              <Col>{this.state.tafJSON.metadata.uuid}</Col>
-            </Row>
-            <Row>
-              <Col>
-                <TafTable
-                  ref={'taftable'}
-                  validationReport={this.state.validationReport}
-                  tafJSON={this.state.tafJSON}
-                  onSortEnd={this.onSortEnd}
-                  onChange={this.onChange}
-                  onKeyUp={this.onKeyUp}
-                  onAddRow={this.onAddRow}
-                  onDeleteRow={this.onDeleteRow}
-                  editable={this.props.editable}
-                  onFocusOut={this.onFocusOut} />
-              </Col>
-            </Row>
-            { this.state.validationReport
-              ? <Row className={validationSucceeded ? 'TAFValidationReportSuccess' : 'TAFValidationReportError'} style={{ flex: 'unset' }} >
-                <Col style={{ flexDirection: 'column' }}>
-                  <div><b>{this.state.validationReport.message}</b></div>
-                  { validationErrors ? (flatten(Object.values(validationErrors).filter(v => Array.isArray(v)))).map((value, index) => {
-                    return (<div key={'errmessageno' + index}>{(index + 1)} - {value}</div>);
-                  }) : null}
-                </Col>
-              </Row> : null
-            }
-            <Row style={{ flex: 'unset' }}>
-              <Col />
-              <Col xs='auto'>
-                <Button color='primary' onClick={() => {
-                  let taf = removeInputPropsFromTafJSON(createTAFJSONFromInput(this.state.tafJSON));
-                  this.props.saveTaf(taf);
-                }} >Save</Button>
-              </Col>
-              <Col xs='auto'>
-                <Button disabled={!validationSucceeded} onClick={() => { alert('Sending a TAF out is not yet implemented'); }} color='primary'>Send</Button>
-              </Col>
-            </Row>
-          </Col>
+      <div style={{ margin: '0px', padding:'4px', backgroundColor:'#EEE', flexDirection:'column', flex: 1 }}>
+        <Row style={{ flex: 'unset' }}>
+          <Col>{this.state.tafJSON.metadata.uuid}</Col>
         </Row>
-        <Row style={{ flex: 'auto' }}>
+        <Row>
           <Col>
-            <TimeSchedule startMoment={moment(tafJson.metadata.validityStart)} endMoment={moment(tafJson.metadata.validityEnd)} items={items} />
+            <TafTable
+              ref={'taftable'}
+              validationReport={this.state.validationReport}
+              tafJSON={this.state.tafJSON}
+              onSortEnd={this.onSortEnd}
+              onChange={this.onChange}
+              onKeyUp={this.onKeyUp}
+              onAddRow={this.onAddRow}
+              onDeleteRow={this.onDeleteRow}
+              editable={this.props.editable}
+              onFocusOut={this.onFocusOut} />
           </Col>
         </Row>
-      </Row>
-    );
+        { this.state.validationReport
+          ? <Row className={validationSucceeded ? 'TAFValidationReportSuccess' : 'TAFValidationReportError'} style={{ flex: 'unset' }} >
+            <Col style={{ flexDirection: 'column' }}>
+              <div><b>{this.state.validationReport.message}</b></div>
+              { validationErrors ? (flatten(Object.values(validationErrors).filter(v => Array.isArray(v)))).map((value, index) => {
+                return (<div key={'errmessageno' + index}>{(index + 1)} - {value}</div>);
+              }) : null}
+            </Col>
+          </Row> : null
+        }
+        <Row style={{ flex: 'unset' }}>
+          <Col />
+          <Col xs='auto'>
+            <Button color='primary' onClick={() => {
+              let taf = removeInputPropsFromTafJSON(createTAFJSONFromInput(this.state.tafJSON));
+              this.props.saveTaf(taf);
+            }} >Save</Button>
+          </Col>
+          <Col xs='auto'>
+            <Button disabled={!validationSucceeded} onClick={() => { alert('Sending a TAF out is not yet implemented'); }} color='primary'>Send</Button>
+          </Col>
+        </Row>
+      </div>);
   }
 }
 
