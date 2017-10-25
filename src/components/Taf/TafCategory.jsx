@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { arrayMove } from 'react-sortable-hoc';
 import PropTypes from 'prop-types';
+import TimeSchedule from '../TimeSchedule';
 import moment from 'moment';
 import { Button, Row, Col } from 'reactstrap';
 import { createTAFJSONFromInput, setTACColumnInput, removeInputPropsFromTafJSON, cloneObjectAndSkipNullProps } from './FromTacCodeToTafjson';
@@ -33,6 +34,216 @@ class TafCategory extends Component {
     TAFStartHour = TAFStartHour + 6;
     TAFStartHour = parseInt(TAFStartHour / 6);
     TAFStartHour = TAFStartHour * (6);
+    this.state = {
+      tafJSON: {
+        'metadata': {
+          'uuid': '6f533de6-aed8-4a42-b226-0be62e37d03a',
+          'issueTime': '2017-08-31T09:24:47.829Z',
+          'validityStart': '2017-08-04T12:00:00Z',
+          'validityEnd': '2017-08-05T18:00:00Z',
+          'location': 'EHAM',
+          'status': 'concept',
+          'type': 'normal'
+        },
+        'forecast': {
+          'vertical_visibility': 900,
+          'weather': 'NSW',
+          'visibility': {
+            'value': 8000,
+            'unit': 'M'
+          },
+          'wind': {
+            'direction': 200,
+            'speed': 15,
+            'gusts': 25,
+            'unit': 'KT'
+          },
+          'clouds': 'NSC'
+        },
+        'changegroups': [
+          {
+            'changeType': 'BECMG',
+            'changeStart': '2017-10-04T16:00:00Z',
+            'changeEnd': '2017-10-04T20:00:00Z',
+            'forecast': {
+              'clouds': [
+                {
+                  'amount': 'FEW',
+                  'height': 90
+                },
+                {
+                  'amount': 'SCT',
+                  'height': 150
+                },
+                {
+                  'amount': 'OVC',
+                  'height': 720
+                }
+              ],
+              'weather': [
+                {
+                  'descriptor': 'showers',
+                  'phenomena': [
+                    'rain'
+                  ],
+                  'qualifier': 'moderate'
+                },
+                {
+                  'descriptor': 'thunderstorm',
+                  'phenomena': [
+                    'rain'
+                  ],
+                  'qualifier': 'moderate'
+                }
+              ],
+              'visibility': {
+                'value': 9999
+              },
+              'wind': {
+                'direction': 220,
+                'speed': 17,
+                'gusts': 27,
+                'unit': 'KT'
+              }
+            },
+            'input': {
+              'prob': null,
+              'change': 'BECMG',
+              'valid': '0416/0420',
+              'wind': '22017G27',
+              'visibility': '9999',
+              'weather0': 'SHRA',
+              'weather1': 'TSRA',
+              'weather2': null,
+              'clouds0': 'FEW090',
+              'clouds1': 'SCT150',
+              'clouds2': 'OVC720',
+              'clouds3': null
+            }
+          },
+          {
+            'changeType': 'PROB30',
+            'changeStart': '2017-10-04T16:00:00Z',
+            'changeEnd': '2017-10-04T20:00:00Z',
+            'forecast': {
+              'clouds': [
+                {
+                  'amount': 'FEW',
+                  'height': 90
+                },
+                {
+                  'amount': 'OVC',
+                  'height': 150,
+                  'mod': 'TCU'
+                }
+              ],
+              'weather': [
+                {
+                  'descriptor': 'showers',
+                  'phenomena': [
+                    'rain'
+                  ],
+                  'qualifier': 'heavy'
+                }
+              ],
+              'visibility': {
+                'value': 1000,
+                'unit': 'M'
+              },
+              'wind': {
+                'direction': 220,
+                'speed': 17,
+                'gusts': 27,
+                'unit': 'KT'
+              }
+            },
+            'input': {
+              'prob': 'PROB30',
+              'change': null,
+              'valid': '0416/0420',
+              'wind': '22017G27',
+              'visibility': '1000',
+              'weather0': '+SHRA',
+              'weather1': null,
+              'weather2': null,
+              'clouds0': 'FEW090',
+              'clouds1': 'OVC150TCU',
+              'clouds2': null,
+              'clouds3': null
+            }
+          },
+          {
+            'changeType': 'BECMG',
+            'changeStart': '2017-10-05T03:00:00Z',
+            'changeEnd': '2017-10-05T05:00:00Z',
+            'forecast': {
+              'clouds': [
+                {
+                  'amount': 'FEW',
+                  'height': 90
+                },
+                {
+                  'amount': 'SCT',
+                  'height': 120
+                }
+              ],
+              'weather': [
+                {
+                  'descriptor': 'showers',
+                  'phenomena': [
+                    'rain'
+                  ],
+                  'qualifier': 'moderate'
+                },
+                {
+                  'descriptor': 'thunderstorm',
+                  'phenomena': [
+                    'rain'
+                  ],
+                  'qualifier': 'moderate'
+                }
+              ],
+              'visibility': {
+                'value': 9999
+              },
+              'wind': {
+                'direction': 200,
+                'speed': 7,
+                'gusts': 17,
+                'unit': 'KT'
+              }
+            },
+            'input': {
+              'prob': null,
+              'change': 'BECMG',
+              'valid': '0503/0505',
+              'wind': '20007G17',
+              'visibility': '9999',
+              'weather0': 'SHRA',
+              'weather1': 'TSRA',
+              'weather2': null,
+              'clouds0': 'FEW090',
+              'clouds1': 'SCT120',
+              'clouds2': null,
+              'clouds3': null
+            }
+          }
+        ],
+        'input': {
+          'valid': '0412/0518',
+          'wind': '20015G25',
+          'visibility': '8000',
+          'weather0': null,
+          'weather1': null,
+          'weather2': null,
+          'clouds0': null,
+          'clouds1': null,
+          'clouds2': null,
+          'clouds3': null
+        }
+      }
+    };
+    return;
     this.state = {
       tafJSON: {
         forecast:{},
@@ -211,49 +422,65 @@ class TafCategory extends Component {
       validationSucceeded = true;
     }
 
+    // const tafJson = removeInputPropsFromTafJSON(createTAFJSONFromInput(this.state.tafJSON));
+    // const items = [];
+    // items.push({ start: moment(tafJson.metadata.validityStart), end: moment(tafJson.metadata.validityEnd), properties: tafJson.forecast });
+    // tafJson.changegroups.map(group => items.push({ start: moment(group.changeStart), end: moment(group.changeEnd), properties: group.forecast }));
+
     return (
-      <div style={{ margin: '0px', padding:'4px', backgroundColor:'#EEE', flexDirection:'column', flex: 1 }}>
-        <Row style={{ flex: 'unset' }}>
-          <Col>{this.state.tafJSON.metadata.uuid}</Col>
+      <Row className='TafCategory'>
+        <Row style={{ flex: 'auto' }}>
+          <Col style={{ margin: '0px', padding:'4px', backgroundColor:'#EEE', flexDirection:'column', flex: 1 }}>
+            <Row style={{ flex: 'unset' }}>
+              <Col>{this.state.tafJSON.metadata.uuid}</Col>
+            </Row>
+            <Row>
+              <Col>
+                <TafTable
+                  ref={'taftable'}
+                  validationReport={this.state.validationReport}
+                  tafJSON={this.state.tafJSON}
+                  onSortEnd={this.onSortEnd}
+                  onChange={this.onChange}
+                  onKeyUp={this.onKeyUp}
+                  onAddRow={this.onAddRow}
+                  onDeleteRow={this.onDeleteRow}
+                  editable={this.props.editable}
+                  onFocusOut={this.onFocusOut} />
+              </Col>
+            </Row>
+            { this.state.validationReport
+              ? <Row className={validationSucceeded ? 'TAFValidationReportSuccess' : 'TAFValidationReportError'} style={{ flex: 'unset' }} >
+                <Col style={{ flexDirection: 'column' }}>
+                  <div><b>{this.state.validationReport.message}</b></div>
+                  { validationErrors ? (flatten(Object.values(validationErrors).filter(v => Array.isArray(v)))).map((value, index) => {
+                    return (<div key={'errmessageno' + index}>{(index + 1)} - {value}</div>);
+                  }) : null}
+                </Col>
+              </Row> : null
+            }
+            <Row style={{ flex: 'unset' }}>
+              <Col />
+              <Col xs='auto'>
+                <Button color='primary' onClick={() => {
+                  let taf = removeInputPropsFromTafJSON(createTAFJSONFromInput(this.state.tafJSON));
+                  this.props.saveTaf(taf);
+                }} >Save</Button>
+              </Col>
+              <Col xs='auto'>
+                <Button disabled={!validationSucceeded} onClick={() => { alert('Sending a TAF out is not yet implemented'); }} color='primary'>Send</Button>
+              </Col>
+            </Row>
+          </Col>
         </Row>
-        <Row>
+        { /* <Row style={{ flex: 'auto' }}>
           <Col>
-            <TafTable
-              ref={'taftable'}
-              validationReport={this.state.validationReport}
-              tafJSON={this.state.tafJSON}
-              onSortEnd={this.onSortEnd}
-              onChange={this.onChange}
-              onKeyUp={this.onKeyUp}
-              onAddRow={this.onAddRow}
-              onDeleteRow={this.onDeleteRow}
-              editable={this.props.editable}
-              onFocusOut={this.onFocusOut} />
+            <TimeSchedule startMoment={moment(tafJson.metadata.validityStart)} endMoment={moment(tafJson.metadata.validityEnd)} items={items} />
           </Col>
-        </Row>
-        { this.state.validationReport
-          ? <Row className={validationSucceeded ? 'TAFValidationReportSuccess' : 'TAFValidationReportError'} style={{ flex: 'unset' }} >
-            <Col style={{ flexDirection: 'column' }}>
-              <div><b>{this.state.validationReport.message}</b></div>
-              { validationErrors ? (flatten(Object.values(validationErrors).filter(v => Array.isArray(v)))).map((value, index) => {
-                return (<div key={'errmessageno' + index}>{(index + 1)} - {value}</div>);
-              }) : null}
-            </Col>
-          </Row> : null
+        </Row> */
         }
-        <Row style={{ flex: 'unset' }}>
-          <Col />
-          <Col xs='auto'>
-            <Button color='primary' onClick={() => {
-              let taf = removeInputPropsFromTafJSON(createTAFJSONFromInput(this.state.tafJSON));
-              this.props.saveTaf(taf);
-            }} >Save</Button>
-          </Col>
-          <Col xs='auto'>
-            <Button disabled={!validationSucceeded} onClick={() => { alert('Sending a TAF out is not yet implemented'); }} color='primary'>Send</Button>
-          </Col>
-        </Row>
-      </div>);
+      </Row>
+    );
   }
 }
 
