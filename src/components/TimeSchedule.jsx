@@ -21,7 +21,7 @@ class TimeSchedule extends PureComponent {
   }
 
   render () {
-    const { startMoment, endMoment, majorTickInterval, minorTickInterval, items } = this.props;
+    const { startMoment, endMoment, majorTickInterval, minorTickInterval, items, groups } = this.props;
 
     let majorTicks = [];
     let currentMajorTick = startMoment.clone().add(majorTickInterval);
@@ -45,14 +45,24 @@ class TimeSchedule extends PureComponent {
 
     return <Row className='TimeSchedule'>
       <Col>
-        {items.map((item, index) => {
-          const offset = this.getOffset(marginMajorBasis, startMoment, item.start, minorTickInterval, intervalMinorBasis);
-          const duration = this.getDuration(item.start, item.end, minorTickInterval, intervalMinorBasis);
-          return <Row style={{ minHeight: '2.4rem' }} key={'item' + index}>
-            <Col style={{ flexBasis: offset, maxWidth: offset }} />
-            <Col className='scheduleHighlight' style={{ flexBasis: duration, maxWidth: duration }}>
-              <strong>Clouds: </strong> {item.properties.clouds}&nbsp; <strong>Weather: </strong> {item.properties.weather}&nbsp; <strong>Wind: </strong>
-              { item.properties.wind && item.properties.wind.direction ? item.properties.wind.direction + '.' + item.properties.wind.speed : ''}
+        {groups.map((groupName) => {
+          return <Row className={groupName} key={groupName} style={{ minHeight: '2.4rem' }}>
+            {/* <Col style={{ flex: 1 }}>{groupName}</Col> */}
+            <Col style={{ flex: 1, flexDirection: 'column' }}>
+              {items.map((item, index) => {
+                console.log('TimeSchedule data:', marginMajorBasis, startMoment.format(), item.start.format(), minorTickInterval.toString(), intervalMinorBasis);
+                const offset = this.getOffset(marginMajorBasis, startMoment, item.start, minorTickInterval, intervalMinorBasis);
+                const duration = this.getDuration(item.start, item.end, minorTickInterval, intervalMinorBasis);
+                /* return <Row style={{ minHeight: '2.4rem' }} key={'item' + index}>
+                  <Col style={{ flexBasis: offset, maxWidth: offset }} />
+                  <Col className='scheduleHighlight' style={{ flexBasis: duration, maxWidth: duration }}>
+                    Test
+                  </Col>
+                </Row> */
+                return <Row>
+                  <Col>Offset = {offset}; Duration = {duration};</Col>
+                </Row>;
+              })}
             </Col>
           </Row>;
         })}
@@ -89,7 +99,8 @@ TimeSchedule.defaultProps = {
   endMoment: moment().add(12, 'hour'),
   majorTickInterval: moment.duration(6, 'hour'),
   minorTickInterval: moment.duration(1, 'hour'),
-  items: [ { start: moment().subtract(12, 'hour'), end: moment().add(12, 'hour'), properties: [] } ]
+  items: [ { start: moment().subtract(12, 'hour'), end: moment().add(12, 'hour'), properties: [] } ],
+  groups: []
 };
 
 TimeSchedule.propTypes = {
@@ -97,7 +108,8 @@ TimeSchedule.propTypes = {
   endMoment: MomentPropTypes.momentObj,
   majorTickInterval: MomentPropTypes.momentDurationObj,
   minorTickInterval: MomentPropTypes.momentDurationObj,
-  items: PropTypes.array
+  items: PropTypes.array,
+  groups: PropTypes.array
 };
 
 export default TimeSchedule;

@@ -213,9 +213,12 @@ class TafCategory extends Component {
     }
 
     const tafJson = removeInputPropsFromTafJSON(createTAFJSONFromInput(this.state.tafJSON));
+
+    console.log('tafJson', tafJson);
+    const groups = Object.keys(tafJson.forecast);
     const items = [];
     items.push({ start: moment.utc(tafJson.metadata.validityStart), end: moment.utc(tafJson.metadata.validityEnd), properties: tafJson.forecast });
-    tafJson.changegroups.map(group => items.push({ start: moment.utc(group.changeStart), end: moment.utc(group.changeEnd), properties: group.forecast }));
+    tafJson.changegroups.map(change => items.push({ start: moment.utc(change.changeStart), end: moment.utc(change.changeEnd), properties: change.forecast }));
 
     return (
       <Row className='TafCategory'>
@@ -265,7 +268,7 @@ class TafCategory extends Component {
         </Row>
         <Row style={{ flex: 'auto' }}>
           <Col>
-            <TimeSchedule startMoment={moment.utc(tafJson.metadata.validityStart)} endMoment={moment.utc(tafJson.metadata.validityEnd)} items={items} />
+            <TimeSchedule startMoment={moment.utc(tafJson.metadata.validityStart)} endMoment={moment.utc(tafJson.metadata.validityEnd)} items={items} groups={groups} />
           </Col>
         </Row>
       </Row>
