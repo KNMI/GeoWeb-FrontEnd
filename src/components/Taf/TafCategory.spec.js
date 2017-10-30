@@ -13,15 +13,13 @@ describe('(Container) Taf/TafCategory.jsx', () => {
     expect(_component.type()).to.eql(TafCategory);
   });
 
-  it('Triggers onkeyup key 27 and checks if validationis called', () => {
-    const validateTafFunction = sinon.spy();
+  it('Triggers onkeyup key 27 and checks if validation is called', () => {
+    sinon.spy(TafCategory.prototype, 'validateTAF');
     const _wrappingComponent = mount(<TafCategory
       editable
       taf={TestTafJSON}
-      saveTaf={() => {}}
-      validateTaf={validateTafFunction}
-      validationReport={{}}
     />);
+
     const evt = new KeyboardEvent('keydown', {
       bubbles: true,
       cancelable: true,
@@ -30,7 +28,7 @@ describe('(Container) Taf/TafCategory.jsx', () => {
     });
     expect(_wrappingComponent.find(TafCategory)).to.have.length(1);
     _wrappingComponent.find(TafCategory).get(0).onKeyUp(evt);
-    validateTafFunction.should.have.been.calledOnce();
+    TafCategory.prototype.validateTAF.should.have.been.calledOnce();
     expect('everything').to.be.ok();
   });
 

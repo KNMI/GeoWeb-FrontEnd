@@ -762,16 +762,26 @@ span.fa {
   /* Validation returns an error */
   border: 1px solid red;
 }
+
+.TACReport{
+  padding:2px 8px 2px 8px;
+  margin: 0px 0px 4px 0px;
+
+  background-color: #DDD;
+  color: #444;
+  font-family: Courier New,Courier,Lucida Sans Typewriter,Lucida Typewriter,monospace;
+}
+
 .TAFValidationReportSuccess {
   padding:4px 8px 4px 8px;
-  margin: 8px 0px 8px 0px;
+  margin: 0px 0px 4px 0px;
   background-color: #DFF2BF;
   color:black;/*#4F8A10;*/
 }
 
 .TAFValidationReportError {
   padding:4px 8px 4px 8px;
-  margin: 8px 2px 8px 2px;
+  margin: 0px 0px 4px 0px;
   background-color: #FFBABA;
   color: #D8000C;
 }
