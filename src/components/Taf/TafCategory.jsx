@@ -98,6 +98,7 @@ class TafCategory extends Component {
   }
 
   saveTaf (tafDATAJSON) {
+    console.log(JSON.stringify(tafDATAJSON));
     axios({
       method: 'post',
       url: TAFS_URL + '/tafs',
@@ -105,7 +106,6 @@ class TafCategory extends Component {
       data: JSON.stringify(tafDATAJSON),
       headers: { 'Content-Type': 'application/json' }
     }).then(src => {
-      console.log(src.data);
       this.setState({ validationReport:src.data });
       // this.props.updateParent();
     }).catch(error => {
@@ -314,11 +314,12 @@ class TafCategory extends Component {
             </Row>
           </Col>
         </Row>
-        <Row style={{ flex: 'auto' }}>
+        { /* <Row style={{ flex: 'auto' }}>
           <Col>
             <TimeSchedule startMoment={moment.utc(tafJson.metadata.validityStart)} endMoment={moment.utc(tafJson.metadata.validityEnd)} items={items} />
           </Col>
-        </Row>
+        </Row> */
+        }
 
       </Row>
     );
