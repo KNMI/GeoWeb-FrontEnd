@@ -41,7 +41,7 @@ class BaseForecast extends Component {
           onKeyUp={onKeyUp}
           editable={editable}
           onFocusOut={onFocusOut}
-          validation={this.props.validation}
+          validationReport={this.props.validationReport}
         />));
     }
     return (
@@ -58,7 +58,7 @@ BaseForecast.propTypes = {
   onKeyUp: PropTypes.func,
   editable : PropTypes.bool,
   onFocusOut: PropTypes.func,
-  validation: PropTypes.object
+  validationReport: PropTypes.object
 };
 
 export default BaseForecast;

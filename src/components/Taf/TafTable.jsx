@@ -20,7 +20,7 @@ class TafTable extends SortableContainer(() => {}) { // =
       };
     }
     return (
-      <table className='TafStyle'>
+      <table className='TafStyle TafStyleTable'>
         <thead>
           <tr>
             <th style={{ padding:'0 1em 0 1em' }}>&nbsp;</th>
@@ -41,7 +41,7 @@ class TafTable extends SortableContainer(() => {}) { // =
         </thead>
         <tbody>
           <BaseForecast ref={'baseforecast'} value={tafJSON} onChange={onChange} onKeyUp={onKeyUp} onDeleteRow={onDeleteRow}
-            onFocusOut={onFocusOut} editable validation={this.props.validation} />
+            onFocusOut={onFocusOut} editable validationReport={this.props.validationReport} />
         </tbody>
 
         <thead>
@@ -74,7 +74,7 @@ class TafTable extends SortableContainer(() => {}) { // =
                 onChange={onChange}
                 onKeyUp={onKeyUp}
                 onDeleteRow={onDeleteRow}
-                onFocusOut={onFocusOut} validation={this.props.validation} />);
+                onFocusOut={onFocusOut} validationReport={this.props.validationReport} />);
             } else {
               return (<ChangeGroup key={`item-${index}`} index={index} rowIndex={index} value={value} onChange={onChange} onKeyUp={onKeyUp} onDeleteRow={onDeleteRow}
                 onFocusOut={onFocusOut} />);
@@ -99,7 +99,7 @@ TafTable.propTypes = {
   onDeleteRow: PropTypes.func,
   editable : PropTypes.bool,
   onFocusOut: PropTypes.func,
-  validation:PropTypes.object
+  validationReport:PropTypes.object
 };
 
 export default TafTable;

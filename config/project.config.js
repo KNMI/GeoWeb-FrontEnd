@@ -44,6 +44,7 @@ const config = {
   compiler_vendors : [
     'axios',
     'bootstrap',
+    'classnames',
     'deep-diff',
     'element-resize-event',
     'es6-enum',
@@ -55,6 +56,7 @@ const config = {
     'moment',
     'moment-timezone',
     'popper.js',
+    'prop-types',
     'rc-slider',
     'react',
     'react-addons-css-transition-group',
@@ -66,6 +68,7 @@ const config = {
     'react-json-edit',
     'react-json-tree',
     'react-moment',
+    'react-moment-proptypes',
     'react-redux',
     'react-router',
     'react-sortable-hoc',

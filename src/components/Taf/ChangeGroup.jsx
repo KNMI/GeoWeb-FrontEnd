@@ -22,7 +22,7 @@ class ChangeGroup extends Component {
         onKeyUp={onKeyUp}
         editable={editable}
         onFocusOut={onFocusOut}
-        validation={this.props.validation}
+        validationReport={this.props.validationReport}
       />));
     }
     if (editable) {
@@ -47,7 +47,7 @@ ChangeGroup.propTypes = {
   onDeleteRow: PropTypes.func,
   editable : PropTypes.bool,
   onFocusOut: PropTypes.func,
-  validation: PropTypes.object
+  validationReport: PropTypes.object
 };
 
 export default ChangeGroup;

@@ -151,8 +151,8 @@ export const createRoutes = (store) => {
             </Route>
           </Route>
           <Route path='tafs' title='TAFs'>
-            <Route component={SidebarredLayout} secondLeftSidebar={taf} leftSidebar={leftSidebar} rightSidebar={rightSidebar}>
-              <IndexRoute component={FooteredLayout} />
+            <Route component={SidebarredLayout} leftSidebar={leftSidebar} >
+              <IndexRoute component={FooteredLayout} viewComponent={taf} />
             </Route>
           </Route>
 
