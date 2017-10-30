@@ -57,8 +57,7 @@ const fromTACToVisibility = (value) => {
       };
     } else {
       return {
-        value: parseInt(value.substring(0, 4)),
-        unit: 'M'
+        value: parseInt(value.substring(0, 4))
       };
     }
   }

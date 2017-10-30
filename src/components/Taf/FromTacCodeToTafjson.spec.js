@@ -14,8 +14,7 @@ let tafJSONWithUserInputsAndNulls = {
     'vertical_visibility': 900,
     'weather': 'NSW',
     'visibility': {
-      'value': 8000,
-      'unit': 'M'
+      'value': 8000
     },
     'wind': {
       'direction': 200,
@@ -112,8 +111,7 @@ let tafJSONWithUserInputsAndNulls = {
           }
         ],
         'visibility': {
-          'value': 1000,
-          'unit': 'M'
+          'value': 1000
         },
         'wind': {
           'direction': 220,
@@ -222,8 +220,7 @@ let expectedTafWithInputs = {
     'vertical_visibility': 900,
     'weather': 'NSW',
     'visibility': {
-      'value': 8000,
-      'unit': 'M'
+      'value': 8000
     },
     'wind': {
       'direction': 200,
@@ -317,8 +314,7 @@ let expectedTafWithInputs = {
           }
         ],
         'visibility': {
-          'value': 1000,
-          'unit': 'M'
+          'value': 1000
         },
         'wind': {
           'direction': 220,
@@ -411,8 +407,7 @@ let newComposedTAF = {
     'vertical_visibility': 900,
     'weather': 'NSW',
     'visibility': {
-      'value': 8000,
-      'unit': 'M'
+      'value': 8000
     },
     'wind': {
       'direction': 200,
@@ -495,8 +490,7 @@ let newComposedTAF = {
           }
         ],
         'visibility': {
-          'value': 1000,
-          'unit': 'M'
+          'value': 1000
         },
         'wind': {
           'direction': 220,
