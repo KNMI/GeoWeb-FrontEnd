@@ -1,11 +1,12 @@
 import React, { Component } from 'react';
-import axios from 'axios';
 import PropTypes from 'prop-types';
-import { Col, Row, Card, CardTitle, CardText, CardFooter, Button, ButtonGroup } from 'reactstrap';
+import { Col, Row, Card, CardTitle, CardText, Button, ButtonGroup } from 'reactstrap';
 import CollapseOmni from '../CollapseOmni';
 import moment from 'moment';
+import axios from 'axios';
 import { BACKEND_SERVER_URL, TAFS_URL } from '../../constants/backend';
 import TafCategory from './TafCategory';
+
 /*
   Renders multiple TafCategories, provides additional functions for loading and saving, and has functions for filtering on type and status.
 */
@@ -14,15 +15,12 @@ export default class Taf extends Component {
     super();
     this.deleteTAF = this.deleteTAF.bind(this);
     this.fetchTAFs = this.fetchTAFs.bind(this);
-    this.saveTaf = this.saveTaf.bind(this);
-    this.validateTaf = this.validateTaf.bind(this);
     this.onCheckboxBtnClick = this.onCheckboxBtnClick.bind(this);
     this.state = {
       tafs: [],
       expandedTAF: null,
       expandedTAC: null,
       expandedJSON: null,
-      inputValue: '',
       tafTypeSelections: []
     };
   }
@@ -39,6 +37,7 @@ export default class Taf extends Component {
   }
 
   fetchTAFs (url) {
+    if (!(url || this.props.source)) return;
     axios({
       method: 'get',
       url: url || this.props.source,
@@ -47,8 +46,6 @@ export default class Taf extends Component {
     }).then(src => {
       if (src.data && src.data.tafs) {
         this.setState({ tafs: src.data.tafs });
-        // this.setExpandedTAF('4bc6317f-b17b-4324-943e-dc5c44442e50');
-        // this.setExpandedTAF('6f533de6-aed8-4a42-b226-0be62e37d03a');
       }
     }).catch(error => {
       console.error(error);
@@ -96,103 +93,6 @@ export default class Taf extends Component {
     }
   }
 
-  validateTaf (tafDATAJSON) {
-    axios({
-      method: 'post',
-      url: TAFS_URL + '/tafs/verify',
-      withCredentials: true,
-      data: JSON.stringify(tafDATAJSON),
-      headers: { 'Content-Type': 'application/json' }
-    }).then(
-      response => {
-        console.log(response.data.errors);
-        console.log(response.data.message);
-        if (response.data) {
-          this.setState({
-            validationReport:response.data
-          });
-        } else {
-          this.setState({
-            validationReport:null
-          });
-        }
-      }
-    ).catch(error => {
-      console.log(error);
-      this.setState({
-        validationReport:{ message: 'Invalid response from TAF verify servlet [/tafs/verify].' }
-      });
-    });
-  }
-
-  saveTaf (tafDATAJSON) {
-    console.log('tafDATAJSON', tafDATAJSON);
-    const flatten = list => list.reduce(
-      (a, b) => a.concat(Array.isArray(b) ? flatten(b) : b), []
-    );
-
-    axios({
-      method: 'post',
-      url: TAFS_URL + '/tafs',
-      withCredentials: true,
-      data: JSON.stringify(tafDATAJSON),
-      headers: { 'Content-Type': 'application/json' }
-    }).then(src => {
-      console.log(src.data.message);
-      this.setState({ inputValue: src.data.message, validationReport:null });
-      this.props.updateParent();
-    }).catch(error => {
-      const errors = JSON.parse(error.response.data.errors);
-      console.log('Error occured', errors);
-      this.setState({
-        validationReport:errors
-      });
-      // if (error.response && error.response.status) {
-      //   if (error.response.status === 400) {
-      //     alert('Server code 400');
-      //     return 0;
-      //   };
-      // }
-
-      // const errors = JSON.parse(error.response.data.errors);
-      const allErrors = flatten(Object.values(errors).filter(v => Array.isArray(v)));
-      alert('TAF contains syntax errors!\n' + allErrors.join('\n'));
-    });
-  }
-
-  addTaf () {
-    const flatten = list => list.reduce(
-      (a, b) => a.concat(Array.isArray(b) ? flatten(b) : b), []
-    );
-
-    axios({
-      method: 'post',
-      url: TAFS_URL + '/tafs',
-      withCredentials: true,
-      data: JSON.stringify(JSON.parse(this.state.inputValue)),
-      headers: { 'Content-Type': 'application/json' }
-    }).then(src => {
-      this.setState({ inputValue: src.data.message, validationReport:null });
-      this.props.updateParent();
-    }).catch(error => {
-      const errors = JSON.parse(error.response.data.errors);
-      const allErrors = flatten(Object.values(errors).filter(v => Array.isArray(v)));
-      alert('TAF contains syntax errors!\n' + allErrors.join('\n'));
-    });
-  }
-  updateInputValue (evt) {
-    let jsonValue = null;
-    try {
-      jsonValue = JSON.parse(evt.target.value);
-    } catch (e) {
-      console.log(e);
-    }
-    this.setState({
-      inputValue: evt.target.value,
-      inputValueJSON: jsonValue,
-      validationReport:null
-    });
-  }
   onCheckboxBtnClick (selected) {
     const index = this.state.tafTypeSelections.indexOf(selected);
     if (index < 0) {
@@ -228,10 +128,8 @@ export default class Taf extends Component {
                 <Col>
                   <TafCategory
                     taf={this.state.inputValueJSON}
-                    validationReport={this.state.validationReport}
                     update editable={this.props.tafEditable}
-                    saveTaf={this.saveTaf}
-                    validateTaf={this.validateTaf} />
+                  />
                 </Col>
               </Row>
             </Card>
@@ -260,7 +158,10 @@ export default class Taf extends Component {
                     </Row> : null }
                   <Row>
                     <Col>
-                      <TafCategory taf={this.state.expandedJSON} validationReport={this.state.validationReport} editable={this.props.tafEditable} saveTaf={this.saveTaf} validateTaf={this.validateTaf} />
+                      <TafCategory
+                        taf={this.state.expandedJSON}
+                        editable={this.props.tafEditable}
+                      />
                     </Col>
                   </Row>
                 </CollapseOmni>
@@ -278,9 +179,9 @@ export default class Taf extends Component {
 Taf.propTypes = {
   editable: PropTypes.bool,
   tafEditable: PropTypes.bool,
-  isOpen: PropTypes.bool,
+  // isOpen: PropTypes.bool,
   source: PropTypes.string,
   latestUpdateTime: PropTypes.object,
-  title: PropTypes.string,
-  updateParent: PropTypes.func
+  title: PropTypes.string
+  // ,  updateParent: PropTypes.func
 };

@@ -249,7 +249,7 @@ export const removeInputPropsFromTafJSON = (_taf) => {
    use removeInputPropsFromTafJSON afterwards.
 */
 export const createTAFJSONFromInput = (_taf) => {
-  console.log('createTAFJSONFromInput');
+  // console.log('createTAFJSONFromInput', JSON.stringify(_taf));
   let taf = cloneObjectAndSkipNullProps(_taf);
   if (!taf.forecast) taf.forecast = {};
   if (!taf.metadata) taf.metadata = {};
@@ -274,7 +274,7 @@ export const createTAFJSONFromInput = (_taf) => {
     if (taf.forecast.clouds === 'NSC') taf.forecast.clouds = null;
   }
 
-  console.log('CAVOK=' + taf.forecast.caVOK);
+  // console.log('CAVOK=' + taf.forecast.caVOK);
   for (let j = 0; j < taf.changegroups.length; j++) {
     if (!taf.changegroups[j].forecast) taf.changegroups[j].forecast = {};
     if (!taf.changegroups[j].input) taf.changegroups[j].input = {};
@@ -299,6 +299,7 @@ export const createTAFJSONFromInput = (_taf) => {
     }
   }
   let newTAF = cloneObjectAndSkipNullProps(taf);
-  console.log(newTAF);
+  // console.log('newTAFWithInput', JSON.stringify(newTAF));
+  // console.log('newTAF', JSON.stringify(removeInputPropsFromTafJSON(newTAF)));
   return newTAF;
 };
