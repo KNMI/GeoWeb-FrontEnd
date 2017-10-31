@@ -6,6 +6,8 @@ import moment from 'moment';
 import { Button, Row, Col } from 'reactstrap';
 import { createTAFJSONFromInput, setTACColumnInput, removeInputPropsFromTafJSON, cloneObjectAndSkipNullProps } from './FromTacCodeToTafjson';
 import TafTable from './TafTable';
+import { TAFS_URL } from '../../constants/backend';
+import axios from 'axios';
 
 /**
   TafCategory is the component which renders an editable and sortable TAF table.
@@ -31,6 +33,7 @@ class TafCategory extends Component {
     this.extractScheduleInformation = this.extractScheduleInformation.bind(this);
     this.decoratePhenomenonValue = this.decoratePhenomenonValue.bind(this);
     this.validateTAF = this.validateTAF.bind(this);
+    this.saveTaf = this.saveTaf.bind(this);
 
     let TAFStartHour = moment().utc().hour();
     TAFStartHour = TAFStartHour + 6;
@@ -59,16 +62,66 @@ class TafCategory extends Component {
     fieldVal = fieldVal.toUpperCase();
     let clonedTafState = cloneObjectAndSkipNullProps(this.state.tafJSON);
     setTACColumnInput(fieldVal, rowIndex, colIndex, rowIndex >= 0 ? clonedTafState.changegroups[rowIndex] : clonedTafState);
+    let newTaf = createTAFJSONFromInput(clonedTafState);
     this.setState({
-      tafJSON: createTAFJSONFromInput(clonedTafState)
+      tafJSON: newTaf
     });
-    this.validateTAF(clonedTafState);
+    this.validateTAF(newTaf);
   }
 
   validateTAF (tafJSON) {
     // Validate typed settings
-    let taf = removeInputPropsFromTafJSON(createTAFJSONFromInput(tafJSON));
-    this.props.validateTaf(taf);
+    let taf = removeInputPropsFromTafJSON(cloneObjectAndSkipNullProps(tafJSON));
+
+    axios({
+      method: 'post',
+      url: TAFS_URL + '/tafs/verify',
+      withCredentials: true,
+      data: JSON.stringify(taf),
+      headers: { 'Content-Type': 'application/json' }
+    }).then(
+      response => {
+        if (response.data) {
+          this.setState({
+            validationReport:response.data
+          });
+        } else {
+          this.setState({
+            validationReport:null
+          });
+        }
+      }
+    ).catch(error => {
+      console.log(error);
+      this.setState({
+        validationReport:{ message: 'Invalid response from TAF verify servlet [/tafs/verify].' }
+      });
+    });
+  }
+
+  saveTaf (tafDATAJSON) {
+    console.log(JSON.stringify(tafDATAJSON));
+    axios({
+      method: 'post',
+      url: TAFS_URL + '/tafs',
+      withCredentials: true,
+      data: JSON.stringify(tafDATAJSON),
+      headers: { 'Content-Type': 'application/json' }
+    }).then(src => {
+      this.setState({ validationReport:src.data });
+      // this.props.updateParent();
+    }).catch(error => {
+      this.setState({ validationReport:{ message: 'Unable to save: error occured while saving TAF.' } });
+      try {
+        console.log('Error occured', error.response.data);
+        if (error.response.data.message) {
+          this.setState({ validationReport:{ message: error.response.data.message } });
+        }
+      } catch (e) {
+        console.log(e);
+        this.setState({ validationReport:{ message: JSON.stringify(error.response) } });
+      }
+    });
   }
 
   /*
@@ -148,8 +201,7 @@ class TafCategory extends Component {
     }
     if (event.keyCode === 27) {
       this.updateTACtoTAFJSONtoTac();
-      let taf = removeInputPropsFromTafJSON(createTAFJSONFromInput(this.state.tafJSON));
-      this.props.validateTaf(taf);
+      this.validateTAF(this.state.tafJSON);
     }
     if (this.state.tafJSON.changegroups.length > 0) {
       if (event.keyCode === 38) { // KEY ARROW UP
@@ -196,7 +248,6 @@ class TafCategory extends Component {
   onDeleteRow (rowIndex) {
     let newTaf = cloneObjectAndSkipNullProps(this.state.tafJSON);
     newTaf.changegroups.splice(rowIndex, 1);
-    this.props.validateTaf(newTaf);
     this.setState({
       tafJSON: newTaf
     });
@@ -220,9 +271,6 @@ class TafCategory extends Component {
   }
 
   componentWillReceiveProps (nextProps) {
-    this.setState({
-      validationReport: nextProps.validationReport
-    });
     let tafJSON = null;
     if (nextProps.taf) {
       if (typeof nextProps.taf === 'string') {
@@ -243,8 +291,9 @@ class TafCategory extends Component {
           if (this.changegroupsSet === uuid) return;
           this.changegroupsSet = uuid;
           this.setState({
-            tafJSON: Object.assign({}, tafJSON)
+            tafJSON: cloneObjectAndSkipNullProps(tafJSON)
           });
+          this.validateTAF(tafJSON);
         }
       }
     }
@@ -276,7 +325,7 @@ class TafCategory extends Component {
             <Row style={{ flex: 'unset' }}>
               <Col>{this.state.tafJSON.metadata.uuid}</Col>
             </Row>
-            <Row>
+            <Row style={{ flex: 'unset' }}>
               <Col>
                 <TafTable
                   ref={'taftable'}
@@ -301,12 +350,14 @@ class TafCategory extends Component {
                 </Col>
               </Row> : null
             }
+            { this.state.validationReport && this.state.validationReport.tac
+              ? <Row className='TACReport'> <Col style={{ flexDirection: 'column' }}>{this.state.validationReport.tac}</Col></Row> : null }
             <Row style={{ flex: 'unset' }}>
               <Col />
               <Col xs='auto'>
                 <Button color='primary' onClick={() => {
                   let taf = removeInputPropsFromTafJSON(createTAFJSONFromInput(this.state.tafJSON));
-                  this.props.saveTaf(taf);
+                  this.saveTaf(taf);
                 }} >Save</Button>
               </Col>
               <Col xs='auto'>
@@ -315,11 +366,13 @@ class TafCategory extends Component {
             </Row>
           </Col>
         </Row>
-        <Row style={{ flex: 'auto' }}>
+        { /* <Row style={{ flex: 'auto' }}>
           <Col>
             <TimeSchedule startMoment={moment.utc(tafJson.metadata.validityStart)} endMoment={moment.utc(tafJson.metadata.validityEnd)} items={items} groups={groups} />
           </Col>
-        </Row>
+        </Row> */
+        }
+
       </Row>
     );
   }
@@ -327,10 +380,7 @@ class TafCategory extends Component {
 
 TafCategory.propTypes = {
   taf: PropTypes.object,
-  saveTaf :PropTypes.func,
-  validateTaf :PropTypes.func,
-  editable: PropTypes.bool,
-  validationReport:PropTypes.object
+  editable: PropTypes.bool
 };
 
 export default TafCategory;

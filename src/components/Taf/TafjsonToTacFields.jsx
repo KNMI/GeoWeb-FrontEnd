@@ -126,7 +126,7 @@ export const getVisibilityTAC = (taf) => {
         return returnTACCodeAndInputValue(taf, 'visibility', ('000' + taf.forecast.visibility.value).slice(-4));
       }
     } else {
-      return returnTACCodeAndInputValue(taf, 'visibility', '' + taf.forecast.visibility.value);
+      return returnTACCodeAndInputValue(taf, 'visibility', ('000' + taf.forecast.visibility.value).slice(-4));
     }
   }
   return returnTACCodeAndInputValue(taf, 'visibility', null);
