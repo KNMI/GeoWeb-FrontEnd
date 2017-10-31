@@ -11,7 +11,6 @@ let tafJSONWithUserInputsAndNulls = {
     'type': 'normal'
   },
   'forecast': {
-    'vertical_visibility': 900,
     'weather': 'NSW',
     'visibility': {
       'value': 8000
@@ -217,7 +216,6 @@ let expectedTafWithInputs = {
     'type': 'normal'
   },
   'forecast': {
-    'vertical_visibility': 900,
     'weather': 'NSW',
     'visibility': {
       'value': 8000
@@ -404,7 +402,6 @@ let newComposedTAF = {
     'type': 'normal'
   },
   'forecast': {
-    'vertical_visibility': 900,
     'weather': 'NSW',
     'visibility': {
       'value': 8000
@@ -552,7 +549,7 @@ describe('(Function) Taf/createTAFJSONFromInput', () => {
   });
 });
 
-describe('(Function) Taf/createTAFJSONFromInput', () => {
+describe('(Function) Taf/removeInputPropsFromTafJSON', () => {
   it('createTAFJSONFromInput', () => {
     let tafJSON = removeInputPropsFromTafJSON(createTAFJSONFromInput(tafJSONWithUserInputsAndNulls));
     expect(tafJSON).to.deep.equal(newComposedTAF);

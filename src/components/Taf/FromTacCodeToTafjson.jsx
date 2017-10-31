@@ -247,17 +247,26 @@ export const removeInputPropsFromTafJSON = (_taf) => {
   To post a valid TAFJSON to the server, input properties need to be removed from the TAFJSON;
    use removeInputPropsFromTafJSON afterwards.
 */
-export const createTAFJSONFromInput = (_taf) => {
-  // console.log('createTAFJSONFromInput', JSON.stringify(_taf));
-  let taf = cloneObjectAndSkipNullProps(_taf);
-  if (!taf.forecast) taf.forecast = {};
-  if (!taf.metadata) taf.metadata = {};
-  if (!taf.input) taf.input = {};
+export const createTAFJSONFromInput = (inputTaf) => {
+  if (!inputTaf.forecast) inputTaf.forecast = {};
+  if (!inputTaf.metadata) inputTaf.metadata = {};
+  if (!inputTaf.input) inputTaf.input = {};
 
-  taf.metadata.status = 'concept';
-  taf.metadata.type = 'normal';
-
-  taf.metadata.validate = null;
+  // console.log('createTAFJSONFromInput', JSON.stringify(inputTaf));
+  let taf = {
+    forecast:{},
+    metadata:{
+      status: 'concept',
+      type: 'normal',
+      location: inputTaf.metadata.location,
+      validityStart: inputTaf.metadata.validityStart,
+      validityEnd: inputTaf.metadata.validityEnd,
+      issueTime: inputTaf.metadata.issueTime,
+      uuid: inputTaf.metadata.uuid
+    },
+    changegroups:[],
+    input:cloneObjectAndSkipNullProps(inputTaf.input)
+  };
 
   taf.forecast.wind = fromTACToWind(taf.input.wind);
   taf.forecast.visibility = fromTACToVisibility(taf.input.visibility);
@@ -274,9 +283,10 @@ export const createTAFJSONFromInput = (_taf) => {
   }
 
   // console.log('CAVOK=' + taf.forecast.caVOK);
-  for (let j = 0; j < taf.changegroups.length; j++) {
-    if (!taf.changegroups[j].forecast) taf.changegroups[j].forecast = {};
-    if (!taf.changegroups[j].input) taf.changegroups[j].input = {};
+  for (let j = 0; j < inputTaf.changegroups.length; j++) {
+    if (!inputTaf.changegroups[j].forecast) inputTaf.changegroups[j].forecast = {};
+    if (!inputTaf.changegroups[j].input) inputTaf.changegroups[j].input = {};
+    taf.changegroups.push({ forecast: {}, input:cloneObjectAndSkipNullProps(inputTaf.changegroups[j].input) });
     // PROB and CHANGE are one string in json
     taf.changegroups[j].changeType =
       (taf.changegroups[j].input.prob ? taf.changegroups[j].input.prob : '') +
@@ -289,12 +299,12 @@ export const createTAFJSONFromInput = (_taf) => {
     taf.changegroups[j].forecast.weather = getTACWeatherArray(taf.changegroups[j]);
     taf.changegroups[j].forecast.clouds = getTACCloudsArray(taf.changegroups[j]);
 
-    taf.changegroups[j].caVOK = null;
-    if (taf.changegroups[j].visibility && taf.changegroups[j].visibility.value === 'CAVOK') {
-      taf.changegroups[j].caVOK = true;
-      taf.changegroups[j].visibility = null;
-      if (taf.changegroups[j].weather === 'NSW') taf.changegroups[j].weather = null;
-      if (taf.changegroups[j].clouds === 'NSC') taf.changegroups[j].clouds = null;
+    taf.changegroups[j].forecast.caVOK = null;
+    if (taf.changegroups[j].forecast.visibility && taf.changegroups[j].forecast.visibility.value === 'CAVOK') {
+      taf.changegroups[j].forecast.caVOK = true;
+      taf.changegroups[j].forecast.visibility = null;
+      if (taf.changegroups[j].forecast.weather === 'NSW') taf.changegroups[j].forecast.weather = null;
+      if (taf.changegroups[j].forecast.clouds === 'NSC') taf.changegroups[j].forecast.clouds = null;
     }
   }
   let newTAF = cloneObjectAndSkipNullProps(taf);
