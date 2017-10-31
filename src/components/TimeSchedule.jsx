@@ -68,8 +68,6 @@ class TimeSchedule extends PureComponent {
               {items.filter(item => item.group === groupName).map((item, index) => {
                 let offset = this.getOffset(marginMajorBasis, startMoment, item.start, minorTickInterval, intervalMinorBasis);
                 let duration = this.getDuration(item.start, item.end, minorTickInterval, intervalMinorBasis);
-                console.log('TimeSchedule data:', marginMajorBasis, startMoment.format(), item.start.format(), item.end.format(), minorTickInterval.toString(), intervalMinorBasis);
-                console.log('TimeSchedule effect:', offset, duration);
                 let arrowClass = '';
                 if (!item.start.isBefore(item.end)) {
                   arrowClass += 'bothArrow';
@@ -78,9 +76,6 @@ class TimeSchedule extends PureComponent {
                 if (offset < marginMajorBasis) {
                   arrowClass += 'leftArrow';
                   offset = marginMajorBasis - intervalMinorBasis;
-                }
-                if (duration === 0) {
-                  duration = intervalMinorBasis;
                 }
                 if (offset > 100) {
                   arrowClass += 'rightArrow';
@@ -91,16 +86,8 @@ class TimeSchedule extends PureComponent {
                   arrowClass += 'rightArrow';
                   duration = 100 + intervalMinorBasis - offset;
                 }
-
                 offset += '%';
                 duration += '%';
-                console.log('TimeSchedule result:', offset, duration);
-                /* return <Row style={{ minHeight: '2.4rem' }} key={'item' + index}>
-                  <Col style={{ flexBasis: offset, maxWidth: offset }} />
-                  <Col className='scheduleHighlight' style={{ flexBasis: duration, maxWidth: duration }}>
-                    Test
-                  </Col>
-                </Row> */
                 return <Row key={groupName + ':' + index}>
                   <Col className={'scheduleGroup'} style={{ flexBasis: offset, maxWidth: offset }}>{groupName}</Col>
                   <Col className={'scheduleHighlight' + ' ' + arrowClass} style={{ flexBasis: duration, maxWidth: duration }}>{item.value}</Col>
@@ -109,6 +96,9 @@ class TimeSchedule extends PureComponent {
             </Col>
           </Row>;
         })}
+        {/**
+           * Draw the axis
+           */}
         <Row className='marks' style={{ marginTop: '1rem' }}>
           <Col style={{ flexBasis: marginMajorBasis + '%', maxWidth: marginMajorBasis + '%' }} />
           <Col className='tick' style={{ flexBasis: intervalMajorBasis, maxWidth: intervalMajorBasis }} />
@@ -138,11 +128,11 @@ class TimeSchedule extends PureComponent {
 }
 
 TimeSchedule.defaultProps = {
-  startMoment: moment().subtract(12, 'hour'),
-  endMoment: moment().add(12, 'hour'),
+  startMoment: moment().utc().subtract(12, 'hour'),
+  endMoment: moment().utc().add(12, 'hour'),
   majorTickInterval: moment.duration(6, 'hour'),
   minorTickInterval: moment.duration(1, 'hour'),
-  items: [ { start: moment().subtract(6, 'hour'), end: moment().add(6, 'hour'), group: 'default group', value: 'default value' } ],
+  items: [ { start: moment().utc().subtract(6, 'hour'), end: moment().utc().add(6, 'hour'), group: 'default group', value: 'default value' } ],
   groups: ['default group']
 };
 
@@ -151,8 +141,14 @@ TimeSchedule.propTypes = {
   endMoment: MomentPropTypes.momentObj,
   majorTickInterval: MomentPropTypes.momentDurationObj,
   minorTickInterval: MomentPropTypes.momentDurationObj,
-  items: PropTypes.array,
-  groups: PropTypes.array
+  items: PropTypes.arrayOf(PropTypes.shape({
+    start: MomentPropTypes.momentObj,
+    end: MomentPropTypes.momentObj,
+    group: PropTypes.string,
+    value: PropTypes.string,
+    isParallel: PropTypes.bool
+  })),
+  groups: PropTypes.arrayOf(PropTypes.string)
 };
 
 export default TimeSchedule;
