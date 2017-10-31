@@ -13,20 +13,33 @@ const fromTACToWind = (value) => {
   return obj;
 };
 
-const fromTACToValidStart = (value) => {
-  if (value && value.length > 3) {
-    let issueTime = moment().utc().date(parseInt(value.substring(0, 2))).hour(parseInt(value.substring(2, 4))).format('YYYY-MM-DDTHH:00:00');
-    return issueTime + 'Z';
-  }
-  return null;
+const valueAsString = (dateValue) => {
+  return dateValue.toString().padStart(2, '0');
 };
 
-const fromTACToValidEnd = (value) => {
-  if (value && value.length > 8) {
-    let issueTime = moment().utc().date(parseInt(value.substring(5, 7))).hour(parseInt(value.substring(7, 9))).format('YYYY-MM-DDTHH:00:00');
-    return issueTime + 'Z';
+const fromTACToValid = (scopeStart, scopeEnd, value, indexOffset) => {
+  const scopeStartMoment = moment.utc(scopeStart);
+  const scopeEndMoment = moment.utc(scopeEnd);
+  if (!scopeStartMoment.isBefore(scopeEndMoment)) {
+    return null;
   }
-  return null;
+
+  if (!value || typeof value !== 'string' || value.length < (indexOffset + 4)) {
+    return null;
+  }
+
+  const dateValue = parseInt(value.substring(indexOffset, indexOffset + 2));
+  let monthValue = scopeStartMoment.month() + 1;
+  let yearValue = scopeStartMoment.year();
+  if (scopeEndMoment.month() !== scopeStartMoment.month() && dateValue < 15) {
+    monthValue += 1;
+    if (monthValue > 12) {
+      monthValue = 1;
+      yearValue += 1;
+    }
+  }
+  return yearValue.toString() + '-' + valueAsString(monthValue) + '-' + valueAsString(dateValue) + 'T' +
+    valueAsString(parseInt(value.substring(indexOffset + 2, indexOffset + 4))) + ':00:00Z';
 };
 
 const fromTACToVisibility = (value) => {
@@ -292,8 +305,8 @@ export const createTAFJSONFromInput = (inputTaf) => {
       (taf.changegroups[j].input.prob ? taf.changegroups[j].input.prob : '') +
       (taf.changegroups[j].input.change && taf.changegroups[j].input.prob ? ' ' : '') +
       (taf.changegroups[j].input.change ? taf.changegroups[j].input.change : '');
-    taf.changegroups[j].changeStart = fromTACToValidStart(taf.changegroups[j].input.valid);
-    taf.changegroups[j].changeEnd = fromTACToValidEnd(taf.changegroups[j].input.valid);
+    taf.changegroups[j].changeStart = fromTACToValid(taf.metadata.validityStart, taf.metadata.validityEnd, taf.changegroups[j].input.valid, 0);
+    taf.changegroups[j].changeEnd = fromTACToValid(taf.metadata.validityStart, taf.metadata.validityEnd, taf.changegroups[j].input.valid, 5);
     taf.changegroups[j].forecast.wind = fromTACToWind(taf.changegroups[j].input.wind);
     taf.changegroups[j].forecast.visibility = fromTACToVisibility(taf.changegroups[j].input.visibility);
     taf.changegroups[j].forecast.weather = getTACWeatherArray(taf.changegroups[j]);
@@ -308,7 +321,7 @@ export const createTAFJSONFromInput = (inputTaf) => {
     }
   }
   let newTAF = cloneObjectAndSkipNullProps(taf);
-  // console.log('newTAFWithInput', JSON.stringify(newTAF));
+  console.log('newTAFWithInput', newTAF);
   // console.log('newTAF', JSON.stringify(removeInputPropsFromTafJSON(newTAF)));
   return newTAF;
 };

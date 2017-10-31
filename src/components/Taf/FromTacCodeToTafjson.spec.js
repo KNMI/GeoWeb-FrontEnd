@@ -3,9 +3,9 @@ import { createTAFJSONFromInput, removeInputPropsFromTafJSON } from './FromTacCo
 let tafJSONWithUserInputsAndNulls = {
   'metadata': {
     'uuid': '6f533de6-aed8-4a42-b226-0be62e37d03a',
-    'issueTime': '2017-08-31T09:24:47.829Z',
-    'validityStart': '2017-08-04T12:00:00Z',
-    'validityEnd': '2017-08-05T18:00:00Z',
+    'issueTime': '2017-10-31T09:24:47.829Z',
+    'validityStart': '2017-10-04T12:00:00Z',
+    'validityEnd': '2017-10-05T18:00:00Z',
     'location': 'EHAM',
     'status': 'concept',
     'type': 'normal'
@@ -208,9 +208,9 @@ let tafJSONWithUserInputsAndNulls = {
 let expectedTafWithInputs = {
   'metadata': {
     'uuid': '6f533de6-aed8-4a42-b226-0be62e37d03a',
-    'issueTime': '2017-08-31T09:24:47.829Z',
-    'validityStart': '2017-08-04T12:00:00Z',
-    'validityEnd': '2017-08-05T18:00:00Z',
+    'issueTime': '2017-10-31T09:24:47.829Z',
+    'validityStart': '2017-10-04T12:00:00Z',
+    'validityEnd': '2017-10-05T18:00:00Z',
     'location': 'EHAM',
     'status': 'concept',
     'type': 'normal'
@@ -394,9 +394,9 @@ let expectedTafWithInputs = {
 let newComposedTAF = {
   'metadata': {
     'uuid': '6f533de6-aed8-4a42-b226-0be62e37d03a',
-    'issueTime': '2017-08-31T09:24:47.829Z',
-    'validityStart': '2017-08-04T12:00:00Z',
-    'validityEnd': '2017-08-05T18:00:00Z',
+    'issueTime': '2017-10-31T09:24:47.829Z',
+    'validityStart': '2017-10-04T12:00:00Z',
+    'validityEnd': '2017-10-05T18:00:00Z',
     'location': 'EHAM',
     'status': 'concept',
     'type': 'normal'

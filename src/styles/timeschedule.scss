@@ -64,12 +64,21 @@ div.TimeSchedule > div.col > div.row > div.col{
 
 .TimeSchedule .scheduleHighlight.leftArrow::before {
   font-family: FontAwesome;
+  font-size: 80%;
   padding-right: 0.5rem;
   content: "\f053";
 }
 
 .TimeSchedule .scheduleHighlight.rightArrow::after {
   font-family: FontAwesome;
+  font-size: 80%;
   padding-left: 0.5rem;
   content: "\f054";
+}
+
+.TimeSchedule .scheduleHighlight.bothArrow::before {
+  font-family: FontAwesome;
+  font-size: 80%;
+  padding-left: 0.5rem;
+  content: "\f054\f053";
 }

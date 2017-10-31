@@ -71,6 +71,10 @@ class TimeSchedule extends PureComponent {
                 console.log('TimeSchedule data:', marginMajorBasis, startMoment.format(), item.start.format(), item.end.format(), minorTickInterval.toString(), intervalMinorBasis);
                 console.log('TimeSchedule effect:', offset, duration);
                 let arrowClass = '';
+                if (!item.start.isBefore(item.end)) {
+                  arrowClass += 'bothArrow';
+                  duration = intervalMinorBasis;
+                }
                 if (offset < marginMajorBasis) {
                   arrowClass += 'leftArrow';
                   offset = marginMajorBasis - intervalMinorBasis;
