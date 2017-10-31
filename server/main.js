@@ -68,5 +68,6 @@ if (project.env === 'development') {
   // server in production.
   app.use(express.static(project.paths.dist()));
 }
+require('express-debug')(app, {});
 
 module.exports = app;

@@ -99,6 +99,7 @@ export default class ProgtempPopoverComponent extends Component {
 
   /* istanbul ignore next */
   render () {
+    console.log(this.state);
     const { cursor } = this.props.adagucProperties;
     const adaStart = moment.utc(this.props.adagucProperties.timeDimension).startOf('hour');
     if (!this.state.referenceTime) {
@@ -108,14 +109,14 @@ export default class ProgtempPopoverComponent extends Component {
       <Popover placement='left' isOpen={this.props.isOpen} target='timeseries_button'>
         <PopoverTitle>Reference time: <strong>{this.state.referenceTime ? this.state.referenceTime.format('ddd DD, HH:mm UTC') : '??'}</strong></PopoverTitle>
         <TimeseriesComponent location={cursor ? cursor.location : null} referenceTime={this.state.referenceTime}
-          selectedModel={this.state.selectedModel} time={adaStart} width={480} height={550} />
+          selectedModel={this.state.selectedModel} time={adaStart} id='timeseriesPopover'/>
         <Row style={{ padding: '0 0 1rem 1rem' }}>
           {this.getLocationAsString(cursor)}
         </Row>
-        <Row>
-          <Typeahead ref={ref => { this._typeahead = ref; }}
+        <Row style={{ flexDirection: 'column' }} >
+          <Typeahead onClick={this.clearTypeAhead} onFocus={this.clearTypeAhead} ref={ref => { this._typeahead = ref; }}
             onChange={this.setChosenLocation} options={this.progtempLocations} labelKey='name' placeholder='Search ICAO location' submitFormOnEnter />
-          <ButtonDropdown isOpen={this.state.locationDropdownOpen} toggle={() => { this.setState({ locationDropdownOpen: !this.state.locationDropdownOpen }); }}>
+          <ButtonDropdown isOpen={this.state.locationDropdownOpen} toggle={() => {}}>
             <DropdownToggle caret>
               {this.state.selectedModel || 'Select model'}
             </DropdownToggle>

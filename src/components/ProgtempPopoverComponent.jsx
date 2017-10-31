@@ -115,7 +115,7 @@ export default class ProgtempPopoverComponent extends Component {
         <Row style={{ padding: '0 0 1rem 1rem' }}>
           {this.getLocationAsString(cursor)}
         </Row>
-        <Row>
+        <Row style={{ flexDirection: 'column' }} >
           <Typeahead ref={ref => { this._typeahead = ref; }}
             onChange={this.setChosenLocation} options={this.progtempLocations} labelKey='name' placeholder='Search ICAO location' submitFormOnEnter />
           <ButtonDropdown isOpen={this.state.locationDropdownOpen} toggle={() => { this.setState({ locationDropdownOpen: !this.state.locationDropdownOpen }); }}>
