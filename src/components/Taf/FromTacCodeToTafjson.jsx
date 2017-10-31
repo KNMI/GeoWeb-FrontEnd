@@ -261,7 +261,8 @@ export const createTAFJSONFromInput = (inputTaf) => {
       location: inputTaf.metadata.location,
       validityStart: inputTaf.metadata.validityStart,
       validityEnd: inputTaf.metadata.validityEnd,
-      issueTime: inputTaf.metadata.issueTime
+      issueTime: inputTaf.metadata.issueTime,
+      uuid: inputTaf.metadata.uuid
     },
     changegroups:[],
     input:cloneObjectAndSkipNullProps(inputTaf.input)
