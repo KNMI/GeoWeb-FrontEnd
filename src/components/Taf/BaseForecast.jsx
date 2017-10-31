@@ -53,7 +53,7 @@ class BaseForecast extends Component {
 };
 
 BaseForecast.propTypes = {
-  value: PropTypes.object,
+  value: PropTypes.object.isRequired,
   onChange: PropTypes.func,
   onKeyUp: PropTypes.func,
   editable : PropTypes.bool,
