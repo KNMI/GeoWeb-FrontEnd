@@ -366,13 +366,11 @@ class TafCategory extends Component {
             </Row>
           </Col>
         </Row>
-        { /* <Row style={{ flex: 'auto' }}>
+        <Row style={{ flex: 'auto' }}>
           <Col>
             <TimeSchedule startMoment={moment.utc(tafJson.metadata.validityStart)} endMoment={moment.utc(tafJson.metadata.validityEnd)} items={items} groups={groups} />
           </Col>
-        </Row> */
-        }
-
+        </Row>
       </Row>
     );
   }
