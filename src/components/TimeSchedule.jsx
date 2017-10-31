@@ -12,16 +12,34 @@ class TimeSchedule extends PureComponent {
     this.getDuration = this.getDuration.bind(this);
   }
 
+  /**
+   * Calculate the offset in percentages
+   * @param {number} baseOffsetAsPercentage The additional offset to get to the start / null position
+   * @param {moment} baseStart The moment which is mapped / equals the start / null position
+   * @param {moment} start The moment to get the offset for
+   * @param {moment.duration} tickInterval The moment.duration as the interval of the snapping in time
+   * @param {number} intervalSizeAsPercentage The size of the interval of the snapping in percentages
+   * @return {number} The offset as a percentage
+   */
   getOffset (baseOffsetAsPercentage, baseStart, start, tickInterval, intervalSizeAsPercentage) {
-    return baseOffsetAsPercentage + (start.diff(baseStart, 'minutes') / tickInterval.asMinutes()) * intervalSizeAsPercentage + '%';
+    return baseOffsetAsPercentage + (start.diff(baseStart, 'minutes') / tickInterval.asMinutes()) * intervalSizeAsPercentage;
   }
 
+  /**
+   * Calculate the duration in percentages
+   * @param {moment} start The start moment for the duration
+   * @param {moment} end The end moment for the duration
+   * @param {moment.duration} tickInterval The moment.duration as the interval of the snapping in time
+   * @param {number} intervalSizeAsPercentage The size of the interval of the snapping in percentages
+   * @return {number} The duration as a percentage
+   */
   getDuration (start, end, tickInterval, intervalSizeAsPercentage) {
-    return end.diff(start, 'minutes') / tickInterval.asMinutes() * intervalSizeAsPercentage + '%';
+    return end.diff(start, 'minutes') / tickInterval.asMinutes() * intervalSizeAsPercentage;
   }
 
   render () {
     const { startMoment, endMoment, majorTickInterval, minorTickInterval, items, groups } = this.props;
+    console.log('Props', items);
 
     let majorTicks = [];
     let currentMajorTick = startMoment.clone().add(majorTickInterval);
@@ -39,28 +57,49 @@ class TimeSchedule extends PureComponent {
     const numberOfMajorTickIntervals = majorTicks.length + 2; // one interval for the EndMoment, one for the (left/right) margins
     const marginMajorBasis = 100 / (2 * numberOfMajorTickIntervals); // each margin is half the size of an interval
     const intervalMajorBasis = 100 / numberOfMajorTickIntervals + '%';
-
     const numberOfMinorTickIntervals = minorTicks.length + 1 + (majorTickInterval.asMinutes() / minorTickInterval.asMinutes());
     const intervalMinorBasis = 100 / numberOfMinorTickIntervals;
 
     return <Row className='TimeSchedule'>
       <Col>
         {groups.map((groupName) => {
-          return <Row className={groupName} key={groupName} style={{ minHeight: '2.4rem' }}>
-            {/* <Col style={{ flex: 1 }}>{groupName}</Col> */}
+          return <Row className={groupName + ' groupRow'} key={groupName} style={{ minHeight: '2.4rem' }}>
             <Col style={{ flex: 1, flexDirection: 'column' }}>
-              {items.map((item, index) => {
-                console.log('TimeSchedule data:', marginMajorBasis, startMoment.format(), item.start.format(), minorTickInterval.toString(), intervalMinorBasis);
-                const offset = this.getOffset(marginMajorBasis, startMoment, item.start, minorTickInterval, intervalMinorBasis);
-                const duration = this.getDuration(item.start, item.end, minorTickInterval, intervalMinorBasis);
+              {items.filter(item => item.group === groupName).map((item, index) => {
+                let offset = this.getOffset(marginMajorBasis, startMoment, item.start, minorTickInterval, intervalMinorBasis);
+                let duration = this.getDuration(item.start, item.end, minorTickInterval, intervalMinorBasis);
+                console.log('TimeSchedule data:', marginMajorBasis, startMoment.format(), item.start.format(), item.end.format(), minorTickInterval.toString(), intervalMinorBasis);
+                console.log('TimeSchedule effect:', offset, duration);
+                let arrowClass = '';
+                if (offset < marginMajorBasis) {
+                  arrowClass += 'leftArrow';
+                  offset = marginMajorBasis - intervalMinorBasis;
+                }
+                if (duration === 0) {
+                  duration = intervalMinorBasis;
+                }
+                if (offset > 100) {
+                  arrowClass += 'rightArrow';
+                  offset = 100 + intervalMinorBasis;
+                  duration = intervalMinorBasis;
+                }
+                if (offset + duration > 100 + 2 * intervalMinorBasis) {
+                  arrowClass += 'rightArrow';
+                  duration = 100 + intervalMinorBasis - offset;
+                }
+
+                offset += '%';
+                duration += '%';
+                console.log('TimeSchedule result:', offset, duration);
                 /* return <Row style={{ minHeight: '2.4rem' }} key={'item' + index}>
                   <Col style={{ flexBasis: offset, maxWidth: offset }} />
                   <Col className='scheduleHighlight' style={{ flexBasis: duration, maxWidth: duration }}>
                     Test
                   </Col>
                 </Row> */
-                return <Row>
-                  <Col>Offset = {offset}; Duration = {duration};</Col>
+                return <Row key={groupName + ':' + index}>
+                  <Col className={'scheduleGroup'} style={{ flexBasis: offset, maxWidth: offset }}>{groupName}</Col>
+                  <Col className={'scheduleHighlight' + ' ' + arrowClass} style={{ flexBasis: duration, maxWidth: duration }}>{item.value}</Col>
                 </Row>;
               })}
             </Col>
@@ -99,8 +138,8 @@ TimeSchedule.defaultProps = {
   endMoment: moment().add(12, 'hour'),
   majorTickInterval: moment.duration(6, 'hour'),
   minorTickInterval: moment.duration(1, 'hour'),
-  items: [ { start: moment().subtract(12, 'hour'), end: moment().add(12, 'hour'), properties: [] } ],
-  groups: []
+  items: [ { start: moment().subtract(6, 'hour'), end: moment().add(6, 'hour'), group: 'default group', value: 'default value' } ],
+  groups: ['default group']
 };
 
 TimeSchedule.propTypes = {

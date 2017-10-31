@@ -37,9 +37,39 @@ div.TimeSchedule > div.col > div.row > div.col{
   border: none;
 }
 
-.TimeSchedule .scheduleHighlight {
+.TimeSchedule .groupRow {
   margin-top: 0.4rem;
+}
+
+.TimeSchedule .scheduleGroup {
+  padding: 0.4rem;
+  font-weight: 600;
+}
+
+.TimeSchedule .scheduleHighlight {
   background-color: orange;
   border-radius: 0.2rem;
-  padding: 0.4rem;
+  padding: 0.3rem;
+  font-size: 90%;
+}
+
+.TimeSchedule .scheduleHighlight span {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.TimeSchedule .scheduleHighlight.rightArrow {
+  justify-content: left;
+}
+
+.TimeSchedule .scheduleHighlight.leftArrow::before {
+  font-family: FontAwesome;
+  padding-right: 0.5rem;
+  content: "\f053";
+}
+
+.TimeSchedule .scheduleHighlight.rightArrow::after {
+  font-family: FontAwesome;
+  padding-left: 0.5rem;
+  content: "\f054";
 }

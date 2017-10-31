@@ -28,6 +28,8 @@ class TafCategory extends Component {
     this.onDeleteRow = this.onDeleteRow.bind(this);
     this.onFocusOut = this.onFocusOut.bind(this);
     this.updateTACtoTAFJSONtoTac = this.updateTACtoTAFJSONtoTac.bind(this);
+    this.extractScheduleInformation = this.extractScheduleInformation.bind(this);
+    this.decoratePhenomenonValue = this.decoratePhenomenonValue.bind(this);
     this.validateTAF = this.validateTAF.bind(this);
 
     let TAFStartHour = moment().utc().hour();
@@ -86,6 +88,55 @@ class TafCategory extends Component {
       tafJSON: newTAFJSON
     });
     return newTAFJSON;
+  }
+
+  /**
+   * Maps the data in the phenomenon-value object into a presentable form
+   * @param {string} phenomenonType The type of the phenomenon
+   * @param {object} phenomenonValueObject The phenomenon-value object to map (i.e. to serialize)
+   * @return {string} The readable string of the phenomenon value
+   */
+  decoratePhenomenonValue (phenomenonType, phenomenonValueObject) {
+    if (typeof phenomenonValueObject === 'string') {
+      return <span>{phenomenonValueObject}</span>;
+    }
+    if (phenomenonType === 'wind' && typeof phenomenonValueObject === 'object') {
+      return <span>
+        {phenomenonValueObject.hasOwnProperty('direction') && typeof phenomenonValueObject.direction === 'number' && !isNaN(phenomenonValueObject.direction)
+          ? <span>{phenomenonValueObject.direction} <i className='fa fa-location-arrow' style={{ transform: 'rotate(' + (phenomenonValueObject.direction + 135) + 'deg)' }} aria-hidden='true' /></span>
+          : null}
+        {phenomenonValueObject.hasOwnProperty('speed') && typeof phenomenonValueObject.speed === 'number' && !isNaN(phenomenonValueObject.speed)
+          ? <span style={{ marginLeft: '0.2rem' }}>{phenomenonValueObject.speed}</span>
+          : null}
+      </span>;
+    }
+  }
+
+  /**
+   * Extract the schedule information from the TAF data
+   * @param {object} tafDataAsJson The object containing the TAF data
+   * @return {array} The schedule information as an array of schedule items
+   */
+  extractScheduleInformation (tafDataAsJson) {
+    const scheduleItems = [];
+    Object.entries(tafDataAsJson.forecast).map((property) =>
+      scheduleItems.push({
+        start: moment.utc(tafDataAsJson.metadata.validityStart),
+        end: moment.utc(tafDataAsJson.metadata.validityEnd),
+        group: property[0],
+        value: this.decoratePhenomenonValue(property[0], property[1])
+      })
+    );
+
+    tafDataAsJson.changegroups.map(change => Object.entries(change.forecast).map((property) =>
+      scheduleItems.push({
+        start: moment.utc(change.changeStart),
+        end: moment.utc(change.changeEnd),
+        group: property[0],
+        value: this.decoratePhenomenonValue(property[0], property[1])
+      })
+    ));
+    return scheduleItems;
   }
 
   /*
@@ -215,10 +266,8 @@ class TafCategory extends Component {
     const tafJson = removeInputPropsFromTafJSON(createTAFJSONFromInput(this.state.tafJSON));
 
     console.log('tafJson', tafJson);
-    const groups = Object.keys(tafJson.forecast);
-    const items = [];
-    items.push({ start: moment.utc(tafJson.metadata.validityStart), end: moment.utc(tafJson.metadata.validityEnd), properties: tafJson.forecast });
-    tafJson.changegroups.map(change => items.push({ start: moment.utc(change.changeStart), end: moment.utc(change.changeEnd), properties: change.forecast }));
+    const groups = ['wind', 'visibility', 'weather', 'clouds'];
+    const items = this.extractScheduleInformation(tafJson);
 
     return (
       <Row className='TafCategory'>
