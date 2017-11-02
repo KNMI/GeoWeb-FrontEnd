@@ -10,6 +10,21 @@ class TimeSchedule extends PureComponent {
 
     this.getOffset = this.getOffset.bind(this);
     this.getDuration = this.getDuration.bind(this);
+    this.compareByStart = this.compareByStart.bind(this);
+  }
+
+  /**
+   * Compares items by start, in subsequent order
+   * @param {object} itemA An item with a moment as property 'start'
+   * @param {object} itemB Another item a moment as property 'start'
+   * @return {number} The result of the comparison
+   */
+  compareByStart (itemA, itemB) {
+    return itemB.start.isBefore(itemA.start)
+      ? 1
+      : itemB.start.isAfter(itemA.start)
+        ? -1
+        : 0;
   }
 
   /**
@@ -39,7 +54,7 @@ class TimeSchedule extends PureComponent {
 
   render () {
     const { startMoment, endMoment, majorTickInterval, minorTickInterval, items, groups } = this.props;
-    console.log('Props', items);
+    console.log('TimeSchedule props:', items);
 
     let majorTicks = [];
     let currentMajorTick = startMoment.clone().add(majorTickInterval);
@@ -63,38 +78,45 @@ class TimeSchedule extends PureComponent {
     return <Row className='TimeSchedule'>
       <Col>
         {groups.map((groupName) => {
-          return <Row className={groupName + ' groupRow'} key={groupName} style={{ minHeight: '2.4rem' }}>
-            <Col style={{ flex: 1, flexDirection: 'column' }}>
-              {items.filter(item => item.group === groupName).map((item, index) => {
-                let offset = this.getOffset(marginMajorBasis, startMoment, item.start, minorTickInterval, intervalMinorBasis);
-                let duration = this.getDuration(item.start, item.end, minorTickInterval, intervalMinorBasis);
-                let arrowClass = '';
-                if (!item.start.isBefore(item.end)) {
-                  arrowClass += 'bothArrow';
-                  duration = intervalMinorBasis;
-                }
-                if (offset < marginMajorBasis) {
-                  arrowClass += 'leftArrow';
-                  offset = marginMajorBasis - intervalMinorBasis;
-                }
-                if (offset > 100) {
-                  arrowClass += 'rightArrow';
-                  offset = 100 + intervalMinorBasis;
-                  duration = intervalMinorBasis;
-                }
-                if (offset + duration > 100 + 2 * intervalMinorBasis) {
-                  arrowClass += 'rightArrow';
-                  duration = 100 + intervalMinorBasis - offset;
-                }
-                offset += '%';
-                duration += '%';
-                return <Row key={groupName + ':' + index}>
-                  <Col className={'scheduleGroup'} style={{ flexBasis: offset, maxWidth: offset }}>{groupName}</Col>
-                  <Col className={'scheduleHighlight' + ' ' + arrowClass} style={{ flexBasis: duration, maxWidth: duration }}>{item.value}</Col>
-                </Row>;
-              })}
-            </Col>
-          </Row>;
+          let distinctRanges = [];
+          return items.filter(item => item.group === groupName).length > 0
+            ? <Row className={groupName + ' groupRow'} key={groupName} style={{ minHeight: '2.4rem' }}>
+              <Col style={{ flex: 1, flexDirection: 'column' }}>
+                {items.filter(item => item.group === groupName).sort(this.compareByStart).map((item, index) => {
+                  let offset = this.getOffset(marginMajorBasis, startMoment, item.start, minorTickInterval, intervalMinorBasis);
+                  let duration = this.getDuration(item.start, item.end, minorTickInterval, intervalMinorBasis);
+                  let arrowClass = '';
+                  if (!item.start.isBefore(item.end)) {
+                    arrowClass += 'bothArrow';
+                    duration = intervalMinorBasis;
+                  }
+                  if (offset < marginMajorBasis) {
+                    arrowClass += 'leftArrow';
+                    offset = marginMajorBasis - intervalMinorBasis;
+                  }
+                  if (offset > 100) {
+                    arrowClass += 'rightArrow';
+                    offset = 100 + intervalMinorBasis;
+                    duration = intervalMinorBasis;
+                  }
+                  if (offset + duration > 100 + 2 * intervalMinorBasis) {
+                    arrowClass += 'rightArrow';
+                    duration = 100 + intervalMinorBasis - offset;
+                  }
+                  if (index > 0) {
+                    offset += distinctRanges[index - 1].offset - marginMajorBasis + distinctRanges[index - 1].duration;
+                  }
+                  distinctRanges.push({ offset: offset, duration: duration });
+                  offset += '%';
+                  duration += '%';
+                  return <Row key={groupName + ':' + index}>
+                    <Col className={'scheduleGroup'} style={{ flexBasis: offset, maxWidth: offset }}>{groupName}</Col>
+                    <Col className={'scheduleHighlight' + ' ' + arrowClass} style={{ flexBasis: duration, maxWidth: duration }}>{item.value}</Col>
+                  </Row>;
+                })}
+              </Col>
+            </Row>
+            : null;
         })}
         {/**
            * Draw the axis

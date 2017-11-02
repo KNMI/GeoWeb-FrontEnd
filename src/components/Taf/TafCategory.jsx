@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { arrayMove } from 'react-sortable-hoc';
 import PropTypes from 'prop-types';
+import Enum from 'es6-enum';
 import TimeSchedule from '../TimeSchedule';
 import moment from 'moment';
 import { Button, Row, Col } from 'reactstrap';
@@ -9,17 +10,30 @@ import TafTable from './TafTable';
 import { TAFS_URL } from '../../constants/backend';
 import axios from 'axios';
 
+const PERSISTENT_TYPES = Enum(
+  'FM', // from - instant, persisting change
+  'BECMG' // becoming - gradual / fluctuating change, after which the change is persistent
+);
+
+const TEMPORARY_TYPES = Enum(
+  'TEMPO', // temporary fluctuating change
+  'PROB30', // probability of 30% for a temporary steady change
+  'PROB40', // probability of 40% for a temporary steady change
+  'PROB30 TEMPO', // probability of 30% for a temporary fluctating change
+  'PROP40 TEMPO' // probability of 30% for a temporary fluctating change
+);
+
 /**
-  TafCategory is the component which renders an editable and sortable TAF table.
-  The UI is generated from a TAF JSON and it can generate/update TAF JSON from user input
-
-  The component hierarchy is structured as follows:
-
-                                  TACColumn(s) -> BaseForecast -> \
-                                                                    --> TafTable -> TafCategory -> Taf
-      TACColumn(s) -> ChangeGroup(s) -> SortableChangeGroup(s) -> /
-
-*/
+ * TafCategory is the component which renders an editable and sortable TAF table.
+ * The UI is generated from a TAF JSON and it can generate/update TAF JSON from user input
+ *
+ * The component hierarchy is structured as follows:
+ *
+ *                                 TACColumn(s) -> BaseForecast -> \
+ *                                                                   --> TafTable -> TafCategory -> Taf
+ *     TACColumn(s) -> ChangeGroup(s) -> SortableChangeGroup(s) -> /
+ *
+ */
 class TafCategory extends Component {
   constructor (props) {
     super(props);
@@ -32,6 +46,8 @@ class TafCategory extends Component {
     this.updateTACtoTAFJSONtoTac = this.updateTACtoTAFJSONtoTac.bind(this);
     this.extractScheduleInformation = this.extractScheduleInformation.bind(this);
     this.decoratePhenomenonValue = this.decoratePhenomenonValue.bind(this);
+    this.byStartAsc = this.byStartAsc.bind(this);
+    this.persistentOnly = this.persistentOnly.bind(this);
     this.validateTAF = this.validateTAF.bind(this);
     this.saveTaf = this.saveTaf.bind(this);
 
@@ -144,24 +160,81 @@ class TafCategory extends Component {
   }
 
   /**
+   * Comparator: Compares items by changeStart, in subsequent order
+   * @param {object} itemA An item with a moment as property 'changeStart'
+   * @param {object} itemB Another item a moment as property 'changeStart'
+   * @return {number} The order of the items
+   */
+  byStartAsc (itemA, itemB) {
+    return itemB.changeStart.isBefore(itemA.changeStart)
+      ? 1
+      : itemB.changeStart.isAfter(itemA.changeStart)
+        ? -1
+        : 0;
+  }
+
+  /**
+   * Filter: Only the items are passed, which are persistent (i.e. non temporary)
+   * @param {object} item An item with a TAF-change-group-type as property 'changeType'
+   * @return {bool} The answer to: is the item persistent
+   */
+  persistentOnly (item) {
+    return item.hasOwnProperty('changeType') &&
+      typeof item.changeType === 'string' &&
+      item.changeType.toUpperCase() in PERSISTENT_TYPES;
+  }
+
+  /**
+   * Filter: Only the items are passed, which are temporary changes
+   * @param {object} item An item with a TAF-change-group-type as property 'changeType'
+   * @return {bool} The answer to: is the item temporary changes
+   */
+  temporarilyOnly (item) {
+    return item.hasOwnProperty('changeType') &&
+      typeof item.changeType === 'string' &&
+      item.changeType.toUpperCase() in TEMPORARY_TYPES;
+  }
+
+  /**
    * Maps the data in the phenomenon-value object into a presentable form
    * @param {string} phenomenonType The type of the phenomenon
    * @param {object} phenomenonValueObject The phenomenon-value object to map (i.e. to serialize)
-   * @return {string} The readable string of the phenomenon value
+   * @param {string} prefix The text to prepend
+   * @return {React.Component} A component with a readable presentation of the phenomenon value
    */
-  decoratePhenomenonValue (phenomenonType, phenomenonValueObject) {
+  decoratePhenomenonValue (phenomenonType, phenomenonValueObject, prefix) {
     if (typeof phenomenonValueObject === 'string') {
-      return <span>{phenomenonValueObject}</span>;
+      return <span>
+        {prefix
+          ? <strong>
+            {prefix}:&nbsp;
+          </strong>
+          : null}
+        {phenomenonValueObject}
+      </span>;
     }
     if (phenomenonType === 'wind' && typeof phenomenonValueObject === 'object') {
-      return <span>
-        {phenomenonValueObject.hasOwnProperty('direction') && typeof phenomenonValueObject.direction === 'number' && !isNaN(phenomenonValueObject.direction)
-          ? <span>{phenomenonValueObject.direction} <i className='fa fa-location-arrow' style={{ transform: 'rotate(' + (phenomenonValueObject.direction + 135) + 'deg)' }} aria-hidden='true' /></span>
-          : null}
-        {phenomenonValueObject.hasOwnProperty('speed') && typeof phenomenonValueObject.speed === 'number' && !isNaN(phenomenonValueObject.speed)
-          ? <span style={{ marginLeft: '0.2rem' }}>{phenomenonValueObject.speed}</span>
-          : null}
-      </span>;
+      if (phenomenonValueObject.hasOwnProperty('direction') && typeof phenomenonValueObject.direction === 'number' &&
+          phenomenonValueObject.hasOwnProperty('speed') && typeof phenomenonValueObject.speed === 'number') {
+        return <span>
+          {prefix
+            ? <strong>
+              {prefix}:&nbsp;
+            </strong>
+            : null}
+          {!isNaN(phenomenonValueObject.direction)
+            ? <span>
+              {phenomenonValueObject.direction}
+              <i className='fa fa-location-arrow' style={{ transform: 'rotate(' + (phenomenonValueObject.direction + 135) + 'deg)' }} aria-hidden='true' />
+            </span>
+            : null}
+          {!isNaN(phenomenonValueObject.speed)
+            ? <span style={{ marginLeft: '0.2rem' }}>{phenomenonValueObject.speed}</span>
+            : null}
+        </span>;
+      } else {
+        return null;
+      }
     }
   }
 
@@ -172,23 +245,44 @@ class TafCategory extends Component {
    */
   extractScheduleInformation (tafDataAsJson) {
     const scheduleItems = [];
-    Object.entries(tafDataAsJson.forecast).map((property) =>
-      scheduleItems.push({
-        start: moment.utc(tafDataAsJson.metadata.validityStart),
-        end: moment.utc(tafDataAsJson.metadata.validityEnd),
-        group: property[0],
-        value: this.decoratePhenomenonValue(property[0], property[1])
-      })
-    );
+    const scopeEnd = moment.utc(tafDataAsJson.metadata.validityEnd);
+    Object.entries(tafDataAsJson.forecast).map((property) => {
+      const value = this.decoratePhenomenonValue(property[0], property[1]);
+      if (value !== null) {
+        scheduleItems.push({
+          start: moment.utc(tafDataAsJson.metadata.validityStart),
+          end: scopeEnd,
+          group: property[0],
+          value: value
+        });
+      }
+    });
 
-    tafDataAsJson.changegroups.map(change => Object.entries(change.forecast).map((property) =>
-      scheduleItems.push({
-        start: moment.utc(change.changeStart),
-        end: moment.utc(change.changeEnd),
-        group: property[0],
-        value: this.decoratePhenomenonValue(property[0], property[1])
-      })
-    ));
+    tafDataAsJson.changegroups.filter(this.persistentOnly).sort(this.byStartAsc).map(change => {
+      console.log('ChangeType', change.changeType);
+
+      Object.entries(change.forecast).map((property) => {
+        const start = moment.utc(change.changeStart);
+        const end = moment.utc(change.changeEnd);
+        const value = this.decoratePhenomenonValue(property[0], property[1], change.changeType);
+        if (value !== null) {
+          scheduleItems.forEach((item) => {
+            if (start.isBefore(item.end) && end.isAfter(item.start)) {
+              if (start.isBefore(item.start)) {
+
+              }
+              console.log('Overlaps!');
+            }
+          });
+          scheduleItems.push({
+            start: moment.utc(change.changeStart),
+            end: moment.utc(change.changeEnd),
+            group: property[0],
+            value: value
+          });
+        }
+      });
+    });
     return scheduleItems;
   }
 

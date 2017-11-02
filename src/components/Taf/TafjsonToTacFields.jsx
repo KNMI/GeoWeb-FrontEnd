@@ -76,13 +76,13 @@ export const getChangeTAC = (taf) => {
   let value = null;
   if (!taf) return returnTACCodeAndInputValue(taf, 'change', value);
 
-  if (taf.changeType && taf.changeType.length > 2) {
-    if (taf.changeType.startsWith('PR') === false) {
+  if (taf.changeType && taf.changeType.length > 1) {
+    if (taf.changeType.startsWith('P') === false) {
       return returnTACCodeAndInputValue(taf, 'change', taf.changeType);
     } else {
       if (taf.changeType.indexOf(' ') !== -1) {
         let rightValue = taf.changeType.split(' ')[1];
-        if (rightValue.startsWith('PR') === false) {
+        if (rightValue.startsWith('P') === false) {
           return returnTACCodeAndInputValue(taf, 'change', rightValue);
         }
       }
