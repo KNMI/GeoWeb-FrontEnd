@@ -4,7 +4,6 @@ import axios from 'axios';
 import PropTypes from 'prop-types';
 import { HARMONIE_URL } from '../constants/default_services';
 var moment = require('moment');
-
 export default class TimeseriesComponent extends PureComponent {
   /* istanbul ignore next */
   constructor () {
@@ -25,12 +24,10 @@ export default class TimeseriesComponent extends PureComponent {
     if (props.payload.length > 0) {
       return (
         <div className='recharts-tooltip-wrapper' style={{ backgroundColor: 'rgba(255, 255, 255, 0.8)', border: '1px solid rgb(204, 204, 204)', padding: '0.5rem 1rem 0 1rem' }}>
-          <div className='recharts-default-tooltip'>
-            <p className='recharts-tooltip-label'>{props.label}</p>
-            <ul className='recharts-tooltip-item-list' style={{ paddingLeft: '0.5rem', marginTop: 0, listStyleType: 'none' }}>
-              {props.payload.map((pl, i) => <li key={i} className='recharts-tooltip-item' style={{ color: props.payload[i].color }}>{props.payload[i].value.toFixed(2)} {units[i]}</li>)}
-            </ul>
-          </div>
+          <p className='recharts-tooltip-label'>{props.label}</p>
+          <ul className='recharts-tooltip-item-list' style={{ paddingLeft: '0.5rem', marginTop: 0, listStyleType: 'none' }}>
+            {props.payload.map((pl, i) => <li key={i} className='recharts-tooltip-item' style={{ color: props.payload[i].color }}>{props.payload[i].value.toFixed(2)} {units[i]}</li>)}
+          </ul>
         </div>);
     } else {
       return <div />;
@@ -60,9 +57,9 @@ INFO_FORMAT=application/json&time=*&DIM_reference_time=` + refTimeStr + `&x=` + 
       points.forEach((p) => { p.setAttribute('fill', '#ffffff'); });
     }
     dataLines.map((d) => {
-      const point = document.getElementById(d + '-' + time);
-      if (point) {
-        point.setAttribute('fill', point.getAttribute('stroke'));
+      const activeTimePoints = document.querySelectorAll('.' + d + '-' + time);
+      if (activeTimePoints && activeTimePoints.length > 0) {
+        activeTimePoints.forEach((point) => { point.setAttribute('fill', point.getAttribute('stroke')); });
       }
     });
   }
@@ -169,7 +166,7 @@ INFO_FORMAT=application/json&time=*&DIM_reference_time=` + refTimeStr + `&x=` + 
     const { cx, cy, stroke, key } = props;
     if (cx === +cx && cy === +cy) {
       const dotDate = moment.utc(props.payload.date, 'MMM DD HH:mm');
-      return <circle className='dot' id={name + '-' + dotDate.format('YYYYMMDD-HHmm')} cx={cx} cy={cy} r={3} stroke={stroke} fill='#ffffff' key={key} />;
+      return <circle className={'dot ' + name + '-' + dotDate.format('YYYYMMDD-HHmm')} cx={cx} cy={cy} r={3} stroke={stroke} fill='#ffffff' key={key} />;
     }
     return null;
   }
@@ -269,10 +266,10 @@ INFO_FORMAT=application/json&time=*&DIM_reference_time=` + refTimeStr + `&x=` + 
   render () {
     const { location, time, className, style, width, height } = this.props;
     return (
-      <div className={className} style={{ ...style, overflowY: 'hidden', height: '100%', maxHeight: '100%' }}>
+      <div id={this.props.id} className={className} style={{ ...style, overflowY: 'hidden', minWidth: '400px', minHeight: '500px', height: '100%', maxHeight: '100%' }}>
         {this.state.timeData.length > 0
-          ? <div style={{ flexDirection: 'column' }}>
-            <ResponsiveContainer width={width} height={'20%'}>
+          ? <div style={{ flexDirection: 'column', minHeight: '500px', height: '100%', width: '100%', maxWidth: '100%' }}>
+            <ResponsiveContainer minHeight={'100px'} debounce={50} width='100%' height={'20%'}>
               <LineChart data={this.state.timeData} margin={{ top: 0, left: 0, right: 10, bottom: 0 }}>
                 <XAxis dataKey='date' />
                 <YAxis />
@@ -284,7 +281,7 @@ INFO_FORMAT=application/json&time=*&DIM_reference_time=` + refTimeStr + `&x=` + 
                 <Line dot={(props) => this.renderDot('dew_point_temp', props)} isAnimationActive={false} type='monotone' dataKey='dew_point_temp' stroke='#0000ff' />
               </LineChart>
             </ResponsiveContainer>
-            <ResponsiveContainer width={width} height={'20%'}>
+            <ResponsiveContainer minHeight={'100px'} debounce={50} width='100%' height={'20%'}>
               <LineChart data={this.state.timeData} margin={{ top: 0, left: 0, right: 10, bottom: 0 }}>
                 <XAxis dataKey='date' />
                 <YAxis domain={[0, 360]} />
@@ -294,7 +291,7 @@ INFO_FORMAT=application/json&time=*&DIM_reference_time=` + refTimeStr + `&x=` + 
                 <Line dot={(props) => this.renderDot('wind_dir', props)} isAnimationActive={false} type='monotone' dataKey='wind_dir' stroke='#ff7300' />
               </LineChart>
             </ResponsiveContainer>
-            <ResponsiveContainer width={width} height={'20%'}>
+            <ResponsiveContainer minHeight={'100px'} debounce={50} width='100%' height={'20%'}>
               <LineChart data={this.state.timeData} margin={{ top: 0, left: 0, right: 10, bottom: 0 }}>
                 <XAxis dataKey='date' />
                 <YAxis />
@@ -304,7 +301,7 @@ INFO_FORMAT=application/json&time=*&DIM_reference_time=` + refTimeStr + `&x=` + 
                 <Line dot={(props) => this.renderDot('wind_speed', props)} isAnimationActive={false} type='monotone' dataKey='wind_speed' stroke='#ff7300' />
               </LineChart>
             </ResponsiveContainer>
-            <ResponsiveContainer width={width} height={'20%'}>
+            <ResponsiveContainer minHeight={'100px'} debounce={50} width='100%' height={'20%'}>
               <LineChart data={this.state.timeData} margin={{ top: 0, left: 0, right: 10, bottom: 0 }}>
                 <XAxis dataKey='date' />
                 <YAxis />
@@ -314,7 +311,7 @@ INFO_FORMAT=application/json&time=*&DIM_reference_time=` + refTimeStr + `&x=` + 
                 <Line dot={(props) => this.renderDot('precipitation', props)} isAnimationActive={false} type='monotone' dataKey='precipitation' stroke='#ff7300' />
               </LineChart>
             </ResponsiveContainer>
-            <ResponsiveContainer width={width} height={'20%'}>
+            <ResponsiveContainer minHeight={'100px'} debounce={50} width='100%' height={'20%'}>
               <LineChart data={this.state.timeData} margin={{ top: 0, left: 0, right: 10, bottom: 0 }}>
                 <XAxis dataKey='date' />
                 <YAxis domain={['auto', 'auto']} />

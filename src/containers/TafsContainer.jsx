@@ -54,7 +54,6 @@ export default class TafsContainer extends Component {
   }
 
   toggleCategory (category) {
-    console.log(category);
     let isOpenCategory = Object.assign({}, this.state.isOpenCategory);
     isOpenCategory[category] = !this.state.isOpenCategory[category];
     this.setState({ isOpenCategory: isOpenCategory });

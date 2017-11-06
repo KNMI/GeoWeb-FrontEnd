@@ -12,12 +12,12 @@ class Panel extends PureComponent {
     };
     this.locationSetter = this.locationSetter.bind(this);
     this.setChosenLocation = this.setChosenLocation.bind(this);
+    this.renderMenu = this.renderMenu.bind(this);
+    this.modelChanger = this.modelChanger.bind(this);
+    this.toggleType = this.toggleType.bind(this);
   }
   setChosenLocation (loc) {
     const { dispatch, adagucActions } = this.props;
-
-    // Only dispatch a new location and don't unset it
-    // (this happens when the typeahead is cleared because this is a change from its filled state)
     if (loc.length > 0) {
       dispatch(adagucActions.setCursorLocation(loc[0]));
     }
@@ -60,8 +60,6 @@ class Panel extends PureComponent {
         } else {
           return <span style={{ lineHeight: '2rem', verticalAlign: 'middle' }}>Location: <strong>{this.convertMinSec(location.x) + ', ' + this.convertMinSec(location.y)}</strong></span>;
         }
-      } else {
-        return <span style={{ lineHeight: '2rem', verticalAlign: 'middle' }}>&hellip;or click on the map</span>;
       }
     }
   }
@@ -70,7 +68,8 @@ class Panel extends PureComponent {
     const panelOpts = ['TIMESERIES', 'PROGTEMP'];
     if (panelOpts.some((t) => t === this.props.type)) {
       return <div style={{ marginRight: '0.25rem', maxWidth: '13rem' }}>
-        <Typeahead ref={ref => { this._typeahead = ref; }} onChange={this.setChosenLocation} options={this.props.locations || []} labelKey='name' placeholder='Select ICAO location&hellip;' submitFormOnEnter />
+        <Typeahead onClick={this.clearTypeAhead} onFocus={this.clearTypeAhead} bsSize='sm' ref={ref => { this._typeahead = ref; }} onChange={this.setChosenLocation} onClick={this.clearTypeAhead}
+          options={this.props.locations || []} labelKey='name' placeholder='Select ICAO location&hellip;' submitFormOnEnter />
       </div>;
     }
   }
@@ -79,9 +78,11 @@ class Panel extends PureComponent {
   modelChanger () {
     const panelOpts = ['TIMESERIES', 'PROGTEMP'];
     if (panelOpts.some((t) => t === this.props.type)) {
-      return <ButtonDropdown style={{ marginRight: '0.25rem' }} isOpen={this.state.modelIsOpen} toggle={() => this.setState({ modelIsOpen: !this.state.modelIsOpen })}>
+      return <ButtonDropdown size='sm' style={{ marginRight: '0.25rem' }} isOpen={this.state.modelIsOpen} toggle={() => {}}>
         <DropdownToggle caret size='sm'>
-          HARMONIE
+          {this.props.referenceTime
+            ? 'HARMONIE - ' + this.props.referenceTime.format('ddd DD, HH:mm UTC')
+            : 'HARMONIE'}
         </DropdownToggle>
         <DropdownMenu>
           <DropdownItem>HARMONIE</DropdownItem>
@@ -89,16 +90,24 @@ class Panel extends PureComponent {
       </ButtonDropdown>;
     }
   }
+
+  toggleType () {
+    this.setState({
+      typeIsOpen: !this.state.typeIsOpen
+    });
+  }
+
   renderMenu () {
-    const { type, mapId, dispatch, layerActions, active } = this.props;
-    return (<ButtonDropdown style={{ marginRight: '0.25rem' }} isOpen={this.state.typeIsOpen} toggle={() => this.setState({ typeIsOpen: !this.state.typeIsOpen })}>
+    const { type, mapId, dispatch, layerActions } = this.props;
+    return (<ButtonDropdown style={{ marginRight: '0.25rem' }} isOpen={this.state.typeIsOpen} toggle={() => {}}>
       <DropdownToggle caret style={{ textTransform: 'capitalize' }} size='sm'>
         {type.toLowerCase()}
       </DropdownToggle>
       <DropdownMenu>
-        <DropdownItem onClick={(e) => { e.stopPropagation(); e.preventDefault(); dispatch(layerActions.setPanelType({ type: 'ADAGUC', mapId: mapId })); }} >Adaguc map</DropdownItem>
-        <DropdownItem onClick={(e) => { e.stopPropagation(); e.preventDefault(); dispatch(layerActions.setPanelType({ type: 'TIMESERIES', mapId: mapId })); }} >Timeseries</DropdownItem>
-        <DropdownItem onClick={(e) => { e.stopPropagation(); e.preventDefault(); dispatch(layerActions.setPanelType({ type: 'PROGTEMP', mapId: mapId })); }} >Progtemp</DropdownItem>
+        {
+          ['ADAGUC', 'TIMESERIES', 'PROGTEMP'].map((type) =>
+            <DropdownItem style={{ textTransform: 'capitalize' }} onClick={(e) => { dispatch(layerActions.setPanelType({ type, mapId })); }} >{type.toLowerCase()}</DropdownItem>)
+        }
       </DropdownMenu>
     </ButtonDropdown>);
   }
@@ -107,20 +116,21 @@ class Panel extends PureComponent {
     const { title, style, className, mapId, dispatch, type, mapActions, mapMode } = this.props;
     const panelOpts = ['ADAGUC', 'TIMESERIES', 'PROGTEMP'];
     if (!title) {
+      const onClick = type === 'ADAGUC' ? (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        if (!mapActions) return;
+        if (mapMode !== 'progtemp' && mapMode !== 'timeseries' && !className && type === 'ADAGUC') {
+          dispatch(mapActions.setActivePanel(mapId));
+        }
+      } : null;
       return (
-        <div className={className ? 'Panel ' + className : 'Panel'} id={this.props.id || `adagucPanel${mapId}`} onClick={() => {
-          if (!mapActions) return;
-          if (mapMode !== 'progtemp' && mapMode !== 'timeseries' && !className) {
-            dispatch(mapActions.setActivePanel(mapId));
-          }
-        }}>
-
+        <div className={className ? 'Panel ' + className : 'Panel'} id={this.props.id || `adagucPanel${mapId}`} onClick={onClick}>
           {(type && panelOpts.some((opt) => opt === type))
             ? <Row className='title notitle' style={{ ...style, overflow: 'visible' }}>
-              <div style={{ marginTop: '0.33rem' }}>
+              <div style={{ marginTop: '0.33rem', flexWrap: 'wrap' }}>
                 {this.renderMenu()}
                 {this.modelChanger()}
-                <span style={{ marginRight: '2rem', lineHeight: '2rem', verticalAlign: 'middle' }}>{this.props.referenceTime ? this.props.referenceTime.format('ddd DD, HH:mm UTC') : ''}</span>
                 {this.locationSetter()}
                 {this.getLocationAsString()}
               </div>
@@ -160,7 +170,14 @@ Panel.propTypes = {
   mapId: PropTypes.number,
   dispatch: PropTypes.func,
   mapActions: PropTypes.object,
-  mapMode: PropTypes.string
+  layerActions: PropTypes.object,
+  adagucActions: PropTypes.object,
+  id: PropTypes.string,
+  mapMode: PropTypes.string,
+  referenceTime: PropTypes.object,
+  location: PropTypes.object,
+  type: PropTypes.string,
+  locations: PropTypes.array
 };
 
 export default Panel;

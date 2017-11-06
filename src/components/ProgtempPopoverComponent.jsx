@@ -111,11 +111,11 @@ export default class ProgtempPopoverComponent extends Component {
         <PopoverTitle>Reference time: <strong>{this.state.referenceTime ? this.state.referenceTime.format('ddd DD, HH:mm UTC') : '??'}</strong></PopoverTitle>
         <ProgtempComponent location={cursor ? cursor.location : null} referenceTime={this.state.referenceTime}
           selectedModel={this.state.selectedModel} time={adaStart} className='popover-content'
-          style={{ height: '600px', marginLeft: '-3.6rem', marginRight: '1.4rem' }} />
+          style={{ height: '600px', width: '450px', marginLeft: '-3.6rem', marginRight: '1.4rem' }} />
         <Row style={{ padding: '0 0 1rem 1rem' }}>
           {this.getLocationAsString(cursor)}
         </Row>
-        <Row>
+        <Row style={{ flexDirection: 'column' }} >
           <Typeahead ref={ref => { this._typeahead = ref; }}
             onChange={this.setChosenLocation} options={this.progtempLocations} labelKey='name' placeholder='Search ICAO location' submitFormOnEnter />
           <ButtonDropdown isOpen={this.state.locationDropdownOpen} toggle={() => { this.setState({ locationDropdownOpen: !this.state.locationDropdownOpen }); }}>

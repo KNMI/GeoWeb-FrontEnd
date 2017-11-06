@@ -98,7 +98,6 @@ class TafCategory extends Component {
   }
 
   saveTaf (tafDATAJSON) {
-    console.log(JSON.stringify(tafDATAJSON));
     axios({
       method: 'post',
       url: TAFS_URL + '/tafs',

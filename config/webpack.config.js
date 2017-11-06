@@ -73,7 +73,8 @@ webpackConfig.plugins = [
   ]),
   new webpack.optimize.CommonsChunkPlugin({
     name: 'commons'
-  })
+  }),
+  new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/)
 ];
 
 if (__DEV__) {

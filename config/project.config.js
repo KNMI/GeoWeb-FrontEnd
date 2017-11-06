@@ -49,7 +49,6 @@ const config = {
     'element-resize-event',
     'es6-enum',
     'ip',
-    'jquery',
     'lodash.clonedeep',
     'lodash.isempty',
     'lodash.omit',
