@@ -267,16 +267,20 @@ class TafCategory extends Component {
         const value = this.decoratePhenomenonValue(property[0], property[1], change.changeType);
         if (value !== null) {
           scheduleItems.forEach((item) => {
-            if (start.isBefore(item.end) && end.isAfter(item.start)) {
+            if (item.group === property[0] && start.isBefore(item.end) && end.isAfter(item.start)) {
               if (start.isBefore(item.start)) {
-
+                if (end.isAfter(item.end)) {
+                  item.start = end;
+                }
+              } else {
+                item.end = start;
               }
               console.log('Overlaps!');
             }
           });
           scheduleItems.push({
-            start: moment.utc(change.changeStart),
-            end: moment.utc(change.changeEnd),
+            start: start,
+            end: end,
             group: property[0],
             value: value
           });
