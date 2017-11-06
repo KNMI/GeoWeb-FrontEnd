@@ -8,7 +8,9 @@ import cloneDeep from 'lodash.clonedeep';
 import isEmpty from 'lodash.isempty';
 // import { cloneDeep, isEmpty } from 'lodash';
 import CollapseOmni from '../components/CollapseOmni';
-import SwitchButton from 'react-switch-button';
+import SwitchButton from 'react-switch-button/lib/react-switch-button.js';
+import 'react-switch-button/dist/react-switch-button.css';
+
 import { Typeahead } from 'react-bootstrap-typeahead';
 import DateTimePicker from 'react-datetime';
 import Slider from 'rc-slider';
