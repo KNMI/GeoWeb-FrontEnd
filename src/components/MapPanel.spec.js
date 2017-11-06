@@ -1,9 +1,15 @@
 import React from 'react';
 import { default as MapPanel } from './MapPanel';
-import { shallow } from 'enzyme';
+import { shallow, mount } from 'enzyme';
 import sinon from 'sinon';
 import { Row } from 'reactstrap';
 const state = {
+  adagucActions: {
+    setTimeDimension: () => null
+  },
+  layerActions: {
+    setWMJSLayers: () => null
+  },
   adagucProperties: {
     animate: false,
     sources: {},
@@ -62,19 +68,23 @@ const state = {
     panels: [
       {
         overlays: [],
-        layers: []
+        layers: [],
+        type: 'ADAGUC'
       },
       {
         overlays: [],
-        layers: []
+        layers: [],
+        type: 'PROGTEMP'
       },
       {
         overlays: [],
-        layers: []
+        layers: [],
+        type: 'TIMESERIES'
       },
       {
         overlays: [],
-        layers: []
+        layers: [],
+        type: 'ADAGUC'
       }
     ]
   }
@@ -84,14 +94,68 @@ const emptyDispatch = () => { /* intentionally left blank */ };
 const emptyActions = { /* intentionally left blank */ };
 
 describe('(Component) MapPanel', () => {
-  it('Renders a Row', () => {
+  before(() => {
+    const emptyFunc = () => null;
+    class LocalStorageMock {
+      constructor () {
+        this.store = {};
+      }
+
+      clear () {
+        this.store = {};
+      }
+
+      getItem (key) {
+        return this.store[key] || null;
+      }
+
+      setItem (key, value) {
+        this.store[key] = value.toString();
+      }
+
+      removeItem (key) {
+        delete this.store[key];
+      }
+    };
+
+    global.localStorage = new LocalStorageMock();
+
+    global.getCurrentDateIso8601 = () => {
+      return { toISO8601: emptyFunc };
+    };
+    global.WMJSLayer = sinon.stub().returns({});
     global.WMJSMap = sinon.stub().returns({
-      addListener: () => null,
-      setTimeOffset: () => null,
-      stopAnimating: () => null,
-      setActive: () => null,
-      draw: () => null
+      addLayer: emptyFunc,
+      addListener: emptyFunc,
+      destroy: emptyFunc,
+      draw: emptyFunc,
+      drawAutomatic: emptyFunc,
+      getBaseLayers: emptyFunc,
+      getDimension: emptyFunc,
+      getLatLongFromPixelCoord: emptyFunc,
+      getLayers: emptyFunc,
+      getListener: emptyFunc,
+      getPixelCoordFromLatLong: emptyFunc,
+      positionMapPinByLatLon: emptyFunc,
+      removeAllLayers: emptyFunc,
+      removeListener: emptyFunc,
+      setActive: emptyFunc,
+      setAnimationDelay: emptyFunc,
+      setBaseLayers: emptyFunc,
+      setBaseURL: emptyFunc,
+      setBBOX: emptyFunc,
+      setDimension: emptyFunc,
+      setMapModeNone: emptyFunc,
+      setMapModePan: emptyFunc,
+      setMapModeZoomBoxIn: emptyFunc,
+      setMessage: emptyFunc,
+      setProjection: emptyFunc,
+      setSize: emptyFunc,
+      setTimeOffset: emptyFunc,
+      stopAnimating: emptyFunc
     });
+  });
+  it('Renders a Row', () => {
     const _component = shallow(<MapPanel
       adagucProperties={state.adagucProperties}
       drawProperties={state.drawProperties}
@@ -100,5 +164,18 @@ describe('(Component) MapPanel', () => {
       dispatch={emptyDispatch}
       actions={emptyActions} />);
     expect(_component.type()).to.eql(Row);
+  });
+
+  it('Renders a single adaguc component', () => {
+    const _component = mount(<MapPanel
+      adagucActions={state.adagucActions}
+      adagucProperties={state.adagucProperties}
+      drawProperties={state.drawProperties}
+      mapProperties={state.mapProperties}
+      layers={state.layers}
+      layerActions={state.layerActions}
+      dispatch={emptyDispatch}
+      actions={emptyActions} />);
+    expect(_component.type()).to.eql(MapPanel);
   });
 });

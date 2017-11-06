@@ -252,7 +252,6 @@ export const createTAFJSONFromInput = (inputTaf) => {
   if (!inputTaf.metadata) inputTaf.metadata = {};
   if (!inputTaf.input) inputTaf.input = {};
 
-  // console.log('createTAFJSONFromInput', JSON.stringify(inputTaf));
   let taf = {
     forecast:{},
     metadata:{
@@ -282,7 +281,6 @@ export const createTAFJSONFromInput = (inputTaf) => {
     if (taf.forecast.clouds === 'NSC') taf.forecast.clouds = null;
   }
 
-  // console.log('CAVOK=' + taf.forecast.caVOK);
   for (let j = 0; j < inputTaf.changegroups.length; j++) {
     if (!inputTaf.changegroups[j].forecast) inputTaf.changegroups[j].forecast = {};
     if (!inputTaf.changegroups[j].input) inputTaf.changegroups[j].input = {};
@@ -308,7 +306,5 @@ export const createTAFJSONFromInput = (inputTaf) => {
     }
   }
   let newTAF = cloneObjectAndSkipNullProps(taf);
-  // console.log('newTAFWithInput', JSON.stringify(newTAF));
-  // console.log('newTAF', JSON.stringify(removeInputPropsFromTafJSON(newTAF)));
   return newTAF;
 };

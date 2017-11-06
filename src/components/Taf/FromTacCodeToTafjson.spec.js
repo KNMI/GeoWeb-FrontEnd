@@ -136,8 +136,8 @@ let tafJSONWithUserInputsAndNulls = {
     },
     {
       'changeType': 'BECMG',
-      'changeStart': '2017-10-05T03:00:00Z',
-      'changeEnd': '2017-10-05T05:00:00Z',
+      'changeStart': '2017-11-05T03:00:00Z',
+      'changeEnd': '2017-11-05T05:00:00Z',
       'forecast': {
         'clouds': [
           {
@@ -231,8 +231,8 @@ let expectedTafWithInputs = {
   'changegroups': [
     {
       'changeType': 'BECMG',
-      'changeStart': '2017-10-04T16:00:00Z',
-      'changeEnd': '2017-10-04T20:00:00Z',
+      'changeStart': '2017-11-04T16:00:00Z',
+      'changeEnd': '2017-11-04T20:00:00Z',
       'forecast': {
         'clouds': [
           {
@@ -288,8 +288,8 @@ let expectedTafWithInputs = {
     },
     {
       'changeType': 'PROB30',
-      'changeStart': '2017-10-04T16:00:00Z',
-      'changeEnd': '2017-10-04T20:00:00Z',
+      'changeStart': '2017-11-04T16:00:00Z',
+      'changeEnd': '2017-11-04T20:00:00Z',
       'forecast': {
         'clouds': [
           {
@@ -333,8 +333,8 @@ let expectedTafWithInputs = {
     },
     {
       'changeType': 'BECMG',
-      'changeStart': '2017-10-05T03:00:00Z',
-      'changeEnd': '2017-10-05T05:00:00Z',
+      'changeStart': '2017-11-05T03:00:00Z',
+      'changeEnd': '2017-11-05T05:00:00Z',
       'forecast': {
         'clouds': [
           {
@@ -417,8 +417,8 @@ let newComposedTAF = {
   'changegroups': [
     {
       'changeType': 'BECMG',
-      'changeStart': '2017-10-04T16:00:00Z',
-      'changeEnd': '2017-10-04T20:00:00Z',
+      'changeStart': '2017-11-04T16:00:00Z',
+      'changeEnd': '2017-11-04T20:00:00Z',
       'forecast': {
         'clouds': [
           {
@@ -463,8 +463,8 @@ let newComposedTAF = {
     },
     {
       'changeType': 'PROB30',
-      'changeStart': '2017-10-04T16:00:00Z',
-      'changeEnd': '2017-10-04T20:00:00Z',
+      'changeStart': '2017-11-04T16:00:00Z',
+      'changeEnd': '2017-11-04T20:00:00Z',
       'forecast': {
         'clouds': [
           {
@@ -499,8 +499,8 @@ let newComposedTAF = {
     },
     {
       'changeType': 'BECMG',
-      'changeStart': '2017-10-05T03:00:00Z',
-      'changeEnd': '2017-10-05T05:00:00Z',
+      'changeStart': '2017-11-05T03:00:00Z',
+      'changeEnd': '2017-11-05T05:00:00Z',
       'forecast': {
         'clouds': [
           {

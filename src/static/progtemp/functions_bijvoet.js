@@ -7,53 +7,53 @@ function sqr (number) {
 }
 
 function thetas_p2plot (theta_s, pres, imgx, imgy) {
-  T_PRESN   = 15000;
-  T_PRESX   = 106000;
-  T_THETAN  = 253.15;
-  T_THETAX   = 313.15;
-  T_KAPPA   = 0.2857;
-  T_KTHETA   = 332.0;
-  xfrac = SIGN(theta_s - T_KTHETA) * Math.pow(Math.abs(theta_s - T_KTHETA), T_KAPPA) - SIGN(T_THETAN - T_KTHETA) * Math.pow(Math.abs(T_THETAN - T_KTHETA), T_KAPPA);
+  const T_PRESN   = 15000;
+  const T_PRESX   = 106000;
+  const T_THETAN  = 253.15;
+  const T_THETAX   = 313.15;
+  const T_KAPPA   = 0.2857;
+  const T_KTHETA   = 332.0;
+  let xfrac = SIGN(theta_s - T_KTHETA) * Math.pow(Math.abs(theta_s - T_KTHETA), T_KAPPA) - SIGN(T_THETAN - T_KTHETA) * Math.pow(Math.abs(T_THETAN - T_KTHETA), T_KAPPA);
   xfrac /= SIGN(T_THETAX - T_KTHETA) * Math.pow(Math.abs(T_THETAX - T_KTHETA), T_KAPPA) - SIGN(T_THETAN - T_KTHETA) * Math.pow(Math.abs(T_THETAN - T_KTHETA), T_KAPPA);
-  yfrac = Math.pow(pres, T_KAPPA) - Math.pow(T_PRESN, T_KAPPA);
+  let yfrac = Math.pow(pres, T_KAPPA) - Math.pow(T_PRESN, T_KAPPA);
   yfrac /= Math.pow(T_PRESX, T_KAPPA) - Math.pow(T_PRESN, T_KAPPA);
-  x = Math.round((0.25 + 0.7 * xfrac) * imgx);
-  y = Math.round((0.05 + 0.9 * yfrac) * imgy);
+  const x = Math.round((0.25 + 0.7 * xfrac) * imgx);
+  const y = Math.round((0.05 + 0.9 * yfrac) * imgy);
   return new Array(x, y);
 }
 
 function presFromYposition (y, imgy) {
-  T_PRESN   = 15000;
-  T_PRESX   = 106000;
-  T_KAPPA   = 0.2857;
+  const T_PRESN   = 15000;
+  const T_PRESX   = 106000;
+  const T_KAPPA   = 0.2857;
   var n = (((((y / imgy) - 0.05) / 0.9) * (Math.pow(T_PRESX, T_KAPPA) - Math.pow(T_PRESN, T_KAPPA))) + Math.pow(T_PRESN, T_KAPPA));
   return (Math.pow(n, 1 / T_KAPPA));
 }
 
-function e_sat (Temp) {
-  WV_CA   = 17.56881;
-  WV_CB   = 241.8945;
-  WV_CE   = 610.7;
-  Temp  -= 273.15;
+function e_sat (celcius_Temp) {
+  const WV_CA   = 17.56881;
+  const WV_CB   = 241.8945;
+  const WV_CE   = 610.7;
+  const Temp    = celcius_Temp - 273.15;
   return WV_CE * Math.exp(WV_CA * Temp / (Temp + WV_CB));
 }
 
 function LatHeat (Temp) {
-  WV_CA   = 17.56881;
-  WV_CB   = 241.8945;
-  EPSILON = 0.622;
-  R_AIR   = 287.04;
+  const WV_CA   = 17.56881;
+  const WV_CB   = 241.8945;
+  const EPSILON = 0.622;
+  const R_AIR   = 287.04;
   return R_AIR / EPSILON * WV_CA * WV_CB * sqr(Temp / (Temp - 273.15 + WV_CB));
 }
 
 function dTempdp (pres, Temp, mode) {
-  EPSILON = 0.622;
-  HEATCP   = 1005;
-  R_AIR   = 287.04;
-  e_s = e_sat(Temp);
-  r_s = EPSILON * e_s / (pres - e_s);
-  Lv = LatHeat(Temp);
-  dTdp = 2.0 * Temp / (7.0 * pres);
+  const EPSILON = 0.622;
+  const HEATCP   = 1005;
+  const R_AIR   = 287.04;
+  const e_s = e_sat(Temp);
+  const r_s = EPSILON * e_s / (pres - e_s);
+  const Lv = LatHeat(Temp);
+  let dTdp = 2.0 * Temp / (7.0 * pres);
   if (mode == 's' || mode == 'S') {
     dTdp *= 1.0 + r_s * Lv / (R_AIR * Temp);
     dTdp /= 1.0 + r_s / (7.0 * EPSILON) + sqr(Lv / Temp) * r_s * EPSILON / (R_AIR * HEATCP);
@@ -62,18 +62,18 @@ function dTempdp (pres, Temp, mode) {
 }
 
 function TempPres (pres, pres0, Temp0, mode) {
-  pstep = 1000;
+  let pstep = 1000;
   if (pres < pres0) pstep = -pstep;
-  nstep = Math.round((pres - pres0) / pstep);
+  let nstep = Math.round((pres - pres0) / pstep);
   if (nstep < 1) nstep = 1;
   pstep = (pres - pres0) / nstep;
-  Temp_n = Temp0;
-  pres_n = pres0;
+  let Temp_n = Temp0;
+  let pres_n = pres0;
   for (var n = 0; n < nstep; n++) {
-    k1 = pstep * dTempdp(pres_n, Temp_n, mode);
-    k2 = pstep * dTempdp(pres_n + 0.5 * pstep, Temp_n + 0.5 * k1, mode);
-    k3 = pstep * dTempdp(pres_n + 0.5 * pstep, Temp_n + 0.5 * k2, mode);
-    k4 = pstep * dTempdp(pres_n + pstep, Temp_n + k3, mode);
+    const k1 = pstep * dTempdp(pres_n, Temp_n, mode);
+    const k2 = pstep * dTempdp(pres_n + 0.5 * pstep, Temp_n + 0.5 * k1, mode);
+    const k3 = pstep * dTempdp(pres_n + 0.5 * pstep, Temp_n + 0.5 * k2, mode);
+    const k4 = pstep * dTempdp(pres_n + pstep, Temp_n + k3, mode);
     Temp_n += k1 / 6.0 + k2 / 3.0 + k3 / 3.0 + k4 / 6.0;
     pres_n += pstep;
   }
@@ -85,36 +85,36 @@ function TempPresDry (pres, pres0, Temp0) {
 }
 
 function mixr2Tdew (mixr, pres) {
-  WV_CA   = 17.56881;
-  WV_CB   = 241.8945;
-  WV_CE   = 610.7;
-  EPSILON = 0.622;
+  const WV_CA   = 17.56881;
+  const WV_CB   = 241.8945;
+  const WV_CE   = 610.7;
+  const EPSILON = 0.622;
   if (mixr < 1e-6) mixr = 1e-6;
-  e_vap = pres * mixr / (EPSILON + mixr);
+  const e_vap = pres * mixr / (EPSILON + mixr);
   return WV_CB / (WV_CA / Math.log(e_vap / WV_CE) - 1.0) + 273.15;
 }
 
 function plotDryAdiabats (ctx, dryadiabats, imgx, imgy) {
-  T_NPSTEP   = 50;
-  T_PRESR   = 100000;
-  T_PREST   = 1000;
-  T_PRESN   = 15000;
-  T_PRESX   = 106000;
+  const T_NPSTEP   = 50;
+  const T_PRESR   = 100000;
+  const T_PREST   = 1000;
+  const T_PRESN   = 15000;
+  const T_PRESX   = 106000;
   ctx.beginPath();
-  var obj = [];
-  for (var i = 0; i < dryadiabats.length; i++) {
-    T0dry = dryadiabats[i] + 273.15;
+  const obj = [];
+  for (let i = 0; i < dryadiabats.length; i++) {
+    let T0dry = dryadiabats[i] + 273.15;
     T0dry = TempPres(T_PREST, T_PRESR, T0dry, 's');
-    pres = T_PRESN;
-    theta = TempPresDry(pres, T_PREST, T0dry);
+    let pres = T_PRESN;
+    let theta = TempPresDry(pres, T_PREST, T0dry);
     theta = TempPres(T_PRESR, pres, theta, 's');
-    coords1 = thetas_p2plot(theta, pres, imgx, imgy);
+    const coords1 = thetas_p2plot(theta, pres, imgx, imgy);
     ctx.moveTo(coords1[0], coords1[1]);
-    for (var n = 1; n < T_NPSTEP; n++) {
+    for (let n = 1; n < T_NPSTEP; n++) {
       pres = T_PRESN + n * (T_PRESX - T_PRESN) / (T_NPSTEP - 1);
       theta = TempPresDry(pres, T_PREST, T0dry);
       theta = TempPres(T_PRESR, pres, theta, 's');
-      coords2 = thetas_p2plot(theta, pres, imgx, imgy);
+      const coords2 = thetas_p2plot(theta, pres, imgx, imgy);
       ctx.lineTo(coords2[0], coords2[1]);
       ctx.moveTo(coords2[0], coords2[1]);
     }
@@ -125,25 +125,25 @@ function plotDryAdiabats (ctx, dryadiabats, imgx, imgy) {
 }
 
 function plotIsotherms (ctx, isotherms, imgx, imgy) {
-  T_NPSTEP   = 50;
-  T_PRESR   = 100000;
-  T_PREST   = 1000;
-  T_PRESN   = 15000;
-  T_PRESX   = 106000;
-  boundary_left_coords = thetas_p2plot(253.15, 106000, imgx, imgy);
-  boundary_right_coords = thetas_p2plot(313.15, 106000, imgx, imgy);
+  const T_NPSTEP   = 50;
+  const T_PRESR   = 100000;
+  const T_PREST   = 1000;
+  const T_PRESN   = 15000;
+  const T_PRESX   = 106000;
+  const boundary_left_coords = thetas_p2plot(253.15, 106000, imgx, imgy);
+  const boundary_right_coords = thetas_p2plot(313.15, 106000, imgx, imgy);
   ctx.beginPath();
   ctx.lineWidth = 1;
   for (var m = 0; m < isotherms.length; m++) {
-    pres = T_PRESN;
-    Tiso = 2 * isotherms[m] + 273.15;
-    theta = TempPres(T_PRESR, pres, Tiso, 's');
-    coords1 = thetas_p2plot(theta, pres, imgx, imgy);
+    let pres = T_PRESN;
+    const Tiso = 2 * isotherms[m] + 273.15;
+    let theta = TempPres(T_PRESR, pres, Tiso, 's');
+    const coords1 = thetas_p2plot(theta, pres, imgx, imgy);
     ctx.moveTo(coords1[0], coords1[1]);
     for (var n = 1; n < T_NPSTEP; n++) {
       pres = T_PRESN + n * (T_PRESX - T_PRESN) / (T_NPSTEP - 1);
       theta = TempPres(T_PRESR, pres, Tiso, 's');
-      coords2 = thetas_p2plot(theta, pres, imgx, imgy);
+      const coords2 = thetas_p2plot(theta, pres, imgx, imgy);
       if (Math.abs(Tiso - 273.15) < 0.5) {
         // afsluiten huidige lijnen
         ctx.strokeStyle = 'rgb(0,255,0)';
@@ -177,36 +177,36 @@ function plotIsotherms (ctx, isotherms, imgx, imgy) {
 function mixrFromTd_Pres (TdSfc, pres) {
   // expects Td in K, P in Pa
   // result in g/kg
-  es = e_sat(TdSfc);
-  mixr = (0.622 * es) / (pres - es);
+  const es = e_sat(TdSfc);
+  const mixr = (0.622 * es) / (pres - es);
   return 1000 * mixr;
 }
 
 function plotIsomixR (ctx, isomixr, imgx, imgy) {
-  T_NPSTEP   = 50;
-  T_PRESR   = 100000;
-  T_PREST   = 1000;
-  T_PRESN   = 15000;
-  T_PRESX   = 106000;
-  boundary_left_coords = thetas_p2plot(253.15, 106000, imgx, imgy);
-  boundary_right_coords = thetas_p2plot(313.15, 106000, imgx, imgy);
+  const T_NPSTEP   = 50;
+  const T_PRESR   = 100000;
+  const T_PREST   = 1000;
+  const T_PRESN   = 15000;
+  const T_PRESX   = 106000;
+  const boundary_left_coords = thetas_p2plot(253.15, 106000, imgx, imgy);
+  const boundary_right_coords = thetas_p2plot(313.15, 106000, imgx, imgy);
   ctx.beginPath();
   if (!ctx.setLineDash) { ctx.setLineDash = function () {}; } // als browser geen lineDash ondersteuning heeft, worden ze solid, maar zonder error
   if (!ctx.mozDash) { ctx.mozDash = function () {}; }
   ctx.setLineDash([5]);
   ctx.mozDash = [5];
   for (var m = 0; m < isomixr.length; m++) {
-    pres = T_PRESN;
-    mixr = isomixr[m] * 1e-3;
-    theta = mixr2Tdew(mixr, pres);
+    let pres = T_PRESN;
+    const mixr = isomixr[m] * 1e-3;
+    let theta = mixr2Tdew(mixr, pres);
     theta = TempPres(T_PRESR, pres, theta, 's');
-    coords1 = thetas_p2plot(theta, pres, imgx, imgy);
+    const coords1 = thetas_p2plot(theta, pres, imgx, imgy);
     ctx.moveTo(coords1[0], coords1[1]);
     for (var n = 1; n < T_NPSTEP; n++) {
       pres = T_PRESN + n * (T_PRESX - T_PRESN) / (T_NPSTEP - 1);
       theta = mixr2Tdew(mixr, pres);
       theta = TempPres(T_PRESR, pres, theta, 's');
-      coords2 = thetas_p2plot(theta, pres, imgx, imgy);
+      const coords2 = thetas_p2plot(theta, pres, imgx, imgy);
       ctx.lineTo(coords2[0], coords2[1]);
       ctx.moveTo(coords2[0], coords2[1]);
       coords1[0] = coords2[0];
@@ -221,13 +221,13 @@ function plotIsomixR (ctx, isomixr, imgx, imgy) {
 }
 
 function plotWetadiabats (ctx, wetadiabats, imgx, imgy) {
-  T_PRESN = 15000;
-  T_PRESX = 106000;
+  const T_PRESN = 15000;
+  const T_PRESX = 106000;
   ctx.beginPath();
   for (var m = 0; m < wetadiabats.length; m++) {
-    theta = wetadiabats[m] + 273.15;
-    coords1 = thetas_p2plot(theta, T_PRESN, imgx, imgy);
-    coords2 = thetas_p2plot(theta, T_PRESX, imgx, imgy);
+    const theta = wetadiabats[m] + 273.15;
+    const coords1 = thetas_p2plot(theta, T_PRESN, imgx, imgy);
+    const coords2 = thetas_p2plot(theta, T_PRESX, imgx, imgy);
     ctx.moveTo(coords1[0], coords1[1]);
     ctx.lineTo(coords2[0], coords2[1]);
   }
@@ -239,9 +239,9 @@ function plotWetadiabats (ctx, wetadiabats, imgx, imgy) {
 function plotIsobars (ctx, isobars, T_THETAn, T_THETAx, imgx, imgy) {
   ctx.beginPath();
   for (var i = 0; i < isobars.length; i++) {
-    pres = isobars[i] * 100;
-    coords1 = thetas_p2plot(T_THETAn, pres, imgx, imgy);
-    coords2 = thetas_p2plot(T_THETAx, pres, imgx, imgy);
+    const pres = isobars[i] * 100;
+    const coords1 = thetas_p2plot(T_THETAn, pres, imgx, imgy);
+    const coords2 = thetas_p2plot(T_THETAx, pres, imgx, imgy);
     ctx.moveTo(coords1[0], coords1[1]);
     ctx.lineTo(coords2[0], coords2[1]);
   }
@@ -252,14 +252,14 @@ function plotIsobars (ctx, isobars, T_THETAn, T_THETAx, imgx, imgy) {
 
 function plotTTd (ctx, PSounding, TSounding, color, lineWidth, imgx, imgy) {
   if (!(PSounding && TSounding)) return;
-  T_PRESR   = 100000;
+  const T_PRESR   = 100000;
   ctx.beginPath();
-  theta = TempPres(T_PRESR, PSounding[0], TSounding[0], 's');
-  coords1 = thetas_p2plot(theta, PSounding[0], imgx, imgy);
+  let theta = TempPres(T_PRESR, PSounding[0], TSounding[0], 's');
+  const coords1 = thetas_p2plot(theta, PSounding[0], imgx, imgy);
   ctx.moveTo(coords1[0], coords1[1]);
   for (var n = 1; n < TSounding.length; n++) {
     theta = TempPres(T_PRESR, PSounding[n], TSounding[n], 's');
-    coords2 = thetas_p2plot(theta, PSounding[n], imgx, imgy);
+    const coords2 = thetas_p2plot(theta, PSounding[n], imgx, imgy);
     ctx.lineTo(coords2[0], coords2[1]);
     ctx.moveTo(coords2[0], coords2[1]);
   }
@@ -267,21 +267,21 @@ function plotTTd (ctx, PSounding, TSounding, color, lineWidth, imgx, imgy) {
   ctx.lineWidth = lineWidth;
   ctx.stroke();
   ctx.closePath();
-  boundary_left_top_coords = thetas_p2plot(253.15, 15000, imgx, imgy);
-  boundary_right_top_coords = thetas_p2plot(313.15, 15000, imgx, imgy);
+  const boundary_left_top_coords = thetas_p2plot(253.15, 15000, imgx, imgy);
+  const boundary_right_top_coords = thetas_p2plot(313.15, 15000, imgx, imgy);
   ctx.clearRect(boundary_left_top_coords[0], 0, boundary_right_top_coords[0], boundary_left_top_coords[1]);
 }
 
-function calc_Tw (T, Td, p) {
-  T = T - 273.15;
-  Td = Td - 273.15;
-  p = p / 100;
+function calc_Tw (T_c, Td_c, pp) {
+  const T = T_c - 273.15;
+  const Td = Td_c - 273.15;
+  const p = pp / 100;
   // p=1013.25;
-  left_eq = 6.112 * Math.exp((17.67 * Td) / (Td + 243.5));
-  right_eq = -9999;
-  wet_bulb = 0;
-  for (Tw = Td; Tw <= T; Tw = Tw + 0.01)  {
-    right_eq_tmp = 6.112 * Math.exp((17.67 * Tw) / (Tw + 243.5)) - (p * (1005 / (0.622 * 2.5 * 1000000)) * (T - Tw));
+  const left_eq = 6.112 * Math.exp((17.67 * Td) / (Td + 243.5));
+  let right_eq = -9999;
+  let wet_bulb = 0;
+  for (let Tw = Td; Tw <= T; Tw = Tw + 0.01)  {
+    const right_eq_tmp = 6.112 * Math.exp((17.67 * Tw) / (Tw + 243.5)) - (p * (1005 / (0.622 * 2.5 * 1000000)) * (T - Tw));
     if (Math.abs(left_eq - right_eq_tmp) < Math.abs(left_eq - right_eq))    {
       right_eq  =  right_eq_tmp;
     }    else    {
@@ -298,10 +298,10 @@ function drawRotatedText (ctx, canvasWidth, canvasHeight) {
   var TempArr   = new Array(-80, -70, -60, -50, -40, -30, -20, -10, 0, 10, 20, 30);
   var hPaArr     = new Array(165, 195, 230, 275, 320, 375, 420, 475, 535, 620, 695, 885);
   var Theta_Arr   = new Array(17, 17, 17, 17, 17, 17.5, 19, 21, 24, 27.2, 32, 34.3);
-  ctx.font = '10pt verdana';
+  ctx.font = '10pt -apple-system,system-ui,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif';
   for (var n = 0; n < TempArr.length; n++) {
     ctx.save();
-    coord  =  thetas_p2plot((Theta_Arr[n] + 273.15), (hPaArr[n] * 100), canvasWidth, canvasHeight);
+    const coord  =  thetas_p2plot((Theta_Arr[n] + 273.15), (hPaArr[n] * 100), canvasWidth, canvasHeight);
     ctx.translate(coord[0], coord[1]);
     ctx.rotate((Math.PI / 180) * -55);
     ctx.fillText(TempArr[n], 0, 0);
@@ -311,10 +311,10 @@ function drawRotatedText (ctx, canvasWidth, canvasHeight) {
   var TempArr   = new Array(-20, -15, -10, -5, 0, 5, 10, 15, 20, 25, 30, 35, 40);
   var hPaArr     = 148;
   var Theta_Arr   = new Array(-23, -18, -12.5, -6.5, -0.7, 4.25, 9, 14, 19, 24, 29.1, 34.4, 39.4);
-  ctx.font = '6pt verdana';
+  ctx.font = '6pt -apple-system,system-ui,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif';
   for (var n = 0; n < TempArr.length; n++) {
     ctx.save();
-    coord  =  thetas_p2plot((Theta_Arr[n] + 273.15), (hPaArr * 100), canvasWidth, canvasHeight);
+    const coord  =  thetas_p2plot((Theta_Arr[n] + 273.15), (hPaArr * 100), canvasWidth, canvasHeight);
     ctx.translate(coord[0], coord[1]);
     ctx.fillText(TempArr[n], 0, 0);
     ctx.restore();
@@ -323,10 +323,10 @@ function drawRotatedText (ctx, canvasWidth, canvasHeight) {
   var isomixr = new Array(2, 4, 7, 10, 15, 20, 30);
   var hPaArr     = 1080;
   var Theta_Arr   = new Array(-12, -2, 6, 11, 18, 22.7, 29.8);
-  ctx.font = '6pt verdana';
+  ctx.font = '6pt -apple-system,system-ui,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif';
   for (var n = 0; n < TempArr.length; n++) {
     ctx.save();
-    coord  =  thetas_p2plot((Theta_Arr[n] + 273.15), (hPaArr * 100), canvasWidth, canvasHeight);
+    const coord  =  thetas_p2plot((Theta_Arr[n] + 273.15), (hPaArr * 100), canvasWidth, canvasHeight);
     ctx.translate(coord[0], coord[1]);
     ctx.fillText(isomixr[n], 0, 0);
     ctx.restore();
@@ -334,29 +334,29 @@ function drawRotatedText (ctx, canvasWidth, canvasHeight) {
   // Tekenen getallen isobaren links
   var hPaArr     = new Array(1000, 925, 850, 700, 600, 500, 400, 300, 200);
   var Theta_Arr   = -26.5;
-  ctx.font = '6pt verdana';
+  ctx.font = '6pt -apple-system,system-ui,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif';
   for (var n = 0; n < hPaArr.length; n++) {
     ctx.save();
-    coord  =  thetas_p2plot((Theta_Arr + 273.15), (400 + (hPaArr[n] * 100)), canvasWidth, canvasHeight);
+    const coord  =  thetas_p2plot((Theta_Arr + 273.15), (400 + (hPaArr[n] * 100)), canvasWidth, canvasHeight);
     ctx.translate(coord[0], coord[1]);
     ctx.fillText(hPaArr[n], 0, 0);
     ctx.restore();
   }
-  boundary_left_bottom_coords = thetas_p2plot(253.15, 105000, canvasWidth, canvasHeight);
-  boundary_right_top_coords = thetas_p2plot(313.15, 15000, canvasWidth, canvasHeight);
+  const boundary_left_bottom_coords = thetas_p2plot(253.15, 105000, canvasWidth, canvasHeight);
+  const boundary_right_top_coords = thetas_p2plot(313.15, 15000, canvasWidth, canvasHeight);
   ctx.save();
   ctx.translate((boundary_left_bottom_coords[0] - 18), boundary_left_bottom_coords[1] - 5);
-  ctx.font = '6pt verdana';
+  ctx.font = '6pt -apple-system,system-ui,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif';
   ctx.fillText('hPa', 0, 0);
   ctx.restore();
   ctx.save();
   ctx.translate((boundary_left_bottom_coords[0]), boundary_left_bottom_coords[1] + 10);
-  ctx.font = '6pt verdana';
+  ctx.font = '6pt -apple-system,system-ui,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif';
   ctx.fillText('g/kg', 0, 0);
   ctx.restore();
   ctx.save();
   ctx.translate((boundary_right_top_coords[0] + 6), boundary_right_top_coords[1] - 4);
-  ctx.font = '6pt verdana';
+  ctx.font = '6pt -apple-system,system-ui,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif';
   ctx.fillText('°C', 0, 0);
   ctx.restore();
 }
@@ -398,7 +398,7 @@ function plotLineaal (ctx, PSounding, colorft, colorkm, imgx, imgy) {
 
   ctx.save();
   ctx.translate((coords_bottom[0] + 4), coords_bottom[1] + 2);
-  ctx.font = '6pt verdana';
+  ctx.font = '6pt -apple-system,system-ui,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif';
   ctx.fillText('0', 0, 0);
   ctx.restore();
 
@@ -444,7 +444,7 @@ function plotLineaal (ctx, PSounding, colorft, colorkm, imgx, imgy) {
       ctx.closePath();
       ctx.save();
       ctx.translate((coords[0] + 5), coords[1] + 2);
-      ctx.font = '6pt verdana';
+      ctx.font = '6pt -apple-system,system-ui,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif';
       ctx.fillText((m / 100), 0, 0);
       ctx.restore();
     }
@@ -464,7 +464,7 @@ function plotLineaal (ctx, PSounding, colorft, colorkm, imgx, imgy) {
       if ((m / 1000) != 6 && (m / 1000) != 3) { ctx.translate((coords[0] + 10), coords[1] + 2); }
       if ((m / 1000) == 6) { ctx.translate((coords[0] + 10), coords[1] + 5); }
       if ((m / 1000) == 3) { ctx.translate((coords[0] + 10), coords[1] + 6); }
-      ctx.font = '6pt verdana';
+      ctx.font = '6pt -apple-system,system-ui,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif';
       ctx.fillStyle = colorkm;
       ctx.fillText((m / 1000), 0, 0);
       ctx.restore();
@@ -473,13 +473,13 @@ function plotLineaal (ctx, PSounding, colorft, colorkm, imgx, imgy) {
 
   ctx.save();
   ctx.translate((coords_bottom[0] - 2), coords_bottom[1] + 12);
-  ctx.font = '7pt verdana';
+  ctx.font = '7pt -apple-system,system-ui,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif';
   ctx.fillStyle = colorft;
   ctx.fillText('FL/ft', 0, 0);
   ctx.restore();
   ctx.save();
   ctx.translate((coords_bottom[0] - 2), coords_bottom[1] + 22);
-  ctx.font = '7pt verdana';
+  ctx.font = '7pt -apple-system,system-ui,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif';
   ctx.fillStyle = colorkm;
   ctx.fillText('km', 0, 0);
   ctx.restore();
@@ -649,7 +649,7 @@ function plotHodo (ctx, canvasWidth, canvasHeight, PSounding, TSounding, TdSound
   coords_top_right = thetas_p2plot(T_THETAX, T_PRESN, canvasWidth, canvasHeight);     //, &i1,&j1
   var i1  = coords_top_right[0];
   var j1  = coords_top_right[1];
-  coords3 = thetas_p2plot((15 + 273.15), (300 * 100), canvasWidth, canvasHeight);    //, &k0,&l0
+  coords3 = thetas_p2plot((10 + 273.15), (300 * 100), canvasWidth, canvasHeight);    //, &k0,&l0
   var k0  = coords3[0];
   var l0  = coords3[1];
   ctx.beginPath();
@@ -678,12 +678,12 @@ function plotHodo (ctx, canvasWidth, canvasHeight, PSounding, TSounding, TdSound
   ctx.lineWidth = 1;
   for (var c = 10; c <= 100; c += 10) {
     if (c % 50 == 0) {
-      ctx.strokeStyle = '#4185f3';
+      ctx.strokeStyle = 'rgba(65, 133, 243, 0.5)'; //'#4185f3';
     }
     if (c % 50 != 0) {
-      ctx.strokeStyle = '#A0C2F9';
+      ctx.strokeStyle = 'rgba(160, 194, 249, 0.5)'; //'#A0C2F9';
     }
-    r = (c / 100) * ((k0 - i0) / 2);
+    r = (c / 100) * Math.min((l0 - j1) / 2, ((k0 - i0) / 2));
     ctx.beginPath();
     for (var a = 0; a < 360; a += 1) {
       x1 = i0 + (k0 - i0) / 2 + r * Math.cos(DEG2RAD * a);
@@ -702,7 +702,7 @@ function plotHodo (ctx, canvasWidth, canvasHeight, PSounding, TSounding, TdSound
   y1 = j1 + (l0 - j1) / 2; // for later use
   x2 = x1;
   y2 = y1;
-  const scaleFactor = 100.0 * (2.0 / (k0 - i0));
+  const scaleFactor = 100.0 * (2.0 / Math.min(l0 - j1, k0 - i0));
   // Plot Winds in hodograph
   j1 = -1;
   for (var i = PSounding.length; i >= 0; i--) {
@@ -764,7 +764,7 @@ function plotHodo (ctx, canvasWidth, canvasHeight, PSounding, TSounding, TdSound
     ctx.closePath();
     ctx.save();
     ctx.translate(i0 + 10, l0 - (1 + (8 * i)));
-    ctx.font = '6pt verdana';
+    ctx.font = '6pt -apple-system,system-ui,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif';
     ctx.fillText(lgdtext, 0, 0);
     ctx.restore();
   }
@@ -1308,7 +1308,7 @@ function determineCCL (canvas, PSounding, TSounding, TdSounding, imgx, imgy) {
   ctx.closePath();
   ctx.save();
   ctx.translate(coords_left_bottom[0]+10,coordsCCL[1]+3);
-  ctx.font = "7pt verdana";
+  ctx.font = "7pt -apple-system,system-ui,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif";
   ctx.fillText('CCL', 0, 0);
   ctx.restore();
 
@@ -1401,3 +1401,11 @@ latHirl['NL049'] = '51.11'; lonHirl['NL049'] = '02.70'; nameHirl['NL049'] = 'Oos
 latHirl['NL050'] = '50.72'; lonHirl['NL050'] = '4.82'; nameHirl['NL050'] = 'Beauvechain EBBE (BE)';
 latHirl['NL051'] = '50.45'; lonHirl['NL051'] = '6.16'; nameHirl['NL051'] = 'Elsenborn EBLB (BE)';
 // Details Uurlijkse Hirlam stations ---> end <---
+
+module.exports = {
+  drawProgtempBg,
+  drawProgtemp,
+  plotHodo,
+  calc_Tw,
+  calc_Tv
+}

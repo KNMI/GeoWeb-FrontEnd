@@ -21,7 +21,6 @@ describe('(Container) Taf/TafTable.jsx', () => {
       editable
       onFocusOut={() => {}} />
     );
-    console.log(_component);
     expect(_component.type()).to.eql(TafTable);
   });
 });

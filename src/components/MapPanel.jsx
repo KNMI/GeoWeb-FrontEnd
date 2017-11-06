@@ -13,7 +13,7 @@ import { ReadLocations } from '../utils/admin';
 export class SinglePanel extends PureComponent {
   constructor () {
     super();
-    this.renderMyStuff = this.renderMyStuff.bind(this);
+    this.renderPanelContent = this.renderPanelContent.bind(this);
     this.state = {
       model: 'HARMONIE',
       isOpen: false
@@ -37,21 +37,34 @@ export class SinglePanel extends PureComponent {
   }
 
   componentDidUpdate () {
+    const getNumPanels = (name) => {
+      let numPanels = 0;
+      if (/quad/.test(name)) {
+        numPanels = 4;
+      } else if (/triple/.test(name)) {
+        numPanels = 3;
+      } else if (/dual/.test(name)) {
+        numPanels = 2;
+      } else {
+        numPanels = 1;
+      }
+      return numPanels;
+    };
+
     const { layers, mapProperties, dispatch, mapActions } = this.props;
     const { activeMapId } = mapProperties;
     const { panels } = layers;
-    if (panels[activeMapId].type !== 'ADAGUC') {
-      panels.map((panel, i) => {
-        if (panel.type === 'ADAGUC') {
-          dispatch(mapActions.setActivePanel(i));
-          return;
-        };
-      });
+
+    const numPanels = getNumPanels(mapProperties.layout);
+    // Get all visibile panels that are currently adaguc with their id in the original array
+    const adagucPanels = (panels.map((panel, index) => { return { panel, index }; }).slice(0, numPanels).filter((p) => p.panel.type === 'ADAGUC'));
+    if (adagucPanels.length > 0 && panels[activeMapId].type !== 'ADAGUC') {
+      dispatch(mapActions.setActivePanel(adagucPanels[0].index));
     }
   }
 
-  renderMyStuff (type) {
-    const { title, mapProperties, dispatch, mapActions, mapId, drawProperties, layers, adagucProperties, layerActions, adagucActions } = this.props;
+  renderPanelContent (type) {
+    const { mapProperties, dispatch, mapId, drawProperties, layers, adagucProperties } = this.props;
     const { activeMapId } = mapProperties;
     const { cursor } = this.props.adagucProperties;
     const adaStart = moment.utc(this.props.adagucProperties.timeDimension).startOf('hour');
@@ -71,14 +84,14 @@ export class SinglePanel extends PureComponent {
   }
 
   render () {
-    const { title, mapProperties, dispatch, mapActions, mapId, drawProperties, layers, adagucProperties, layerActions, adagucActions } = this.props;
+    const { title, mapProperties, dispatch, mapActions, mapId, layers, layerActions, adagucActions } = this.props;
     const { activeMapId } = mapProperties;
     const type = layers.panels[mapId].type;
     const { cursor } = this.props.adagucProperties;
-    const adaStart = moment.utc(this.props.adagucProperties.timeDimension).startOf('hour');
-    return (<Panel adagucActions={adagucActions} locations={this.progtempLocations} location={cursor ? cursor.location : null} dispatch={dispatch} layerActions={layerActions} type={type} mapActions={mapActions}
-      title={title} mapMode={mapProperties.mapMode} mapId={mapId} className={mapId === activeMapId && type === 'ADAGUC' ? 'activePanel' : ''} referenceTime={this.state.referenceTime}>
-      {this.renderMyStuff(type)}
+    return (<Panel adagucActions={adagucActions} locations={this.progtempLocations} location={cursor ? cursor.location : null} dispatch={dispatch}
+      layerActions={layerActions} type={type} mapActions={mapActions} title={title} mapMode={mapProperties.mapMode} mapId={mapId}
+      className={mapId === activeMapId && type === 'ADAGUC' ? 'activePanel' : ''} referenceTime={this.state.referenceTime}>
+      {this.renderPanelContent(type)}
     </Panel>);
   }
 }

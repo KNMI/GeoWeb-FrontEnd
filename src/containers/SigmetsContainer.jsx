@@ -115,7 +115,6 @@ class SigmetsContainer extends Component {
   }
 
   toggleCategory (category) {
-    console.log('toggleCategory');
     const newIsOpenCategory = cloneDeep(this.state.isOpenCategory);
     newIsOpenCategory[category] = !newIsOpenCategory[category];
     this.setState({ isOpenCategory: newIsOpenCategory });

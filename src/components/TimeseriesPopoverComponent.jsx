@@ -99,7 +99,6 @@ export default class ProgtempPopoverComponent extends Component {
 
   /* istanbul ignore next */
   render () {
-    console.log(this.state);
     const { cursor } = this.props.adagucProperties;
     const adaStart = moment.utc(this.props.adagucProperties.timeDimension).startOf('hour');
     if (!this.state.referenceTime) {

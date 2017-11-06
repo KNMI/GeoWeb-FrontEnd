@@ -38,22 +38,18 @@ import SidebarContainer from '../containers/Management/SidebarContainer';
 
 const mapStateToHeaderProps = state => ({
   title: 'header',
-  user: { ...state.userProperties },
-  layout: state.mapProperties.layout,
-  mapProperties: state.mapProperties,
-  layers: state.layers,
-  userActions
+  user: state.userProperties
 });
 const mapDispatchToHeaderProps = function (dispatch) {
   return ({
     dispatch,
     mapActions,
-    adagucActions
+    adagucActions,
+    userActions
   });
 };
 const mapStateToSidebarProps = state => ({
-  recentTriggers: state.recentTriggers,
-  adagucProperties: state.adagucProperties
+  recentTriggers: state.recentTriggers
 });
 
 const mapStateToRightSideBarProps = state => ({
@@ -118,7 +114,7 @@ export const createRoutes = (store) => {
   const layerManager = React.createElement(connect(mapStateToLayerManagerProps, mapDispatchToLayerManagerProps)(LayerManagerPanel));
   const smallLayerManager = React.createElement(connect(mapStateToLayerManagerProps, mapDispatchToLayerManagerProps)(SmallLayerManagerPanel));
   const products = React.createElement(connect(mapStateToLayerManagerProps, mapDispatchToLayerManagerProps)(ProductsContainer));
-  const sigmet = React.createElement(connect(mapStateToLayerManagerProps, mapDispatchToSigmetProps)(SigmetsContainer));
+  const sigmet = React.createElement(connect((state) => ({ drawProperties: state.drawProperties }), mapDispatchToSigmetProps)(SigmetsContainer));
   const taf = React.createElement(connect(mapStateToLayerManagerProps, mapDispatchToLayerManagerProps)(TafsContainer));
   const trigger = React.createElement(connect(mapStateToLayerManagerProps, mapDispatchToLayerManagerProps)(TriggersContainer));
   const manageLeft = React.createElement(SidebarContainer);

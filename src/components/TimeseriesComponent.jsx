@@ -265,7 +265,6 @@ INFO_FORMAT=application/json&time=*&DIM_reference_time=` + refTimeStr + `&x=` + 
   /* istanbul ignore next */
   render () {
     const { location, time, className, style, width, height } = this.props;
-    console.log(this.props, this.state);
     return (
       <div id={this.props.id} className={className} style={{ ...style, overflowY: 'hidden', minWidth: '400px', minHeight: '500px', height: '100%', maxHeight: '100%' }}>
         {this.state.timeData.length > 0

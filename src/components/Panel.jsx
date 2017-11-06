@@ -68,7 +68,7 @@ class Panel extends PureComponent {
     const panelOpts = ['TIMESERIES', 'PROGTEMP'];
     if (panelOpts.some((t) => t === this.props.type)) {
       return <div style={{ marginRight: '0.25rem', maxWidth: '13rem' }}>
-        <Typeahead onClick={() => this.clearTypeAhead()} onFocus={() => this.clearTypeAhead()} bsSize='sm' ref={ref => { this._typeahead = ref; }} onChange={this.setChosenLocation} onClick={this.clearTypeAhead}
+        <Typeahead onClick={this.clearTypeAhead} onFocus={this.clearTypeAhead} bsSize='sm' ref={ref => { this._typeahead = ref; }} onChange={this.setChosenLocation} onClick={this.clearTypeAhead}
           options={this.props.locations || []} labelKey='name' placeholder='Select ICAO location&hellip;' submitFormOnEnter />
       </div>;
     }
