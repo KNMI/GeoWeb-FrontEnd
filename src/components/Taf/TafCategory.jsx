@@ -10,6 +10,8 @@ import TafTable from './TafTable';
 import { TAFS_URL } from '../../constants/backend';
 import axios from 'axios';
 
+const TMP = '_tmp';
+
 const CHANGE_TYPES = Enum(
   'FM', // from - instant, persisting change
   'BECMG', // becoming - gradual / fluctuating change, after which the change is persistent
@@ -216,14 +218,20 @@ class TafCategory extends Component {
   }
 
   /**
-   * Comparator: Compares entries by phenomenon type, in ascending order
-   * @param {array} entryA An entry with a string as first element
-   * @param {array} entryB Another entry with a string as first element
+   * Comparator: Compares series by phenomenon type, in ascending order
+   * @param {object} seriesA An series with a string as label property
+   * @param {object} seriesB Another series with a string as label property
    * @return {number} The order of the entries
    */
-  byPhenomenonType (entryA, entryB) {
-    const typeAindex = PHENOMENON_TYPES_ORDER.indexOf(this.getPhenomenonType(entryA[0]));
-    const typeBindex = PHENOMENON_TYPES_ORDER.indexOf(this.getPhenomenonType(entryB[0]));
+  byPhenomenonType (seriesA, seriesB) {
+    let labelA = seriesA.label;
+    const tmpIndexA = labelA.indexOf(TMP);
+    labelA = labelA.substring(0, tmpIndexA !== -1 ? tmpIndexA : labelA.length);
+    let labelB = seriesB.label;
+    const tmpIndexB = labelB.indexOf(TMP);
+    labelB = labelB.substring(0, tmpIndexB !== -1 ? tmpIndexB : labelB.length);
+    const typeAindex = PHENOMENON_TYPES_ORDER.indexOf(this.getPhenomenonType(labelA));
+    const typeBindex = PHENOMENON_TYPES_ORDER.indexOf(this.getPhenomenonType(labelB));
     return typeBindex < typeAindex
       ? 1
       : typeBindex > typeAindex
@@ -413,11 +421,12 @@ class TafCategory extends Component {
     const scheduleSeries = [];
     const scopeStart = moment.utc(tafDataAsJson.metadata.validityStart);
     const scopeEnd = moment.utc(tafDataAsJson.metadata.validityEnd);
-    Object.entries(tafDataAsJson.forecast).sort(this.byPhenomenonType).map((entry) => {
+    Object.entries(tafDataAsJson.forecast).map((entry) => {
       const value = this.decoratePhenomenonValue(entry[0], entry[1], null);
       if (value !== null) {
         scheduleSeries.push({
           label: entry[0],
+          isLabelVisible: true,
           ranges: [ {
             start: scopeStart,
             end: scopeEnd,
@@ -441,7 +450,9 @@ class TafCategory extends Component {
       Object.entries(change.forecast).map((entry) => {
         const value = this.decoratePhenomenonValue(entry[0], entry[1], change.changeType);
         if (value !== null) {
-          let seriesIndex = scheduleSeries.findIndex(serie => serie.label === entry[0]);
+          const labelSuffix = (changeType !== CHANGE_TYPES.FM && changeType !== CHANGE_TYPES.BECMG) ? TMP : '';
+          const label = entry[0] + labelSuffix;
+          let seriesIndex = scheduleSeries.findIndex(serie => serie.label === label);
           if (seriesIndex !== -1) {
             // for persisting changes, correct overlapping
             if (changeType === CHANGE_TYPES.FM || changeType === CHANGE_TYPES.BECMG) {
@@ -469,15 +480,15 @@ class TafCategory extends Component {
               value: value
             });
           } else {
-            scheduleSeries.push({
-              label: entry[0],
+            seriesIndex = scheduleSeries.push({
+              label: label,
+              isLabelVisible: labelSuffix.length === 0,
               ranges: [ {
                 start: start,
                 end: end,
                 value: value
               } ]
-            });
-            seriesIndex = 0;
+            }) - 1;
           }
           if (changeType === CHANGE_TYPES.BECMG) {
             scheduleSeries[seriesIndex].ranges.push({
@@ -489,6 +500,7 @@ class TafCategory extends Component {
         }
       });
     });
+    scheduleSeries.sort(this.byPhenomenonType);
     console.log('scheduleSeries', scheduleSeries);
     return scheduleSeries;
   }
