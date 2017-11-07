@@ -1,0 +1,1056 @@
+
+.button_zoomfullextent {
+    background-image:url(./img/adagucviewerlogos.png) !important;
+    width:16px;
+    height:16px;
+    background-position: -16px -16px;
+}
+.button_info {
+    background-image:url(./img/adagucviewerlogos.png) !important;
+    width:16px;
+    height:16px;
+    background-position: -16px -32px !important;
+}
+.button_getfeatureinfo {
+    background-image:url(./img/adagucviewerlogos.png) !important;
+    width:16px;
+    height:16px;
+    background-position: -0px -32px !important;
+}
+.button_pointinterest {
+    background-image:url(./img/map_marker.png) !important;
+    width:16px;
+    height:16px;
+    background-position: -0px -32px !important;
+}
+.webmapjs_searchboxdiv {
+    position: absolute;
+    left: 20px;
+    top: 20px;
+    margin: 0;
+    z-index:3000;
+}
+.webmapjs_locationfield {
+    border: 1px solid grey;
+    line-height: 19px;
+    height: 19px;
+    z-index: 3500;
+    width: 250px;
+    text-indent: 5px;
+}
+.webmapjs_label_point_interest {
+    margin-left: 3px;
+    position: absolute;
+    left: 10px;
+    top: 10px;
+}
+.webmapjs_label_selected_point_interest_abstract {
+    margin-left: 3px;
+    position: absolute;
+    left: 10px;
+    top: 80px;
+}
+.webmapjs_label_selected_point_interest {
+    margin-left: 3px;
+    top: 2px;
+    position: absolute;
+}
+.webmapjs_locationbutton {
+    position: absolute;
+    margin: 0;
+    height: 19px;
+    line-height: 19px;
+    width: 40px;
+    left: 270px;
+    top: 20px;
+    border: 1px solid grey;
+    border-left-width: 0px;
+    background-image: url(./img/searchbutton.png);
+    background-repeat: no-repeat;
+    background-size: 15px;
+    background-position: 11px;
+    z-index: 3500;
+}
+.webmapjs_button_delete_point_interest {
+    position: absolute;
+    text-align: center;
+    margin: auto;
+    left: 100px;
+    height: 18px;
+    display: none;
+}
+.webmapjs_input_point_interest {
+    margin-left: 3px;
+    margin-right: 3px;
+    margin-bottom: 2px;
+    margin-top: 2px;
+    width: 90px;
+    border: 1px solid grey;
+    line-height: 19px;
+    height: 19px;
+    text-indent: 5px;
+}
+.webmapjs_button_point_interest {
+    margin-left: 3px;
+}
+.webmapjs_div_point_interest {
+    position: absolute;
+    top: 30px;
+    left: 10px;
+}
+.webmapjs_div_selected_point_interest {
+    position: absolute;
+    top: 105px;
+    left: 10px;
+}
+.webmapjs_locationbutton:hover {
+    background-color: #B2B2B2;
+    color: #fafafa;
+}
+.button_metadata {
+    background-image:url(./img/adagucviewerlogos.png) !important;
+    width:16px;
+    height:16px;
+    background-position: -80px -32px !important;
+}
+.button_duplicate {
+    background-image:url(./img/adagucviewerlogos.png) !important;
+    width:16px;
+    height:16px;
+    background-position: -48px -16px;
+}
+.button_refresh {
+    background-image:url(./img/adagucviewerlogos.png) !important;
+    width:16px;
+    height:16px;
+    background-position: -48px 0px;
+}
+.button_layer_visible {
+    background-image:url(./img/adagucviewerlogos.png) !important;
+    width:16px;
+    height:16px;
+    background-position: -80px -16px;
+}
+.button_layer_hidden {
+    background-image:url(./img/adagucviewerlogos.png) !important;
+    width:16px;
+    height:16px;
+    background-position: -96px -16px;
+}
+.button_play_animation {
+    background-image:url(./img/adagucviewerlogos.png) !important;
+    width:16px;
+    height:16px;
+    background-position: -16px 0px;
+}
+.button_stop_animation {
+    background-image:url(./img/adagucviewerlogos.png) !important;
+    width:16px;
+    height:16px;
+    background-position: -32px 0px;
+}
+.button_stoploading{
+    background-image:url(./img/adagucviewerlogos.png) !important;
+    width:16px;
+    height:16px;
+    background-position: -96px 0px;
+}
+.button_undo {
+  background-image:url(./img/adagucviewerlogos.png) !important;
+  width:16px;
+  height:16px;
+  background-position: -32px -32px !important;
+}
+.button_redo {
+  background-image:url(./img/adagucviewerlogos.png) !important;
+  width:16px;
+  height:16px;
+  background-position: -48px -32px !important;
+}
+.button_makeLink {
+  background-image:url(./img/adagucviewerlogos.png) !important;
+  width:16px;
+  height:16px;
+  background-position: -64px -32px !important;
+}
+.button_layerlist_layerup {
+    background-image:url(./img/adagucviewerlogos.png) !important;
+    width:16px;
+    height:16px;
+    background-position: -80px 0px;
+}
+.button_layerlist_layerdown {
+    background-image:url(./img/adagucviewerlogos.png) !important;
+    width:16px;
+    height:16px;
+    background-position: -64px 0px;
+
+}
+.button_layerlist_layernew {
+    background-image:url(./img/adagucviewerlogos.png) !important;
+    width:16px;
+    height:16px;
+    background-position: -64px -16px !important;
+
+}
+.button_layerlist_layerdelete {
+    background-image:url(./img/adagucviewerlogos.png) !important;
+    width:16px;
+    height:16px;
+    background-position: -96px -32px;
+}
+.button_nobackground{
+  background-image:none;
+  background:none;
+}
+.button_console_icon {
+    background-image:url(./img/adagucviewerlogos.png) !important;
+    width:16px;
+    height:16px;
+    background-position: -32px -16px;
+}
+.button_settings_icon {
+    background-image:url(./img/adagucviewerlogos.png) !important;
+    width:16px;
+    height:16px;
+    background-position: -112px 0px !important;
+}
+.button_legend_icon {
+  background-image:url(./img/adagucviewerlogos.png) !important;
+  width:16px;
+  height:16px;
+  background-position: -80px 32px !important;
+}
+
+
+.checkbox_legend_icon{
+  background-image:url(./img/legend_icon.gif) !important;
+  background-repeat:no-repeat;
+  padding-left:20px;
+  margin-left:5px;
+}
+
+.button_projection_icon {
+  background-image:url(./img/adagucviewerlogos.png) !important;
+  width:16px;
+  height:16px;
+  background-position: -16px -16px !important;
+}
+
+.button_link{
+    background-image:url(./img/adagucviewerlogos.png) !important;
+  width:16px;
+  height:16px;
+  background-position: -64px -32px !important;
+}
+
+.button_combobox {
+  background-image:url(./img/adagucviewerlogos.png) !important;
+  width:16px;
+  height:16px;
+  background-position: -112px -32px !important;
+}
+
+
+.button_up {
+  background-image:url(./img/adagucviewerlogos.png) !important;
+  width:16px;
+  height:16px;
+  background-position: -16px -48px !important;
+}
+
+.button_down {
+  background-image:url(./img/adagucviewerlogos.png) !important;
+  width:16px;
+  height:16px;
+  background-position: 0px -48px !important;
+}
+
+.button_adddata32 {
+  background-image:url(./img/adagucviewerlogos.png) !important;
+  width:32px;
+  height:32px;
+  background-position: 0px -64px !important;
+}
+
+.button_settings32 {
+  background-image:url(./img/adagucviewerlogos.png) !important;
+  width:32px;
+  height:32px;
+  background-position: -32px -64px !important;
+}
+
+.button_maptype32 {
+  background-image:url(./img/adagucviewerlogos.png) !important;
+  width:32px;
+  height:32px;
+  background-position: -64px -64px !important;
+}
+
+.button_layers32 {
+  background-image:url(./img/adagucviewerlogos.png) !important;
+  width:32px;
+  height:32px;
+  background-position: -96px -64px !important;
+}
+
+
+.button_basemaps32 {
+  background-image:url(./img/adagucviewerlogos.png) !important;
+  width:32px;
+  height:32px;
+  background-position: 0px -96px !important;
+}
+
+.button_time32 {
+  background-image:url(./img/adagucviewerlogos.png) !important;
+  width:32px;
+  height:32px;
+  background-position: -32px -96px !important;
+}
+
+
+.button_next_small {
+    background-image:url(./img/button_next.gif) !important;
+}
+.button_previous_small{
+    background-image:url(./img/button_previous.gif) !important;
+}
+.button_save{
+    background-image:url(./img/save-icon.png) !important;
+}
+.date-trigger {
+    background-image: url(./img/date-trigger.gif) !important;
+}
+
+.clock-icon{
+    background-image: url(./img/clock-icon.png) !important;
+}
+.plus-icon{
+    background-image: url(./img/plus-icon.png) !important;
+}
+
+.button_help{
+    background-image: url(./img/help_icon.png) !important;
+}
+
+
+.button_style{
+    background-image:url(./img/adagucviewerlogos.png) !important;
+    width:16px;
+    height:16px;
+    background-position: -112px -16px !important;
+}
+
+
+.button_googleearth{
+    background-image: url(./img/googleearth_1818.gif) !important;
+}
+.about_adaguc{
+  background-image: url(./img/adagucbarlogo.png) !important;
+}
+
+
+
+
+
+table.myTable {
+  font-family: sans-serif;
+  font-style: normal;
+  font-variant: normal;
+  font-weight: normal;
+  font-size: 9px;
+  line-height: 9px;
+  word-spacing: normal;
+  letter-spacing: normal;
+  text-decoration: none;
+  text-transform: none;
+  text-align: left;
+  text-indent: 0ex;
+  white-space:nowrap;
+  padding: 0px;
+
+  border: 1px solid gray;
+
+  border-collapse:collapse;
+
+  border-spacing:0px;
+  margin:0px;
+  /*background-color:white;*/
+  background:none;
+  width:100%;
+}
+
+table.myTable td{
+  margin:0px;
+  padding: 1px 3px 1px 3px;
+  border-left: 1px solid gray;
+  white-space:nowrap;
+
+}
+
+table.myTable th{
+  margin:0px;
+  padding: 1px 3px 1px 3px;
+  border-left: 1px solid gray;
+  white-space:nowrap;
+  font-weight:bold;
+}
+
+table.myTable tr{
+  padding: 0px;
+   border-bottom: 1px solid gray;
+  white-space:nowrap;
+}
+
+div.webmapjs_coordinates {
+  background-color:white;
+
+  padding:4px;
+}
+
+table.webmapjs_coordinates {
+  font-family: sans-serif;
+  font-style: normal;
+  font-variant: normal;
+  font-weight: normal;
+  font-size: 9px;
+  line-height: 10px;
+  word-spacing: normal;
+  letter-spacing: normal;
+  text-decoration: none;
+  text-transform: none;
+  text-align: left;
+  text-indent: 0ex;
+  white-space:nowrap;
+  padding: 0px;
+
+
+
+  border-collapse:collapse;
+
+  border-spacing:0px;
+  margin:0px;
+  /*background-color:white;*/
+  background:none;
+
+}
+
+table.webmapjs_coordinates td{
+  margin:0px;
+  padding: 0px;
+  white-space:nowrap;
+}
+
+table.webmapjs_coordinates tr{
+  padding: 0px;
+  white-space:nowrap;
+}
+
+
+/*Jquery CSS adjustments*/
+
+/*Dialog*/
+/*.ui-dialog .ui-dialog-titlebar{
+  height:22px;
+  padding:0px;
+  margin:0px;
+}*/
+
+
+/*Slider*/
+.ui-slider .ui-slider-handle{
+  width:8px;
+  height:17px;
+  margin-left:-4px;
+}
+
+.ui-slider-horizontal{
+  height:10px;
+}
+.ui-iconbutton {
+  background: transparent;
+  border: none;
+}
+
+
+/*Buttons*/
+/*.ui-button .ui-icon-closethick{
+  width: 16px;
+    height: 16px;
+    margin:0px;
+    padding:0px;
+}*/
+
+ /*Map control buttons*/
+.wmjs-buttons{
+  background-image: url('img/wmjs_buttons.png');
+  width: 50px;
+  height: 50px;
+  margin:0px;
+  padding:0px;
+}
+
+.ui-button .ui-icon.wmjs-icon-zoomout {
+  background-image: url('img/wmjs_buttons.png');
+  width: 50px;
+  height: 50px;
+  background-position: 0px -205px;
+}
+
+.ui-button.ui-state-hover .ui-icon.wmjs-icon-zoomout {
+  background-image: url('img/wmjs_buttons.png');
+  width: 50px;
+  height: 50px;
+  background-position: -53px -205px;
+}
+.ui-button.ui-state-active .ui-icon.wmjs-icon-zoomout {
+  background-image: url('img/wmjs_buttons.png');
+  width: 50px;
+  height: 50px;
+  background-position: -106px -205px;
+}
+
+.ui-button .ui-icon.wmjs-icon-zoomhome {
+  background-image: url('img/wmjs_buttons.png');
+  width: 50px;
+  height: 50px;
+  background-position: 0px -153px;
+}
+
+.ui-button.ui-state-hover .ui-icon.wmjs-icon-zoomhome {
+  background-image: url('img/wmjs_buttons.png');
+  width: 50px;
+  height: 50px;
+  background-position: -53px -153px;
+}
+.ui-button.ui-state-active .ui-icon.wmjs-icon-zoomhome {
+  background-image: url('img/wmjs_buttons.png');
+  width: 50px;
+  height: 50px;
+  background-position: -106px -153px;
+}
+
+
+
+.ui-button .ui-icon.wmjs-icon-zoomin {
+  background-image: url('img/wmjs_buttons.png');
+  width: 50px;
+  height: 50px;
+  background-position: 0px 0px;
+}
+
+.ui-button.ui-state-hover .ui-icon.wmjs-icon-zoomin {
+  background-image: url('img/wmjs_buttons.png');
+  width: 50px;
+  height: 50px;
+  background-position: -53px 0px;
+}
+.ui-button.ui-state-active .ui-icon.wmjs-icon-zoomin {
+  background-image: url('img/wmjs_buttons.png');
+  width: 50px;
+  height: 50px;
+  background-position: -106px 0px;
+}
+
+
+
+.ui-button .ui-icon.wmjs-icon-zoombox {
+  background-image: url('img/wmjs_buttons.png');
+  width: 50px;
+  height: 50px;
+  background-position: 0px -104px;
+}
+
+.ui-button.ui-state-hover .ui-icon.wmjs-icon-zoombox {
+  background-image: url('img/wmjs_buttons.png');
+  width: 50px;
+  height: 50px;
+  background-position: -53px -104px;
+}
+.ui-button.ui-state-active .ui-icon.wmjs-icon-zoombox {
+  background-image: url('img/wmjs_buttons.png');
+  width: 50px;
+  height: 50px;
+  background-position: -106px -104px;
+}
+
+
+
+.ui-button .ui-icon.wmjs-icon-zoombox-activated {
+  background-image: url('img/wmjs_buttons.png');
+  width: 50px;
+  height: 50px;
+  background-position: -159px -104px;
+}
+
+.ui-button.ui-state-hover .ui-icon.wmjs-icon-zoombox-activated {
+  background-image: url('img/wmjs_buttons.png');
+  width: 50px;
+  height: 50px;
+  background-position: -211px -104px;
+}
+.ui-button.ui-state-active .ui-icon.wmjs-icon-zoombox-activated {
+  background-image: url('img/wmjs_buttons.png');
+  width: 50px;
+  height: 50px;
+  background-position: -264px -104px;
+}
+
+
+.ui-button .ui-icon.wmjs-icon-dragpan {
+  background-image: url('img/wmjs_buttons.png');
+  width: 50px;
+  height: 50px;
+  background-position: 0px -53px;
+}
+
+.ui-button.ui-state-hover .ui-icon.wmjs-icon-dragpan {
+  background-image: url('img/wmjs_buttons.png');
+  width: 50px;
+  height: 50px;
+  background-position: -53px -53px;
+}
+.ui-button.ui-state-active .ui-icon.wmjs-icon-dragpan {
+  background-image: url('img/wmjs_buttons.png');
+  width: 50px;
+  height: 50px;
+  background-position: -106px -53px;
+}
+
+
+
+.ui-button .ui-icon.wmjs-icon-dragpan-activated {
+  background-image: url('img/wmjs_buttons.png');
+  width: 50px;
+  height: 50px;
+  background-position: -159px -53px;
+}
+
+.ui-button.ui-state-hover .ui-icon.wmjs-icon-dragpan-activated {
+  background-image: url('img/wmjs_buttons.png');
+  width: 50px;
+  height: 50px;
+  background-position: -211px -53px;
+}
+.ui-button.ui-state-active .ui-icon.wmjs-icon-dragpan-activated {
+  background-image: url('img/wmjs_buttons.png');
+  width: 50px;
+  height: 50px;
+  background-position: -264px -53px;
+}
+
+
+.ui-button .ui-icon.wmjs-icon-close{
+    background-image: url('img/layer_remove.gif');
+    width: 16px;
+    height: 16px;
+    margin:0;
+    padding:0;
+
+    background-position: 0 0;
+}
+
+.ui-button.ui-state-hover .ui-icon.wmjs-icon-close{
+    background-image: url('img/layer_remove.gif');
+    width: 16px;
+    height: 16px;
+    background-position: 0 0;
+}
+.ui-button.ui-state-active .ui-icon.wmjs-icon-close{
+    background-image: url('img/layer_remove.gif');
+    width: 16px;
+    height: 16px;
+    background-position: 0 0;
+}
+
+.imageloading{
+
+  background: url('img/ajax-loader.gif') no-repeat;
+}
+
+
+.timeselection{
+  border:1px solid #888;
+
+ /*background: rgba(255, 255, 255, 0.25); */
+ border-radius:5px;
+
+  padding:6px;
+ z-index:4000;
+ position:absolute;
+ width:190px;
+position: absolute;
+    top: 8px;
+
+    right: 8px;
+}
+
+.timeselection table{
+  height:25px;
+  width:100%;
+}
+.timeselection table td{
+ padding:0px;
+ margin:0px;
+}
+.timeselection input{
+
+   background-color: #FFF;
+    border:solid 1px #BFBDBD;
+    color: #000;
+    height: 18px;
+    padding:0px;
+    padding-left:5px;
+    border-radius:5px;
+    margin:0px;
+    width:140px;
+}
+
+.timenext{
+
+  width:15px;
+}
+
+.timeprevious{
+  display:inline;
+  width:15px;
+   float:left;
+}
+.relativeslider{
+  width:140px;
+   display:inline;
+    float:left;
+}
+/*.timeselection .datetime  {
+  width:140px;
+}*/
+
+
+/* css for timepicker */
+.ui-timepicker-div .ui-widget-header { margin-bottom: 8px; }
+.ui-timepicker-div dl { text-align: left; }
+.ui-timepicker-div dl dt { float: left; clear:left; padding: 0 0 0 5px; }
+.ui-timepicker-div dl dd { margin: 0 10px 10px 45%; }
+.ui-timepicker-div td { font-size: 90%; }
+.ui-tpicker-grid-label { background: none; border: none; margin: 0; padding: 0; }
+
+.ui-timepicker-rtl{ direction: rtl; }
+.ui-timepicker-rtl dl { text-align: right; padding: 0 5px 0 0; }
+.ui-timepicker-rtl dl dt{ float: right; clear: right; }
+.ui-timepicker-rtl dl dd { margin: 0 45% 10px 10px; }
+
+.ui-datepicker-trigger{
+    background-image:url('./img/calendar.gif');
+    height:16px;
+    width:16px;
+    margin:5px;
+
+     cursor:pointer;
+     border:none;
+
+}
+
+.ui-widget {
+  font-size: .9em !important;
+}
+
+
+
+.slidertooltip {
+    position: absolute;
+    z-index: 1020;
+    display: inline-block;
+    padding: 5px;
+    font-size: 12px;
+    visibility: visible;
+
+    /*bottom:120%;*/
+    margin-left: -57px;
+    margin-top: -4px;
+}
+
+.slidertooltip .slidertooltip-arrow {
+    bottom: 0;
+    left: 50%;
+    margin-left: -5px;
+    border-top: 5px solid #000000;
+    border-right: 5px solid transparent;
+    border-left: 5px solid transparent;
+    position: absolute;
+    width: 0;
+    height: 0;
+}
+
+.slidertooltip-inner {
+    white-space:nowrap;
+    padding: 6px;
+    color: #000;
+    text-align: center;
+    text-decoration: none;
+    background-color: #DDD;
+    -webkit-border-radius: 4px;
+       -moz-border-radius: 4px;
+            border-radius: 4px;
+    border:1px solid black;
+}
+
+/*.ui-slider {
+    background: black repeat-x bottom left;
+    border-bottom: 1px solid #EBEAE5;
+    height: 15px;
+    margin: 0;
+    padding: 0px;
+}*/
+
+/*.ui-slider-handle {
+    background: #ED6B51;
+    border-bottom: 1px solid #a8a79f;
+    border-right: 1px solid #a8a79f;
+    height: 20px;
+    width: 10px;
+    margin: 0;
+    padding: 0px;
+    display: inline-block;
+}*/
+
+.ui-slider-range {
+    height: 10px;
+    border-bottom: 3px solid red;
+    position: relative;
+}
+
+/*.ui-slider-handle {
+    background: #ED6B51 !important;
+    border-bottom: 1px solid #a8a79f !important;
+    border-right: 1px solid #a8a79f !important;
+    height: 20px !important;
+    width: 10px !important;
+    margin: 0 !important;
+    padding: 0px !important;
+    display: inline-block !important;
+    top: -4px !important;
+}*/
+
+
+.getfeatureinfo{
+   overflow:'hidden';
+
+}
+
+.getfeatureinfolayer{
+  background-color:#EEE;padding:4px;margin-bottom:2px;
+
+  overflow:'hidden';
+  display:'inline-block';
+
+  margin:2px;
+
+}
+
+.getfeatureinfolayer td{
+  padding:0 3px 0 3px;
+}
+
+.animationdiv{
+    font-family:"Courier New", "Lucida Console", Monospace;
+    border:1px solid #888;
+   border-radius:5px;
+padding:5px;
+
+ overflow:auto;
+
+
+}
+
+
+
+
+.animationimage{
+  float:left;
+  border-left:1px solid #FFF;
+  width:15px;
+  height:35px;
+
+  background-color:#FFF;
+}
+
+.animationimageprefetch{
+  background-color:#F00;
+}
+.animationimageready{
+  background-color:#0C0;
+}
+.animationimageloading{
+  background-color:#323FFF;
+
+}
+.animationimagecurrent{
+   background-color:#FF4;
+    /*height:21px;
+    margin-top:-3px;*/
+    border:1px solid #FFF;
+}
+
+.wmjsimagebuffer{
+  position:absolute;
+  display:none;
+
+  top:0px;
+  left:0px;
+  /*border:2px
+  /*border:2px solid green;*/
+}
+.wmjslegendbuffer{
+  position:absolute;
+  display:none;
+  top:0px;
+  left:0px;
+  /*border:2px solid green;*/
+}
+
+
+
+.stdoutmessage{
+   color: green;
+    font-weight: normal;
+    padding:0px;
+    margin:0px;
+    line-height:12px;
+}
+
+.stderrmessage,.stderrmessage a{
+   color: red;
+  font-weight: bold;
+  padding:0px;
+    margin:0px;
+    line-height:12px;
+}
+
+
+.WMJSDivBuffer-loading{
+  position:absolute;
+
+  top:10px;
+  left:10px;
+  width:40px;
+  height:40px;
+
+  z-index:10000;
+  background: url('img/ajax-loader.gif') no-repeat;
+}
+
+
+.WMJSDivBuffer-noselect{
+    -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+
+.wmjsdialog-closebutton{
+  padding:0px;
+  margin:0px;
+}
+.ui-button-text-only .ui-button-text {
+  padding:2px;
+}
+.gfi_table{
+    border-collapse: collapse;
+    margin:0;
+    padding:0;
+}
+.gfi_table_tr, .gfi_table_td {
+    border-collapse: collapse;
+    margin:0;
+    padding:0;
+    line-height:0px;
+}
+.gfi_nomarginpadding{
+  padding:0px;
+  margin:0px;
+}.WMJSTimeSelector-table{
+  border-collapse: collapse;
+  margin:0px;padding:0px;
+  width:100%;
+}
+.WMJSTimeSelector-tr{
+  line-height:16px;
+  padding:0px;
+}
+.WMJSTimeSelector-col{
+  border-bottom:1px solid black;
+  border-top:1px solid black;
+  width:50%;
+  font-size:14px;
+  text-align:center;
+  font-weight:bold;
+}
+
+.WMJSTimeSelector-colindex{
+  border:1px solid black;
+   width:30px;
+   display:none;
+}
+.WMJSTimeSelector-col-unselected{
+  background-color:red;
+}
+.WMJSTimeSelector-col-selected{
+  background-color:#FF8080 !important;
+  color:white;
+}
+.WMJSTimeSelector-col-loaded{
+  background-color:#AFA;
+  color:black !important;
+}
+
+.WMJSTimeSelector-timeinfo{
+
+ padding:5px;
+  
+  line-height:15px;
+  font-size:14px;
+  text-align:center;
+
+}
+
+.WMJSTimeSelector-table td{
+     text-align:center;
+}
+
+.WMJSTimeSelector_yearspinner{
+  width:36px;
+  font-size:8px;
+
+}
+
+.WMJSTimeSelector_monthspinner,.WMJSTimeSelector_dayspinner,.WMJSTimeSelector_hourspinner,.WMJSTimeSelector_minutespinner,.WMJSTimeSelector_secondspinner{
+  width:18px;
+  font-size:8px;
+  
+}
+.WMJSTimeSelector_timebuttons{
+   text-align:center;
+}
+
+.WMJSTimeSelector-timeChooserElement{
+  
+  text-align:center;
+}
+.WMJSTimeSelector-controlElement{
+  background:#EEF;padding:5px;
+  border-top:1px solid #AAA;
+  
+}
+
+.WMJSTimeSelector-noselect{
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}

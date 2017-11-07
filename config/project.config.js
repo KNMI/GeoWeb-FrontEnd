@@ -49,7 +49,6 @@ const config = {
     'element-resize-event',
     'es6-enum',
     'ip',
-    'jquery',
     'lodash.clonedeep',
     'lodash.isempty',
     'lodash.omit',
@@ -83,7 +82,10 @@ const config = {
     'redux-thunk',
     'uuid',
     'validator'
-  ]
+  ],
+  compiler_babel: {
+    presets: ['es2015']
+  }
 };
 
 /************************************************

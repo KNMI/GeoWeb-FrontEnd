@@ -45,7 +45,7 @@ export default class Adaguc extends PureComponent {
       return;
     }
     this.webMapJS.stopAnimating();
-    this.webMapJS.setAnimationDelay(0);
+    this.webMapJS.setAnimationDelay(200);
     layer.onReady = undefined;
     if (layer.getDimension('reference_time')) {
       layer.setDimension('reference_time', layer.getDimension('reference_time').getValueForIndex(layer.getDimension('reference_time').size() - 1), false);
@@ -123,7 +123,6 @@ export default class Adaguc extends PureComponent {
     });
   }
 
-  /* istanbul ignore next */
   initAdaguc (adagucMapRef) {
     const { mapProperties, layerActions, layers, mapActions, adagucActions, dispatch, mapId } = this.props;
     const { baselayer, panels } = layers;
@@ -133,8 +132,7 @@ export default class Adaguc extends PureComponent {
     }
     // eslint-disable-next-line no-undef
     this.webMapJS = new WMJSMap(adagucMapRef, BACKEND_SERVER_XML2JSON);
-    this.webMapJS.setBaseURL('./adaguc/webmapjs/');
-
+    this.webMapJS.setBaseURL('./adagucwebmapjs/');
     this.resize();
     // Set listener for triggerPoints
     this.webMapJS.addListener('beforecanvasdisplay', this.adagucBeforeDraw, true);
@@ -149,16 +147,20 @@ export default class Adaguc extends PureComponent {
     // Set the baselayer and possible overlays
     this.updateBaselayers(baselayer, {}, panels[mapId].overlays, {});
     const defaultPersonalURLs = JSON.stringify({ personal_urls: [] });
-    if (!localStorage.getItem('geoweb')) {
+    if (localStorage && !localStorage.getItem('geoweb')) {
       localStorage.setItem('geoweb', defaultPersonalURLs);
     }
     // Fetch data sources and custom urls
     const defaultURLs = ['getServices', 'getOverlayServices'].map(url => `${BACKEND_SERVER_URL}/${url}`);
     const allURLs = [...defaultURLs];
+    let personalUrls = {};
+    if (localStorage) {
+      personalUrls = JSON.parse(localStorage.getItem('geoweb')).personal_urls;
+    }
     axios.all(allURLs.map(req => axios.get(req, { withCredentials: true }))).then(
       axios.spread((services, overlays) => {
         dispatch(mapActions.createMap());
-        dispatch(adagucActions.setSources([...services.data, ...JSON.parse(localStorage.getItem('geoweb')).personal_urls, overlays.data[0]]));
+        dispatch(adagucActions.setSources([...services.data, ...personalUrls, overlays.data[0]]));
       })
     );
 

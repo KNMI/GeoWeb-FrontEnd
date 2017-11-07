@@ -31,12 +31,12 @@ const INITIAL_STATE = {
     {
       overlays: [],
       layers: [],
-      type: 'TIMESERIES'
+      type: 'ADAGUC'
     },
     {
       overlays: [],
       layers: [],
-      type: 'PROGTEMP'
+      type: 'ADAGUC'
     },
     {
       overlays: [],

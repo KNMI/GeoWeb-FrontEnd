@@ -344,6 +344,15 @@ export default class TimeComponent extends PureComponent {
     this.setNewDate(date);
   }
 
+  shouldComponentUpdate (nextProps) {
+    const currentNumlayers = this.props.wmjslayers.baselayers && this.props.wmjslayers.layers ? this.props.wmjslayers.baselayers.length + this.props.wmjslayers.layers.length + 1 : 2;
+    const nextNumlayers = nextProps.wmjslayers.baselayers && nextProps.wmjslayers.layers ? nextProps.wmjslayers.baselayers.length + nextProps.wmjslayers.layers.length + 1 : 2;
+    return this.props.timedim !== nextProps.timedim ||
+           this.props.width !== nextProps.width ||
+           currentNumlayers !== nextNumlayers ||
+           this.props.activeMapId !== nextProps.activeMapId;
+  }
+
   /* istanbul ignore next */
   render () {
     const { wmjslayers } = this.props;
@@ -373,5 +382,7 @@ TimeComponent.propTypes = {
   wmjslayers: PropTypes.object,
   dispatch: PropTypes.func,
   actions: PropTypes.object,
-  adagucActions: PropTypes.object
+  width: PropTypes.number,
+  adagucActions: PropTypes.object,
+  activeMapId: PropTypes.number
 };

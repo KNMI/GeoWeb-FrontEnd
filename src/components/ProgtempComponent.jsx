@@ -2,8 +2,9 @@ import React, { PureComponent } from 'react';
 import CanvasComponent from './ADAGUC/CanvasComponent';
 import { MODEL_LEVEL_URL } from '../constants/default_services';
 import axios from 'axios';
+import moment from 'moment';
 import PropTypes from 'prop-types';
-
+import { drawProgtemp, drawProgtempBg, plotHodo, calc_Tw, calc_Tv } from '../static/progtemp/functions_bijvoet.js';
 export default class ProgtempComponent extends PureComponent {
   constructor () {
     super();
@@ -23,10 +24,9 @@ export default class ProgtempComponent extends PureComponent {
     if (this.state.cachedImage && this.state.cachedImage.width === w && this.state.cachedImage.height === h) {
       ctx.putImageData(this.state.cachedImage, 0, 0);
     } else {
-      // eslint-disable-next-line no-undef
       drawProgtempBg(ctx, w, h);
       const bg = ctx.getImageData(0, 0, w, h);
-      if (bg) {
+      if (bg && w > 0 && h > 0) {
         this.setState({ cachedImage: bg });
       }
       this.width = w;
@@ -94,9 +94,7 @@ export default class ProgtempComponent extends PureComponent {
   renderProgtempData (ctx, canvasWidth, canvasHeight, progtempTime) {
     if (!this.state.isLoading && ctx) {
       const { PSounding, TSounding, TdSounding, ddSounding, ffSounding, TwSounding, TvSounding } = this.modifyData(this.state.progtempData, this.props.referenceTime, progtempTime);
-      // eslint-disable-next-line no-undef
       drawProgtemp(ctx, canvasWidth, canvasHeight, PSounding, TSounding, TdSounding, ddSounding, ffSounding, TwSounding, TvSounding);
-      // eslint-disable-next-line no-undef
       plotHodo(ctx, canvasWidth, canvasHeight, PSounding, TSounding, TdSounding, ddSounding, ffSounding, TwSounding);
     }
   }
@@ -145,13 +143,14 @@ INFO_FORMAT=application/json&time=*&DIM_reference_time=` + refTimeStr + `&x=` + 
 
   render () {
     const { time, className, style } = this.props;
+    const currentTime = time || moment.utc().startOf('hour');
     return (
       <div className={className} style={style}>
         <CanvasComponent onRenderCanvas={(ctx, w, h) => {
           this.width = w;
           this.height = h;
           this.renderProgtempBackground(ctx, w, h);
-          this.renderProgtempData(ctx, w, h, time.format('YYYY-MM-DDTHH:mm:ss') + 'Z');
+          this.renderProgtempData(ctx, w, h, currentTime.format('YYYY-MM-DDTHH:mm:ss') + 'Z');
         }} />
       </div>);
   }
