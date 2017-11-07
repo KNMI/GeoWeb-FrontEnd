@@ -54,7 +54,7 @@ function dTempdp (pres, Temp, mode) {
   const r_s = EPSILON * e_s / (pres - e_s);
   const Lv = LatHeat(Temp);
   let dTdp = 2.0 * Temp / (7.0 * pres);
-  if (mode == 's' || mode == 'S') {
+  if (mode === 's' || mode === 'S') {
     dTdp *= 1.0 + r_s * Lv / (R_AIR * Temp);
     dTdp /= 1.0 + r_s / (7.0 * EPSILON) + sqr(Lv / Temp) * r_s * EPSILON / (R_AIR * HEATCP);
   }
@@ -289,7 +289,7 @@ function calc_Tw (T_c, Td_c, pp) {
       break;
     }
   }
-  if (T == Td) { wet_bulb = (Td + 273.15).toFixed(2); }
+  if (T === Td) { wet_bulb = (Td + 273.15).toFixed(2); }
   return parseFloat(wet_bulb);
 }
 
@@ -363,25 +363,25 @@ function drawRotatedText (ctx, canvasWidth, canvasHeight) {
 
 function plotWindbarbs (ctx, PSounding, ddSounding, ffSounding, color, imgx, imgy) {
   if (!(PSounding && ddSounding && ffSounding)) return;
+  let plotTemp;
   for (var i = 0; i < PSounding.length; i++) {
-    if ((i / 2) % 2 == 0) { plotTemp = 309.15; }    else { plotTemp = 311.70; }
-    coords = thetas_p2plot(plotTemp, PSounding[i], imgx, imgy);
+    if ((i / 2) % 2 === 0) { plotTemp = 309.15; }    else { plotTemp = 311.70; }
+    const coords = thetas_p2plot(plotTemp, PSounding[i], imgx, imgy);
     barb2image(ctx, coords[0], coords[1], ffSounding[i], ddSounding[i], 18, color);
   }
-  boundary_left_top_coords = thetas_p2plot(253.15, 15000, imgx, imgy);
-  boundary_right_top_coords = thetas_p2plot(313.15, 15000, imgx, imgy);
+  const boundary_left_top_coords = thetas_p2plot(253.15, 15000, imgx, imgy);
+  const boundary_right_top_coords = thetas_p2plot(313.15, 15000, imgx, imgy);
   ctx.clearRect(boundary_left_top_coords[0], 0, boundary_right_top_coords[0], boundary_left_top_coords[1]);
 }
 
 function plotLineaal (ctx, PSounding, colorft, colorkm, imgx, imgy) {
   // Plot hoogtevoeten/meters als lineaal aan de rechterkant
   if (!PSounding) return;
-  T_X   = 313.55;
-  T_X   = 313.55;
-  T_P   = 15000;
+  const T_X   = 313.55;
+  const T_P   = 15000;
   ctx.beginPath();
-  coords_bottom  =  thetas_p2plot(T_X, PSounding[PSounding.length - 1], imgx, imgy);
-  coords_top    =  thetas_p2plot(T_X, T_P, imgx, imgy);
+  const coords_bottom  =  thetas_p2plot(T_X, PSounding[PSounding.length - 1], imgx, imgy);
+  const coords_top    =  thetas_p2plot(T_X, T_P, imgx, imgy);
   ctx.moveTo(coords_bottom[0], coords_bottom[1]);
   ctx.lineTo(coords_top[0], coords_top[1]);
   ctx.strokeStyle = colorft;
@@ -404,8 +404,8 @@ function plotLineaal (ctx, PSounding, colorft, colorkm, imgx, imgy) {
 
   // feet
   for (var m = 500; m <= 4500; m += 500) {
-    coords = thetas_p2plot(T_X, fl2pres(m * 0.3048, PSounding[PSounding.length - 1]), imgx, imgy);
-    if (m % 500 == 0 && m % 1000 != 0) {
+    const coords = thetas_p2plot(T_X, fl2pres(m * 0.3048, PSounding[PSounding.length - 1]), imgx, imgy);
+    if (m % 500 === 0 && m % 1000 !== 0) {
       ctx.beginPath();
       ctx.moveTo((coords[0]), coords[1]);
       ctx.lineTo((coords[0] + 2), coords[1]);
@@ -414,7 +414,7 @@ function plotLineaal (ctx, PSounding, colorft, colorkm, imgx, imgy) {
       ctx.stroke();
       ctx.closePath();
     }
-    if (m % 1000 == 0) {
+    if (m % 1000 === 0) {
       ctx.beginPath();
       ctx.moveTo((coords[0]), coords[1]);
       ctx.lineTo((coords[0] + 4), coords[1]);
@@ -426,7 +426,7 @@ function plotLineaal (ctx, PSounding, colorft, colorkm, imgx, imgy) {
   }
 
   for (var m = 5000; m <= 44000; m += 1000) {
-    coords = thetas_p2plot(T_X, fl2pres(m * 0.3048, PSounding[PSounding.length - 1]), imgx, imgy);
+    const coords = thetas_p2plot(T_X, fl2pres(m * 0.3048, PSounding[PSounding.length - 1]), imgx, imgy);
     ctx.beginPath();
     ctx.moveTo((coords[0]), coords[1]);
     ctx.lineTo((coords[0] + 4), coords[1]);
@@ -434,7 +434,7 @@ function plotLineaal (ctx, PSounding, colorft, colorkm, imgx, imgy) {
     ctx.lineWidth = 1;
     ctx.stroke();
     ctx.closePath();
-    if (m % 5000 == 0) {
+    if (m % 5000 === 0) {
       ctx.beginPath();
       ctx.moveTo((coords[0]), coords[1]);
       ctx.lineTo((coords[0] + 4), coords[1]);
@@ -451,7 +451,7 @@ function plotLineaal (ctx, PSounding, colorft, colorkm, imgx, imgy) {
   }
 
   for (m = 1000; m <= 13000; m += 1000) {
-    coords = thetas_p2plot(T_X, fl2pres(m, PSounding[PSounding.length - 1]), imgx, imgy);
+    const coords = thetas_p2plot(T_X, fl2pres(m, PSounding[PSounding.length - 1]), imgx, imgy);
     ctx.beginPath();
     ctx.moveTo((coords[0]), coords[1]);
     ctx.lineTo((coords[0] + 6), coords[1]);
@@ -459,11 +459,11 @@ function plotLineaal (ctx, PSounding, colorft, colorkm, imgx, imgy) {
     ctx.lineWidth = 0.5;
     ctx.stroke();
     ctx.closePath();
-    if (m % 1000 == 0) {
+    if (m % 1000 === 0) {
       ctx.save();
-      if ((m / 1000) != 6 && (m / 1000) != 3) { ctx.translate((coords[0] + 10), coords[1] + 2); }
-      if ((m / 1000) == 6) { ctx.translate((coords[0] + 10), coords[1] + 5); }
-      if ((m / 1000) == 3) { ctx.translate((coords[0] + 10), coords[1] + 6); }
+      if ((m / 1000) !== 6 && (m / 1000) !== 3) { ctx.translate((coords[0] + 10), coords[1] + 2); }
+      if ((m / 1000) === 6) { ctx.translate((coords[0] + 10), coords[1] + 5); }
+      if ((m / 1000) === 3) { ctx.translate((coords[0] + 10), coords[1] + 6); }
       ctx.font = '6pt -apple-system,system-ui,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif';
       ctx.fillStyle = colorkm;
       ctx.fillText((m / 1000), 0, 0);
@@ -637,19 +637,19 @@ function barb2image (ctx, i, j, ff, dd, size, color) {
 /* Hodogram */
 function plotHodo (ctx, canvasWidth, canvasHeight, PSounding, TSounding, TdSounding, ddSounding, ffSounding, TwSounding) {
   if (!(PSounding && TSounding && TdSounding && ddSounding && ffSounding && TwSounding)) return;
-  T_PRESN   = 15000;
-  T_PRESX   = 106000;
-  T_THETAN  = 253.15;
-  T_THETAX   = 313.15;
-  DEG2RAD = (Math.PI / 180);  /* Conversion from degrees to radians. */
+  const T_PRESN   = 15000;
+  const T_PRESX   = 106000;
+  const T_THETAN  = 253.15;
+  const T_THETAX   = 313.15;
+  const DEG2RAD = (Math.PI / 180);  /* Conversion from degrees to radians. */
   // Plot Hodo Borders
-  coords_left_bottom = thetas_p2plot(T_THETAN, T_PRESX, canvasWidth, canvasHeight);  //, &i0,&j0
+  const coords_left_bottom = thetas_p2plot(T_THETAN, T_PRESX, canvasWidth, canvasHeight);  //, &i0,&j0
   var i0  = coords_left_bottom[0];
   var j0  = coords_left_bottom[1];
-  coords_top_right = thetas_p2plot(T_THETAX, T_PRESN, canvasWidth, canvasHeight);     //, &i1,&j1
+  const coords_top_right = thetas_p2plot(T_THETAX, T_PRESN, canvasWidth, canvasHeight);     //, &i1,&j1
   var i1  = coords_top_right[0];
   var j1  = coords_top_right[1];
-  coords3 = thetas_p2plot((10 + 273.15), (300 * 100), canvasWidth, canvasHeight);    //, &k0,&l0
+  const coords3 = thetas_p2plot((10 + 273.15), (300 * 100), canvasWidth, canvasHeight);    //, &k0,&l0
   var k0  = coords3[0];
   var l0  = coords3[1];
   ctx.beginPath();
@@ -673,19 +673,18 @@ function plotHodo (ctx, canvasWidth, canvasHeight, PSounding, TSounding, TdSound
   ctx.closePath();
 
   // Plot hodo ringen
-  var c;
-  var x1, y1, x2, y2, x3, y3, a, r;
+  var x1, y1, x2, y2, x3, y3, r;
   ctx.lineWidth = 1;
-  for (var c = 10; c <= 100; c += 10) {
-    if (c % 50 == 0) {
+  for (let c = 10; c <= 100; c += 10) {
+    if (c % 50 === 0) {
       ctx.strokeStyle = 'rgba(65, 133, 243, 0.5)'; //'#4185f3';
     }
-    if (c % 50 != 0) {
+    if (c % 50 !== 0) {
       ctx.strokeStyle = 'rgba(160, 194, 249, 0.5)'; //'#A0C2F9';
     }
     r = (c / 100) * Math.min((l0 - j1) / 2, ((k0 - i0) / 2));
     ctx.beginPath();
-    for (var a = 0; a < 360; a += 1) {
+    for (let a = 0; a < 360; a += 1) {
       x1 = i0 + (k0 - i0) / 2 + r * Math.cos(DEG2RAD * a);
       y1 = j1 + (l0 - j1) / 2 + r * Math.sin(DEG2RAD * a);
       x2 = i0 + (k0 - i0) / 2 + r * Math.cos(DEG2RAD * (a + 1));
@@ -705,7 +704,7 @@ function plotHodo (ctx, canvasWidth, canvasHeight, PSounding, TSounding, TdSound
   const scaleFactor = 100.0 * (2.0 / Math.min(l0 - j1, k0 - i0));
   // Plot Winds in hodograph
   j1 = -1;
-  for (var i = PSounding.length; i >= 0; i--) {
+  for (let i = PSounding.length; i >= 0; i--) {
     ctx.beginPath();
     if (j1 > -1) {
       const Psfc = PSounding[PSounding.length - 1];
@@ -748,14 +747,14 @@ function plotHodo (ctx, canvasWidth, canvasHeight, PSounding, TSounding, TdSound
   // Plot legend
   var lgdtext = '';
   ctx.fillStyle = 'black';
-  for (var i = 0; i < 6; i++) {
+  for (let i = 0; i < 6; i++) {
     ctx.beginPath();
-    if (i == 0) { ctx.strokeStyle = 'rgba(0,0,0,0.15)'; lgdtext = '12+km'; }
-    if (i == 1) { ctx.strokeStyle = 'rgba(255,51,255,1)'; lgdtext = '9-12km'; }
-    if (i == 2) { ctx.strokeStyle = 'rgba(255,153,51,1)'; lgdtext = '6-9km'; }
-    if (i == 3) { ctx.strokeStyle = '#00CC00'; lgdtext = '3-6km'; }
-    if (i == 4) { ctx.strokeStyle = 'red'; lgdtext = '1-3km'; }
-    if (i == 5) { ctx.strokeStyle = 'blue'; lgdtext = '0-1km'; }
+    if (i === 0) { ctx.strokeStyle = 'rgba(0,0,0,0.15)'; lgdtext = '12+km'; }
+    if (i === 1) { ctx.strokeStyle = 'rgba(255,51,255,1)'; lgdtext = '9-12km'; }
+    if (i === 2) { ctx.strokeStyle = 'rgba(255,153,51,1)'; lgdtext = '6-9km'; }
+    if (i === 3) { ctx.strokeStyle = '#00CC00'; lgdtext = '3-6km'; }
+    if (i === 4) { ctx.strokeStyle = 'red'; lgdtext = '1-3km'; }
+    if (i === 5) { ctx.strokeStyle = 'blue'; lgdtext = '0-1km'; }
 
     ctx.moveTo(i0 + 2, l0 - (4 + (8 * i)));
     ctx.lineTo(i0 + 9, l0 - (4 + (8 * i)));
@@ -847,39 +846,39 @@ function drawProgtemp (ctx, canvasWidth, canvasHeight, PSounding, TSounding, TdS
   plotLineaal(ctx, PSounding, '#000000', '#cc0000', canvasWidth, canvasHeight);
 }
 
-var PSfc, CCL, TCCL, ELHeightFt, TELinCelsius, PCCL, PEL;
-function setProgtempInputAndDraw (fcH, jsonArray, ctx, canvasWidth, canvasHeight) {
-  var tempArray = jsonArray['fcH' + fcH];  // set tempArray
-  var PSounding = new Array(); for (var i = 0; i < tempArray[0].P.length; i++) { PSounding.push(tempArray[0].P[i]); }
-  PSfc = PSounding[0];
-  var TSounding = new Array();  for (var i = 0; i < tempArray[0].T.length; i++) { TSounding.push(tempArray[0].T[i]); }
-  var TdSounding = new Array(); for (var i = 0; i < tempArray[0].Td.length; i++) { TdSounding.push(tempArray[0].Td[i]); }
-  var ddSounding = new Array(); for (var i = 0; i < tempArray[0].dd.length; i++) { ddSounding.push(tempArray[0].dd[i]); }
-  var ffSounding = new Array(); for (var i = 0; i < tempArray[0].ff.length; i++) { ffSounding.push(tempArray[0].ff[i]); }
-    // Tw en Tv kunnen ook vooraf berekend worden om javascript te versnellen @ optimaliseren later
-  var TwSounding = new Array();  for (var i = 0; i < TSounding.length; i++) { TwSounding.push(calc_Tw(TSounding[i], TdSounding[i], PSounding[i])); }
-  var TvSounding = new Array();  for (var i = 0; i < TSounding.length; i++) { TvSounding.push(calc_Tv(TSounding[i], TdSounding[i], PSounding[i])); }
-  drawProgtemp(ctx, canvasWidth, canvasHeight, PSounding, TSounding, TdSounding, ddSounding, ffSounding, TwSounding, TvSounding);
-  plotHodo(ctx, canvasWidth, canvasHeight, PSounding, TSounding, TdSounding, ddSounding, ffSounding, TwSounding);
-  var CCLinfo = determineCCL(canvas, PSounding, TSounding, TdSounding, canvasWidth, canvasHeight);
-  CCL = CCLinfo[0];
-  TCCL = CCLinfo[1];
-  ELHeightFt = CCLinfo[2];
-  TELinCelsius = CCLinfo[3];
-  PCCL = CCLinfo[4];
-  PEL = CCLinfo[5];
-  TdCCLinCelsius = CCLinfo[6];
-  var CAPES = calcCAPES(PCCL, PEL, TCCL, TdCCLinCelsius, TELinCelsius, PSounding, TSounding, TdSounding, TwSounding, canvasWidth, canvasHeight);
-  sbCAPE = CAPES[0];
-  muCAPE = CAPES[1];
-  mlCAPE = CAPES[2];
-  twCAPE = CAPES[3];
-  sbCIN = CAPES[4];
-  muCIN = CAPES[5];
-  mlCIN = CAPES[6];
-  twCIN = CAPES[7];
-    // calc_CIN_CAPE(PSounding,TSounding,TdSounding);
-}
+// var PSfc, CCL, TCCL, ELHeightFt, TELinCelsius, PCCL, PEL;
+// function setProgtempInputAndDraw (fcH, jsonArray, ctx, canvasWidth, canvasHeight) {
+//   var tempArray = jsonArray['fcH' + fcH];  // set tempArray
+//   var PSounding = new Array(); for (var i = 0; i < tempArray[0].P.length; i++) { PSounding.push(tempArray[0].P[i]); }
+//   PSfc = PSounding[0];
+//   var TSounding = new Array();  for (var i = 0; i < tempArray[0].T.length; i++) { TSounding.push(tempArray[0].T[i]); }
+//   var TdSounding = new Array(); for (var i = 0; i < tempArray[0].Td.length; i++) { TdSounding.push(tempArray[0].Td[i]); }
+//   var ddSounding = new Array(); for (var i = 0; i < tempArray[0].dd.length; i++) { ddSounding.push(tempArray[0].dd[i]); }
+//   var ffSounding = new Array(); for (var i = 0; i < tempArray[0].ff.length; i++) { ffSounding.push(tempArray[0].ff[i]); }
+//     // Tw en Tv kunnen ook vooraf berekend worden om javascript te versnellen @ optimaliseren later
+//   var TwSounding = new Array();  for (var i = 0; i < TSounding.length; i++) { TwSounding.push(calc_Tw(TSounding[i], TdSounding[i], PSounding[i])); }
+//   var TvSounding = new Array();  for (var i = 0; i < TSounding.length; i++) { TvSounding.push(calc_Tv(TSounding[i], TdSounding[i], PSounding[i])); }
+//   drawProgtemp(ctx, canvasWidth, canvasHeight, PSounding, TSounding, TdSounding, ddSounding, ffSounding, TwSounding, TvSounding);
+//   plotHodo(ctx, canvasWidth, canvasHeight, PSounding, TSounding, TdSounding, ddSounding, ffSounding, TwSounding);
+//   var CCLinfo = determineCCL(canvas, PSounding, TSounding, TdSounding, canvasWidth, canvasHeight);
+//   CCL = CCLinfo[0];
+//   TCCL = CCLinfo[1];
+//   ELHeightFt = CCLinfo[2];
+//   TELinCelsius = CCLinfo[3];
+//   PCCL = CCLinfo[4];
+//   PEL = CCLinfo[5];
+//   TdCCLinCelsius = CCLinfo[6];
+//   var CAPES = calcCAPES(PCCL, PEL, TCCL, TdCCLinCelsius, TELinCelsius, PSounding, TSounding, TdSounding, TwSounding, canvasWidth, canvasHeight);
+//   sbCAPE = CAPES[0];
+//   muCAPE = CAPES[1];
+//   mlCAPE = CAPES[2];
+//   twCAPE = CAPES[3];
+//   sbCIN = CAPES[4];
+//   muCIN = CAPES[5];
+//   mlCIN = CAPES[6];
+//   twCIN = CAPES[7];
+//     // calc_CIN_CAPE(PSounding,TSounding,TdSounding);
+// }
 
 function calc_CIN_CAPE (PSounding, TSounding, TdSounding) {
 /*
@@ -935,398 +934,401 @@ function calc_Tv (T, Td, Pres) {
   return Tv;
 }
 
-function calcCAPES (PCCL, PEL, TCCL, TdCCLinCelsius, TELinCelsius, PSounding, TSounding, TdSounding, TwSounding, imgx, imgy) {
-  // SBcape -->begin<--
-  mixr_SB    = mixrFromTd_Pres(TdSounding[0], PSounding[0]) * 1e-3;
-  var PCCL_SB = TCCL_SB = indexAbvCCL_SB = 0;
-  for (var i = 1; i < PSounding.length; i++) {
-    tmp_Tdry  = TempPresDry(PSounding[i], PSounding[0], TSounding[0]);
-    tmp_Tmixr  = TempPres(PSounding[0], PSounding[i], mixr2Tdew(mixr_SB, PSounding[i]), 's');
-    if (tmp_Tmixr > tmp_Tdry) {
-      var Pdiff    = PSounding[i] - PSounding[i - 1];
-      var Tdrydiff  = TempPresDry(PSounding[i - 1], PSounding[0], TSounding[0]) - tmp_Tdry;
-      var TTmixrdiff  = TempPres(PSounding[0], PSounding[i - 1], mixr2Tdew(mixr_SB, PSounding[i - 1]), 's') - tmp_Tmixr;
-      var rateTdry  = Tdrydiff / Pdiff;
-      var rateTmixr  = TTmixrdiff / Pdiff;
-      // alert('P-1 '+PSounding[i-1]+' P '+PSounding[i]+' tmp_Tdry-1 '+TempPresDry(PSounding[i-1],PSounding[0],TSounding[0])+' tmp_Tdry '+tmp_Tdry+' tmp_Tmixr-1'+TempPres(PSounding[0],PSounding[i-1],mixr2Tdew(mixr_SB,PSounding[i-1]),'s')+' tmp_Tmixr '+tmp_Tmixr);
-      // alert('P-1 '+PSounding[i-1]+' P '+PSounding[i]+' Pdiff '+Pdiff+' Tdrydiff '+Tdrydiff+' TTmixr '+TTmixrdiff+' rateTdry '+rateTdry+' rateTmixr '+rateTmixr);
-      for (k = 0; k <= Math.abs(Pdiff); k = k + 15) {
-        // alert('k: '+k+' ttdry: '+(tmp_Tdry+(-rateTdry*k))+' ttmixr: '+(tmp_Tmixr+(-rateTmixr*k)));
-        if ((tmp_Tmixr + (-rateTmixr * k)) - (tmp_Tdry + (-rateTdry * k)) < 0) {
-          // alert('k: '+k+' diff '+((tmp_Tmixr+(-rateTmixr*k))-(tmp_Tdry+(-rateTdry*k))));
-          PCCL_SB      = (PSounding[i] + k);
-          TCCL_SB      = (tmp_Tdry + (-rateTdry * k));
-          indexAbvCCL_SB  = i;
-          break;
-        }
-      }
-    }
-    if (PCCL_SB != 0 && TCCL_SB != 0 && indexAbvCCL_SB != 0) { break; }
-  }
+// function calcCAPES (PCCL, PEL, TCCL, TdCCLinCelsius, TELinCelsius, PSounding, TSounding, TdSounding, TwSounding, imgx, imgy) {
+//   // SBcape -->begin<--
+//   const mixr_SB    = mixrFromTd_Pres(TdSounding[0], PSounding[0]) * 1e-3;
+//   let PCCL_SB = 0;
+//   let TCCL_SB = 0;
+//   let indexAbvCCL_SB = 0;
+//   for (var i = 1; i < PSounding.length; i++) {
+//     const tmp_Tdry  = TempPresDry(PSounding[i], PSounding[0], TSounding[0]);
+//     const tmp_Tmixr  = TempPres(PSounding[0], PSounding[i], mixr2Tdew(mixr_SB, PSounding[i]), 's');
+//     if (tmp_Tmixr > tmp_Tdry) {
+//       var Pdiff    = PSounding[i] - PSounding[i - 1];
+//       var Tdrydiff  = TempPresDry(PSounding[i - 1], PSounding[0], TSounding[0]) - tmp_Tdry;
+//       var TTmixrdiff  = TempPres(PSounding[0], PSounding[i - 1], mixr2Tdew(mixr_SB, PSounding[i - 1]), 's') - tmp_Tmixr;
+//       var rateTdry  = Tdrydiff / Pdiff;
+//       var rateTmixr  = TTmixrdiff / Pdiff;
+//       // alert('P-1 '+PSounding[i-1]+' P '+PSounding[i]+' tmp_Tdry-1 '+TempPresDry(PSounding[i-1],PSounding[0],TSounding[0])+' tmp_Tdry '+tmp_Tdry+' tmp_Tmixr-1'+TempPres(PSounding[0],PSounding[i-1],mixr2Tdew(mixr_SB,PSounding[i-1]),'s')+' tmp_Tmixr '+tmp_Tmixr);
+//       // alert('P-1 '+PSounding[i-1]+' P '+PSounding[i]+' Pdiff '+Pdiff+' Tdrydiff '+Tdrydiff+' TTmixr '+TTmixrdiff+' rateTdry '+rateTdry+' rateTmixr '+rateTmixr);
+//       for (let k = 0; k <= Math.abs(Pdiff); k = k + 15) {
+//         // alert('k: '+k+' ttdry: '+(tmp_Tdry+(-rateTdry*k))+' ttmixr: '+(tmp_Tmixr+(-rateTmixr*k)));
+//         if ((tmp_Tmixr + (-rateTmixr * k)) - (tmp_Tdry + (-rateTdry * k)) < 0) {
+//           // alert('k: '+k+' diff '+((tmp_Tmixr+(-rateTmixr*k))-(tmp_Tdry+(-rateTdry*k))));
+//           PCCL_SB      = (PSounding[i] + k);
+//           TCCL_SB      = (tmp_Tdry + (-rateTdry * k));
+//           indexAbvCCL_SB  = i;
+//           break;
+//         }
+//       }
+//     }
+//     if (PCCL_SB != 0 && TCCL_SB != 0 && indexAbvCCL_SB != 0) { break; }
+//   }
 
-  // var T_SBparcel=TempPres(T_PRESR,PCCL_SB,TCCL_SB,'s');
-  var T_SBparcel = TCCL_SB;
-  // alert('T_SBparcel: '+(T_SBparcel-273.14));
-  var sbParcelBottom = sbParcelTop = 0;
-  for (var i = indexAbvCCL_SB; i < PSounding.length; i++) {
-    tmpTParcel = TempPres(T_PRESR, PSounding[i], TSounding[i], 's');
-    if (tmpTParcel < T_SBparcel && sbParcelBottom == 0) { sbParcelBottom = i; }
-    if (tmpTParcel > T_SBparcel && sbParcelBottom != 0) { var sbParcelTop = i - 1; break; }
-  }
+//   // var T_SBparcel=TempPres(T_PRESR,PCCL_SB,TCCL_SB,'s');
+//   var T_SBparcel = TCCL_SB;
+//   // alert('T_SBparcel: '+(T_SBparcel-273.14));
+//   var sbParcelBottom = sbParcelTop = 0;
+//   for (var i = indexAbvCCL_SB; i < PSounding.length; i++) {
+//     const tmpTParcel = TempPres(T_PRESR, PSounding[i], TSounding[i], 's');
+//     if (tmpTParcel < T_SBparcel && sbParcelBottom == 0) { sbParcelBottom = i; }
+//     if (tmpTParcel > T_SBparcel && sbParcelBottom != 0) { var sbParcelTop = i - 1; break; }
+//   }
 
-  var sbCAPE = tmpCAPE = 0;
-  if (sbParcelTop != sbParcelBottom) {
-    for (var i = sbParcelBottom; i <= sbParcelTop; i++) {
-      var Tenv1  =  TempPres(T_PRESR, PSounding[i - 1], TSounding[i - 1], 's');
-      var Tenv2  =  TempPres(T_PRESR, PSounding[i], TSounding[i], 's');
-      var Tenv  =  ((Tenv1 + Tenv2) / 2);
-      var Hght1  =  Math.round(0.3048 * 100 * pres2fl(PSounding[i - 1], PSounding[0]));
-      var Hght2  =  Math.round(0.3048 * 100 * pres2fl(PSounding[i], PSounding[0]));
-      tmpCAPE = (9.81 / Tenv) * (T_SBparcel - Tenv) * (Hght2 - Hght1);
-      sbCAPE = sbCAPE + tmpCAPE;
-    }
-  }
-  var sbCIN = tmpCIN = 0;
-  if (indexAbvCCL_SB != sbParcelBottom) {
-    for (var i = indexAbvCCL_SB; i < sbParcelBottom; i++) {
-      var Tenv1  =  TempPres(T_PRESR, PSounding[i - 1], TSounding[i - 1], 's');
-      var Tenv2  =  TempPres(T_PRESR, PSounding[i], TSounding[i], 's');
-      var Tenv  =  ((Tenv1 + Tenv2) / 2);
-      var Hght1  =  Math.round(0.3048 * 100 * pres2fl(PSounding[i - 1], PSounding[0]));
-      var Hght2  =  Math.round(0.3048 * 100 * pres2fl(PSounding[i], PSounding[0]));
-      tmpCIN = (9.81 / Tenv) * (T_SBparcel - Tenv) * (Hght2 - Hght1);
-      sbCIN = sbCIN + tmpCIN;
-    }
-  }
-  // SBcape -->end<--
+//   var sbCAPE = 0;
+//   let tmpCAPE = 0;
+//   if (sbParcelTop !== sbParcelBottom) {
+//     for (var i = sbParcelBottom; i <= sbParcelTop; i++) {
+//       var Tenv1  =  TempPres(T_PRESR, PSounding[i - 1], TSounding[i - 1], 's');
+//       var Tenv2  =  TempPres(T_PRESR, PSounding[i], TSounding[i], 's');
+//       var Tenv  =  ((Tenv1 + Tenv2) / 2);
+//       var Hght1  =  Math.round(0.3048 * 100 * pres2fl(PSounding[i - 1], PSounding[0]));
+//       var Hght2  =  Math.round(0.3048 * 100 * pres2fl(PSounding[i], PSounding[0]));
+//       tmpCAPE = (9.81 / Tenv) * (T_SBparcel - Tenv) * (Hght2 - Hght1);
+//       sbCAPE = sbCAPE + tmpCAPE;
+//     }
+//   }
+//   var sbCIN = tmpCIN = 0;
+//   if (indexAbvCCL_SB != sbParcelBottom) {
+//     for (var i = indexAbvCCL_SB; i < sbParcelBottom; i++) {
+//       var Tenv1  =  TempPres(T_PRESR, PSounding[i - 1], TSounding[i - 1], 's');
+//       var Tenv2  =  TempPres(T_PRESR, PSounding[i], TSounding[i], 's');
+//       var Tenv  =  ((Tenv1 + Tenv2) / 2);
+//       var Hght1  =  Math.round(0.3048 * 100 * pres2fl(PSounding[i - 1], PSounding[0]));
+//       var Hght2  =  Math.round(0.3048 * 100 * pres2fl(PSounding[i], PSounding[0]));
+//       tmpCIN = (9.81 / Tenv) * (T_SBparcel - Tenv) * (Hght2 - Hght1);
+//       sbCIN = sbCIN + tmpCIN;
+//     }
+//   }
+//   // SBcape -->end<--
 
-  // TWcape -->begin<--
-  var max = maxTwIndex = -999;
-  for (var i = 0; i < (sbParcelTop + 5); i++) {
-    if (PSounding[i] > 60000) {
-      var tmpTW = TwSounding[i];
-      // var tmpTW = TempPres(T_PRESR,PSounding[i],TSounding[i]);
-      // alert('i '+i+' PSounding[i] '+PSounding[i]+' tmpTW '+tmpTW);
-      if (tmpTW > max) {
-        maxTwIndex = i;
-        max = tmpTW;
-      }
-    }
-  }
-  // alert('sbParcelTop '+sbParcelTop);
-  // alert('maxTwIndex '+maxTwIndex+' max '+TwSounding[maxTwIndex]);
+//   // TWcape -->begin<--
+//   var max = maxTwIndex = -999;
+//   for (var i = 0; i < (sbParcelTop + 5); i++) {
+//     if (PSounding[i] > 60000) {
+//       var tmpTW = TwSounding[i];
+//       // var tmpTW = TempPres(T_PRESR,PSounding[i],TSounding[i]);
+//       // alert('i '+i+' PSounding[i] '+PSounding[i]+' tmpTW '+tmpTW);
+//       if (tmpTW > max) {
+//         maxTwIndex = i;
+//         max = tmpTW;
+//       }
+//     }
+//   }
+//   // alert('sbParcelTop '+sbParcelTop);
+//   // alert('maxTwIndex '+maxTwIndex+' max '+TwSounding[maxTwIndex]);
 
-  mixr_TW    = mixrFromTd_Pres(TdSounding[maxTwIndex], PSounding[maxTwIndex]) * 1e-3;
-  var PCCL_TW = TCCL_TW = indexAbvCCL_TW = 0;
-  for (var i = maxTwIndex; i < PSounding.length; i++) {
-    tmp_Tdry  = TempPresDry(PSounding[i], PSounding[maxTwIndex], TSounding[maxTwIndex]);
-    tmp_Tmixr  = TempPres(PSounding[maxTwIndex], PSounding[i], mixr2Tdew(mixr_TW, PSounding[i]), 's');
-    // alert ('tmp_Tdry '+tmp_Tdry+' tmp_Tmixr '+tmp_Tmixr);
-    if (tmp_Tmixr > tmp_Tdry) {
-      var Pdiff    = PSounding[i] - PSounding[i - 1];
-      var Tdrydiff  = TempPresDry(PSounding[i - 1], PSounding[maxTwIndex], TSounding[maxTwIndex]) - tmp_Tdry;
-      var TTmixrdiff  = TempPres(PSounding[maxTwIndex], PSounding[i - 1], mixr2Tdew(mixr_TW, PSounding[i - 1]), 's') - tmp_Tmixr;
-      var rateTdry  = Tdrydiff / Pdiff;
-      var rateTmixr  = TTmixrdiff / Pdiff;
-      // alert('P '+PSounding[i]+' Pdiff '+Pdiff+' Tdrydiff '+Tdrydiff+' TTmixr '+TTmixrdiff+' rateTdry '+rateTdry+' rateTmixr '+rateTmixr);
-      for (k = 0; k <= Math.abs(Pdiff); k = k + 15) {
-        // alert('k: '+k+' ttdry: '+(tmp_Tdry+(-rateTdry*k))+' ttmixr: '+(tmp_Tmixr+(-rateTmixr*k)));
-        if ((tmp_Tmixr + (-rateTmixr * k)) - (tmp_Tdry + (-rateTdry * k)) < 0) {
-          // alert('k: '+k+' diff '+((tmp_Tmixr+(-rateTmixr*k))-(tmp_Tdry+(-rateTdry*k))));
-          PCCL_TW      = (PSounding[i] + k);
-          TCCL_TW      = (tmp_Tdry + (-rateTdry * k));
-          indexAbvCCL_TW  = i;
-          break;
-        }
-      }
-    }
-    if (PCCL_TW != 0 && TCCL_TW != 0 && indexAbvCCL_TW != 0) { break; }
-  }
+//   mixr_TW    = mixrFromTd_Pres(TdSounding[maxTwIndex], PSounding[maxTwIndex]) * 1e-3;
+//   var PCCL_TW = TCCL_TW = indexAbvCCL_TW = 0;
+//   for (var i = maxTwIndex; i < PSounding.length; i++) {
+//     tmp_Tdry  = TempPresDry(PSounding[i], PSounding[maxTwIndex], TSounding[maxTwIndex]);
+//     tmp_Tmixr  = TempPres(PSounding[maxTwIndex], PSounding[i], mixr2Tdew(mixr_TW, PSounding[i]), 's');
+//     // alert ('tmp_Tdry '+tmp_Tdry+' tmp_Tmixr '+tmp_Tmixr);
+//     if (tmp_Tmixr > tmp_Tdry) {
+//       var Pdiff    = PSounding[i] - PSounding[i - 1];
+//       var Tdrydiff  = TempPresDry(PSounding[i - 1], PSounding[maxTwIndex], TSounding[maxTwIndex]) - tmp_Tdry;
+//       var TTmixrdiff  = TempPres(PSounding[maxTwIndex], PSounding[i - 1], mixr2Tdew(mixr_TW, PSounding[i - 1]), 's') - tmp_Tmixr;
+//       var rateTdry  = Tdrydiff / Pdiff;
+//       var rateTmixr  = TTmixrdiff / Pdiff;
+//       // alert('P '+PSounding[i]+' Pdiff '+Pdiff+' Tdrydiff '+Tdrydiff+' TTmixr '+TTmixrdiff+' rateTdry '+rateTdry+' rateTmixr '+rateTmixr);
+//       for (k = 0; k <= Math.abs(Pdiff); k = k + 15) {
+//         // alert('k: '+k+' ttdry: '+(tmp_Tdry+(-rateTdry*k))+' ttmixr: '+(tmp_Tmixr+(-rateTmixr*k)));
+//         if ((tmp_Tmixr + (-rateTmixr * k)) - (tmp_Tdry + (-rateTdry * k)) < 0) {
+//           // alert('k: '+k+' diff '+((tmp_Tmixr+(-rateTmixr*k))-(tmp_Tdry+(-rateTdry*k))));
+//           PCCL_TW      = (PSounding[i] + k);
+//           TCCL_TW      = (tmp_Tdry + (-rateTdry * k));
+//           indexAbvCCL_TW  = i;
+//           break;
+//         }
+//       }
+//     }
+//     if (PCCL_TW != 0 && TCCL_TW != 0 && indexAbvCCL_TW != 0) { break; }
+//   }
 
-  // var T_TWparcel=TempPres(T_PRESR,PCCL_TW,TCCL_TW,'s');
-  var T_TWparcel = TCCL_TW;
-  // alert('T_TWparcel: '+(T_TWparcel-273.14));
-  var twParcelBottom = twParcelTop = 0;
-  for (var i = indexAbvCCL_TW; i < PSounding.length; i++) {
-    tmpTParcel = TempPres(T_PRESR, PSounding[i], TSounding[i], 's');
-    if (tmpTParcel < T_TWparcel && twParcelBottom == 0) { twParcelBottom = i; }
-    if (tmpTParcel > T_TWparcel && twParcelBottom != 0) { var twParcelTop = i - 1; break; }
-  }
+//   // var T_TWparcel=TempPres(T_PRESR,PCCL_TW,TCCL_TW,'s');
+//   var T_TWparcel = TCCL_TW;
+//   // alert('T_TWparcel: '+(T_TWparcel-273.14));
+//   var twParcelBottom = twParcelTop = 0;
+//   for (var i = indexAbvCCL_TW; i < PSounding.length; i++) {
+//     tmpTParcel = TempPres(T_PRESR, PSounding[i], TSounding[i], 's');
+//     if (tmpTParcel < T_TWparcel && twParcelBottom == 0) { twParcelBottom = i; }
+//     if (tmpTParcel > T_TWparcel && twParcelBottom != 0) { var twParcelTop = i - 1; break; }
+//   }
 
-  var twCAPE = tmpCAPE = 0;
-  if (twParcelTop != twParcelBottom) {
-    for (var i = twParcelBottom; i <= twParcelTop; i++) {
-      var Tenv1  =  TempPres(T_PRESR, PSounding[i - 1], TSounding[i - 1], 's');
-      var Tenv2  =  TempPres(T_PRESR, PSounding[i], TSounding[i], 's');
-      var Tenv  =  ((Tenv1 + Tenv2) / 2);
-      var Hght1  =  Math.round(0.3048 * 100 * pres2fl(PSounding[i - 1], PSounding[0]));
-      var Hght2  =  Math.round(0.3048 * 100 * pres2fl(PSounding[i], PSounding[0]));
-      tmpCAPE = (9.81 / Tenv) * (T_TWparcel - Tenv) * (Hght2 - Hght1);
-      twCAPE = twCAPE + tmpCAPE;
-    }
-  }
-  var twCIN = tmpCIN = 0;
-  if (indexAbvCCL_TW != twParcelBottom) {
-    for (var i = indexAbvCCL_TW; i < twParcelBottom; i++) {
-      var Tenv1  =  TempPres(T_PRESR, PSounding[i - 1], TSounding[i - 1], 's');
-      var Tenv2  =  TempPres(T_PRESR, PSounding[i], TSounding[i], 's');
-      var Tenv  =  ((Tenv1 + Tenv2) / 2);
-      var Hght1  =  Math.round(0.3048 * 100 * pres2fl(PSounding[i - 1], PSounding[0]));
-      var Hght2  =  Math.round(0.3048 * 100 * pres2fl(PSounding[i], PSounding[0]));
-      tmpCIN = (9.81 / Tenv) * (T_TWparcel - Tenv) * (Hght2 - Hght1);
-      twCIN = twCIN + tmpCIN;
-    }
-  }
-  // TWcape -->end<--
+//   var twCAPE = tmpCAPE = 0;
+//   if (twParcelTop != twParcelBottom) {
+//     for (var i = twParcelBottom; i <= twParcelTop; i++) {
+//       var Tenv1  =  TempPres(T_PRESR, PSounding[i - 1], TSounding[i - 1], 's');
+//       var Tenv2  =  TempPres(T_PRESR, PSounding[i], TSounding[i], 's');
+//       var Tenv  =  ((Tenv1 + Tenv2) / 2);
+//       var Hght1  =  Math.round(0.3048 * 100 * pres2fl(PSounding[i - 1], PSounding[0]));
+//       var Hght2  =  Math.round(0.3048 * 100 * pres2fl(PSounding[i], PSounding[0]));
+//       tmpCAPE = (9.81 / Tenv) * (T_TWparcel - Tenv) * (Hght2 - Hght1);
+//       twCAPE = twCAPE + tmpCAPE;
+//     }
+//   }
+//   var twCIN = tmpCIN = 0;
+//   if (indexAbvCCL_TW != twParcelBottom) {
+//     for (var i = indexAbvCCL_TW; i < twParcelBottom; i++) {
+//       var Tenv1  =  TempPres(T_PRESR, PSounding[i - 1], TSounding[i - 1], 's');
+//       var Tenv2  =  TempPres(T_PRESR, PSounding[i], TSounding[i], 's');
+//       var Tenv  =  ((Tenv1 + Tenv2) / 2);
+//       var Hght1  =  Math.round(0.3048 * 100 * pres2fl(PSounding[i - 1], PSounding[0]));
+//       var Hght2  =  Math.round(0.3048 * 100 * pres2fl(PSounding[i], PSounding[0]));
+//       tmpCIN = (9.81 / Tenv) * (T_TWparcel - Tenv) * (Hght2 - Hght1);
+//       twCIN = twCIN + tmpCIN;
+//     }
+//   }
+//   // TWcape -->end<--
 
-  // MUcape -->begin<--
-  var Tmucape = Tmucapelvl = Tmucin = muPrclBttm = muPrclTp = 0;
-  for (var n = 0; n < PSounding[n]; n++) {
-    if (PSounding[n] < 60000) { break; } // kijken tot 600 hPa naar
-    mixr_MU    = mixrFromTd_Pres(TdSounding[n], PSounding[n]) * 1e-3;
-    var PCCL_MU  = TCCL_MU = indexAbvCCL_MU = 0;
-    for (var i = n; i < PSounding.length; i++) {
-      // nat en droogadiabaat berekenen
-      tmp_Tdry  = TempPresDry(PSounding[i], PSounding[n], TSounding[n]);
-      tmp_Tmixr  = TempPres(PSounding[n], PSounding[i], mixr2Tdew(mixr_MU, PSounding[i]), 's');
-      if (tmp_Tmixr > tmp_Tdry) {
-        var Pdiff    = PSounding[i] - PSounding[i - 1];
-        var Tdrydiff  = TempPresDry(PSounding[i - 1], PSounding[n], TSounding[n]) - tmp_Tdry;
-        var TTmixrdiff  = TempPres(PSounding[n], PSounding[i - 1], mixr2Tdew(mixr_MU, PSounding[i - 1]), 's') - tmp_Tmixr;
-        var rateTdry  = Tdrydiff / Pdiff;
-        var rateTmixr  = TTmixrdiff / Pdiff;
-        // alert('P '+PSounding[i]+' Pdiff '+Pdiff+' Tdrydiff '+Tdrydiff+' TTmixr '+TTmixrdiff+' rateTdry '+rateTdry+' rateTmixr '+rateTmixr);
-        for (k = 0; k <= Math.abs(Pdiff); k = k + 15) {
-          // alert('k: '+k+' ttdry: '+(tmp_Tdry+(-rateTdry*k))+' ttmixr: '+(tmp_Tmixr+(-rateTmixr*k)));
-          if ((tmp_Tmixr + (-rateTmixr * k)) - (tmp_Tdry + (-rateTdry * k)) < 0) {
-            // alert('k: '+k+' diff '+((tmp_Tmixr+(-rateTmixr*k))-(tmp_Tdry+(-rateTdry*k))));
-            PCCL_MU      = (PSounding[i] + k);
-            TCCL_MU      = (tmp_Tdry + (-rateTdry * k));
-            indexAbvCCL_MU  = i;
-            break;
-          }
-        }
-      }
-      if (PCCL_MU != 0 && TCCL_MU != 0 && indexAbvCCL_MU != 0) { break; }
-    }
-    // var T_MUparcel=TempPres(T_PRESR,PCCL_MU,TCCL_MU,'s'); // wel refereren naar gronddruk?
-    var T_MUparcel = TCCL_MU;
-    // alert('indexAbvCCL_MU '+indexAbvCCL_MU);
-    // var ttttmpTParcel=TempPres(T_PRESR,PSounding[indexAbvCCL_MU],TSounding[indexAbvCCL_MU],'s')
-    // alert('indexAbvCCL_MU '+indexAbvCCL_MU+' T_MUparcel '+T_MUparcel+' TabvMU '+ttttmpTParcel+' PCCL_MU '+PCCL_MU+' TCCL_MU '+TCCL_MU);
-    // alert('T_MUparcel '+T_MUparcel+ ' '+(T_MUparcel-273.14));
-    var muParcelBottom = muParcelTop = 0;
-    for (var i = indexAbvCCL_MU; i < PSounding.length; i++) {
-      tmpTParcel = TempPres(T_PRESR, PSounding[i], TSounding[i], 's');
-      if (tmpTParcel <= T_MUparcel && muParcelBottom == 0) { muParcelBottom = i; }
-      if (tmpTParcel > T_MUparcel && muParcelBottom != 0) { var muParcelTop = i - 1; break; }
-      // alert('tmpTParcel '+tmpTParcel+' T_MUparcel '+T_MUparcel);
-    }
-    // alert('muParcelBottom '+muParcelBottom+' Pbtm '+PSounding[muParcelBottom]+' muParcelTop '+muParcelTop+' Ptp '+PSounding[muParcelTop]);
-    var muCAPE = tmpmuCAPE = 0;
-    if (muParcelTop != muParcelBottom) {
-    // alert('muParcelBottom '+muParcelBottom+' muParcelTop '+muParcelTop);
-      for (var i = muParcelBottom; i <= muParcelTop; i++) {
-        var Tenv1  =  TempPres(T_PRESR, PSounding[i - 1], TSounding[i - 1], 's');
-        var Tenv2  =  TempPres(T_PRESR, PSounding[i], TSounding[i], 's');
-        var Tenv  =  ((Tenv1 + Tenv2) / 2);
-        var Hght1  =  Math.round(0.3048 * 100 * pres2fl(PSounding[i - 1], PSounding[0]));
-        var Hght2  =  Math.round(0.3048 * 100 * pres2fl(PSounding[i], PSounding[0]));
-        tmpmuCAPE = (9.81 / Tenv) * (T_MUparcel - Tenv) * (Hght2 - Hght1);
-        // alert('start: '+PSounding[(indexAbvCCL_MU+1)]+ ' end: '+PSounding[muParcelTop]+ ' tmpmuCAPE '+tmpmuCAPE);
-        muCAPE = muCAPE + tmpmuCAPE;
-      }
-      // alert('muCAPE '+muCAPE);
-    }
-    var muCIN = tmpCIN = 0;
-    if (indexAbvCCL_MU != muParcelBottom) {
-      for (var i = indexAbvCCL_MU; i < muParcelBottom; i++) {
-        var Tenv1  =  TempPres(T_PRESR, PSounding[i - 1], TSounding[i - 1], 's');
-        var Tenv2  =  TempPres(T_PRESR, PSounding[i], TSounding[i], 's');
-        var Tenv  =  ((Tenv1 + Tenv2) / 2);
-        var Hght1  =  Math.round(0.3048 * 100 * pres2fl(PSounding[i - 1], PSounding[0]));
-        var Hght2  =  Math.round(0.3048 * 100 * pres2fl(PSounding[i], PSounding[0]));
-        tmpCIN = (9.81 / Tenv) * (T_MUparcel - Tenv) * (Hght2 - Hght1);
-        muCIN = muCIN + tmpCIN;
-      }
-    }
-    if (muCAPE > Tmucape) {
-      Tmucin = muCIN;
-      Tmucape = muCAPE;
-      Tmucapelvl = n;
-      TindexAbvCCL_MU = indexAbvCCL_MU;
-      TPCCL_MU = PCCL_MU;
-      muPrclBttm = muParcelBottom;
-      muPrclTp = muParcelTop;
-    }
-  // TODO was niet commentaar
-  // delete PCCL_MU,TCCL_MU;
-  }
-  // alert('P '+PSounding[muPrclBttm]+' muParcelBottom '+muParcelBottom+ ' muPrclBttm '+muPrclBttm+' P '+PSounding[muPrclTp]+' muParcelTop '+muParcelTop+' muPrclTp '+muPrclTp);
-  // MUcape -->end<--
+//   // MUcape -->begin<--
+//   var Tmucape = Tmucapelvl = Tmucin = muPrclBttm = muPrclTp = 0;
+//   for (var n = 0; n < PSounding[n]; n++) {
+//     if (PSounding[n] < 60000) { break; } // kijken tot 600 hPa naar
+//     mixr_MU    = mixrFromTd_Pres(TdSounding[n], PSounding[n]) * 1e-3;
+//     var PCCL_MU  = TCCL_MU = indexAbvCCL_MU = 0;
+//     for (var i = n; i < PSounding.length; i++) {
+//       // nat en droogadiabaat berekenen
+//       tmp_Tdry  = TempPresDry(PSounding[i], PSounding[n], TSounding[n]);
+//       tmp_Tmixr  = TempPres(PSounding[n], PSounding[i], mixr2Tdew(mixr_MU, PSounding[i]), 's');
+//       if (tmp_Tmixr > tmp_Tdry) {
+//         var Pdiff    = PSounding[i] - PSounding[i - 1];
+//         var Tdrydiff  = TempPresDry(PSounding[i - 1], PSounding[n], TSounding[n]) - tmp_Tdry;
+//         var TTmixrdiff  = TempPres(PSounding[n], PSounding[i - 1], mixr2Tdew(mixr_MU, PSounding[i - 1]), 's') - tmp_Tmixr;
+//         var rateTdry  = Tdrydiff / Pdiff;
+//         var rateTmixr  = TTmixrdiff / Pdiff;
+//         // alert('P '+PSounding[i]+' Pdiff '+Pdiff+' Tdrydiff '+Tdrydiff+' TTmixr '+TTmixrdiff+' rateTdry '+rateTdry+' rateTmixr '+rateTmixr);
+//         for (k = 0; k <= Math.abs(Pdiff); k = k + 15) {
+//           // alert('k: '+k+' ttdry: '+(tmp_Tdry+(-rateTdry*k))+' ttmixr: '+(tmp_Tmixr+(-rateTmixr*k)));
+//           if ((tmp_Tmixr + (-rateTmixr * k)) - (tmp_Tdry + (-rateTdry * k)) < 0) {
+//             // alert('k: '+k+' diff '+((tmp_Tmixr+(-rateTmixr*k))-(tmp_Tdry+(-rateTdry*k))));
+//             PCCL_MU      = (PSounding[i] + k);
+//             TCCL_MU      = (tmp_Tdry + (-rateTdry * k));
+//             indexAbvCCL_MU  = i;
+//             break;
+//           }
+//         }
+//       }
+//       if (PCCL_MU != 0 && TCCL_MU != 0 && indexAbvCCL_MU != 0) { break; }
+//     }
+//     // var T_MUparcel=TempPres(T_PRESR,PCCL_MU,TCCL_MU,'s'); // wel refereren naar gronddruk?
+//     var T_MUparcel = TCCL_MU;
+//     // alert('indexAbvCCL_MU '+indexAbvCCL_MU);
+//     // var ttttmpTParcel=TempPres(T_PRESR,PSounding[indexAbvCCL_MU],TSounding[indexAbvCCL_MU],'s')
+//     // alert('indexAbvCCL_MU '+indexAbvCCL_MU+' T_MUparcel '+T_MUparcel+' TabvMU '+ttttmpTParcel+' PCCL_MU '+PCCL_MU+' TCCL_MU '+TCCL_MU);
+//     // alert('T_MUparcel '+T_MUparcel+ ' '+(T_MUparcel-273.14));
+//     var muParcelBottom = muParcelTop = 0;
+//     for (var i = indexAbvCCL_MU; i < PSounding.length; i++) {
+//       tmpTParcel = TempPres(T_PRESR, PSounding[i], TSounding[i], 's');
+//       if (tmpTParcel <= T_MUparcel && muParcelBottom == 0) { muParcelBottom = i; }
+//       if (tmpTParcel > T_MUparcel && muParcelBottom != 0) { var muParcelTop = i - 1; break; }
+//       // alert('tmpTParcel '+tmpTParcel+' T_MUparcel '+T_MUparcel);
+//     }
+//     // alert('muParcelBottom '+muParcelBottom+' Pbtm '+PSounding[muParcelBottom]+' muParcelTop '+muParcelTop+' Ptp '+PSounding[muParcelTop]);
+//     var muCAPE = tmpmuCAPE = 0;
+//     if (muParcelTop != muParcelBottom) {
+//     // alert('muParcelBottom '+muParcelBottom+' muParcelTop '+muParcelTop);
+//       for (var i = muParcelBottom; i <= muParcelTop; i++) {
+//         var Tenv1  =  TempPres(T_PRESR, PSounding[i - 1], TSounding[i - 1], 's');
+//         var Tenv2  =  TempPres(T_PRESR, PSounding[i], TSounding[i], 's');
+//         var Tenv  =  ((Tenv1 + Tenv2) / 2);
+//         var Hght1  =  Math.round(0.3048 * 100 * pres2fl(PSounding[i - 1], PSounding[0]));
+//         var Hght2  =  Math.round(0.3048 * 100 * pres2fl(PSounding[i], PSounding[0]));
+//         tmpmuCAPE = (9.81 / Tenv) * (T_MUparcel - Tenv) * (Hght2 - Hght1);
+//         // alert('start: '+PSounding[(indexAbvCCL_MU+1)]+ ' end: '+PSounding[muParcelTop]+ ' tmpmuCAPE '+tmpmuCAPE);
+//         muCAPE = muCAPE + tmpmuCAPE;
+//       }
+//       // alert('muCAPE '+muCAPE);
+//     }
+//     var muCIN = tmpCIN = 0;
+//     if (indexAbvCCL_MU != muParcelBottom) {
+//       for (var i = indexAbvCCL_MU; i < muParcelBottom; i++) {
+//         var Tenv1  =  TempPres(T_PRESR, PSounding[i - 1], TSounding[i - 1], 's');
+//         var Tenv2  =  TempPres(T_PRESR, PSounding[i], TSounding[i], 's');
+//         var Tenv  =  ((Tenv1 + Tenv2) / 2);
+//         var Hght1  =  Math.round(0.3048 * 100 * pres2fl(PSounding[i - 1], PSounding[0]));
+//         var Hght2  =  Math.round(0.3048 * 100 * pres2fl(PSounding[i], PSounding[0]));
+//         tmpCIN = (9.81 / Tenv) * (T_MUparcel - Tenv) * (Hght2 - Hght1);
+//         muCIN = muCIN + tmpCIN;
+//       }
+//     }
+//     if (muCAPE > Tmucape) {
+//       Tmucin = muCIN;
+//       Tmucape = muCAPE;
+//       Tmucapelvl = n;
+//       TindexAbvCCL_MU = indexAbvCCL_MU;
+//       TPCCL_MU = PCCL_MU;
+//       muPrclBttm = muParcelBottom;
+//       muPrclTp = muParcelTop;
+//     }
+//   // TODO was niet commentaar
+//   // delete PCCL_MU,TCCL_MU;
+//   }
+//   // alert('P '+PSounding[muPrclBttm]+' muParcelBottom '+muParcelBottom+ ' muPrclBttm '+muPrclBttm+' P '+PSounding[muPrclTp]+' muParcelTop '+muParcelTop+' muPrclTp '+muPrclTp);
+//   // MUcape -->end<--
 
-  // MLcape -->begin<--
-  var MLid = ML_tmpT = ML_tmpTd = ML_theta_tmp_T = ML_theta_tmp_Td = mixr_ML = 0;
-  for (var i = 0; i < PSounding[i]; i++) {
-    if ((PSounding[0] - PSounding[i]) > 10000) { MLid = i; break; }
-    ML_theta_tmp_T  = ML_theta_tmp_T + (TSounding[i] * Math.pow(T_PRESR / PSounding[i], 0.286));
-    mixr_ML    = mixr_ML + mixrFromTd_Pres(TdSounding[i], PSounding[i]) * 1e-3;
-  }
-  ML_thetaT  = ML_theta_tmp_T / MLid;
-  mixr_ML    = mixr_ML / MLid;
+//   // MLcape -->begin<--
+//   var MLid = ML_tmpT = ML_tmpTd = ML_theta_tmp_T = ML_theta_tmp_Td = mixr_ML = 0;
+//   for (var i = 0; i < PSounding[i]; i++) {
+//     if ((PSounding[0] - PSounding[i]) > 10000) { MLid = i; break; }
+//     ML_theta_tmp_T  = ML_theta_tmp_T + (TSounding[i] * Math.pow(T_PRESR / PSounding[i], 0.286));
+//     mixr_ML    = mixr_ML + mixrFromTd_Pres(TdSounding[i], PSounding[i]) * 1e-3;
+//   }
+//   ML_thetaT  = ML_theta_tmp_T / MLid;
+//   mixr_ML    = mixr_ML / MLid;
 
-  var PCCL_ML = TCCL_ML = indexAbvCCL_ML = 0;
-  for (var i = 1; i < PSounding.length; i++) {
-    tmp_Tdry  = TempPresDry(PSounding[i], PSounding[0], TSounding[0]);
-    tmp_Tmixr  = TempPres(PSounding[0], PSounding[i], mixr2Tdew(mixr_ML, PSounding[i]), 's');
-    if (tmp_Tmixr > tmp_Tdry) {
-      var Pdiff    = PSounding[i] - PSounding[i - 1];
-      var Tdrydiff  = TempPresDry(PSounding[i - 1], PSounding[0], TSounding[0]) - tmp_Tdry;
-      var TTmixrdiff  = TempPres(PSounding[0], PSounding[i - 1], mixr2Tdew(mixr_ML, PSounding[i - 1]), 's') - tmp_Tmixr;
-      var rateTdry  = Tdrydiff / Pdiff;
-      var rateTmixr  = TTmixrdiff / Pdiff;
-      // alert('P '+PSounding[i]+' Pdiff '+Pdiff+' Tdrydiff '+Tdrydiff+' TTmixr '+TTmixrdiff+' rateTdry '+rateTdry+' rateTmixr '+rateTmixr);
-      for (k = 0; k <= Math.abs(Pdiff); k = k + 15) {
-        // alert('k: '+k+' ttdry: '+(tmp_Tdry+(-rateTdry*k))+' ttmixr: '+(tmp_Tmixr+(-rateTmixr*k)));
-        if ((tmp_Tmixr + (-rateTmixr * k)) - (tmp_Tdry + (-rateTdry * k)) < 0) {
-          // alert('k: '+k+' diff '+((tmp_Tmixr+(-rateTmixr*k))-(tmp_Tdry+(-rateTdry*k))));
-          PCCL_ML      = (PSounding[i] + k);
-          TCCL_ML      = (tmp_Tdry + (-rateTdry * k));
-          indexAbvCCL_ML  = i;
-          break;
-        }
-      }
-    }
-    if (PCCL_ML != 0 && TCCL_ML != 0 && indexAbvCCL_ML != 0) { break; }
-  }
+//   var PCCL_ML = TCCL_ML = indexAbvCCL_ML = 0;
+//   for (var i = 1; i < PSounding.length; i++) {
+//     tmp_Tdry  = TempPresDry(PSounding[i], PSounding[0], TSounding[0]);
+//     tmp_Tmixr  = TempPres(PSounding[0], PSounding[i], mixr2Tdew(mixr_ML, PSounding[i]), 's');
+//     if (tmp_Tmixr > tmp_Tdry) {
+//       var Pdiff    = PSounding[i] - PSounding[i - 1];
+//       var Tdrydiff  = TempPresDry(PSounding[i - 1], PSounding[0], TSounding[0]) - tmp_Tdry;
+//       var TTmixrdiff  = TempPres(PSounding[0], PSounding[i - 1], mixr2Tdew(mixr_ML, PSounding[i - 1]), 's') - tmp_Tmixr;
+//       var rateTdry  = Tdrydiff / Pdiff;
+//       var rateTmixr  = TTmixrdiff / Pdiff;
+//       // alert('P '+PSounding[i]+' Pdiff '+Pdiff+' Tdrydiff '+Tdrydiff+' TTmixr '+TTmixrdiff+' rateTdry '+rateTdry+' rateTmixr '+rateTmixr);
+//       for (k = 0; k <= Math.abs(Pdiff); k = k + 15) {
+//         // alert('k: '+k+' ttdry: '+(tmp_Tdry+(-rateTdry*k))+' ttmixr: '+(tmp_Tmixr+(-rateTmixr*k)));
+//         if ((tmp_Tmixr + (-rateTmixr * k)) - (tmp_Tdry + (-rateTdry * k)) < 0) {
+//           // alert('k: '+k+' diff '+((tmp_Tmixr+(-rateTmixr*k))-(tmp_Tdry+(-rateTdry*k))));
+//           PCCL_ML      = (PSounding[i] + k);
+//           TCCL_ML      = (tmp_Tdry + (-rateTdry * k));
+//           indexAbvCCL_ML  = i;
+//           break;
+//         }
+//       }
+//     }
+//     if (PCCL_ML != 0 && TCCL_ML != 0 && indexAbvCCL_ML != 0) { break; }
+//   }
 
-  // var T_MLparcel=TempPres(T_PRESR,PCCL_ML,TCCL_ML,'s');
-  var T_MLparcel = TCCL_ML;
-  // alert('T_MLparcel: '+(T_MLparcel-273.14));
+//   // var T_MLparcel=TempPres(T_PRESR,PCCL_ML,TCCL_ML,'s');
+//   var T_MLparcel = TCCL_ML;
+//   // alert('T_MLparcel: '+(T_MLparcel-273.14));
 
-  var mlParcelBottom = mlParcelTop = 0;
-  for (var i = indexAbvCCL_ML; i < PSounding.length; i++) {
-    tmpTParcel = TempPres(T_PRESR, PSounding[i], TSounding[i], 's');
-    if (tmpTParcel < T_MLparcel && mlParcelBottom == 0) { mlParcelBottom = i; }
-    if (tmpTParcel > T_MLparcel && mlParcelBottom != 0) { var mlParcelTop = i - 1; break; }
-  }
-  var mlCAPE = tmpMLCAPE = 0;
-  if (mlParcelTop != mlParcelBottom) {
-    for (var i = mlParcelBottom; i <= mlParcelTop; i++) {
-      var Tenv1  =  TempPres(T_PRESR, PSounding[i - 1], TSounding[i - 1], 's');
-      var Tenv2  =  TempPres(T_PRESR, PSounding[i], TSounding[i], 's');
-      var Tenv  =  ((Tenv1 + Tenv2) / 2);
-      var Hght1  =  Math.round(0.3048 * 100 * pres2fl(PSounding[i - 1], PSounding[0]));
-      var Hght2  =  Math.round(0.3048 * 100 * pres2fl(PSounding[i], PSounding[0]));
-      tmpMLCAPE = (9.81 / Tenv) * (T_MLparcel - Tenv) * (Hght2 - Hght1);
-      mlCAPE = mlCAPE + tmpMLCAPE;
-    }
-  }
-  var mlCIN = tmpCIN = 0;
-  if (indexAbvCCL_ML != mlParcelBottom) {
-    for (var i = indexAbvCCL_ML; i < mlParcelBottom; i++) {
-      var Tenv1  =  TempPres(T_PRESR, PSounding[i - 1], TSounding[i - 1], 's');
-      var Tenv2  =  TempPres(T_PRESR, PSounding[i], TSounding[i], 's');
-      var Tenv  =  ((Tenv1 + Tenv2) / 2);
-      var Hght1  =  Math.round(0.3048 * 100 * pres2fl(PSounding[i - 1], PSounding[0]));
-      var Hght2  =  Math.round(0.3048 * 100 * pres2fl(PSounding[i], PSounding[0]));
-      tmpCIN = (9.81 / Tenv) * (T_MLparcel - Tenv) * (Hght2 - Hght1);
-      mlCIN = mlCIN + tmpCIN;
-    }
-  }
+//   var mlParcelBottom = mlParcelTop = 0;
+//   for (var i = indexAbvCCL_ML; i < PSounding.length; i++) {
+//     tmpTParcel = TempPres(T_PRESR, PSounding[i], TSounding[i], 's');
+//     if (tmpTParcel < T_MLparcel && mlParcelBottom == 0) { mlParcelBottom = i; }
+//     if (tmpTParcel > T_MLparcel && mlParcelBottom != 0) { var mlParcelTop = i - 1; break; }
+//   }
+//   var mlCAPE = tmpMLCAPE = 0;
+//   if (mlParcelTop != mlParcelBottom) {
+//     for (var i = mlParcelBottom; i <= mlParcelTop; i++) {
+//       var Tenv1  =  TempPres(T_PRESR, PSounding[i - 1], TSounding[i - 1], 's');
+//       var Tenv2  =  TempPres(T_PRESR, PSounding[i], TSounding[i], 's');
+//       var Tenv  =  ((Tenv1 + Tenv2) / 2);
+//       var Hght1  =  Math.round(0.3048 * 100 * pres2fl(PSounding[i - 1], PSounding[0]));
+//       var Hght2  =  Math.round(0.3048 * 100 * pres2fl(PSounding[i], PSounding[0]));
+//       tmpMLCAPE = (9.81 / Tenv) * (T_MLparcel - Tenv) * (Hght2 - Hght1);
+//       mlCAPE = mlCAPE + tmpMLCAPE;
+//     }
+//   }
+//   var mlCIN = tmpCIN = 0;
+//   if (indexAbvCCL_ML != mlParcelBottom) {
+//     for (var i = indexAbvCCL_ML; i < mlParcelBottom; i++) {
+//       var Tenv1  =  TempPres(T_PRESR, PSounding[i - 1], TSounding[i - 1], 's');
+//       var Tenv2  =  TempPres(T_PRESR, PSounding[i], TSounding[i], 's');
+//       var Tenv  =  ((Tenv1 + Tenv2) / 2);
+//       var Hght1  =  Math.round(0.3048 * 100 * pres2fl(PSounding[i - 1], PSounding[0]));
+//       var Hght2  =  Math.round(0.3048 * 100 * pres2fl(PSounding[i], PSounding[0]));
+//       tmpCIN = (9.81 / Tenv) * (T_MLparcel - Tenv) * (Hght2 - Hght1);
+//       mlCIN = mlCIN + tmpCIN;
+//     }
+//   }
 
-  // MLcape -->end<--
+//   // MLcape -->end<--
 
-  // alert(' SBbtm '+sbParcelBottom+' SBtp '+sbParcelTop+' TWbtm '+twParcelBottom+' TWtp '+twParcelTop+' MUbtm '+muParcelBottom+' MUtp '+muParcelTop+  ' MLbtm '+mlParcelBottom+' MLtp '+mlParcelTop);
-  // alert('PCCL_SB '+Math.round(100*pres2fl(PCCL_SB,PSounding[0]))+' sbCAPE: '+Math.round(sbCAPE)+' TPCCL_MU '+Math.round(100*pres2fl(TPCCL_MU,PSounding[0]))+' muCAPE '+Math.round(Tmucape)+' PCCL_ML '+Math.round(100*pres2fl(PCCL_ML,PSounding[0]))+' mlCAPE '+Math.round(mlCAPE)+' PCCL_TWL '+Math.round(100*pres2fl(PCCL_TW,PSounding[0]))+' twCAPE '+Math.round(twCAPE));
-  // alert('indexAbvCCL_SB '+indexAbvCCL_SB+' indexAbvCCL_MU '+TindexAbvCCL_MU+' indexAbvCCL_ML '+indexAbvCCL_ML+' indexAbvCCL_TW '+indexAbvCCL_TW);
-  // alert('T '+TSounding[TindexAbvCCL_MU]+' Td '+TdSounding[TindexAbvCCL_MU]+' P '+PSounding[TindexAbvCCL_MU]);
-  var output = new Array(Math.round(sbCAPE), Math.round(Tmucape), Math.round(mlCAPE), Math.round(twCAPE), Math.round(sbCIN), Math.round(Tmucin), Math.round(mlCIN), Math.round(twCIN));
-  // TODO was niet commentaar
-  // delete PCCL_SB,TCCL_SB,PCCL_ML,TCCL_ML;
-  return output;
-}
+//   // alert(' SBbtm '+sbParcelBottom+' SBtp '+sbParcelTop+' TWbtm '+twParcelBottom+' TWtp '+twParcelTop+' MUbtm '+muParcelBottom+' MUtp '+muParcelTop+  ' MLbtm '+mlParcelBottom+' MLtp '+mlParcelTop);
+//   // alert('PCCL_SB '+Math.round(100*pres2fl(PCCL_SB,PSounding[0]))+' sbCAPE: '+Math.round(sbCAPE)+' TPCCL_MU '+Math.round(100*pres2fl(TPCCL_MU,PSounding[0]))+' muCAPE '+Math.round(Tmucape)+' PCCL_ML '+Math.round(100*pres2fl(PCCL_ML,PSounding[0]))+' mlCAPE '+Math.round(mlCAPE)+' PCCL_TWL '+Math.round(100*pres2fl(PCCL_TW,PSounding[0]))+' twCAPE '+Math.round(twCAPE));
+//   // alert('indexAbvCCL_SB '+indexAbvCCL_SB+' indexAbvCCL_MU '+TindexAbvCCL_MU+' indexAbvCCL_ML '+indexAbvCCL_ML+' indexAbvCCL_TW '+indexAbvCCL_TW);
+//   // alert('T '+TSounding[TindexAbvCCL_MU]+' Td '+TdSounding[TindexAbvCCL_MU]+' P '+PSounding[TindexAbvCCL_MU]);
+//   var output = new Array(Math.round(sbCAPE), Math.round(Tmucape), Math.round(mlCAPE), Math.round(twCAPE), Math.round(sbCIN), Math.round(Tmucin), Math.round(mlCIN), Math.round(twCIN));
+//   // TODO was niet commentaar
+//   // delete PCCL_SB,TCCL_SB,PCCL_ML,TCCL_ML;
+//   return output;
+// }
 
-function determineCCL (canvas, PSounding, TSounding, TdSounding, imgx, imgy) {
-  mixr = mixrFromTd_Pres(TdSounding[0], PSounding[0]) * 1e-3;
-  // Bepaal CCL/TCCL
-  for (var i = 1; i < PSounding.length; i++) {
-    coordsT = thetas_p2plot(TempPres(T_PRESR, PSounding[i], TSounding[i], 's'), PSounding[i], imgx, imgy);
-    coordsM = thetas_p2plot(TempPres(T_PRESR, PSounding[i], mixr2Tdew(mixr, PSounding[i]), 's'), PSounding[i], imgx, imgy);
-    if ((coordsT[0] - coordsM[0]) < 0) {
-      coordsTmin1 = thetas_p2plot(TempPres(T_PRESR, PSounding[i - 1], TSounding[i], 's'), PSounding[i - 1], imgx, imgy);
-      coordsMmin1 = thetas_p2plot(TempPres(T_PRESR, PSounding[i - 1], mixr2Tdew(mixr, PSounding[i - 1]), 's'), PSounding[i - 1], imgx, imgy);
-      PCCL = (PSounding[i - 1] + ((PSounding[i] - PSounding[i - 1]) / 2));
-      TCCL = (TSounding[i - 1] + ((TSounding[i] - TSounding[i - 1]) / 2));
-      TdCCL = (TdSounding[i - 1] + ((TdSounding[i] - TdSounding[i - 1]) / 2));
-      var CCLHeightFt = Math.round(100 * pres2fl(PCCL, PSounding[0]));
-      var TCCLinCelsius = Math.round((TCCL - 273.15) * 100) / 100;
-      var TdCCLinCelsius = Math.round((TdCCL - 273.15) * 100) / 100;
-      var indexAbvCCL = (i);
-      break;
-    }
-  }
-// Bepalen EL's / en LFC
-  coordsCCL = thetas_p2plot(TempPres(T_PRESR, PCCL, TCCL, 's'), PCCL, imgx, imgy);
-  for (var n = indexAbvCCL; n < PSounding.length; n++) {
-    coordsT = thetas_p2plot(TempPres(T_PRESR, PSounding[n], TSounding[n], 's'), PSounding[n], imgx, imgy);
-    if ((coordsCCL[0] - coordsT[0]) < 0) {
-      coordsTmin1 = thetas_p2plot(TempPres(T_PRESR, PSounding[n - 1], TSounding[n], 's'), PSounding[n - 1], imgx, imgy);
-      PEL = (PSounding[n - 1] + ((PSounding[n] - PSounding[n - 1]) / 2));
-      TEL = (TSounding[n - 1] + ((TSounding[n] - TSounding[n - 1]) / 2));
-      var ELHeightFt = Math.round(100 * pres2fl(PEL, PSounding[0]));
-      var TELinCelsius = Math.round((TEL - 273.15) * 100) / 100;
-      break;
-    }
-  }
-  coordsEL = thetas_p2plot(TempPres(T_PRESR, PEL, TEL, 's'), PEL, imgx, imgy);
-  // alert('coordCCL0: '+coordsCCL[0]+'coordCCL1: '+coordsCCL[1]+'coordEL0: '+coordsEL[0]+'coordEL1: '+coordsEL[1]);
-  // draw from CCL to EL
-  /*
-  var ctx = canvas.getContext('2d');
-  if (!ctx.setLineDash) {ctx.setLineDash = function () {} } //als browser geen lineDash ondersteuning heeft, worden ze solid, maar zonder error
-  if (!ctx.mozDash) {ctx.mozDash = function () {} }
-  ctx.beginPath();
-  ctx.setLineDash([5]);
-  ctx.mozDash = [5];
-  ctx.moveTo(coordsCCL[0],coordsCCL[1]);
-  ctx.lineTo(coordsCCL[0],coordsEL[1]);
-  ctx.strokeStyle='firebrick';
-  ctx.lineWidth = 1.5;
-  ctx.stroke();
-  ctx.closePath();
-  ctx.setLineDash([0]);ctx.mozDash = [1,0];
+// function determineCCL (canvas, PSounding, TSounding, TdSounding, imgx, imgy) {
+//   mixr = mixrFromTd_Pres(TdSounding[0], PSounding[0]) * 1e-3;
+//   // Bepaal CCL/TCCL
+//   for (var i = 1; i < PSounding.length; i++) {
+//     coordsT = thetas_p2plot(TempPres(T_PRESR, PSounding[i], TSounding[i], 's'), PSounding[i], imgx, imgy);
+//     coordsM = thetas_p2plot(TempPres(T_PRESR, PSounding[i], mixr2Tdew(mixr, PSounding[i]), 's'), PSounding[i], imgx, imgy);
+//     if ((coordsT[0] - coordsM[0]) < 0) {
+//       coordsTmin1 = thetas_p2plot(TempPres(T_PRESR, PSounding[i - 1], TSounding[i], 's'), PSounding[i - 1], imgx, imgy);
+//       coordsMmin1 = thetas_p2plot(TempPres(T_PRESR, PSounding[i - 1], mixr2Tdew(mixr, PSounding[i - 1]), 's'), PSounding[i - 1], imgx, imgy);
+//       PCCL = (PSounding[i - 1] + ((PSounding[i] - PSounding[i - 1]) / 2));
+//       TCCL = (TSounding[i - 1] + ((TSounding[i] - TSounding[i - 1]) / 2));
+//       TdCCL = (TdSounding[i - 1] + ((TdSounding[i] - TdSounding[i - 1]) / 2));
+//       var CCLHeightFt = Math.round(100 * pres2fl(PCCL, PSounding[0]));
+//       var TCCLinCelsius = Math.round((TCCL - 273.15) * 100) / 100;
+//       var TdCCLinCelsius = Math.round((TdCCL - 273.15) * 100) / 100;
+//       var indexAbvCCL = (i);
+//       break;
+//     }
+//   }
+// // Bepalen EL's / en LFC
+//   coordsCCL = thetas_p2plot(TempPres(T_PRESR, PCCL, TCCL, 's'), PCCL, imgx, imgy);
+//   for (var n = indexAbvCCL; n < PSounding.length; n++) {
+//     coordsT = thetas_p2plot(TempPres(T_PRESR, PSounding[n], TSounding[n], 's'), PSounding[n], imgx, imgy);
+//     if ((coordsCCL[0] - coordsT[0]) < 0) {
+//       coordsTmin1 = thetas_p2plot(TempPres(T_PRESR, PSounding[n - 1], TSounding[n], 's'), PSounding[n - 1], imgx, imgy);
+//       PEL = (PSounding[n - 1] + ((PSounding[n] - PSounding[n - 1]) / 2));
+//       TEL = (TSounding[n - 1] + ((TSounding[n] - TSounding[n - 1]) / 2));
+//       var ELHeightFt = Math.round(100 * pres2fl(PEL, PSounding[0]));
+//       var TELinCelsius = Math.round((TEL - 273.15) * 100) / 100;
+//       break;
+//     }
+//   }
+//   coordsEL = thetas_p2plot(TempPres(T_PRESR, PEL, TEL, 's'), PEL, imgx, imgy);
+//   // alert('coordCCL0: '+coordsCCL[0]+'coordCCL1: '+coordsCCL[1]+'coordEL0: '+coordsEL[0]+'coordEL1: '+coordsEL[1]);
+//   // draw from CCL to EL
+//   /*
+//   var ctx = canvas.getContext('2d');
+//   if (!ctx.setLineDash) {ctx.setLineDash = function () {} } //als browser geen lineDash ondersteuning heeft, worden ze solid, maar zonder error
+//   if (!ctx.mozDash) {ctx.mozDash = function () {} }
+//   ctx.beginPath();
+//   ctx.setLineDash([5]);
+//   ctx.mozDash = [5];
+//   ctx.moveTo(coordsCCL[0],coordsCCL[1]);
+//   ctx.lineTo(coordsCCL[0],coordsEL[1]);
+//   ctx.strokeStyle='firebrick';
+//   ctx.lineWidth = 1.5;
+//   ctx.stroke();
+//   ctx.closePath();
+//   ctx.setLineDash([0]);ctx.mozDash = [1,0];
 
-  // draw CCL and EL identifiers
-  coords_left_bottom=thetas_p2plot(T_THETAN,T_PRESX,canvasWidth,canvasHeight);
-  ctx.strokeStyle='black';
-  ctx.beginPath();
-  ctx.moveTo(coords_left_bottom[0],coordsCCL[1]);
-  ctx.lineTo(coords_left_bottom[0]+8,coordsCCL[1]);
-  ctx.lineWidth = 2;
-  ctx.stroke();
-  ctx.closePath();
-  ctx.save();
-  ctx.translate(coords_left_bottom[0]+10,coordsCCL[1]+3);
-  ctx.font = "7pt -apple-system,system-ui,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif";
-  ctx.fillText('CCL', 0, 0);
-  ctx.restore();
+//   // draw CCL and EL identifiers
+//   coords_left_bottom=thetas_p2plot(T_THETAN,T_PRESX,canvasWidth,canvasHeight);
+//   ctx.strokeStyle='black';
+//   ctx.beginPath();
+//   ctx.moveTo(coords_left_bottom[0],coordsCCL[1]);
+//   ctx.lineTo(coords_left_bottom[0]+8,coordsCCL[1]);
+//   ctx.lineWidth = 2;
+//   ctx.stroke();
+//   ctx.closePath();
+//   ctx.save();
+//   ctx.translate(coords_left_bottom[0]+10,coordsCCL[1]+3);
+//   ctx.font = "7pt -apple-system,system-ui,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif";
+//   ctx.fillText('CCL', 0, 0);
+//   ctx.restore();
 
-  ctx.beginPath();
-  ctx.moveTo(coords_left_bottom[0],coordsEL[1]);
-  ctx.lineTo(coords_left_bottom[0]+8,coordsEL[1]);
-  ctx.lineWidth = 2;
-  ctx.stroke();
-  ctx.closePath();
-  ctx.save();
-  ctx.translate(coords_left_bottom[0]+10,coordsEL[1]+3);
-  ctx.fillText('EL', 0, 0);
-  ctx.restore();
-  */
-  // alert('height: '+ELHeightFt+' TEL: '+TELinCelsius);
-  var output = new Array(CCLHeightFt, TCCLinCelsius, ELHeightFt, TELinCelsius, PCCL, PEL, TdCCLinCelsius);
-  return output;
-}
+//   ctx.beginPath();
+//   ctx.moveTo(coords_left_bottom[0],coordsEL[1]);
+//   ctx.lineTo(coords_left_bottom[0]+8,coordsEL[1]);
+//   ctx.lineWidth = 2;
+//   ctx.stroke();
+//   ctx.closePath();
+//   ctx.save();
+//   ctx.translate(coords_left_bottom[0]+10,coordsEL[1]+3);
+//   ctx.fillText('EL', 0, 0);
+//   ctx.restore();
+//   */
+//   // alert('height: '+ELHeightFt+' TEL: '+TELinCelsius);
+//   var output = new Array(CCLHeightFt, TCCLinCelsius, ELHeightFt, TELinCelsius, PCCL, PEL, TdCCLinCelsius);
+//   return output;
+// }
 
 /*
 function calculateFt(ycoord,cellOI,jsonArray,imgx,imgy){
@@ -1346,9 +1348,9 @@ function calculateFt(ycoord,cellOI,jsonArray,imgx,imgy){
 */
 
 // Details Uurlijkse Hirlam stations ---egin <---
-var latHirl = new Array();
-var lonHirl = new Array();
-var nameHirl = new Array();
+var latHirl = [];
+var lonHirl = [];
+var nameHirl = [];
 latHirl['NL001'] = '52.93'; lonHirl['NL001'] = '4.74'; nameHirl['NL001'] = 'De Kooy EHKD';
 latHirl['NL002'] = '52.12'; lonHirl['NL002'] = '5.18'; nameHirl['NL002'] = 'De Bilt EHDB';
 latHirl['NL003'] = '53.10'; lonHirl['NL003'] = '6.57'; nameHirl['NL003'] = 'Eelde EHGG';
@@ -1408,4 +1410,4 @@ module.exports = {
   plotHodo,
   calc_Tw,
   calc_Tv
-}
+};
