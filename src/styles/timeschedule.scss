@@ -1,3 +1,5 @@
+$base-color: #464a4e;
+
 div.TimeSchedule {
   flex: 1;
   padding: 0.5rem;
@@ -21,16 +23,20 @@ div.TimeSchedule > div.col > div.row > div.col{
   flex-shrink: 0;
 }
 
+.TimeSchedule {
+  color: $base-color;
+}
+
 .TimeSchedule div.row .tick {
   justify-content: center;
 }
 
 .TimeSchedule div.row.marks .tick {
-  border-left: 0.1rem solid red;
+  border-left: 0.1rem solid $base-color;
 }
 
 .TimeSchedule > div.col .row.axis .tick:not(:last-child) {
-  border-bottom: 0.1rem solid red;
+  border-bottom: 0.1rem solid $base-color;
 }
 
 .TimeSchedule .row:last-child .tick {
@@ -39,9 +45,10 @@ div.TimeSchedule > div.col > div.row > div.col{
 
 .TimeSchedule .groupRow {
   margin-top: 0.4rem;
+  min-height: 2.4rem;
 }
 
-.TimeSchedule .scheduleGroup {
+.TimeSchedule .scheduleLabel {
   padding: 0.4rem;
   font-weight: 600;
 }

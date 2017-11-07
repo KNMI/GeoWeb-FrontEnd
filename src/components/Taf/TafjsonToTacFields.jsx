@@ -190,9 +190,6 @@ export const getValidPeriodTAC = (taf) => {
   if (!taf) return returnTACCodeAndInputValue(taf, 'valid', value);
   let dateToDDHH = (dateString) => {
     var day = moment.utc(dateString);
-    console.log('Format', day.format('DDHH'));
-    console.log('Initial', ('0' + day.date()).slice(-2) + '' + ('0' + day.hour()).slice(-2));
-    console.log('PadStart', day.date().toString().padStart(2, '0') + day.hour().toString().padStart(2, '0'));
     return day.date().toString().padStart(2, '0') + day.hour().toString().padStart(2, '0');
   };
   let validityStart = null;

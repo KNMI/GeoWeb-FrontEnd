@@ -44,7 +44,10 @@ const fromTACToValid = (scopeStart, scopeEnd, value, indexOffset) => {
 
 const fromTACToVisibility = (value) => {
   if (value === null || value === undefined) {
-    return null;
+    return {
+      value: null,
+      unit: null
+    };
   }
   if (value === 'CAVOK') {
     return {

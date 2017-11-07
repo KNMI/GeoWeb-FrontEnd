@@ -10,18 +10,39 @@ import TafTable from './TafTable';
 import { TAFS_URL } from '../../constants/backend';
 import axios from 'axios';
 
-const PERSISTENT_TYPES = Enum(
+const CHANGE_TYPES = Enum(
   'FM', // from - instant, persisting change
-  'BECMG' // becoming - gradual / fluctuating change, after which the change is persistent
-);
-
-const TEMPORARY_TYPES = Enum(
-  'TEMPO', // temporary fluctuating change
+  'BECMG', // becoming - gradual / fluctuating change, after which the change is persistent
   'PROB30', // probability of 30% for a temporary steady change
   'PROB40', // probability of 40% for a temporary steady change
-  'PROB30 TEMPO', // probability of 30% for a temporary fluctating change
-  'PROP40 TEMPO' // probability of 30% for a temporary fluctating change
+  'TEMPO', // temporary fluctuating change
+  'PROB30_TEMPO', // probability of 30% for a temporary fluctating change
+  'PROP40_TEMPO' // probability of 30% for a temporary fluctating change
 );
+
+const CHANGE_TYPES_ORDER = [
+  CHANGE_TYPES.FM,
+  CHANGE_TYPES.BECMG,
+  CHANGE_TYPES.PROB30,
+  CHANGE_TYPES.PROB40,
+  CHANGE_TYPES.TEMPO,
+  CHANGE_TYPES.PROB30_TEMPO,
+  CHANGE_TYPES.PROP40_TEMPO
+];
+
+const PHENOMENON_TYPES = Enum(
+  'WIND',
+  'VISIBILITY',
+  'WEATHER',
+  'CLOUDS'
+);
+
+const PHENOMENON_TYPES_ORDER = [
+  PHENOMENON_TYPES.WIND,
+  PHENOMENON_TYPES.VISIBILITY,
+  PHENOMENON_TYPES.WEATHER,
+  PHENOMENON_TYPES.CLOUDS
+];
 
 /**
  * TafCategory is the component which renders an editable and sortable TAF table.
@@ -44,10 +65,16 @@ class TafCategory extends Component {
     this.onDeleteRow = this.onDeleteRow.bind(this);
     this.onFocusOut = this.onFocusOut.bind(this);
     this.updateTACtoTAFJSONtoTac = this.updateTACtoTAFJSONtoTac.bind(this);
+    this.getChangeType = this.getChangeType.bind(this);
+    this.getPhenomenonType = this.getPhenomenonType.bind(this);
     this.extractScheduleInformation = this.extractScheduleInformation.bind(this);
     this.decoratePhenomenonValue = this.decoratePhenomenonValue.bind(this);
-    this.byStartAsc = this.byStartAsc.bind(this);
-    this.persistentOnly = this.persistentOnly.bind(this);
+    this.decorateStringValue = this.decorateStringValue.bind(this);
+    this.decorateWindObjectValue = this.decorateWindObjectValue.bind(this);
+    this.decorateCloudsArray = this.decorateCloudsArray.bind(this);
+    this.decorateWeatherArray = this.decorateWeatherArray.bind(this);
+    this.byPhenomenonType = this.byPhenomenonType.bind(this);
+    this.byChangeTypeAndStart = this.byChangeTypeAndStart.bind(this);
     this.validateTAF = this.validateTAF.bind(this);
     this.saveTaf = this.saveTaf.bind(this);
 
@@ -160,39 +187,182 @@ class TafCategory extends Component {
   }
 
   /**
-   * Comparator: Compares items by changeStart, in subsequent order
-   * @param {object} itemA An item with a moment as property 'changeStart'
-   * @param {object} itemB Another item a moment as property 'changeStart'
-   * @return {number} The order of the items
+   * Gets the phenomenon type by typeName
+   * @param {string} typeName The name of the type
+   * @return {symbol} The phenomenon type
    */
-  byStartAsc (itemA, itemB) {
-    return itemB.changeStart.isBefore(itemA.changeStart)
+  getPhenomenonType (typeName) {
+    if (typeof typeName === 'string' && typeName.toUpperCase() in PHENOMENON_TYPES) {
+      return PHENOMENON_TYPES[typeName.toUpperCase()];
+    } else {
+      return null;
+    }
+  }
+
+  /**
+   * Gets the change type by typeName
+   * @param {string} typeName The name of the type
+   * @return {symbol} The change type
+   */
+  getChangeType (typeName) {
+    if (typeof typeName === 'string') {
+      const normalizedTypeName = typeName.toUpperCase().replace(/ /g, '_');
+      if (normalizedTypeName in CHANGE_TYPES) {
+        return CHANGE_TYPES[normalizedTypeName];
+      } else {
+        return null;
+      }
+    }
+  }
+
+  /**
+   * Comparator: Compares entries by phenomenon type, in ascending order
+   * @param {array} entryA An entry with a string as first element
+   * @param {array} entryB Another entry with a string as first element
+   * @return {number} The order of the entries
+   */
+  byPhenomenonType (entryA, entryB) {
+    const typeAindex = PHENOMENON_TYPES_ORDER.indexOf(this.getPhenomenonType(entryA[0]));
+    const typeBindex = PHENOMENON_TYPES_ORDER.indexOf(this.getPhenomenonType(entryB[0]));
+    return typeBindex < typeAindex
       ? 1
-      : itemB.changeStart.isAfter(itemA.changeStart)
+      : typeBindex > typeAindex
         ? -1
         : 0;
   }
 
   /**
-   * Filter: Only the items are passed, which are persistent (i.e. non temporary)
-   * @param {object} item An item with a TAF-change-group-type as property 'changeType'
-   * @return {bool} The answer to: is the item persistent
+   * Comparator: Compares items by change type and start, in ascending order
+   * @param {object} itemA An item with a string as property 'changeStart' and a string as property 'changeType'
+   * @param {object} itemB Another item with a string as property 'changeStart' and a string as property 'changeType'
+   * @return {number} The result of the comparison
    */
-  persistentOnly (item) {
-    return item.hasOwnProperty('changeType') &&
-      typeof item.changeType === 'string' &&
-      item.changeType.toUpperCase() in PERSISTENT_TYPES;
+  byChangeTypeAndStart (itemA, itemB) {
+    const startA = moment.utc(itemA.changeStart);
+    const startB = moment.utc(itemB.changeStart);
+    // Checks for startA/B.isValid()
+    const typeAindex = CHANGE_TYPES_ORDER.indexOf(this.getChangeType(itemA.changeType));
+    const typeBindex = CHANGE_TYPES_ORDER.indexOf(this.getChangeType(itemB.changeType));
+    console.log('Compare', startA.format(), startB.format(), typeAindex, typeBindex);
+    return typeBindex < typeAindex
+      ? 1
+      : typeBindex > typeAindex
+        ? -1
+        : startB.isBefore(startA)
+          ? 1
+          : startB.isAfter(startA)
+            ? -1
+            : 0;
   }
 
   /**
-   * Filter: Only the items are passed, which are temporary changes
-   * @param {object} item An item with a TAF-change-group-type as property 'changeType'
-   * @return {bool} The answer to: is the item temporary changes
+   * Maps the string value into a presentable form
+   * @param {string} value The text to present
+   * @param {string} prefix The text to prepend
+   * @return {React.Component} A component with a readable presentation of the phenomenon value
    */
-  temporarilyOnly (item) {
-    return item.hasOwnProperty('changeType') &&
-      typeof item.changeType === 'string' &&
-      item.changeType.toUpperCase() in TEMPORARY_TYPES;
+  decorateStringValue (value, prefix) {
+    return <span>
+      {prefix
+        ? <strong>
+          {prefix}:&nbsp;
+        </strong>
+        : null}
+      {value}
+    </span>;
+  }
+
+  /**
+   * Maps the wind object value into a presentable form
+   * @param {string} value The wind object to present
+   * @param {string} prefix The text to prepend
+   * @return {React.Component} A component with a readable presentation of the phenomenon value
+   */
+  decorateWindObjectValue (value, prefix) {
+    if (value.hasOwnProperty('direction') && typeof value.direction === 'number' &&
+        value.hasOwnProperty('speed') && typeof value.speed === 'number') {
+      return <span>
+        {prefix
+          ? <strong>
+            {prefix}:&nbsp;
+          </strong>
+          : null}
+        {!isNaN(value.direction)
+          ? <span>
+            {value.direction}
+            <i className='fa fa-location-arrow' style={{ transform: 'rotate(' + (value.direction + 135) + 'deg)' }} aria-hidden='true' />
+          </span>
+          : null}
+        {!isNaN(value.speed)
+          ? <span style={{ marginLeft: '0.2rem' }}>{value.speed}</span>
+          : null}
+        {value.hasOwnProperty('gusts') && typeof value.gusts === 'number' && !isNaN(value.gusts)
+          ? <span style={{ marginLeft: '0.2rem' }}>{value.gusts}</span>
+          : null}
+      </span>;
+    } else {
+      return null;
+    }
+  }
+
+  /**
+   * Maps the clouds array value into a presentable form
+   * @param {array} value The clouds array to present
+   * @param {string} prefix The text to prepend
+   * @return {React.Component} A component with a readable presentation of the phenomenon value
+   */
+  decorateCloudsArray (value, prefix) {
+    if (value.length && value.length > 0 && value[0].hasOwnProperty('amount') && typeof value[0].amount === 'string') {
+      return <span>
+        {prefix
+          ? <strong>
+            {prefix}:&nbsp;
+          </strong>
+          : null}
+        {value.map(cloud => {
+          return <span>
+            {cloud.hasOwnProperty('amount') && typeof cloud.amount === 'string'
+              ? <span>{cloud.descriptor}</span>
+              : null}
+            {cloud.hasOwnProperty('height') && typeof cloud.height === 'number'
+              ? <span style={{ marginLeft: '0.2rem' }}>{cloud.height}</span>
+              : null}
+          </span>;
+        })}
+      </span>;
+    } else {
+      return null;
+    }
+  }
+
+  /**
+   * Maps the weather array value into a presentable form
+   * @param {array} value The weather array to present
+   * @param {string} prefix The text to prepend
+   * @return {React.Component} A component with a readable presentation of the phenomenon value
+   */
+  decorateWeatherArray (value, prefix) {
+    if (value.length && value.length > 0 && value[0].hasOwnProperty('phenomena') && value[0].phenomena.length > 0) {
+      return <span>
+        {prefix
+          ? <strong>
+            {prefix}:&nbsp;
+          </strong>
+          : null}
+        {value.map(weather => {
+          return <span>
+            {weather.hasOwnProperty('descriptor') && typeof weather.descriptor === 'string'
+              ? <span>{weather.descriptor}</span>
+              : null}
+            {weather.hasOwnProperty('phenomena') && typeof weather.phenomena === 'object'
+              ? <span style={{ marginLeft: '0.2rem' }}>{weather.phenomena.join(', ')}</span>
+              : null}
+          </span>;
+        })}
+      </span>;
+    } else {
+      return null;
+    }
   }
 
   /**
@@ -203,38 +373,34 @@ class TafCategory extends Component {
    * @return {React.Component} A component with a readable presentation of the phenomenon value
    */
   decoratePhenomenonValue (phenomenonType, phenomenonValueObject, prefix) {
-    if (typeof phenomenonValueObject === 'string') {
-      return <span>
-        {prefix
-          ? <strong>
-            {prefix}:&nbsp;
-          </strong>
-          : null}
-        {phenomenonValueObject}
-      </span>;
-    }
-    if (phenomenonType === 'wind' && typeof phenomenonValueObject === 'object') {
-      if (phenomenonValueObject.hasOwnProperty('direction') && typeof phenomenonValueObject.direction === 'number' &&
-          phenomenonValueObject.hasOwnProperty('speed') && typeof phenomenonValueObject.speed === 'number') {
-        return <span>
-          {prefix
-            ? <strong>
-              {prefix}:&nbsp;
-            </strong>
-            : null}
-          {!isNaN(phenomenonValueObject.direction)
-            ? <span>
-              {phenomenonValueObject.direction}
-              <i className='fa fa-location-arrow' style={{ transform: 'rotate(' + (phenomenonValueObject.direction + 135) + 'deg)' }} aria-hidden='true' />
-            </span>
-            : null}
-          {!isNaN(phenomenonValueObject.speed)
-            ? <span style={{ marginLeft: '0.2rem' }}>{phenomenonValueObject.speed}</span>
-            : null}
-        </span>;
-      } else {
+    switch (this.getPhenomenonType(phenomenonType)) {
+      case PHENOMENON_TYPES.WIND:
+        if (typeof phenomenonValueObject === 'object') {
+          return this.decorateWindObjectValue(phenomenonValueObject, prefix);
+        }
         return null;
-      }
+      case PHENOMENON_TYPES.VISIBILITY:
+        if (typeof phenomenonValueObject === 'object' && phenomenonValueObject.hasOwnProperty('value') &&
+          typeof phenomenonValueObject.value === 'number' &&
+          !isNaN(phenomenonValueObject.value)) {
+          return this.decorateStringValue(phenomenonValueObject.value.toString(), prefix);
+        }
+        return null;
+      case PHENOMENON_TYPES.WEATHER:
+        if (typeof phenomenonValueObject === 'string') {
+          return this.decorateStringValue(phenomenonValueObject, prefix);
+        } else if (typeof phenomenonValueObject === 'object') {
+          return this.decorateWeatherArray(phenomenonValueObject, prefix);
+        }
+        return null;
+      case PHENOMENON_TYPES.CLOUDS:
+        if (typeof phenomenonValueObject === 'string') {
+          return this.decorateStringValue(phenomenonValueObject, prefix);
+        } else if (typeof phenomenonValueObject === 'object') {
+          return this.decorateCloudsArray(phenomenonValueObject, prefix);
+        }
+        return null;
+      default: return null;
     }
   }
 
@@ -244,50 +410,87 @@ class TafCategory extends Component {
    * @return {array} The schedule information as an array of schedule items
    */
   extractScheduleInformation (tafDataAsJson) {
-    const scheduleItems = [];
+    const scheduleSeries = [];
+    const scopeStart = moment.utc(tafDataAsJson.metadata.validityStart);
     const scopeEnd = moment.utc(tafDataAsJson.metadata.validityEnd);
-    Object.entries(tafDataAsJson.forecast).map((property) => {
-      const value = this.decoratePhenomenonValue(property[0], property[1]);
+    Object.entries(tafDataAsJson.forecast).sort(this.byPhenomenonType).map((entry) => {
+      const value = this.decoratePhenomenonValue(entry[0], entry[1], null);
       if (value !== null) {
-        scheduleItems.push({
-          start: moment.utc(tafDataAsJson.metadata.validityStart),
-          end: scopeEnd,
-          group: property[0],
-          value: value
+        scheduleSeries.push({
+          label: entry[0],
+          ranges: [ {
+            start: scopeStart,
+            end: scopeEnd,
+            value: value
+          } ]
         });
       }
     });
 
-    tafDataAsJson.changegroups.filter(this.persistentOnly).sort(this.byStartAsc).map(change => {
-      console.log('ChangeType', change.changeType);
+    tafDataAsJson.changegroups.sort(this.byChangeTypeAndStart).map(change => {
+      const changeType = this.getChangeType(change.changeType);
 
-      Object.entries(change.forecast).map((property) => {
-        const start = moment.utc(change.changeStart);
-        const end = moment.utc(change.changeEnd);
-        const value = this.decoratePhenomenonValue(property[0], property[1], change.changeType);
+      const start = change.changeStart ? moment.utc(change.changeStart) : scopeStart;
+
+      // FM only has a change start, and persists until scope end
+      const end = changeType === CHANGE_TYPES.FM ? scopeEnd : (change.changeEnd ? moment.utc(change.changeEnd) : scopeStart);
+      if (end.isBefore(start)) {
+        return;
+      }
+
+      Object.entries(change.forecast).map((entry) => {
+        const value = this.decoratePhenomenonValue(entry[0], entry[1], change.changeType);
         if (value !== null) {
-          scheduleItems.forEach((item) => {
-            if (item.group === property[0] && start.isBefore(item.end) && end.isAfter(item.start)) {
-              if (start.isBefore(item.start)) {
-                if (end.isAfter(item.end)) {
-                  item.start = end;
+          let seriesIndex = scheduleSeries.findIndex(serie => serie.label === entry[0]);
+          if (seriesIndex !== -1) {
+            // for persisting changes, correct overlapping
+            if (changeType === CHANGE_TYPES.FM || changeType === CHANGE_TYPES.BECMG) {
+              scheduleSeries[seriesIndex].ranges.forEach(range => {
+                if (start.isBefore(range.end) && end.isAfter(range.start)) {
+                  // it does overlap!
+                  if (!start.isAfter(range.start)) {
+                    if (!end.isBefore(range.end)) {
+                      // fully includes / overrides previous range => set duration to 0
+                      range.end = range.start;
+                    } else {
+                      // there's a remainder at the end
+                      range.start = end;
+                    }
+                  } else {
+                    // there's a remainder at the start
+                    range.end = start;
+                  }
                 }
-              } else {
-                item.end = start;
-              }
-              console.log('Overlaps!');
+              });
             }
-          });
-          scheduleItems.push({
-            start: start,
-            end: end,
-            group: property[0],
-            value: value
-          });
+            scheduleSeries[seriesIndex].ranges.push({
+              start: start,
+              end: end,
+              value: value
+            });
+          } else {
+            scheduleSeries.push({
+              label: entry[0],
+              ranges: [ {
+                start: start,
+                end: end,
+                value: value
+              } ]
+            });
+            seriesIndex = 0;
+          }
+          if (changeType === CHANGE_TYPES.BECMG) {
+            scheduleSeries[seriesIndex].ranges.push({
+              start: end,
+              end: scopeEnd,
+              value: value
+            });
+          }
         }
       });
     });
-    return scheduleItems;
+    console.log('scheduleSeries', scheduleSeries);
+    return scheduleSeries;
   }
 
   /*
@@ -411,10 +614,8 @@ class TafCategory extends Component {
     }
 
     const tafJson = removeInputPropsFromTafJSON(createTAFJSONFromInput(this.state.tafJSON));
-
     console.log('tafJson', tafJson);
-    const groups = ['wind', 'visibility', 'weather', 'clouds'];
-    const items = this.extractScheduleInformation(tafJson);
+    const series = this.extractScheduleInformation(tafJson);
 
     return (
       <Row className='TafCategory'>
@@ -466,7 +667,7 @@ class TafCategory extends Component {
         </Row>
         <Row style={{ flex: 'auto' }}>
           <Col>
-            <TimeSchedule startMoment={moment.utc(tafJson.metadata.validityStart)} endMoment={moment.utc(tafJson.metadata.validityEnd)} items={items} groups={groups} />
+            <TimeSchedule startMoment={moment.utc(tafJson.metadata.validityStart)} endMoment={moment.utc(tafJson.metadata.validityEnd)} series={series} />
           </Col>
         </Row>
       </Row>
