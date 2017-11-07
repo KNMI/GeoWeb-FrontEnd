@@ -82,7 +82,10 @@ const config = {
     'redux-thunk',
     'uuid',
     'validator'
-  ]
+  ],
+  compiler_babel: {
+    presets: ['es2015']
+  }
 };
 
 /************************************************

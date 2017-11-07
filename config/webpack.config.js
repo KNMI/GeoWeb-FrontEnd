@@ -90,6 +90,7 @@ if (__DEV__) {
     new webpack.optimize.UglifyJsPlugin({
       parallel: true,
       uglifyOptions: {
+        ecma: 6,
         compress: {
           unused: true,
           dead_code: true,
@@ -116,7 +117,7 @@ if (__DEV__) {
 webpackConfig.module.rules = [
   {
     test: /\.(js|jsx)$/,
-    exclude: /(node_modules|static)/,
+    exclude: /(node_modules)/,
     loader: 'babel-loader',
     options: project.compiler_babel,
     enforce: 'pre'
