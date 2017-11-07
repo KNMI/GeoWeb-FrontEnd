@@ -328,9 +328,9 @@ class TafCategory extends Component {
           </strong>
           : null}
         {value.map(cloud => {
-          return <span>
+          return <span style={{ marginLeft: '0.4rem' }}>
             {cloud.hasOwnProperty('amount') && typeof cloud.amount === 'string'
-              ? <span>{cloud.descriptor}</span>
+              ? <span>{cloud.amount}</span>
               : null}
             {cloud.hasOwnProperty('height') && typeof cloud.height === 'number'
               ? <span style={{ marginLeft: '0.2rem' }}>{cloud.height}</span>
