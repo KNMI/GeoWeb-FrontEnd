@@ -90,10 +90,16 @@ export default class Adaguc extends PureComponent {
   /* istanbul ignore next */
   updateBBOX (wmjsmap) {
     if (!wmjsmap) return;
-    let bbox = wmjsmap.getBBOX();
+    const bbox = wmjsmap.getBBOX();
     if (bbox === undefined) return;
     const { dispatch, mapActions } = this.props;
-    dispatch(mapActions.setCut({ title: 'Custom', bbox: [bbox.left, bbox.bottom, bbox.right, bbox.top] }));
+    const currBbox = this.props.mapProperties.boundingBox.bbox;
+
+    // Only top and bottom matter, adagucviewer determines the width as long as top and bottom are in view
+    // So compare to those and set it if they are different
+    if (bbox.bottom !== currBbox[1] || bbox.top !== currBbox[3]) {
+      dispatch(mapActions.setCut({ title: 'Custom', bbox: [bbox.left, bbox.bottom, bbox.right, bbox.top] }));
+    }
   }
 
   /* istanbul ignore next */

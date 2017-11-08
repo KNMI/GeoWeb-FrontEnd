@@ -14,9 +14,45 @@ export class SinglePanel extends PureComponent {
   constructor () {
     super();
     this.renderPanelContent = this.renderPanelContent.bind(this);
+  }
+  renderPanelContent (type) {
+    const { mapProperties, dispatch, mapId, drawProperties, layers, adagucProperties } = this.props;
+    const { activeMapId } = mapProperties;
+    const { cursor } = this.props.adagucProperties;
+    const adaStart = moment.utc(this.props.adagucProperties.timeDimension).startOf('hour');
+
+    switch (type.toUpperCase()) {
+      case 'TIMESERIES':
+        return <TimeseriesComponent layout={mapProperties.layout} location={cursor ? cursor.location : null} referenceTime={this.props.referenceTime}
+          selectedModel={this.props.model} time={adaStart} id={'timeseries' + mapId} />;
+      case 'PROGTEMP':
+        return <ProgtempComponent layout={mapProperties.layout} location={cursor ? cursor.location : null} referenceTime={this.props.referenceTime}
+          selectedModel={this.props.model} time={adaStart} style={{ height: '100%', width: '100%', marginLeft: '-3.6rem', marginRight: '1.4rem' }} />;
+      default:
+        return <Adaguc drawActions={this.props.drawActions} layerActions={this.props.layerActions} mapProperties={mapProperties}
+          adagucActions={this.props.adagucActions} adagucProperties={adagucProperties} layers={layers} drawProperties={drawProperties}
+          mapId={mapId} dispatch={dispatch} mapActions={this.props.mapActions} active={mapId === activeMapId} />;
+    }
+  }
+
+  render () {
+    const { title, mapProperties, dispatch, mapActions, mapId, layers, layerActions, adagucActions } = this.props;
+    const { activeMapId } = mapProperties;
+    const type = layers.panels[mapId].type;
+    const { cursor } = this.props.adagucProperties;
+    return (<Panel layout={mapProperties.layout} adagucActions={adagucActions} locations={this.props.progtempLocations} location={cursor ? cursor.location : null} dispatch={dispatch}
+      layerActions={layerActions} type={type} mapActions={mapActions} title={title} mapMode={mapProperties.mapMode} mapId={mapId}
+      className={mapId === activeMapId && type === 'ADAGUC' ? 'activePanel' : ''} referenceTime={this.props.referenceTime}>
+      {this.renderPanelContent(type)}
+    </Panel>);
+  }
+}
+
+class MapPanel extends PureComponent {
+  constructor () {
+    super();
     this.state = {
-      model: 'HARMONIE',
-      isOpen: false
+      model: 'HARMONIE'
     };
     ReadLocations((data) => {
       if (data) {
@@ -62,41 +98,6 @@ export class SinglePanel extends PureComponent {
       dispatch(mapActions.setActivePanel(adagucPanels[0].index));
     }
   }
-
-  renderPanelContent (type) {
-    const { mapProperties, dispatch, mapId, drawProperties, layers, adagucProperties } = this.props;
-    const { activeMapId } = mapProperties;
-    const { cursor } = this.props.adagucProperties;
-    const adaStart = moment.utc(this.props.adagucProperties.timeDimension).startOf('hour');
-
-    switch (type.toUpperCase()) {
-      case 'TIMESERIES':
-        return <TimeseriesComponent location={cursor ? cursor.location : null} referenceTime={this.state.referenceTime}
-          selectedModel={this.state.model} time={adaStart} id={'timeseries' + mapId} />;
-      case 'PROGTEMP':
-        return <ProgtempComponent location={cursor ? cursor.location : null} referenceTime={this.state.referenceTime}
-          selectedModel={this.state.model} time={adaStart} style={{ height: '100%', width: '100%', marginLeft: '-3.6rem', marginRight: '1.4rem' }} />;
-      default:
-        return <Adaguc drawActions={this.props.drawActions} layerActions={this.props.layerActions} mapProperties={mapProperties}
-          adagucActions={this.props.adagucActions} adagucProperties={adagucProperties} layers={layers} drawProperties={drawProperties}
-          mapId={mapId} dispatch={dispatch} mapActions={this.props.mapActions} active={mapId === activeMapId} />;
-    }
-  }
-
-  render () {
-    const { title, mapProperties, dispatch, mapActions, mapId, layers, layerActions, adagucActions } = this.props;
-    const { activeMapId } = mapProperties;
-    const type = layers.panels[mapId].type;
-    const { cursor } = this.props.adagucProperties;
-    return (<Panel adagucActions={adagucActions} locations={this.progtempLocations} location={cursor ? cursor.location : null} dispatch={dispatch}
-      layerActions={layerActions} type={type} mapActions={mapActions} title={title} mapMode={mapProperties.mapMode} mapId={mapId}
-      className={mapId === activeMapId && type === 'ADAGUC' ? 'activePanel' : ''} referenceTime={this.state.referenceTime}>
-      {this.renderPanelContent(type)}
-    </Panel>);
-  }
-}
-
-class MapPanel extends PureComponent {
   render () {
     const { mapProperties } = this.props;
     switch (mapProperties.layout) {
@@ -104,10 +105,10 @@ class MapPanel extends PureComponent {
         return (
           <Row style={{ flex: 1 }}>
             <Col xs='6'>
-              <SinglePanel mapId={0} {...this.props} />
+              <SinglePanel mapId={0} {...this.props} referenceTime={this.state.referenceTime} progtempLocations={this.progtempLocations} model={this.state.model} />
             </Col>
             <Col xs='6'>
-              <SinglePanel mapId={1} {...this.props} />
+              <SinglePanel mapId={1} {...this.props} referenceTime={this.state.referenceTime} progtempLocations={this.progtempLocations} model={this.state.model} />
             </Col>
           </Row>
         );
@@ -115,17 +116,17 @@ class MapPanel extends PureComponent {
         return (
           <Row style={{ flex: 1 }}>
             <Col xs='6'>
-              <SinglePanel mapId={0} {...this.props} />
+              <SinglePanel mapId={0} {...this.props} referenceTime={this.state.referenceTime} progtempLocations={this.progtempLocations} model={this.state.model} />
             </Col>
             <Col xs='6' style={{ flexDirection: 'column' }}>
               <Row style={{ flex: 1 }}>
-                <SinglePanel mapId={1} {...this.props} />
+                <SinglePanel mapId={1} {...this.props} referenceTime={this.state.referenceTime} progtempLocations={this.progtempLocations} model={this.state.model} />
               </Row>
               <Row style={{ flex: 1 }}>
-                <SinglePanel mapId={2} {...this.props} />
+                <SinglePanel mapId={2} {...this.props} referenceTime={this.state.referenceTime} progtempLocations={this.progtempLocations} model={this.state.model} />
               </Row>
               <Row style={{ flex: 1 }}>
-                <SinglePanel mapId={3} {...this.props} />
+                <SinglePanel mapId={3} {...this.props} referenceTime={this.state.referenceTime} progtempLocations={this.progtempLocations} model={this.state.model} />
               </Row>
             </Col>
           </Row>
@@ -134,14 +135,14 @@ class MapPanel extends PureComponent {
         return (
           <Row style={{ flex: 1 }}>
             <Col xs='6'>
-              <SinglePanel mapId={0} {...this.props} />
+              <SinglePanel mapId={0} {...this.props} referenceTime={this.state.referenceTime} progtempLocations={this.progtempLocations} model={this.state.model} />
             </Col>
             <Col xs='6' style={{ flexDirection: 'column' }}>
               <Row style={{ flex: 1 }}>
-                <SinglePanel mapId={1} {...this.props} />
+                <SinglePanel mapId={1} {...this.props} referenceTime={this.state.referenceTime} progtempLocations={this.progtempLocations} model={this.state.model} />
               </Row>
               <Row style={{ flex: 1 }}>
-                <SinglePanel mapId={2} {...this.props} />
+                <SinglePanel mapId={2} {...this.props} referenceTime={this.state.referenceTime} progtempLocations={this.progtempLocations} model={this.state.model} />
               </Row>
             </Col>
           </Row>
@@ -151,18 +152,18 @@ class MapPanel extends PureComponent {
           <Row style={{ flex: 1 }}>
             <Col xs='6' style={{ flexDirection: 'column' }}>
               <Row style={{ flex: 1 }}>
-                <SinglePanel mapId={0} {...this.props} />
+                <SinglePanel mapId={0} {...this.props} referenceTime={this.state.referenceTime} progtempLocations={this.progtempLocations} model={this.state.model} />
               </Row>
               <Row style={{ flex: 1 }}>
-                <SinglePanel mapId={2} {...this.props} />
+                <SinglePanel mapId={2} {...this.props} referenceTime={this.state.referenceTime} progtempLocations={this.progtempLocations} model={this.state.model} />
               </Row>
             </Col>
             <Col xs='6' style={{ flexDirection: 'column' }}>
               <Row style={{ flex: 1 }}>
-                <SinglePanel mapId={1} {...this.props} />
+                <SinglePanel mapId={1} {...this.props} referenceTime={this.state.referenceTime} progtempLocations={this.progtempLocations} model={this.state.model} />
               </Row>
               <Row style={{ flex: 1 }}>
-                <SinglePanel mapId={3} {...this.props} />
+                <SinglePanel mapId={3} {...this.props} referenceTime={this.state.referenceTime} progtempLocations={this.progtempLocations} model={this.state.model} />
               </Row>
             </Col>
           </Row>
@@ -172,18 +173,18 @@ class MapPanel extends PureComponent {
         return (<Row style={{ flex: 1 }}>
           <Col xs='6'>
             <Col xs='6'>
-              <SinglePanel mapId={0} {...this.props} />
+              <SinglePanel mapId={0} {...this.props} referenceTime={this.state.referenceTime} progtempLocations={this.progtempLocations} model={this.state.model} />
             </Col>
             <Col xs='6'>
-              <SinglePanel mapId={1} {...this.props} />
+              <SinglePanel mapId={1} {...this.props} referenceTime={this.state.referenceTime} progtempLocations={this.progtempLocations} model={this.state.model} />
             </Col>
           </Col>
           <Col xs='6'>
             <Col xs='6'>
-              <SinglePanel mapId={2} {...this.props} />
+              <SinglePanel mapId={2} {...this.props} referenceTime={this.state.referenceTime} progtempLocations={this.progtempLocations} model={this.state.model} />
             </Col>
             <Col xs='6'>
-              <SinglePanel mapId={3} {...this.props} />
+              <SinglePanel mapId={3} {...this.props} referenceTime={this.state.referenceTime} progtempLocations={this.progtempLocations} model={this.state.model} />
             </Col>
           </Col>
         </Row>);
@@ -192,7 +193,7 @@ class MapPanel extends PureComponent {
         return (
           <Row style={{ flex: 1 }}>
             <Col xs='12'>
-              <SinglePanel mapId={0} {...this.props} />
+              <SinglePanel mapId={0} {...this.props} referenceTime={this.state.referenceTime} progtempLocations={this.progtempLocations} model={this.state.model} />
             </Col>
           </Row>
         );

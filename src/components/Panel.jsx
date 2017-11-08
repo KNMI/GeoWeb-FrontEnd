@@ -124,8 +124,14 @@ class Panel extends PureComponent {
           dispatch(mapActions.setActivePanel(mapId));
         }
       } : null;
+      let id;
+      if (this.props.id) {
+        id = this.props.id;
+      } else if (type === 'ADAGUC') {
+        id = `adagucPanel${mapId}`;
+      }
       return (
-        <div className={className ? 'Panel ' + className : 'Panel'} id={this.props.id || `adagucPanel${mapId}`} onClick={onClick}>
+        <div className={className ? 'Panel ' + className : 'Panel'} id={id} onClick={onClick}>
           {(type && panelOpts.some((opt) => opt === type))
             ? <Row className='title notitle' style={{ ...style, overflow: 'visible' }}>
               <div style={{ marginTop: '0.33rem', flexWrap: 'wrap' }}>

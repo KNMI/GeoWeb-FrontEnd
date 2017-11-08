@@ -266,10 +266,10 @@ INFO_FORMAT=application/json&time=*&DIM_reference_time=` + refTimeStr + `&x=` + 
   render () {
     const { location, time, className, style, width, height } = this.props;
     return (
-      <div id={this.props.id} className={className} style={{ ...style, overflowY: 'hidden', minWidth: '400px', minHeight: '500px', height: '100%', maxHeight: '100%' }}>
+      <div id={this.props.id} className={className} style={{ ...style, overflowY: 'hidden', minWidth: '400px', height: '100%', maxHeight: '100%' }}>
         {this.state.timeData.length > 0
-          ? <div style={{ flexDirection: 'column', minHeight: '500px', height: '100%', width: '100%', maxWidth: '100%' }}>
-            <ResponsiveContainer minHeight={'100px'} debounce={50} width='100%' height={'20%'}>
+          ? <div style={{ flexDirection: 'column', height: '100%', width: '100%', maxWidth: '100%' }}>
+            <ResponsiveContainer minHeight={'10px'} debounce={50} width='100%' height={'20%'}>
               <LineChart data={this.state.timeData} margin={{ top: 0, left: 0, right: 10, bottom: 0 }}>
                 <XAxis dataKey='date' />
                 <YAxis />
@@ -281,7 +281,7 @@ INFO_FORMAT=application/json&time=*&DIM_reference_time=` + refTimeStr + `&x=` + 
                 <Line dot={(props) => this.renderDot('dew_point_temp', props)} isAnimationActive={false} type='monotone' dataKey='dew_point_temp' stroke='#0000ff' />
               </LineChart>
             </ResponsiveContainer>
-            <ResponsiveContainer minHeight={'100px'} debounce={50} width='100%' height={'20%'}>
+            <ResponsiveContainer minHeight={'10px'} debounce={50} width='100%' height={'20%'}>
               <LineChart data={this.state.timeData} margin={{ top: 0, left: 0, right: 10, bottom: 0 }}>
                 <XAxis dataKey='date' />
                 <YAxis domain={[0, 360]} />
@@ -291,7 +291,7 @@ INFO_FORMAT=application/json&time=*&DIM_reference_time=` + refTimeStr + `&x=` + 
                 <Line dot={(props) => this.renderDot('wind_dir', props)} isAnimationActive={false} type='monotone' dataKey='wind_dir' stroke='#ff7300' />
               </LineChart>
             </ResponsiveContainer>
-            <ResponsiveContainer minHeight={'100px'} debounce={50} width='100%' height={'20%'}>
+            <ResponsiveContainer minHeight={'10px'} debounce={50} width='100%' height={'20%'}>
               <LineChart data={this.state.timeData} margin={{ top: 0, left: 0, right: 10, bottom: 0 }}>
                 <XAxis dataKey='date' />
                 <YAxis />
@@ -301,7 +301,7 @@ INFO_FORMAT=application/json&time=*&DIM_reference_time=` + refTimeStr + `&x=` + 
                 <Line dot={(props) => this.renderDot('wind_speed', props)} isAnimationActive={false} type='monotone' dataKey='wind_speed' stroke='#ff7300' />
               </LineChart>
             </ResponsiveContainer>
-            <ResponsiveContainer minHeight={'100px'} debounce={50} width='100%' height={'20%'}>
+            <ResponsiveContainer minHeight={'10px'} debounce={50} width='100%' height={'20%'}>
               <LineChart data={this.state.timeData} margin={{ top: 0, left: 0, right: 10, bottom: 0 }}>
                 <XAxis dataKey='date' />
                 <YAxis />
@@ -311,7 +311,7 @@ INFO_FORMAT=application/json&time=*&DIM_reference_time=` + refTimeStr + `&x=` + 
                 <Line dot={(props) => this.renderDot('precipitation', props)} isAnimationActive={false} type='monotone' dataKey='precipitation' stroke='#ff7300' />
               </LineChart>
             </ResponsiveContainer>
-            <ResponsiveContainer minHeight={'100px'} debounce={50} width='100%' height={'20%'}>
+            <ResponsiveContainer minHeight={'10px'} debounce={50} width='100%' height={'20%'}>
               <LineChart data={this.state.timeData} margin={{ top: 0, left: 0, right: 10, bottom: 0 }}>
                 <XAxis dataKey='date' />
                 <YAxis domain={['auto', 'auto']} />
