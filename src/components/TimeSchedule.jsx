@@ -97,12 +97,12 @@ class TimeSchedule extends PureComponent {
                 durationPerc = 100 + intervalMinorBasis - offsetPerc;
               }
               offsetPerc -= cumOffset;
-              cumOffset += durationPerc;
+              cumOffset += durationPerc + offsetPerc;
               offsetPerc += '%';
               durationPerc += '%';
-              return <Col className={(range.style === 'label' ? 'scheduleLabel' : 'scheduleHighlight') + ' ' + arrowClass}
+              return <Col className={(range.style.includes('label') ? 'scheduleLabel' : 'scheduleHighlight') + ' ' + arrowClass}
                 key={serie.label + index} style={{ marginLeft: offsetPerc, flexBasis: durationPerc, maxWidth: durationPerc }}>
-                {(range.style === 'label' && !serie.isLabelVisible) ? '' : range.value}
+                {(range.style.includes('label') && !serie.isLabelVisible) ? '' : range.value}
               </Col>;
             })}
           </Row>;
