@@ -102,7 +102,7 @@ class TimeSchedule extends PureComponent {
               durationPerc += '%';
               return <Col className={(range.hasOwnProperty('styles') && range.styles.includes('label') ? 'scheduleLabel' : 'scheduleHighlight') + ' ' + arrowClass}
                 key={serie.label + index} style={{ marginLeft: offsetPerc, flexBasis: durationPerc, maxWidth: durationPerc }}>
-                {(range.hasOwnProperty('styles') && ranges.styles.includes('label') && !serie.isLabelVisible) ? '' : range.value}
+                {(range.hasOwnProperty('styles') && range.styles.includes('label') && !serie.isLabelVisible) ? '' : range.value}
               </Col>;
             })}
           </Row>;
