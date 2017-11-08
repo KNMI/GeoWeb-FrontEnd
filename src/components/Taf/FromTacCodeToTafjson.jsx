@@ -45,21 +45,9 @@ const fromTACToVisibility = (value) => {
       unit: null
     };
   } else {
-    if (value.indexOf('KM') !== -1) {
-      return {
-        value: parseInt(value.substring(0, 2)),
-        unit: 'KM'
-      };
-    } else if (value.indexOf('SM') !== -1) {
-      return {
-        value: parseInt(value.substring(0, 1)),
-        unit: 'SM'
-      };
-    } else {
-      return {
-        value: parseInt(value.substring(0, 4))
-      };
-    }
+    return {
+      value: parseInt(value.substring(0, 4))
+    };
   }
 };
 
