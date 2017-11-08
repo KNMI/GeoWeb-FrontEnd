@@ -46,7 +46,7 @@ class TimeSchedule extends PureComponent {
         start: startMoment.clone().subtract(majorTickInterval.asMinutes() / 2, 'minutes'),
         end: serie.ranges.reduce((prevMinimum, current) => prevMinimum.isBefore(current.start) ? prevMinimum : current.start, startMoment),
         value: serie.label.charAt(0).toUpperCase() + serie.label.slice(1),
-        style: 'label'
+        styles: ['label']
       });
     });
     console.log('TimeSchedule series:', series);
@@ -100,9 +100,9 @@ class TimeSchedule extends PureComponent {
               cumOffset += durationPerc + offsetPerc;
               offsetPerc += '%';
               durationPerc += '%';
-              return <Col className={(range.style.includes('label') ? 'scheduleLabel' : 'scheduleHighlight') + ' ' + arrowClass}
+              return <Col className={(range.hasOwnProperty('styles') && range.styles.includes('label') ? 'scheduleLabel' : 'scheduleHighlight') + ' ' + arrowClass}
                 key={serie.label + index} style={{ marginLeft: offsetPerc, flexBasis: durationPerc, maxWidth: durationPerc }}>
-                {(range.style.includes('label') && !serie.isLabelVisible) ? '' : range.value}
+                {(range.hasOwnProperty('styles') && ranges.styles.includes('label') && !serie.isLabelVisible) ? '' : range.value}
               </Col>;
             })}
           </Row>;
@@ -143,7 +143,7 @@ TimeSchedule.defaultProps = {
   endMoment: moment().utc().add(12, 'hour'),
   majorTickInterval: moment.duration(6, 'hour'),
   minorTickInterval: moment.duration(1, 'hour'),
-  series: [ { label: 'default label', ranges: [ { start: moment().utc().subtract(6, 'hour'), end: moment().utc().add(6, 'hour'), value: 'default value' } ] } ]
+  series: [ { label: 'default label', ranges: [ { start: moment().utc().subtract(6, 'hour'), end: moment().utc().add(6, 'hour'), value: 'default value', styles: [] } ] } ]
 };
 
 TimeSchedule.propTypes = {
@@ -156,7 +156,8 @@ TimeSchedule.propTypes = {
     ranges: PropTypes.arrayOf(PropTypes.shape({
       start: MomentPropTypes.momentObj,
       end: MomentPropTypes.momentObj,
-      value: PropTypes.object
+      value: PropTypes.object,
+      styles: PropTypes.arrayOf(PropTypes.string)
     }))
   }))
 };
