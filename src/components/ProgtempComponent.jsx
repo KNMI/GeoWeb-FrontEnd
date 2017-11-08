@@ -124,6 +124,8 @@ INFO_FORMAT=application/json&time=*&DIM_reference_time=` + refTimeStr + `&x=` + 
         this.renderProgtempData(this.progtempContext, this.width, this.height, this.props.time.format('YYYY-MM-DDTHH:mm:ss') + 'Z');
         this.setState({ isLoading: false });
       }).catch(() => this.setState({ isLoading: false }));
+    } else {
+      this.setState({ isLoading: false });
     }
   }
 
