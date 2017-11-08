@@ -3,9 +3,9 @@ import { createTAFJSONFromInput, removeInputPropsFromTafJSON } from './FromTacCo
 let tafJSONWithUserInputsAndNulls = {
   'metadata': {
     'uuid': '6f533de6-aed8-4a42-b226-0be62e37d03a',
-    'issueTime': '2017-08-31T09:24:47.829Z',
-    'validityStart': '2017-08-04T12:00:00Z',
-    'validityEnd': '2017-08-05T18:00:00Z',
+    'issueTime': '2017-10-31T09:24:47.829Z',
+    'validityStart': '2017-10-04T12:00:00Z',
+    'validityEnd': '2017-10-05T18:00:00Z',
     'location': 'EHAM',
     'status': 'concept',
     'type': 'normal'
@@ -136,8 +136,8 @@ let tafJSONWithUserInputsAndNulls = {
     },
     {
       'changeType': 'BECMG',
-      'changeStart': '2017-11-05T03:00:00Z',
-      'changeEnd': '2017-11-05T05:00:00Z',
+      'changeStart': '2017-10-05T03:00:00Z',
+      'changeEnd': '2017-10-05T05:00:00Z',
       'forecast': {
         'clouds': [
           {
@@ -208,9 +208,9 @@ let tafJSONWithUserInputsAndNulls = {
 let expectedTafWithInputs = {
   'metadata': {
     'uuid': '6f533de6-aed8-4a42-b226-0be62e37d03a',
-    'issueTime': '2017-08-31T09:24:47.829Z',
-    'validityStart': '2017-08-04T12:00:00Z',
-    'validityEnd': '2017-08-05T18:00:00Z',
+    'issueTime': '2017-10-31T09:24:47.829Z',
+    'validityStart': '2017-10-04T12:00:00Z',
+    'validityEnd': '2017-10-05T18:00:00Z',
     'location': 'EHAM',
     'status': 'concept',
     'type': 'normal'
@@ -231,8 +231,8 @@ let expectedTafWithInputs = {
   'changegroups': [
     {
       'changeType': 'BECMG',
-      'changeStart': '2017-11-04T16:00:00Z',
-      'changeEnd': '2017-11-04T20:00:00Z',
+      'changeStart': '2017-10-04T16:00:00Z',
+      'changeEnd': '2017-10-04T20:00:00Z',
       'forecast': {
         'clouds': [
           {
@@ -288,8 +288,8 @@ let expectedTafWithInputs = {
     },
     {
       'changeType': 'PROB30',
-      'changeStart': '2017-11-04T16:00:00Z',
-      'changeEnd': '2017-11-04T20:00:00Z',
+      'changeStart': '2017-10-04T16:00:00Z',
+      'changeEnd': '2017-10-04T20:00:00Z',
       'forecast': {
         'clouds': [
           {
@@ -333,8 +333,8 @@ let expectedTafWithInputs = {
     },
     {
       'changeType': 'BECMG',
-      'changeStart': '2017-11-05T03:00:00Z',
-      'changeEnd': '2017-11-05T05:00:00Z',
+      'changeStart': '2017-10-05T03:00:00Z',
+      'changeEnd': '2017-10-05T05:00:00Z',
       'forecast': {
         'clouds': [
           {
@@ -394,9 +394,9 @@ let expectedTafWithInputs = {
 let newComposedTAF = {
   'metadata': {
     'uuid': '6f533de6-aed8-4a42-b226-0be62e37d03a',
-    'issueTime': '2017-08-31T09:24:47.829Z',
-    'validityStart': '2017-08-04T12:00:00Z',
-    'validityEnd': '2017-08-05T18:00:00Z',
+    'issueTime': '2017-10-31T09:24:47.829Z',
+    'validityStart': '2017-10-04T12:00:00Z',
+    'validityEnd': '2017-10-05T18:00:00Z',
     'location': 'EHAM',
     'status': 'concept',
     'type': 'normal'
@@ -417,8 +417,8 @@ let newComposedTAF = {
   'changegroups': [
     {
       'changeType': 'BECMG',
-      'changeStart': '2017-11-04T16:00:00Z',
-      'changeEnd': '2017-11-04T20:00:00Z',
+      'changeStart': '2017-10-04T16:00:00Z',
+      'changeEnd': '2017-10-04T20:00:00Z',
       'forecast': {
         'clouds': [
           {
@@ -463,8 +463,8 @@ let newComposedTAF = {
     },
     {
       'changeType': 'PROB30',
-      'changeStart': '2017-11-04T16:00:00Z',
-      'changeEnd': '2017-11-04T20:00:00Z',
+      'changeStart': '2017-10-04T16:00:00Z',
+      'changeEnd': '2017-10-04T20:00:00Z',
       'forecast': {
         'clouds': [
           {
@@ -499,8 +499,8 @@ let newComposedTAF = {
     },
     {
       'changeType': 'BECMG',
-      'changeStart': '2017-11-05T03:00:00Z',
-      'changeEnd': '2017-11-05T05:00:00Z',
+      'changeStart': '2017-10-05T03:00:00Z',
+      'changeEnd': '2017-10-05T05:00:00Z',
       'forecast': {
         'clouds': [
           {
