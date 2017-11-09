@@ -46,10 +46,9 @@ class TimeSchedule extends PureComponent {
         start: startMoment.clone().subtract(majorTickInterval.asMinutes() / 2, 'minutes'),
         end: serie.ranges.reduce((prevMinimum, current) => prevMinimum.isBefore(current.start) ? prevMinimum : current.start, startMoment),
         value: serie.label.charAt(0).toUpperCase() + serie.label.slice(1),
-        styles: ['label']
+        styles: ['scheduleLabel']
       });
     });
-    console.log('TimeSchedule series:', series);
 
     let majorTicks = [];
     let currentMajorTick = startMoment.clone().add(majorTickInterval);
@@ -100,9 +99,12 @@ class TimeSchedule extends PureComponent {
               cumOffset += durationPerc + offsetPerc;
               offsetPerc += '%';
               durationPerc += '%';
-              return <Col className={(range.hasOwnProperty('styles') && range.styles.includes('label') ? 'scheduleLabel' : 'scheduleHighlight') + ' ' + arrowClass}
+              let classes = range.hasOwnProperty('styles') ? range.styles.join(' ') : '';
+              classes += (range.hasOwnProperty('styles') && range.styles.includes('scheduleLabel')) ? '' : ' scheduleHighlight';
+              classes += ' ' + arrowClass;
+              return <Col className={classes}
                 key={serie.label + index} style={{ marginLeft: offsetPerc, flexBasis: durationPerc, maxWidth: durationPerc }}>
-                {(range.hasOwnProperty('styles') && range.styles.includes('label') && !serie.isLabelVisible) ? '' : range.value}
+                {(range.hasOwnProperty('styles') && range.styles.includes('scheduleLabel') && !serie.isLabelVisible) ? '' : range.value}
               </Col>;
             })}
           </Row>;

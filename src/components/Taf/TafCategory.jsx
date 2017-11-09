@@ -295,7 +295,7 @@ class TafCategory extends Component {
           </strong>
           : null}
         {!isNaN(value.direction)
-          ? <span>
+          ? <span style={{ marginLeft: '0.4rem' }}>
             {value.direction}
             <i className='fa fa-location-arrow' style={{ transform: 'rotate(' + (value.direction + 135) + 'deg)' }} aria-hidden='true' />
           </span>
@@ -476,18 +476,20 @@ class TafCategory extends Component {
             scheduleSeries[seriesIndex].ranges.push({
               start: start,
               end: end,
-              value: value
+              value: value,
+              styles: [ changeType === CHANGE_TYPES.BECMG ? 'striped' : changeType === CHANGE_TYPES.PROB30 || changeType === CHANGE_TYPES.PROB40 ? 'split' : null ]
             });
           } else {
             seriesIndex = scheduleSeries.push({
               label: label,
-              isLabelVisible: labelSuffix.length === 0,
+              isLabelVisible: labelSuffix.length === 0 || scheduleSeries.findIndex(serie => serie.label === entry[0]) === -1,
               ranges: [ {
                 start: start,
                 end: end,
-                value: value
+                value: value,
+                styles: [ changeType === CHANGE_TYPES.BECMG ? 'striped' : changeType === CHANGE_TYPES.PROB30 || changeType === CHANGE_TYPES.PROB40 ? 'split' : null ]
               } ]
-            }) - 1;
+            }) - 1; // push returns the length, but the last index is needed
           }
           if (changeType === CHANGE_TYPES.BECMG) {
             scheduleSeries[seriesIndex].ranges.push({
