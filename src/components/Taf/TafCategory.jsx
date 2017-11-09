@@ -19,7 +19,7 @@ const CHANGE_TYPES = Enum(
   'PROB40', // probability of 40% for a temporary steady change
   'TEMPO', // temporary fluctuating change
   'PROB30_TEMPO', // probability of 30% for a temporary fluctating change
-  'PROP40_TEMPO' // probability of 30% for a temporary fluctating change
+  'PROP40_TEMPO' // probability of 40% for a temporary fluctating change
 );
 
 const CHANGE_TYPES_ORDER = [
@@ -207,12 +207,14 @@ class TafCategory extends Component {
    */
   getChangeType (typeName) {
     if (typeof typeName === 'string') {
-      const normalizedTypeName = typeName.toUpperCase().replace(/ /g, '_');
+      const normalizedTypeName = typeName.toUpperCase().replace(/\s/g, '_');
       if (normalizedTypeName in CHANGE_TYPES) {
         return CHANGE_TYPES[normalizedTypeName];
       } else {
         return null;
       }
+    } else {
+      return null;
     }
   }
 
@@ -250,7 +252,6 @@ class TafCategory extends Component {
     // Checks for startA/B.isValid()
     const typeAindex = CHANGE_TYPES_ORDER.indexOf(this.getChangeType(itemA.changeType));
     const typeBindex = CHANGE_TYPES_ORDER.indexOf(this.getChangeType(itemB.changeType));
-    console.log('Compare', startA.format(), startB.format(), typeAindex, typeBindex);
     return typeBindex < typeAindex
       ? 1
       : typeBindex > typeAindex
@@ -502,7 +503,6 @@ class TafCategory extends Component {
       });
     });
     scheduleSeries.sort(this.byPhenomenonType);
-    console.log('scheduleSeries', scheduleSeries);
     return scheduleSeries;
   }
 
@@ -510,22 +510,22 @@ class TafCategory extends Component {
     Event handler which handles keyUp events from input fields. E.g. arrow keys, Enter key, Esc key, etc...
   */
   onKeyUp (event, row, col, inputValue) {
-    if (event.keyCode === 13) {
+    if (event.key === 'Enter') {
       this.onAddRow();
     }
-    if (event.keyCode === 27) {
+    if (event.key === 'Escape') {
       this.updateTACtoTAFJSONtoTac();
       this.validateTAF(this.state.tafJSON);
     }
     if (this.state.tafJSON.changegroups.length > 0) {
-      if (event.keyCode === 38) { // KEY ARROW UP
+      if (event.key === 'ArrowUp') { // KEY ARROW UP
         if (row === 0) { // Up from changegroup to baseforecast
           this.refs['taftable'].refs['baseforecast'].refs['column_' + col].refs['inputfield'].focus();
         } else if (row > 0) { // Up from changegroup to changegroup
           this.refs['taftable'].refs['changegroup_' + (row - 1)].refs['sortablechangegroup'].refs['column_' + col].refs['inputfield'].focus();
         }
       }
-      if (event.keyCode === 40) { // KEY ARROW DOWN
+      if (event.key === 'ArrowDown') { // KEY ARROW DOWN
         if (row === -1) { // Down from baseforecast to changegroup
           this.refs['taftable'].refs['changegroup_' + (row + 1)].refs['sortablechangegroup'].refs['column_' + col].refs['inputfield'].focus();
         } else if (row >= 0 && row < (this.state.tafJSON.changegroups.length - 1)) { // Down from changegroup to changegroup
@@ -627,7 +627,6 @@ class TafCategory extends Component {
     }
 
     const tafJson = removeInputPropsFromTafJSON(createTAFJSONFromInput(this.state.tafJSON));
-    console.log('tafJson', tafJson);
     const series = this.extractScheduleInformation(tafJson);
 
     return (
