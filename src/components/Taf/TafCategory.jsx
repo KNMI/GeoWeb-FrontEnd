@@ -476,7 +476,8 @@ class TafCategory extends Component {
             scheduleSeries[seriesIndex].ranges.push({
               start: start,
               end: end,
-              value: value
+              value: value,
+              styles: [ changeType === CHANGE_TYPES.BECMG ? 'striped' : changeType === CHANGE_TYPES.PROB30 || changeType === CHANGE_TYPES.PROB40 ? 'split' : null ]
             });
           } else {
             seriesIndex = scheduleSeries.push({
@@ -485,9 +486,10 @@ class TafCategory extends Component {
               ranges: [ {
                 start: start,
                 end: end,
-                value: value
+                value: value,
+                styles: [ changeType === CHANGE_TYPES.BECMG ? 'striped' : changeType === CHANGE_TYPES.PROB30 || changeType === CHANGE_TYPES.PROB40 ? 'split' : null ]
               } ]
-            }) - 1;
+            }) - 1; // push returns the length, but the last index is needed
           }
           if (changeType === CHANGE_TYPES.BECMG) {
             scheduleSeries[seriesIndex].ranges.push({

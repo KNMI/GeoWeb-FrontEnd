@@ -66,13 +66,24 @@ div.TimeSchedule > div.col > div.row > div.col{
   border: 0.1rem solid #9ec5cb;
 }
 
-.TimeSchedule .wind_tmp .scheduleHighlight {
+.TimeSchedule .wind_tmp .scheduleHighlight, .TimeSchedule .wind .striped.scheduleHighlight {
   background: repeating-linear-gradient(
     45deg,
     #d1ecf1,
     #d1ecf1 0.6rem,
     #bee5eb 0.6rem,
     #bee5eb 1.2rem
+  );
+  border: 0.1rem solid #9ec5cb;
+}
+
+.TimeSchedule .wind_tmp .split.scheduleHighlight {
+  background: linear-gradient(
+    to bottom,
+    #d1ecf1,
+    #d1ecf1 60%,
+    #bee5eb 60%,
+    #bee5eb
   );
 }
 
@@ -81,13 +92,24 @@ div.TimeSchedule > div.col > div.row > div.col{
   border: 0.1rem solid #a3c6ab;
 }
 
-.TimeSchedule .visibiltiy_tmp .scheduleHighlight {
+.TimeSchedule .visibiltiy_tmp .scheduleHighlight, .TimeSchedule .visibility .striped.scheduleHighlight {
   background: repeating-linear-gradient(
     45deg,
     #d4edda,
     #d4edda 0.6rem,
     #c3e6cb 0.6rem,
     #c3e6cb 1.2rem
+  );
+  border: 0.1rem solid #a3c6ab;
+}
+
+.TimeSchedule .visibility_tmp .split.scheduleHighlight {
+  background: linear-gradient(
+    to bottom,
+    #d4edda,
+    #d4edda 60%,
+    #c3e6cb 60%,
+    #c3e6cb
   );
 }
 
@@ -96,13 +118,24 @@ div.TimeSchedule > div.col > div.row > div.col{
   border: 0.1rem solid #dfce9a;
 }
 
-.TimeSchedule .weather_tmp .scheduleHighlight {
+.TimeSchedule .weather_tmp .scheduleHighlight, .TimeSchedule .weather .striped.scheduleHighlight {
   background: repeating-linear-gradient(
     45deg,
     #fff3cd,
     #fff3cd 0.6rem,
-    #ffeeba 0.6rem,
-    #ffeeba 1.2rem
+    #fbeab5 0.6rem,
+    #fbeab5 1.2rem
+  );
+  border: 0.1rem solid #dfce9a;
+}
+
+.TimeSchedule .weather_tmp .split.scheduleHighlight {
+  background: linear-gradient(
+    to bottom,
+    #fff3cd,
+    #fff3cd 60%,
+    #fbeab5 60%,
+    #fbeab5
   );
 }
 
@@ -111,13 +144,24 @@ div.TimeSchedule > div.col > div.row > div.col{
   border: 0.1rem solid #d5a6ab;
 }
 
-.TimeSchedule .clouds_tmp .scheduleHighlight {
+.TimeSchedule .clouds_tmp .scheduleHighlight, .TimeSchedule .clouds .striped.scheduleHighlight {
   background: repeating-linear-gradient(
     45deg,
     #f8d7da,
     #f8d7da 0.6rem,
     #f5c6cb 0.6rem,
     #f5c6cb 1.2rem
+  );
+  border: 0.1rem solid #d5a6ab;
+}
+
+.TimeSchedule .clouds_tmp .split.scheduleHighlight {
+  background: linear-gradient(
+    to bottom,
+    #f8d7da,
+    #f8d7da 60%,
+    #f5c6cb 60%,
+    #f5c6cb
   );
 }
 
