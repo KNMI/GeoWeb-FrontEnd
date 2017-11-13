@@ -83,8 +83,7 @@ export const TestTafJSON = {
         },
         'temperature': null,
         'caVOK': null
-      },
-      'caVOK': null
+      }
     },
     {
       'visibility': null,
@@ -130,16 +129,14 @@ export const TestTafJSON = {
         },
         'temperature': null,
         'caVOK': null
-      },
-      'caVOK': null
+      }
     },
     {
       'visibility': null,
       'wind': null,
       'temperature': null,
-      'changeType': 'BECMG',
+      'changeType': 'FM',
       'changeStart': '2017-08-05T03:00:00Z',
-      'changeEnd': '2017-08-05T05:00:00Z',
       'forecast': {
         'clouds': [
           {
@@ -185,8 +182,49 @@ export const TestTafJSON = {
         },
         'temperature': null,
         'caVOK': null
-      },
-      'caVOK': null
+      }
+    },
+    {
+      'visibility': null,
+      'wind': null,
+      'temperature': null,
+      'changeType': null,
+      'changeStart': '2017-08-05T03:00:00Z',
+      'changeEnd': '2017-08-05T05:00:00Z',
+      'forecast': {
+        'unknown': [
+        ],
+        'clouds': [
+          {
+            'isNSC': null,
+            'amount': null,
+            'mod': null,
+            'height': null
+          }
+        ],
+        'weather': [
+          {
+            'isNSW': null,
+            'qualifier': null,
+            'descriptor': null,
+            'phenomena': [
+              null
+            ]
+          }
+        ],
+        'visibility': {
+          'value': null,
+          'unit': null
+        },
+        'wind': {
+          'direction': null,
+          'speed': null,
+          'gusts': null,
+          'unit': null
+        },
+        'temperature': null,
+        'caVOK': null
+      }
     }
   ]
 };

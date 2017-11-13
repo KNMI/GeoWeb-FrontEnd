@@ -55,6 +55,8 @@ describe('(Container) SigmetCategory', () => {
         const _instance = _component.instance();
         let phenomenon = _instance.getHRT4code();
         expect(phenomenon).to.eql('Unknown');
+        phenomenon = _instance.getHRT4code(undefined);
+        expect(phenomenon).to.eql('Unknown');
         phenomenon = _instance.getHRT4code('Test');
         expect(phenomenon).to.eql('Unknown');
         phenomenon = _instance.getHRT4code('OBSC_TS');
@@ -87,6 +89,61 @@ describe('(Container) SigmetCategory', () => {
         expect(phenomenon).to.eql('Radioactive cloud');
       });
     });
+  });
+  it('Handles triggering of showLevels', () => {
+    const _component = mount(<SigmetCategory title={'test'} icon='star' />);
+    const _instance = _component.instance();
+    let phenomenon = _instance.showLevels({ });
+    expect(phenomenon).to.eql('');
+    phenomenon = _instance.showLevels({ lev1: { unit: 'SFC' } });
+    expect(phenomenon).to.eql('');
+    phenomenon = _instance.showLevels({ lev1: { unit: 'TOP' } });
+    expect(phenomenon).to.eql('Tops at FLundefined');
+    phenomenon = _instance.showLevels({ lev1: { unit: 'TOP', value: 100 } });
+    expect(phenomenon).to.eql('Tops at FL100');
+    phenomenon = _instance.showLevels({ lev1: { unit: 'TOP_ABV' } });
+    expect(phenomenon).to.eql('Tops above FLundefined');
+    phenomenon = _instance.showLevels({ lev1: { unit: 'TOP_ABV', value: 200 } });
+    expect(phenomenon).to.eql('Tops above FL200');
+    phenomenon = _instance.showLevels({ lev1: { unit: 'ABV' } });
+    expect(phenomenon).to.eql('Above FLundefined');
+    phenomenon = _instance.showLevels({ lev1: { unit: 'ABV', value: 300 } });
+    expect(phenomenon).to.eql('Above FL300');
+    phenomenon = _instance.showLevels({ lev1: { unit: 'SFC' }, lev2: {} });
+    expect(phenomenon).to.eql('Between surface and ft');
+    phenomenon = _instance.showLevels({ lev1: { unit: 'SFC' }, lev2: { unit: 'm' } });
+    expect(phenomenon).to.eql('Between surface and ft');
+    phenomenon = _instance.showLevels({ lev1: { unit: 'SFC' }, lev2: { unit: 'm' } });
+    expect(phenomenon).to.eql('Between surface and ft');
+  });
+  it('Handles triggering of tooltip', () => {
+    const _component = mount(<SigmetCategory title={'test'} icon='star' />);
+    const _instance = _component.instance();
+    let phenomenon = _instance.tooltip(400, null);
+    expect(phenomenon).to.eql('Above');
+    phenomenon = _instance.tooltip(0, null);
+    expect(phenomenon).to.eql('Surface');
+    phenomenon = _instance.tooltip(100, 'm');
+    expect(phenomenon).to.eql('3000 m');
+    phenomenon = _instance.tooltip(100, 'ft');
+    expect(phenomenon).to.eql('10000 ft');
+    phenomenon = _instance.tooltip(100, 'FL');
+    expect(phenomenon).to.eql('FL 100');
+  });
+  it('Handles triggering of marks', () => {
+    const _component = mount(<SigmetCategory title={'test'} icon='star' />);
+    const _instance = _component.instance();
+    let phenomenon = _instance.marks([0, 100, 200], 'ft');
+    expect(phenomenon).to.eql({ 0: '0 ft', 100: '10000 ft', 200: '20000 ft', 400: 'Above' });
+    phenomenon = _instance.marks([0, 100, 200], 'FL');
+    expect(phenomenon).to.eql({ 0: 'FL 0', 100: 'FL 100', 200: 'FL 200', 400: 'Above' });
+  });
+  it('Handles triggering of setSigmetLevel', () => {
+    const _component = mount(<SigmetCategory title={'test'} icon='star' />);
+    const _instance = _component.instance();
+    _instance.setSigmetLevel([]);
+    _instance.setSigmetLevel([50]);
+    _instance.setSigmetLevel([0, 100]);
   });
   it('Allows to trigger a handleSigmetClick', () => {
     const sigmets = {

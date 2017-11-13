@@ -82,10 +82,9 @@ describe('(Container) Taf/TafCategory.jsx', () => {
     expect('everything').to.be.ok();
   });
 
-  // <TafCategory
-  //               taf={this.state.inputValueJSON}
-  //               validationReport={this.state.validationReport}
-  //               editable={this.props.tafEditable}
-  //               saveTaf={this.saveTaf}
-  //               validateTaf={this.validateTaf} />
+  it('Handles updating of TAF json', () => {
+    const _component = mount(<TafCategory />);
+    _component.setProps({ taf: TestTafJSON });
+    expect(_component.type()).to.eql(TafCategory);
+  });
 });
