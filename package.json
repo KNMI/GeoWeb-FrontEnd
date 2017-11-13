@@ -15,7 +15,7 @@
     "lint:fix": "better-npm-run lint -- --fix",
     "start": "better-npm-run start",
     "dev": "better-npm-run dev",
-    "test": "better-npm-run test",
+    "test": "better-npm-run test --max-old-space-size=8192 --optimize-for-size --max-executable-size=8192",
     "test:dev": "better-npm-run test -- --watch",
     "deploy": "better-npm-run deploy",
     "deploy:dev": "better-npm-run deploy:dev",
@@ -94,6 +94,7 @@
     "lodash.clonedeep": "^4.5.0",
     "lodash.isempty": "^4.4.0",
     "lodash.omit": "^4.5.0",
+    "lyef-switch-button": "^1.3.2",
     "moment": "^2.19.1",
     "moment-timezone": "^0.5.13",
     "prop-types": "^15.6.0",
@@ -112,7 +113,6 @@
     "react-redux": "^5.0.6",
     "react-router": "^3.2.0",
     "react-sortable-hoc": "^0.6.8",
-    "react-switch-button": "2.2.1",
     "reactable": "^0.14.1",
     "reactstrap": "^4.8.0",
     "reapop": "^1.1.3",
@@ -201,7 +201,8 @@
     "webpack": "^3.8.1",
     "webpack-dev-middleware": "^1.12.0",
     "webpack-hot-middleware": "^2.20.0",
-    "yargs": "^9.0.1"
+    "yargs": "^9.0.1",
+    "yarn": "^1.3.2"
   },
   "pre-commit": [
     "lint",
