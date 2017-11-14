@@ -32,11 +32,11 @@ div.TimeSchedule > div.col > div.row > div.col{
 }
 
 .TimeSchedule div.row.marks .tick {
-  border-left: 0.1rem solid $base-color;
+  border-left: 0.05rem solid $base-color;
 }
 
 .TimeSchedule > div.col .row.axis .tick:not(:last-child) {
-  border-bottom: 0.1rem solid $base-color;
+  border-bottom: 0.05rem solid $base-color;
 }
 
 .TimeSchedule .row:last-child .tick {
@@ -45,28 +45,49 @@ div.TimeSchedule > div.col > div.row > div.col{
 
 .TimeSchedule .groupRow {
   margin-top: 0.4rem;
-  min-height: 2.4rem;
+  min-height: 1.8rem;
+}
+
+.TimeSchedule .overlaps.groupRow {
+  min-height: 3.3rem;
 }
 
 .TimeSchedule .scheduleLabel {
-  padding: 0.4rem;
+  padding: 0.4rem 0.2rem;
   font-weight: 600;
+}
+
+.TimeSchedule .overlaps.groupRow .scheduleHighlight {
+  max-height: 1.8rem;
+}
+
+.TimeSchedule .scheduleHighlight .col-auto i {
+  margin: 0 0.1rem;
+  margin-left: 0.3rem;
 }
 
 .TimeSchedule .scheduleHighlight {
   background-color: #e7e8ea;
-  border: 0.1rem solid #bdbfc2;
+  border: 0.05rem solid #bdbfc2;
   border-radius: 0.3rem;
   padding: 0.3rem;
   font-size: 90%;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  cursor: default;
+}
+
+.TimeSchedule .overlaps.scheduleHighlight {
+  margin-top: 1.5rem;
+  margin-bottom: -1.5rem;
 }
 
 .TimeSchedule .wind .scheduleHighlight {
   background-color: #d1ecf1;
-  border: 0.1rem solid #9ec5cb;
+  border-color: #9ec5cb;
 }
 
-.TimeSchedule .wind_tmp .scheduleHighlight, .TimeSchedule .wind .striped.scheduleHighlight {
+.TimeSchedule .wind_temp .scheduleHighlight, .TimeSchedule .wind .striped.scheduleHighlight {
   background: repeating-linear-gradient(
     45deg,
     #d1ecf1,
@@ -74,10 +95,10 @@ div.TimeSchedule > div.col > div.row > div.col{
     #bee5eb 0.6rem,
     #bee5eb 1.2rem
   );
-  border: 0.1rem solid #9ec5cb;
+  border-color: #9ec5cb;
 }
 
-.TimeSchedule .wind_tmp .split.scheduleHighlight {
+.TimeSchedule .wind_temp .split.scheduleHighlight {
   background: linear-gradient(
     to bottom,
     #d1ecf1,
@@ -89,10 +110,10 @@ div.TimeSchedule > div.col > div.row > div.col{
 
 .TimeSchedule .visibility .scheduleHighlight {
   background-color: #d4edda;
-  border: 0.1rem solid #a3c6ab;
+  border-color: #a3c6ab;
 }
 
-.TimeSchedule .visibility_tmp .scheduleHighlight, .TimeSchedule .visibility .striped.scheduleHighlight{
+.TimeSchedule .visibility_temp .scheduleHighlight, .TimeSchedule .visibility .striped.scheduleHighlight{
   background: repeating-linear-gradient(
     45deg,
     #d4edda,
@@ -100,10 +121,10 @@ div.TimeSchedule > div.col > div.row > div.col{
     #c3e6cb 0.6rem,
     #c3e6cb 1.2rem
   );
-  border: 0.1rem solid #a3c6ab;
+  border-color: #a3c6ab;
 }
 
-.TimeSchedule .visibility_tmp .split.scheduleHighlight {
+.TimeSchedule .visibility_temp .split.scheduleHighlight {
   background: linear-gradient(
     to bottom,
     #d4edda,
@@ -115,10 +136,10 @@ div.TimeSchedule > div.col > div.row > div.col{
 
 .TimeSchedule .weather .scheduleHighlight {
   background-color: #fff3cd;
-  border: 0.1rem solid #dfce9a;
+  border-color: #dfce9a;
 }
 
-.TimeSchedule .weather_tmp .scheduleHighlight, .TimeSchedule .weather .striped.scheduleHighlight {
+.TimeSchedule .weather_temp .scheduleHighlight, .TimeSchedule .weather .striped.scheduleHighlight {
   background: repeating-linear-gradient(
     45deg,
     #fff3cd,
@@ -126,10 +147,10 @@ div.TimeSchedule > div.col > div.row > div.col{
     #fbeab5 0.6rem,
     #fbeab5 1.2rem
   );
-  border: 0.1rem solid #dfce9a;
+  border-color: #dfce9a;
 }
 
-.TimeSchedule .weather_tmp .split.scheduleHighlight {
+.TimeSchedule .weather_temp .split.scheduleHighlight {
   background: linear-gradient(
     to bottom,
     #fff3cd,
@@ -141,10 +162,10 @@ div.TimeSchedule > div.col > div.row > div.col{
 
 .TimeSchedule .clouds .scheduleHighlight {
   background-color: #f8d7da;
-  border: 0.1rem solid #d5a6ab;
+  border-color: #d5a6ab;
 }
 
-.TimeSchedule .clouds_tmp .scheduleHighlight, .TimeSchedule .clouds .striped.scheduleHighlight {
+.TimeSchedule .clouds_temp .scheduleHighlight, .TimeSchedule .clouds .striped.scheduleHighlight {
   background: repeating-linear-gradient(
     45deg,
     #f8d7da,
@@ -152,10 +173,10 @@ div.TimeSchedule > div.col > div.row > div.col{
     #f5c6cb 0.6rem,
     #f5c6cb 1.2rem
   );
-  border: 0.1rem solid #d5a6ab;
+  border-color: #d5a6ab;
 }
 
-.TimeSchedule .clouds_tmp .split.scheduleHighlight {
+.TimeSchedule .clouds_temp .split.scheduleHighlight {
   background: linear-gradient(
     to bottom,
     #f8d7da,
@@ -165,9 +186,8 @@ div.TimeSchedule > div.col > div.row > div.col{
   );
 }
 
-.TimeSchedule .scheduleHighlight span {
+.TimeSchedule .scheduleHighlight div {
   display: inline-block;
-  vertical-align: middle;
 }
 
 .TimeSchedule .scheduleHighlight.rightArrow {
@@ -177,6 +197,7 @@ div.TimeSchedule > div.col > div.row > div.col{
 .TimeSchedule .scheduleHighlight.leftArrow::before {
   font-family: FontAwesome;
   font-size: 80%;
+  padding-top: 0.2rem;
   padding-right: 0.5rem;
   content: "\f053";
 }
@@ -184,6 +205,7 @@ div.TimeSchedule > div.col > div.row > div.col{
 .TimeSchedule .scheduleHighlight.rightArrow::after {
   font-family: FontAwesome;
   font-size: 80%;
+  padding-top: 0.2rem;
   padding-left: 0.5rem;
   content: "\f054";
 }
@@ -191,6 +213,7 @@ div.TimeSchedule > div.col > div.row > div.col{
 .TimeSchedule .scheduleHighlight.bothArrow::before {
   font-family: FontAwesome;
   font-size: 80%;
-  padding-left: 0.5rem;
+  padding-top: 0.2rem;
+  padding-right: 0.5rem;
   content: "\f054\f053";
 }
