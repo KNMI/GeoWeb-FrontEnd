@@ -4,21 +4,12 @@ import { mount } from 'enzyme';
 import moxios from 'moxios';
 
 describe('(Container) SigmetCategory', () => {
-  beforeEach(() => {
-    // import and pass your custom axios instance to this method
-    moxios.install();
-  });
-
-  afterEach(() => {
-    // import and pass your custom axios instance to this method
-    moxios.uninstall();
-  });
-
   it('Renders a SigmetCategory', () => {
     const _component = mount(<SigmetCategory title={'test'} icon='star' />);
     expect(_component.type()).to.eql(SigmetCategory);
   });
   it('Maps SIGMET phenomenon codes to Human Readable Text', () => {
+    moxios.install();
     const phenomena = [
       { phenomenon: { name: 'Thunderstorm', code: 'TS', layerpreset: 'sigmet_layer_TS' },
         variants: [{ name: 'Obscured', code: 'OBSC' }, { name: 'Embedded', code: 'EMBD' }, { name: 'Frequent', code: 'FRQ' }, { name: 'Squall line', code: 'SQL' }],
@@ -87,8 +78,10 @@ describe('(Container) SigmetCategory', () => {
         expect(phenomenon).to.eql('Heavy sandstorm');
         phenomenon = _instance.getHRT4code('RDOACT_CLD');
         expect(phenomenon).to.eql('Radioactive cloud');
+        moxios.done();
       });
     });
+    moxios.uninstall();
   });
   it('Handles triggering of showLevels', () => {
     const _component = mount(<SigmetCategory title={'test'} icon='star' />);
@@ -137,6 +130,8 @@ describe('(Container) SigmetCategory', () => {
     expect(phenomenon).to.eql({ 0: '0 ft', 100: '10000 ft', 200: '20000 ft', 400: 'Above' });
     phenomenon = _instance.marks([0, 100, 200], 'FL');
     expect(phenomenon).to.eql({ 0: 'FL 0', 100: 'FL 100', 200: 'FL 200', 400: 'Above' });
+    phenomenon = _instance.marks([100, 200, 300], 'FL');
+    expect(phenomenon).to.eql({ 0: 'Surface', 100: 'FL 100', 200: 'FL 200', 300: 'FL 300', 400: 'Above' });
   });
   it('Handles triggering of setSigmetLevel', () => {
     const _component = mount(<SigmetCategory title={'test'} icon='star' />);
@@ -146,6 +141,7 @@ describe('(Container) SigmetCategory', () => {
     _instance.setSigmetLevel([0, 100]);
   });
   it('Allows to trigger a handleSigmetClick', () => {
+    moxios.install();
     const sigmets = {
       sigmets: [
         {
@@ -204,10 +200,13 @@ describe('(Container) SigmetCategory', () => {
         _firstButton.simulate('click');
         expect(result).to.eql(1);
         expect(false).to.equal(true);
+        moxios.done();
       }).catch((error) => {
         console.error('This test gave an error: ', error);
         expect(false).to.equal(true);
+        moxios.done();
       });
     });
+    moxios.uninstall();
   });
 });
