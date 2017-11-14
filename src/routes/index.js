@@ -38,7 +38,8 @@ import SidebarContainer from '../containers/Management/SidebarContainer';
 
 const mapStateToHeaderProps = state => ({
   title: 'header',
-  user: state.userProperties
+  user: state.userProperties,
+  fullState: state
 });
 const mapDispatchToHeaderProps = function (dispatch) {
   return ({

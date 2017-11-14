@@ -15,7 +15,7 @@
     "lint:fix": "better-npm-run lint -- --fix",
     "start": "better-npm-run start",
     "dev": "better-npm-run dev",
-    "test": "better-npm-run test --max-old-space-size=8192 --optimize-for-size --max-executable-size=8192",
+    "test": "better-npm-run test",
     "test:dev": "better-npm-run test -- --watch",
     "deploy": "better-npm-run deploy",
     "deploy:dev": "better-npm-run deploy:dev",
