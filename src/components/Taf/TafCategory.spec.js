@@ -48,7 +48,7 @@ describe('(Container) Taf/TafCategory.jsx', () => {
     expect('everything').to.be.ok();
   });
 
-  it('Triggers onkeyup (key arrow up) key 38 and checks if validation is called', () => {
+  it('Triggers onkeyup (key arrow up, key 38) and checks if validation is called', () => {
     const _wrappingComponent = mount(<TafCategory
       editable
       taf={TestTafJSON}
@@ -65,7 +65,7 @@ describe('(Container) Taf/TafCategory.jsx', () => {
     expect('everything').to.be.ok();
   });
 
-  it('Triggers onkeyup (key arrow up) key 40 and checks if validation is called', () => {
+  it('Triggers onkeyup (key arrow down, key 40) and checks if validation is called', () => {
     const _wrappingComponent = mount(<TafCategory
       editable
       taf={TestTafJSON}
