@@ -764,6 +764,7 @@ class SigmetCategory extends Component {
   }
 
   setTops (evt) {
+    console.log(evt);
     let newPartialState = { tops: evt.target.checked };
     if (newPartialState.tops) {
       newPartialState['lowerUnit'] = UNIT_FL;
@@ -888,7 +889,7 @@ class SigmetCategory extends Component {
               <Badge>Tops</Badge>
             </Col>
             <Col xs='8' style={{ justifyContent: 'center' }}>
-              <SwitchButton name='topswitch' labelLeft='Off' labelRight='On&nbsp;' isChecked={this.state.tops} action={() => { console.log('click'); this.setTops() }} align='center' />
+              <SwitchButton id='topswitch' name='topswitch' labelLeft='Off' labelRight='On&nbsp;' isChecked={this.state.tops} action={(evt) => this.setTops(evt)} align='center' />
             </Col>
           </Row>
           <Row>
@@ -896,7 +897,7 @@ class SigmetCategory extends Component {
               <Badge>Levels</Badge>
             </Col>
             <Col xs='8' style={{ justifyContent: 'center' }}>
-              <SwitchButton name='dualsingleswitch' labelRight='Extent' labelLeft='Single'
+              <SwitchButton id='dualsingleswitch' name='dualsingleswitch' labelRight='Extent' labelLeft='Single'
                 isChecked={this.state.renderRange} action={(evt) => this.setState({ renderRange: evt.target.checked })} align='center' />
             </Col>
           </Row>
@@ -983,7 +984,7 @@ class SigmetCategory extends Component {
                     <Row style={editable ? { marginTop: '0.19rem', minHeight: '2rem' } : null}>
                       <Col xs={{ size: 9, offset: 3 }}>
                         { editable
-                         ? <SwitchButton name='obsfcstswitch'
+                         ? <SwitchButton id='obsfcstswitch' name='obsfcstswitch'
                            labelRight='Observed' labelLeft='Forecast' isChecked={item.obs_or_forecast.obs} action={(evt) => this.setSelectedObservedForecast(evt.target.checked)} />
                          : <span>{item.obs_or_forecast.obs ? 'Observed' : 'Forecast'}</span>
                         }
