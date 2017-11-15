@@ -12,4 +12,4 @@ utils/latest
 
 config/config.json
 config/config.*.json
-src/static/backendUrl.js
+src/static/urls.js

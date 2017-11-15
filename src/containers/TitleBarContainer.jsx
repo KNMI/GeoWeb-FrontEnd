@@ -589,7 +589,7 @@ class TitleBarContainer extends PureComponent {
     const feedbackObj = {
       state: this.props.fullState,
       url: window.location.href,
-      config: { ...require('config'), backend_url: require('../static/backendUrl.js').BACKEND_SERVER_URL },
+      config: { ...require('config'), backend_url: require('../static/urls.js').BACKEND_SERVER_URL },
       userAgent: navigator.userAgent,
       descriptions: {
         short: this.shortDescription,
@@ -597,13 +597,18 @@ class TitleBarContainer extends PureComponent {
       }
     };
 
+    const { WEBSERVER_URL } = require('../static/urls');
     // TODO send this to the webserver for further distribution
-    console.log(feedbackObj);
+    axios({
+      method: 'post',
+      url: WEBSERVER_URL + '/cgi-bin/geoweb/receiveFeedback.cgi',
+      data: JSON.stringify(feedbackObj, null, 2)
+    }).then((res) => console.log(res));
   }
 
   renderFeedbackModal (feedbackModalOpen, toggle) {
     return (<Modal isOpen={feedbackModalOpen} toggle={toggle}>
-      <ModalHeader toggle={toggle}>What a Terrible Failure!</ModalHeader>
+      <ModalHeader toggle={toggle}>Tell us what happened</ModalHeader>
       <ModalBody>
         <Form>
           <FormGroup>
@@ -616,15 +621,24 @@ class TitleBarContainer extends PureComponent {
           </FormGroup>
         </Form>
       </ModalBody>
-      <ModalFooter>
-        <Alert style={{ 'color': '#818182', 'padding': 0 }} color='light'>
-          Diagnostics will be sent with your report.
-        </Alert>
-        <Button color='primary' onClick={this.sendFeedback} className='signInOut'>
-          <Icon className='icon' name='paper-plane' />
-         Send to developers
-        </Button>
-        <Button color='secondary' onClick={this.toggleLoginModal}>Cancel</Button>
+      <ModalFooter style={{ flexDirection: 'column' }}>
+        <Row style={{ width: '100%' }}>
+          <Alert style={{ 'color': '#818182', 'padding': 0 }} color='light'>
+            Technical diagnostics will be sent with your error report to help us debug the problem.
+          </Alert>
+        </Row>
+        <Row style={{ width: '100%' }}>
+          <Col />
+          <Col xs='auto' style={{ marginRight: '0.4rem' }}>
+            <Button color='primary' onClick={this.sendFeedback} className='signInOut'>
+              <Icon className='icon' name='paper-plane' />
+             Send to developers
+            </Button>
+          </Col>
+          <Col xs='auto'>
+            <Button color='secondary' onClick={toggle}>Cancel</Button>
+          </Col>
+        </Row>
       </ModalFooter>
     </Modal>);
   }
@@ -689,9 +703,9 @@ class TitleBarContainer extends PureComponent {
           </Col>
           <Col xs='auto'>
             <Nav>
-              <Button color='danger' onClick={this.toggleFeedbackModal}><Icon name='exclamation-triangle' /> Send feedback</Button>
               <NavLink className='active' onClick={this.toggleLoginModal} ><Icon name='user' id='loginIcon' />{isLoggedIn ? ' ' + username : ' Sign in'}</NavLink>
               {hasRoleADMIN ? <Link to='manage' className='active nav-link'><Icon name='cog' /></Link> : '' }
+              <NavLink className='active' onClick={this.toggleFeedbackModal}><Icon name='exclamation-triangle' /> Report error</NavLink>
               <LayoutDropDown dispatch={this.props.dispatch} mapActions={this.props.mapActions} />
               <NavLink className='active' onClick={this.toggleFullscreen} ><Icon name='expand' /></NavLink>
               {isLoggedIn
