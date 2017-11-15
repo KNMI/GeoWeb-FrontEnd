@@ -4,12 +4,36 @@ import { Row, Col } from 'reactstrap';
 import PropTypes from 'prop-types';
 import MomentPropTypes from 'react-moment-proptypes';
 
+const OVERLAPS = 'overlaps';
+const STYLES = 'styles';
+
 class TimeSchedule extends PureComponent {
   constructor (props) {
     super(props);
 
     this.getOffset = this.getOffset.bind(this);
     this.getDuration = this.getDuration.bind(this);
+    this.annotateOverlappings = this.annotateOverlappings.bind(this);
+  }
+
+  /**
+   * Detect and annotate overlappings
+   * @param {object} series The series to detect and annotate overlappings for
+   */
+  annotateOverlappings (series) {
+    series.ranges.map((range, index) => {
+      for (let prevIndex = 0; prevIndex < index; prevIndex++) {
+        if (range.start.isBefore(series.ranges[prevIndex].end) && range.end.isAfter(series.ranges[prevIndex].start)) {
+          range[STYLES].push(OVERLAPS);
+          if (series.hasOwnProperty(STYLES)) {
+            series[STYLES].push(OVERLAPS);
+          } else {
+            series[STYLES] = [OVERLAPS];
+          }
+          break;
+        }
+      }
+    });
   }
 
   /**
@@ -40,7 +64,7 @@ class TimeSchedule extends PureComponent {
   render () {
     const { startMoment, endMoment, majorTickInterval, minorTickInterval, series } = this.props;
 
-    // prepend with label
+    // prepend with label and annotate overlappings
     series.forEach(serie => {
       serie.ranges.unshift({
         start: startMoment.clone().subtract(majorTickInterval.asMinutes() / 2, 'minutes'),
@@ -48,6 +72,7 @@ class TimeSchedule extends PureComponent {
         value: serie.label.charAt(0).toUpperCase() + serie.label.slice(1),
         styles: ['scheduleLabel']
       });
+      this.annotateOverlappings(serie);
     });
 
     let majorTicks = [];
@@ -65,15 +90,17 @@ class TimeSchedule extends PureComponent {
 
     const numberOfMajorTickIntervals = majorTicks.length + 2; // one interval for the EndMoment, one for the (left/right) margins
     const marginMajorBasis = 100 / (2 * numberOfMajorTickIntervals); // each margin is half the size of an interval
-    const intervalMajorBasis = 100 / numberOfMajorTickIntervals + '%';
-    const numberOfMinorTickIntervals = minorTicks.length + 1 + (majorTickInterval.asMinutes() / minorTickInterval.asMinutes());
+    const intervalMajorBasis = 100 / numberOfMajorTickIntervals;
+    const intervalRatio = majorTickInterval.asMinutes() / minorTickInterval.asMinutes();
+    const numberOfMinorTickIntervals = minorTicks.length + 1 + intervalRatio;
     const intervalMinorBasis = 100 / numberOfMinorTickIntervals;
 
     return <Row className='TimeSchedule'>
       <Col style={{ flex: 1, flexDirection: 'column' }}>
         {series.map(serie => {
           let cumOffset = 0;
-          return <Row className={serie.label + ' groupRow'} key={serie.label}>
+          let rowClasses = (serie.hasOwnProperty(STYLES) ? serie[STYLES].join(' ') : '') + ' ' + serie.label + ' groupRow';
+          return <Row className={rowClasses} key={serie.label}>
             {serie.ranges.map((range, index) => {
               let offsetPerc = this.getOffset(marginMajorBasis, startMoment, range.start, minorTickInterval, intervalMinorBasis);
               let durationPerc = this.getDuration(range.start, range.end, minorTickInterval, intervalMinorBasis);
@@ -99,12 +126,12 @@ class TimeSchedule extends PureComponent {
               cumOffset += durationPerc + offsetPerc;
               offsetPerc += '%';
               durationPerc += '%';
-              let classes = range.hasOwnProperty('styles') ? range.styles.join(' ') : '';
-              classes += (range.hasOwnProperty('styles') && range.styles.includes('scheduleLabel')) ? '' : ' scheduleHighlight';
+              let classes = range.hasOwnProperty(STYLES) ? range[STYLES].join(' ') : '';
+              classes += (range.hasOwnProperty(STYLES) && range[STYLES].includes('scheduleLabel')) ? '' : ' scheduleHighlight';
               classes += ' ' + arrowClass;
               return <Col className={classes}
                 key={serie.label + index} style={{ marginLeft: offsetPerc, flexBasis: durationPerc, maxWidth: durationPerc }}>
-                {(range.hasOwnProperty('styles') && range.styles.includes('scheduleLabel') && !serie.isLabelVisible) ? '' : range.value}
+                {(range.hasOwnProperty(STYLES) && range[STYLES].includes('scheduleLabel') && !serie.isLabelVisible) ? '' : range.value}
               </Col>;
             })}
           </Row>;
@@ -112,28 +139,37 @@ class TimeSchedule extends PureComponent {
         {/**
            * Draw the axis
            */}
-        <Row className='marks' style={{ marginTop: '1rem' }}>
+        <Row className='marks' style={{ marginTop: '0.7rem' }}>
           <Col style={{ flexBasis: marginMajorBasis + '%', maxWidth: marginMajorBasis + '%' }} />
-          <Col className='tick' style={{ flexBasis: intervalMajorBasis, maxWidth: intervalMajorBasis }} />
-          {majorTicks.map((tick, index) => <Col className='tick' key={'tickMajorTop' + index} style={{ flexBasis: intervalMajorBasis, maxWidth: intervalMajorBasis }} />)}
+          <Col className='tick' style={{ flexBasis: intervalMajorBasis + '%', maxWidth: intervalMajorBasis + '%' }} />
+          {majorTicks.map((tick, index) =>
+            <Col className='tick' key={'tickMajorTop' + index} style={{ flexBasis: intervalMajorBasis + '%', maxWidth: intervalMajorBasis + '%' }} />
+          )}
           <Col className='tick' style={{ flexBasis: marginMajorBasis + '%', maxWidth: marginMajorBasis + '%' }} />
         </Row>
         <Row className='axis marks'>
           <Col style={{ flexBasis: marginMajorBasis + '%', maxWidth: marginMajorBasis + '%' }} />
           <Col className='tick' style={{ flexBasis: intervalMinorBasis + '%', maxWidth: intervalMinorBasis + '%' }} />
-          {minorTicks.map((tick, index) => <Col className='tick' key={'tickMinor' + index} style={{ flexBasis: intervalMinorBasis + '%', maxWidth: intervalMinorBasis + '%' }} />)}
+          {minorTicks.map((tick, index) => {
+            // const isMajorTick = ((index + 1) / intervalRatio) % 1 === 0;
+            return <Col className='tick' key={'tickMinor' + index} style={{ flexBasis: intervalMinorBasis + '%', maxWidth: intervalMinorBasis + '%' }} title={tick.format('DD-MM HH:mm')} />
+          })}
           <Col className='tick' style={{ flexBasis: marginMajorBasis + '%', maxWidth: marginMajorBasis + '%' }} />
         </Row>
         <Row className='marks'>
           <Col style={{ flexBasis: marginMajorBasis + '%', maxWidth: marginMajorBasis + '%' }} />
-          <Col className='tick' style={{ flexBasis: intervalMajorBasis, maxWidth: intervalMajorBasis }} />
-          {majorTicks.map((tick, index) => <Col className='tick' key={'tickMajorBottom' + index} style={{ flexBasis: intervalMajorBasis, maxWidth: intervalMajorBasis }} />)}
+          <Col className='tick' style={{ flexBasis: intervalMajorBasis + '%', maxWidth: intervalMajorBasis + '%' }} />
+          {majorTicks.map((tick, index) =>
+            <Col className='tick' key={'tickMajorBottom' + index} style={{ flexBasis: intervalMajorBasis + '%', maxWidth: intervalMajorBasis + '%' }} />
+          )}
           <Col className='tick' style={{ flexBasis: marginMajorBasis + '%', maxWidth: marginMajorBasis + '%' }} />
         </Row>
         <Row>
-          <Col className='tick' style={{ flexBasis: intervalMajorBasis, maxWidth: intervalMajorBasis }}>{startMoment.format('DD-MM HH:mm')}</Col>
-          {majorTicks.map((tick, index) => <Col className='tick' key={'tickMajorLabel' + index} style={{ flexBasis: intervalMajorBasis, maxWidth: intervalMajorBasis }}>{tick.format('HH:mm')}</Col>)}
-          <Col className='tick' style={{ flexBasis: intervalMajorBasis, maxWidth: intervalMajorBasis }}>{endMoment.format('DD-MM HH:mm')}</Col>
+          <Col className='tick' style={{ flexBasis: intervalMajorBasis + '%', maxWidth: intervalMajorBasis + '%' }}>{startMoment.format('DD-MM HH:mm')}</Col>
+          {majorTicks.map((tick, index) =>
+            <Col className='tick' key={'tickMajorLabel' + index} style={{ flexBasis: intervalMajorBasis + '%', maxWidth: intervalMajorBasis + '%' }}>{tick.format('HH:mm')}</Col>
+          )}
+          <Col className='tick' style={{ flexBasis: intervalMajorBasis + '%', maxWidth: intervalMajorBasis + '%' }}>{endMoment.format('DD-MM HH:mm')}</Col>
         </Row>
       </Col>
     </Row>;
@@ -160,7 +196,8 @@ TimeSchedule.propTypes = {
       end: MomentPropTypes.momentObj,
       value: PropTypes.object,
       styles: PropTypes.arrayOf(PropTypes.string)
-    }))
+    })),
+    styles: PropTypes.arrayOf(PropTypes.string)
   }))
 };
 

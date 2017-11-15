@@ -10,7 +10,7 @@ import TafTable from './TafTable';
 import { TAFS_URL } from '../../constants/backend';
 import axios from 'axios';
 
-const TMP = '_tmp';
+const TMP = '_temp';
 
 const CHANGE_TYPES = Enum(
   'FM', // from - instant, persisting change
@@ -19,7 +19,7 @@ const CHANGE_TYPES = Enum(
   'PROB40', // probability of 40% for a temporary steady change
   'TEMPO', // temporary fluctuating change
   'PROB30_TEMPO', // probability of 30% for a temporary fluctating change
-  'PROP40_TEMPO' // probability of 30% for a temporary fluctating change
+  'PROP40_TEMPO' // probability of 40% for a temporary fluctating change
 );
 
 const CHANGE_TYPES_ORDER = [
@@ -31,6 +31,15 @@ const CHANGE_TYPES_ORDER = [
   CHANGE_TYPES.PROB30_TEMPO,
   CHANGE_TYPES.PROP40_TEMPO
 ];
+
+const CHANGE_TYPES_SHORTHAND = {};
+CHANGE_TYPES_SHORTHAND[CHANGE_TYPES.FM] = 'F';
+CHANGE_TYPES_SHORTHAND[CHANGE_TYPES.BECMG] = 'B';
+CHANGE_TYPES_SHORTHAND[CHANGE_TYPES.PROB30] = 'P30';
+CHANGE_TYPES_SHORTHAND[CHANGE_TYPES.PROB40] = 'P40';
+CHANGE_TYPES_SHORTHAND[CHANGE_TYPES.TEMPO] = 'T';
+CHANGE_TYPES_SHORTHAND[CHANGE_TYPES.PROB30_TEMPO] = 'P30T';
+CHANGE_TYPES_SHORTHAND[CHANGE_TYPES.PROB40_TEMPO] = 'P40T';
 
 const PHENOMENON_TYPES = Enum(
   'WIND',
@@ -76,7 +85,7 @@ class TafCategory extends Component {
     this.decorateCloudsArray = this.decorateCloudsArray.bind(this);
     this.decorateWeatherArray = this.decorateWeatherArray.bind(this);
     this.byPhenomenonType = this.byPhenomenonType.bind(this);
-    this.byChangeTypeAndStart = this.byChangeTypeAndStart.bind(this);
+    this.byStartAndChangeType = this.byStartAndChangeType.bind(this);
     this.validateTAF = this.validateTAF.bind(this);
     this.saveTaf = this.saveTaf.bind(this);
 
@@ -207,12 +216,14 @@ class TafCategory extends Component {
    */
   getChangeType (typeName) {
     if (typeof typeName === 'string') {
-      const normalizedTypeName = typeName.toUpperCase().replace(/ /g, '_');
+      const normalizedTypeName = typeName.toUpperCase().replace(/\s/g, '_');
       if (normalizedTypeName in CHANGE_TYPES) {
         return CHANGE_TYPES[normalizedTypeName];
       } else {
         return null;
       }
+    } else {
+      return null;
     }
   }
 
@@ -239,25 +250,24 @@ class TafCategory extends Component {
   }
 
   /**
-   * Comparator: Compares items by change type and start, in ascending order
+   * Comparator: Compares items by start and change type, in ascending order
    * @param {object} itemA An item with a string as property 'changeStart' and a string as property 'changeType'
    * @param {object} itemB Another item with a string as property 'changeStart' and a string as property 'changeType'
    * @return {number} The result of the comparison
    */
-  byChangeTypeAndStart (itemA, itemB) {
+  byStartAndChangeType (itemA, itemB) {
     const startA = moment.utc(itemA.changeStart);
     const startB = moment.utc(itemB.changeStart);
     // Checks for startA/B.isValid()
     const typeAindex = CHANGE_TYPES_ORDER.indexOf(this.getChangeType(itemA.changeType));
     const typeBindex = CHANGE_TYPES_ORDER.indexOf(this.getChangeType(itemB.changeType));
-    console.log('Compare', startA.format(), startB.format(), typeAindex, typeBindex);
-    return typeBindex < typeAindex
+    return startB.isBefore(startA)
       ? 1
-      : typeBindex > typeAindex
+      : startB.isAfter(startA)
         ? -1
-        : startB.isBefore(startA)
+        : typeBindex < typeAindex
           ? 1
-          : startB.isAfter(startA)
+          : typeBindex > typeAindex
             ? -1
             : 0;
   }
@@ -269,14 +279,14 @@ class TafCategory extends Component {
    * @return {React.Component} A component with a readable presentation of the phenomenon value
    */
   decorateStringValue (value, prefix) {
-    return <span>
+    return <div className='col-auto' title={value}>
       {prefix
-        ? <strong>
+        ? <div className='col-auto' style={{ fontWeight: 'bolder' }}>
           {prefix}:&nbsp;
-        </strong>
+        </div>
         : null}
       {value}
-    </span>;
+    </div>;
   }
 
   /**
@@ -288,25 +298,27 @@ class TafCategory extends Component {
   decorateWindObjectValue (value, prefix) {
     if (value.hasOwnProperty('direction') && typeof value.direction === 'number' &&
         value.hasOwnProperty('speed') && typeof value.speed === 'number') {
-      return <span>
+      const title = (prefix ? prefix + ': ' : '') + (value.direction ? value.direction + ' ' : '') +
+        (value.speed ? value.speed + ' ' : '') + (value.gusts ? 'gusts ' + value.gusts : '');
+      return <div className='col-auto' title={title}>
         {prefix
-          ? <strong>
+          ? <div className='col-auto' style={{ fontWeight: 'bolder' }}>
             {prefix}:&nbsp;
-          </strong>
+          </div>
           : null}
         {!isNaN(value.direction)
-          ? <span style={{ marginLeft: '0.4rem' }}>
+          ? <div className='col-auto'>
             {value.direction}
             <i className='fa fa-location-arrow' style={{ transform: 'rotate(' + (value.direction + 135) + 'deg)' }} aria-hidden='true' />
-          </span>
+          </div>
           : null}
         {!isNaN(value.speed)
-          ? <span style={{ marginLeft: '0.2rem' }}>{value.speed}</span>
+          ? <div className='col-auto'>{value.speed}</div>
           : null}
         {value.hasOwnProperty('gusts') && typeof value.gusts === 'number' && !isNaN(value.gusts)
-          ? <span style={{ marginLeft: '0.2rem' }}>{value.gusts}</span>
+          ? <div className='col-auto' style={{ marginLeft: '0.2rem' }}>gusts {value.gusts}</div>
           : null}
-      </span>;
+      </div>;
     } else {
       return null;
     }
@@ -320,23 +332,31 @@ class TafCategory extends Component {
    */
   decorateCloudsArray (value, prefix) {
     if (value.length && value.length > 0 && value[0].hasOwnProperty('amount') && typeof value[0].amount === 'string') {
-      return <span>
+      const title = value.reduce((cumText, current, index) => {
+        cumText += (current.amount ? current.amount : '') + (current.height ? current.height : '');
+        if (index < value.length - 1) {
+          cumText += ', ';
+        }
+        return cumText;
+      }, ' ');
+      return <div className='col-auto' title={title}>
         {prefix
-          ? <strong>
+          ? <div className='col-auto' style={{ fontWeight: 'bolder' }}>
             {prefix}:&nbsp;
-          </strong>
+          </div>
           : null}
-        {value.map(cloud => {
-          return <span style={{ marginLeft: '0.4rem' }}>
+        {value.map((cloud, index) => {
+          return <div className='col-auto'>
             {cloud.hasOwnProperty('amount') && typeof cloud.amount === 'string'
-              ? <span>{cloud.amount}</span>
+              ? <div className='col-auto'>{cloud.amount}</div>
               : null}
-            {cloud.hasOwnProperty('height') && typeof cloud.height === 'number'
-              ? <span style={{ marginLeft: '0.2rem' }}>{cloud.height}</span>
+            {cloud.hasOwnProperty('height') && typeof cloud.height === 'number' && !isNaN(cloud.height)
+              ? <div className='col-auto'>{cloud.height}</div>
               : null}
-          </span>;
+            {index < value.length - 1 ? <div className='col-auto'>,&nbsp;</div> : null}
+          </div>;
         })}
-      </span>;
+      </div>;
     } else {
       return null;
     }
@@ -350,23 +370,38 @@ class TafCategory extends Component {
    */
   decorateWeatherArray (value, prefix) {
     if (value.length && value.length > 0 && value[0].hasOwnProperty('phenomena') && value[0].phenomena.length > 0) {
-      return <span>
+      const title = value.reduce((cumText, current, index) => {
+        cumText += (current.qualifier ? current.qualifier + ' ' : '') + (current.descriptor ? current.descriptor + ' ' : '');
+        cumText += (current.phenomena
+          ? current.phenomena.reduce((cumPhenText, current, index) =>
+            cumPhenText + current, '')
+          : '');
+        if (index < value.length - 1) {
+          cumText += ', ';
+        }
+        return cumText;
+      }, ' ');
+      return <div className='col-auto' title={title}>
         {prefix
-          ? <strong>
+          ? <div className='col-auto' style={{ fontWeight: 'bolder' }}>
             {prefix}:&nbsp;
-          </strong>
+          </div>
           : null}
-        {value.map(weather => {
-          return <span>
+        {value.map((weather, index) => {
+          return <div className='col-auto' key={'weather' + index}>
+            {weather.hasOwnProperty('qualifier') && typeof weather.qualifier === 'string'
+              ? <div className='col-auto'>{weather.qualifier}</div>
+              : null}
             {weather.hasOwnProperty('descriptor') && typeof weather.descriptor === 'string'
-              ? <span>{weather.descriptor}</span>
+              ? <div className='col-auto' style={{ marginLeft: '0.2rem' }}>{weather.descriptor}</div>
               : null}
             {weather.hasOwnProperty('phenomena') && typeof weather.phenomena === 'object'
-              ? <span style={{ marginLeft: '0.2rem' }}>{weather.phenomena.join(', ')}</span>
+              ? <div className='col-auto' style={{ marginLeft: '0.2rem' }}>{weather.phenomena.join(', ')}</div>
               : null}
-          </span>;
+            {index < value.length - 1 ? <div className='col-auto'>,&nbsp;</div> : null}
+          </div>;
         })}
-      </span>;
+      </div>;
     } else {
       return null;
     }
@@ -435,7 +470,7 @@ class TafCategory extends Component {
       }
     });
 
-    tafDataAsJson.changegroups.sort(this.byChangeTypeAndStart).map(change => {
+    tafDataAsJson.changegroups.sort(this.byStartAndChangeType).map(change => {
       const changeType = this.getChangeType(change.changeType);
 
       const start = change.changeStart ? moment.utc(change.changeStart) : scopeStart;
@@ -447,7 +482,7 @@ class TafCategory extends Component {
       }
 
       Object.entries(change.forecast).map((entry) => {
-        const value = this.decoratePhenomenonValue(entry[0], entry[1], change.changeType);
+        const value = this.decoratePhenomenonValue(entry[0], entry[1], CHANGE_TYPES_SHORTHAND[changeType]);
         if (value !== null) {
           const labelSuffix = (changeType !== CHANGE_TYPES.FM && changeType !== CHANGE_TYPES.BECMG) ? TMP : '';
           const label = entry[0] + labelSuffix;
@@ -495,14 +530,13 @@ class TafCategory extends Component {
             scheduleSeries[seriesIndex].ranges.push({
               start: end,
               end: scopeEnd,
-              value: value
+              value: this.decoratePhenomenonValue(entry[0], entry[1], null)
             });
           }
         }
       });
     });
     scheduleSeries.sort(this.byPhenomenonType);
-    console.log('scheduleSeries', scheduleSeries);
     return scheduleSeries;
   }
 
@@ -510,22 +544,22 @@ class TafCategory extends Component {
     Event handler which handles keyUp events from input fields. E.g. arrow keys, Enter key, Esc key, etc...
   */
   onKeyUp (event, row, col, inputValue) {
-    if (event.keyCode === 13) {
+    if (event.key === 'Enter') {
       this.onAddRow();
     }
-    if (event.keyCode === 27) {
+    if (event.key === 'Escape') {
       this.updateTACtoTAFJSONtoTac();
       this.validateTAF(this.state.tafJSON);
     }
     if (this.state.tafJSON.changegroups.length > 0) {
-      if (event.keyCode === 38) { // KEY ARROW UP
+      if (event.key === 'ArrowUp') { // KEY ARROW UP
         if (row === 0) { // Up from changegroup to baseforecast
           this.refs['taftable'].refs['baseforecast'].refs['column_' + col].refs['inputfield'].focus();
         } else if (row > 0) { // Up from changegroup to changegroup
           this.refs['taftable'].refs['changegroup_' + (row - 1)].refs['sortablechangegroup'].refs['column_' + col].refs['inputfield'].focus();
         }
       }
-      if (event.keyCode === 40) { // KEY ARROW DOWN
+      if (event.key === 'ArrowDown') { // KEY ARROW DOWN
         if (row === -1) { // Down from baseforecast to changegroup
           this.refs['taftable'].refs['changegroup_' + (row + 1)].refs['sortablechangegroup'].refs['column_' + col].refs['inputfield'].focus();
         } else if (row >= 0 && row < (this.state.tafJSON.changegroups.length - 1)) { // Down from changegroup to changegroup
@@ -625,9 +659,7 @@ class TafCategory extends Component {
     if (this.state.validationReport && this.state.validationReport.succeeded === true) {
       validationSucceeded = true;
     }
-
     const tafJson = removeInputPropsFromTafJSON(createTAFJSONFromInput(this.state.tafJSON));
-    console.log('tafJson', tafJson);
     const series = this.extractScheduleInformation(tafJson);
 
     return (
@@ -667,12 +699,10 @@ class TafCategory extends Component {
             <Row style={{ flex: 'unset' }}>
               <Col />
               <Col xs='auto'>
-                <Button color='primary' onClick={() => {
+                <Button style={{ marginRight: '0.33rem' }} color='primary' onClick={() => {
                   let taf = removeInputPropsFromTafJSON(createTAFJSONFromInput(this.state.tafJSON));
                   this.saveTaf(taf);
                 }} >Save</Button>
-              </Col>
-              <Col xs='auto'>
                 <Button disabled={!validationSucceeded} onClick={() => { alert('Sending a TAF out is not yet implemented'); }} color='primary'>Send</Button>
               </Col>
             </Row>
