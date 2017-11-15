@@ -4,7 +4,6 @@ import createStore from './store/createStore';
 import AppContainer from './containers/AppContainer';
 import routesDefinition from './routes';
 import 'font-awesome/css/font-awesome.css';
-
 const store = createStore({}, __DEV__);
 // ========================================================
 // Render Setup

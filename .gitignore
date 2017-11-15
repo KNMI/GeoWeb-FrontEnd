@@ -10,5 +10,6 @@ utils/latest
 .idea/
 .nyc_output
 
-src/static/config.js
-src/static/_config.js
+config/config.json
+config/config.*.json
+src/static/urls.js

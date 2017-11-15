@@ -7,7 +7,7 @@ import { UserRoles } from '../constants/userroles';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import axios from 'axios';
 import uuidV4 from 'uuid/v4';
-import { Navbar, NavbarBrand, Row, Col, Nav, NavLink, Breadcrumb, BreadcrumbItem, Collapse, Popover, Form, FormGroup, Label, PopoverContent,
+import { Alert, Navbar, NavbarBrand, Row, Col, Nav, NavLink, Breadcrumb, BreadcrumbItem, Collapse, Popover, Form, FormGroup, Label, PopoverContent,
   PopoverTitle, ButtonGroup, InputGroupButton, Modal, ModalHeader, ModalBody, ModalFooter, Button, InputGroup, Input, FormText } from 'reactstrap';
 import { Link, hashHistory } from 'react-router';
 import { BACKEND_SERVER_URL } from '../constants/backend';
@@ -28,12 +28,14 @@ class TitleBarContainer extends PureComponent {
     this.setTime = this.setTime.bind(this);
     this.doLogin = this.doLogin.bind(this);
     this.doLogout = this.doLogout.bind(this);
+    this.sendFeedback = this.sendFeedback.bind(this);
     this.triggerService = this.triggerService.bind(this);
     this.retrieveTriggers = this.retrieveTriggers.bind(this);
     this.gotTriggersCallback = this.gotTriggersCallback.bind(this);
     this.errorTriggersCallback = this.errorTriggersCallback.bind(this);
     this.toggleLoginModal = this.toggleLoginModal.bind(this);
     this.togglePresetModal = this.togglePresetModal.bind(this);
+    this.toggleFeedbackModal = this.toggleFeedbackModal.bind(this);
     this.toggleSharePresetModal = this.toggleSharePresetModal.bind(this);
     this.handleOnChange = this.handleOnChange.bind(this);
     this.handleKeyPressPassword = this.handleKeyPressPassword.bind(this);
@@ -54,6 +56,7 @@ class TitleBarContainer extends PureComponent {
       currentTime: moment().utc().format(timeFormat).toString(),
       loginModal: this.props.loginModal,
       loginModalMessage: '',
+      feedbackModalOpen: false,
       presetModal: false,
       sharePresetModal: false,
       sharePresetName: ''
@@ -356,10 +359,13 @@ class TitleBarContainer extends PureComponent {
   }
 
   togglePresetModal () {
-    this.setState({ presetModal: !this.state.presetModal, loginModal: false });
+    this.setState({ presetModal: !this.state.presetModal, loginModal: false, feedbackModalOpen: false });
+  }
+  toggleFeedbackModal () {
+    this.setState({ presetModal: false, loginModal: false, feedbackModalOpen: !this.state.feedbackModalOpen });
   }
   toggleSharePresetModal () {
-    this.setState({ sharePresetModal: !this.state.sharePresetModal, loginModal: false });
+    this.setState({ sharePresetModal: !this.state.sharePresetModal, loginModal: false, feedbackModalOpen: false });
   }
 
   sharePreset () {
@@ -578,6 +584,64 @@ class TitleBarContainer extends PureComponent {
       </ModalFooter>
     </Modal>);
   }
+
+  sendFeedback () {
+    const feedbackObj = {
+      state: this.props.fullState,
+      url: window.location.href,
+      config: { ...require('config'), backend_url: require('../static/urls.js').BACKEND_SERVER_URL },
+      userAgent: navigator.userAgent,
+      descriptions: {
+        short: this.shortDescription,
+        long: this.longDescription
+      }
+    };
+
+    const { WEBSERVER_URL } = require('../static/urls');
+    // TODO send this to the webserver for further distribution
+    axios({
+      method: 'post',
+      url: WEBSERVER_URL + '/cgi-bin/geoweb/receiveFeedback.cgi',
+      data: JSON.stringify(feedbackObj, null, 2)
+    }).then((res) => console.log(res));
+  }
+
+  renderFeedbackModal (feedbackModalOpen, toggle) {
+    return (<Modal isOpen={feedbackModalOpen} toggle={toggle}>
+      <ModalHeader toggle={toggle}>Tell us what happened</ModalHeader>
+      <ModalBody>
+        <Form>
+          <FormGroup>
+            <Label for='activity'>What were you doing?</Label>
+            <Input onChange={(evt) => { this.shortDescription = evt.target.value; }} type='text' name='activity' placeholder='Short description' />
+          </FormGroup>
+          <FormGroup>
+            <Label for='description'>What happened?</Label>
+            <Input onChange={(evt) => { this.longDescription = evt.target.value; }} type='textarea' name='description' placeholder='Long description' />
+          </FormGroup>
+        </Form>
+      </ModalBody>
+      <ModalFooter style={{ flexDirection: 'column' }}>
+        <Row style={{ width: '100%' }}>
+          <Alert style={{ 'color': '#818182', 'padding': 0 }} color='light'>
+            Technical diagnostics will be sent with your error report to help us debug the problem.
+          </Alert>
+        </Row>
+        <Row style={{ width: '100%' }}>
+          <Col />
+          <Col xs='auto' style={{ marginRight: '0.4rem' }}>
+            <Button color='primary' onClick={this.sendFeedback} className='signInOut'>
+              <Icon className='icon' name='paper-plane' />
+             Send to developers
+            </Button>
+          </Col>
+          <Col xs='auto'>
+            <Button color='secondary' onClick={toggle}>Cancel</Button>
+          </Col>
+        </Row>
+      </ModalFooter>
+    </Modal>);
+  }
   renderLoggedInPopover (loginModal, toggle, userName) {
     return (
       <Popover placement='bottom' isOpen={loginModal} target='loginIcon' toggle={toggle}>
@@ -641,6 +705,7 @@ class TitleBarContainer extends PureComponent {
             <Nav>
               <NavLink className='active' onClick={this.toggleLoginModal} ><Icon name='user' id='loginIcon' />{isLoggedIn ? ' ' + username : ' Sign in'}</NavLink>
               {hasRoleADMIN ? <Link to='manage' className='active nav-link'><Icon name='cog' /></Link> : '' }
+              <NavLink className='active' onClick={this.toggleFeedbackModal}><Icon name='exclamation-triangle' /> Report error</NavLink>
               <LayoutDropDown dispatch={this.props.dispatch} mapActions={this.props.mapActions} />
               <NavLink className='active' onClick={this.toggleFullscreen} ><Icon name='expand' /></NavLink>
               {isLoggedIn
@@ -648,6 +713,7 @@ class TitleBarContainer extends PureComponent {
                 : this.renderLoginModal(this.state.loginModal,
                   this.state.loginModalMessage, this.toggleLoginModal, this.handleOnChange, this.handleKeyPressPassword)
               }
+              {this.renderFeedbackModal(this.state.feedbackModalOpen, this.toggleFeedbackModal)}
               {this.renderPresetModal(this.state.presetModal, this.togglePresetModal, hasRoleADMIN)}
               {this.renderSharePresetModal(this.state.sharePresetModal, this.toggleSharePresetModal, this.state.sharePresetName)}
             </Nav>
@@ -712,6 +778,7 @@ TitleBarContainer.propTypes = {
   mapActions: PropTypes.object,
   adagucActions: PropTypes.object,
   bbox: PropTypes.array,
+  fullState: PropTypes.object,
   projectionName: PropTypes.string
 };
 
