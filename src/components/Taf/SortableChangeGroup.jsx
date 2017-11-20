@@ -8,7 +8,7 @@ import ChangeGroup from './ChangeGroup';
 */
 class SortableChangeGroup extends SortableElement(() => {}) {
   render () {
-    let { value, onChange, onKeyUp, rowIndex, onDeleteRow, onFocusOut } = this.props;
+    let { value, onChange, onKeyUp, rowIndex, onDeleteRow, onFocusOut, onFocus } = this.props;
     return (<ChangeGroup
       ref='sortablechangegroup'
       value={value}
@@ -16,6 +16,7 @@ class SortableChangeGroup extends SortableElement(() => {}) {
       onKeyUp={onKeyUp}
       rowIndex={rowIndex}
       onDeleteRow={onDeleteRow}
+      onFocus={onFocus}
       editable
       onFocusOut={onFocusOut}
       validationReport={this.props.validationReport}
