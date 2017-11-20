@@ -1,6 +1,7 @@
 import axios from 'axios';
 import validator from 'validator';
 import { BACKEND_SERVER_URL } from '../constants/backend';
+import { DefaultLocations } from '../constants/defaultlocations';
 
 export var PresetURLWasLoaded = false;
 
@@ -43,7 +44,7 @@ export const _loadPreset = (props, presetName, failure) => {
       props.dispatch(props.layerActions.setPreset(obj.layers));
     }
     if (obj.area) {
-      props.dispatch(props.mapActions.setCut({ name: 'Custom', bbox: [0, obj.area.bottom, 1, obj.area.top] }));
+      props.dispatch(props.mapActions.setCut({ name: 'Custom', bbox: [obj.area.left, obj.area.bottom, obj.area.right, obj.area.top] }));
     }
   }).catch((error) => {
     if (failure) {
@@ -59,10 +60,15 @@ export const LoadURLPreset = (props, failure) => {
   PresetURLWasLoaded = true;
 
   const presetName = _getURLParameter(window.location.href, 'presetid');
+  const location = _getURLParameter(window.location.href, 'location');
 
+  const coordinates = DefaultLocations.filter((obj) => obj.name === location);
   if (!presetName) {
     /* No preset URL was found */
     return;
+  }
+  if (coordinates.length === 1) {
+    props.dispatch(props.adagucActions.setCursorLocation(coordinates[0]));
   }
   _loadPreset(props, presetName, failure);
 };

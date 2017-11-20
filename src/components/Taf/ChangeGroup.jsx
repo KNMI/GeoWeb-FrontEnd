@@ -9,7 +9,7 @@ import TACColumn from './TACColumn';
 */
 class ChangeGroup extends Component {
   render () {
-    let { value, onChange, onKeyUp, rowIndex, onDeleteRow, editable, onFocusOut } = this.props;
+    let { value, onChange, onKeyUp, rowIndex, onDeleteRow, editable, onFocusOut, onFocus } = this.props;
     let cols = [];
     for (let colIndex = 0; colIndex < 13; colIndex++) {
       cols.push((<TACColumn
@@ -22,6 +22,7 @@ class ChangeGroup extends Component {
         onKeyUp={onKeyUp}
         editable={editable}
         onFocusOut={onFocusOut}
+        onFocus={onFocus}
         validationReport={this.props.validationReport}
       />));
     }

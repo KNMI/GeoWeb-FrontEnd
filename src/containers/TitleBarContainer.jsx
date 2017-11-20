@@ -385,24 +385,28 @@ class TitleBarContainer extends PureComponent {
   }
 
   makePresetObj (presetName, saveLayers, savePanelLayout, saveBoundingBox, role) {
+    const { mapProperties } = this.props;
+    const { layout } = mapProperties;
     let numPanels;
-    if (/quad/.test(this.props.layout)) {
+    if (/quad/.test(layout)) {
       numPanels = 4;
-    } else if (/triple/.test(this.props.layout)) {
+    } else if (/triple/.test(layout)) {
       numPanels = 3;
-    } else if (/dual/.test(this.props.layout)) {
+    } else if (/dual/.test(layout)) {
       numPanels = 2;
     } else {
       numPanels = 1;
     }
 
     const displayObj = {
-      type: this.props.layout,
+      type: layout,
       npanels: numPanels
     };
     const bbox = {
-      top: this.props.mapProperties.boundingBox.bbox[3],
+      left: this.props.mapProperties.boundingBox.bbox[0],
       bottom: this.props.mapProperties.boundingBox.bbox[1],
+      right: this.props.mapProperties.boundingBox.bbox[2],
+      top: this.props.mapProperties.boundingBox.bbox[3],
       crs: this.props.mapProperties.projectionName
     };
     let layerConfig = [];
@@ -586,6 +590,7 @@ class TitleBarContainer extends PureComponent {
   }
 
   sendFeedback () {
+    const numLogs = myLogs.length;
     const feedbackObj = {
       state: this.props.fullState,
       url: window.location.href,
@@ -594,7 +599,8 @@ class TitleBarContainer extends PureComponent {
       descriptions: {
         short: this.shortDescription,
         long: this.longDescription
-      }
+      },
+      latestLogs: myLogs.slice(Math.max(0, numLogs - 100)).reverse()
     };
 
     const { WEBSERVER_URL } = require('../static/urls');
@@ -603,7 +609,7 @@ class TitleBarContainer extends PureComponent {
       method: 'post',
       url: WEBSERVER_URL + '/cgi-bin/geoweb/receiveFeedback.cgi',
       data: JSON.stringify(feedbackObj, null, 2)
-    }).then((res) => console.log(res));
+    }).then((res) => { this.setState({ feedbackModalOpen: false }); });
   }
 
   renderFeedbackModal (feedbackModalOpen, toggle) {

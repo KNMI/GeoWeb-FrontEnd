@@ -9,7 +9,7 @@ import TACColumn from './TACColumn';
 */
 class BaseForecast extends Component {
   render () {
-    let { value, onChange, onKeyUp, editable, onFocusOut } = this.props;
+    let { value, onChange, onKeyUp, editable, onFocusOut, onFocus } = this.props;
     let cols = [];
     let location = 'EHAM';
     if (value && value.metadata && value.metadata.location) {
@@ -41,6 +41,7 @@ class BaseForecast extends Component {
           onKeyUp={onKeyUp}
           editable={editable}
           onFocusOut={onFocusOut}
+          onFocus={onFocus}
           validationReport={this.props.validationReport}
         />));
     }
