@@ -41,7 +41,8 @@ const mapStateToHeaderProps = state => ({
   user: state.userProperties,
   mapProperties: state.mapProperties,
   layers: state.layers,
-  fullState: state
+  fullState: state,
+  urls: state.urls
 });
 const mapDispatchToHeaderProps = function (dispatch) {
   return ({
@@ -52,14 +53,16 @@ const mapDispatchToHeaderProps = function (dispatch) {
   });
 };
 const mapStateToSidebarProps = state => ({
-  recentTriggers: state.recentTriggers
+  recentTriggers: state.recentTriggers,
+  urls: state.urls
 });
 
 const mapStateToRightSideBarProps = state => ({
   adagucProperties: state.adagucProperties,
   mapProperties: state.mapProperties,
   layers: state.layers,
-  user: state.userProperties
+  user: state.userProperties,
+  urls: state.urls
 });
 const mapDispatchToMainViewportProps = function (dispatch) {
   return ({
@@ -98,14 +101,16 @@ const mapStateToMapProps = state => ({
   drawProperties: { ...state.drawProperties },
   mapProperties: { ...state.mapProperties },
   adagucProperties: state.adagucProperties,
-  layers: { ...state.layers }
+  layers: { ...state.layers },
+  urls: state.urls
 });
 
 const mapStateToLayerManagerProps = state => ({
   adagucProperties: state.adagucProperties,
   layers: state.layers,
   mapProperties: state.mapProperties,
-  drawProperties: state.drawProperties
+  drawProperties: state.drawProperties,
+  urls: state.urls
 });
 
 // TODO: research this; http://henleyedition.com/implicit-code-splitting-with-react-router-and-webpack/
@@ -117,7 +122,7 @@ export const createRoutes = (store) => {
   const layerManager = React.createElement(connect(mapStateToLayerManagerProps, mapDispatchToLayerManagerProps)(LayerManagerPanel));
   const smallLayerManager = React.createElement(connect(mapStateToLayerManagerProps, mapDispatchToLayerManagerProps)(SmallLayerManagerPanel));
   const products = React.createElement(connect(mapStateToLayerManagerProps, mapDispatchToLayerManagerProps)(ProductsContainer));
-  const sigmet = React.createElement(connect((state) => ({ drawProperties: state.drawProperties }), mapDispatchToSigmetProps)(SigmetsContainer));
+  const sigmet = React.createElement(connect((state) => ({ drawProperties: state.drawProperties, urls: state.urls }), mapDispatchToSigmetProps)(SigmetsContainer));
   const taf = React.createElement(connect(mapStateToLayerManagerProps, mapDispatchToLayerManagerProps)(TafsContainer));
   const trigger = React.createElement(connect(mapStateToLayerManagerProps, mapDispatchToLayerManagerProps)(TriggersContainer));
   const manageLeft = React.createElement(SidebarContainer);

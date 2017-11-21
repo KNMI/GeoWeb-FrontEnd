@@ -52,6 +52,7 @@ webpackConfig.externals['react/lib/ExecutionEnvironment'] = true;
 webpackConfig.externals['react/lib/ReactContext'] = true;
 webpackConfig.externals['react/addons'] = true;
 webpackConfig.externals['config'] = JSON.stringify(require('./config.json'));
+
 // ------------------------------------
 // Plugins
 // ------------------------------------

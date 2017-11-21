@@ -4,9 +4,7 @@ import { Col, Row, Card, CardTitle, CardText, Button, ButtonGroup } from 'reacts
 import CollapseOmni from '../CollapseOmni';
 import moment from 'moment';
 import axios from 'axios';
-import { BACKEND_SERVER_URL, TAFS_URL } from '../../constants/backend';
 import TafCategory from './TafCategory';
-
 /*
   Renders multiple TafCategories, provides additional functions for loading and saving, and has functions for filtering on type and status.
 */

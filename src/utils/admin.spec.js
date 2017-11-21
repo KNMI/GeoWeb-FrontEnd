@@ -1,6 +1,6 @@
 import { ReadLocations, SaveLocations } from './admin';
 import moxios from 'moxios';
-import { BACKEND_SERVER_URL } from '../constants/backend';
+import { BACKEND_SERVER_URL } from 'urls';
 
 import sinon from 'sinon';
 

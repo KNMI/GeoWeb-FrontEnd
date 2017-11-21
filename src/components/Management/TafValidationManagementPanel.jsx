@@ -6,7 +6,6 @@ import cloneDeep from 'lodash.clonedeep';
 import JSONTree from 'react-json-tree';
 import { JsonEditor } from 'react-json-edit';
 import diff from 'deep-diff';
-import { BACKEND_SERVER_URL } from '../../constants/backend';
 
 export default class TafValidationManagementPanel extends React.Component {
   constructor () {

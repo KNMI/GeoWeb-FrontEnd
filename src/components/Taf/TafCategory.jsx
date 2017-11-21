@@ -7,7 +7,6 @@ import moment from 'moment';
 import { Button, Row, Col } from 'reactstrap';
 import { createTAFJSONFromInput, setTACColumnInput, removeInputPropsFromTafJSON, cloneObjectAndSkipNullProps } from './FromTacCodeToTafjson';
 import TafTable from './TafTable';
-import { TAFS_URL } from '../../constants/backend';
 import axios from 'axios';
 
 const TMP = '_temp';

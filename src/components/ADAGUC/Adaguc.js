@@ -4,7 +4,6 @@ import AdagucMapDraw from './AdagucMapDraw.js';
 import AdagucMeasureDistance from './AdagucMeasureDistance.js';
 import axios from 'axios';
 import ModelTime from './ModelTime';
-import { BACKEND_SERVER_URL, BACKEND_SERVER_XML2JSON } from '../../constants/backend';
 import diff from 'deep-diff';
 import moment from 'moment';
 import { DefaultLocations } from '../../constants/defaultlocations';
@@ -14,8 +13,8 @@ import { debounce } from '../../utils/debounce';
 require('babel-polyfill');
 var elementResizeEvent = require('element-resize-event');
 export default class Adaguc extends PureComponent {
-  constructor () {
-    super();
+  constructor (props) {
+    super(props);
     this.initAdaguc = this.initAdaguc.bind(this);
     this.resize = debounce(this.resize.bind(this), 100, false);
     this.updateLayer = this.updateLayer.bind(this);
@@ -31,7 +30,7 @@ export default class Adaguc extends PureComponent {
     };
     this.toggleView = this.toggleView.bind(this);
     this.progtempLocations = DefaultLocations;
-    ReadLocations((data) => {
+    ReadLocations(`${this.props.urls.BACKEND_SERVER_URL}/admin/read`, (data) => {
       if (data) {
         this.progtempLocations = data;
       }
@@ -130,8 +129,9 @@ export default class Adaguc extends PureComponent {
   }
 
   initAdaguc (adagucMapRef) {
-    const { mapProperties, layerActions, layers, mapActions, adagucActions, dispatch, mapId } = this.props;
+    const { mapProperties, layerActions, layers, mapActions, adagucActions, dispatch, mapId, urls } = this.props;
     const { baselayer, panels } = layers;
+    const { BACKEND_SERVER_URL, BACKEND_SERVER_XML2JSON } = urls;
     // Map already created, abort
     if (mapProperties.mapCreated) {
       return;
@@ -426,5 +426,6 @@ Adaguc.propTypes = {
   layers: PropTypes.object,
   mapId: PropTypes.number,
   drawProperties: PropTypes.object,
-  drawActions: PropTypes.object
+  drawActions: PropTypes.object,
+  urls: PropTypes.object
 };

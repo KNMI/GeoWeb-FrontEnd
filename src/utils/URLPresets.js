@@ -1,8 +1,6 @@
 import axios from 'axios';
 import validator from 'validator';
-import { BACKEND_SERVER_URL } from '../constants/backend';
 import { DefaultLocations } from '../constants/defaultlocations';
-
 export var PresetURLWasLoaded = false;
 
 export const _getURLParameter = (windowLocationHref, key) => {
@@ -31,7 +29,7 @@ export const _loadPreset = (props, presetName, failure) => {
   }
   axios({
     method: 'get',
-    url: `${BACKEND_SERVER_URL}/store/read`,
+    url: `${props.urls.BACKEND_SERVER_URL}/store/read`,
     params: { type: 'urlpresets', name: presetName },
     withCredentials: true,
     responseType: 'json'
@@ -73,11 +71,10 @@ export const LoadURLPreset = (props, failure) => {
   _loadPreset(props, presetName, failure);
 };
 
-export function SaveURLPreset (presetName, presetObj, callbackfunction) {
-  /* istanbul ignore next */
+export function SaveURLPreset (presetName, presetObj, url, callbackfunction) {
   axios({
     method: 'post',
-    url: `${BACKEND_SERVER_URL}/store/create`,
+    url: url,
     params: { type: 'urlpresets', name: presetName },
     data: presetObj,
     withCredentials: true,

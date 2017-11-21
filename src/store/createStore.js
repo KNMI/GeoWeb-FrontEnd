@@ -25,25 +25,27 @@ export default (initialState = {}, isdev = false) => {
   // ======================================================
   // Store Instantiation and HMR Setup
   // ======================================================
-  const store = createStore(
-    makeRootReducer(),
-    initialState,
-    composeEnhancers(
-      applyMiddleware(...middleware),
-      ...enhancers
-    )
-  );
-  store.asyncReducers = {};
+  return fetch('urls.json').then((res) => res.json()).then((mod) => {
+    const store = createStore(
+      makeRootReducer(),
+      { ...initialState, urls: mod },
+      composeEnhancers(
+        applyMiddleware(...middleware),
+        ...enhancers
+      )
+    );
+    store.asyncReducers = {};
 
-  // To unsubscribe, invoke `store.unsubscribeHistory()` anytime
-  store.unsubscribeHistory = browserHistory.listen(updateLocation(store));
+    // To unsubscribe, invoke `store.unsubscribeHistory()` anytime
+    store.unsubscribeHistory = browserHistory.listen(updateLocation(store));
 
-  if (module.hot) {
-    module.hot.accept('../redux/reducers', () => {
-      const reducers = require('../redux/reducers').default;
-      store.replaceReducer(reducers(store.asyncReducers));
-    });
-  }
+    if (module.hot) {
+      module.hot.accept('../redux/reducers', () => {
+        const reducers = require('../redux/reducers').default;
+        store.replaceReducer(reducers(store.asyncReducers));
+      });
+    }
 
-  return store;
+    return store;
+  });
 };

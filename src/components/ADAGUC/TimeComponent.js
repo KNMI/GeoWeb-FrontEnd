@@ -101,7 +101,7 @@ export default class TimeComponent extends PureComponent {
   /* istanbul ignore next */
   drawCanvas () {
     const { timedim, wmjslayers } = this.props;
-    if (timedim === undefined) {
+    if (!timedim) {
       return;
     }
     if (timedim.length !== 20 || timedim[19] !== 'Z' || timedim[10] !== 'T') {

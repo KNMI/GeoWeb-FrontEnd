@@ -764,7 +764,6 @@ class SigmetCategory extends Component {
   }
 
   setTops (evt) {
-    console.log(evt);
     let newPartialState = { tops: evt.target.checked };
     if (newPartialState.tops) {
       newPartialState['lowerUnit'] = UNIT_FL;

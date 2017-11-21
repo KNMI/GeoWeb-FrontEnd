@@ -8,7 +8,7 @@ export default class ProgtempManagementPanel extends React.Component {
     super(props);
     this.addAvailable = this.addAvailable.bind(this);
     this.progtempLocations = DefaultLocations;
-    ReadLocations((data) => {
+    ReadLocations(`${this.props.urls.BACKEND_SERVER_URL}/admin/read`, (data) => {
       if (data) {
         this.progtempLocations = data;
         this.setState({ locations: data });

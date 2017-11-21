@@ -3,39 +3,41 @@ import { Button, Col, Row, Card, CardHeader, Badge } from 'reactstrap';
 import { Icon } from 'react-fa';
 import CollapseOmni from '../components/CollapseOmni';
 import Panel from '../components/Panel';
-import { TAFS_URL } from '../constants/backend';
 import Taf from '../components/Taf/Taf';
 import moment from 'moment';
-const ITEMS = [
-  {
-    title: 'Open active TAFs',
-    ref:   'active-tafs',
-    icon: 'folder-open',
-    source: TAFS_URL + '/tafs?active=true',
-    editable: false,
-    tafEditable: false,
-    isOpenCategory: false
-  }, {
-    title: 'Open concept TAFs',
-    ref:   'concept-tafs',
-    icon: 'folder-open-o',
-    source: TAFS_URL + '/tafs?active=false&status=concept',
-    editable: false,
-    tafEditable: true,
-    isOpenCategory: false
-  }, {
-    title: 'Create new TAF',
-    ref:   'add-taf',
-    icon: 'star-o',
-    editable: true,
-    tafEditable: true,
-    isOpenCategory: true
-  }
-];
+
+let ITEMS;
 
 export default class TafsContainer extends Component {
-  constructor () {
-    super();
+  constructor (props) {
+    super(props);
+    ITEMS = [
+      {
+        title: 'Open active TAFs',
+        ref:   'active-tafs',
+        icon: 'folder-open',
+        source: this.props.urls.TAFS_URL + '/tafs?active=true',
+        editable: false,
+        tafEditable: false,
+        isOpenCategory: false
+      }, {
+        title: 'Open concept TAFs',
+        ref:   'concept-tafs',
+        icon: 'folder-open-o',
+        source: this.props.urls.TAFS_URL + '/tafs?active=false&status=concept',
+        editable: false,
+        tafEditable: true,
+        isOpenCategory: false
+      }, {
+        title: 'Create new TAF',
+        ref:   'add-taf',
+        icon: 'star-o',
+        editable: true,
+        tafEditable: true,
+        isOpenCategory: true
+      }
+    ];
+
     let isOpenCategory = {};
     ITEMS.forEach((item, index) => {
       isOpenCategory[item.ref] = item.isOpenCategory;

@@ -4,7 +4,6 @@ import Panel from '../Panel';
 import axios from 'axios';
 import JSONTree from 'react-json-tree';
 import cloneDeep from 'lodash.clonedeep';
-import { BACKEND_SERVER_URL } from '../../constants/backend';
 
 export default class TafExampleTafManagementPanel extends React.Component {
   constructor () {

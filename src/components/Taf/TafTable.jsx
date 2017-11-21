@@ -12,7 +12,6 @@ import SortableChangeGroup from './SortableChangeGroup';
 */
 class TafTable extends SortableContainer(() => {}) { // =
   render () {
-    console.log(this.props);
     let { tafJSON, onChange, onKeyUp, onAddRow, onDeleteRow, editable, onFocusOut, onFocus } = this.props;
     if (!tafJSON || !tafJSON.changegroups) {
       tafJSON = {

@@ -1,6 +1,6 @@
 import { LoadURLPreset, _getURLParameter, _loadPreset } from './URLPresets';
 import moxios from 'moxios';
-import { BACKEND_SERVER_URL } from '../constants/backend';
+import { BACKEND_SERVER_URL } from 'urls';
 
 describe('(URLPresets)', () => {
   beforeEach(() => {

@@ -1,7 +1,7 @@
 import React from 'react';
 import Taf from './Taf';
 import { mount } from 'enzyme';
-import { TAFS_URL } from '../../constants/backend';
+import { TAFS_URL } from 'urls';
 
 describe('(Container) Taf/Taf.jsx', () => {
   it('Renders a Taf', () => {
