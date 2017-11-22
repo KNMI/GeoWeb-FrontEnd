@@ -314,7 +314,7 @@ class MapActionContainer extends PureComponent {
   renderProgtempPopover (adagucTime) {
     if (this.state.progTempPopOverOpen) {
       const { dispatch, adagucActions, layers, mapProperties } = this.props;
-      return <ProgtempPopoverComponent mapProperties={mapProperties} layers={layers} adagucProperties={this.props.adagucProperties}
+      return <ProgtempPopoverComponent urls={this.props.urls} mapProperties={mapProperties} layers={layers} adagucProperties={this.props.adagucProperties}
         isOpen={this.state.progTempPopOverOpen} dispatch={dispatch} adagucActions={adagucActions} />;
     }
   }
@@ -322,7 +322,7 @@ class MapActionContainer extends PureComponent {
   renderTimeseriesPopover (adagucTime) {
     if (this.state.timeSeriesPopOverOpen) {
       const { dispatch } = this.props;
-      return <TimeseriesPopoverComponent mapProperties={this.props.mapProperties} layers={this.props.layers} adagucProperties={this.props.adagucProperties}
+      return <TimeseriesPopoverComponent urls={this.props.urls} mapProperties={this.props.mapProperties} layers={this.props.layers} adagucProperties={this.props.adagucProperties}
         adagucActions={this.props.adagucActions} isOpen={this.state.timeSeriesPopOverOpen} dispatch={dispatch} />;
     }
   }

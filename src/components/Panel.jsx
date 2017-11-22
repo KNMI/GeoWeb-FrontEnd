@@ -15,11 +15,13 @@ class Panel extends PureComponent {
     this.renderMenu = this.renderMenu.bind(this);
     this.modelChanger = this.modelChanger.bind(this);
     this.toggleType = this.toggleType.bind(this);
+    this.clearTypeAhead = this.clearTypeAhead.bind(this);
   }
   setChosenLocation (loc) {
     const { dispatch, adagucActions } = this.props;
     if (loc.length > 0) {
       dispatch(adagucActions.setCursorLocation(loc[0]));
+      this.setState({ location: loc[0] });
     }
   }
   convertMinSec (loc) {
@@ -35,9 +37,9 @@ class Panel extends PureComponent {
     return Math.floor(loc) + ':' + padLeft(Math.floor(minutes), 2, '0') + ':' + padLeft(seconds, 2, '0');
   }
   clearTypeAhead () {
-    if (!this._typeahead) return;
-    if (!this._typeahead.getInstance()) return;
-    this._typeahead.getInstance().clear();
+    if (!this.state.typeahead) return;
+    if (!this.state.typeahead.getInstance()) return;
+    this.state.typeahead.getInstance().clear();
   }
   componentDidUpdate (prevProps) {
     const { location } = this.props;
@@ -45,7 +47,13 @@ class Panel extends PureComponent {
     // Clear the Typeahead if previously a location was selected from the dropdown
     // and now a location is selected by clicking on the map
     const prevLoc = prevProps.location;
+
+    // If we clicked on the map...
     if (location && !location.name && prevLoc && prevLoc.name) {
+      this.clearTypeAhead();
+    }
+    // Or in some other panel the location was changed
+    if (this.state.location !== location) {
       this.clearTypeAhead();
     }
   }
@@ -68,7 +76,7 @@ class Panel extends PureComponent {
     const panelOpts = ['TIMESERIES', 'PROGTEMP'];
     if (panelOpts.some((t) => t === this.props.type)) {
       return <div style={{ marginRight: '0.25rem', maxWidth: '13rem' }}>
-        <Typeahead onClick={this.clearTypeAhead} onFocus={this.clearTypeAhead} bsSize='sm' ref={ref => { this._typeahead = ref; }} onChange={this.setChosenLocation} onClick={this.clearTypeAhead}
+        <Typeahead onClick={this.clearTypeAhead} onFocus={this.clearTypeAhead} bsSize='sm' ref={(typeahead) => this.setState({ typeahead: typeahead })} onChange={this.setChosenLocation}
           options={this.props.locations || []} labelKey='name' placeholder='Select ICAO location&hellip;' submitFormOnEnter />
       </div>;
     }

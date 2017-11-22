@@ -108,7 +108,7 @@ export default class ProgtempPopoverComponent extends Component {
       <Popover placement='left' isOpen={this.props.isOpen} target='timeseries_button'>
         <PopoverTitle>Reference time: <strong>{this.state.referenceTime ? this.state.referenceTime.format('ddd DD, HH:mm UTC') : '??'}</strong></PopoverTitle>
         <TimeseriesComponent location={cursor ? cursor.location : null} referenceTime={this.state.referenceTime}
-          selectedModel={this.state.selectedModel} time={adaStart} id='timeseriesPopover'/>
+          selectedModel={this.state.selectedModel} time={adaStart} id='timeseriesPopover' />
         <Row style={{ padding: '0 0 1rem 1rem' }}>
           {this.getLocationAsString(cursor)}
         </Row>
