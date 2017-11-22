@@ -94,12 +94,15 @@ export default class AdagucMeasureDistance extends PureComponent {
     ctx.strokeStyle = '#000';
     ctx.fillStyle = '#000';
 
-    const distanceText = `${Math.round(this.distance / 100) / 10} km`;
-    const bearingText = `${Math.round(this.bearing * 10) / 10} °`;
+    const kmDistance = this.distance / 100 / 10;
+    const distanceKmText = `${kmDistance.toFixed(1)} km`;
+    const distanceNmText = `${(0.54 * kmDistance).toFixed(1)} nm`;
+    const bearingText = `${this.bearing.toFixed(1)} °`;
 
     ctx.font = 'bold 16px Arial';
-    this.drawTextBG(ctx, distanceText, mx, my, 16);
-    this.drawTextBG(ctx, bearingText, mx, my + 16, 16);
+    this.drawTextBG(ctx, distanceKmText, mx, my, 16);
+    this.drawTextBG(ctx, distanceNmText, mx, my + 16, 16);
+    this.drawTextBG(ctx, bearingText, mx, my + 32, 16);
   }
 
   /* istanbul ignore next */
