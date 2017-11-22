@@ -147,6 +147,22 @@ class MapPanel extends PureComponent {
             </Col>
           </Row>
         );
+      case 'triplecolumn':
+        return (
+          <Row style={{ flex: 1 }}>
+            <Col xs='6'>
+              <SinglePanel mapId={0} {...this.props} referenceTime={this.state.referenceTime} progtempLocations={this.progtempLocations} model={this.state.model} />
+            </Col>
+            <Col xs='6'>
+              <Col xs='6'>
+                <SinglePanel mapId={1} {...this.props} referenceTime={this.state.referenceTime} progtempLocations={this.progtempLocations} model={this.state.model} />
+              </Col>
+              <Col xs='6'>
+                <SinglePanel mapId={2} {...this.props} referenceTime={this.state.referenceTime} progtempLocations={this.progtempLocations} model={this.state.model} />
+              </Col>
+            </Col>
+          </Row>
+        );
       case 'quad':
         return (
           <Row style={{ flex: 1 }}>

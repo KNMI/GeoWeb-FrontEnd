@@ -758,6 +758,7 @@ class LayoutDropDown extends PureComponent {
             <Button onClick={() => this.postLayout('dual')}>Dual column</Button>
             <Button onClick={() => this.postLayout('quaduneven')}>Uneven quad</Button>
             <Button onClick={() => this.postLayout('tripleuneven')}>Uneven triple</Button>
+            <Button onClick={() => this.postLayout('triplecolumn')}>Three columns</Button>
             <Button onClick={() => this.postLayout('quadcol')}>Four columns</Button>
             <Button onClick={() => this.postLayout('quad')}>Square</Button>
           </ButtonGroup>

@@ -575,10 +575,10 @@ class TafCategory extends Component {
     const getPhenomenonPresetUrl = (phenomenon) => {
       // TODO: Meer presets per fenomeen
       // TODO: Dit moet handiger kunnen
-      return window.location.origin + window.location.pathname + '?presetid=5c491799-93c6-4b8a-970f-6370d3bc1f32&location=EHAM#/';
+      return window.location.origin + window.location.pathname + '?presetid=06c0a5b4-1e98-4d19-8e8e-39a66fc4e10b&location=EHAM#/';
     };
     if (phenomenon !== this.state.currentPhenomenon) {
-      if (!this.state.window) {
+      if (!this.state.window || this.state.window.closed) {
         this.setState({ window: window.open(getPhenomenonPresetUrl(phenomenon), 'TafPresetWindow'), currentPhenomenon: phenomenon });
       } else {
         this.setState({ window: this.state.window.open(getPhenomenonPresetUrl(phenomenon), 'TafPresetWindow'), currentPhenomenon: phenomenon });
