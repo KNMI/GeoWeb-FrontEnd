@@ -1,15 +1,14 @@
 import axios from 'axios';
-import { BACKEND_SERVER_URL } from '../constants/backend';
 
 /*
   Reads the list of locations from the backend server,
   Succes:  the callback is triggered with either a location.
   Fail: the callback is triggered with  nothing
 */
-export const ReadLocations = (callback, failure) => {
+export const ReadLocations = (url, callback, failure) => {
   axios({
     method: 'get',
-    url: `${BACKEND_SERVER_URL}/admin/read`,
+    url: url,
     params: { type: 'locations', name: 'locations' },
     withCredentials: true,
     responseType: 'json'
@@ -25,10 +24,10 @@ export const ReadLocations = (callback, failure) => {
 /*
   Saves the list of locations to the backend server
 */
-export const SaveLocations = (data, failure) => {
+export const SaveLocations = (url, data, failure) => {
   axios({
     method: 'post',
-    url: `${BACKEND_SERVER_URL}/admin/create`,
+    url: url,
     params: { type: 'locations', name: 'locations' },
     data,
     withCredentials: true,

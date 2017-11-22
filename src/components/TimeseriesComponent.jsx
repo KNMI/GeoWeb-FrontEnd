@@ -33,10 +33,10 @@ export default class TimeseriesComponent extends PureComponent {
       return <div />;
     }
   }
-  setModelData (model, location) {
+  setModelData (model, location, referenceTime) {
     let url;
-    if (!(model && location && this.props.referenceTime)) return;
-    const refTimeStr = this.props.referenceTime.format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+    if (!(model && location && referenceTime)) return;
+    const refTimeStr = referenceTime.format('YYYY-MM-DDTHH:mm:ss') + 'Z';
     switch (model.toUpperCase()) {
       default:
         url = `${HARMONIE_URL}SERVICE=WMS&&SERVICE=WMS&VERSION=1.3.0&REQUEST=GetPointValue&LAYERS=&QUERY_LAYERS=
@@ -221,10 +221,10 @@ INFO_FORMAT=application/json&time=*&DIM_reference_time=` + refTimeStr + `&x=` + 
     });
     return retData;
   }
-  fetchAndRender (model, location) {
-    if (!(model && location)) return;
+  fetchAndRender (model, location, referenceTime) {
+    if (!(model && location && referenceTime)) return;
     this.setState({ isLoading: true });
-    const m = this.setModelData(model, location);
+    const m = this.setModelData(model, location, referenceTime);
     if (m) {
       m.then(() => {
         this.setState({ isLoading: false });
@@ -233,7 +233,7 @@ INFO_FORMAT=application/json&time=*&DIM_reference_time=` + refTimeStr + `&x=` + 
   }
 
   componentDidMount () {
-    this.fetchAndRender(this.props.selectedModel, this.props.location);
+    this.fetchAndRender(this.props.selectedModel, this.props.location, this.props.referenceTime);
   }
 
   shouldComponentUpdate (nextProps, nextState) {
@@ -259,7 +259,7 @@ INFO_FORMAT=application/json&time=*&DIM_reference_time=` + refTimeStr + `&x=` + 
     if (nextProps.selectedModel !== this.props.selectedModel ||
         nextProps.location !== this.props.location ||
         nextProps.referenceTime !== this.props.referenceTime) {
-      this.fetchAndRender(nextProps.selectedModel, nextProps.location);
+      this.fetchAndRender(nextProps.selectedModel, nextProps.location, nextProps.referenceTime);
     }
   }
   /* istanbul ignore next */

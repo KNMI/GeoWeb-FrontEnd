@@ -1,7 +1,6 @@
 import React from 'react';
 import Taf from './Taf';
 import { mount } from 'enzyme';
-import { TAFS_URL } from '../../constants/backend';
 
 describe('(Container) Taf/Taf.jsx', () => {
   it('Renders a Taf', () => {
@@ -15,7 +14,7 @@ describe('(Container) Taf/Taf.jsx', () => {
   });
 
   it('Renders concept Tafs', () => {
-    const _component = mount(<Taf source={TAFS_URL + '/tafs?active=false&status=concept'} />);
+    const _component = mount(<Taf source={'http://localhost:8080/tafs?active=false&status=concept'} />);
     expect(_component.type()).to.eql(Taf);
   });
 });

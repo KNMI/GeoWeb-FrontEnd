@@ -97,6 +97,7 @@ describe('(Component) Adaguc', () => {
 
   it('Renders a div', () => {
     const _component = shallow(<Adaguc
+      urls={{ BACKEND_SERVER_URL: 'http://localhost:8080' }}
       active dispatch={_dispatchSpy}
       layerActions={{}}
       adagucActions={{}}

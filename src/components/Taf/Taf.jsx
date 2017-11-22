@@ -4,9 +4,7 @@ import { Col, Row, Card, CardTitle, CardText, Button, ButtonGroup } from 'reacts
 import CollapseOmni from '../CollapseOmni';
 import moment from 'moment';
 import axios from 'axios';
-import { BACKEND_SERVER_URL, TAFS_URL } from '../../constants/backend';
 import TafCategory from './TafCategory';
-
 /*
   Renders multiple TafCategories, provides additional functions for loading and saving, and has functions for filtering on type and status.
 */
@@ -55,7 +53,7 @@ export default class Taf extends Component {
   deleteTAF (uuid) {
     axios({
       method: 'delete',
-      url: TAFS_URL + '/tafs/' + uuid,
+      url: this.props.urls.BACKEND_SERVER_URL + '/tafs/' + uuid,
       responseType: 'json'
     }).then(src => {
       this.fetchTAFs();
@@ -75,14 +73,14 @@ export default class Taf extends Component {
       // Selecting a new or another TAF, loads its TAC and sets it to expanded
       axios({
         method: 'get',
-        url: TAFS_URL + '/tafs/' + uuid,
+        url: this.props.urls.BACKEND_SERVER_URL + '/tafs/' + uuid,
         withCredentials: true,
         responseType: 'text',
         headers: { 'Accept': 'text/plain' }
       }).then(src => this.setState({ expandedTAF: uuid, expandedTAC: src.data }));
       axios({
         method: 'get',
-        url: TAFS_URL + '/tafs/' + uuid,
+        url: this.props.urls.BACKEND_SERVER_URL + '/tafs/' + uuid,
         withCredentials: true,
         responseType: 'json',
         headers: { 'Accept': 'application/json' }
@@ -127,6 +125,7 @@ export default class Taf extends Component {
               <Row>
                 <Col>
                   <TafCategory
+                    urls={this.props.urls}
                     taf={this.state.inputValueJSON}
                     update editable={this.props.tafEditable}
                   />
@@ -148,7 +147,7 @@ export default class Taf extends Component {
                     ? <Row>
                       <Col />
                       <Col xs='auto'>
-                        <a href={BACKEND_SERVER_URL + '/tafs/' + taf.metadata.uuid} target='_blank'>
+                        <a href={this.props.urls.BACKEND_SERVER_URL + '/tafs/' + taf.metadata.uuid} target='_blank'>
                           <Button color='primary'>Show IWXXM</Button>
                         </a>
                       </Col>
@@ -159,6 +158,7 @@ export default class Taf extends Component {
                   <Row>
                     <Col>
                       <TafCategory
+                        urls={this.props.urls}
                         taf={this.state.expandedJSON}
                         editable={this.props.tafEditable}
                       />

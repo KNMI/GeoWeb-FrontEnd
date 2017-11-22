@@ -6,8 +6,8 @@ describe('(Component) LocationManagementPanel', () => {
   let _component,
     _deepComponent;
   beforeEach(() => {
-    _component = shallow(<LocationManagementPanel />);
-    _deepComponent = mount(<LocationManagementPanel />);
+    _component = shallow(<LocationManagementPanel urls={{ BACKEND_SERVER_URL: 'http://localhost:8080' }} />);
+    _deepComponent = mount(<LocationManagementPanel urls={{ BACKEND_SERVER_URL: 'http://localhost:8080' }} />);
   });
 
   it('Renders a LocationMapper', () => {

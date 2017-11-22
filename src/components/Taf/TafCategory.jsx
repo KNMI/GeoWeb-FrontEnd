@@ -7,7 +7,6 @@ import moment from 'moment';
 import { Button, Row, Col } from 'reactstrap';
 import { createTAFJSONFromInput, setTACColumnInput, removeInputPropsFromTafJSON, cloneObjectAndSkipNullProps } from './FromTacCodeToTafjson';
 import TafTable from './TafTable';
-import { TAFS_URL } from '../../constants/backend';
 import axios from 'axios';
 
 const TMP = '_temp';
@@ -75,6 +74,7 @@ class TafCategory extends Component {
     this.onAddRow = this.onAddRow.bind(this);
     this.onDeleteRow = this.onDeleteRow.bind(this);
     this.onFocusOut = this.onFocusOut.bind(this);
+    this.onFocus = this.onFocus.bind(this);
     this.updateTACtoTAFJSONtoTac = this.updateTACtoTAFJSONtoTac.bind(this);
     this.getChangeType = this.getChangeType.bind(this);
     this.getPhenomenonType = this.getPhenomenonType.bind(this);
@@ -94,6 +94,7 @@ class TafCategory extends Component {
     TAFStartHour = parseInt(TAFStartHour / 6);
     TAFStartHour = TAFStartHour * (6);
     this.state = {
+      window: null,
       tafJSON: {
         forecast:{},
         metadata:{
@@ -129,7 +130,7 @@ class TafCategory extends Component {
 
     axios({
       method: 'post',
-      url: TAFS_URL + '/tafs/verify',
+      url: this.props.urls.BACKEND_SERVER_URL + '/tafs/verify',
       withCredentials: true,
       data: JSON.stringify(taf),
       headers: { 'Content-Type': 'application/json' }
@@ -156,7 +157,7 @@ class TafCategory extends Component {
   saveTaf (tafDATAJSON) {
     axios({
       method: 'post',
-      url: TAFS_URL + '/tafs',
+      url: this.props.urls.BACKEND_SERVER_URL + '/tafs',
       withCredentials: true,
       data: JSON.stringify(tafDATAJSON),
       headers: { 'Content-Type': 'application/json' }
@@ -166,7 +167,7 @@ class TafCategory extends Component {
     }).catch(error => {
       this.setState({ validationReport:{ message: 'Unable to save: error occured while saving TAF.' } });
       try {
-        console.log('Error occured', error.response.data);
+        console.log('Error occured', error);
         if (error.response.data.message) {
           this.setState({ validationReport:{ message: error.response.data.message } });
         }
@@ -569,6 +570,22 @@ class TafCategory extends Component {
     }
   }
 
+  /* Handler to focus to open preset */
+  onFocus (phenomenon) {
+    const getPhenomenonPresetUrl = (phenomenon) => {
+      // TODO: Meer presets per fenomeen
+      // TODO: Dit moet handiger kunnen
+      return window.location.origin + '/?presetid=5c491799-93c6-4b8a-970f-6370d3bc1f32&location=EHAM#/';
+    };
+    if (phenomenon !== this.state.currentPhenomenon) {
+      if (!this.state.window) {
+        this.setState({ window: window.open(getPhenomenonPresetUrl(phenomenon), 'TafPresetWindow'), currentPhenomenon: phenomenon });
+      } else {
+        this.setState({ window: this.state.window.open(getPhenomenonPresetUrl(phenomenon), 'TafPresetWindow'), currentPhenomenon: phenomenon });
+      }
+    }
+  }
+
   /*
     Event handler that is called upon jumping out of an input field.
   */
@@ -681,6 +698,7 @@ class TafCategory extends Component {
                   onAddRow={this.onAddRow}
                   onDeleteRow={this.onDeleteRow}
                   editable={this.props.editable}
+                  onFocus={this.onFocus}
                   onFocusOut={this.onFocusOut} />
               </Col>
             </Row>

@@ -9,7 +9,7 @@ import { getInputValueAndTACValueFromForecast } from './TafjsonToTacFields';
 */
 class TACColumn extends Component {
   render () {
-    let { value, rowIndex, colIndex, onChange, onKeyUp, editable, onFocusOut } = this.props;
+    let { value, rowIndex, colIndex, onChange, onKeyUp, editable, onFocusOut, onFocus } = this.props;
 
     if (colIndex === 0) {
       return (<td className='noselect' >{ editable ? <Icon style={{ cursor:'pointer' }} name='bars' /> : null } </td>);
@@ -56,6 +56,7 @@ class TACColumn extends Component {
         }
       }
     }
+    const values = [null, null, null, null, 'wind', 'visibility', 'weather', 'weather', 'weather', 'cloud', 'cloud', 'cloud', 'cloud'];
     if (editable) {
       return (<td>
         <input
@@ -64,6 +65,7 @@ class TACColumn extends Component {
           value={!v ? '' : v}
           onKeyUp={(evt) => { onKeyUp(evt, rowIndex, colIndex, v); }}
           onBlur={() => { onFocusOut(); }}
+          onFocus={() => { onFocus(values[colIndex]); }}
           onChange={(evt) => { onChange(evt, rowIndex, colIndex); }} />
       </td>);
     } else {

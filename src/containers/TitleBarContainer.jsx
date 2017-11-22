@@ -10,7 +10,6 @@ import uuidV4 from 'uuid/v4';
 import { Alert, Navbar, NavbarBrand, Row, Col, Nav, NavLink, Breadcrumb, BreadcrumbItem, Collapse, Popover, Form, FormGroup, Label, PopoverContent,
   PopoverTitle, ButtonGroup, InputGroupButton, Modal, ModalHeader, ModalBody, ModalFooter, Button, InputGroup, Input, FormText } from 'reactstrap';
 import { Link, hashHistory } from 'react-router';
-import { BACKEND_SERVER_URL } from '../constants/backend';
 import PropTypes from 'prop-types';
 import moment from 'moment';
 import { addNotification } from 'reapop';
@@ -71,9 +70,10 @@ class TitleBarContainer extends PureComponent {
   }
 
   retrieveTriggers () {
+    const { urls } = this.props;
     axios({
       method: 'get',
-      url: BACKEND_SERVER_URL + '/triggers/gettriggers?startdate=' + moment().subtract(1, 'hours').utc().format() + '&duration=3600',
+      url: urls.BACKEND_SERVER_URL + '/triggers/gettriggers?startdate=' + moment().subtract(1, 'hours').utc().format() + '&duration=3600',
       withCredentials: true,
       responseType: 'json'
     }).then(this.gotTriggersCallback)
@@ -149,8 +149,9 @@ class TitleBarContainer extends PureComponent {
   }
 
   getServices () {
+    const { urls } = this.props;
     const { dispatch, mapActions, adagucActions } = this.props;
-    const defaultURLs = ['getServices', 'getOverlayServices'].map((url) => BACKEND_SERVER_URL + '/' + url);
+    const defaultURLs = ['getServices', 'getOverlayServices'].map((url) => urls.BACKEND_SERVER_URL + '/' + url);
     const allURLs = [...defaultURLs];
     axios.all(allURLs.map((req) => axios.get(req, { withCredentials: true }))).then(
       axios.spread((services, overlays) => {
@@ -200,12 +201,12 @@ class TitleBarContainer extends PureComponent {
   }
 
   doLogin () {
-    const { user } = this.props;
+    const { user, urls } = this.props;
     const { isLoggedIn } = user;
     if (!isLoggedIn) {
       axios({
         method: 'get',
-        url: BACKEND_SERVER_URL + '/login?username=' + this.inputfieldUserName + '&password=' + this.inputfieldPassword,
+        url: urls.BACKEND_SERVER_URL + '/login?username=' + this.inputfieldUserName + '&password=' + this.inputfieldPassword,
         withCredentials: true,
         responseType: 'json'
       }).then(src => {
@@ -224,10 +225,11 @@ class TitleBarContainer extends PureComponent {
   }
 
   doLogout () {
+    const { urls } = this.props;
     this.toggleLoginModal();
     axios({
       method: 'get',
-      url: BACKEND_SERVER_URL + '/logout',
+      url: urls.BACKEND_SERVER_URL + '/logout',
       withCredentials: true,
       responseType: 'json'
     }).then(src => {
@@ -239,6 +241,8 @@ class TitleBarContainer extends PureComponent {
   }
 
   checkCredentials (callback) {
+    const { urls } = this.props;
+
     try {
       this.setState({
         loginModalMessage: 'Checking...'
@@ -248,7 +252,7 @@ class TitleBarContainer extends PureComponent {
     }
     axios({
       method: 'get',
-      url: BACKEND_SERVER_URL + '/getuser',
+      url: urls.BACKEND_SERVER_URL + '/getuser',
       withCredentials: true,
       responseType: 'json'
     }).then(src => {
@@ -372,7 +376,7 @@ class TitleBarContainer extends PureComponent {
     this.setState({ loginModal: false });
     const presetName = uuidV4();
     const dataToSend = this.makePresetObj(presetName, true, true, true, '');
-    SaveURLPreset(presetName, dataToSend, (message) => {
+    SaveURLPreset(presetName, dataToSend, `${this.props.urls.BACKEND_SERVER_URL}/store/create`, (message) => {
       if (message.status === 'ok') {
         this.setState({
           sharePresetModal: true,
@@ -385,24 +389,28 @@ class TitleBarContainer extends PureComponent {
   }
 
   makePresetObj (presetName, saveLayers, savePanelLayout, saveBoundingBox, role) {
+    const { mapProperties } = this.props;
+    const { layout } = mapProperties;
     let numPanels;
-    if (/quad/.test(this.props.layout)) {
+    if (/quad/.test(layout)) {
       numPanels = 4;
-    } else if (/triple/.test(this.props.layout)) {
+    } else if (/triple/.test(layout)) {
       numPanels = 3;
-    } else if (/dual/.test(this.props.layout)) {
+    } else if (/dual/.test(layout)) {
       numPanels = 2;
     } else {
       numPanels = 1;
     }
 
     const displayObj = {
-      type: this.props.layout,
+      type: layout,
       npanels: numPanels
     };
     const bbox = {
-      top: this.props.mapProperties.boundingBox.bbox[3],
+      left: this.props.mapProperties.boundingBox.bbox[0],
       bottom: this.props.mapProperties.boundingBox.bbox[1],
+      right: this.props.mapProperties.boundingBox.bbox[2],
+      top: this.props.mapProperties.boundingBox.bbox[3],
       crs: this.props.mapProperties.projectionName
     };
     let layerConfig = [];
@@ -451,8 +459,7 @@ class TitleBarContainer extends PureComponent {
     const saveBoundingBox = document.getElementsByName('viewCheckbox')[0].checked;
     const role = document.getElementsByName('roleSelect');
     const dataToSend = this.makePresetObj(presetName, saveLayers, savePanelLayout, saveBoundingBox, role);
-
-    let url = BACKEND_SERVER_URL + '/preset/';
+    let url = this.props.urls.BACKEND_SERVER_URL + '/preset/';
     let params = {
       name: presetName
     };
@@ -479,6 +486,7 @@ class TitleBarContainer extends PureComponent {
     });
     this.togglePresetModal();
   }
+
   returnInputRef (ref) {
     this.input = ref;
   }
@@ -586,24 +594,27 @@ class TitleBarContainer extends PureComponent {
   }
 
   sendFeedback () {
+    const numLogs = myLogs.length;
+    const { urls } = this.props;
+
     const feedbackObj = {
       state: this.props.fullState,
       url: window.location.href,
-      config: { ...require('config'), backend_url: require('../static/urls.js').BACKEND_SERVER_URL },
+      config: { ...require('config'), backend_url: urls.BACKEND_SERVER_URL },
       userAgent: navigator.userAgent,
       descriptions: {
         short: this.shortDescription,
         long: this.longDescription
-      }
+      },
+      latestLogs: myLogs.slice(Math.max(0, numLogs - 100)).reverse()
     };
 
-    const { WEBSERVER_URL } = require('../static/urls');
     // TODO send this to the webserver for further distribution
     axios({
       method: 'post',
-      url: WEBSERVER_URL + '/cgi-bin/geoweb/receiveFeedback.cgi',
+      url: urls.WEBSERVER_URL + '/cgi-bin/geoweb/receiveFeedback.cgi',
       data: JSON.stringify(feedbackObj, null, 2)
-    }).then((res) => console.log(res));
+    }).then((res) => { this.setState({ feedbackModalOpen: false }); });
   }
 
   renderFeedbackModal (feedbackModalOpen, toggle) {

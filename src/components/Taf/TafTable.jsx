@@ -12,7 +12,7 @@ import SortableChangeGroup from './SortableChangeGroup';
 */
 class TafTable extends SortableContainer(() => {}) { // =
   render () {
-    let { tafJSON, onChange, onKeyUp, onAddRow, onDeleteRow, editable, onFocusOut } = this.props;
+    let { tafJSON, onChange, onKeyUp, onAddRow, onDeleteRow, editable, onFocusOut, onFocus } = this.props;
     if (!tafJSON || !tafJSON.changegroups) {
       tafJSON = {
         forecast:{},
@@ -41,7 +41,7 @@ class TafTable extends SortableContainer(() => {}) { // =
         </thead>
         <tbody>
           <BaseForecast ref={'baseforecast'} value={tafJSON} onChange={onChange} onKeyUp={onKeyUp} onDeleteRow={onDeleteRow}
-            onFocusOut={onFocusOut} editable validationReport={this.props.validationReport} />
+            onFocusOut={onFocusOut} onFocus={onFocus} editable validationReport={this.props.validationReport} />
         </tbody>
 
         <thead>
@@ -73,11 +73,12 @@ class TafTable extends SortableContainer(() => {}) { // =
                 value={value}
                 onChange={onChange}
                 onKeyUp={onKeyUp}
+                onFocus={onFocus}
                 onDeleteRow={onDeleteRow}
                 onFocusOut={onFocusOut} validationReport={this.props.validationReport} />);
             } else {
               return (<ChangeGroup key={`item-${index}`} index={index} rowIndex={index} value={value} onChange={onChange} onKeyUp={onKeyUp} onDeleteRow={onDeleteRow}
-                onFocusOut={onFocusOut} />);
+                onFocusOut={onFocusOut} onFocus={onFocus} />);
             }
           })}
           { editable
