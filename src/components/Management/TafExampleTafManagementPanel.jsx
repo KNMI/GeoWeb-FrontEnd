@@ -22,7 +22,7 @@ export default class TafExampleTafManagementPanel extends React.Component {
   }
 
   fetchTAFs () {
-    axios.get(BACKEND_SERVER_URL + '/admin/example_tafs').then((r) => {
+    axios.get(this.props.urls.BACKEND_SERVER_URL + '/admin/example_tafs').then((r) => {
       const fetchedTAFs = [];
       r.data.payload.map((tafStr) => fetchedTAFs.push(JSON.parse(tafStr)));
       this.setState({ tafsAndMessages: cloneDeep(fetchedTAFs), onServer: cloneDeep(fetchedTAFs) });
@@ -42,7 +42,7 @@ export default class TafExampleTafManagementPanel extends React.Component {
     let promiseArray = this.state.tafsAndMessages.map(taf =>
       axios({
         method: 'post',
-        url: BACKEND_SERVER_URL + '/tafs/verify',
+        url: this.props.urls.BACKEND_SERVER_URL + '/tafs/verify',
         data: taf.taf
       })
     );
@@ -93,7 +93,7 @@ export default class TafExampleTafManagementPanel extends React.Component {
   doneEditing (i) {
     const tafsCpy = this.state.tafsAndMessages.slice();
     tafsCpy[i].edit = false;
-    let url = BACKEND_SERVER_URL + '/admin/example_tafs';
+    let url = this.props.urls.BACKEND_SERVER_URL + '/admin/example_tafs';
     // If there are more tafs in the frontend than on the backend post it,
     // otherwise update the existing taf
     // TODO: better mechanism for this
@@ -114,7 +114,7 @@ export default class TafExampleTafManagementPanel extends React.Component {
     this.setState({ tafsAndMessages: tafsCpy });
   }
   deleteTAF (i) {
-    let url = BACKEND_SERVER_URL + '/admin/example_tafs/' + i;
+    let url = this.props.urls.BACKEND_SERVER_URL + '/admin/example_tafs/' + i;
     axios({
       method: 'delete',
       url: url

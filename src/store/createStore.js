@@ -45,7 +45,6 @@ export default (initialState = {}, isdev = false) => {
         store.replaceReducer(reducers(store.asyncReducers));
       });
     }
-
     return store;
   });
 };

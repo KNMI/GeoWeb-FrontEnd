@@ -5,7 +5,7 @@ import { mount } from 'enzyme';
 describe('(Component) ProgtempManagementPanel', () => {
   let _component;
   beforeEach(() => {
-    _component = mount(<ProgtempManagementPanel />);
+    _component = mount(<ProgtempManagementPanel urls={{ BACKEND_SERVER_URL: 'http://localhost:8080' }} />);
   });
 
   it('Renders a ProgtempManagementPanel', () => {

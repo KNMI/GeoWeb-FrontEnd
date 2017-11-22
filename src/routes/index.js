@@ -128,13 +128,13 @@ export const createRoutes = (store) => {
   const manageLeft = React.createElement(SidebarContainer);
   const appmanPanel = React.createElement(AppManagementPanel);
   const prodmanPanel = React.createElement(ProductsManagementPanel);
-  const progmanPanel = React.createElement(ProgtempManagementPanel);
+  const progmanPanel = React.createElement(connect((state) => ({ urls: state.urls }))(ProgtempManagementPanel));
   const tafmanPanel = React.createElement(TafManagementPanel);
-  const tafValidmanPanel = React.createElement(TafValidationManagementPanel);
-  const tafexTafmanPanel = React.createElement(TafExampleTafManagementPanel);
+  const tafValidmanPanel = React.createElement(connect((state) => ({ urls: state.urls }))(TafValidationManagementPanel));
+  const tafexTafmanPanel = React.createElement(connect((state) => ({ urls: state.urls }))(TafExampleTafManagementPanel));
   const sigmanPanel = React.createElement(SigmetManagementPanel);
-  const sigparmanPanel = React.createElement(SigmetParameterManagementPanel);
-  const locmanPanel = React.createElement(LocationManagementPanel);
+  const sigparmanPanel = React.createElement(connect((state) => ({ urls: state.urls }))(SigmetParameterManagementPanel));
+  const locmanPanel = React.createElement(connect((state) => ({ urls: state.urls }))(LocationManagementPanel));
   const manPanel = React.createElement(ManagementPanel);
   return (
     /* Default route */

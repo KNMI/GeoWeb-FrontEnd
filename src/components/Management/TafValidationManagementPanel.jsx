@@ -19,7 +19,7 @@ export default class TafValidationManagementPanel extends React.Component {
     this.saveJsonSchema = this.saveJsonSchema.bind(this);
   }
   componentDidMount () {
-    axios.get(BACKEND_SERVER_URL + '/admin/validation/schema/taf').then((r) => this.setState({ schema: cloneDeep(r.data), tempSchema: cloneDeep(r.data) }));
+    axios.get(this.props.urls.BACKEND_SERVER_URL + '/admin/validation/schema/taf').then((r) => this.setState({ schema: cloneDeep(r.data), tempSchema: cloneDeep(r.data) }));
   }
   reset () {
     this.setState({ tempSchema: cloneDeep(this.state.schema) });
@@ -27,7 +27,7 @@ export default class TafValidationManagementPanel extends React.Component {
   saveJsonSchema (schema) {
     axios({
       method: 'post',
-      url: BACKEND_SERVER_URL + '/admin/validation/schema/taf',
+      url: this.props.urls.BACKEND_SERVER_URL + '/admin/validation/schema/taf',
       data: schema
     }).then(() => console.log('done'));
   }

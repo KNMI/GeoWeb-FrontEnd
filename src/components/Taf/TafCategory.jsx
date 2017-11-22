@@ -130,7 +130,7 @@ class TafCategory extends Component {
 
     axios({
       method: 'post',
-      url: TAFS_URL + '/tafs/verify',
+      url: this.props.urls.BACKEND_SERVER_URL + '/tafs/verify',
       withCredentials: true,
       data: JSON.stringify(taf),
       headers: { 'Content-Type': 'application/json' }
@@ -157,7 +157,7 @@ class TafCategory extends Component {
   saveTaf (tafDATAJSON) {
     axios({
       method: 'post',
-      url: TAFS_URL + '/tafs',
+      url: this.props.urls.BACKEND_SERVER_URL + '/tafs',
       withCredentials: true,
       data: JSON.stringify(tafDATAJSON),
       headers: { 'Content-Type': 'application/json' }

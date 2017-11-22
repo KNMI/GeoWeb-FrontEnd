@@ -16,7 +16,7 @@ export default class TafsContainer extends Component {
         title: 'Open active TAFs',
         ref:   'active-tafs',
         icon: 'folder-open',
-        source: this.props.urls.TAFS_URL + '/tafs?active=true',
+        source: this.props.urls.BACKEND_SERVER_URL + '/tafs?active=true',
         editable: false,
         tafEditable: false,
         isOpenCategory: false
@@ -24,7 +24,7 @@ export default class TafsContainer extends Component {
         title: 'Open concept TAFs',
         ref:   'concept-tafs',
         icon: 'folder-open-o',
-        source: this.props.urls.TAFS_URL + '/tafs?active=false&status=concept',
+        source: this.props.urls.BACKEND_SERVER_URL + '/tafs?active=false&status=concept',
         editable: false,
         tafEditable: true,
         isOpenCategory: false
@@ -100,7 +100,7 @@ export default class TafsContainer extends Component {
                 }
                 { this.state.isOpenCategory[item.ref]
                   ? <CollapseOmni className='CollapseOmni' isOpen={this.state.isOpen} minSize={0} maxSize={maxSize}>
-                    <Taf {...item} latestUpdateTime={moment.utc()} updateParent={() => this.forceUpdate()} />
+                    <Taf urls={this.props.urls} {...item} latestUpdateTime={moment.utc()} updateParent={() => this.forceUpdate()} />
                   </CollapseOmni> : ''
                 }
 

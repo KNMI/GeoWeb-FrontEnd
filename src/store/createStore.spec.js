@@ -1,6 +1,7 @@
 import createStore from './createStore';
 import { MAP_STYLES } from '../constants/map_styles';
 import { BOUNDING_BOXES } from '../constants/bounding_boxes';
+var fetchMock = require('fetch-mock');
 
 describe('(Store) createStore', () => {
   let store;
@@ -59,9 +60,14 @@ describe('(Store) createStore', () => {
       title: 'hello RightSideBar'
     }
   };
-
-  beforeEach(() => {
-    store = createStore(initialState);
+  before(() => {
+    fetchMock.get('*', { BACKEND_SERVER_URL: 'http://localhost:8080' });
+  });
+  after(() => {
+    fetchMock.restore();
+  });
+  beforeEach(async () => {
+    store = await createStore(initialState);
   });
 
   it('should have an empty asyncReducers object', () => {
