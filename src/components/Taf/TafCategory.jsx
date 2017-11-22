@@ -575,7 +575,7 @@ class TafCategory extends Component {
     const getPhenomenonPresetUrl = (phenomenon) => {
       // TODO: Meer presets per fenomeen
       // TODO: Dit moet handiger kunnen
-      return window.location.origin + '/?presetid=5c491799-93c6-4b8a-970f-6370d3bc1f32&location=EHAM#/';
+      return window.location.origin + window.location.pathname + '?presetid=5c491799-93c6-4b8a-970f-6370d3bc1f32&location=EHAM#/';
     };
     if (phenomenon !== this.state.currentPhenomenon) {
       if (!this.state.window) {
