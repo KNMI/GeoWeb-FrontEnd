@@ -5,3 +5,7 @@
 .popover-content > li {
   @extend .dropdown-item;
 }
+
+#timeseriesPopover {
+  height: 30rem!important;
+}
