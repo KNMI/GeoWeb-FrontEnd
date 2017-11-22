@@ -578,8 +578,7 @@ class TafCategory extends Component {
       return window.location.origin + window.location.pathname + '?presetid=06c0a5b4-1e98-4d19-8e8e-39a66fc4e10b&location=EHAM#/';
     };
     if (phenomenon !== this.state.currentPhenomenon) {
-      console.log(this.state.window);
-      if (!this.state.window) {
+      if (!this.state.window || this.state.window.closed) {
         this.setState({ window: window.open(getPhenomenonPresetUrl(phenomenon), 'TafPresetWindow'), currentPhenomenon: phenomenon });
       } else {
         this.setState({ window: this.state.window.open(getPhenomenonPresetUrl(phenomenon), 'TafPresetWindow'), currentPhenomenon: phenomenon });
