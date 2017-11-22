@@ -84,7 +84,7 @@
   "author": "KNMI, based on work by David Zukowski <david@zuko.me> (http://zuko.me)",
   "license": "MIT",
   "dependencies": {
-    "axios": "^0.16.2",
+    "axios": "^0.17.1",
     "bootstrap": "4.0.0-alpha.6",
     "classnames": "^2.2.5",
     "compression-webpack-plugin": "^1.0.1",
@@ -108,7 +108,7 @@
     "react-dom": "^15.6.1",
     "react-fa": "^5.0.0",
     "react-json-edit": "^0.3.1",
-    "react-json-tree": "^0.10.9",
+    "react-json-tree": "^0.11.0",
     "react-moment": "^0.6.5",
     "react-moment-proptypes": "^1.5.0",
     "react-redux": "^5.0.6",
@@ -203,7 +203,7 @@
     "webpack": "^3.8.1",
     "webpack-dev-middleware": "^1.12.0",
     "webpack-hot-middleware": "^2.20.0",
-    "yargs": "^9.0.1"
+    "yargs": "^10.0.3"
   },
   "pre-commit": [
     "lint",

@@ -24,13 +24,15 @@ export default class ProgtempComponent extends PureComponent {
     if (this.state.cachedImage && this.state.cachedImage.width === w && this.state.cachedImage.height === h) {
       ctx.putImageData(this.state.cachedImage, 0, 0);
     } else {
-      drawProgtempBg(ctx, w, h);
-      const bg = ctx.getImageData(0, 0, w, h);
-      if (bg && w > 0 && h > 0) {
-        this.setState({ cachedImage: bg });
+      if (w > 0 && h > 0) {
+        drawProgtempBg(ctx, w, h);
+        const bg = ctx.getImageData(0, 0, w, h);
+        if (bg && w > 0 && h > 0) {
+          this.setState({ cachedImage: bg });
+        }
+        this.width = w;
+        this.height = h;
       }
-      this.width = w;
-      this.height = h;
     }
   }
 
