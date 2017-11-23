@@ -465,7 +465,8 @@ class TafCategory extends Component {
           ranges: [ {
             start: scopeStart,
             end: scopeEnd,
-            value: value
+            value: value,
+            styles: []
           } ]
         });
       }
@@ -531,7 +532,8 @@ class TafCategory extends Component {
             scheduleSeries[seriesIndex].ranges.push({
               start: end,
               end: scopeEnd,
-              value: this.decoratePhenomenonValue(entry[0], entry[1], null)
+              value: this.decoratePhenomenonValue(entry[0], entry[1], null),
+              styles: []
             });
           }
         }
