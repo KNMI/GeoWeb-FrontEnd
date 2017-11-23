@@ -152,7 +152,8 @@ class TimeSchedule extends PureComponent {
           <Col className='tick' style={{ flexBasis: intervalMinorBasis + '%', maxWidth: intervalMinorBasis + '%' }} />
           {minorTicks.map((tick, index) => {
             // const isMajorTick = ((index + 1) / intervalRatio) % 1 === 0;
-            return <Col className='tick' key={'tickMinor' + index} style={{ flexBasis: intervalMinorBasis + '%', maxWidth: intervalMinorBasis + '%' }} title={tick.format('DD-MM HH:mm')} />
+            return <Col className='tick' key={'tickMinor' + index}
+              style={{ flexBasis: intervalMinorBasis + '%', maxWidth: intervalMinorBasis + '%' }} title={tick.format('DD-MM HH:mm')} />;
           })}
           <Col className='tick' style={{ flexBasis: marginMajorBasis + '%', maxWidth: marginMajorBasis + '%' }} />
         </Row>

@@ -2,6 +2,10 @@ import React from 'react';
 import TafCategory from './TafCategory';
 import { mount } from 'enzyme';
 import { TestTafJSON } from './TestTafJSON.js';
+import { TAF_TEMPLATES } from './TafTemplates';
+
+const taf = TAF_TEMPLATES.TAF;
+
 describe('(Container) Taf/TafCategory.jsx', () => {
   before(() => { sinon.spy(TafCategory.prototype, 'validateTAF'); });
   it('Renders a TafCategory', () => {
@@ -14,7 +18,7 @@ describe('(Container) Taf/TafCategory.jsx', () => {
     expect(_component.type()).to.eql(TafCategory);
   });
 
-  it('Triggers onkeyup key 27 and checks if validation is called', () => {
+  /* it('Triggers onkeyup (Escape) and checks if validation is called', () => {
     const _wrappingComponent = mount(<TafCategory
       editable
       taf={TestTafJSON}
@@ -31,10 +35,10 @@ describe('(Container) Taf/TafCategory.jsx', () => {
     expect('everything').to.be.ok();
   });
 
-  it('Triggers onkeyup (Enter) key 13 and checks if validation is called', () => {
+  it('Triggers onkeyup (Enter) and checks if validation is called', () => {
     const _wrappingComponent = mount(<TafCategory
       editable
-      taf={TestTafJSON}
+      taf={taf}
     />);
 
     const evt = new KeyboardEvent('keyup', {
@@ -48,11 +52,14 @@ describe('(Container) Taf/TafCategory.jsx', () => {
     expect('everything').to.be.ok();
   });
 
-  it('Triggers onkeyup (key arrow up, key 38) and checks if validation is called', () => {
+  it('Triggers onkeyup (ArrowUp) and checks if validation is called', () => {
     const _wrappingComponent = mount(<TafCategory
       editable
-      taf={TestTafJSON}
+      taf={taf}
     />);
+    const inputs2Focus = _wrappingComponent.find('input[name="forecast-wind"]');
+    expect(inputs2Focus).to.have.length(1);
+    inputs2Focus.get(0).focus();
 
     const evt = new KeyboardEvent('keyup', {
       bubbles: true,
@@ -65,10 +72,10 @@ describe('(Container) Taf/TafCategory.jsx', () => {
     expect('everything').to.be.ok();
   });
 
-  it('Triggers onkeyup (key arrow down, key 40) and checks if validation is called', () => {
+  it('Triggers onkeyup (ArrowDown) and checks if validation is called', () => {
     const _wrappingComponent = mount(<TafCategory
       editable
-      taf={TestTafJSON}
+      taf={taf}
     />);
 
     const evt = new KeyboardEvent('keyup', {
@@ -80,7 +87,7 @@ describe('(Container) Taf/TafCategory.jsx', () => {
     _wrappingComponent.find(TafCategory).get(0).onKeyUp(evt);
     TafCategory.prototype.validateTAF.should.have.been.calledTwice();
     expect('everything').to.be.ok();
-  });
+  }); */
 
   it('Handles updating of TAF json', () => {
     const _component = mount(<TafCategory />);

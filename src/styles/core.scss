@@ -4,6 +4,8 @@
 @import 'collapse';
 @import 'timeschedule';
 @import 'slider';
+@import 'tactable';
+@import 'taftable';
 @import 'popover';
 @import 'datetime';
 $radius-size: 0.19rem;
@@ -31,6 +33,19 @@ body {
   width: 100vw;
   overflow: hidden;
 }
+button, button.btn, input, optgroup, select, textarea {
+  font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 1rem;
+  font-weight: normal;
+  line-height: 1.4;
+}
+
+button.btn.btn-sm, button.btn.btn-group-sm > .btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    border-radius: 0.2rem;
+}
+
 .canvasLoadingOverlay.canvasDisabled,.canvasLoadingOverlay.timeOverlay.canvasDisabled {
   background-color: rgba(50, 50, 50, 0.4);
 }
@@ -691,97 +706,4 @@ span.fa {
 
 .accordion .card-block .TafStyle.row.btn .row {
   flex-direction: row;
-}
-
-.noselect {
-  -webkit-touch-callout: none; /* iOS Safari */
-    -webkit-user-select: none; /* Safari */
-     -khtml-user-select: none; /* Konqueror HTML */
-       -moz-user-select: none; /* Firefox */
-        -ms-user-select: none; /* Internet Explorer/Edge */
-            user-select: none; /* Non-prefixed version, currently
-                                  supported by Chrome and Opera */
-}
-
-.TACnotEditable {
-  background-color:#DDD;
-  font-weight:bold;
-  border-left:1px solid white;
-  border-right:1px solid white;
-}
-
-.TACbold {
-  font-weight:bold;
-}
-
-.TafStyleTable{
-  border-collapse: collapse;
-  width: 100%;
-  margin-top:.1em;
-}
-.TafStyle th{
-  background-color: #5cb85c;
-  color: white;
-  white-space: nowrap;
-  text-align:center;
-  font-weight: bold;
-}
-
-.TafStyle td{
-  white-space: nowrap;
-  text-align:center;
-  font-size: 12px;
-}
-
-.TafStyle input {
-  width:100%;
-  text-align:center;
-  background-image: none;
-  background-clip: padding-box;
-  border-radius: 0.25rem;
-  transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
-  font-size: 12px;
-}
-
-.TACColumnEmpty {
-  background-color: #FFF;
-  border: 1px solid rgba(0, 0, 0, 0.15);
-}
-.TACColumnOK {
-  background-color: #DFF2BF;
-  border: 1px solid rgba(0, 0, 0, 0.15);
-  color:black;/*#4F8A10;*/
-}
-.TACColumnWarning {
-  /* Input cannot be converted to JSON */
-  background-color: #FFCD93;
-  color: black; /*#9F6000;*/
-  border: 1px solid rgba(0, 0, 0, 0.15);
-}
-.TACColumnError {
-  /* Validation returns an error */
-  border: 1px solid red;
-}
-
-.TACReport{
-  padding:2px 8px 2px 8px;
-  margin: 0px 0px 4px 0px;
-
-  background-color: #DDD;
-  color: #444;
-  font-family: Courier New,Courier,Lucida Sans Typewriter,Lucida Typewriter,monospace;
-}
-
-.TAFValidationReportSuccess {
-  padding:4px 8px 4px 8px;
-  margin: 0px 0px 4px 0px;
-  background-color: #DFF2BF;
-  color:black;/*#4F8A10;*/
-}
-
-.TAFValidationReportError {
-  padding:4px 8px 4px 8px;
-  margin: 0px 0px 4px 0px;
-  background-color: #FFBABA;
-  color: #D8000C;
 }

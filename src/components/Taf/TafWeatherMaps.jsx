@@ -1,12 +1,17 @@
-/*
-  Maps to construct TAC from JSON Weather and vice versa.
-*/
+/**
+ * Maps to construct TAC from JSON Weather and vice versa.
+ */
+
 export const qualifierMap = {
   light:'-',
   moderate:'',
   heavy:'+',
   vicinity:'VC'
 };
+
+const qualifierInverse = {};
+Object.entries(qualifierMap).map(entry => { qualifierInverse[entry[1]] = entry[0]; });
+export const qualifierInverseMap = qualifierInverse;
 
 export const descriptorMap = {
   shallow: 'MI',
@@ -18,6 +23,10 @@ export const descriptorMap = {
   thunderstorm: 'TS',
   freezing: 'FZ'
 };
+
+const descriptorInverse = {};
+Object.entries(descriptorMap).map(entry => { descriptorInverse[entry[1]] = entry[0]; });
+export const descriptorInverseMap = descriptorInverse;
 
 export const phenomenaMap = {
   'drizzle': 'DZ',
@@ -41,3 +50,7 @@ export const phenomenaMap = {
   'sandstorm': 'SS',
   'duststorm': 'DS'
 };
+
+const phenomenaInverse = {};
+Object.entries(phenomenaMap).map(entry => { phenomenaInverse[entry[1]] = entry[0]; });
+export const phenomenaInverseMap = phenomenaInverse;
