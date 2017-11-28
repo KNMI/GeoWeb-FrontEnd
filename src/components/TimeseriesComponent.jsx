@@ -50,7 +50,7 @@ INFO_FORMAT=application/json&time=*&DIM_reference_time=` + refTimeStr + `&x=` + 
   }
 
   setSelectedDot (time) {
-    const dataLines = ['air_temp', 'dew_point_temp', 'wind_dir', 'wind_speed', 'precipitation', 'pressure'];
+    const dataLines = ['air_temp', 'dew_point_temp', 'wind_dir', 'wind_speed', 'wind_gust', 'precipitation', 'pressure'];
 
     const points = document.querySelectorAll('.dot');
     if (points && points.length > 0) {
@@ -309,7 +309,7 @@ INFO_FORMAT=application/json&time=*&DIM_reference_time=` + refTimeStr + `&x=` + 
                 <YAxis />
                 <Legend margin={{ top: 0 }} verticalAlign='top' payload={[ { type: 'line', value: this.getLabels(['wind_speed']), color: '#ff3562' },
                   { type: 'line', value: this.getLabels(['wind_gust']), color: '#69a2b0' } ]} />
-                <Tooltip content={(props) => this.customTooltip(props, this.getLabels(['wind_speed']), this.getUnits(['wind_speed', 'wind_gust']))} />
+                <Tooltip content={(props) => this.customTooltip(props, this.getLabels(['wind_speed', 'wind_gust']), this.getUnits(['wind_speed', 'wind_gust']))} />
                 <CartesianGrid stroke='#f5f5f5' />
                 <Line dot={(props) => this.renderDot('wind_speed', props)} isAnimationActive={false} type='monotone' dataKey='wind_speed' stroke='#ff3562' />
                 <Line dot={(props) => this.renderDot('wind_gust', props)} isAnimationActive={false} type='monotone' dataKey='wind_gust' stroke='#69a2b0' />
