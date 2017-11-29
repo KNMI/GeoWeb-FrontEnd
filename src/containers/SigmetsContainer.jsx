@@ -7,7 +7,7 @@ import Panel from '../components/Panel';
 import cloneDeep from 'lodash.clonedeep';
 import axios from 'axios';
 import PropTypes from 'prop-types';
-import { Link } from 'react-router';
+import { Link, hashHistory } from 'react-router';
 
 let GET_SIGMETS_URL, SET_SIGMET_URL;
 const ITEMS = [
@@ -143,9 +143,7 @@ class SigmetsContainer extends Component {
       <Button color='primary' onClick={this.toggle} title={this.state.isOpen ? 'Collapse panel' : 'Expand panel'}>
         <Icon name={this.state.isOpen ? 'angle-double-left' : 'angle-double-right'} />
       </Button>
-      <Button color='primary' tag={Link} to='/' style={{ marginLeft: '0.25rem', visibility: this.state.isOpen ? 'visible' : 'hidden' }}>
-        Exit
-      </Button>
+      <Button style={{ marginLeft: '0.5rem' }} onClick={() => hashHistory.push('/')} color='primary'><Icon name={'times'} /></Button>
     </Row>;
     return (
       <Col className='SigmetsContainer'>
