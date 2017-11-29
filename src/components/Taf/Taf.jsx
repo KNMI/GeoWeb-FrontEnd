@@ -5,6 +5,8 @@ import CollapseOmni from '../CollapseOmni';
 import moment from 'moment';
 import axios from 'axios';
 import { BACKEND_SERVER_URL, TAFS_URL } from '../../constants/backend';
+import { TAF_TEMPLATES } from './TafTemplates';
+import cloneDeep from 'lodash.clonedeep';
 import TafCategory from './TafCategory';
 
 /*
@@ -127,7 +129,7 @@ export default class Taf extends Component {
               <Row>
                 <Col>
                   <TafCategory
-                    taf={this.state.inputValueJSON}
+                    taf={this.state.inputValueJSON || cloneDeep(TAF_TEMPLATES.TAF)}
                     update editable={this.props.tafEditable}
                   />
                 </Col>
@@ -155,11 +157,12 @@ export default class Taf extends Component {
                       <Col xs='auto'>
                         <Button onClick={(e) => { e.preventDefault(); e.stopPropagation(); this.deleteTAF(taf.metadata.uuid); }} color='danger'>Delete</Button>
                       </Col>
-                    </Row> : null }
+                    </Row>
+                    : null }
                   <Row>
                     <Col>
                       <TafCategory
-                        taf={this.state.expandedJSON}
+                        taf={this.state.expandedJSON || cloneDeep(TAF_TEMPLATES.TAF)}
                         editable={this.props.tafEditable}
                       />
                     </Col>

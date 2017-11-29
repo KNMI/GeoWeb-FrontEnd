@@ -1,0 +1,60 @@
+.TACTable {
+  padding: 0.5rem;
+}
+
+.TACTable .form-group {
+  flex-direction: column;
+  padding: 0.05rem;
+}
+
+.TACTable.row .form-group .row {
+  flex: none;
+}
+
+.TACTable.row .changegroup.row {
+  flex: unset;
+}
+
+.TACTable.row .changegroup.row .form-group {
+  margin-bottom: 0rem;
+}
+
+.TACTable .form-group label {
+  background-color: #f7f8fa;
+  border: 0.05rem solid #cdcfd2;
+  color: #464a4e;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 0.1rem;
+  border-radius: 0.3rem 0.3rem 0 0;
+}
+
+.TACTable .form-group label.wind {
+  background-color: #e1fcff;
+  border-color: #aed5db;
+}
+
+.TACTable .form-group label.visibility {
+  background-color: #e4fdea;
+  border-color: #b3d6bb;
+}
+
+.TACTable .form-group label.weather {
+  background-color: #ffffed;
+  border-color: #efdeaa;
+}
+
+.TACTable .form-group label.clouds {
+  background-color: #ffefef;
+  border-color: #edbec3;
+}
+
+.TACTable .form-group input:disabled {
+  background-color: #f7f8fa;
+  font-weight: 600;
+}
+
+.TACTable .form-group input::placeholder {
+  color: #82848f;
+  font-style: italic;
+}

@@ -8,6 +8,7 @@ import cloneDeep from 'lodash.clonedeep';
 import moment from 'moment';
 import { Button, Row, Col } from 'reactstrap';
 import { createTAFJSONFromInput, setTACColumnInput, removeInputPropsFromTafJSON, cloneObjectAndSkipNullProps } from './FromTacCodeToTafjson';
+import { jsonToTacForClouds } from './TafFieldsConverter';
 import TafTable from './TafTable';
 // import TACTable from './TACTable';
 import { TAFS_URL } from '../../constants/backend';
@@ -362,15 +363,7 @@ class TafCategory extends Component {
           : null}
         {value.map((cloud, index) => {
           return <div className='col-auto'>
-            {cloud.hasOwnProperty('amount') && typeof cloud.amount === 'string'
-              ? <div className='col-auto'>{cloud.amount}</div>
-              : null}
-            {cloud.hasOwnProperty('height') && typeof cloud.height === 'number' && !isNaN(cloud.height)
-              ? <div className='col-auto'>{cloud.height.toString().padStart(3, '0')}</div>
-              : null}
-            {cloud.hasOwnProperty('mod') && typeof cloud.mod === 'string' && cloud.mod.length > 0
-              ? <div className='col-auto'>{cloud.mod}</div>
-              : null}
+            {jsonToTacForClouds(cloud)}
             {index < value.length - 1 ? <div className='col-auto'>,&nbsp;</div> : null}
           </div>;
         })}
@@ -591,7 +584,6 @@ class TafCategory extends Component {
           keyboardEvent.target.blur();
           break;
         default:
-          console.log('No action for keyboardEvent ', keyboardEvent.type, keyboardEvent.key, ' on ', keyboardEvent.target.name);
           break;
       }
     }
@@ -617,7 +609,6 @@ class TafCategory extends Component {
           this.moveFocus(keyboardEvent.target.name, MOVE_DIRECTION.LEFT);
           break;
         default:
-          console.log('No action for keyboardEvent ', keyboardEvent.type, keyboardEvent.key, ' on ', keyboardEvent.target.name);
           break;
       }
     }
@@ -661,11 +652,10 @@ class TafCategory extends Component {
       }
       if (event.target.name.endsWith('sortable')) {
         console.log('Sortable clicked', event.target.name);
-        return;
       }
-      this.setFocus(event.target.name);
-      event.preventDefault();
-      event.stopPropagation();
+      // this.setFocus(event.target.name);
+      // event.preventDefault();
+      // event.stopPropagation();
     }
   }
 
@@ -727,9 +717,7 @@ class TafCategory extends Component {
     const foundItem = this.register.find((item) => item.name === fieldNameToFocus);
     if (foundItem && this.state.focusedFieldName !== fieldNameToFocus) {
       foundItem.element.focus();
-      const newState = cloneDeep(this.state);
-      newState.focusedFieldName = fieldNameToFocus;
-      this.setState(newState);
+      this.setState({ focusedFieldName: fieldNameToFocus });
     }
   }
 
@@ -779,9 +767,9 @@ class TafCategory extends Component {
    * This function adds a new changegroup to the TAF.
    */
   addRow () {
-    const newState = cloneDeep(this.state);
-    newState.tafAsObject.changegroups.push(cloneDeep(TAF_TEMPLATES.CHANGE_GROUP));
-    this.setState(newState);
+    const newTafState = cloneDeep(this.state.tafAsObject);
+    newTafState.changegroups.push(cloneDeep(TAF_TEMPLATES.CHANGE_GROUP));
+    this.setState({ tafAsObject: newTafState });
   }
 
   /**
@@ -790,9 +778,9 @@ class TafCategory extends Component {
    */
   removeRow (rowIndex) {
     if (rowIndex !== null && typeof rowIndex === 'number') {
-      const newState = cloneDeep(this.state);
-      newState.tafAsObject.changegroups.splice(rowIndex, 1);
-      this.setState(newState);
+      const newTafState = cloneDeep(this.state.tafAsObject);
+      newTafState.changegroups.splice(rowIndex, 1);
+      this.setState({ tafAsObject: newTafState });
     }
   }
 
