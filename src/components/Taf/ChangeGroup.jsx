@@ -108,7 +108,7 @@ class ChangeGroup extends Component {
 ChangeGroup.defaultProps = {
   tafChangeGroup: cloneDeep(TAF_TEMPLATES.CHANGE_GROUP),
   focusedFieldName: null,
-  inputRef: PropTypes.func,
+  inputRef: () => {},
   index: -1,
   editable : false,
   validationReport: null
