@@ -112,9 +112,6 @@ class SigmetsContainer extends Component {
     const geo = this.state.isOpen ? EMPTY_GEO_JSON : (this.state.selectedItem.geojson || EMPTY_GEO_JSON);
     this.setState({ isOpen: !this.state.isOpen });
     this.drawSIGMET(geo);
-    if (this.state.isOpen) {
-      hashHistory.push('/');
-    }
     evt.preventDefault();
   }
 
@@ -146,6 +143,7 @@ class SigmetsContainer extends Component {
       <Button color='primary' onClick={this.toggle} title={this.state.isOpen ? 'Collapse panel' : 'Expand panel'}>
         <Icon name={this.state.isOpen ? 'angle-double-left' : 'angle-double-right'} />
       </Button>
+      <Button style={{ marginLeft: '0.5rem' }} onClick={() => hashHistory.push('/')} color='primary'><Icon name={'times'} /></Button>
     </Row>;
     return (
       <Col className='SigmetsContainer'>

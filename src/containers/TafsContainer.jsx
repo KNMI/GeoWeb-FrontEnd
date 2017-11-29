@@ -5,7 +5,7 @@ import CollapseOmni from '../components/CollapseOmni';
 import Panel from '../components/Panel';
 import Taf from '../components/Taf/Taf';
 import moment from 'moment';
-
+import { hashHistory } from 'react-router';
 let ITEMS;
 
 export default class TafsContainer extends Component {
@@ -72,6 +72,9 @@ export default class TafsContainer extends Component {
     return (
       <Col className='TafsContainer'>
         <Panel className='Panel'>
+          <Row style={{ marginBottom: '0.7rem' }}>
+            <Button onClick={() => hashHistory.push('/')} color='primary'><Icon name={'times'} /></Button>
+          </Row>
           <Col style={{ flexDirection: 'column' }}>
             {ITEMS.map((item, index) => {
               return <Card className='row accordion' key={index} >
