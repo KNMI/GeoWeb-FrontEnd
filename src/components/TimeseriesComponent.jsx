@@ -33,14 +33,14 @@ export default class TimeseriesComponent extends PureComponent {
       return <div />;
     }
   }
-  setModelData (model, location) {
+  setModelData (model, location, referenceTime) {
     let url;
-    if (!(model && location && this.props.referenceTime)) return;
-    const refTimeStr = this.props.referenceTime.format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+    if (!(model && location && referenceTime)) return;
+    const refTimeStr = referenceTime.format('YYYY-MM-DDTHH:mm:ss') + 'Z';
     switch (model.toUpperCase()) {
       default:
         url = `${HARMONIE_URL}SERVICE=WMS&&SERVICE=WMS&VERSION=1.3.0&REQUEST=GetPointValue&LAYERS=&QUERY_LAYERS=
-air_pressure_at_sea_level,wind__at_10m,dew_point_temperature__at_2m,air_temperature__at_2m,precipitation_flux&CRS=EPSG%3A4326&
+air_pressure_at_sea_level,wind__at_10m,dew_point_temperature__at_2m,air_temperature__at_2m,precipitation_flux,wind_speed_of_gust__at_10m&CRS=EPSG%3A4326&
 INFO_FORMAT=application/json&time=*&DIM_reference_time=` + refTimeStr + `&x=` + location.x + `&y=` + location.y;
         break;
     }
@@ -50,7 +50,7 @@ INFO_FORMAT=application/json&time=*&DIM_reference_time=` + refTimeStr + `&x=` + 
   }
 
   setSelectedDot (time) {
-    const dataLines = ['air_temp', 'dew_point_temp', 'wind_dir', 'wind_speed', 'precipitation', 'pressure'];
+    const dataLines = ['air_temp', 'dew_point_temp', 'wind_dir', 'wind_speed', 'wind_gust', 'precipitation', 'pressure'];
 
     const points = document.querySelectorAll('.dot');
     if (points && points.length > 0) {
@@ -96,14 +96,21 @@ INFO_FORMAT=application/json&time=*&DIM_reference_time=` + refTimeStr + `&x=` + 
     const refTimeStr = this.props.referenceTime.format('YYYY-MM-DDTHH:mm:ss') + 'Z';
 
     const windData = data.filter((d) => d.name === 'wind__at_10m');
+    const windGustData = data.filter((d) => d.name === 'wind_speed_of_gust__at_10m');
     const pressureData = remap(data.filter((d) => d.name === 'air_pressure_at_sea_level')[0].data, refTimeStr);
     const windX = remap(windData.filter((d) => d.standard_name === 'x_wind')[0].data, refTimeStr);
     const windY = remap(windData.filter((d) => d.standard_name === 'y_wind')[0].data, refTimeStr);
+
+    const windGustX = remap(windGustData.filter((d) => d.standard_name === 'x_gust')[0].data, refTimeStr);
+    const windGustY = remap(windGustData.filter((d) => d.standard_name === 'y_gust')[0].data, refTimeStr);
+
     const dewData = remap(data.filter((d) => d.name === 'dew_point_temperature__at_2m')[0].data, refTimeStr);
     const tempData = remap(data.filter((d) => d.name === 'air_temperature__at_2m')[0].data, refTimeStr);
     const rainData = remap(data.filter((d) => d.name === 'precipitation_flux')[0].data, refTimeStr);
     const windDataMapped = getWindInfo(windX, windY);
     const windSpeedData = windDataMapped.windSpeed;
+    const windGustDataMapped = getWindInfo(windGustX, windGustY);
+    const windGust = windGustDataMapped.windSpeed;
 
     let returnArr = [];
     const windDirectionData = windDataMapped.windDirection;
@@ -113,6 +120,7 @@ INFO_FORMAT=application/json&time=*&DIM_reference_time=` + refTimeStr + `&x=` + 
       const airTemp = tempData[i].value;
       const dewTemp = getValueForDate(dewData, currDate);
       const windSpeed = getValueForDate(windSpeedData, currDate);
+      const gust = getValueForDate(windGust, currDate);
       const windDirection = getValueForDate(windDirectionData, currDate);
       const rain = getValueForDate(rainData, currDate);
       const pressure = getValueForDate(pressureData, currDate);
@@ -125,7 +133,8 @@ INFO_FORMAT=application/json&time=*&DIM_reference_time=` + refTimeStr + `&x=` + 
         'wind_speed': windSpeed,
         'wind_dir': windDirection,
         'precipitation': rain,
-        'pressure': pressure
+        'pressure': pressure,
+        'wind_gust': gust
       });
     }
     minPressure = Math.floor(Math.round(minPressure) - 2);
@@ -189,6 +198,9 @@ INFO_FORMAT=application/json&time=*&DIM_reference_time=` + refTimeStr + `&x=` + 
         case 'wind_dir':
           mappedName = 'Wind direction';
           break;
+        case 'wind_gust':
+          mappedName = 'Wind gust';
+          break;
         case 'air_temp':
           mappedName = 'Air temperature';
           break;
@@ -221,10 +233,10 @@ INFO_FORMAT=application/json&time=*&DIM_reference_time=` + refTimeStr + `&x=` + 
     });
     return retData;
   }
-  fetchAndRender (model, location) {
-    if (!(model && location)) return;
+  fetchAndRender (model, location, referenceTime) {
+    if (!(model && location && referenceTime)) return;
     this.setState({ isLoading: true });
-    const m = this.setModelData(model, location);
+    const m = this.setModelData(model, location, referenceTime);
     if (m) {
       m.then(() => {
         this.setState({ isLoading: false });
@@ -233,7 +245,7 @@ INFO_FORMAT=application/json&time=*&DIM_reference_time=` + refTimeStr + `&x=` + 
   }
 
   componentDidMount () {
-    this.fetchAndRender(this.props.selectedModel, this.props.location);
+    this.fetchAndRender(this.props.selectedModel, this.props.location, this.props.referenceTime);
   }
 
   shouldComponentUpdate (nextProps, nextState) {
@@ -259,7 +271,7 @@ INFO_FORMAT=application/json&time=*&DIM_reference_time=` + refTimeStr + `&x=` + 
     if (nextProps.selectedModel !== this.props.selectedModel ||
         nextProps.location !== this.props.location ||
         nextProps.referenceTime !== this.props.referenceTime) {
-      this.fetchAndRender(nextProps.selectedModel, nextProps.location);
+      this.fetchAndRender(nextProps.selectedModel, nextProps.location, nextProps.referenceTime);
     }
   }
   /* istanbul ignore next */
@@ -295,10 +307,12 @@ INFO_FORMAT=application/json&time=*&DIM_reference_time=` + refTimeStr + `&x=` + 
               <LineChart data={this.state.timeData} margin={{ top: 0, left: 0, right: 10, bottom: 0 }}>
                 <XAxis dataKey='date' />
                 <YAxis />
-                <Legend margin={{ top: 0 }} verticalAlign='top' payload={[ { type: 'line', value: this.getLabels(['wind_speed']), color: '#ff7300' } ]} />
-                <Tooltip content={(props) => this.customTooltip(props, this.getLabels(['wind_speed']), this.getUnits(['wind_speed']))} />
+                <Legend margin={{ top: 0 }} verticalAlign='top' payload={[ { type: 'line', value: this.getLabels(['wind_speed']), color: '#ff3562' },
+                  { type: 'line', value: this.getLabels(['wind_gust']), color: '#69a2b0' } ]} />
+                <Tooltip content={(props) => this.customTooltip(props, this.getLabels(['wind_speed', 'wind_gust']), this.getUnits(['wind_speed', 'wind_gust']))} />
                 <CartesianGrid stroke='#f5f5f5' />
-                <Line dot={(props) => this.renderDot('wind_speed', props)} isAnimationActive={false} type='monotone' dataKey='wind_speed' stroke='#ff7300' />
+                <Line dot={(props) => this.renderDot('wind_speed', props)} isAnimationActive={false} type='monotone' dataKey='wind_speed' stroke='#ff3562' />
+                <Line dot={(props) => this.renderDot('wind_gust', props)} isAnimationActive={false} type='monotone' dataKey='wind_gust' stroke='#69a2b0' />
               </LineChart>
             </ResponsiveContainer>
             <ResponsiveContainer minHeight={'10px'} debounce={50} width='100%' height={'20%'}>

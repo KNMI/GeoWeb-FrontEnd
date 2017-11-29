@@ -16,7 +16,7 @@ export class SinglePanel extends PureComponent {
     this.renderPanelContent = this.renderPanelContent.bind(this);
   }
   renderPanelContent (type) {
-    const { mapProperties, dispatch, mapId, drawProperties, layers, adagucProperties } = this.props;
+    const { mapProperties, dispatch, mapId, drawProperties, layers, adagucProperties, urls } = this.props;
     const { activeMapId } = mapProperties;
     const { cursor } = this.props.adagucProperties;
     const adaStart = moment.utc(this.props.adagucProperties.timeDimension).startOf('hour');
@@ -31,7 +31,7 @@ export class SinglePanel extends PureComponent {
       default:
         return <Adaguc drawActions={this.props.drawActions} layerActions={this.props.layerActions} mapProperties={mapProperties}
           adagucActions={this.props.adagucActions} adagucProperties={adagucProperties} layers={layers} drawProperties={drawProperties}
-          mapId={mapId} dispatch={dispatch} mapActions={this.props.mapActions} active={mapId === activeMapId} />;
+          mapId={mapId} urls={urls} dispatch={dispatch} mapActions={this.props.mapActions} active={mapId === activeMapId} />;
     }
   }
 
@@ -49,12 +49,12 @@ export class SinglePanel extends PureComponent {
 }
 
 class MapPanel extends PureComponent {
-  constructor () {
-    super();
+  constructor (props) {
+    super(props);
     this.state = {
       model: 'HARMONIE'
     };
-    ReadLocations((data) => {
+    ReadLocations(`${this.props.urls.BACKEND_SERVER_URL}/admin/read`, (data) => {
       if (data) {
         this.progtempLocations = data;
       } else {
@@ -144,6 +144,22 @@ class MapPanel extends PureComponent {
               <Row style={{ flex: 1 }}>
                 <SinglePanel mapId={2} {...this.props} referenceTime={this.state.referenceTime} progtempLocations={this.progtempLocations} model={this.state.model} />
               </Row>
+            </Col>
+          </Row>
+        );
+      case 'triplecolumn':
+        return (
+          <Row style={{ flex: 1 }}>
+            <Col xs='6'>
+              <SinglePanel mapId={0} {...this.props} referenceTime={this.state.referenceTime} progtempLocations={this.progtempLocations} model={this.state.model} />
+            </Col>
+            <Col xs='6'>
+              <Col xs='6'>
+                <SinglePanel mapId={1} {...this.props} referenceTime={this.state.referenceTime} progtempLocations={this.progtempLocations} model={this.state.model} />
+              </Col>
+              <Col xs='6'>
+                <SinglePanel mapId={2} {...this.props} referenceTime={this.state.referenceTime} progtempLocations={this.progtempLocations} model={this.state.model} />
+              </Col>
             </Col>
           </Row>
         );

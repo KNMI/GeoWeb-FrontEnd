@@ -90,11 +90,11 @@ const emptyActions = {
 describe('(Container) MapActionsContainer', () => {
   let _deepComponent, _shallowComponent;
   beforeEach(() => {
-    _deepComponent = mount(<MapActionsContainer
+    _deepComponent = mount(<MapActionsContainer urls={{ BACKEND_SERVER_URL: 'http://localhost:8080' }}
       user={{}}
       adagucActions={{ toggleAnimation: () => null, setTimeDimension: () => null }}
       mapProperties={state.mapProperties} adagucProperties={state.adagucProperties} dispatch={emptyDispatch} actions={emptyActions} />);
-    _shallowComponent = shallow(<MapActionsContainer
+    _shallowComponent = shallow(<MapActionsContainer urls={{ BACKEND_SERVER_URL: 'http://localhost:8080' }}
       user={{}}
       adagucActions={{ toggleAnimation: () => null, setTimeDimension: () => null }}
       mapProperties={state.mapProperties} adagucProperties={state.adagucProperties} dispatch={emptyDispatch} actions={emptyActions} />);

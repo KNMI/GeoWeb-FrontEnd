@@ -3,14 +3,13 @@ import React from 'react';
 import Panel from '../Panel';
 import { Input, Card, Button, CardTitle, CardText, Row, Col } from 'reactstrap';
 import { Icon } from 'react-fa';
-import { BACKEND_SERVER_URL } from '../../constants/backend.js';
 import axios from 'axios';
 import cloneDeep from 'lodash.clonedeep';
 import PropTypes from 'prop-types';
 
 export default class SigmetParameterManagementPanel extends React.Component {
   componentWillMount () {
-    axios.get(BACKEND_SERVER_URL + '/sigmet/getsigmetparameters').then((res) => {
+    axios.get(this.props.urls.BACKEND_SERVER_URL + '/sigmet/getsigmetparameters').then((res) => {
       this.sigmetParameters = res.data;
       this.setState({ sigmetParameters: this.sigmetParameters });
     }).catch((e) => console.log('Fetching parameters failed: ', e));

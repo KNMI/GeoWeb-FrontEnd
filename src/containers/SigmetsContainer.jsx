@@ -5,13 +5,11 @@ import CollapseOmni from '../components/CollapseOmni';
 import SigmetCategory from '../components/SigmetCategory';
 import Panel from '../components/Panel';
 import cloneDeep from 'lodash.clonedeep';
-import { BACKEND_SERVER_URL } from '../constants/backend';
 import axios from 'axios';
 import PropTypes from 'prop-types';
-import { Link } from 'react-router';
+import { Link, hashHistory } from 'react-router';
 
-const GET_SIGMETS_URL = BACKEND_SERVER_URL + '/sigmet/getsigmetlist?';
-const SET_SIGMET_URL = BACKEND_SERVER_URL + '/sigmet/storesigmet';
+let GET_SIGMETS_URL, SET_SIGMET_URL;
 const ITEMS = [
   {
     title: 'Open issued SIGMETs',
@@ -61,6 +59,9 @@ const EMPTY_GEO_JSON = {
 class SigmetsContainer extends Component {
   constructor (props) {
     super(props);
+    GET_SIGMETS_URL = this.props.urls.BACKEND_SERVER_URL + '/sigmet/getsigmetlist?';
+    SET_SIGMET_URL = this.props.urls.BACKEND_SERVER_URL + '/sigmet/storesigmet';
+
     this.toggle = this.toggle.bind(this);
     this.select = this.select.bind(this);
     let isOpenCategory = {};
@@ -68,7 +69,7 @@ class SigmetsContainer extends Component {
       isOpenCategory[item.ref] = false;
     });
     this.state = { isOpen: true, selectedItem: {}, isOpenCategory: isOpenCategory };
-    axios.get(BACKEND_SERVER_URL + '/sigmet/getsigmetphenomena').then((result) => {
+    axios.get(this.props.urls.BACKEND_SERVER_URL + '/sigmet/getsigmetphenomena').then((result) => {
       this.setState({ phenomena: result.data });
     }).catch((error) => {
       console.error(error);
@@ -100,7 +101,7 @@ class SigmetsContainer extends Component {
       ];
       this.setState({ phenomena: phenomena });
     });
-    axios.get(BACKEND_SERVER_URL + '/sigmet/getsigmetparameters').then((result) => {
+    axios.get(this.props.urls.BACKEND_SERVER_URL + '/sigmet/getsigmetparameters').then((result) => {
       this.setState({ parameters: result.data });
     }).catch((error) => {
       console.error(error);
@@ -142,9 +143,7 @@ class SigmetsContainer extends Component {
       <Button color='primary' onClick={this.toggle} title={this.state.isOpen ? 'Collapse panel' : 'Expand panel'}>
         <Icon name={this.state.isOpen ? 'angle-double-left' : 'angle-double-right'} />
       </Button>
-      <Button color='primary' tag={Link} to='/' style={{ marginLeft: '0.25rem', visibility: this.state.isOpen ? 'visible' : 'hidden' }}>
-        Exit
-      </Button>
+      <Button style={{ marginLeft: '0.5rem' }} onClick={() => hashHistory.push('/')} color='primary'><Icon name={'times'} /></Button>
     </Row>;
     return (
       <Col className='SigmetsContainer'>

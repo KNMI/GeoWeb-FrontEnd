@@ -49,9 +49,11 @@ export default class ModelTime extends Component {
   componentWillUnmount () {
     this.listenersInitialized = false;
     const { webmapjs } = this.props;
-    webmapjs.removeListener('ondimchange', this.updateState);
-    webmapjs.removeListener('onmapdimupdate', this.updateState);
-    webmapjs.removeListener('onmapdimchange', this.updateState);
+    if (webmapjs) {
+      webmapjs.removeListener('ondimchange', this.updateState);
+      webmapjs.removeListener('onmapdimupdate', this.updateState);
+      webmapjs.removeListener('onmapdimchange', this.updateState);
+    }
   }
 
   /* istanbul ignore next */

@@ -110,3 +110,8 @@
   font-weight: normal;
   line-height: 1.25;
 }
+
+
+.TafsContainer .CollapseOmni .CollapseOmni:not(.show) {
+  overflow: hidden;
+}

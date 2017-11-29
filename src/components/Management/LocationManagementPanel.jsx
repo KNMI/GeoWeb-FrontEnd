@@ -11,7 +11,7 @@ export default class LocationManagementPanel extends React.Component {
   constructor (props) {
     super(props);
     this.progtempLocations = DefaultLocations;
-    ReadLocations((data) => {
+    ReadLocations(`${this.props.urls.BACKEND_SERVER_URL}/admin/read`, (data) => {
       if (data) {
         this.progtempLocations = data;
       }
@@ -88,7 +88,7 @@ export class LocationMapper extends React.Component {
   loadLocations () {
     this.progtempLocations = DefaultLocations;
     this.setState({ locations: [] });
-    ReadLocations((data) => {
+    ReadLocations(`${this.props.urls.BACKEND_SERVER_URL}/admin/read`, (data) => {
       if (data) {
         this.setState({ locations: data });
       }
@@ -96,7 +96,7 @@ export class LocationMapper extends React.Component {
   }
   /* istanbul ignore next */
   saveLocations () {
-    SaveLocations(this.state.locations);
+    SaveLocations(`${this.props.urls.BACKEND_SERVER_URL}/admin/create`, this.state.locations);
   }
   render () {
     return (

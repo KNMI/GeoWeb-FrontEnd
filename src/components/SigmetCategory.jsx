@@ -8,9 +8,8 @@ import cloneDeep from 'lodash.clonedeep';
 import isEmpty from 'lodash.isempty';
 // import { cloneDeep, isEmpty } from 'lodash';
 import CollapseOmni from '../components/CollapseOmni';
-import SwitchButton from 'react-switch-button/lib/react-switch-button.js';
-import 'react-switch-button/dist/react-switch-button.css';
-
+import SwitchButton from 'lyef-switch-button';
+import 'lyef-switch-button/css/main.css';
 import { Typeahead } from 'react-bootstrap-typeahead';
 import DateTimePicker from 'react-datetime';
 import Slider from 'rc-slider';
@@ -889,7 +888,7 @@ class SigmetCategory extends Component {
               <Badge>Tops</Badge>
             </Col>
             <Col xs='8' style={{ justifyContent: 'center' }}>
-              <SwitchButton name='topswitch' label='Off' labelRight='On&nbsp;' defaultChecked={this.state.tops} onChange={this.setTops} align='center' />
+              <SwitchButton id='topswitch' name='topswitch' labelLeft='Off' labelRight='On&nbsp;' isChecked={this.state.tops} action={(evt) => this.setTops(evt)} align='center' />
             </Col>
           </Row>
           <Row>
@@ -897,8 +896,8 @@ class SigmetCategory extends Component {
               <Badge>Levels</Badge>
             </Col>
             <Col xs='8' style={{ justifyContent: 'center' }}>
-              <SwitchButton name='dualsingleswitch' mode='select' labelRight='Extent' label='Single'
-                defaultChecked={this.state.renderRange} onChange={(evt) => this.setState({ renderRange: evt.target.checked })} align='center' />
+              <SwitchButton id='dualsingleswitch' name='dualsingleswitch' labelRight='Extent' labelLeft='Single'
+                isChecked={this.state.renderRange} action={(evt) => this.setState({ renderRange: evt.target.checked })} align='center' />
             </Col>
           </Row>
           <Row style={{ flex: 'none', padding: '0.5rem 0' }}>
@@ -986,8 +985,8 @@ class SigmetCategory extends Component {
                     <Row style={editable ? { marginTop: '0.19rem', minHeight: '2rem' } : null}>
                       <Col xs={{ size: 9, offset: 3 }}>
                         { editable
-                          ? <SwitchButton name='obsfcstswitch' mode='select'
-                            labelRight='Observed' label='Forecast' defaultChecked={item.obs_or_forecast.obs} onChange={(evt) => this.setSelectedObservedForecast(evt.target.checked)} />
+                          ? <SwitchButton id='obsfcstswitch' name='obsfcstswitch'
+                            labelRight='Observed' labelLeft='Forecast' isChecked={item.obs_or_forecast.obs} action={(evt) => this.setSelectedObservedForecast(evt.target.checked)} />
                           : <span>{item.obs_or_forecast.obs ? 'Observed' : 'Forecast'}</span>
                         }
                       </Col>

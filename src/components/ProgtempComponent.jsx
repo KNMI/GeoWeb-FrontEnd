@@ -24,13 +24,15 @@ export default class ProgtempComponent extends PureComponent {
     if (this.state.cachedImage && this.state.cachedImage.width === w && this.state.cachedImage.height === h) {
       ctx.putImageData(this.state.cachedImage, 0, 0);
     } else {
-      drawProgtempBg(ctx, w, h);
-      const bg = ctx.getImageData(0, 0, w, h);
-      if (bg && w > 0 && h > 0) {
-        this.setState({ cachedImage: bg });
+      if (w > 0 && h > 0) {
+        drawProgtempBg(ctx, w, h);
+        const bg = ctx.getImageData(0, 0, w, h);
+        if (bg && w > 0 && h > 0) {
+          this.setState({ cachedImage: bg });
+        }
+        this.width = w;
+        this.height = h;
       }
-      this.width = w;
-      this.height = h;
     }
   }
 
@@ -99,10 +101,10 @@ export default class ProgtempComponent extends PureComponent {
     }
   }
 
-  setModelData (model, location) {
+  setModelData (model, location, referenceTime) {
     let url;
-    if (!(model && location && this.props.referenceTime)) return;
-    const refTimeStr = this.props.referenceTime.format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+    if (!(model && location && referenceTime)) return;
+    const refTimeStr = referenceTime.format('YYYY-MM-DDTHH:mm:ss') + 'Z';
     switch (model.toUpperCase()) {
       default:
         url = `${MODEL_LEVEL_URL}SERVICE=WMS&VERSION=1.3.0&REQUEST=GetPointValue&LAYERS=&
@@ -115,10 +117,10 @@ INFO_FORMAT=application/json&time=*&DIM_reference_time=` + refTimeStr + `&x=` + 
     });
   }
 
-  fetchAndRender (model, location) {
-    if (!(model && location)) return;
+  fetchAndRender (model, location, referenceTime) {
+    if (!(model && location && referenceTime)) return;
     this.setState({ isLoading: true });
-    const m = this.setModelData(model, location);
+    const m = this.setModelData(model, location, referenceTime);
     if (m) {
       m.then(() => {
         this.renderProgtempData(this.progtempContext, this.width, this.height, this.props.time.format('YYYY-MM-DDTHH:mm:ss') + 'Z');
@@ -133,14 +135,14 @@ INFO_FORMAT=application/json&time=*&DIM_reference_time=` + refTimeStr + `&x=` + 
     if (nextProps.selectedModel !== this.props.selectedModel ||
         nextProps.location !== this.props.location ||
         nextProps.referenceTime !== this.props.referenceTime) {
-      this.fetchAndRender(nextProps.selectedModel, nextProps.location);
+      this.fetchAndRender(nextProps.selectedModel, nextProps.location, nextProps.referenceTime);
     } else {
       this.renderProgtempData(this.progtempContext, this.width, this.height, nextProps.time.format('YYYY-MM-DDTHH:mm:ss') + 'Z');
     }
   }
 
   componentDidMount () {
-    this.fetchAndRender(this.props.selectedModel, this.props.location);
+    this.fetchAndRender(this.props.selectedModel, this.props.location, this.props.referenceTime);
   }
 
   render () {

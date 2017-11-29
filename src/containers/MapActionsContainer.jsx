@@ -8,7 +8,6 @@ import classnames from 'classnames';
 import { Typeahead } from 'react-bootstrap-typeahead';
 import ProgtempPopoverComponent from '../components/ProgtempPopoverComponent';
 import TimeseriesPopoverComponent from '../components/TimeseriesPopoverComponent';
-import { BACKEND_SERVER_URL } from '../constants/backend';
 import axios from 'axios';
 import PropTypes from 'prop-types';
 var moment = require('moment');
@@ -54,7 +53,7 @@ class MapActionContainer extends PureComponent {
   }
   componentWillUpdate (nextprops) {
     if (!this.state.presets || this.props.user.username !== nextprops.user.username) {
-      axios.get(BACKEND_SERVER_URL + '/preset/getpresets', { withCredentials: true }).then((res) => {
+      axios.get(this.props.urls.BACKEND_SERVER_URL + '/preset/getpresets', { withCredentials: true }).then((res) => {
         this.setState({ presets: res.data });
       }).catch((error) => {
         console.error(error);
@@ -62,8 +61,8 @@ class MapActionContainer extends PureComponent {
     }
   }
   getServices () {
-    const { dispatch, mapActions } = this.props;
-    const defaultURLs = ['getServices', 'getOverlayServices'].map((url) => BACKEND_SERVER_URL + '/' + url);
+    const { dispatch, mapActions, urls } = this.props;
+    const defaultURLs = ['getServices', 'getOverlayServices'].map((url) => urls.BACKEND_SERVER_URL + '/' + url);
     const allURLs = [...defaultURLs];
     axios.all(allURLs.map((req) => axios.get(req, { withCredentials: true }))).then(
       axios.spread((services, overlays) =>
@@ -315,7 +314,7 @@ class MapActionContainer extends PureComponent {
   renderProgtempPopover (adagucTime) {
     if (this.state.progTempPopOverOpen) {
       const { dispatch, adagucActions, layers, mapProperties } = this.props;
-      return <ProgtempPopoverComponent mapProperties={mapProperties} layers={layers} adagucProperties={this.props.adagucProperties}
+      return <ProgtempPopoverComponent urls={this.props.urls} mapProperties={mapProperties} layers={layers} adagucProperties={this.props.adagucProperties}
         isOpen={this.state.progTempPopOverOpen} dispatch={dispatch} adagucActions={adagucActions} />;
     }
   }
@@ -323,7 +322,7 @@ class MapActionContainer extends PureComponent {
   renderTimeseriesPopover (adagucTime) {
     if (this.state.timeSeriesPopOverOpen) {
       const { dispatch } = this.props;
-      return <TimeseriesPopoverComponent mapProperties={this.props.mapProperties} layers={this.props.layers} adagucProperties={this.props.adagucProperties}
+      return <TimeseriesPopoverComponent urls={this.props.urls} mapProperties={this.props.mapProperties} layers={this.props.layers} adagucProperties={this.props.adagucProperties}
         adagucActions={this.props.adagucActions} isOpen={this.state.timeSeriesPopOverOpen} dispatch={dispatch} />;
     }
   }

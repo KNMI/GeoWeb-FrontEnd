@@ -11,7 +11,6 @@ import { createTAFJSONFromInput, setTACColumnInput, removeInputPropsFromTafJSON,
 import { jsonToTacForClouds } from './TafFieldsConverter';
 import TafTable from './TafTable';
 // import TACTable from './TACTable';
-import { TAFS_URL } from '../../constants/backend';
 import axios from 'axios';
 
 const TMP = '_temp';
@@ -67,6 +66,18 @@ const PHENOMENON_TYPES_ORDER = [
   PHENOMENON_TYPES.CLOUDS
 ];
 
+const generateDefaultValues = () => {
+  const now = moment().utc();
+  let TAFStartHour = now.hour();
+  TAFStartHour = TAFStartHour - TAFStartHour % 6 + 6;
+  return {
+    start: now.hour(TAFStartHour).minutes(0).seconds(0).format('YYYY-MM-DDTHH:mm:ssZ'),
+    end: now.hour(TAFStartHour).minutes(0).seconds(0).add(30, 'hour').format('YYYY-MM-DDTHH:mm:ssZ'),
+    issue: 'not yet issued',
+    location: 'EHAM'
+  };
+};
+
 /**
  * TafCategory is the component which renders an editable and sortable TAF table.
  * The UI is generated from a TAF JSON and it can generate/update TAF JSON from user input
@@ -93,6 +104,7 @@ class TafCategory extends Component {
     this.moveFocus = this.moveFocus.bind(this);
     this.onDeleteRow = this.onDeleteRow.bind(this);
     this.onFocusOut = this.onFocusOut.bind(this);
+    this.onFocus = this.onFocus.bind(this);
     this.updateTACtoTAFJSONtoTac = this.updateTACtoTAFJSONtoTac.bind(this);
     this.onTACChange = this.onTACChange.bind(this);
     this.getChangeType = this.getChangeType.bind(this);
@@ -114,20 +126,18 @@ class TafCategory extends Component {
     };
 
     // TODO: should we include defaults?
-    const now = moment().utc();
-    let TAFStartHour = now.hour();
-    TAFStartHour = TAFStartHour - TAFStartHour % 6 + 6;
+    const defaults = generateDefaultValues();
     if (!props.taf.metadata.validityStart) {
-      initialState.tafAsObject.metadata.validityStart = now.hour(TAFStartHour).minutes(0).seconds(0).format('YYYY-MM-DDTHH:mm:ssZ');
+      initialState.tafAsObject.metadata.validityStart = defaults.start;
     }
     if (!props.taf.metadata.validityEnd) {
-      initialState.tafAsObject.metadata.validityEnd = now.hour(TAFStartHour).minutes(0).seconds(0).add(30, 'hour').format('YYYY-MM-DDTHH:mm:ssZ');
+      initialState.tafAsObject.metadata.validityEnd = defaults.end;
     }
     if (!props.taf.metadata.issueTime) {
-      initialState.tafAsObject.metadata.issueTime = 'not yet issued';
+      initialState.tafAsObject.metadata.issueTime = defaults.issue;
     }
     if (!props.taf.metadata.location) {
-      initialState.tafAsObject.metadata.location = 'EHAM';
+      initialState.tafAsObject.metadata.location = defaults.location;
     }
 
     this.state = initialState;
@@ -140,7 +150,7 @@ class TafCategory extends Component {
 
     axios({
       method: 'post',
-      url: TAFS_URL + '/tafs/verify',
+      url: this.props.urls.BACKEND_SERVER_URL + '/tafs/verify',
       withCredentials: true,
       data: JSON.stringify(taf),
       headers: { 'Content-Type': 'application/json' }
@@ -167,7 +177,7 @@ class TafCategory extends Component {
   saveTaf (tafDATAJSON) {
     axios({
       method: 'post',
-      url: TAFS_URL + '/tafs',
+      url: this.props.urls.BACKEND_SERVER_URL + '/tafs',
       withCredentials: true,
       data: JSON.stringify(tafDATAJSON),
       headers: { 'Content-Type': 'application/json' }
@@ -177,7 +187,7 @@ class TafCategory extends Component {
     }).catch(error => {
       this.setState({ validationReport:{ message: 'Unable to save: error occured while saving TAF.' } });
       try {
-        console.log('Error occured', error.response.data);
+        console.log('Error occured', error);
         if (error.response.data.message) {
           this.setState({ validationReport:{ message: error.response.data.message } });
         }
@@ -475,7 +485,8 @@ class TafCategory extends Component {
           ranges: [ {
             start: scopeStart,
             end: scopeEnd,
-            value: value
+            value: value,
+            styles: []
           } ]
         });
       }
@@ -541,7 +552,8 @@ class TafCategory extends Component {
             scheduleSeries[seriesIndex].ranges.push({
               start: end,
               end: scopeEnd,
-              value: this.decoratePhenomenonValue(entry[0], entry[1], null)
+              value: this.decoratePhenomenonValue(entry[0], entry[1], null),
+              styles: []
             });
           }
         }
@@ -659,6 +671,22 @@ class TafCategory extends Component {
     }
   }
 
+  /* Handler to focus to open preset */
+  onFocus (phenomenon) {
+    const getPhenomenonPresetUrl = (phenomenon) => {
+      // TODO: Meer presets per fenomeen
+      // TODO: Dit moet handiger kunnen
+      return window.location.origin + window.location.pathname + '?presetid=06c0a5b4-1e98-4d19-8e8e-39a66fc4e10b&location=EHAM#/';
+    };
+    if (phenomenon !== this.state.currentPhenomenon) {
+      if (!this.state.window || this.state.window.closed) {
+        this.setState({ window: window.open(getPhenomenonPresetUrl(phenomenon), 'TafPresetWindow'), currentPhenomenon: phenomenon });
+      } else {
+        this.setState({ window: this.state.window.open(getPhenomenonPresetUrl(phenomenon), 'TafPresetWindow'), currentPhenomenon: phenomenon });
+      }
+    }
+  }
+
   /*
     Event handler which handles keyUp events from input fields. E.g. arrow keys, Enter key, Esc key, etc...
   */
@@ -704,7 +732,6 @@ class TafCategory extends Component {
     const name = element ? (element.name || element.props.name) : null;
     const hasFocusMethod = element ? 'focus' in element : false;
     if (name && hasFocusMethod) {
-      console.log('Registered', name);
       this.register.push({ name: name, element: element });
     }
   }
@@ -808,81 +835,100 @@ class TafCategory extends Component {
     this.validateTAF(newTaf);
   };
 
-  shouldComponentUpdate (nextProps, nextState) {
-    return true;
-  }
-
   componentWillReceiveProps (nextProps) {
-    console.log('Hitme', nextProps);
-
-    if (nextProps.hasOwnProperty('taf') && nextProps.taf != null) {
-      let tafJSON = null;
-      if (typeof nextProps.taf === 'string') {
-        try {
-          tafJSON = JSON.parse(nextProps.taf);
-        } catch (e) {
-          console.log(e);
-        }
-      } else {
-        tafJSON = nextProps.taf;
+    console.log('New props coming...');
+    if ('taf' in nextProps && nextProps.taf) {
+      const defaults = generateDefaultValues();
+      if (!nextProps.taf.metadata.validityStart) {
+        nextProps.taf.metadata.validityStart = defaults.start;
       }
-
-      // TODO: should these default values being inserted?
-    //   let TAFStartHour = moment().utc().hour();
-    //   TAFStartHour = TAFStartHour + 6;
-    //   TAFStartHour = parseInt(TAFStartHour / 6);
-    //   TAFStartHour = TAFStartHour * (6);
-    //   if (!tafJSON.hasOwnProperty('metadata') || !tafJSON.metadata.hasOwnProperty('validityStart') || !tafJSON.metadata.validityStart) {
-    //     tafJSON['metadata'].validityStart
-    //   }
-    // }
-
-    // return;
-
-    // let TAFStartHour = moment().utc().hour();
-    // TAFStartHour = TAFStartHour + 6;
-    // TAFStartHour = parseInt(TAFStartHour / 6);
-    // TAFStartHour = TAFStartHour * (6);
-
-
-    // {
-    //   tafJSON: {
-    //     forecast:{},
-    //     metadata:{
-    //       validityStart: moment().utc().hour(TAFStartHour).add(0, 'hour').format('YYYY-MM-DDTHH:00:00') + 'Z',
-    //       validityEnd: moment().utc().hour(TAFStartHour).add(30, 'hour').format('YYYY-MM-DDTHH:00:00') + 'Z'
-    //     },
-    //     changegroups:[]
-    //   }
-    // };
-    // const nextState = cloneDeep(this.state)
-    // let tafJSON = null;
-    // if (nextProps.taf) {
-    //   if (typeof nextProps.taf === 'string') {
-    //     try {
-    //       tafJSON = JSON.parse(nextProps.taf);
-    //     } catch (e) {
-    //       console.log(e);
-    //     }
-    //   } else {
-    //     tafJSON = nextProps.taf;
-    //   }
-    //   if (tafJSON !== null) {
-    //     if (tafJSON.changegroups) {
-    //       let uuid = null;
-    //       if (tafJSON.metadata && tafJSON.metadata.uuid) {
-    //         uuid = tafJSON.metadata.uuid;
-    //       }
-    //       if (this.changegroupsSet === uuid) return;
-    //       this.changegroupsSet = uuid;
-    //       this.setState({
-    //         tafJSON: cloneObjectAndSkipNullProps(tafJSON)
-    //       });
-    //       this.validateTAF(tafJSON);
-    //     }
-    //   }
+      if (!nextProps.taf.metadata.validityEnd) {
+        nextProps.taf.metadata.validityEnd = defaults.end;
+      }
+      if (!nextProps.taf.metadata.issueTime) {
+        nextProps.taf.metadata.issueTime = defaults.issue;
+      }
+      if (!nextProps.taf.metadata.location) {
+        nextProps.taf.metadata.location = defaults.location;
+      }
+      this.setState({ tafAsObject: nextProps.taf });
     }
   }
+
+  // shouldComponentUpdate (nextProps, nextState) {
+  //   return true;
+  // }
+
+  // componentWillReceiveProps (nextProps) {
+  //   console.log('Hitme', nextProps);
+
+  //   if (nextProps.hasOwnProperty('taf') && nextProps.taf != null) {
+  //     let tafJSON = null;
+  //     if (typeof nextProps.taf === 'string') {
+  //       try {
+  //         tafJSON = JSON.parse(nextProps.taf);
+  //       } catch (e) {
+  //         console.log(e);
+  //       }
+  //     } else {
+  //       tafJSON = nextProps.taf;
+  //     }
+
+  // TODO: should these default values being inserted?
+  //     let TAFStartHour = moment().utc().hour();
+  //     TAFStartHour = TAFStartHour + 6;
+  //     TAFStartHour = parseInt(TAFStartHour / 6);
+  //     TAFStartHour = TAFStartHour * (6);
+  //     if (!tafJSON.hasOwnProperty('metadata') || !tafJSON.metadata.hasOwnProperty('validityStart') || !tafJSON.metadata.validityStart) {
+  //       tafJSON['metadata'].validityStart
+  //     }
+  //   }
+
+  //   return;
+
+  //   let TAFStartHour = moment().utc().hour();
+  //   TAFStartHour = TAFStartHour + 6;
+  //   TAFStartHour = parseInt(TAFStartHour / 6);
+  //   TAFStartHour = TAFStartHour * (6);
+
+  //   {
+  //     tafJSON: {
+  //       forecast:{},
+  //       metadata:{
+  //         validityStart: moment().utc().hour(TAFStartHour).add(0, 'hour').format('YYYY-MM-DDTHH:00:00') + 'Z',
+  //         validityEnd: moment().utc().hour(TAFStartHour).add(30, 'hour').format('YYYY-MM-DDTHH:00:00') + 'Z'
+  //       },
+  //       changegroups:[]
+  //     }
+  //   };
+  //   const nextState = cloneDeep(this.state)
+  //   let tafJSON = null;
+  //   if (nextProps.taf) {
+  //     if (typeof nextProps.taf === 'string') {
+  //       try {
+  //         tafJSON = JSON.parse(nextProps.taf);
+  //       } catch (e) {
+  //         console.log(e);
+  //       }
+  //     } else {
+  //       tafJSON = nextProps.taf;
+  //     }
+  //     if (tafJSON !== null) {
+  //       if (tafJSON.changegroups) {
+  //         let uuid = null;
+  //         if (tafJSON.metadata && tafJSON.metadata.uuid) {
+  //           uuid = tafJSON.metadata.uuid;
+  //         }
+  //         if (this.changegroupsSet === uuid) return;
+  //         this.changegroupsSet = uuid;
+  //         this.setState({
+  //           tafJSON: cloneObjectAndSkipNullProps(tafJSON)
+  //         });
+  //         this.validateTAF(tafJSON);
+  //       }
+  //     }
+  //   }
+  // }
 
   render () {
     const { taf } = this.props;
@@ -898,7 +944,10 @@ class TafCategory extends Component {
       validationSucceeded = true;
     }
     const tafJson = removeInputPropsFromTafJSON(createTAFJSONFromInput(this.state.tafAsObject));
-    const series = this.extractScheduleInformation(tafJson);
+    const series = this.extractScheduleInformation(this.state.tafAsObject);
+
+    console.log('Time1', this.state.tafAsObject.metadata.validityStart);
+    console.log('Time2', moment.utc(this.state.tafAsObject.metadata.validityStart));
 
     return (
       <Row className='TafCategory' style={{ flex: 1 }}>
@@ -919,6 +968,7 @@ class TafCategory extends Component {
                 onClick={this.onClick}
                 onKeyUp={this.onKeyUp}
                 onKeyDown={this.onKeyDown}
+                onFocus={this.onFocus}
                 onDeleteRow={this.onDeleteRow}
                 editable={this.props.editable}
                 onFocusOut={this.onFocusOut} />
@@ -951,7 +1001,7 @@ class TafCategory extends Component {
           </Row> */}
           <Row style={{ flex: 'auto' }}>
             <Col>
-              <TimeSchedule startMoment={moment.utc(tafJson.metadata.validityStart)} endMoment={moment.utc(tafJson.metadata.validityEnd)} series={series} />
+              <TimeSchedule startMoment={moment.utc(this.state.tafAsObject.metadata.validityStart)} endMoment={moment.utc(this.state.tafAsObject.metadata.validityEnd)} series={series} />
             </Col>
           </Row>
         </Col>

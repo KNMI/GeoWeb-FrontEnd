@@ -7,10 +7,9 @@ import { UserRoles } from '../constants/userroles';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import axios from 'axios';
 import uuidV4 from 'uuid/v4';
-import { Navbar, NavbarBrand, Row, Col, Nav, NavLink, Breadcrumb, BreadcrumbItem, Collapse, Popover, Form, FormGroup, Label, PopoverContent,
+import { Alert, Navbar, NavbarBrand, Row, Col, Nav, NavLink, Breadcrumb, BreadcrumbItem, Collapse, Popover, Form, FormGroup, Label, PopoverContent,
   PopoverTitle, ButtonGroup, InputGroupButton, Modal, ModalHeader, ModalBody, ModalFooter, Button, InputGroup, Input, FormText } from 'reactstrap';
 import { Link, hashHistory } from 'react-router';
-import { BACKEND_SERVER_URL } from '../constants/backend';
 import PropTypes from 'prop-types';
 import moment from 'moment';
 import { addNotification } from 'reapop';
@@ -28,12 +27,14 @@ class TitleBarContainer extends PureComponent {
     this.setTime = this.setTime.bind(this);
     this.doLogin = this.doLogin.bind(this);
     this.doLogout = this.doLogout.bind(this);
+    this.sendFeedback = this.sendFeedback.bind(this);
     this.triggerService = this.triggerService.bind(this);
     this.retrieveTriggers = this.retrieveTriggers.bind(this);
     this.gotTriggersCallback = this.gotTriggersCallback.bind(this);
     this.errorTriggersCallback = this.errorTriggersCallback.bind(this);
     this.toggleLoginModal = this.toggleLoginModal.bind(this);
     this.togglePresetModal = this.togglePresetModal.bind(this);
+    this.toggleFeedbackModal = this.toggleFeedbackModal.bind(this);
     this.toggleSharePresetModal = this.toggleSharePresetModal.bind(this);
     this.handleOnChange = this.handleOnChange.bind(this);
     this.handleKeyPressPassword = this.handleKeyPressPassword.bind(this);
@@ -54,6 +55,7 @@ class TitleBarContainer extends PureComponent {
       currentTime: moment().utc().format(timeFormat).toString(),
       loginModal: this.props.loginModal,
       loginModalMessage: '',
+      feedbackModalOpen: false,
       presetModal: false,
       sharePresetModal: false,
       sharePresetName: ''
@@ -68,9 +70,10 @@ class TitleBarContainer extends PureComponent {
   }
 
   retrieveTriggers () {
+    const { urls } = this.props;
     axios({
       method: 'get',
-      url: BACKEND_SERVER_URL + '/triggers/gettriggers?startdate=' + moment().subtract(1, 'hours').utc().format() + '&duration=3600',
+      url: urls.BACKEND_SERVER_URL + '/triggers/gettriggers?startdate=' + moment().subtract(1, 'hours').utc().format() + '&duration=3600',
       withCredentials: true,
       responseType: 'json'
     }).then(this.gotTriggersCallback)
@@ -146,8 +149,9 @@ class TitleBarContainer extends PureComponent {
   }
 
   getServices () {
+    const { urls } = this.props;
     const { dispatch, mapActions, adagucActions } = this.props;
-    const defaultURLs = ['getServices', 'getOverlayServices'].map((url) => BACKEND_SERVER_URL + '/' + url);
+    const defaultURLs = ['getServices', 'getOverlayServices'].map((url) => urls.BACKEND_SERVER_URL + '/' + url);
     const allURLs = [...defaultURLs];
     axios.all(allURLs.map((req) => axios.get(req, { withCredentials: true }))).then(
       axios.spread((services, overlays) => {
@@ -197,12 +201,12 @@ class TitleBarContainer extends PureComponent {
   }
 
   doLogin () {
-    const { user } = this.props;
+    const { user, urls } = this.props;
     const { isLoggedIn } = user;
     if (!isLoggedIn) {
       axios({
         method: 'get',
-        url: BACKEND_SERVER_URL + '/login?username=' + this.inputfieldUserName + '&password=' + this.inputfieldPassword,
+        url: urls.BACKEND_SERVER_URL + '/login?username=' + this.inputfieldUserName + '&password=' + this.inputfieldPassword,
         withCredentials: true,
         responseType: 'json'
       }).then(src => {
@@ -221,10 +225,11 @@ class TitleBarContainer extends PureComponent {
   }
 
   doLogout () {
+    const { urls } = this.props;
     this.toggleLoginModal();
     axios({
       method: 'get',
-      url: BACKEND_SERVER_URL + '/logout',
+      url: urls.BACKEND_SERVER_URL + '/logout',
       withCredentials: true,
       responseType: 'json'
     }).then(src => {
@@ -236,6 +241,8 @@ class TitleBarContainer extends PureComponent {
   }
 
   checkCredentials (callback) {
+    const { urls } = this.props;
+
     try {
       this.setState({
         loginModalMessage: 'Checking...'
@@ -245,7 +252,7 @@ class TitleBarContainer extends PureComponent {
     }
     axios({
       method: 'get',
-      url: BACKEND_SERVER_URL + '/getuser',
+      url: urls.BACKEND_SERVER_URL + '/getuser',
       withCredentials: true,
       responseType: 'json'
     }).then(src => {
@@ -356,17 +363,20 @@ class TitleBarContainer extends PureComponent {
   }
 
   togglePresetModal () {
-    this.setState({ presetModal: !this.state.presetModal, loginModal: false });
+    this.setState({ presetModal: !this.state.presetModal, loginModal: false, feedbackModalOpen: false });
+  }
+  toggleFeedbackModal () {
+    this.setState({ presetModal: false, loginModal: false, feedbackModalOpen: !this.state.feedbackModalOpen });
   }
   toggleSharePresetModal () {
-    this.setState({ sharePresetModal: !this.state.sharePresetModal, loginModal: false });
+    this.setState({ sharePresetModal: !this.state.sharePresetModal, loginModal: false, feedbackModalOpen: false });
   }
 
   sharePreset () {
     this.setState({ loginModal: false });
     const presetName = uuidV4();
     const dataToSend = this.makePresetObj(presetName, true, true, true, '');
-    SaveURLPreset(presetName, dataToSend, (message) => {
+    SaveURLPreset(presetName, dataToSend, `${this.props.urls.BACKEND_SERVER_URL}/store/create`, (message) => {
       if (message.status === 'ok') {
         this.setState({
           sharePresetModal: true,
@@ -379,24 +389,28 @@ class TitleBarContainer extends PureComponent {
   }
 
   makePresetObj (presetName, saveLayers, savePanelLayout, saveBoundingBox, role) {
+    const { mapProperties } = this.props;
+    const { layout } = mapProperties;
     let numPanels;
-    if (/quad/.test(this.props.layout)) {
+    if (/quad/.test(layout)) {
       numPanels = 4;
-    } else if (/triple/.test(this.props.layout)) {
+    } else if (/triple/.test(layout)) {
       numPanels = 3;
-    } else if (/dual/.test(this.props.layout)) {
+    } else if (/dual/.test(layout)) {
       numPanels = 2;
     } else {
       numPanels = 1;
     }
 
     const displayObj = {
-      type: this.props.layout,
+      type: layout,
       npanels: numPanels
     };
     const bbox = {
-      top: this.props.mapProperties.boundingBox.bbox[3],
+      left: this.props.mapProperties.boundingBox.bbox[0],
       bottom: this.props.mapProperties.boundingBox.bbox[1],
+      right: this.props.mapProperties.boundingBox.bbox[2],
+      top: this.props.mapProperties.boundingBox.bbox[3],
       crs: this.props.mapProperties.projectionName
     };
     let layerConfig = [];
@@ -445,8 +459,7 @@ class TitleBarContainer extends PureComponent {
     const saveBoundingBox = document.getElementsByName('viewCheckbox')[0].checked;
     const role = document.getElementsByName('roleSelect');
     const dataToSend = this.makePresetObj(presetName, saveLayers, savePanelLayout, saveBoundingBox, role);
-
-    let url = BACKEND_SERVER_URL + '/preset/';
+    let url = this.props.urls.BACKEND_SERVER_URL + '/preset/';
     let params = {
       name: presetName
     };
@@ -473,6 +486,7 @@ class TitleBarContainer extends PureComponent {
     });
     this.togglePresetModal();
   }
+
   returnInputRef (ref) {
     this.input = ref;
   }
@@ -578,6 +592,67 @@ class TitleBarContainer extends PureComponent {
       </ModalFooter>
     </Modal>);
   }
+
+  sendFeedback () {
+    const numLogs = myLogs.length;
+    const { urls } = this.props;
+
+    const feedbackObj = {
+      state: this.props.fullState,
+      url: window.location.href,
+      config: { ...require('config'), backend_url: urls.BACKEND_SERVER_URL },
+      userAgent: navigator.userAgent,
+      descriptions: {
+        short: this.shortDescription,
+        long: this.longDescription
+      },
+      latestLogs: myLogs.slice(Math.max(0, numLogs - 100)).reverse()
+    };
+
+    // TODO send this to the webserver for further distribution
+    axios({
+      method: 'post',
+      url: urls.WEBSERVER_URL + '/cgi-bin/geoweb/receiveFeedback.cgi',
+      data: JSON.stringify(feedbackObj, null, 2)
+    }).then((res) => { this.setState({ feedbackModalOpen: false }); });
+  }
+
+  renderFeedbackModal (feedbackModalOpen, toggle) {
+    return (<Modal isOpen={feedbackModalOpen} toggle={toggle}>
+      <ModalHeader toggle={toggle}>Tell us what happened</ModalHeader>
+      <ModalBody>
+        <Form>
+          <FormGroup>
+            <Label for='activity'>What were you doing?</Label>
+            <Input onChange={(evt) => { this.shortDescription = evt.target.value; }} type='text' name='activity' placeholder='Short description' />
+          </FormGroup>
+          <FormGroup>
+            <Label for='description'>What happened?</Label>
+            <Input onChange={(evt) => { this.longDescription = evt.target.value; }} type='textarea' name='description' placeholder='Long description' />
+          </FormGroup>
+        </Form>
+      </ModalBody>
+      <ModalFooter style={{ flexDirection: 'column' }}>
+        <Row style={{ width: '100%' }}>
+          <Alert style={{ 'color': '#818182', 'padding': 0 }} color='light'>
+            Technical diagnostics will be sent with your error report to help us debug the problem.
+          </Alert>
+        </Row>
+        <Row style={{ width: '100%' }}>
+          <Col />
+          <Col xs='auto' style={{ marginRight: '0.4rem' }}>
+            <Button color='primary' onClick={this.sendFeedback} className='signInOut'>
+              <Icon className='icon' name='paper-plane' />
+             Send to developers
+            </Button>
+          </Col>
+          <Col xs='auto'>
+            <Button color='secondary' onClick={toggle}>Cancel</Button>
+          </Col>
+        </Row>
+      </ModalFooter>
+    </Modal>);
+  }
   renderLoggedInPopover (loginModal, toggle, userName) {
     return (
       <Popover placement='bottom' isOpen={loginModal} target='loginIcon' toggle={toggle}>
@@ -641,6 +716,7 @@ class TitleBarContainer extends PureComponent {
             <Nav>
               <NavLink className='active' onClick={this.toggleLoginModal} ><Icon name='user' id='loginIcon' />{isLoggedIn ? ' ' + username : ' Sign in'}</NavLink>
               {hasRoleADMIN ? <Link to='manage' className='active nav-link'><Icon name='cog' /></Link> : '' }
+              <NavLink className='active' onClick={this.toggleFeedbackModal}><Icon name='exclamation-triangle' /> Report error</NavLink>
               <LayoutDropDown dispatch={this.props.dispatch} mapActions={this.props.mapActions} />
               <NavLink className='active' onClick={this.toggleFullscreen} ><Icon name='expand' /></NavLink>
               {isLoggedIn
@@ -648,6 +724,7 @@ class TitleBarContainer extends PureComponent {
                 : this.renderLoginModal(this.state.loginModal,
                   this.state.loginModalMessage, this.toggleLoginModal, this.handleOnChange, this.handleKeyPressPassword)
               }
+              {this.renderFeedbackModal(this.state.feedbackModalOpen, this.toggleFeedbackModal)}
               {this.renderPresetModal(this.state.presetModal, this.togglePresetModal, hasRoleADMIN)}
               {this.renderSharePresetModal(this.state.sharePresetModal, this.toggleSharePresetModal, this.state.sharePresetName)}
             </Nav>
@@ -681,6 +758,7 @@ class LayoutDropDown extends PureComponent {
             <Button onClick={() => this.postLayout('dual')}>Dual column</Button>
             <Button onClick={() => this.postLayout('quaduneven')}>Uneven quad</Button>
             <Button onClick={() => this.postLayout('tripleuneven')}>Uneven triple</Button>
+            <Button onClick={() => this.postLayout('triplecolumn')}>Three columns</Button>
             <Button onClick={() => this.postLayout('quadcol')}>Four columns</Button>
             <Button onClick={() => this.postLayout('quad')}>Square</Button>
           </ButtonGroup>
@@ -712,6 +790,7 @@ TitleBarContainer.propTypes = {
   mapActions: PropTypes.object,
   adagucActions: PropTypes.object,
   bbox: PropTypes.array,
+  fullState: PropTypes.object,
   projectionName: PropTypes.string
 };
 

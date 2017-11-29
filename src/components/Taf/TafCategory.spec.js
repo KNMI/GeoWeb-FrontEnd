@@ -13,17 +13,17 @@ describe('(Container) Taf/TafCategory.jsx', () => {
     expect(_component.type()).to.eql(TafCategory);
   });
   it('Renders a TafCategory', () => {
-    const _component = mount(<TafCategory taf={TestTafJSON} />);
+    const _component = mount(<TafCategory urls={{ BACKEND_SERVER_URL: 'http://localhost:8080' }} taf={TestTafJSON} />);
     expect(_component.type()).to.eql(TafCategory);
   });
 
   it('Renders an editable TafCategory', () => {
-    const _component = mount(<TafCategory editable taf={TestTafJSON} />);
+    const _component = mount(<TafCategory urls={{ BACKEND_SERVER_URL: 'http://localhost:8080' }} editable taf={TestTafJSON} />);
     expect(_component.type()).to.eql(TafCategory);
   });
 
   /* it('Triggers onkeyup (Escape) and checks if validation is called', () => {
-    const _wrappingComponent = mount(<TafCategory
+    const _wrappingComponent = mount(<TafCategory urls={{ BACKEND_SERVER_URL: 'http://localhost:8080' }}
       editable
       taf={TestTafJSON}
     />);
@@ -40,7 +40,7 @@ describe('(Container) Taf/TafCategory.jsx', () => {
   });
 
   it('Triggers onkeyup (Enter) and checks if validation is called', () => {
-    const _wrappingComponent = mount(<TafCategory
+    const _wrappingComponent = mount(<TafCategory urls={{ BACKEND_SERVER_URL: 'http://localhost:8080' }}
       editable
       taf={taf}
     />);
@@ -57,7 +57,7 @@ describe('(Container) Taf/TafCategory.jsx', () => {
   });
 
   it('Triggers onkeyup (ArrowUp) and checks if validation is called', () => {
-    const _wrappingComponent = mount(<TafCategory
+    const _wrappingComponent = mount(<TafCategory urls={{ BACKEND_SERVER_URL: 'http://localhost:8080' }}
       editable
       taf={taf}
     />);
@@ -77,7 +77,7 @@ describe('(Container) Taf/TafCategory.jsx', () => {
   });
 
   it('Triggers onkeyup (ArrowDown) and checks if validation is called', () => {
-    const _wrappingComponent = mount(<TafCategory
+    const _wrappingComponent = mount(<TafCategory urls={{ BACKEND_SERVER_URL: 'http://localhost:8080' }}
       editable
       taf={taf}
     />);
@@ -94,7 +94,7 @@ describe('(Container) Taf/TafCategory.jsx', () => {
   }); */
 
   it('Handles updating of TAF json', () => {
-    const _component = mount(<TafCategory />);
+    const _component = mount(<TafCategory urls={{ BACKEND_SERVER_URL: 'http://localhost:8080' }} />);
     _component.setProps({ taf: TestTafJSON });
     expect(_component.type()).to.eql(TafCategory);
   });

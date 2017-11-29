@@ -4,19 +4,19 @@ import createStore from './store/createStore';
 import AppContainer from './containers/AppContainer';
 import routesDefinition from './routes';
 import 'font-awesome/css/font-awesome.css';
-
-const store = createStore({}, __DEV__);
 // ========================================================
 // Render Setup
 // ========================================================
 const MOUNT_NODE = document.getElementById('root');
 
 let render = () => {
-  const routes = routesDefinition(store);
-  ReactDOM.render(
-    <AppContainer store={store} routes={routes} />,
-    MOUNT_NODE
-  );
+  createStore({}, __DEV__).then((store) => {
+    const routes = routesDefinition(store);
+    ReactDOM.render(
+      <AppContainer store={store} routes={routes} />,
+      MOUNT_NODE
+    );
+  });
 };
 
 // This code is excluded from production bundle

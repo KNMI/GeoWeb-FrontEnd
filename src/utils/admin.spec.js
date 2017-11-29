@@ -1,6 +1,5 @@
 import { ReadLocations, SaveLocations } from './admin';
 import moxios from 'moxios';
-import { BACKEND_SERVER_URL } from '../constants/backend';
 
 import sinon from 'sinon';
 
@@ -19,7 +18,7 @@ describe('(Utils) admin', () => {
     const callback = sinon.spy();
     ReadLocations(callback);
     moxios.wait(() => {
-      const req = moxios.stubRequest(`${BACKEND_SERVER_URL}/admin/read`);
+      const req = moxios.stubRequest('http://localhost:8080/admin/read');
       if (!req) {
         done(); return;
       }
@@ -37,7 +36,7 @@ describe('(Utils) admin', () => {
   it('Can store locations', (done) => {
     SaveLocations({ name: 'asdf' });
     moxios.wait(() => {
-      const request = moxios.stubRequest(`${BACKEND_SERVER_URL}/admin/create`);
+      const request = moxios.stubRequest('http://localhost:8080/admin/create');
       if (!request) {
         done(); return;
       }

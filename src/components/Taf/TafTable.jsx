@@ -93,9 +93,9 @@ class TafTable extends SortableContainer(() => {}) {
   }
 
   render () {
-    let { tafJSON, focusedFieldName, inputRef, editable, onChange, onKeyUp, onKeyDown, onClick } = this.props;
+    let { tafJSON, focusedFieldName, inputRef, editable, onChange, onKeyUp, onKeyDown, onClick, onFocus } = this.props;
     return (
-      <table className='TafStyle TafStyleTable' onChange={onChange} onKeyUp={onKeyUp} onKeyDown={onKeyDown} onClick={onClick}>
+      <table className='TafStyle TafStyleTable' onChange={onChange} onKeyUp={onKeyUp} onKeyDown={onKeyDown} onClick={onClick} onFocus={onFocus}>
         {this.getBaseLabelLine()}
         {this.getBaseForecastLine(tafJSON, focusedFieldName, inputRef, editable)}
         {this.getChangeGroupLabelLine()}

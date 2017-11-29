@@ -13,8 +13,8 @@ var moment = require('moment');
 // such that we can remove this one and TimeseriesPopoverComponent
 export default class ProgtempPopoverComponent extends Component {
   /* istanbul ignore next */
-  constructor () {
-    super();
+  constructor (props) {
+    super(props);
     this.setChosenLocation = this.setChosenLocation.bind(this);
     this.getLocationAsString = this.getLocationAsString.bind(this);
     this.clearTypeAhead = this.clearTypeAhead.bind(this);
@@ -23,7 +23,7 @@ export default class ProgtempPopoverComponent extends Component {
       selectedModel: 'HARMONIE'
     };
     this.progtempLocations = DefaultLocations;
-    ReadLocations((data) => {
+    ReadLocations(`${this.props.urls.BACKEND_SERVER_URL}/admin/read`, (data) => {
       if (data) {
         this.progtempLocations = data;
       } else {

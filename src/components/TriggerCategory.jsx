@@ -6,7 +6,6 @@ import Icon from 'react-fa';
 import CollapseOmni from '../components/CollapseOmni';
 import PropTypes from 'prop-types';
 import axios from 'axios';
-import { BACKEND_SERVER_URL } from '../constants/backend';
 const DATE_TIME_FORMAT = 'YYYY MMM DD - HH:mm UTC';
 
 class TriggerCategory extends Component {

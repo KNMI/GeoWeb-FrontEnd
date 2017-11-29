@@ -157,6 +157,7 @@ describe('(Component) MapPanel', () => {
   });
   it('Renders a Row', () => {
     const _component = shallow(<MapPanel
+      urls={{ BACKEND_SERVER_URL: 'http://localhost:8080' }}
       adagucProperties={state.adagucProperties}
       drawProperties={state.drawProperties}
       mapProperties={state.mapProperties}
@@ -168,6 +169,7 @@ describe('(Component) MapPanel', () => {
 
   it('Renders a single adaguc component', () => {
     const _component = mount(<MapPanel
+      urls={{ BACKEND_SERVER_URL: 'http://localhost:8080' }}
       adagucActions={state.adagucActions}
       adagucProperties={state.adagucProperties}
       drawProperties={state.drawProperties}
