@@ -1,6 +1,8 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
+import { TAF_TEMPLATES, TAF_TYPES } from './TafTemplates';
+import cloneDeep from 'lodash.clonedeep';
 import { jsonToTacForPeriod, jsonToTacForWind, jsonToTacForCavok, jsonToTacForVerticalVisibility, jsonToTacForVisibility, jsonToTacForWeather, jsonToTacForClouds } from './TafFieldsConverter';
 
 /*
@@ -8,42 +10,37 @@ import { jsonToTacForPeriod, jsonToTacForWind, jsonToTacForCavok, jsonToTacForVe
 */
 class BaseForecast extends Component {
   render () {
-    let { tafMetadata, tafForecast, editable } = this.props;
+    const { tafMetadata, tafForecast, focusedFieldName, inputRef, editable } = this.props;
 
     const columns = [
       {
         name: 'sortable',
         value: '',
         disabled: true,
-        autoFocus: false,
         classes: [ 'noselect' ]
       },
       {
         name: 'metadata-location',
         value: tafMetadata.hasOwnProperty('location') ? tafMetadata.location || '' : '',
         disabled: true,
-        autoFocus: false,
         classes: [ 'TACnotEditable' ]
       },
       {
         name: 'metadata-issueTime',
         value: tafMetadata.hasOwnProperty('issueTime') ? tafMetadata.issueTime || '' : '',
         disabled: true,
-        autoFocus: false,
         classes: [ 'TACnotEditable' ]
       },
       {
         name: 'metadata-validity',
         value: tafMetadata.hasOwnProperty('validityStart') && tafMetadata.hasOwnProperty('validityEnd') ? jsonToTacForPeriod(tafMetadata.validityStart, tafMetadata.validityEnd) || '' : '',
         disabled: true,
-        autoFocus: false,
         classes: [ 'TACnotEditable' ]
       },
       {
         name: 'forecast-wind',
         value: tafForecast.hasOwnProperty('wind') ? jsonToTacForWind(tafForecast.wind) || '' : '',
         disabled: !editable,
-        autoFocus: true,
         classes: []
       },
       {
@@ -52,7 +49,6 @@ class BaseForecast extends Component {
           ? jsonToTacForCavok(tafForecast.caVOK) || (jsonToTacForVisibility(tafForecast.visibility) || '')
           : '',
         disabled: !editable,
-        autoFocus: false,
         classes: []
       }
     ];
@@ -65,7 +61,6 @@ class BaseForecast extends Component {
             : jsonToTacForWeather(tafForecast.weather)) || '' // NSW
           : '',
         disabled: !editable,
-        autoFocus: false,
         classes: []
       });
     }
@@ -79,7 +74,6 @@ class BaseForecast extends Component {
               : jsonToTacForClouds(tafForecast.clouds) || '') // NSC
           : '',
         disabled: !editable,
-        autoFocus: false,
         classes: []
       });
     }
@@ -88,23 +82,36 @@ class BaseForecast extends Component {
         name: 'removable',
         value: '',
         disabled: true,
-        autoFocus: false,
         classes: [ 'noselect' ]
       }
     );
+    columns.forEach((column) => {
+      column.autoFocus = column.name === focusedFieldName;
+    });
 
     return <tr>
       {columns.map((col) => <td className={classNames(col.classes)} key={col.name}>
-        <input name={col.name} type='text' value={col.value} disabled={col.disabled} autoFocus={col.autoFocus} />
+        <input ref={inputRef} name={col.name} type='text' value={col.value} disabled={col.disabled} autoFocus={col.autoFocus} />
       </td>
       )}
     </tr>;
   }
 };
 
+BaseForecast.defaultProps = {
+  tafMetadata: cloneDeep(TAF_TEMPLATES.METADATA),
+  tafForecast: cloneDeep(TAF_TEMPLATES.FORECAST),
+  focusedFieldName: null,
+  inputRef: () => {},
+  editable: false,
+  validationReport: null
+};
+
 BaseForecast.propTypes = {
-  tafMetadata: PropTypes.object.isRequired,
-  tafForecast: PropTypes.object.isRequired,
+  tafMetadata: TAF_TYPES.METADATA.isRequired,
+  tafForecast: TAF_TYPES.FORECAST.isRequired,
+  focusedFieldName: PropTypes.string,
+  inputRef: PropTypes.func,
   editable : PropTypes.bool,
   validationReport: PropTypes.object
 };

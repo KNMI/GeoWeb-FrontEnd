@@ -45,6 +45,12 @@
                                   supported by Chrome and Opera */
 }
 
+.TafStyle .noselect input:not(:disabled), .TafStyle .noselect button:not(:disabled) {
+  cursor: pointer;
+  font-family: FontAwesome;
+}
+
+
 .TafStyle .TACnotEditable, .TafStyle .TACnotEditable input {
   background-color:#DDD;
   font-weight:bold;

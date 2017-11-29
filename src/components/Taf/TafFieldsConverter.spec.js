@@ -1,9 +1,41 @@
 import { jsonToTacForTimestamp, jsonToTacForPeriod, jsonToTacForWind, jsonToTacForCavok, jsonToTacForVerticalVisibility,
   jsonToTacForVisibility, jsonToTacForWeather, jsonToTacForClouds,
   tacToJsonForPeriod, tacToJsonForTimestamp, tacToJsonForWind, tacToJsonForCavok, tacToJsonForVerticalVisibility,
-  tacToJsonForVisibility, tacToJsonForWeather, tacToJsonForClouds } from './TafFieldsConverter';
+  tacToJsonForVisibility, tacToJsonForWeather, tacToJsonForClouds,
+  jsonToTacForProbability, jsonToTacForChangeType, tacToJsonForProbabilityAndChangeType, tacToJsonForProbability, tacToJsonForChangeType } from './TafFieldsConverter';
 
 describe('(Functions) TafFieldsConverter', () => {
+  /**
+   * JSON to TAC
+   */
+  it('Converts probability data from JSON to TAC', () => {
+    // Full
+    let result = jsonToTacForProbability('PROB30');
+    expect(result).to.eql('PROB30');
+    result = jsonToTacForProbability('PROB40');
+    expect(result).to.eql('PROB40');
+    // lowercase input
+    result = jsonToTacForProbability('prob30');
+    expect(result).to.eql('PROB30');
+    // non sense input
+    result = jsonToTacForProbability('blah');
+    expect(result).to.eql(null);
+  });
+
+  it('Converts changeType data from JSON to TAC', () => {
+    // Full
+    let result = jsonToTacForChangeType('BECMG');
+    expect(result).to.eql('BECMG');
+    result = jsonToTacForChangeType('FM');
+    expect(result).to.eql('FM');
+    // lowercase input
+    result = jsonToTacForChangeType('tempo');
+    expect(result).to.eql('TEMPO');
+    // non sense input
+    result = jsonToTacForChangeType('blah');
+    expect(result).to.eql(null);
+  });
+
   it('Converts timestamp data from JSON to TAC', () => {
     // Full
     let result = jsonToTacForTimestamp('2017-11-21T13:11:43Z');
@@ -244,7 +276,53 @@ describe('(Functions) TafFieldsConverter', () => {
     expect(result).to.eql(null);
   });
 
-  it('Converts timestamp data from TAC to Json', () => {
+  /**
+   * TAC to JSON
+   */
+  it('Converts probability data from TAC to JSON', () => {
+    // Full
+    let result = tacToJsonForProbability('PROB30');
+    expect(result).to.eql('PROB30');
+    result = tacToJsonForProbability('PROB40');
+    expect(result).to.eql('PROB40');
+    // lowercase input
+    result = tacToJsonForProbability('prob30');
+    expect(result).to.eql('PROB30');
+    // non sense input
+    result = tacToJsonForProbability('blah');
+    expect(result).to.eql(null);
+  });
+
+  it('Converts changeType data from TAC to JSON', () => {
+    // Full
+    let result = tacToJsonForChangeType('BECMG');
+    expect(result).to.eql('BECMG');
+    result = tacToJsonForChangeType('FM');
+    expect(result).to.eql('FM');
+    // lowercase input
+    result = tacToJsonForChangeType('tempo');
+    expect(result).to.eql('TEMPO');
+    // non sense input
+    result = tacToJsonForChangeType('blah');
+    expect(result).to.eql(null);
+  });
+
+  it('Converts probability and changeType data from TAC to JSON', () => {
+    // Full
+    let result = tacToJsonForProbabilityAndChangeType('PROB30', 'TEMPO');
+    expect(result).to.eql('PROB30 TEMPO');
+    // Only probability
+    result = tacToJsonForProbabilityAndChangeType('PROB40', '');
+    expect(result).to.eql('PROB40');
+    // Only changeType
+    result = tacToJsonForProbabilityAndChangeType(null, 'FM');
+    expect(result).to.eql('FM');
+    // non sense input
+    result = tacToJsonForProbabilityAndChangeType('blah', null);
+    expect(result).to.eql(null);
+  });
+
+  it('Converts timestamp data from TAC to JSON', () => {
     // Simple
     let result = tacToJsonForTimestamp('2114', '2017-11-21T12:00:00Z', '2017-11-22T18:00:00Z');
     expect(result).to.eql('2017-11-21T14:00:00Z');
@@ -302,6 +380,14 @@ describe('(Functions) TafFieldsConverter', () => {
     });
     // Variable direction
     result = tacToJsonForWind('VRB12G10');
+    expect(result).to.eql({
+      direction: 'VRB',
+      speed: 12,
+      gusts: 10,
+      unit: 'KT'
+    });
+    // Variable direction, lowercase
+    result = tacToJsonForWind('vrb12g10');
     expect(result).to.eql({
       direction: 'VRB',
       speed: 12,
@@ -386,6 +472,8 @@ describe('(Functions) TafFieldsConverter', () => {
   it('Converts CAVOK data from TAC to JSON', () => {
     let result = tacToJsonForCavok('CAVOK');
     expect(result).to.eql(true);
+    result = tacToJsonForCavok('cavok');
+    expect(result).to.eql(true);
     result = tacToJsonForCavok('');
     expect(result).to.eql(false);
     result = tacToJsonForCavok('blah');
@@ -399,6 +487,9 @@ describe('(Functions) TafFieldsConverter', () => {
   it('Converts Vertical Visibility data from TAC to JSON', () => {
     // Full
     let result = tacToJsonForVerticalVisibility('VV123');
+    expect(result).to.eql(123);
+    // Full, lowercase
+    result = tacToJsonForVerticalVisibility('vv123');
     expect(result).to.eql(123);
     // One prefix zero
     result = tacToJsonForVerticalVisibility('VV045');
@@ -418,6 +509,9 @@ describe('(Functions) TafFieldsConverter', () => {
   it('Converts weather data from TAC to JSON', () => {
     // NSW
     let result = tacToJsonForWeather('NSW');
+    expect(result).to.eql('NSW');
+    // NSW, lowercase
+    result = tacToJsonForWeather('nsw');
     expect(result).to.eql('NSW');
     // Full
     result = tacToJsonForWeather('SHRA');
@@ -455,6 +549,15 @@ describe('(Functions) TafFieldsConverter', () => {
         'drizzle', 'fog'
       ]
     });
+    // Full, lowercase
+    result = tacToJsonForWeather('-fzdzfg');
+    expect(result).to.eql({
+      qualifier: 'light',
+      descriptor: 'freezing',
+      phenomena: [
+        'drizzle', 'fog'
+      ]
+    });
   });
 
   it('Converts clouds data from TAC to JSON', () => {
@@ -463,6 +566,13 @@ describe('(Functions) TafFieldsConverter', () => {
     expect(result).to.eql('NSC');
     // Full
     result = tacToJsonForClouds('FEW100TCU');
+    expect(result).to.eql({
+      amount: 'FEW',
+      height: 100,
+      mod: 'TCU'
+    });
+    // Full, lowercase
+    result = tacToJsonForClouds('few100tcu');
     expect(result).to.eql({
       amount: 'FEW',
       height: 100,

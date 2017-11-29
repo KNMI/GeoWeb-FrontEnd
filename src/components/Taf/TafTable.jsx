@@ -1,11 +1,12 @@
 import React from 'react';
 import { Button } from 'reactstrap';
 import { SortableContainer } from 'react-sortable-hoc';
-import Icon from 'react-fa';
 import PropTypes from 'prop-types';
 import ChangeGroup from './ChangeGroup';
 import BaseForecast from './BaseForecast';
 import SortableChangeGroup from './SortableChangeGroup';
+import { TAF_TEMPLATES, TAF_TYPES } from './TafTemplates';
+import cloneDeep from 'lodash.clonedeep';
 
 /*
   TafTable uses BaseForecast and ChangeGroup with table headers to render an well aligned and editable TAC UI.
@@ -40,9 +41,10 @@ class TafTable extends SortableContainer(() => {}) {
     </thead>;
   }
 
-  getBaseForecastLine (tafJSON) {
+  getBaseForecastLine (tafJSON, focusedFieldName, inputRef, editable) {
     return <tbody>
-      <BaseForecast ref={'baseforecast'} tafMetadata={tafJSON.metadata} tafForecast={tafJSON.forecast} editable validationReport={this.props.validationReport} />
+      <BaseForecast tafMetadata={tafJSON.metadata} tafForecast={tafJSON.forecast}
+        focusedFieldName={focusedFieldName} inputRef={inputRef} editable={editable} validationReport={this.props.validationReport} />
     </tbody>;
   }
 
@@ -67,59 +69,74 @@ class TafTable extends SortableContainer(() => {}) {
     </thead>;
   }
 
-  getChangeGroupForecastLine (editable, value, index, tafJSON, onChange, onKeyUp, onFocusOut, onDeleteRow) {
+  getChangeGroupForecastLine (tafChangeGroup, focusedFieldName, inputRef, editable, index) {
     return editable
       ? <SortableChangeGroup
-        ref={'changegroup_' + index}
-        key={`item-${index}`}
+        key={`changegroups-${index}`}
+        tafChangeGroup={tafChangeGroup}
+        inputRef={inputRef}
+        focusedFieldName={focusedFieldName}
         index={index}
-        rowIndex={index}
-        value={value}
-        onChange={onChange}
-        onKeyUp={onKeyUp}
-        onDeleteRow={onDeleteRow}
-        onFocusOut={onFocusOut} validationReport={this.props.validationReport} />
-      : <ChangeGroup key={`item-${index}`} index={index} rowIndex={index} value={value} onChange={onChange} onKeyUp={onKeyUp} onDeleteRow={onDeleteRow}
-        onFocusOut={onFocusOut} />;
+        validationReport={this.props.validationReport} />
+      : <ChangeGroup key={`changegroups-${index}`} tafChangeGroup={tafChangeGroup} inputRef={inputRef} focusedFieldName={focusedFieldName} index={index} />;
+  }
+
+  getAddChangeGroupLine (editable) {
+    return editable
+      ? <tr>
+        <td colSpan={13}>&nbsp;</td>
+        <td className='noselect'>
+          <Button size='sm' color='secondary' name={'addible'}>{'\uf067' /* plus icon */}</Button>
+        </td>
+      </tr>
+      : null;
   }
 
   render () {
-    let { tafJSON, onChange, onKeyUp, onAddRow, onDeleteRow, editable, onFocusOut } = this.props;
-    if (!tafJSON || !tafJSON.changegroups) {
-      tafJSON = {
-        forecast:{},
-        changegroups:[]
-      };
-    }
+    let { tafJSON, focusedFieldName, inputRef, editable, onChange, onKeyUp, onKeyDown, onClick } = this.props;
     return (
-      <table className='TafStyle TafStyleTable' onChange={onChange} onKeyUp={onKeyUp}>
+      <table className='TafStyle TafStyleTable' onChange={onChange} onKeyUp={onKeyUp} onKeyDown={onKeyDown} onClick={onClick}>
         {this.getBaseLabelLine()}
-        {this.getBaseForecastLine(tafJSON)}
+        {this.getBaseForecastLine(tafJSON, focusedFieldName, inputRef, editable)}
         {this.getChangeGroupLabelLine()}
 
         <tbody>
-          {tafJSON.changegroups.map((value, index) => {
-            return this.getChangeGroupForecastLine(editable, value, index, tafJSON, onChange, onKeyUp, onFocusOut, onDeleteRow);
+          {tafJSON.changegroups.map((tafChangeGroup, index) => {
+            return this.getChangeGroupForecastLine(tafChangeGroup, focusedFieldName, inputRef, editable, index);
           })}
-          { editable
-            ? <tr>
-              <td colSpan={13}>&nbsp;</td>
-              <td key='addrow'><Button size='sm' color='secondary' onClick={() => { onAddRow(); }}><Icon style={{ cursor:'pointer' }} name={'plus'} /></Button></td>
-            </tr> : null
-          }
+          {this.getAddChangeGroupLine(editable)}
         </tbody>
       </table>
     );
   }
 };
+
+TafTable.defaultProps = {
+  taf: cloneDeep(TAF_TEMPLATES.TAF),
+  editable: false,
+  inputRef: () => {},
+  focusedFieldName: null,
+  onKeyUp: () => {},
+  onKeyDown: () => {},
+  shouldCancelStart: function (e) {
+    // Cancel sorting if the event target is an `input`, `textarea`, `select` or `option`
+    const disabledElements = ['input', 'textarea', 'select', 'option'];
+
+    if (disabledElements.indexOf(e.target.tagName.toLowerCase()) !== -1) {
+      return true; // Return true to cancel sorting
+    }
+  }
+};
+
 TafTable.propTypes = {
-  tafJSON: PropTypes.object,
+  tafJSON: TAF_TYPES.TAF,
+  focusedFieldName: PropTypes.string,
+  editable : PropTypes.bool,
+  inputRef: PropTypes.func,
   onChange: PropTypes.func,
   onKeyUp: PropTypes.func,
-  onAddRow: PropTypes.func,
-  onDeleteRow: PropTypes.func,
-  editable : PropTypes.bool,
-  onFocusOut: PropTypes.func,
+  onKeyDown: PropTypes.func,
+  onClick: PropTypes.func,
   validationReport:PropTypes.object
 };
 

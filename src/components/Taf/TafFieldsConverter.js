@@ -1,5 +1,6 @@
 import { qualifierMap, qualifierInverseMap, descriptorMap, descriptorInverseMap, phenomenaMap, phenomenaInverseMap } from './TafWeatherMaps';
 import { amountMap, amountInverseMap, modMap, modInverseMap } from './TafCloudsMaps';
+import { probabilityMap, probabilityInverseMap, typeMap, typeInverseMap } from './TafChangeTypeMaps';
 import { TAF_TEMPLATES } from './TafTemplates';
 import moment from 'moment';
 import cloneDeep from 'lodash.clonedeep';
@@ -8,6 +9,13 @@ import escapeRegExp from 'lodash.escaperegexp';
 /**
  * Regular expressions for TAC strings
  */
+const probabilityAndChangeTypeRegEx = new RegExp('(' + Object.keys(probabilityInverseMap).map(elmt => escapeRegExp(elmt)).join('|') + ')?' +
+  '\\s?(' + Object.keys(typeInverseMap).map(elmt => escapeRegExp(elmt)).join('|') + ')?', 'i');
+
+const probabilityRegEx = new RegExp('(' + Object.keys(probabilityInverseMap).map(elmt => escapeRegExp(elmt)).join('|') + ')', 'i');
+
+const changeTypeRegEx = new RegExp('(' + Object.keys(typeInverseMap).map(elmt => escapeRegExp(elmt)).join('|') + ')', 'i');
+
 const timestampRegEx = /(\d{2})(\d{2})/i;
 
 const periodRegEx = /(\d{4})\/(\d{4})/i;
@@ -31,6 +39,20 @@ const weatherPhenomenaRegEx = new RegExp('(' + Object.keys(phenomenaInverseMap).
 /**
  * Utility methods to shorten / reuse notation
  */
+const mapProbabilityToString = (probability) => {
+  if (probability && typeof probability === 'string') {
+    return probabilityMap.hasOwnProperty(probability.toUpperCase()) ? probabilityMap[probability.toUpperCase()] : null;
+  }
+  return null;
+};
+
+const mapChangeTypeToString = (changetype) => {
+  if (changetype && typeof changetype === 'string') {
+    return typeMap.hasOwnProperty(changetype.toUpperCase()) ? typeMap[changetype.toUpperCase()] : null;
+  }
+  return null;
+};
+
 const numberAsTwoCharacterString = (numberAsNumber) => {
   return numberAsNumber.toString().padStart(2, '0');
 };
@@ -39,25 +61,82 @@ const mapWeatherQualifierToTac = (qualifier) => {
   return qualifierMap.hasOwnProperty(qualifier) ? qualifierMap[qualifier] : null;
 };
 
+const mapWeatherQualifierToJson = (qualifierAsTac) => {
+  if (qualifierAsTac !== null && typeof qualifierAsTac === 'string') {
+    return qualifierInverseMap.hasOwnProperty(qualifierAsTac.toUpperCase()) ? qualifierInverseMap[qualifierAsTac.toUpperCase()] : null;
+  }
+  return null;
+};
+
 const mapWeatherDescriptorToTac = (descriptor) => {
   return descriptorMap.hasOwnProperty(descriptor) ? descriptorMap[descriptor] : null;
+};
+
+const mapWeatherDescriptorToJson = (descriptorAsTac) => {
+  if (descriptorAsTac && typeof descriptorAsTac === 'string') {
+    return descriptorInverseMap.hasOwnProperty(descriptorAsTac.toUpperCase()) ? descriptorInverseMap[descriptorAsTac.toUpperCase()] : null;
+  }
+  return null;
 };
 
 const mapWeatherPhenomenonToTac = (phenomenon) => {
   return phenomenaMap.hasOwnProperty(phenomenon) ? phenomenaMap[phenomenon] : null;
 };
 
+const mapWeatherPhenomenonToJson = (phenomenonAsTac) => {
+  if (phenomenonAsTac && typeof phenomenonAsTac === 'string') {
+    return phenomenaInverseMap.hasOwnProperty(phenomenonAsTac.toUpperCase()) ? phenomenaInverseMap[phenomenonAsTac.toUpperCase()] : null;
+  }
+  return null;
+};
+
 const mapCloudsAmountToTac = (amount) => {
   return amountMap.hasOwnProperty(amount) ? amountMap[amount] : null;
+};
+
+const mapCloudsAmountToJson = (amountAsTac) => {
+  if (amountAsTac && typeof amountAsTac === 'string') {
+    return amountInverseMap.hasOwnProperty(amountAsTac.toUpperCase()) ? amountInverseMap[amountAsTac.toUpperCase()] : null;
+  }
+  return null;
 };
 
 const mapCloudsModToTac = (mod) => {
   return modMap.hasOwnProperty(mod) ? modMap[mod] : null;
 };
 
+const mapCloudsModToJson = (modAsTac) => {
+  if (modAsTac && typeof modAsTac === 'string') {
+    return modInverseMap.hasOwnProperty(modAsTac.toUpperCase()) ? modInverseMap[modAsTac.toUpperCase()] : null;
+  }
+  return null;
+};
+
 /**
  * JSON to TAC converters
  */
+const jsonToTacForProbability = (changeTypeAsJson) => {
+  let result = null;
+  if (changeTypeAsJson && typeof changeTypeAsJson === 'string') {
+    const matchResult = changeTypeAsJson.match(probabilityAndChangeTypeRegEx);
+    if (matchResult) {
+      result = mapProbabilityToString(matchResult[1]);
+    }
+  }
+  return result;
+};
+
+const jsonToTacForChangeType = (changeTypeAsJson) => {
+  let result = null;
+  if (changeTypeAsJson && typeof changeTypeAsJson === 'string') {
+    const matchResult = changeTypeAsJson.match(probabilityAndChangeTypeRegEx);
+    if (matchResult) {
+      result = mapChangeTypeToString(matchResult[2]);
+    }
+  }
+  return result;
+};
+
 const jsonToTacForTimestamp = (timestampAsJson) => {
   let result = null;
   if (timestampAsJson && typeof timestampAsJson === 'string' && moment(timestampAsJson).isValid()) {
@@ -182,6 +261,41 @@ const jsonToTacForVerticalVisibility = (verticalVisibilityAsJson) => {
 /**
  * TAC to JSON converters
  */
+const tacToJsonForProbability = (probabilityAsTac) => {
+  let result = null;
+  if (probabilityAsTac && typeof probabilityAsTac === 'string') {
+    let matchResult = probabilityAsTac.match(probabilityRegEx);
+    if (matchResult) {
+      result = mapProbabilityToString(matchResult[1]);
+    }
+  }
+  return result;
+};
+
+const tacToJsonForChangeType = (changeTypeAsTac) => {
+  let result = null;
+  if (changeTypeAsTac && typeof changeTypeAsTac === 'string') {
+    let matchResult = changeTypeAsTac.match(changeTypeRegEx);
+    if (matchResult) {
+      result = mapChangeTypeToString(matchResult[1]);
+    }
+  }
+  return result;
+};
+
+const tacToJsonForProbabilityAndChangeType = (probabilityAsTac, changeTypeAsTac) => {
+  let result = tacToJsonForProbability(probabilityAsTac);
+  const typeResult = tacToJsonForChangeType(changeTypeAsTac);
+  if (result) {
+    if (typeResult) {
+      result += ' ' + typeResult;
+    }
+  } else {
+    result = typeResult;
+  }
+  return result;
+};
+
 const tacToJsonForTimestamp = (timestampAsTac, scopeStart, scopeEnd) => {
   let result = null;
   const scopeStartMoment = moment.utc(scopeStart);
@@ -268,10 +382,10 @@ const tacToJsonForWeather = (weatherAsTac) => {
   if (weatherAsTac && typeof weatherAsTac === 'string') {
     const matchResult = weatherAsTac.match(weatherRegEx);
     if (matchResult) {
-      result.qualifier = qualifierInverseMap[matchResult[1]];
-      result.descriptor = descriptorInverseMap[matchResult[2]];
-      result.phenomena = matchResult[3].match(weatherPhenomenaRegEx).map(elmt => phenomenaInverseMap[elmt]);
-    } else if (weatherAsTac === 'NSW') {
+      result.qualifier = mapWeatherQualifierToJson(matchResult[1]);
+      result.descriptor = mapWeatherDescriptorToJson(matchResult[2]);
+      result.phenomena = matchResult[3].match(weatherPhenomenaRegEx).map(elmt => mapWeatherPhenomenonToJson(elmt));
+    } else if (weatherAsTac.toUpperCase() === 'NSW') {
       result = 'NSW';
     }
   }
@@ -283,12 +397,12 @@ const tacToJsonForClouds = (cloudsAsTac) => {
   if (cloudsAsTac && typeof cloudsAsTac === 'string') {
     const matchResult = cloudsAsTac.match(cloudsRegEx);
     if (matchResult) {
-      result.amount = amountInverseMap[matchResult[1]];
+      result.amount = mapCloudsAmountToJson(matchResult[1]);
       result.height = parseInt(matchResult[2]);
       if (matchResult[3]) {
-        result.mod = modInverseMap[matchResult[3]];
+        result.mod = mapCloudsModToJson(matchResult[3]);
       }
-    } else if (cloudsAsTac === 'NSC') {
+    } else if (cloudsAsTac.toUpperCase() === 'NSC') {
       result = 'NSC';
     }
   }
@@ -307,6 +421,8 @@ const tacToJsonForVerticalVisibility = (verticalVisibilityAsTac) => {
 };
 
 module.exports = {
+  jsonToTacForProbability: jsonToTacForProbability,
+  jsonToTacForChangeType: jsonToTacForChangeType,
   jsonToTacForTimestamp: jsonToTacForTimestamp,
   jsonToTacForPeriod: jsonToTacForPeriod,
   jsonToTacForWind: jsonToTacForWind,
@@ -315,6 +431,9 @@ module.exports = {
   jsonToTacForWeather: jsonToTacForWeather,
   jsonToTacForClouds: jsonToTacForClouds,
   jsonToTacForVerticalVisibility: jsonToTacForVerticalVisibility,
+  tacToJsonForProbabilityAndChangeType: tacToJsonForProbabilityAndChangeType,
+  tacToJsonForProbability: tacToJsonForProbability,
+  tacToJsonForChangeType: tacToJsonForChangeType,
   tacToJsonForTimestamp: tacToJsonForTimestamp,
   tacToJsonForPeriod: tacToJsonForPeriod,
   tacToJsonForWind: tacToJsonForWind,

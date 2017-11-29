@@ -15,6 +15,14 @@ import axios from 'axios';
 
 const TMP = '_temp';
 
+const MOVE_DIRECTION = Enum(
+  'UP',
+  'RIGHT',
+  'DOWN',
+  'LEFT'
+);
+
+// TODO use TafChangeTypeMaps...
 const CHANGE_TYPES = Enum(
   'FM', // from - instant, persisting change
   'BECMG', // becoming - gradual / fluctuating change, after which the change is persistent
@@ -74,8 +82,14 @@ class TafCategory extends Component {
     super(props);
     this.onSortEnd = this.onSortEnd.bind(this);
     this.onChange = this.onChange.bind(this);
+    this.onClick = this.onClick.bind(this);
     this.onKeyUp = this.onKeyUp.bind(this);
+    this.onKeyDown = this.onKeyDown.bind(this);
     this.addRow = this.addRow.bind(this);
+    this.registerElement = this.registerElement.bind(this);
+    this.removeRow = this.removeRow.bind(this);
+    this.setFocus = this.setFocus.bind(this);
+    this.moveFocus = this.moveFocus.bind(this);
     this.onDeleteRow = this.onDeleteRow.bind(this);
     this.onFocusOut = this.onFocusOut.bind(this);
     this.updateTACtoTAFJSONtoTac = this.updateTACtoTAFJSONtoTac.bind(this);
@@ -94,20 +108,18 @@ class TafCategory extends Component {
     this.saveTaf = this.saveTaf.bind(this);
 
     const initialState = {
-      tafAsObject: props.taf
+      tafAsObject: props.taf,
+      focusedFieldName: 'forecast-wind'
     };
 
     // TODO: should we include defaults?
+    const now = moment().utc();
+    let TAFStartHour = now.hour();
+    TAFStartHour = TAFStartHour - TAFStartHour % 6 + 6;
     if (!props.taf.metadata.validityStart) {
-      const now = moment().utc();
-      let TAFStartHour = now.hour();
-      TAFStartHour = TAFStartHour - TAFStartHour % 6 + 6;
       initialState.tafAsObject.metadata.validityStart = now.hour(TAFStartHour).minutes(0).seconds(0).format('YYYY-MM-DDTHH:mm:ssZ');
     }
     if (!props.taf.metadata.validityEnd) {
-      const now = moment().utc();
-      let TAFStartHour = now.hour();
-      TAFStartHour = TAFStartHour - TAFStartHour % 6 + 6;
       initialState.tafAsObject.metadata.validityEnd = now.hour(TAFStartHour).minutes(0).seconds(0).add(30, 'hour').format('YYYY-MM-DDTHH:mm:ssZ');
     }
     if (!props.taf.metadata.issueTime) {
@@ -118,6 +130,7 @@ class TafCategory extends Component {
     }
 
     this.state = initialState;
+    this.register = [];
   };
 
   validateTAF (tafJSON) {
@@ -553,6 +566,8 @@ class TafCategory extends Component {
     switch (event.type) {
       case 'input':
       case 'change':
+        console.log('Update value Event ', event.type, 'fired on', event.target);
+        break;
       case 'blur':
         console.log('Event ', event.type, 'fired on', event.target);
         break;
@@ -563,7 +578,7 @@ class TafCategory extends Component {
   }
 
   /**
-   * Responds to key presses when TafTable is in focus
+   * Responds to key releases when TafTable is in focus
    * @param {KeyboardEvent} keyboardEvent The KeyboardEvent that has been fired
    */
   onKeyUp (keyboardEvent) {
@@ -575,20 +590,34 @@ class TafCategory extends Component {
         case 'Escape':
           keyboardEvent.target.blur();
           break;
+        default:
+          console.log('No action for keyboardEvent ', keyboardEvent.type, keyboardEvent.key, ' on ', keyboardEvent.target.name);
+          break;
+      }
+    }
+  }
+
+  /**
+   * Responds to key presses when TafTable is in focus
+   * @param {KeyboardEvent} keyboardEvent The KeyboardEvent that has been fired
+   */
+  onKeyDown (keyboardEvent) {
+    if (keyboardEvent.type === 'keydown') {
+      switch (keyboardEvent.key) {
         case 'ArrowUp':
-          console.log('Target ArrowUp', keyboardEvent.target.name);
-          break;
-        case 'ArrowDown':
-          console.log('Target ArrowDown', keyboardEvent.target.name);
-          break;
-        case 'ArrowLeft':
-          console.log('Target ArrowLeft', keyboardEvent.target.name);
+          this.moveFocus(keyboardEvent.target.name, MOVE_DIRECTION.UP);
           break;
         case 'ArrowRight':
-          console.log('Target ArrowRight', keyboardEvent.target.name);
+          this.moveFocus(keyboardEvent.target.name, MOVE_DIRECTION.RIGHT);
+          break;
+        case 'ArrowDown':
+          this.moveFocus(keyboardEvent.target.name, MOVE_DIRECTION.DOWN);
+          break;
+        case 'ArrowLeft':
+          this.moveFocus(keyboardEvent.target.name, MOVE_DIRECTION.LEFT);
           break;
         default:
-          console.log('No action for keyboardEvent ', keyboardEvent.type, ' on ', keyboardEvent.target.name);
+          console.log('No action for keyboardEvent ', keyboardEvent.type, keyboardEvent.key, ' on ', keyboardEvent.target.name);
           break;
       }
     }
@@ -600,16 +629,44 @@ class TafCategory extends Component {
     - rowIndex -1 means BaseForecast, other values (>= 0) are ChangeGroups
   */
   onChange (event, rowIndex, colIndex) {
-    let fieldVal = event.target.value;
-    if (fieldVal === undefined || fieldVal === null) fieldVal = '';
-    fieldVal = fieldVal.toUpperCase();
-    let clonedTafState = cloneObjectAndSkipNullProps(this.state.tafJSON);
-    setTACColumnInput(fieldVal, rowIndex, colIndex, rowIndex >= 0 ? clonedTafState.changegroups[rowIndex] : clonedTafState);
-    let newTaf = createTAFJSONFromInput(clonedTafState);
-    this.setState({
-      tafJSON: newTaf
-    });
-    this.validateTAF(newTaf);
+    // let fieldVal = event.target.value;
+    // if (fieldVal === undefined || fieldVal === null) fieldVal = '';
+    // fieldVal = fieldVal.toUpperCase();
+    // let clonedTafState = cloneObjectAndSkipNullProps(this.state.tafJSON);
+    // setTACColumnInput(fieldVal, rowIndex, colIndex, rowIndex >= 0 ? clonedTafState.changegroups[rowIndex] : clonedTafState);
+    // let newTaf = createTAFJSONFromInput(clonedTafState);
+    // this.setState({
+    //   tafJSON: newTaf
+    // });
+    // this.validateTAF(newTaf);
+  }
+
+  /**
+   * Event handler which handles click events
+   * @param  {ClickEvent} event The click event which occurred
+   */
+  onClick (event) {
+    console.log('Click', event.type);
+    if (event.type === 'click' && 'name' in event.target && typeof event.target.name === 'string') { // hasOwnPropery seems not working properly on HTMLElement-objects
+      if (event.target.name === 'addible') {
+        this.addRow();
+        return;
+      }
+      if (event.target.name.endsWith('removable')) {
+        const nameParts = event.target.name.split('-');
+        if (nameParts.length > 1 && nameParts[1] > 0) {
+          this.removeRow(parseInt(nameParts[1]));
+        }
+        return;
+      }
+      if (event.target.name.endsWith('sortable')) {
+        console.log('Sortable clicked', event.target.name);
+        return;
+      }
+      this.setFocus(event.target.name);
+      event.preventDefault();
+      event.stopPropagation();
+    }
   }
 
   /*
@@ -645,13 +702,81 @@ class TafCategory extends Component {
     Event handler that is called upon jumping out of an input field.
   */
   onFocusOut () {
-    this.updateTACtoTAFJSONtoTac();
-    this.validateTAF(this.state.tafJSON);
+    // this.updateTACtoTAFJSONtoTac();
+    // this.validateTAF(this.state.tafJSON);
+  }
+
+  /**
+   * Registers the category child DOM elements, as it's necessary to interact with them
+   * @param {HTMLElement} element The element to register
+   */
+  registerElement (element) {
+    const name = element ? (element.name || element.props.name) : null;
+    const hasFocusMethod = element ? 'focus' in element : false;
+    if (name && hasFocusMethod) {
+      console.log('Registered', name);
+      this.register.push({ name: name, element: element });
+    }
+  }
+
+  /**
+   * Set the focus to a named and registered field
+   * @param {string} fieldNameToFocus The field name to set to focus to
+   */
+  setFocus (fieldNameToFocus) {
+    const foundItem = this.register.find((item) => item.name === fieldNameToFocus);
+    if (foundItem && this.state.focusedFieldName !== fieldNameToFocus) {
+      foundItem.element.focus();
+      const newState = cloneDeep(this.state);
+      newState.focusedFieldName = fieldNameToFocus;
+      this.setState(newState);
+    }
+  }
+
+  /**
+   * This function sets the focus to an adjacent field
+   * @param {string} foccusedFieldName The name of the field which is currently focussed
+   */
+  moveFocus (focusedFieldName, direction) {
+    if (focusedFieldName && typeof focusedFieldName === 'string') {
+      if (direction === MOVE_DIRECTION.RIGHT) {
+        const currentItemIndex = this.register.findIndex((item) => item.name === focusedFieldName);
+        if (currentItemIndex < this.register.length - 1) {
+          this.setFocus(this.register[currentItemIndex + 1].name);
+        }
+      }
+      if (direction === MOVE_DIRECTION.LEFT) {
+        const currentItemIndex = this.register.findIndex((item) => item.name === focusedFieldName);
+        if (currentItemIndex > 0) {
+          this.setFocus(this.register[currentItemIndex - 1].name);
+        }
+      }
+      const nameParts = focusedFieldName.split('-');
+      if (nameParts.length > 1) {
+        const prevRowIndex = nameParts[0] === 'changegroups' ? parseInt(nameParts[1]) : -1; // -1 for Base Forecast
+        if (direction === MOVE_DIRECTION.UP && prevRowIndex !== -1) {
+          const nextRowIndex = parseInt(nameParts[1]) - 1;
+          if (nextRowIndex === -1) {
+            this.setFocus(nameParts.slice(2).join('-'));
+          } else {
+            nameParts[1] = nextRowIndex;
+            this.setFocus(nameParts.join('-'));
+          }
+        }
+        if (direction === MOVE_DIRECTION.DOWN) {
+          if (prevRowIndex === -1) {
+            this.setFocus(`changegroups-0-${focusedFieldName}`);
+          } else {
+            nameParts[1] = parseInt(nameParts[1]) + 1;
+            this.setFocus(nameParts.join('-'));
+          }
+        }
+      }
+    }
   }
 
   /**
    * This function adds a new changegroup to the TAF.
-   * This method is for example fired upon clicking the 'Add row button' next to changegroups.
    */
   addRow () {
     const newState = cloneDeep(this.state);
@@ -659,16 +784,28 @@ class TafCategory extends Component {
     this.setState(newState);
   }
 
+  /**
+   * This function removes a changegroup from the TAF.
+   * @param  {number} rowIndex The rowIndex is the index of the changegroup row to delete
+   */
+  removeRow (rowIndex) {
+    if (rowIndex !== null && typeof rowIndex === 'number') {
+      const newState = cloneDeep(this.state);
+      newState.tafAsObject.changegroups.splice(rowIndex, 1);
+      this.setState(newState);
+    }
+  }
+
   /*
     This function removes a changeGroup by given rowIndex.
   */
   onDeleteRow (rowIndex) {
-    let newTaf = cloneObjectAndSkipNullProps(this.state.tafJSON);
-    newTaf.changegroups.splice(rowIndex, 1);
-    this.setState({
-      tafJSON: newTaf
-    });
-    this.validateTAF(newTaf);
+    // let newTaf = cloneObjectAndSkipNullProps(this.state.tafJSON);
+    // newTaf.changegroups.splice(rowIndex, 1);
+    // this.setState({
+    //   tafJSON: newTaf
+    // });
+    // this.validateTAF(newTaf);
   };
 
   /*
@@ -787,9 +924,13 @@ class TafCategory extends Component {
                 ref={'taftable'}
                 validationReport={this.state.validationReport}
                 tafJSON={this.state.tafAsObject}
+                focusedFieldName={this.state.focusedFieldName}
+                inputRef={this.registerElement}
                 onSortEnd={this.onSortEnd}
                 onChange={this.onTACChange}
+                onClick={this.onClick}
                 onKeyUp={this.onKeyUp}
+                onKeyDown={this.onKeyDown}
                 onDeleteRow={this.onDeleteRow}
                 editable={this.props.editable}
                 onFocusOut={this.onFocusOut} />
@@ -837,7 +978,7 @@ TafCategory.defaultProps = {
 };
 
 TafCategory.propTypes = {
-  taf: TAF_TYPES.TAF,
+  taf: TAF_TYPES.TAF.isRequired,
   editable: PropTypes.bool
 };
 

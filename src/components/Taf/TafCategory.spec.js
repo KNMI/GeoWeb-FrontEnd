@@ -2,12 +2,16 @@ import React from 'react';
 import TafCategory from './TafCategory';
 import { mount } from 'enzyme';
 import { TestTafJSON } from './TestTafJSON.js';
-import { TAF_TEMPLATES } from './TafTemplates';
+// import { TAF_TEMPLATES } from './TafTemplates';
 
-const taf = TAF_TEMPLATES.TAF;
+// const taf = TAF_TEMPLATES.TAF;
 
 describe('(Container) Taf/TafCategory.jsx', () => {
   before(() => { sinon.spy(TafCategory.prototype, 'validateTAF'); });
+  it('Renders an empty TafCategory', () => {
+    const _component = mount(<TafCategory />);
+    expect(_component.type()).to.eql(TafCategory);
+  });
   it('Renders a TafCategory', () => {
     const _component = mount(<TafCategory taf={TestTafJSON} />);
     expect(_component.type()).to.eql(TafCategory);
