@@ -66,10 +66,9 @@ export default class Taf extends Component {
 
   setExpandedTAF (uuid) {
     // Clicking the already expanded TAF collapses it
-    // if (this.state.expandedTAF === uuid) {
-    //   this.setState({ expandedTAF: null, expandedTAC: null });
-    // } else
-    if (uuid === 'edit') {
+    if (this.state.expandedTAF === uuid) {
+      this.setState({ expandedTAF: null, expandedTAC: null });
+    } else if (uuid === 'edit') {
       this.setState({ expandedTAF: 'edit', expandedTAC: null });
     } else {
       // Selecting a new or another TAF, loads its TAC and sets it to expanded
@@ -103,6 +102,8 @@ export default class Taf extends Component {
     this.setState({ tafTypeSelections: [...this.state.tafTypeSelections] });
   }
   render () {
+    console.log('Tafs', this.state.tafs);
+    console.log('TafsFilter', this.state.tafTypeSelections);
     if (this.state.tafs) {
       return <Col style={{ flexDirection: 'column' }}>
         { !this.props.editable
@@ -123,7 +124,7 @@ export default class Taf extends Component {
           : null }
         {
           this.props.editable
-            ? <Card block onClick={() => this.setExpandedTAF('edit')}>
+            ? <Card block>
               <Row>
                 <Col>
                   <TafCategory
@@ -134,9 +135,9 @@ export default class Taf extends Component {
                 </Col>
               </Row>
             </Card>
-            : this.state.tafs.filter((taf) => this.state.tafTypeSelections.includes(taf.type) || this.state.tafTypeSelections.length === 0).map((taf, index) => {
-              return <Card key={index} block onClick={() => this.setExpandedTAF(taf.metadata.uuid)}>
-                <CardTitle>
+            : this.state.tafs.filter((taf) => this.state.tafTypeSelections.includes(taf.metadata.type.toUpperCase()) || this.state.tafTypeSelections.length === 0).map((taf, index) => {
+              return <Card key={index} block>
+                <CardTitle onClick={() => this.setExpandedTAF(taf.metadata.uuid)} style={{ cursor: 'pointer' }}>
                   {taf.metadata ? taf.metadata.location : 'EWat?'} - {moment.utc(taf.metadata.validityStart).format('DD/MM/YYYY - HH:mm UTC')}
                 </CardTitle>
                 <CollapseOmni className='CollapseOmni' style={{ flexDirection: 'column' }} isOpen={this.state.expandedTAF === taf.metadata.uuid} minSize={0} maxSize={800}>

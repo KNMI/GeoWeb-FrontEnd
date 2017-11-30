@@ -5,6 +5,7 @@ import Enum from 'es6-enum';
 import TimeSchedule from '../TimeSchedule';
 import { TAF_TEMPLATES, TAF_TYPES } from './TafTemplates';
 import cloneDeep from 'lodash.clonedeep';
+import diff from 'deep-diff';
 import moment from 'moment';
 import { Button, Row, Col } from 'reactstrap';
 import { createTAFJSONFromInput, setTACColumnInput, removeInputPropsFromTafJSON, cloneObjectAndSkipNullProps } from './FromTacCodeToTafjson';
@@ -97,8 +98,9 @@ class TafCategory extends Component {
     this.onClick = this.onClick.bind(this);
     this.onKeyUp = this.onKeyUp.bind(this);
     this.onKeyDown = this.onKeyDown.bind(this);
-    this.addRow = this.addRow.bind(this);
     this.registerElement = this.registerElement.bind(this);
+    this.updateValue = this.updateValue.bind(this);
+    this.addRow = this.addRow.bind(this);
     this.removeRow = this.removeRow.bind(this);
     this.setFocus = this.setFocus.bind(this);
     this.moveFocus = this.moveFocus.bind(this);
@@ -122,7 +124,12 @@ class TafCategory extends Component {
 
     const initialState = {
       tafAsObject: props.taf,
-      focusedFieldName: 'forecast-wind'
+      focusedFieldName: 'forecast-wind',
+      hasEdits: false,
+      preset: {
+        forPhenomenon: null,
+        inWindow: null
+      }
     };
 
     // TODO: should we include defaults?
@@ -571,7 +578,8 @@ class TafCategory extends Component {
     switch (event.type) {
       case 'input':
       case 'change':
-        console.log('Update value Event ', event.type, 'fired on', event.target);
+        console.log('Update value Event ', event.type, 'fired on', event.target, event);
+        this.updateValue(event.target);
         break;
       case 'blur':
         console.log('Event ', event.type, 'fired on', event.target);
@@ -612,13 +620,21 @@ class TafCategory extends Component {
           this.moveFocus(keyboardEvent.target.name, MOVE_DIRECTION.UP);
           break;
         case 'ArrowRight':
-          this.moveFocus(keyboardEvent.target.name, MOVE_DIRECTION.RIGHT);
+          if (!keyboardEvent.target.value || (keyboardEvent.target.selectionStart === keyboardEvent.target.value.length)) {
+            this.moveFocus(keyboardEvent.target.name, MOVE_DIRECTION.RIGHT);
+            keyboardEvent.preventDefault();
+            keyboardEvent.stopPropagation();
+          }
           break;
         case 'ArrowDown':
           this.moveFocus(keyboardEvent.target.name, MOVE_DIRECTION.DOWN);
           break;
         case 'ArrowLeft':
-          this.moveFocus(keyboardEvent.target.name, MOVE_DIRECTION.LEFT);
+          if (!keyboardEvent.target.value || (keyboardEvent.target.selectionStart === 0)) {
+            this.moveFocus(keyboardEvent.target.name, MOVE_DIRECTION.LEFT);
+            keyboardEvent.preventDefault();
+            keyboardEvent.stopPropagation();
+          }
           break;
         default:
           break;
@@ -649,7 +665,6 @@ class TafCategory extends Component {
    * @param  {ClickEvent} event The click event which occurred
    */
   onClick (event) {
-    console.log('Click', event.type);
     if (event.type === 'click' && 'name' in event.target && typeof event.target.name === 'string') { // hasOwnPropery seems not working properly on HTMLElement-objects
       if (event.target.name === 'addible') {
         this.addRow();
@@ -671,18 +686,43 @@ class TafCategory extends Component {
     }
   }
 
-  /* Handler to focus to open preset */
-  onFocus (phenomenon) {
-    const getPhenomenonPresetUrl = (phenomenon) => {
-      // TODO: Meer presets per fenomeen
-      // TODO: Dit moet handiger kunnen
-      return window.location.origin + window.location.pathname + '?presetid=06c0a5b4-1e98-4d19-8e8e-39a66fc4e10b&location=EHAM#/';
-    };
-    if (phenomenon !== this.state.currentPhenomenon) {
-      if (!this.state.window || this.state.window.closed) {
-        this.setState({ window: window.open(getPhenomenonPresetUrl(phenomenon), 'TafPresetWindow'), currentPhenomenon: phenomenon });
+  /**
+   * Event handler to handle focus events
+   * @param  {FocusEvent} focusEvent The focus event which occurred
+   */
+  onFocus (focusEvent) {
+    if (focusEvent.type === 'focus' && 'name' in focusEvent.target && typeof focusEvent.target.name === 'string') {
+      const nameParts = focusEvent.target.name.split('-');
+      let phenomenonName = '';
+      // TODO Check if resulting phenomenon name is a known phenomenon
+      if (!isNaN(nameParts[nameParts.length - 1])) {
+        phenomenonName = nameParts[nameParts.length - 2];
       } else {
-        this.setState({ window: this.state.window.open(getPhenomenonPresetUrl(phenomenon), 'TafPresetWindow'), currentPhenomenon: phenomenon });
+        phenomenonName = nameParts[nameParts.length - 1];
+      }
+
+      const getPhenomenonPresetUrl = (phenomenon) => {
+        // TODO: More presets per phenomenon
+        // TODO: This should be done in a better way
+        return window.location.origin + window.location.pathname + '?presetid=06c0a5b4-1e98-4d19-8e8e-39a66fc4e10b&location=EHAM#/';
+      };
+
+      if (phenomenonName !== this.state.preset.forPhenomenon) {
+        if (!this.state.preset.inWindow || this.state.preset.inWindow.closed) {
+          this.setState({
+            preset: {
+              forPhenomenon: phenomenonName,
+              inWindow: window.open(getPhenomenonPresetUrl(phenomenonName), 'TafPresetWindow')
+            }
+          });
+        } else {
+          this.setState({
+            preset: {
+              forPhenomenon: phenomenonName,
+              inWindow: this.state.preset.inWindow.open(getPhenomenonPresetUrl(phenomenonName), 'TafPresetWindow')
+            }
+          });
+        }
       }
     }
   }
@@ -722,6 +762,18 @@ class TafCategory extends Component {
   onFocusOut () {
     // this.updateTACtoTAFJSONtoTac();
     // this.validateTAF(this.state.tafJSON);
+  }
+
+  /**
+   * Updates the value in the state, according to the element value
+   * @param  {HTMLElement} element The (input-)element to update the value from
+   */
+  updateValue (element) {
+    let name = element ? (element.name || element.props.name) : null;
+    if (name && typeof name === 'string') {
+      name = name.replace(/-/g, '.');
+    }
+    console.log('Name', name);
   }
 
   /**
@@ -796,7 +848,10 @@ class TafCategory extends Component {
   addRow () {
     const newTafState = cloneDeep(this.state.tafAsObject);
     newTafState.changegroups.push(cloneDeep(TAF_TEMPLATES.CHANGE_GROUP));
-    this.setState({ tafAsObject: newTafState });
+    this.setState({
+      tafAsObject: newTafState,
+      hasEdits: true
+    });
   }
 
   /**
@@ -807,7 +862,10 @@ class TafCategory extends Component {
     if (rowIndex !== null && typeof rowIndex === 'number') {
       const newTafState = cloneDeep(this.state.tafAsObject);
       newTafState.changegroups.splice(rowIndex, 1);
-      this.setState({ tafAsObject: newTafState });
+      this.setState({
+        tafAsObject: newTafState,
+        hasEdits: true
+      });
     }
   }
 
@@ -836,7 +894,6 @@ class TafCategory extends Component {
   };
 
   componentWillReceiveProps (nextProps) {
-    console.log('New props coming...');
     if ('taf' in nextProps && nextProps.taf) {
       const defaults = generateDefaultValues();
       if (!nextProps.taf.metadata.validityStart) {
@@ -851,6 +908,8 @@ class TafCategory extends Component {
       if (!nextProps.taf.metadata.location) {
         nextProps.taf.metadata.location = defaults.location;
       }
+    }
+    if (!this.state.hasEdits) {
       this.setState({ tafAsObject: nextProps.taf });
     }
   }
@@ -931,7 +990,6 @@ class TafCategory extends Component {
   // }
 
   render () {
-    const { taf } = this.props;
     const flatten = list => list.reduce(
       (a, b) => a.concat(Array.isArray(b) ? flatten(b) : b), []
     );
@@ -939,15 +997,12 @@ class TafCategory extends Component {
     let validationSucceeded = false;
     if (this.state.validationReport && this.state.validationReport.errors) {
       validationErrors = JSON.parse(this.state.validationReport.errors);
+      console.log('Errors', validationErrors);
     }
     if (this.state.validationReport && this.state.validationReport.succeeded === true) {
       validationSucceeded = true;
     }
-    const tafJson = removeInputPropsFromTafJSON(createTAFJSONFromInput(this.state.tafAsObject));
     const series = this.extractScheduleInformation(this.state.tafAsObject);
-
-    console.log('Time1', this.state.tafAsObject.metadata.validityStart);
-    console.log('Time2', moment.utc(this.state.tafAsObject.metadata.validityStart));
 
     return (
       <Row className='TafCategory' style={{ flex: 1 }}>
@@ -958,7 +1013,6 @@ class TafCategory extends Component {
           <Row style={{ margin: '0', padding:'4px', backgroundColor:'#EEE', flex: 'none' }}>
             <Col>
               <TafTable
-                ref={'taftable'}
                 validationReport={this.state.validationReport}
                 tafJSON={this.state.tafAsObject}
                 focusedFieldName={this.state.focusedFieldName}
