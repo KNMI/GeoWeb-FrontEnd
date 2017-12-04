@@ -152,6 +152,7 @@ describe('(Component) MapPanel', () => {
       setProjection: emptyFunc,
       setSize: emptyFunc,
       setTimeOffset: emptyFunc,
+      showDialogs: emptyFunc,
       stopAnimating: emptyFunc
     });
   });
