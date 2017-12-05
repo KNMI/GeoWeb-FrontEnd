@@ -17,7 +17,7 @@ const probabilityRegEx = new RegExp('(' + Object.keys(probabilityInverseMap).map
 
 const changeTypeRegEx = new RegExp('(' + Object.keys(typeInverseMap).map(elmt => escapeRegExp(elmt)).join('|') + ')', 'i');
 
-const timestampRegEx = /(\d{2})(\d{2})/i;
+const timestampRegEx = /^(\d{2})(\d{2})$/i;
 
 const periodRegEx = /(\d{4})\/(\d{4})/i;
 
@@ -162,7 +162,6 @@ const jsonToTacForPeriod = (startTimestampAsJson, endTimestampAsJson, useFallbac
   let result = null;
   const periodStart = jsonToTacForTimestamp(startTimestampAsJson, true);
   const periodEnd = jsonToTacForTimestamp(endTimestampAsJson, true);
-  console.log('pS', periodStart, periodEnd);
   if (periodStart && periodEnd) {
     result = periodStart + '/' + periodEnd;
   } else if (periodStart) {
@@ -370,9 +369,7 @@ const tacToJsonForTimestamp = (timestampAsTac, scopeStart, scopeEnd, useFallback
         'T' + matchResult[2] + ':00:00Z';
     }
   }
-  console.log('ttj', result, timestampAsTac);
   if (useFallback && !result) {
-    console.log('Hiero');
     result = { fallback: timestampAsTac };
   }
   return result;
@@ -386,12 +383,12 @@ const tacToJsonForPeriod = (periodAsTac, scopeStart, scopeEnd, useFallback = fal
   if (periodAsTac && typeof periodAsTac === 'string') {
     const matchResult = periodAsTac.match(periodRegEx);
     if (matchResult) {
-      result.start = tacToJsonForTimestamp(matchResult[1], scopeStart, scopeEnd);
-      result.end = tacToJsonForTimestamp(matchResult[2], scopeStart, scopeEnd);
+      result.start = tacToJsonForTimestamp(matchResult[1], scopeStart, scopeEnd, useFallback);
+      result.end = tacToJsonForTimestamp(matchResult[2], scopeStart, scopeEnd, useFallback);
     }
   }
   if (useFallback && isEqual(result, { start: null, end: null })) {
-    result.fallback = periodAsTac;
+    result.start = { fallback: periodAsTac };
   }
   return result;
 };

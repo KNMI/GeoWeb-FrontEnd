@@ -7,7 +7,6 @@ import { TAF_TEMPLATES, TAF_TYPES } from './TafTemplates';
 import cloneDeep from 'lodash.clonedeep';
 import getNestedProperty from 'lodash.get';
 import setNestedProperty from 'lodash.set';
-import isEqual from 'lodash.isequal';
 import moment from 'moment';
 import { Button, Row, Col } from 'reactstrap';
 import { jsonToTacForProbability, jsonToTacForChangeType, jsonToTacForWind, jsonToTacForWeather, tacToJsonForProbabilityAndChangeType, tacToJsonForPeriod, tacToJsonForTimestamp,
@@ -724,15 +723,17 @@ class TafCategory extends Component {
           case 'validity':
             const scopeStart = this.state.tafAsObject.metadata.validityStart;
             const scopeEnd = this.state.tafAsObject.metadata.validityEnd;
-            let tmpValue = tacToJsonForPeriod(element.value, scopeStart, scopeEnd);
-            if (isEqual(tmpValue, { start: null, end: null })) {
-              tmpValue.start = tacToJsonForTimestamp(element.value, scopeStart, scopeEnd, true);
+            let tmpValue = tacToJsonForTimestamp(element.value, scopeStart, scopeEnd);
+            if (!tmpValue) {
+              tmpValue = tacToJsonForPeriod(element.value, scopeStart, scopeEnd, true);
+            } else {
+              tmpValue = { start: tmpValue, end: null };
             }
             nameParts.pop();
             namePartsSecondary = cloneDeep(nameParts);
             nameParts.push('changeStart');
             namePartsSecondary.push('changeEnd');
-            value = tmpValue.start;
+            value = tmpValue.start || { fallback: tmpValue.fallback };
             valueSecondary = tmpValue.end;
             break;
           default:
@@ -741,13 +742,10 @@ class TafCategory extends Component {
       }
 
       const newTafState = cloneDeep(this.state.tafAsObject);
-      // console.log('nS1', cloneDeep(newTafState));
       setNestedProperty(newTafState, nameParts, value);
-      // console.log('nS2', cloneDeep(newTafState));
       if (namePartsSecondary) {
         setNestedProperty(newTafState, namePartsSecondary, valueSecondary);
       }
-      // console.log('nS3', cloneDeep(newTafState));
       this.setState({
         tafAsObject: newTafState,
         hasEdits: true

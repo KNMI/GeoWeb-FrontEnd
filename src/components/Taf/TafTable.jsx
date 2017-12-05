@@ -94,7 +94,6 @@ class TafTable extends SortableContainer(() => {}) {
 
   render () {
     let { taf, focusedFieldName, inputRef, editable, onChange, onKeyUp, onKeyDown, onClick, onFocus } = this.props;
-    console.log('Render', taf);
     return (
       <table className='TafStyle TafStyleTable' onChange={onChange} onKeyUp={onKeyUp} onKeyDown={onKeyDown} onClick={onClick} onFocus={onFocus}>
         {this.getBaseLabelLine()}
