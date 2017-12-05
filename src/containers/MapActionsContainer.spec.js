@@ -128,10 +128,10 @@ describe('(Container) MapActionsContainer', () => {
     _deepComponent.instance().goToNow();
     expect('everything').to.be.ok();
   });
-  it('Allows for triggering generateMap', () => {
-    _deepComponent.instance().generateMap([{ name: 'testName', text: 'testText' }]);
-    expect('everything').to.be.ok();
-  });
+  // it('Allows for triggering generateMap', () => {
+  //   _deepComponent.instance().generateMap([{ name: 'testName', text: 'testText' }]);
+  //   expect('everything').to.be.ok();
+  // });
   it('Allows for triggering getLayerName', () => {
     let obs = _deepComponent.instance().getLayerName({ title: 'OBS' });
     expect(obs).to.eql('Observations');

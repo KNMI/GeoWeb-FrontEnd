@@ -167,7 +167,20 @@ export default class Adaguc extends PureComponent {
     axios.all(allURLs.map(req => axios.get(req, { withCredentials: true }))).then(
       axios.spread((services, overlays) => {
         dispatch(mapActions.createMap());
-        dispatch(adagucActions.setSources([...services.data, ...personalUrls, overlays.data[0]]));
+        const allSources = [...services.data, ...personalUrls, overlays.data[0]];
+        const promises = [];
+        const sourcesDic = {};
+        for (var i = allSources.length - 1; i >= 0; i--) {
+          const source = allSources[i];
+          var r = new Promise((resolve, reject) => {
+            // eslint-disable-next-line no-undef
+            const service = WMJSgetServiceFromStore(source.service);
+            service.getLayerObjectsFlat((layers) => { sourcesDic[source.name] = { layers, source }; resolve(); });
+          });
+          promises.push(r);
+        }
+        const sort = (obj) => Object.keys(obj).sort().reduce((acc, c) => { acc[c] = obj[c]; return acc; }, {});
+        Promise.all(promises).then(() => { dispatch(adagucActions.setSources(sort(sourcesDic))); });
       })
     );
 

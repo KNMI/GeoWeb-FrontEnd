@@ -38,8 +38,8 @@
   //echo $request."<br>\n<br>\n";
   //$request=encodeRequestParams($request);
   
-  //if(validateUrl($request)==true)
- // {
+  if(validateUrl($request)==true)
+  {
     include("xml2json.php");
     $request = replaceHostName($request);
     
@@ -84,5 +84,5 @@
     echo $callback."(".$parsedXMLData.");";
 
     return;
-  //}else die();
+  }else die();
 ?>
