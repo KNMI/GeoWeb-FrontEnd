@@ -11,34 +11,31 @@ import { jsonToTacForPeriod, jsonToTacForProbability, jsonToTacForChangeType, js
   ChangeGroup of TAF editor
 */
 class ChangeGroup extends Component {
-  shouldComponentUpdate (nextProps, nextState) {
-    return true;
-  }
   render () {
     const { tafChangeGroup, focusedFieldName, inputRef, index, editable } = this.props;
-    console.log('tCG', tafChangeGroup);
     const columns = [
       {
         name: 'changegroups-' + index + '-sortable',
         value: editable ? '\uf0c9' : '', // the bars icon
         disabled: !editable,
+        isButton: true,
         classes: [ 'noselect' ]
       },
       {
         name: 'changegroups-' + index + '-probability',
-        value: tafChangeGroup.hasOwnProperty('changeType') ? jsonToTacForProbability(tafChangeGroup.changeType) || '' : '',
+        value: tafChangeGroup.hasOwnProperty('changeType') ? jsonToTacForProbability(tafChangeGroup.changeType, true) || '' : '',
         disabled: false,
         classes: []
       },
       {
-        name: 'changegroups-' + index + '-changeType',
-        value: tafChangeGroup.hasOwnProperty('changeType') ? jsonToTacForChangeType(tafChangeGroup.changeType) || '' : '',
+        name: 'changegroups-' + index + '-change',
+        value: tafChangeGroup.hasOwnProperty('changeType') ? jsonToTacForChangeType(tafChangeGroup.changeType, true) || '' : '',
         disabled: false,
         classes: []
       },
       {
         name: 'changegroups-' + index + '-validity',
-        value: tafChangeGroup.hasOwnProperty('changeStart') && tafChangeGroup.hasOwnProperty('changeEnd') ? jsonToTacForPeriod(tafChangeGroup.changeStart, tafChangeGroup.changeEnd) || '' : '',
+        value: tafChangeGroup.hasOwnProperty('changeStart') && tafChangeGroup.hasOwnProperty('changeEnd') ? jsonToTacForPeriod(tafChangeGroup.changeStart, tafChangeGroup.changeEnd, true) || '' : '',
         disabled: false,
         classes: []
       },
@@ -104,7 +101,7 @@ class ChangeGroup extends Component {
       {columns.map((col) => <td className={classNames(col.classes)} key={col.name}>
         {col.isButton
           ? <Button name={col.name} size='sm' disabled={col.disabled} autoFocus={col.isFocussed}>{col.value}</Button>
-          : <input ref={inputRef} name={col.name} type='text' defaultValue={col.value} disabled={col.disabled} autoFocus={col.isFocussed} />
+          : <input ref={inputRef} name={col.name} type='text' value={col.value} disabled={col.disabled} autoFocus={col.isFocussed} />
         }
       </td>
       )}

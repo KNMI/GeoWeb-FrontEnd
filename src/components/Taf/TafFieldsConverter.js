@@ -152,7 +152,7 @@ const jsonToTacForTimestamp = (timestampAsJson, useFallback = false) => {
   let result = null;
   if (timestampAsJson && typeof timestampAsJson === 'string' && moment(timestampAsJson).isValid()) {
     result = moment.utc(timestampAsJson).format('DDHH');
-  } else if (useFallback && timestampAsJson.hasOwnProperty('fallback')) {
+  } else if (useFallback && timestampAsJson && timestampAsJson.hasOwnProperty('fallback')) {
     result = timestampAsJson.fallback;
   }
   return result;
@@ -160,11 +160,14 @@ const jsonToTacForTimestamp = (timestampAsJson, useFallback = false) => {
 
 const jsonToTacForPeriod = (startTimestampAsJson, endTimestampAsJson, useFallback = false) => {
   let result = null;
-  const periodStart = jsonToTacForTimestamp(startTimestampAsJson);
-  const periodEnd = jsonToTacForTimestamp(endTimestampAsJson);
+  const periodStart = jsonToTacForTimestamp(startTimestampAsJson, true);
+  const periodEnd = jsonToTacForTimestamp(endTimestampAsJson, true);
+  console.log('pS', periodStart, periodEnd);
   if (periodStart && periodEnd) {
     result = periodStart + '/' + periodEnd;
-  } else if (useFallback && startTimestampAsJson.hasOwnProperty('fallback')) {
+  } else if (periodStart) {
+    result = periodStart;
+  } else if (useFallback && startTimestampAsJson && startTimestampAsJson.hasOwnProperty('fallback')) {
     result = startTimestampAsJson.fallback;
   }
   return result;
@@ -367,7 +370,9 @@ const tacToJsonForTimestamp = (timestampAsTac, scopeStart, scopeEnd, useFallback
         'T' + matchResult[2] + ':00:00Z';
     }
   }
-  if (useFallback && typeof result === 'undefined') {
+  console.log('ttj', result, timestampAsTac);
+  if (useFallback && !result) {
+    console.log('Hiero');
     result = { fallback: timestampAsTac };
   }
   return result;

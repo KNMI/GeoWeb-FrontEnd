@@ -93,15 +93,16 @@ class TafTable extends SortableContainer(() => {}) {
   }
 
   render () {
-    let { tafJSON, focusedFieldName, inputRef, editable, onChange, onKeyUp, onKeyDown, onClick, onFocus } = this.props;
+    let { taf, focusedFieldName, inputRef, editable, onChange, onKeyUp, onKeyDown, onClick, onFocus } = this.props;
+    console.log('Render', taf);
     return (
       <table className='TafStyle TafStyleTable' onChange={onChange} onKeyUp={onKeyUp} onKeyDown={onKeyDown} onClick={onClick} onFocus={onFocus}>
         {this.getBaseLabelLine()}
-        {this.getBaseForecastLine(tafJSON, focusedFieldName, inputRef, editable)}
+        {this.getBaseForecastLine(taf, focusedFieldName, inputRef, editable)}
         {this.getChangeGroupLabelLine()}
 
         <tbody>
-          {tafJSON.changegroups.map((tafChangeGroup, index) => {
+          {taf.changegroups.map((tafChangeGroup, index) => {
             return this.getChangeGroupForecastLine(tafChangeGroup, focusedFieldName, inputRef, editable, index);
           })}
           {this.getAddChangeGroupLine(editable)}
@@ -129,7 +130,7 @@ TafTable.defaultProps = {
 };
 
 TafTable.propTypes = {
-  tafJSON: TAF_TYPES.TAF,
+  taf: TAF_TYPES.TAF,
   focusedFieldName: PropTypes.string,
   editable : PropTypes.bool,
   inputRef: PropTypes.func,
@@ -138,6 +139,7 @@ TafTable.propTypes = {
   onKeyDown: PropTypes.func,
   onClick: PropTypes.func,
   onFocus: PropTypes.func,
+  onSortEnd: PropTypes.func,
   validationReport:PropTypes.object
 };
 
