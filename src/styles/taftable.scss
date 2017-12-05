@@ -22,6 +22,10 @@
   font-size: 12px;
 }
 
+.TafStyle td .form-control {
+  padding: 0.1rem 0;
+}
+
 .TafStyle input {
   width:100%;
   text-align:center;
@@ -50,7 +54,6 @@
   font-family: FontAwesome;
 }
 
-
 .TafStyle .TACnotEditable, .TafStyle .TACnotEditable input {
   background-color:#DDD;
   font-weight:bold;
@@ -60,9 +63,13 @@
   font-size: 12px;
 }
 
-.TafStyle .TACnotEditable input, .TafStyle .noselect input {
+.TafStyle .TACnotEditable input, .TafStyle .noselect input, .TafStyle input:disabled {
   border: none;
   background: none;
+}
+
+.TafStyle .hideValue input:disabled {
+  color: transparent;
 }
 
 .TafStyle .TACColumnOK input {

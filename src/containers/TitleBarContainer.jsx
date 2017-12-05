@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import Icon from 'react-fa';
+import { Icon, IconStack } from 'react-fa';
 import GeoWebLogo from '../components/assets/icon.svg';
 import { CheckIfUserHasRole } from '../utils/user';
 import { SaveURLPreset } from '../utils/URLPresets';
@@ -750,7 +750,7 @@ class LayoutDropDown extends PureComponent {
   }
   render () {
     return <NavLink className='active' onClick={() => this.setState({ popoverOpen: !this.state.popoverOpen })} >
-      <Icon id='layoutbutton' name='desktop' />
+      <Icon id='layoutbutton' name='sliders' />
       <Popover isOpen={this.state.popoverOpen} target='layoutbutton'>
         <PopoverContent>
           <ButtonGroup vertical>

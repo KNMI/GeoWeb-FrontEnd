@@ -5,6 +5,7 @@ import { TAF_TEMPLATES } from './TafTemplates';
 import moment from 'moment';
 import cloneDeep from 'lodash.clonedeep';
 import escapeRegExp from 'lodash.escaperegexp';
+import isEqual from 'lodash.isequal';
 
 /**
  * Regular expressions for TAC strings
@@ -115,18 +116,23 @@ const mapCloudsModToJson = (modAsTac) => {
 /**
  * JSON to TAC converters
  */
-const jsonToTacForProbability = (changeTypeAsJson) => {
+const jsonToTacForProbability = (probabilityAsJson, useFallback = false) => {
   let result = null;
-  if (changeTypeAsJson && typeof changeTypeAsJson === 'string') {
-    const matchResult = changeTypeAsJson.match(probabilityAndChangeTypeRegEx);
+  if (probabilityAsJson && typeof probabilityAsJson === 'string') {
+    const matchResult = probabilityAsJson.match(probabilityAndChangeTypeRegEx);
     if (matchResult) {
       result = mapProbabilityToString(matchResult[1]);
+    }
+  }
+  if (useFallback && !result && probabilityAsJson && probabilityAsJson.hasOwnProperty('fallback')) {
+    if (probabilityAsJson.fallback && probabilityAsJson.fallback.hasOwnProperty('probability')) {
+      result = probabilityAsJson.fallback.probability;
     }
   }
   return result;
 };
 
-const jsonToTacForChangeType = (changeTypeAsJson) => {
+const jsonToTacForChangeType = (changeTypeAsJson, useFallback = false) => {
   let result = null;
   if (changeTypeAsJson && typeof changeTypeAsJson === 'string') {
     const matchResult = changeTypeAsJson.match(probabilityAndChangeTypeRegEx);
@@ -134,28 +140,37 @@ const jsonToTacForChangeType = (changeTypeAsJson) => {
       result = mapChangeTypeToString(matchResult[2]);
     }
   }
-  return result;
-};
-
-const jsonToTacForTimestamp = (timestampAsJson) => {
-  let result = null;
-  if (timestampAsJson && typeof timestampAsJson === 'string' && moment(timestampAsJson).isValid()) {
-    result = moment.utc(timestampAsJson).format('DDHH');
+  if (useFallback && !result && changeTypeAsJson && changeTypeAsJson.hasOwnProperty('fallback')) {
+    if (changeTypeAsJson.fallback && changeTypeAsJson.fallback.hasOwnProperty('change')) {
+      result = changeTypeAsJson.fallback.change;
+    }
   }
   return result;
 };
 
-const jsonToTacForPeriod = (startTimestampAsJson, endTimestampAsJson) => {
+const jsonToTacForTimestamp = (timestampAsJson, useFallback = false) => {
+  let result = null;
+  if (timestampAsJson && typeof timestampAsJson === 'string' && moment(timestampAsJson).isValid()) {
+    result = moment.utc(timestampAsJson).format('DDHH');
+  } else if (useFallback && timestampAsJson.hasOwnProperty('fallback')) {
+    result = timestampAsJson.fallback;
+  }
+  return result;
+};
+
+const jsonToTacForPeriod = (startTimestampAsJson, endTimestampAsJson, useFallback = false) => {
   let result = null;
   const periodStart = jsonToTacForTimestamp(startTimestampAsJson);
   const periodEnd = jsonToTacForTimestamp(endTimestampAsJson);
   if (periodStart && periodEnd) {
     result = periodStart + '/' + periodEnd;
+  } else if (useFallback && startTimestampAsJson.hasOwnProperty('fallback')) {
+    result = startTimestampAsJson.fallback;
   }
   return result;
 };
 
-const jsonToTacForWind = (windAsJson) => {
+const jsonToTacForWind = (windAsJson, useFallback = false) => {
   let result = null;
   if (windAsJson && windAsJson.hasOwnProperty('direction')) {
     if (typeof windAsJson.direction === 'number') {
@@ -164,40 +179,46 @@ const jsonToTacForWind = (windAsJson) => {
       if (typeof windAsJson.direction === 'string' && windAsJson.direction === 'VRB') {
         result = 'VRB';
       } else {
-        return null;
+        return useFallback && windAsJson.hasOwnProperty('fallback') ? windAsJson.fallback : null;
       }
     }
   } else {
-    return null;
+    return useFallback && windAsJson.hasOwnProperty('fallback') ? windAsJson.fallback : null;
   }
   if (windAsJson && windAsJson.hasOwnProperty('speed')) {
     if (typeof windAsJson.speed === 'number') {
       result += windAsJson.speed.toString().padStart(2, '0');
     } else {
-      return null;
+      return useFallback && windAsJson.hasOwnProperty('fallback') ? windAsJson.fallback : null;
     }
   } else {
-    return null;
+    return useFallback && windAsJson.hasOwnProperty('fallback') ? windAsJson.fallback : null;
   }
   if (windAsJson && windAsJson.hasOwnProperty('gusts')) {
     if (typeof windAsJson.gusts === 'number') {
       result += 'G' + windAsJson.gusts.toString().padStart(2, '0');
     }
   } else {
-    return null;
+    return useFallback && windAsJson.hasOwnProperty('fallback') ? windAsJson.fallback : null;
   }
   return result;
 };
 
-const jsonToTacForVisibility = (visibilityAsJson) => {
-  return (visibilityAsJson && visibilityAsJson.hasOwnProperty('value') && typeof visibilityAsJson.value === 'number' ? visibilityAsJson.value.toString().padStart(4, '0') : null);
+const jsonToTacForVisibility = (visibilityAsJson, useFallback = false) => {
+  let result = null;
+  if (visibilityAsJson && visibilityAsJson.hasOwnProperty('value') && typeof visibilityAsJson.value === 'number') {
+    result = visibilityAsJson.value.toString().padStart(4, '0');
+  } else if (useFallback && visibilityAsJson.hasOwnProperty('fallback')) {
+    result = visibilityAsJson.fallback;
+  }
+  return result;
 };
 
 const jsonToTacForCavok = (cavokAsJson) => {
   return (cavokAsJson !== null && typeof cavokAsJson === 'boolean' && cavokAsJson ? 'CAVOK' : null);
 };
 
-const jsonToTacForWeather = (weatherAsJson) => {
+const jsonToTacForWeather = (weatherAsJson, useFallback = false) => {
   let result = null;
   if (weatherAsJson) {
     if (typeof weatherAsJson === 'string' && weatherAsJson === 'NSW') {
@@ -206,12 +227,12 @@ const jsonToTacForWeather = (weatherAsJson) => {
       if (weatherAsJson.hasOwnProperty('qualifier') && typeof weatherAsJson.qualifier === 'string') {
         result = mapWeatherQualifierToTac(weatherAsJson.qualifier);
       } else {
-        return null;
+        return useFallback && weatherAsJson.hasOwnProperty('fallback') ? weatherAsJson.fallback : null;
       }
       if (weatherAsJson.hasOwnProperty('descriptor') && typeof weatherAsJson.descriptor === 'string') {
         result += mapWeatherDescriptorToTac(weatherAsJson.descriptor);
       } else {
-        return null;
+        return useFallback && weatherAsJson.hasOwnProperty('fallback') ? weatherAsJson.fallback : null;
       }
       if (weatherAsJson.hasOwnProperty('phenomena') && Array.isArray(weatherAsJson.phenomena)) {
         result += weatherAsJson.phenomena.reduce((cumm, current) => {
@@ -219,14 +240,14 @@ const jsonToTacForWeather = (weatherAsJson) => {
           return cumm;
         }, '');
       } else {
-        return null;
+        return useFallback && weatherAsJson.hasOwnProperty('fallback') ? weatherAsJson.fallback : null;
       }
     }
   }
   return result;
 };
 
-const jsonToTacForClouds = (cloudsAsJson) => {
+const jsonToTacForClouds = (cloudsAsJson, useFallback = false) => {
   let result = null;
   if (cloudsAsJson) {
     if (typeof cloudsAsJson === 'string' && cloudsAsJson === 'NSC') {
@@ -235,12 +256,12 @@ const jsonToTacForClouds = (cloudsAsJson) => {
       if (cloudsAsJson.hasOwnProperty('amount') && typeof cloudsAsJson.amount === 'string') {
         result = mapCloudsAmountToTac(cloudsAsJson.amount);
       } else {
-        return null;
+        return useFallback && cloudsAsJson.hasOwnProperty('fallback') ? cloudsAsJson.fallback : null;
       }
       if (cloudsAsJson.hasOwnProperty('height') && typeof cloudsAsJson.height === 'number') {
         result += cloudsAsJson.height.toString().padStart(3, '0');
       } else {
-        return null;
+        return useFallback && cloudsAsJson.hasOwnProperty('fallback') ? cloudsAsJson.fallback : null;
       }
       if (cloudsAsJson.hasOwnProperty('mod') && typeof cloudsAsJson.mod === 'string') {
         result += mapCloudsModToTac(cloudsAsJson.mod);
@@ -250,10 +271,12 @@ const jsonToTacForClouds = (cloudsAsJson) => {
   return result;
 };
 
-const jsonToTacForVerticalVisibility = (verticalVisibilityAsJson) => {
+const jsonToTacForVerticalVisibility = (verticalVisibilityAsJson, useFallback = false) => {
   let result = null;
   if (verticalVisibilityAsJson && typeof verticalVisibilityAsJson === 'number') {
     result = 'VV' + verticalVisibilityAsJson.toString().padStart(3, '0');
+  } else if (useFallback && verticalVisibilityAsJson && verticalVisibilityAsJson.hasOwnProperty('fallback')) {
+    result = verticalVisibilityAsJson.fallback;
   }
   return result;
 };
@@ -261,7 +284,7 @@ const jsonToTacForVerticalVisibility = (verticalVisibilityAsJson) => {
 /**
  * TAC to JSON converters
  */
-const tacToJsonForProbability = (probabilityAsTac) => {
+const tacToJsonForProbability = (probabilityAsTac, useFallback = false) => {
   let result = null;
   if (probabilityAsTac && typeof probabilityAsTac === 'string') {
     let matchResult = probabilityAsTac.match(probabilityRegEx);
@@ -269,10 +292,13 @@ const tacToJsonForProbability = (probabilityAsTac) => {
       result = mapProbabilityToString(matchResult[1]);
     }
   }
+  if (useFallback && !result && typeof probabilityAsTac === 'string') {
+    result = { fallback: probabilityAsTac };
+  }
   return result;
 };
 
-const tacToJsonForChangeType = (changeTypeAsTac) => {
+const tacToJsonForChangeType = (changeTypeAsTac, useFallback = false) => {
   let result = null;
   if (changeTypeAsTac && typeof changeTypeAsTac === 'string') {
     let matchResult = changeTypeAsTac.match(changeTypeRegEx);
@@ -280,23 +306,46 @@ const tacToJsonForChangeType = (changeTypeAsTac) => {
       result = mapChangeTypeToString(matchResult[1]);
     }
   }
-  return result;
-};
-
-const tacToJsonForProbabilityAndChangeType = (probabilityAsTac, changeTypeAsTac) => {
-  let result = tacToJsonForProbability(probabilityAsTac);
-  const typeResult = tacToJsonForChangeType(changeTypeAsTac);
-  if (result) {
-    if (typeResult) {
-      result += ' ' + typeResult;
-    }
-  } else {
-    result = typeResult;
+  if (useFallback && !result && changeTypeAsTac && typeof changeTypeAsTac === 'string') {
+    result = { fallback: changeTypeAsTac };
   }
   return result;
 };
 
-const tacToJsonForTimestamp = (timestampAsTac, scopeStart, scopeEnd) => {
+const tacToJsonForProbabilityAndChangeType = (probabilityAsTac, changeTypeAsTac, useFallback = false) => {
+  let result = null;
+  const probResult = tacToJsonForProbability(probabilityAsTac, useFallback);
+  const changeResult = tacToJsonForChangeType(changeTypeAsTac, useFallback);
+  if (probResult && typeof probResult === 'string') {
+    result = probResult;
+  }
+  if (changeResult && typeof changeResult === 'string') {
+    result = result ? result + ' ' + changeResult : changeResult;
+  }
+  if (useFallback &&
+    ((probResult && probResult.hasOwnProperty('fallback') && probResult.fallback) ||
+    (changeResult && changeResult.hasOwnProperty('fallback') && changeResult.fallback))) { // one of the values has fallbacked, and so should the entire field
+    const fallback = {};
+    if (probResult && probResult.hasOwnProperty('fallback') && probResult.fallback) {
+      fallback.probability = probResult.fallback;
+      if (result) {
+        fallback.change = result;
+      }
+    }
+    if (changeResult && changeResult.hasOwnProperty('fallback') && changeResult.fallback) {
+      fallback.change = changeResult.fallback;
+      if (result) {
+        fallback.probability = result;
+      }
+    }
+    if (!isEqual(fallback, {})) {
+      result = { fallback: fallback };
+    }
+  }
+  return result;
+};
+
+const tacToJsonForTimestamp = (timestampAsTac, scopeStart, scopeEnd, useFallback = false) => {
   let result = null;
   const scopeStartMoment = moment.utc(scopeStart);
   const scopeEndMoment = moment.utc(scopeEnd);
@@ -318,10 +367,13 @@ const tacToJsonForTimestamp = (timestampAsTac, scopeStart, scopeEnd) => {
         'T' + matchResult[2] + ':00:00Z';
     }
   }
+  if (useFallback && typeof result === 'undefined') {
+    result = { fallback: timestampAsTac };
+  }
   return result;
 };
 
-const tacToJsonForPeriod = (periodAsTac, scopeStart, scopeEnd) => {
+const tacToJsonForPeriod = (periodAsTac, scopeStart, scopeEnd, useFallback = false) => {
   const result = {
     start: null,
     end: null
@@ -333,10 +385,13 @@ const tacToJsonForPeriod = (periodAsTac, scopeStart, scopeEnd) => {
       result.end = tacToJsonForTimestamp(matchResult[2], scopeStart, scopeEnd);
     }
   }
+  if (useFallback && isEqual(result, { start: null, end: null })) {
+    result.fallback = periodAsTac;
+  }
   return result;
 };
 
-const tacToJsonForWind = (windAsTac) => {
+const tacToJsonForWind = (windAsTac, useFallback = false) => {
   const result = cloneDeep(TAF_TEMPLATES.WIND);
   if (windAsTac && typeof windAsTac === 'string') {
     const matchResult = windAsTac.match(windRegEx);
@@ -350,10 +405,13 @@ const tacToJsonForWind = (windAsTac) => {
       result.unit = 'KT';
     }
   }
+  if (useFallback && isEqual(result, TAF_TEMPLATES.WIND)) {
+    result.fallback = windAsTac;
+  }
   return result;
 };
 
-const tacToJsonForVisibility = (visibilityAsTac) => {
+const tacToJsonForVisibility = (visibilityAsTac, useFallback = false) => {
   const visibilityRegEx = /^(\d{4})$/i;
   const result = cloneDeep(TAF_TEMPLATES.VISIBILITY);
   if (visibilityAsTac && typeof visibilityAsTac === 'string') {
@@ -362,6 +420,9 @@ const tacToJsonForVisibility = (visibilityAsTac) => {
       result.value = parseInt(matchResult[1]);
       result.unit = 'M';
     }
+  }
+  if (useFallback && isEqual(result, TAF_TEMPLATES.VISIBILITY)) {
+    result.fallback = visibilityAsTac;
   }
   return result;
 };
@@ -377,7 +438,7 @@ const tacToJsonForCavok = (cavokAsTac) => {
   return result;
 };
 
-const tacToJsonForWeather = (weatherAsTac) => {
+const tacToJsonForWeather = (weatherAsTac, useFallback = false) => {
   let result = cloneDeep(TAF_TEMPLATES.WEATHER[0]);
   if (weatherAsTac && typeof weatherAsTac === 'string') {
     const matchResult = weatherAsTac.match(weatherRegEx);
@@ -389,10 +450,13 @@ const tacToJsonForWeather = (weatherAsTac) => {
       result = 'NSW';
     }
   }
+  if (useFallback && isEqual(result, TAF_TEMPLATES.WEATHER[0])) {
+    result.fallback = weatherAsTac;
+  }
   return result;
 };
 
-const tacToJsonForClouds = (cloudsAsTac) => {
+const tacToJsonForClouds = (cloudsAsTac, useFallback = false) => {
   let result = cloneDeep(TAF_TEMPLATES.CLOUDS[0]);
   if (cloudsAsTac && typeof cloudsAsTac === 'string') {
     const matchResult = cloudsAsTac.match(cloudsRegEx);
@@ -405,6 +469,9 @@ const tacToJsonForClouds = (cloudsAsTac) => {
     } else if (cloudsAsTac.toUpperCase() === 'NSC') {
       result = 'NSC';
     }
+  }
+  if (useFallback && isEqual(result, TAF_TEMPLATES.CLOUDS[0])) {
+    result.fallback = cloudsAsTac;
   }
   return result;
 };

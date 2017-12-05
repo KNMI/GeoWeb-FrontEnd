@@ -5,11 +5,14 @@ import Enum from 'es6-enum';
 import TimeSchedule from '../TimeSchedule';
 import { TAF_TEMPLATES, TAF_TYPES } from './TafTemplates';
 import cloneDeep from 'lodash.clonedeep';
-import diff from 'deep-diff';
+import getNestedProperty from 'lodash.get';
+import setNestedProperty from 'lodash.set';
+import isEqual from 'lodash.isequal';
 import moment from 'moment';
 import { Button, Row, Col } from 'reactstrap';
 import { createTAFJSONFromInput, setTACColumnInput, removeInputPropsFromTafJSON, cloneObjectAndSkipNullProps } from './FromTacCodeToTafjson';
-import { jsonToTacForClouds } from './TafFieldsConverter';
+import { jsonToTacForProbability, jsonToTacForChangeType, tacToJsonForProbabilityAndChangeType, tacToJsonForPeriod, tacToJsonForTimestamp,
+  tacToJsonForWind, tacToJsonForVisibility, tacToJsonForCavok, tacToJsonForWeather, tacToJsonForClouds, jsonToTacForClouds, tacToJsonForVerticalVisibility } from './TafFieldsConverter';
 import TafTable from './TafTable';
 // import TACTable from './TACTable';
 import axios from 'axios';
@@ -72,8 +75,8 @@ const generateDefaultValues = () => {
   let TAFStartHour = now.hour();
   TAFStartHour = TAFStartHour - TAFStartHour % 6 + 6;
   return {
-    start: now.hour(TAFStartHour).minutes(0).seconds(0).format('YYYY-MM-DDTHH:mm:ssZ'),
-    end: now.hour(TAFStartHour).minutes(0).seconds(0).add(30, 'hour').format('YYYY-MM-DDTHH:mm:ssZ'),
+    start: now.hour(TAFStartHour).minutes(0).seconds(0).format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+    end: now.hour(TAFStartHour).minutes(0).seconds(0).add(30, 'hour').format('YYYY-MM-DDTHH:mm:ss') + 'Z',
     issue: 'not yet issued',
     location: 'EHAM'
   };
@@ -104,8 +107,6 @@ class TafCategory extends Component {
     this.removeRow = this.removeRow.bind(this);
     this.setFocus = this.setFocus.bind(this);
     this.moveFocus = this.moveFocus.bind(this);
-    this.onDeleteRow = this.onDeleteRow.bind(this);
-    this.onFocusOut = this.onFocusOut.bind(this);
     this.onFocus = this.onFocus.bind(this);
     this.updateTACtoTAFJSONtoTac = this.updateTACtoTAFJSONtoTac.bind(this);
     this.onTACChange = this.onTACChange.bind(this);
@@ -131,6 +132,8 @@ class TafCategory extends Component {
         inWindow: null
       }
     };
+
+    console.log('Init', initialState);
 
     // TODO: should we include defaults?
     const defaults = generateDefaultValues();
@@ -364,7 +367,7 @@ class TafCategory extends Component {
    * @return {React.Component} A component with a readable presentation of the phenomenon value
    */
   decorateCloudsArray (value, prefix) {
-    if (value.length && value.length > 0 && value[0].hasOwnProperty('amount') && typeof value[0].amount === 'string') {
+    if (value.length && value.length > 0 && value[0] && value[0].hasOwnProperty('amount') && typeof value[0].amount === 'string') {
       const title = value.reduce((cumText, current, index) => {
         cumText += (current.amount ? current.amount : '') + (current.height ? current.height.toString().padStart(3, '0') : '') + (current.mod ? current.mod : '');
         if (index < value.length - 1) {
@@ -397,7 +400,7 @@ class TafCategory extends Component {
    * @return {React.Component} A component with a readable presentation of the phenomenon value
    */
   decorateWeatherArray (value, prefix) {
-    if (value.length && value.length > 0 && value[0].hasOwnProperty('phenomena') && value[0].phenomena.length > 0) {
+    if (value.length && value.length > 0 && value[0] && value[0].hasOwnProperty('phenomena') && value[0].phenomena.length > 0) {
       const title = value.reduce((cumText, current, index) => {
         cumText += (current.qualifier ? current.qualifier + ' ' : '') + (current.descriptor ? current.descriptor + ' ' : '');
         cumText += (current.phenomena
@@ -578,7 +581,6 @@ class TafCategory extends Component {
     switch (event.type) {
       case 'input':
       case 'change':
-        console.log('Update value Event ', event.type, 'fired on', event.target, event);
         this.updateValue(event.target);
         break;
       case 'blur':
@@ -604,6 +606,7 @@ class TafCategory extends Component {
           keyboardEvent.target.blur();
           break;
         default:
+          console.log('No action for event ', event.type, ' on ', event.target);
           break;
       }
     }
@@ -637,6 +640,7 @@ class TafCategory extends Component {
           }
           break;
         default:
+          console.log('No action for event ', event.type, ' on ', event.target);
           break;
       }
     }
@@ -727,43 +731,6 @@ class TafCategory extends Component {
     }
   }
 
-  /*
-    Event handler which handles keyUp events from input fields. E.g. arrow keys, Enter key, Esc key, etc...
-  */
-  // onKeyUp (event, row, col, inputValue) {
-  //   if (event.key === 'Enter') {
-  //     this.addRow();
-  //   }
-  //   if (event.key === 'Escape') {
-  //     this.updateTACtoTAFJSONtoTac();
-  //     this.validateTAF(this.state.tafJSON);
-  //   }
-  //   if (this.state.tafJSON.changegroups.length > 0) {
-  //     if (event.key === 'ArrowUp') { // KEY ARROW UP
-  //       if (row === 0) { // Up from changegroup to baseforecast
-  //         this.refs['taftable'].refs['baseforecast'].refs['column_' + col].refs['inputfield'].focus();
-  //       } else if (row > 0) { // Up from changegroup to changegroup
-  //         this.refs['taftable'].refs['changegroup_' + (row - 1)].refs['sortablechangegroup'].refs['column_' + col].refs['inputfield'].focus();
-  //       }
-  //     }
-  //     if (event.key === 'ArrowDown') { // KEY ARROW DOWN
-  //       if (row === -1) { // Down from baseforecast to changegroup
-  //         this.refs['taftable'].refs['changegroup_' + (row + 1)].refs['sortablechangegroup'].refs['column_' + col].refs['inputfield'].focus();
-  //       } else if (row >= 0 && row < (this.state.tafJSON.changegroups.length - 1)) { // Down from changegroup to changegroup
-  //         this.refs['taftable'].refs['changegroup_' + (row + 1)].refs['sortablechangegroup'].refs['column_' + col].refs['inputfield'].focus();
-  //       }
-  //     }
-  //   }
-  // }
-
-  /*
-    Event handler that is called upon jumping out of an input field.
-  */
-  onFocusOut () {
-    // this.updateTACtoTAFJSONtoTac();
-    // this.validateTAF(this.state.tafJSON);
-  }
-
   /**
    * Updates the value in the state, according to the element value
    * @param  {HTMLElement} element The (input-)element to update the value from
@@ -771,9 +738,87 @@ class TafCategory extends Component {
   updateValue (element) {
     let name = element ? (element.name || element.props.name) : null;
     if (name && typeof name === 'string') {
-      name = name.replace(/-/g, '.');
+      const nameParts = name.split('-');
+      let namePartsSecondary;
+      const propertyTypeName = isNaN(nameParts[nameParts.length - 1]) ? nameParts[nameParts.length - 1] : nameParts[nameParts.length - 2];
+      const phenomenonType = this.getPhenomenonType(propertyTypeName);
+      let value;
+      let valueSecondary;
+      switch (phenomenonType) {
+        case PHENOMENON_TYPES.WIND:
+          value = tacToJsonForWind(element.value, true);
+          break;
+        case PHENOMENON_TYPES.VISIBILITY:
+          value = tacToJsonForCavok(element.value);
+          valueSecondary = tacToJsonForVisibility(element.value, true);
+          namePartsSecondary = cloneDeep(nameParts);
+          nameParts.pop();
+          nameParts.push('caVOK');
+          break;
+        case PHENOMENON_TYPES.WEATHER:
+          value = tacToJsonForWeather(element.value, true);
+          if (value === 'NSW') {
+            nameParts.pop();
+          }
+          break;
+        case PHENOMENON_TYPES.CLOUDS:
+          value = tacToJsonForVerticalVisibility(element.value);
+          valueSecondary = tacToJsonForClouds(element.value, true);
+          namePartsSecondary = cloneDeep(nameParts);
+          nameParts.pop();
+          nameParts.pop();
+          nameParts.push('vertical_visibility');
+          if (valueSecondary === 'NSC') {
+            namePartsSecondary.pop();
+          }
+          break;
+        default:
+          break;
+      }
+      if (!value) {
+        switch (propertyTypeName) {
+          case 'probability':
+            nameParts.pop();
+            nameParts.push('changeType');
+            const change = jsonToTacForChangeType(getNestedProperty(this.state.tafAsObject, nameParts), true);
+            value = tacToJsonForProbabilityAndChangeType(element.value, change, true);
+            console.log('v', value);
+            break;
+          case 'changeType':
+            nameParts.pop();
+            nameParts.push('changeType');
+            const probability = jsonToTacForProbability(getNestedProperty(this.state.tafAsObject, nameParts), true);
+            value = tacToJsonForProbabilityAndChangeType(probability, element.value, true);
+            break;
+          case 'validity':
+            const scopeStart = this.state.tafAsObject.metadata.validityStart;
+            const scopeEnd = this.state.tafAsObject.metadata.validityEnd;
+            let tmpValue = tacToJsonForPeriod(element.value, scopeStart, scopeEnd);
+            if (isEqual(tmpValue, { start: null, end: null })) {
+              tmpValue.start = tacToJsonForTimestamp(element.value, scopeStart, scopeEnd, true);
+            }
+            nameParts.pop();
+            namePartsSecondary = cloneDeep(nameParts);
+            nameParts.push('changeStart');
+            namePartsSecondary.push('changeEnd');
+            value = tmpValue.start;
+            valueSecondary = tmpValue.end;
+            break;
+          default:
+            break;
+        }
+      }
+
+      const newTafState = cloneDeep(this.state.tafAsObject);
+      setNestedProperty(newTafState, nameParts, value);
+      if (namePartsSecondary) {
+        setNestedProperty(newTafState, namePartsSecondary, valueSecondary);
+      }
+      this.setState({
+        tafAsObject: newTafState,
+        hasEdits: true
+      });
     }
-    console.log('Name', name);
   }
 
   /**
@@ -847,7 +892,9 @@ class TafCategory extends Component {
    */
   addRow () {
     const newTafState = cloneDeep(this.state.tafAsObject);
+    console.log('nwSt', cloneDeep(newTafState));
     newTafState.changegroups.push(cloneDeep(TAF_TEMPLATES.CHANGE_GROUP));
+    console.log('nwSt2', cloneDeep(newTafState));
     this.setState({
       tafAsObject: newTafState,
       hasEdits: true
@@ -870,27 +917,16 @@ class TafCategory extends Component {
   }
 
   /*
-    This function removes a changeGroup by given rowIndex.
-  */
-  onDeleteRow (rowIndex) {
-    // let newTaf = cloneObjectAndSkipNullProps(this.state.tafJSON);
-    // newTaf.changegroups.splice(rowIndex, 1);
-    // this.setState({
-    //   tafJSON: newTaf
-    // });
-    // this.validateTAF(newTaf);
-  };
-
-  /*
     Callback function called by SortableElement and SortableContainer when changegroups are sorted by Drag and Drop
   */
   onSortEnd ({ oldIndex, newIndex }) {
-    let newTaf = cloneObjectAndSkipNullProps(this.state.tafJSON);
-    newTaf.changegroups = arrayMove(newTaf.changegroups, oldIndex, newIndex);
+    const newTafState = cloneDeep(this.state.tafAsObject);
+    newTafState.changegroups = arrayMove(newTafState.changegroups, oldIndex, newIndex);
     this.setState({
-      tafJSON: newTaf
+      tafJSON: newTafState,
+      hasEdits: true
     });
-    this.validateTAF(newTaf);
+    // this.validateTAF(newTaf);
   };
 
   componentWillReceiveProps (nextProps) {
@@ -914,82 +950,8 @@ class TafCategory extends Component {
     }
   }
 
-  // shouldComponentUpdate (nextProps, nextState) {
-  //   return true;
-  // }
-
-  // componentWillReceiveProps (nextProps) {
-  //   console.log('Hitme', nextProps);
-
-  //   if (nextProps.hasOwnProperty('taf') && nextProps.taf != null) {
-  //     let tafJSON = null;
-  //     if (typeof nextProps.taf === 'string') {
-  //       try {
-  //         tafJSON = JSON.parse(nextProps.taf);
-  //       } catch (e) {
-  //         console.log(e);
-  //       }
-  //     } else {
-  //       tafJSON = nextProps.taf;
-  //     }
-
-  // TODO: should these default values being inserted?
-  //     let TAFStartHour = moment().utc().hour();
-  //     TAFStartHour = TAFStartHour + 6;
-  //     TAFStartHour = parseInt(TAFStartHour / 6);
-  //     TAFStartHour = TAFStartHour * (6);
-  //     if (!tafJSON.hasOwnProperty('metadata') || !tafJSON.metadata.hasOwnProperty('validityStart') || !tafJSON.metadata.validityStart) {
-  //       tafJSON['metadata'].validityStart
-  //     }
-  //   }
-
-  //   return;
-
-  //   let TAFStartHour = moment().utc().hour();
-  //   TAFStartHour = TAFStartHour + 6;
-  //   TAFStartHour = parseInt(TAFStartHour / 6);
-  //   TAFStartHour = TAFStartHour * (6);
-
-  //   {
-  //     tafJSON: {
-  //       forecast:{},
-  //       metadata:{
-  //         validityStart: moment().utc().hour(TAFStartHour).add(0, 'hour').format('YYYY-MM-DDTHH:00:00') + 'Z',
-  //         validityEnd: moment().utc().hour(TAFStartHour).add(30, 'hour').format('YYYY-MM-DDTHH:00:00') + 'Z'
-  //       },
-  //       changegroups:[]
-  //     }
-  //   };
-  //   const nextState = cloneDeep(this.state)
-  //   let tafJSON = null;
-  //   if (nextProps.taf) {
-  //     if (typeof nextProps.taf === 'string') {
-  //       try {
-  //         tafJSON = JSON.parse(nextProps.taf);
-  //       } catch (e) {
-  //         console.log(e);
-  //       }
-  //     } else {
-  //       tafJSON = nextProps.taf;
-  //     }
-  //     if (tafJSON !== null) {
-  //       if (tafJSON.changegroups) {
-  //         let uuid = null;
-  //         if (tafJSON.metadata && tafJSON.metadata.uuid) {
-  //           uuid = tafJSON.metadata.uuid;
-  //         }
-  //         if (this.changegroupsSet === uuid) return;
-  //         this.changegroupsSet = uuid;
-  //         this.setState({
-  //           tafJSON: cloneObjectAndSkipNullProps(tafJSON)
-  //         });
-  //         this.validateTAF(tafJSON);
-  //       }
-  //     }
-  //   }
-  // }
-
   render () {
+    console.log('Rendering TafCategory', this.state.tafAsObject);
     const flatten = list => list.reduce(
       (a, b) => a.concat(Array.isArray(b) ? flatten(b) : b), []
     );
@@ -1023,9 +985,7 @@ class TafCategory extends Component {
                 onKeyUp={this.onKeyUp}
                 onKeyDown={this.onKeyDown}
                 onFocus={this.onFocus}
-                onDeleteRow={this.onDeleteRow}
-                editable={this.props.editable}
-                onFocusOut={this.onFocusOut} />
+                editable={this.props.editable} />
             </Col>
           </Row>
           { this.state.validationReport

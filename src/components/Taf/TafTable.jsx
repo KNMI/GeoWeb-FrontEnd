@@ -137,6 +137,7 @@ TafTable.propTypes = {
   onKeyUp: PropTypes.func,
   onKeyDown: PropTypes.func,
   onClick: PropTypes.func,
+  onFocus: PropTypes.func,
   validationReport:PropTypes.object
 };
 

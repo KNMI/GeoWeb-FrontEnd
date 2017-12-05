@@ -39,14 +39,14 @@ class BaseForecast extends Component {
       },
       {
         name: 'forecast-wind',
-        value: tafForecast.hasOwnProperty('wind') ? jsonToTacForWind(tafForecast.wind) || '' : '',
+        value: tafForecast.hasOwnProperty('wind') ? jsonToTacForWind(tafForecast.wind, true) || '' : '',
         disabled: !editable,
         classes: []
       },
       {
         name: 'forecast-visibility',
         value: (tafForecast.hasOwnProperty('caVOK') || tafForecast.hasOwnProperty('visibility'))
-          ? jsonToTacForCavok(tafForecast.caVOK) || (jsonToTacForVisibility(tafForecast.visibility) || '')
+          ? jsonToTacForCavok(tafForecast.caVOK) || (jsonToTacForVisibility(tafForecast.visibility, true) || '')
           : '',
         disabled: !editable,
         classes: []
@@ -57,24 +57,29 @@ class BaseForecast extends Component {
         name: 'forecast-weather-' + weatherIndex,
         value: tafForecast.hasOwnProperty('weather')
           ? (Array.isArray(tafForecast.weather) && tafForecast.weather.length > weatherIndex
-            ? jsonToTacForWeather(tafForecast.weather[weatherIndex]) || ''
-            : jsonToTacForWeather(tafForecast.weather)) || '' // NSW
+            ? jsonToTacForWeather(tafForecast.weather[weatherIndex], true) || ''
+            : weatherIndex === 0
+              ? jsonToTacForWeather(tafForecast.weather, true) || '' // NSW
+              : '')
           : '',
-        disabled: !editable,
+        disabled: !editable || (jsonToTacForWeather(tafForecast.weather) && weatherIndex !== 0),
         classes: []
       });
     }
     for (let cloudsIndex = 0; cloudsIndex < 4; cloudsIndex++) {
       columns.push({
         name: 'forecast-clouds-' + cloudsIndex,
-        value: tafForecast.hasOwnProperty('vertical-visibility') || tafForecast.hasOwnProperty('clouds')
-          ? jsonToTacForVerticalVisibility(tafForecast['vertical-visibility']) ||
+        value: tafForecast.hasOwnProperty('vertical_visibility') || tafForecast.hasOwnProperty('clouds')
+          ? jsonToTacForVerticalVisibility(tafForecast.vertical_visibility) ||
             (Array.isArray(tafForecast.clouds) && tafForecast.clouds.length > cloudsIndex
-              ? jsonToTacForClouds(tafForecast.clouds[cloudsIndex]) || ''
-              : jsonToTacForClouds(tafForecast.clouds) || '') // NSC
+              ? jsonToTacForClouds(tafForecast.clouds[cloudsIndex], true) || ''
+              : cloudsIndex === 0
+                ? jsonToTacForClouds(tafForecast.clouds, true) || '' // NSC
+                : '')
           : '',
-        disabled: !editable,
-        classes: []
+        disabled: !editable || (jsonToTacForClouds(tafForecast.clouds) && cloudsIndex !== 0) ||
+          (jsonToTacForVerticalVisibility(tafForecast.vertical_visibility) && cloudsIndex !== 0),
+        classes: [ (jsonToTacForVerticalVisibility(tafForecast.vertical_visibility) && cloudsIndex !== 0) ? 'hideValue' : null ]
       });
     }
     columns.push(
@@ -91,7 +96,7 @@ class BaseForecast extends Component {
 
     return <tr>
       {columns.map((col) => <td className={classNames(col.classes)} key={col.name}>
-        <input ref={inputRef} name={col.name} type='text' value={col.value} disabled={col.disabled} autoFocus={col.autoFocus} />
+        <input ref={inputRef} name={col.name} type='text' defaultValue={col.value} disabled={col.disabled} autoFocus={col.autoFocus} />
       </td>
       )}
     </tr>;
