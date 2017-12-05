@@ -54,7 +54,7 @@ describe('(Functions) TafFieldsConverter', () => {
     expect(result).to.eql(null);
     // Invalid end
     result = jsonToTacForPeriod('2017-11-22T17:11:43Z', 'Blah');
-    expect(result).to.eql(null);
+    expect(result).to.eql('2217');
   });
 
   it('Converts wind data from JSON to TAC', () => {
