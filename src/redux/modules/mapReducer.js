@@ -95,7 +95,12 @@ export const actions = {
 
 export default handleActions({
   [CREATE_MAP]: state => ({ ...state, mapCreated: true }),
-  [SET_CUT]: (state, { payload }) => ({ ...state, boundingBox: { title: payload.title, bbox: payload.bbox }, projection: payload.projection }),
+  [SET_CUT]: (state, { payload }) => (
+    {
+      ...state,
+      boundingBox: { title: payload.title, bbox: payload.bbox },
+      projection: payload.projection ? payload.projection : { name: 'Mercator', code: 'EPSG:3857' }
+    }),
   [SET_MAP_STYLE]: (state, { payload }) => ({ ...state, mapType: MAP_STYLES[payload] }),
   [SET_MAP_MODE]: (state, { payload }) => ({ ...state, mapMode: payload }),
   [SET_PROJECTION]: (state, { payload }) => ({ ...state, projection: { name: payload.title, code: payload.code }, boundingBox: { title: 'Custom', bbox: payload.bbox } }),

@@ -170,8 +170,17 @@ class TitleBarContainer extends PureComponent {
         for (var i = allSources.length - 1; i >= 0; i--) {
           const source = allSources[i];
           var r = new Promise((resolve, reject) => {
+            if (!source) {
+              reject(new Error('Source is not working'));
+            }
+            if (!source.name) {
+              reject(new Error('Source has no name'));
+            }
             // eslint-disable-next-line no-undef
             const service = WMJSgetServiceFromStore(source.service);
+            if (!service) {
+              reject(new Error('Cannot get service from store'));
+            }
             service.getLayerObjectsFlat((layers) => { sourcesDic[source.name] = { layers, source }; resolve(); });
           });
           promises.push(r);
