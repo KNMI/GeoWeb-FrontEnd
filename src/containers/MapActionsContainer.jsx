@@ -1,13 +1,12 @@
 import React, { PureComponent } from 'react';
-import { Button, Col, Row, Popover, PopoverContent, ButtonGroup, Modal, ModalHeader, ModalBody, ModalFooter, ListGroup, ListGroupItem } from 'reactstrap';
+import { Button, Col, Row, Popover, PopoverContent, ButtonGroup, Modal, ModalBody, ModalFooter, ListGroup, ListGroupItem } from 'reactstrap';
 import Panel from '../components/Panel';
 import { BOUNDING_BOXES } from '../constants/bounding_boxes';
 import { Icon } from 'react-fa';
 import ProgtempPopoverComponent from '../components/ProgtempPopoverComponent';
 import TimeseriesPopoverComponent from '../components/TimeseriesPopoverComponent';
-import axios from 'axios';
 import PropTypes from 'prop-types';
-
+import cloneDeep from 'lodash.clonedeep';
 var moment = require('moment');
 
 class MapActionContainer extends PureComponent {
@@ -27,7 +26,6 @@ class MapActionContainer extends PureComponent {
     this.renderTimeseriesPopover = this.renderTimeseriesPopover.bind(this);
     // Helper
     this.handleAddLayer = this.handleAddLayer.bind(this);
-    this.getLayerName = this.getLayerName.bind(this);
     this.renderLayerChooser = this.renderLayerChooser.bind(this);
 
     // State
@@ -36,7 +34,8 @@ class MapActionContainer extends PureComponent {
       popoverOpen: false,
       layerChooserOpen: false,
       activeTab: '1',
-      getCapBusy: false
+      getCapBusy: false,
+      filter: ''
     };
   }
 
@@ -96,8 +95,15 @@ class MapActionContainer extends PureComponent {
       activeTab: '1',
       activeSource: null,
       action: null,
-      layers: null
+      layers: null,
+      filter: ''
     });
+  }
+
+  componentDidUpdate (prevProps, prevState) {
+    if (!prevState.layerChooserOpen && this.state.layerChooserOpen) {
+      document.getElementById('filterInput').focus();
+    }
   }
 
   toggleLayerChooser () {
@@ -131,29 +137,6 @@ class MapActionContainer extends PureComponent {
       </Popover>
     );
   }
-  getLayerName (layer) {
-    if (layer) {
-      switch (layer.title) {
-        case 'OBS':
-          return 'Observations';
-        case 'SAT':
-          return 'Satellite';
-        case 'LGT':
-          return 'Lightning';
-        case 'HARM_N25_EXT':
-          return 'HARMONIE (EXT)';
-        case 'HARM_N25':
-          return 'HARMONIE';
-        case 'OVL':
-          return 'Overlay';
-        case 'RADAR_EXT':
-          return 'Radar (EXT)';
-        default:
-          return layer.title;
-      }
-    }
-    return '';
-  }
 
   renderProgtempPopover (adagucTime) {
     if (this.state.progTempPopOverOpen) {
@@ -171,10 +154,62 @@ class MapActionContainer extends PureComponent {
     }
   }
 
-  renderLayerChooser () {
+  filterSourcesAndLayers (data, filter) {
+    // If there's no filter just return the data
+    if (filter === '') {
+      return data;
+    }
+
+    // Don't delete sources whom match the filter
+    const protectedKeys = Object.keys(data).filter((key) => key.toLowerCase().indexOf(filter) !== -1);
+
+    // For each source....
+    Object.keys(data).map((key) => {
+      const vals = data[key].layers;
+      // Delete all layers that do not match the filter
+      const filteredLayers = vals.filter((layer) => layer.name.toLowerCase().indexOf(filter) !== -1 ||
+                                                    layer.text.toLowerCase().indexOf(filter) !== -1);
+
+      // If the source itself is matched by the filter
+      if (protectedKeys.includes(key)) {
+        // but some layers match it too, return those.
+        // else we return all layers in the matched source
+        if (filteredLayers.length !== 0) {
+          data[key].layers = filteredLayers;
+        }
+      } else {
+        // Else filter the layers
+        data[key].layers = filteredLayers;
+      }
+    });
+    // Filter all sources that have no layers that match the filter
+    // except if the source itself is matched by the filter
+    const keys = Object.keys(data);
+    keys.map((key) => {
+      if (data[key].layers.length === 0 && !protectedKeys.includes(key)) {
+        delete data[key];
+      }
+    });
+    return data;
+  }
+
+  renderLayerChooser (data) {
+    // Filter the layers and sources by a string filter
+    const filteredData = this.filterSourcesAndLayers(cloneDeep(data), this.state.filter);
+
+    // If the result is merely one filter, select it by default
+    if (Object.keys(filteredData).length === 1 && !this.state.activeSource) {
+      this.setState({ activeSource: filteredData[Object.keys(filteredData)[0]].source });
+    }
     return (
       <Modal style={{ width: '60rem', minWidth: '60rem', maxHeight: '20rem' }} id='addLayerModal' isOpen={this.state.layerChooserOpen} toggle={this.toggleLayerChooser}>
-        <ModalHeader>Add Layer</ModalHeader>
+        <div className='modal-header'>
+          <h4 className='modal-title'>
+            Add Layer
+          </h4>
+          <input id='filterInput' style={{ width: '25rem' }} className='form-control'
+            placeholder='Filter&hellip;' onChange={(a) => { this.setState({ activeSource: null, filter: a.target.value }); }} />
+        </div>
         <ModalBody>
           <Row style={{ borderBottom: '1px solid #eceeef' }}>
             <Col xs='5' style={{ paddingLeft: 0 }}>
@@ -188,7 +223,7 @@ class MapActionContainer extends PureComponent {
             <Col xs='5' style={{ paddingLeft: 0, borderRight: '1px solid #eceeef', overflowY: 'auto' }}>
               <ListGroup>
                 {
-                  Object.keys(this.props.adagucProperties.sources).map((source) =>
+                  Object.keys(filteredData).map((source) =>
                     <ListGroupItem
                       style={{
                         maxHeight: '2.5em',
@@ -202,7 +237,7 @@ class MapActionContainer extends PureComponent {
                       }}
                       tag='a' href='#'
                       active={this.state.activeSource && source === this.state.activeSource.name}
-                      onClick={(evt) => { evt.stopPropagation(); evt.preventDefault(); this.setState({ activeSource: this.props.adagucProperties.sources[source].source }); }}>{source}</ListGroupItem>)
+                      onClick={(evt) => { evt.stopPropagation(); evt.preventDefault(); this.setState({ activeSource: filteredData[source].source }); }}>{source}</ListGroupItem>)
                 }
               </ListGroup>
             </Col>
@@ -210,7 +245,7 @@ class MapActionContainer extends PureComponent {
               {
                 this.state.activeSource
                   ? <ListGroup>
-                    {this.props.adagucProperties.sources[this.state.activeSource.name].layers.map((layer) =>
+                    {filteredData[this.state.activeSource.name].layers.map((layer) =>
                       <ListGroupItem style={{ maxHeight: '2.5em' }} tag='a' href='#'
                         onClick={(evt) => { evt.stopPropagation(); evt.preventDefault(); this.handleAddLayer({ ...layer, service: this.state.activeSource.service }); }}>{layer.text}</ListGroupItem>)}
                   </ListGroup>
@@ -270,7 +305,7 @@ class MapActionContainer extends PureComponent {
 
     return (
       <Col className='MapActionContainer'>
-        {this.renderLayerChooser()}
+        {this.renderLayerChooser(this.props.adagucProperties.sources)}
         {this.renderProgtempPopover(moment.utc(adagucProperties.timeDimension))}
         {this.renderTimeseriesPopover()}
         <Panel className='Panel' title={title}>
