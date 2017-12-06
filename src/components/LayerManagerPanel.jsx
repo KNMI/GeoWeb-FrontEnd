@@ -42,7 +42,7 @@ class LayerManagerPanel extends PureComponent {
           <TimeComponent activeMapId={mapProperties.activeMapId} width={this.state.width} height={this.state.height} timedim={adagucProperties.timeDimension}
             wmjslayers={layers.wmjsLayers} dispatch={dispatch} adagucActions={this.props.adagucActions} ref={(panel) => this.setResizeListener(ReactDOM.findDOMNode(panel))} />
           <LayerManager wmjslayers={layers.wmjsLayers} dispatch={dispatch} layerActions={this.props.layerActions}
-            adagucActions={this.props.adagucActions} activeMapId={mapProperties.activeMapId} />
+            adagucActions={this.props.adagucActions} baselayer={layers.baselayer} panel={layers.panels[mapProperties.activeMapId]} activeMapId={mapProperties.activeMapId} />
         </Row>
       </Panel>
     );

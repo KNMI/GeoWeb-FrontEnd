@@ -18,13 +18,14 @@ describe('(Component) TitleBarContainer', () => {
   const _loginaction = sinon.spy();
 
   beforeEach(() => {
-    _component = mount(<TitleBarContainer urls={{ BACKEND_SERVER_URL: 'http://localhost:8080' }}
+    _component = mount(<TitleBarContainer urls={{ BACKEND_SERVER_URL: 'http://localhost:8080' }} mapProperties={{ boundingBox: emptyObj, projection: emptyObj }}
       user={{ roles: [], isLoggedIn: false }} userActions={{ login: _loginaction, logout: _logoutaction }} adagucProperties={emptyObj} dispatch={emptyFunc} routes={[{ path: 'testpath' }]} />);
   });
   it('Renders nested routes', () => {
     _component = mount(<TitleBarContainer urls={{ BACKEND_SERVER_URL: 'http://localhost:8080' }}
       userActions={{ login: _loginaction, logout: _logoutaction }}
       adagucProperties={emptyObj}
+      mapProperties={{ boundingBox: emptyObj, projection: emptyObj }}
       dispatch={emptyFunc}
       user={{ roles: [], isLoggedIn: false }}
       routes={[
@@ -54,6 +55,7 @@ describe('(Component) TitleBarContainer', () => {
     const _logoutaction = sinon.spy();
     _component = mount(
       <TitleBarContainer urls={{ BACKEND_SERVER_URL: 'http://localhost:8080' }}
+        mapProperties={{ boundingBox: emptyObj, projection: emptyObj }}
         user={{ roles: [], isLoggedIn: false }} userActions={{ login: _loginaction, logout: _logoutaction }}
         adagucProperties={{ user: { isLoggedIn: true, userName: 'Blah' } }}
         dispatch={emptyFunc}
@@ -71,6 +73,7 @@ describe('(Component) TitleBarContainer', () => {
     const _loginaction = sinon.spy();
     _component = mount(
       <TitleBarContainer urls={{ BACKEND_SERVER_URL: 'http://localhost:8080' }}
+        mapProperties={{ boundingBox: emptyObj, projection: emptyObj }}
         user={{ roles: [], isLoggedIn: false }} userActions={{ login: _loginaction, logout: _logoutaction }}
         dispatch={emptyFunc}
         routes={[{ path: 'testpath' }]}
@@ -86,6 +89,7 @@ describe('(Component) TitleBarContainer', () => {
     const _logoutaction = sinon.spy();
     _component = mount(
       <TitleBarContainer urls={{ BACKEND_SERVER_URL: 'http://localhost:8080' }}
+        mapProperties={{ boundingBox: emptyObj, projection: emptyObj }}
         user={{ roles: [], isLoggedIn: false }} userActions={{ login: _loginaction, logout: _logoutaction }}
         dispatch={emptyFunc}
         routes={[{ path: 'testpath' }]}
@@ -105,6 +109,7 @@ describe('(Component) TitleBarContainer', () => {
   it('Checks checkCredentialsOKCallback method with invalid username \'\' ', () => {
     _component = mount(
       <TitleBarContainer urls={{ BACKEND_SERVER_URL: 'http://localhost:8080' }}
+        mapProperties={{ boundingBox: emptyObj, projection: emptyObj }}
         user={{ roles: [], isLoggedIn: false }} userActions={{ login: _loginaction, logout: _logoutaction }}
         dispatch={emptyFunc}
         routes={[{ path: 'testpath' }]}
@@ -119,6 +124,7 @@ describe('(Component) TitleBarContainer', () => {
     const _logoutaction = sinon.spy();
     _component = mount(
       <TitleBarContainer urls={{ BACKEND_SERVER_URL: 'http://localhost:8080' }}
+        mapProperties={{ boundingBox: emptyObj, projection: emptyObj }}
         user={{ roles: [], isLoggedIn: false }} userActions={{ login: _loginaction, logout: _logoutaction }}
         adagucProperties={{ user: { isLoggedIn: true, userName: 'Blah' } }}
         dispatch={emptyFunc}
@@ -133,6 +139,7 @@ describe('(Component) TitleBarContainer', () => {
   it('Calls the setTime function and checks wheter state is updated', () => {
     _component = mount(
       <TitleBarContainer urls={{ BACKEND_SERVER_URL: 'http://localhost:8080' }}
+        mapProperties={{ boundingBox: emptyObj, projection: emptyObj }}
         user={{ roles: [], isLoggedIn: false }} userActions={{ login: _loginaction, logout: _logoutaction }}
         adagucProperties={{ user: { isLoggedIn: true, userName: 'Blah' } }}
         dispatch={emptyFunc}

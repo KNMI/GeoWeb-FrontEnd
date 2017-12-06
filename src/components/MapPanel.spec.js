@@ -21,7 +21,10 @@ const state = {
     activeMapId: 0,
     layout: 'single',
     mapMode: 'pan',
-    projectionName: 'EPSG:3857',
+    projection: {
+      name: 'Mercator',
+      code: 'EPSG:3857'
+    },
     boundingBox: {
       title: 'Netherlands',
       bbox: [

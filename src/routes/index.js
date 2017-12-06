@@ -49,7 +49,8 @@ const mapDispatchToHeaderProps = function (dispatch) {
     dispatch,
     mapActions,
     adagucActions,
-    userActions
+    userActions,
+    layerActions
   });
 };
 const mapStateToSidebarProps = state => ({
