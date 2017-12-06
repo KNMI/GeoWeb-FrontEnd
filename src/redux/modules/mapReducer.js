@@ -6,7 +6,10 @@ const INITIAL_STATE = {
   activeMapId: 0,
   layout: 'single',
   mapMode: 'pan',
-  projectionName: 'EPSG:3857',
+  projection: {
+    code: 'EPSG:3857',
+    name: 'Mercator'
+  },
   boundingBox: {
     title: 'Netherlands',
     bbox: [
@@ -52,6 +55,7 @@ const INITIAL_STATE = {
 // Actions
 const CREATE_MAP = 'CREATE_MAP';
 const SET_CUT = 'SET_CUT';
+const SET_PROJECTION = 'SET_PROJECTION';
 const SET_MAP_STYLE = 'SET_MAP_STYLE';
 const SET_MAP_MODE = 'SET_MAP_MODE';
 const SET_LAYOUT = 'SET_LAYOUT';
@@ -63,6 +67,7 @@ const setMapStyle = createAction(SET_MAP_STYLE);
 const setMapMode = createAction(SET_MAP_MODE);
 const setLayout = createAction(SET_LAYOUT);
 const setActivePanel = createAction(SET_ACTIVE_PANEL);
+const setProjection = createAction(SET_PROJECTION);
 
 const getNumPanels = (name) => {
   let numPanels = 0;
@@ -84,14 +89,16 @@ export const actions = {
   setMapStyle,
   setMapMode,
   setLayout,
-  setActivePanel
+  setActivePanel,
+  setProjection
 };
 
 export default handleActions({
   [CREATE_MAP]: state => ({ ...state, mapCreated: true }),
-  [SET_CUT]: (state, { payload }) => ({ ...state, boundingBox: payload }),
+  [SET_CUT]: (state, { payload }) => ({ ...state, boundingBox: { title: payload.title, bbox: payload.bbox }, projection: payload.projection }),
   [SET_MAP_STYLE]: (state, { payload }) => ({ ...state, mapType: MAP_STYLES[payload] }),
   [SET_MAP_MODE]: (state, { payload }) => ({ ...state, mapMode: payload }),
+  [SET_PROJECTION]: (state, { payload }) => ({ ...state, projection: { name: payload.title, code: payload.code }, boundingBox: { title: 'Custom', bbox: payload.bbox } }),
   [SET_LAYOUT]: (state, { payload }) => {
     const numPanels = getNumPanels(payload);
     const layout = numPanels === 1 ? 'single' : payload;

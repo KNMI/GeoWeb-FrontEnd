@@ -342,40 +342,6 @@ export default class LayerManager extends PureComponent {
     const { dispatch, layerActions, activeMapId } = this.props;
     dispatch(layerActions.deleteLayer({ idx: i, type, activeMapId }));
   }
-  getBaseLayerName (layer) {
-    switch (layer.name) {
-      case 'streetmap':
-        return 'OpenStreetMap';
-      case 'naturalearth2':
-        return 'Natural Earth';
-      default:
-        return layer.name;
-    }
-  }
-  getOverLayerName (layer) {
-    switch (layer.name) {
-      case 'countries':
-        return 'Countries';
-      case 'neddis':
-        return 'Dutch districts';
-      case 'FIR_DEC_2013_EU':
-        return 'FIR areas';
-      case 'gemeenten':
-        return 'Gemeenten';
-      case 'northseadistricts':
-        return 'North Sea districts';
-      case 'nwblightP':
-        return 'Prov. wegen';
-      case 'provincies':
-        return 'Provincies';
-      case 'nwblightR':
-        return 'Rijkswegen';
-      case 'waterschappen':
-        return 'Waterschappen';
-      default:
-        return layer.name;
-    }
-  }
   jumpToLatestTime (i) {
     const layer = this.state.layers[i];
     if (!layer.getDimension('time')) {
@@ -399,7 +365,7 @@ export default class LayerManager extends PureComponent {
           i={i}
           color='success'
           editable
-          name={this.getBaseLayerName(layer)}
+          name={this.props.baselayer ? (this.props.baselayer.label ? this.props.baselayer.label : this.props.baselayer.title) : '???'}
           target={`baselayer${i}`}
           layer={layer}
           dispatch={this.props.dispatch}
@@ -423,7 +389,7 @@ export default class LayerManager extends PureComponent {
         <Col xs='auto'><Icon style={{ minWidth: '1rem' }} id='enableButton' name={layer.enabled ? 'check-square-o' : 'square-o'} onClick={() => this.toggleLayer('overlay', i)} /></Col>
         <Col xs='auto'><Icon id='deleteButton' name='times' onClick={() => this.deleteLayer('overlay', i)} /></Col>
         <Col xs='auto'><Icon style={{ color: 'transparent' }} name='chevron-up' /></Col>
-        <LayerSource color='danger' name={this.getOverLayerName(layer)} />
+        <LayerSource color='danger' name={this.props.panel.overlays[i].label ? this.props.panel.overlays[i].label : this.props.panel.overlays[i].name} />
         <Col />
         <Col />
         <Col />
@@ -433,13 +399,22 @@ export default class LayerManager extends PureComponent {
   }
 
   renderLayerSet (layers) {
-    const { dispatch, layerActions, activeMapId } = this.props;
+    const { dispatch, layerActions, activeMapId, panel, wmjslayers } = this.props;
     if (!layers) {
       return <div />;
     }
     return layers.map((layer, i) => {
       const refTime = layer.getDimension ? layer.getDimension('reference_time') : null;
       const modelLevel = layer.getDimension ? layer.getDimension('modellevel') : null;
+      const panelLayer = panel.layers[i];
+      const wmjsLayer = wmjslayers.layers[i];
+      if (!panelLayer) return;
+      let sourceName = '';
+      if (panelLayer.title) {
+        sourceName = panelLayer.title;
+      } else {
+        sourceName = wmjsLayer.WMJSService.title;
+      }
       return (
         <Row className='layerinfo' key={`lgi${i}`} style={{ marginBottom: '0.1rem' }}>
           <Col xs='auto'><Icon name='chevron-up' onClick={() => dispatch(layerActions.reorderLayers({ direction: 'up', index: i, activeMapId }))} /></Col>
@@ -447,7 +422,7 @@ export default class LayerManager extends PureComponent {
           <Col xs='auto'><Icon style={{ minWidth: '1rem' }} id='enableButton' name={layer.enabled ? 'check-square-o' : 'square-o'} onClick={() => this.toggleLayer('data', i)} /></Col>
           <Col xs='auto'><Icon id='deleteButton' name='times' onClick={() => this.deleteLayer('data', i)} /></Col>
           <Col xs='auto'><Icon title='Jump to latest time in layer' name='clock-o' onClick={() => this.jumpToLatestTime(i)} /></Col>
-          <LayerSource color='info' name={this.getLayerName(layer)} />
+          <LayerSource color='info' name={sourceName} />
           <LayerName color='info' editable activeMapId={activeMapId} name={layer.title} i={i} target={`datalayer${i}`} layer={layer} dispatch={dispatch} layerActions={this.props.layerActions} />
           <LayerStyle color='info' editable activeMapId={activeMapId} style={layer.currentStyle} layer={layer}
             target={`datalayerstyle${i}`} i={i} dispatch={dispatch} layerActions={this.props.layerActions} />
@@ -501,5 +476,7 @@ LayerManager.propTypes = {
   layerActions: PropTypes.object.isRequired,
   wmjslayers: PropTypes.object,
   activeMapId: PropTypes.number,
-  adagucActions: PropTypes.object
+  adagucActions: PropTypes.object,
+  baselayer: PropTypes.object,
+  panel: PropTypes.object
 };

@@ -1,15 +1,12 @@
 import React, { PureComponent } from 'react';
-import { Button, Col, Row, Popover, InputGroup, Input, InputGroupButton, PopoverContent,
-  ButtonGroup, TabContent, TabPane, Nav, NavItem, NavLink, Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
+import { Button, Col, Row, Popover, PopoverContent, ButtonGroup, Modal, ModalBody, ModalFooter, ListGroup, ListGroupItem } from 'reactstrap';
 import Panel from '../components/Panel';
 import { BOUNDING_BOXES } from '../constants/bounding_boxes';
 import { Icon } from 'react-fa';
-import classnames from 'classnames';
-import { Typeahead } from 'react-bootstrap-typeahead';
 import ProgtempPopoverComponent from '../components/ProgtempPopoverComponent';
 import TimeseriesPopoverComponent from '../components/TimeseriesPopoverComponent';
-import axios from 'axios';
 import PropTypes from 'prop-types';
+import cloneDeep from 'lodash.clonedeep';
 var moment = require('moment');
 
 class MapActionContainer extends PureComponent {
@@ -22,24 +19,13 @@ class MapActionContainer extends PureComponent {
     this.toggleAnimation = this.toggleAnimation.bind(this);
     this.toggleLayerChooser = this.toggleLayerChooser.bind(this);
     this.goToNow = this.goToNow.bind(this);
-    this.setView = this.setView.bind(this);
     this.handleActionClick = this.handleActionClick.bind(this);
-    this.handleAddSource = this.handleAddSource.bind(this);
 
     // Render functions
-    this.renderBBOXPopOver = this.renderBBOXPopOver.bind(this);
     this.renderLayerChooser = this.renderLayerChooser.bind(this);
     this.renderTimeseriesPopover = this.renderTimeseriesPopover.bind(this);
     // Helper
-    this.generateMap = this.generateMap.bind(this);
     this.handleAddLayer = this.handleAddLayer.bind(this);
-    this.getLayerName = this.getLayerName.bind(this);
-    this.handleSourceClick = this.handleSourceClick.bind(this);
-    this.toggleTab = this.toggleTab.bind(this);
-    this.renderSourceSelector = this.renderSourceSelector.bind(this);
-    this.renderPresetSelector = this.renderPresetSelector.bind(this);
-    this.setPreset = this.setPreset.bind(this);
-    this.getServices = this.getServices.bind(this);
     this.renderLayerChooser = this.renderLayerChooser.bind(this);
 
     // State
@@ -48,63 +34,9 @@ class MapActionContainer extends PureComponent {
       popoverOpen: false,
       layerChooserOpen: false,
       activeTab: '1',
-      getCapBusy: false
+      getCapBusy: false,
+      filter: ''
     };
-  }
-  componentWillUpdate (nextprops) {
-    if (!this.state.presets || this.props.user.username !== nextprops.user.username) {
-      axios.get(this.props.urls.BACKEND_SERVER_URL + '/preset/getpresets', { withCredentials: true }).then((res) => {
-        this.setState({ presets: res.data });
-      }).catch((error) => {
-        console.error(error);
-      });
-    }
-  }
-  getServices () {
-    const { dispatch, mapActions, urls } = this.props;
-    const defaultURLs = ['getServices', 'getOverlayServices'].map((url) => urls.BACKEND_SERVER_URL + '/' + url);
-    const allURLs = [...defaultURLs];
-    axios.all(allURLs.map((req) => axios.get(req, { withCredentials: true }))).then(
-      axios.spread((services, overlays) =>
-        dispatch(mapActions.createMap([...services.data, ...JSON.parse(localStorage.getItem('geoweb')).personal_urls], overlays.data[0]))
-      )
-    );
-  }
-
-  handleAddSource (e) {
-    var url = document.querySelector('#sourceurlinput').value;
-    let items = JSON.parse(localStorage.getItem('geoweb'));
-    // eslint-disable-next-line no-undef
-    var getCap = WMJSgetServiceFromStore(url);
-    this.setState({ getCapBusy: true });
-    getCap.getCapabilities((e) => {
-      this.setState({ getCapBusy: false });
-      const newServiceObj = {
-        name: getCap.name ? getCap.name : getCap.title,
-        title: getCap.title,
-        service: getCap.service,
-        abstract: getCap.abstract
-      };
-      if (!items['personal_urls']) {
-        items['personal_urls'] = [newServiceObj];
-      } else {
-        items['personal_urls'].push(newServiceObj);
-      }
-      localStorage.setItem('geoweb', JSON.stringify(items));
-      this.getServices();
-      getCap.getLayerObjectsFlat((layers) => this.props.dispatch(this.props.layerActions.addLayer(
-        {
-          activeMapId: this.props.mapProperties.activeMapId,
-          layer: {
-            ...layers[0],
-            service: getCap.service
-          }
-        })));
-      this.toggleLayerChooser();
-    }, (error) => {
-      this.setState({ getCapBusy: false });
-      alert(error);
-    });
   }
 
   handleActionClick (action) {
@@ -135,17 +67,16 @@ class MapActionContainer extends PureComponent {
     }
     dispatch(mapActions.setMapMode(action));
   }
-  handleAddLayer (e) {
+  handleAddLayer (addItem) {
     const { dispatch, layerActions, mapProperties } = this.props;
-    const addItem = e[0];
-    if (!this.state.overlay) {
+    if (this.state.activeSource.goal !== 'OVERLAY') {
       dispatch(layerActions.addLayer({
         activeMapId: mapProperties.activeMapId,
         layer: {
-          service: this.state.selectedSource.service,
-          title: this.state.selectedSource.title,
-          name: addItem.id,
-          label: addItem.label,
+          service: this.state.activeSource.service,
+          title: this.state.activeSource.title,
+          name: addItem.name,
+          label: addItem.text,
           opacity: 1
         }
       }));
@@ -153,43 +84,26 @@ class MapActionContainer extends PureComponent {
       dispatch(layerActions.addOverlaysLayer({
         activeMapId: mapProperties.activeMapId,
         layer: {
-          service: this.state.selectedSource.service,
-          title: this.state.selectedSource.title,
-          name: addItem.id,
-          label: addItem.label }
+          service: this.state.activeSource.service,
+          title: this.state.activeSource.title,
+          name: addItem.name,
+          label: addItem.text }
       }));
     }
     this.setState({
       layerChooserOpen: false,
       activeTab: '1',
-      selectedSource: null,
-      overlay: false,
+      activeSource: null,
       action: null,
-      layers: null
+      layers: null,
+      filter: ''
     });
   }
 
-  generateMap (layers) {
-    let layerobjs = [];
-    for (var i = 0; i < layers.length; ++i) {
-      layerobjs.push({ id: layers[i].name, label: layers[i].text });
+  componentDidUpdate (prevProps, prevState) {
+    if (!prevState.layerChooserOpen && this.state.layerChooserOpen) {
+      document.getElementById('filterInput').focus();
     }
-    this.setState({
-      layers: layerobjs,
-      activeTab: '3'
-    });
-  }
-  handleSourceClick (e) {
-    const { adagucProperties } = this.props;
-    const { sources } = adagucProperties;
-    let selectedSource = sources.filter((source) => source.name === e.currentTarget.id)[0];
-
-    this.setState({ overlay: selectedSource.name === 'OVL' || selectedSource.goal === 'OVERLAY' });
-
-    // eslint-disable-next-line no-undef
-    var srv = WMJSgetServiceFromStore(selectedSource.service);
-    this.setState({ selectedSource: selectedSource });
-    srv.getLayerObjectsFlat((layers) => this.generateMap(layers), (err) => { throw new Error(err); });
   }
 
   toggleLayerChooser () {
@@ -211,11 +125,7 @@ class MapActionContainer extends PureComponent {
     let currentDate = getCurrentDateIso8601();
     dispatch(adagucActions.setTimeDimension(currentDate.toISO8601()));
   }
-  setView (e) {
-    const { dispatch, mapActions } = this.props;
-    dispatch(mapActions.setCut(BOUNDING_BOXES[e.currentTarget.id]));
-    this.setState({ popoverOpen: false });
-  }
+
   renderBBOXPopOver () {
     return (
       <Popover placement='left' isOpen={this.state.popoverOpen} target='setAreaButton' toggle={this.togglePopside}>
@@ -226,89 +136,6 @@ class MapActionContainer extends PureComponent {
         </PopoverContent>
       </Popover>
     );
-  }
-  getLayerName (layer) {
-    if (layer) {
-      switch (layer.title) {
-        case 'OBS':
-          return 'Observations';
-        case 'SAT':
-          return 'Satellite';
-        case 'LGT':
-          return 'Lightning';
-        case 'HARM_N25_EXT':
-          return 'HARMONIE (EXT)';
-        case 'HARM_N25':
-          return 'HARMONIE';
-        case 'OVL':
-          return 'Overlay';
-        case 'RADAR_EXT':
-          return 'Radar (EXT)';
-        default:
-          return layer.title;
-      }
-    }
-    return '';
-  }
-  toggleTab (e) {
-    const id = (e.currentTarget.id);
-    if (id.includes('tab')) {
-      this.setState({ activeTab:  id.slice(3) });
-    }
-  }
-
-  renderSourceSelector () {
-    const { adagucProperties } = this.props;
-    const { sources } = adagucProperties;
-    return <div>{sources.map((src, i) => <Button id={src.name} key={i} onClick={this.handleSourceClick}>{this.getLayerName(src)}</Button>)}</div>;
-  }
-  renderPresetSelector () {
-    return <Typeahead ref={ref => { this._typeahead = ref; }} filterBy={['name', 'keywords']} labelKey='name' options={this.state.presets} onChange={(ph) => this.setPreset(ph)} />;
-  }
-
-  renderURLInput () {
-    var unit = document.getElementById('sourceurlinput');
-    if (unit && !this.urlinputhandlerinit) {
-      this.urlinputhandlerinit = true;
-      unit.addEventListener('keyup', function (event) {
-        event.preventDefault();
-        if (event.keyCode === 13) {
-          this.handleAddSource();
-        }
-      }.bind(this));
-    }
-
-    return (
-      <InputGroup>
-        <Input id='sourceurlinput' ref={ref => { this._urlinput = ref; }} placeholder='Add your own source' disabled={this.state.getCapBusy} />
-        <InputGroupButton>
-          <Button color='primary' onClick={this.handleAddSource} disabled={this.state.getCapBusy}>Add</Button>
-        </InputGroupButton>
-      </InputGroup>
-    );
-  }
-
-  setPreset (preset) {
-    const { dispatch, layerActions, mapActions } = this.props;
-    const thePreset = preset[0];
-    if (thePreset.area) {
-      dispatch(mapActions.setCut({ name: 'Custom', bbox: [0, thePreset.area.bottom, 1, thePreset.area.top] }));
-    }
-    if (thePreset.display) {
-      dispatch(mapActions.setLayout(thePreset.display.type));
-    }
-    if (thePreset.layers) {
-      dispatch(layerActions.setPreset(thePreset.layers));
-    }
-    this.setState({
-      layerChooserOpen: false,
-      activeTab: '1',
-      selectedSource: null,
-      overlay: false,
-      action: null,
-      layers: null,
-      presetUnit: null
-    });
   }
 
   renderProgtempPopover (adagucTime) {
@@ -326,57 +153,116 @@ class MapActionContainer extends PureComponent {
         adagucActions={this.props.adagucActions} isOpen={this.state.timeSeriesPopOverOpen} dispatch={dispatch} />;
     }
   }
-  renderLayerChooser () {
-    return (<Modal id='addLayerModal' isOpen={this.state.layerChooserOpen} toggle={this.toggleLayerChooser}>
-      <ModalHeader>Choose Layer</ModalHeader>
-      <Nav tabs>
-        <NavItem>
-          <NavLink id='tab1' className={classnames({ active: this.state.activeTab === '1' })} onClick={(e) => { this.toggleTab(e); }}>
-            (1) - Select Action
-          </NavLink>
-        </NavItem>
-        <NavItem>
-          <NavLink id='tab2' className={classnames({ active: this.state.activeTab === '2' })} onClick={(e) => { this.toggleTab(e); }} disabled={!this.state.selectedSource}>
-            {this.state.action ? (this.state.action === 'addLayer' ? '(2) - Select Source' : (this.state.action === 'selectPreset' ? '(2) - Select Preset' : '(2) - Enter URL')) : ''}
-          </NavLink>
-        </NavItem>
-        <NavItem>
-          <NavLink id='tab3' className={classnames({ active: this.state.activeTab === '3' })} onClick={(e) => { this.toggleTab(e); }} disabled={!this.state.selectedSource}>
-            {this.state.action ? (this.state.action === 'addLayer' ? '(3) - Select ' + this.getLayerName(this.state.selectedSource) + ' Layer' : '') : ''}
-          </NavLink>
-        </NavItem>
-      </Nav>
 
-      <ModalBody>
-        <TabContent activeTab={this.state.activeTab}>
-          <TabPane tabId='1'>
-            <ButtonGroup>
-              <Button onClick={() => this.setState({ action: 'addLayer', activeTab: '2' })}>Add Layer</Button>
-              <Button onClick={() => { this.setState({ action: 'selectPreset', activeTab: '2' }); setTimeout(() => this._typeahead.getInstance().focus(), 100); }}>Select Preset</Button>
-              <Button onClick={() => { this.setState({ action: 'addCustomData', activeTab: '2' }); setTimeout(() => document.getElementById('sourceurlinput').focus(), 100); }}>Add Custom data</Button>
-            </ButtonGroup>
-          </TabPane>
+  filterSourcesAndLayers (data, filter) {
+    // If there's no filter just return the data
+    if (filter === '') {
+      return data;
+    }
 
-          <TabPane tabId='2'>
-            {this.state.action === 'addLayer'
-              ? this.renderSourceSelector()
-              : this.state.action === 'selectPreset'
-                ? this.renderPresetSelector()
-                : this.renderURLInput()}
-          </TabPane>
-          <TabPane tabId='3'>
-            <Typeahead ref='layerSelectorTypeRef' onChange={this.handleAddLayer} options={this.state.layers ? this.state.layers : []} autoFocus />
-          </TabPane>
-        </TabContent>
-      </ModalBody>
-      <ModalFooter>
-        <Button color='secondary' onClick={this.toggleLayerChooser}>Cancel</Button>
-      </ModalFooter>
-    </Modal>);
+    // Don't delete sources whom match the filter
+    const protectedKeys = Object.keys(data).filter((key) => key.toLowerCase().indexOf(filter) !== -1);
+
+    // For each source....
+    Object.keys(data).map((key) => {
+      const vals = data[key].layers;
+      // Delete all layers that do not match the filter
+      const filteredLayers = vals.filter((layer) => layer.name.toLowerCase().indexOf(filter) !== -1 ||
+                                                    layer.text.toLowerCase().indexOf(filter) !== -1);
+
+      // If the source itself is matched by the filter
+      if (protectedKeys.includes(key)) {
+        // but some layers match it too, return those.
+        // else we return all layers in the matched source
+        if (filteredLayers.length !== 0) {
+          data[key].layers = filteredLayers;
+        }
+      } else {
+        // Else filter the layers
+        data[key].layers = filteredLayers;
+      }
+    });
+    // Filter all sources that have no layers that match the filter
+    // except if the source itself is matched by the filter
+    const keys = Object.keys(data);
+    keys.map((key) => {
+      if (data[key].layers.length === 0 && !protectedKeys.includes(key)) {
+        delete data[key];
+      }
+    });
+    return data;
+  }
+
+  renderLayerChooser (data) {
+    // Filter the layers and sources by a string filter
+    const filteredData = this.filterSourcesAndLayers(cloneDeep(data), this.state.filter);
+
+    // If the result is merely one filter, select it by default
+    if (Object.keys(filteredData).length === 1 && !this.state.activeSource) {
+      this.setState({ activeSource: filteredData[Object.keys(filteredData)[0]].source });
+    }
+    return (
+      <Modal style={{ width: '60rem', minWidth: '60rem', maxHeight: '20rem' }} id='addLayerModal' isOpen={this.state.layerChooserOpen} toggle={this.toggleLayerChooser}>
+        <div className='modal-header'>
+          <h4 className='modal-title'>
+            Add Layer
+          </h4>
+          <input id='filterInput' style={{ width: '25rem' }} className='form-control'
+            placeholder='Filter&hellip;' onChange={(a) => { this.setState({ activeSource: null, filter: a.target.value }); }} />
+        </div>
+        <ModalBody>
+          <Row style={{ borderBottom: '1px solid #eceeef' }}>
+            <Col xs='5' style={{ paddingLeft: 0 }}>
+              <h5>Sources</h5>
+            </Col>
+            <Col xs='7' style={{ paddingLeft: '1rem' }}>
+              <h5>Layers in source</h5>
+            </Col>
+          </Row>
+          <Row style={{ paddingTop: '1rem', paddingRight: 0, overflowY: 'hidden' }}>
+            <Col xs='5' style={{ paddingLeft: 0, borderRight: '1px solid #eceeef', overflowY: 'auto' }}>
+              <ListGroup>
+                {
+                  Object.keys(filteredData).map((source) =>
+                    <ListGroupItem
+                      style={{
+                        maxHeight: '2.5em',
+                        padding: '1rem',
+                        width: '100%',
+                        paddingTop: '0.5rem',
+                        display: 'inline-block',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden'
+                      }}
+                      tag='a' href='#'
+                      active={this.state.activeSource && source === this.state.activeSource.name}
+                      onClick={(evt) => { evt.stopPropagation(); evt.preventDefault(); this.setState({ activeSource: filteredData[source].source }); }}>{source}</ListGroupItem>)
+                }
+              </ListGroup>
+            </Col>
+            <Col xs='7' style={{ maxHeight: '25rem', height: '25rem', paddingLeft: '1rem', overflowY: 'auto' }}>
+              {
+                this.state.activeSource
+                  ? <ListGroup>
+                    {filteredData[this.state.activeSource.name].layers.map((layer) =>
+                      <ListGroupItem style={{ maxHeight: '2.5em' }} tag='a' href='#'
+                        onClick={(evt) => { evt.stopPropagation(); evt.preventDefault(); this.handleAddLayer({ ...layer, service: this.state.activeSource.service }); }}>{layer.text}</ListGroupItem>)}
+                  </ListGroup>
+                  : <div style={{ fontStyle: 'italic' }}>Select a source from the left to view its layers</div>
+              }
+            </Col>
+          </Row>
+        </ModalBody>
+        <ModalFooter>
+          <Button color='secondary' onClick={this.toggleLayerChooser}>Cancel</Button>
+        </ModalFooter>
+      </Modal>);
   }
 
   render () {
     const { title, adagucProperties, mapProperties } = this.props;
+    const { sources } = adagucProperties;
     const items = [
       {
         title: 'Pan / zoom',
@@ -416,10 +302,10 @@ class MapActionContainer extends PureComponent {
         onClick: 'progtemp'
       }
     ];
+
     return (
       <Col className='MapActionContainer'>
-        {this.renderLayerChooser()}
-        {this.renderBBOXPopOver()}
+        {this.renderLayerChooser(this.props.adagucProperties.sources)}
         {this.renderProgtempPopover(moment.utc(adagucProperties.timeDimension))}
         {this.renderTimeseriesPopover()}
         <Panel className='Panel' title={title}>
@@ -429,17 +315,14 @@ class MapActionContainer extends PureComponent {
               <Icon name={item.icon} />
             </Button>)}
           <Row style={{ flex: 1 }} />
-          <Button onClick={this.toggleLayerChooser} color='primary' className='row' title='Choose layers'>
-            <Icon name='bars' />
+          <Button disabled={Array.isArray(sources) || Object.keys(sources).length === 0} onClick={this.toggleLayerChooser} color='primary' className='row' title='Add layers'>
+            <Icon name='plus' />
           </Button>
           <Button onClick={this.toggleAnimation} color='primary' className='row' title='Play animation'>
             <Icon name={this.props.adagucProperties.animate ? 'pause' : 'play'} />
           </Button>
           <Button onClick={this.goToNow} color='primary' className='row' title='Go to current time'>
             <Icon name='clock-o' />
-          </Button>
-          <Button onClick={this.togglePopside} id='setAreaButton' color='primary' className='row' title='Set area'>
-            <Icon name='flag' />
           </Button>
         </Panel>
       </Col>

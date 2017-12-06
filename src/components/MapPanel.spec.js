@@ -21,7 +21,10 @@ const state = {
     activeMapId: 0,
     layout: 'single',
     mapMode: 'pan',
-    projectionName: 'EPSG:3857',
+    projection: {
+      name: 'Mercator',
+      code: 'EPSG:3857'
+    },
     boundingBox: {
       title: 'Netherlands',
       bbox: [
@@ -152,6 +155,7 @@ describe('(Component) MapPanel', () => {
       setProjection: emptyFunc,
       setSize: emptyFunc,
       setTimeOffset: emptyFunc,
+      showDialogs: emptyFunc,
       stopAnimating: emptyFunc
     });
   });

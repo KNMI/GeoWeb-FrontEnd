@@ -93,11 +93,12 @@ export default class Adaguc extends PureComponent {
     if (bbox === undefined) return;
     const { dispatch, mapActions } = this.props;
     const currBbox = this.props.mapProperties.boundingBox.bbox;
+    const currProj = this.props.mapProperties.projection;
 
     // Only top and bottom matter, adagucviewer determines the width as long as top and bottom are in view
     // So compare to those and set it if they are different
     if (bbox.bottom !== currBbox[1] || bbox.top !== currBbox[3]) {
-      dispatch(mapActions.setCut({ title: 'Custom', bbox: [bbox.left, bbox.bottom, bbox.right, bbox.top] }));
+      dispatch(mapActions.setCut({ title: 'Custom', bbox: [bbox.left, bbox.bottom, bbox.right, bbox.top], projection: currProj }));
     }
   }
 
@@ -139,12 +140,13 @@ export default class Adaguc extends PureComponent {
     // eslint-disable-next-line no-undef
     this.webMapJS = new WMJSMap(adagucMapRef, BACKEND_SERVER_XML2JSON);
     this.webMapJS.setBaseURL('./adagucwebmapjs/');
+    this.webMapJS.showDialogs(false);
     this.resize();
     // Set listener for triggerPoints
     this.webMapJS.addListener('beforecanvasdisplay', this.adagucBeforeDraw, true);
 
     // Set the initial projection
-    this.webMapJS.setProjection(mapProperties.projectionName);
+    this.webMapJS.setProjection(mapProperties.projection.code);
     this.webMapJS.setBBOX(mapProperties.boundingBox.bbox.join());
 
     this.webMapJS.addListener('aftersetbbox', this.updateBBOX, true);
@@ -166,7 +168,20 @@ export default class Adaguc extends PureComponent {
     axios.all(allURLs.map(req => axios.get(req, { withCredentials: true }))).then(
       axios.spread((services, overlays) => {
         dispatch(mapActions.createMap());
-        dispatch(adagucActions.setSources([...services.data, ...personalUrls, overlays.data[0]]));
+        const allSources = [...services.data, ...personalUrls, overlays.data[0]];
+        const promises = [];
+        const sourcesDic = {};
+        for (var i = allSources.length - 1; i >= 0; i--) {
+          const source = allSources[i];
+          var r = new Promise((resolve, reject) => {
+            // eslint-disable-next-line no-undef
+            const service = WMJSgetServiceFromStore(source.service);
+            service.getLayerObjectsFlat((layers) => { sourcesDic[source.name] = { layers, source }; resolve(); });
+          });
+          promises.push(r);
+        }
+        const sort = (obj) => Object.keys(obj).sort().reduce((acc, c) => { acc[c] = obj[c]; return acc; }, {});
+        Promise.all(promises).then(() => { dispatch(adagucActions.setSources(sort(sourcesDic))); });
       })
     );
 
@@ -225,12 +240,17 @@ export default class Adaguc extends PureComponent {
   }
 
   /* istanbul ignore next */
-  updateBoundingBox (boundingBox, prevBoundingBox) {
+  updateBoundingBox (boundingBox, prevBoundingBox, projectionCode, prevProjectionCode) {
     if (boundingBox !== prevBoundingBox) {
       // eslint-disable-next-line no-undef
       if (this.webMapJS.setBBOX(boundingBox.bbox.join()) === true) {
         this.webMapJS.draw('updateBoundingBox');
       }
+    }
+
+    if (projectionCode !== prevProjectionCode) {
+      this.webMapJS.setProjection(projectionCode, boundingBox.bbox.join());
+      this.webMapJS.draw('updateProjection');
     }
   }
 
@@ -334,13 +354,13 @@ export default class Adaguc extends PureComponent {
   /* istanbul ignore next */
   componentDidUpdate (prevProps) {
     const { mapProperties, adagucProperties, layerActions, layers, active, mapId, dispatch } = this.props;
-    const { boundingBox, mapMode } = mapProperties;
+    const { boundingBox, mapMode, projection } = mapProperties;
     const { timeDimension, animate, cursor } = adagucProperties;
     const { baselayer } = layers;
     const activePanel = this.props.layers.panels[mapId];
 
     // Updates that need to happen across all panels
-    this.updateBoundingBox(boundingBox, prevProps.mapProperties.boundingBox);
+    this.updateBoundingBox(boundingBox, prevProps.mapProperties.boundingBox, projection.code, prevProps.mapProperties.projection.code);
     this.updateTime(timeDimension, prevProps.adagucProperties.timeDimension || null);
     this.updateMapMode(mapMode, prevProps.mapProperties.mapMode, active);
 
