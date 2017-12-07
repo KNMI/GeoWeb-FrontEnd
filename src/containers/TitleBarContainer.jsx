@@ -3,6 +3,7 @@ import Icon from 'react-fa';
 import GeoWebLogo from '../components/assets/icon.svg';
 import { CheckIfUserHasRole } from '../utils/user';
 import { SaveURLPreset } from '../utils/URLPresets';
+import PromiseWithTimout from '../utils/PromiseWithTimout';
 import { UserRoles } from '../constants/userroles';
 import { BOUNDING_BOXES } from '../constants/bounding_boxes';
 import { PROJECTIONS } from '../constants/projections';
@@ -183,7 +184,7 @@ class TitleBarContainer extends PureComponent {
             }
             service.getLayerObjectsFlat((layers) => { sourcesDic[source.name] = { layers, source }; resolve(); });
           });
-          promises.push(r);
+          promises.push(new PromiseWithTimout(r, moment.duration(5, 'seconds').asMilliseconds()));
         }
         const sort = (obj) => Object.keys(obj).sort().reduce((acc, c) => { acc[c] = obj[c]; return acc; }, {});
         Promise.all(promises).then(() => { dispatch(adagucActions.setSources(sort(sourcesDic))); });
@@ -826,7 +827,8 @@ class LayoutDropDown extends PureComponent {
       this.props.onChangeServices();
     }, (error) => {
       this.setState({ getCapBusy: false });
-      alert(error);
+      console.error('error: ', error);
+      alert('Source could not be added. Is it a valid WMS url?');
     });
   }
 
@@ -841,7 +843,6 @@ class LayoutDropDown extends PureComponent {
   }
 
   setProjection (projection) {
-    console.log(projection);
     if (projection && projection.length > 0) {
       this.props.dispatch(this.props.mapActions.setProjection(projection[0]));
     }
@@ -851,8 +852,9 @@ class LayoutDropDown extends PureComponent {
     const { dispatch, layerActions, mapActions } = this.props;
     const thePreset = preset[0];
     if (thePreset.area) {
-      if (thePreset.projection || thePreset.area.projection)
+      if (thePreset.projection || thePreset.area.projection) {
         dispatch(mapActions.setCut({ name: 'Custom', bbox: [0, thePreset.area.bottom, 1, thePreset.area.top], projection: { code: 'EPSG:3857', name: 'Mercator' } }));
+      }
     }
     if (thePreset.display) {
       dispatch(mapActions.setLayout(thePreset.display.type));
@@ -938,13 +940,16 @@ class LayoutDropDown extends PureComponent {
             <Row>
               <h5>Location & zoom level</h5>
             </Row>
-            {mapProperties.boundingBox.title && mapProperties.boundingBox.title !== 'Custom'
-              ? <Row style={{ marginTop: '0.5rem' }}>
-                <h6>Current Location: {mapProperties.boundingBox.title}</h6>
-              </Row>
-              : <Row />}
             <Row>
-              <Typeahead onChange={(bbox) => this.setBBOX(bbox)} options={BOUNDING_BOXES} labelKey='title' placeholder={'Choose a new bounding box'} />
+              {mapProperties.boundingBox.title
+                ? <Col xs='6'>
+                  <h6>Current Location: {mapProperties.boundingBox.title}</h6>
+                </Col>
+                : <Col xs='auto' />}
+              <Col xs='auto' style={{ marginLeft: '1rem', marginTop: '-0.667rem' }}>
+                <Typeahead onChange={(bbox) => this.setBBOX(bbox)} options={BOUNDING_BOXES} labelKey='title' placeholder={'Choose a new bounding box'} />
+              </Col>
+              <Col />
             </Row>
           </Row>
           <hr />
@@ -953,10 +958,13 @@ class LayoutDropDown extends PureComponent {
               <h5>Projection</h5>
             </Row>
             <Row style={{ marginTop: '0.5rem' }}>
-              <h6>Current Projection: {mapProperties.projection.name}</h6>
-            </Row>
-            <Row>
-              <Typeahead onChange={(projection) => this.setProjection(projection)} labelKey={'title'} filterBy={['title', 'code']} options={PROJECTIONS} placeholder={'Choose a new projection'} />
+              <Col xs='6'>
+                <h6>Current Projection: {mapProperties.projection.name}</h6>
+              </Col>
+              <Col xs='auto' style={{ marginLeft: '1rem', marginTop: '-0.667rem' }}>
+                <Typeahead onChange={(projection) => this.setProjection(projection)} labelKey={'title'} filterBy={['title', 'code']} options={PROJECTIONS} placeholder={'Choose a new projection'} />
+              </Col>
+              <Col />
             </Row>
           </Row>
           <hr />

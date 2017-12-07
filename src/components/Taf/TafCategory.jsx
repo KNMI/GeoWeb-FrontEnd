@@ -8,7 +8,7 @@ import { Button, Row, Col } from 'reactstrap';
 import { createTAFJSONFromInput, setTACColumnInput, removeInputPropsFromTafJSON, cloneObjectAndSkipNullProps } from './FromTacCodeToTafjson';
 import TafTable from './TafTable';
 import axios from 'axios';
-
+import cloneDeep from 'lodash.clonedeep';
 const TMP = '_temp';
 
 const CHANGE_TYPES = Enum(
@@ -679,7 +679,7 @@ class TafCategory extends Component {
       validationSucceeded = true;
     }
     const tafJson = removeInputPropsFromTafJSON(createTAFJSONFromInput(this.state.tafJSON));
-    const series = this.extractScheduleInformation(tafJson);
+    const series = this.extractScheduleInformation(cloneDeep(tafJson));
 
     return (
       <Row className='TafCategory'>
