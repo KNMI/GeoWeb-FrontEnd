@@ -21,7 +21,7 @@ const timestampRegEx = /^(\d{2})(\d{2})$/i;
 
 const periodRegEx = /(\d{4})\/(\d{4})/i;
 
-const windRegEx = /(\d{3}|VRB)(\d{2})(?:G(\d{2}))?/i;
+const windRegEx = /^(\d{3}|VRB)(\d{2})(?:G(\d{2}))?$/i;
 
 const cavokRegEx = /CAVOK/i;
 

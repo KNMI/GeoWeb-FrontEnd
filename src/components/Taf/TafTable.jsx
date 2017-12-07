@@ -57,7 +57,6 @@ class TafTable extends SortableContainer(() => {}) {
         propertyPath: name.split('-'),
         propertyValue: null
       });
-      let namePartsSecondary;
       const propertyTypeName = isNaN(propertiesToUpdate[0].propertyPath[propertiesToUpdate[0].propertyPath.length - 1])
         ? propertiesToUpdate[0].propertyPath[propertiesToUpdate[0].propertyPath.length - 1]
         : propertiesToUpdate[0].propertyPath[propertiesToUpdate[0].propertyPath.length - 2];
