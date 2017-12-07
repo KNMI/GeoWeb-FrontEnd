@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import cloneDeep from 'lodash.clonedeep';
+import Enum from 'es6-enum';
 
 /**
  * TEMPLATES
@@ -159,7 +160,91 @@ TYPES.TAF = PropTypes.shape({
   changegroups: PropTypes.arrayOf(TYPES.CHANGE_GROUP)
 });
 
+/**
+ * MISC
+ */
+const CHANGE_TYPES = Enum(
+  'FM', // from - instant, persisting change
+  'BECMG', // becoming - gradual / fluctuating change, after which the change is persistent
+  'PROB30', // probability of 30% for a temporary steady change
+  'PROB40', // probability of 40% for a temporary steady change
+  'TEMPO', // temporary fluctuating change
+  'PROB30_TEMPO', // probability of 30% for a temporary fluctating change
+  'PROP40_TEMPO' // probability of 40% for a temporary fluctating change
+);
+
+const CHANGE_TYPES_ORDER = [
+  CHANGE_TYPES.FM,
+  CHANGE_TYPES.BECMG,
+  CHANGE_TYPES.PROB30,
+  CHANGE_TYPES.PROB40,
+  CHANGE_TYPES.TEMPO,
+  CHANGE_TYPES.PROB30_TEMPO,
+  CHANGE_TYPES.PROP40_TEMPO
+];
+
+const CHANGE_TYPES_SHORTHAND = {};
+CHANGE_TYPES_SHORTHAND[CHANGE_TYPES.FM] = 'F';
+CHANGE_TYPES_SHORTHAND[CHANGE_TYPES.BECMG] = 'B';
+CHANGE_TYPES_SHORTHAND[CHANGE_TYPES.PROB30] = 'P30';
+CHANGE_TYPES_SHORTHAND[CHANGE_TYPES.PROB40] = 'P40';
+CHANGE_TYPES_SHORTHAND[CHANGE_TYPES.TEMPO] = 'T';
+CHANGE_TYPES_SHORTHAND[CHANGE_TYPES.PROB30_TEMPO] = 'P30T';
+CHANGE_TYPES_SHORTHAND[CHANGE_TYPES.PROB40_TEMPO] = 'P40T';
+
+/**
+ * Gets the change type by typeName
+ * @param {string} typeName The name of the type
+ * @return {symbol} The change type
+ */
+const getChangeType = (typeName) => {
+  if (typeof typeName === 'string') {
+    const normalizedTypeName = typeName.toUpperCase().replace(/\s/g, '_');
+    if (normalizedTypeName in CHANGE_TYPES) {
+      return CHANGE_TYPES[normalizedTypeName];
+    } else {
+      return null;
+    }
+  } else {
+    return null;
+  }
+};
+
+const PHENOMENON_TYPES = Enum(
+  'WIND',
+  'VISIBILITY',
+  'WEATHER',
+  'CLOUDS'
+);
+
+const PHENOMENON_TYPES_ORDER = [
+  PHENOMENON_TYPES.WIND,
+  PHENOMENON_TYPES.VISIBILITY,
+  PHENOMENON_TYPES.WEATHER,
+  PHENOMENON_TYPES.CLOUDS
+];
+
+/**
+ * Gets the phenomenon type by typeName
+ * @param {string} typeName The name of the type
+ * @return {symbol} The phenomenon type
+ */
+const getPhenomenonType = (typeName) => {
+  if (typeof typeName === 'string' && typeName.toUpperCase() in PHENOMENON_TYPES) {
+    return PHENOMENON_TYPES[typeName.toUpperCase()];
+  } else {
+    return null;
+  }
+};
+
 module.exports = {
   TAF_TEMPLATES: TEMPLATES,
-  TAF_TYPES: TYPES
+  TAF_TYPES: TYPES,
+  CHANGE_TYPES: CHANGE_TYPES,
+  CHANGE_TYPES_ORDER: CHANGE_TYPES_ORDER,
+  CHANGE_TYPES_SHORTHAND: CHANGE_TYPES_SHORTHAND,
+  getChangeType: getChangeType,
+  PHENOMENON_TYPES: PHENOMENON_TYPES,
+  PHENOMENON_TYPES_ORDER: PHENOMENON_TYPES_ORDER,
+  getPhenomenonType: getPhenomenonType
 };

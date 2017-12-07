@@ -3,14 +3,12 @@ import { arrayMove } from 'react-sortable-hoc';
 import PropTypes from 'prop-types';
 import Enum from 'es6-enum';
 import TimeSchedule from '../TimeSchedule';
-import { TAF_TEMPLATES, TAF_TYPES } from './TafTemplates';
+import { TAF_TEMPLATES, TAF_TYPES, CHANGE_TYPES, CHANGE_TYPES_ORDER, CHANGE_TYPES_SHORTHAND, getChangeType, PHENOMENON_TYPES, PHENOMENON_TYPES_ORDER, getPhenomenonType } from './TafTemplates';
 import cloneDeep from 'lodash.clonedeep';
-import getNestedProperty from 'lodash.get';
 import setNestedProperty from 'lodash.set';
 import moment from 'moment';
 import { Button, Row, Col } from 'reactstrap';
-import { jsonToTacForProbability, jsonToTacForChangeType, jsonToTacForWind, jsonToTacForWeather, tacToJsonForProbabilityAndChangeType, tacToJsonForPeriod, tacToJsonForTimestamp,
-  tacToJsonForWind, tacToJsonForVisibility, tacToJsonForCavok, tacToJsonForWeather, tacToJsonForClouds, jsonToTacForClouds, tacToJsonForVerticalVisibility } from './TafFieldsConverter';
+import { jsonToTacForWind, jsonToTacForWeather, jsonToTacForClouds } from './TafFieldsConverter';
 import TafTable from './TafTable';
 // import TACTable from './TACTable';
 import axios from 'axios';
@@ -23,50 +21,6 @@ const MOVE_DIRECTION = Enum(
   'DOWN',
   'LEFT'
 );
-
-// TODO use TafChangeTypeMaps...
-const CHANGE_TYPES = Enum(
-  'FM', // from - instant, persisting change
-  'BECMG', // becoming - gradual / fluctuating change, after which the change is persistent
-  'PROB30', // probability of 30% for a temporary steady change
-  'PROB40', // probability of 40% for a temporary steady change
-  'TEMPO', // temporary fluctuating change
-  'PROB30_TEMPO', // probability of 30% for a temporary fluctating change
-  'PROP40_TEMPO' // probability of 40% for a temporary fluctating change
-);
-
-const CHANGE_TYPES_ORDER = [
-  CHANGE_TYPES.FM,
-  CHANGE_TYPES.BECMG,
-  CHANGE_TYPES.PROB30,
-  CHANGE_TYPES.PROB40,
-  CHANGE_TYPES.TEMPO,
-  CHANGE_TYPES.PROB30_TEMPO,
-  CHANGE_TYPES.PROP40_TEMPO
-];
-
-const CHANGE_TYPES_SHORTHAND = {};
-CHANGE_TYPES_SHORTHAND[CHANGE_TYPES.FM] = 'F';
-CHANGE_TYPES_SHORTHAND[CHANGE_TYPES.BECMG] = 'B';
-CHANGE_TYPES_SHORTHAND[CHANGE_TYPES.PROB30] = 'P30';
-CHANGE_TYPES_SHORTHAND[CHANGE_TYPES.PROB40] = 'P40';
-CHANGE_TYPES_SHORTHAND[CHANGE_TYPES.TEMPO] = 'T';
-CHANGE_TYPES_SHORTHAND[CHANGE_TYPES.PROB30_TEMPO] = 'P30T';
-CHANGE_TYPES_SHORTHAND[CHANGE_TYPES.PROB40_TEMPO] = 'P40T';
-
-const PHENOMENON_TYPES = Enum(
-  'WIND',
-  'VISIBILITY',
-  'WEATHER',
-  'CLOUDS'
-);
-
-const PHENOMENON_TYPES_ORDER = [
-  PHENOMENON_TYPES.WIND,
-  PHENOMENON_TYPES.VISIBILITY,
-  PHENOMENON_TYPES.WEATHER,
-  PHENOMENON_TYPES.CLOUDS
-];
 
 const generateDefaultValues = () => {
   const now = moment().utc();
@@ -95,19 +49,16 @@ class TafCategory extends Component {
   constructor (props) {
     super(props);
     this.onSortEnd = this.onSortEnd.bind(this);
-    this.onChange = this.onChange.bind(this);
     this.onClick = this.onClick.bind(this);
     this.onKeyUp = this.onKeyUp.bind(this);
     this.onKeyDown = this.onKeyDown.bind(this);
     this.registerElement = this.registerElement.bind(this);
-    this.updateValue = this.updateValue.bind(this);
+    this.setTafValues = this.setTafValues.bind(this);
     this.addRow = this.addRow.bind(this);
     this.removeRow = this.removeRow.bind(this);
     this.setFocus = this.setFocus.bind(this);
     this.moveFocus = this.moveFocus.bind(this);
     this.onFocus = this.onFocus.bind(this);
-    this.getChangeType = this.getChangeType.bind(this);
-    this.getPhenomenonType = this.getPhenomenonType.bind(this);
     this.extractScheduleInformation = this.extractScheduleInformation.bind(this);
     this.decoratePhenomenonValue = this.decoratePhenomenonValue.bind(this);
     this.decorateStringValue = this.decorateStringValue.bind(this);
@@ -205,37 +156,6 @@ class TafCategory extends Component {
   }
 
   /**
-   * Gets the phenomenon type by typeName
-   * @param {string} typeName The name of the type
-   * @return {symbol} The phenomenon type
-   */
-  getPhenomenonType (typeName) {
-    if (typeof typeName === 'string' && typeName.toUpperCase() in PHENOMENON_TYPES) {
-      return PHENOMENON_TYPES[typeName.toUpperCase()];
-    } else {
-      return null;
-    }
-  }
-
-  /**
-   * Gets the change type by typeName
-   * @param {string} typeName The name of the type
-   * @return {symbol} The change type
-   */
-  getChangeType (typeName) {
-    if (typeof typeName === 'string') {
-      const normalizedTypeName = typeName.toUpperCase().replace(/\s/g, '_');
-      if (normalizedTypeName in CHANGE_TYPES) {
-        return CHANGE_TYPES[normalizedTypeName];
-      } else {
-        return null;
-      }
-    } else {
-      return null;
-    }
-  }
-
-  /**
    * Comparator: Compares series by phenomenon type, in ascending order
    * @param {object} seriesA An series with a string as label property
    * @param {object} seriesB Another series with a string as label property
@@ -248,8 +168,8 @@ class TafCategory extends Component {
     let labelB = seriesB.label;
     const tmpIndexB = labelB.indexOf(TMP);
     labelB = labelB.substring(0, tmpIndexB !== -1 ? tmpIndexB : labelB.length);
-    const typeAindex = PHENOMENON_TYPES_ORDER.indexOf(this.getPhenomenonType(labelA));
-    const typeBindex = PHENOMENON_TYPES_ORDER.indexOf(this.getPhenomenonType(labelB));
+    const typeAindex = PHENOMENON_TYPES_ORDER.indexOf(getPhenomenonType(labelA));
+    const typeBindex = PHENOMENON_TYPES_ORDER.indexOf(getPhenomenonType(labelB));
     return typeBindex < typeAindex
       ? 1
       : typeBindex > typeAindex
@@ -267,8 +187,8 @@ class TafCategory extends Component {
     const startA = moment.utc(itemA.changeStart);
     const startB = moment.utc(itemB.changeStart);
     // Checks for startA/B.isValid()
-    const typeAindex = CHANGE_TYPES_ORDER.indexOf(this.getChangeType(itemA.changeType));
-    const typeBindex = CHANGE_TYPES_ORDER.indexOf(this.getChangeType(itemB.changeType));
+    const typeAindex = CHANGE_TYPES_ORDER.indexOf(getChangeType(itemA.changeType));
+    const typeBindex = CHANGE_TYPES_ORDER.indexOf(getChangeType(itemB.changeType));
     return startB.isBefore(startA)
       ? 1
       : startB.isAfter(startA)
@@ -393,7 +313,7 @@ class TafCategory extends Component {
    * @return {React.Component} A component with a readable presentation of the phenomenon value
    */
   decoratePhenomenonValue (phenomenonType, phenomenonValueObject, prefix) {
-    switch (this.getPhenomenonType(phenomenonType)) {
+    switch (getPhenomenonType(phenomenonType)) {
       case PHENOMENON_TYPES.WIND:
         if (typeof phenomenonValueObject === 'object') {
           return this.decorateWindObjectValue(phenomenonValueObject, prefix);
@@ -450,7 +370,7 @@ class TafCategory extends Component {
     });
 
     tafDataAsJson.changegroups.sort(this.byStartAndChangeType).map(change => {
-      const changeType = this.getChangeType(change.changeType);
+      const changeType = getChangeType(change.changeType);
 
       const start = change.changeStart ? moment.utc(change.changeStart) : scopeStart;
 
@@ -518,25 +438,6 @@ class TafCategory extends Component {
     });
     scheduleSeries.sort(this.byPhenomenonType);
     return scheduleSeries;
-  }
-
-  /**
-   * Responds to the TAC input change
-   * @param {object} event The event that has been fired
-   */
-  onChange (event) {
-    switch (event.type) {
-      case 'input':
-      case 'change':
-        this.updateValue(event.target);
-        break;
-      case 'blur':
-        console.log('Event ', event.type, 'fired on', event.target);
-        break;
-      default:
-        console.log('No action for event ', event.type, ' on ', event.target);
-        break;
-    }
   }
 
   /**
@@ -615,9 +516,6 @@ class TafCategory extends Component {
       if (event.target.name.endsWith('sortable')) {
         console.log('Sortable clicked', event.target.name);
       }
-      // this.setFocus(event.target.name);
-      // event.preventDefault();
-      // event.stopPropagation();
     }
   }
 
@@ -663,93 +561,25 @@ class TafCategory extends Component {
   }
 
   /**
-   * Updates the value in the state, according to the element value
-   * @param  {HTMLElement} element The (input-)element to update the value from
+   * Updates the value(s) in the state
+   * @param {Array} values An array with objects, each containing a propertyPath and propertyValue
    */
-  updateValue (element) {
-    let name = element ? (element.name || element.props.name) : null;
-    if (name && typeof name === 'string') {
-      const nameParts = name.split('-');
-      let namePartsSecondary;
-      const propertyTypeName = isNaN(nameParts[nameParts.length - 1]) ? nameParts[nameParts.length - 1] : nameParts[nameParts.length - 2];
-      const phenomenonType = this.getPhenomenonType(propertyTypeName);
-      let value;
-      let valueSecondary;
-      switch (phenomenonType) {
-        case PHENOMENON_TYPES.WIND:
-          value = tacToJsonForWind(element.value, true);
-          break;
-        case PHENOMENON_TYPES.VISIBILITY:
-          value = tacToJsonForCavok(element.value);
-          valueSecondary = tacToJsonForVisibility(element.value, true);
-          namePartsSecondary = cloneDeep(nameParts);
-          nameParts.pop();
-          nameParts.push('caVOK');
-          break;
-        case PHENOMENON_TYPES.WEATHER:
-          value = tacToJsonForWeather(element.value, true);
-          if (value === 'NSW') {
-            nameParts.pop();
-          }
-          break;
-        case PHENOMENON_TYPES.CLOUDS:
-          value = tacToJsonForVerticalVisibility(element.value);
-          valueSecondary = tacToJsonForClouds(element.value, true);
-          namePartsSecondary = cloneDeep(nameParts);
-          nameParts.pop();
-          nameParts.pop();
-          nameParts.push('vertical_visibility');
-          if (valueSecondary === 'NSC') {
-            namePartsSecondary.pop();
-          }
-          break;
-        default:
-          break;
-      }
-      if (!value) {
-        switch (propertyTypeName) {
-          case 'probability':
-            nameParts.pop();
-            nameParts.push('changeType');
-            const change = jsonToTacForChangeType(getNestedProperty(this.state.tafAsObject, nameParts), true);
-            value = tacToJsonForProbabilityAndChangeType(element.value, change, true);
-            break;
-          case 'change':
-            nameParts.pop();
-            nameParts.push('changeType');
-            const probability = jsonToTacForProbability(getNestedProperty(this.state.tafAsObject, nameParts), true);
-            value = tacToJsonForProbabilityAndChangeType(probability, element.value, true);
-            break;
-          case 'validity':
-            const scopeStart = this.state.tafAsObject.metadata.validityStart;
-            const scopeEnd = this.state.tafAsObject.metadata.validityEnd;
-            let tmpValue = tacToJsonForTimestamp(element.value, scopeStart, scopeEnd);
-            if (!tmpValue) {
-              tmpValue = tacToJsonForPeriod(element.value, scopeStart, scopeEnd, true);
-            } else {
-              tmpValue = { start: tmpValue, end: null };
-            }
-            nameParts.pop();
-            namePartsSecondary = cloneDeep(nameParts);
-            nameParts.push('changeStart');
-            namePartsSecondary.push('changeEnd');
-            value = tmpValue.start || { fallback: tmpValue.fallback };
-            valueSecondary = tmpValue.end;
-            break;
-          default:
-            break;
-        }
-      }
-
+  setTafValues (values) {
+    if (values && Array.isArray(values) && values.length > 0) {
       const newTafState = cloneDeep(this.state.tafAsObject);
-      setNestedProperty(newTafState, nameParts, value);
-      if (namePartsSecondary) {
-        setNestedProperty(newTafState, namePartsSecondary, valueSecondary);
-      }
-      this.setState({
-        tafAsObject: newTafState,
-        hasEdits: true
+      let hasUpdates = false;
+      values.map((entry) => {
+        if (entry && typeof entry === 'object' && entry.hasOwnProperty('propertyPath') && entry.hasOwnProperty('propertyValue')) {
+          setNestedProperty(newTafState, entry.propertyPath, entry.propertyValue);
+          hasUpdates = true;
+        }
       });
+      if (hasUpdates) {
+        this.setState({
+          tafAsObject: newTafState,
+          hasEdits: true
+        });
+      }
     }
   }
 
@@ -913,7 +743,7 @@ class TafCategory extends Component {
                 focusedFieldName={this.state.focusedFieldName}
                 inputRef={this.registerElement}
                 onSortEnd={this.onSortEnd}
-                onChange={this.onChange}
+                setTafValues={this.setTafValues}
                 onClick={this.onClick}
                 onKeyUp={this.onKeyUp}
                 onKeyDown={this.onKeyDown}
