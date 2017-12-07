@@ -8,35 +8,22 @@ import cloneDeep from 'lodash.clonedeep';
 /*
   SortableChangeGroup makes ChangeGroups sortable via Drag and Drop, using SortableElement and SortableContainer.
 */
-class SortableChangeGroup extends SortableElement(() => {}) {
-  render () {
-    let { tafChangeGroup, focusedFieldName, inputRef, index, validationReport } = this.props;
-    return (<ChangeGroup
-      ref='sortablechangegroup'
-      tafChangeGroup={tafChangeGroup}
-      focusedFieldName={focusedFieldName}
-      inputRef={inputRef}
-      index={index}
-      editable
-      validationReport={validationReport}
-    />);
-  }
-};
+const SortableChangeGroup = SortableElement(({ tafChangeGroup, focusedFieldName, inputRef, changeGroupIndex }) =>
+  <ChangeGroup tafChangeGroup={tafChangeGroup} focusedFieldName={focusedFieldName} inputRef={inputRef} index={changeGroupIndex} editable />
+);
 
 SortableChangeGroup.defaultProps = {
   tafChangeGroup: cloneDeep(TAF_TEMPLATES.CHANGE_GROUP),
   focusedFieldName: null,
   inputRef: () => {},
-  index: -1,
-  validationReport: null
+  index: -1
 };
 
 SortableChangeGroup.propTypes = {
   tafChangeGroup: TAF_TYPES.CHANGE_GROUP.isRequired,
   focusedFieldName: PropTypes.string,
   inputRef: PropTypes.func,
-  index: PropTypes.number,
-  validationReport: PropTypes.object
+  index: PropTypes.number
 };
 
 export default SortableChangeGroup;

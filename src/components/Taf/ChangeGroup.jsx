@@ -18,7 +18,7 @@ class ChangeGroup extends Component {
         name: 'changegroups-' + index + '-sortable',
         value: editable ? '\uf0c9' : '', // the bars icon
         disabled: !editable,
-        isButton: true,
+        isSpan: true,
         classes: [ 'noselect' ]
       },
       {
@@ -99,9 +99,11 @@ class ChangeGroup extends Component {
 
     return <tr>
       {columns.map((col) => <td className={classNames(col.classes)} key={col.name}>
-        {col.isButton
-          ? <Button name={col.name} size='sm' disabled={col.disabled} autoFocus={col.isFocussed}>{col.value}</Button>
-          : <input ref={inputRef} name={col.name} type='text' value={col.value} disabled={col.disabled} autoFocus={col.isFocussed} />
+        {col.isSpan
+          ? <span name={col.name} disabled={col.disabled}>{col.value}</span>
+          : col.isButton
+            ? <Button name={col.name} size='sm' disabled={col.disabled} autoFocus={col.isFocussed}>{col.value}</Button>
+            : <input ref={inputRef} name={col.name} type='text' value={col.value} disabled={col.disabled} autoFocus={col.isFocussed} />
         }
       </td>
       )}
@@ -114,8 +116,7 @@ ChangeGroup.defaultProps = {
   focusedFieldName: null,
   inputRef: () => {},
   index: -1,
-  editable : false,
-  validationReport: null
+  editable : false
 };
 
 ChangeGroup.propTypes = {
@@ -123,8 +124,7 @@ ChangeGroup.propTypes = {
   focusedFieldName: PropTypes.string,
   inputRef: PropTypes.func,
   index: PropTypes.number,
-  editable : PropTypes.bool,
-  validationReport: PropTypes.object
+  editable : PropTypes.bool
 };
 
 export default ChangeGroup;

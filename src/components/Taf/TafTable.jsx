@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Component } from 'react';
 import { Button } from 'reactstrap';
 import { SortableContainer } from 'react-sortable-hoc';
 import PropTypes from 'prop-types';
@@ -12,10 +12,24 @@ import { tacToJsonForWind, tacToJsonForCavok, tacToJsonForVisibility, tacToJsonF
 
 import cloneDeep from 'lodash.clonedeep';
 
+const SortableTBody = SortableContainer(({ tafChangeGroups, inputRef, focusedFieldName }) => {
+  return <tbody className='tester'>
+    {tafChangeGroups.map((tafChangeGroup, index) => {
+      return <SortableChangeGroup
+        key={`changegroups-${index}`}
+        tafChangeGroup={tafChangeGroup}
+        inputRef={inputRef}
+        focusedFieldName={focusedFieldName}
+        index={index}
+        changeGroupIndex={index} />;
+    })}
+  </tbody>;
+});
+
 /*
   TafTable uses BaseForecast and ChangeGroup with table headers to render an well aligned and editable TAC UI.
 */
-class TafTable extends SortableContainer(() => {}) {
+class TafTable extends Component {
   constructor (props) {
     super(props);
     this.onChange = this.onChange.bind(this);
@@ -23,7 +37,6 @@ class TafTable extends SortableContainer(() => {}) {
     this.getBaseLabelLine = this.getBaseLabelLine.bind(this);
     this.getBaseForecastLine = this.getBaseForecastLine.bind(this);
     this.getChangeGroupLabelLine = this.getChangeGroupLabelLine.bind(this);
-    this.getChangeGroupForecastLine = this.getChangeGroupForecastLine.bind(this);
   }
 
   /**
@@ -186,18 +199,6 @@ class TafTable extends SortableContainer(() => {}) {
     </thead>;
   }
 
-  getChangeGroupForecastLine (tafChangeGroup, focusedFieldName, inputRef, editable, index) {
-    return editable
-      ? <SortableChangeGroup
-        key={`changegroups-${index}`}
-        tafChangeGroup={tafChangeGroup}
-        inputRef={inputRef}
-        focusedFieldName={focusedFieldName}
-        index={index}
-        validationReport={this.props.validationReport} />
-      : <ChangeGroup key={`changegroups-${index}`} tafChangeGroup={tafChangeGroup} inputRef={inputRef} focusedFieldName={focusedFieldName} index={index} />;
-  }
-
   getAddChangeGroupLine (editable) {
     return editable
       ? <tr>
@@ -210,17 +211,22 @@ class TafTable extends SortableContainer(() => {}) {
   }
 
   render () {
-    let { taf, focusedFieldName, inputRef, editable, onKeyUp, onKeyDown, onClick, onFocus } = this.props;
+    let { taf, focusedFieldName, inputRef, editable, onKeyUp, onKeyDown, onClick, onFocus, onSortEnd } = this.props;
     return (
       <table className='TafStyle TafStyleTable' onChange={this.onChange} onKeyUp={onKeyUp} onKeyDown={onKeyDown} onClick={onClick} onFocus={onFocus}>
         {this.getBaseLabelLine()}
         {this.getBaseForecastLine(taf, focusedFieldName, inputRef, editable)}
         {this.getChangeGroupLabelLine()}
 
+        {editable
+          ? <SortableTBody tafChangeGroups={taf.changegroups} inputRef={inputRef} focusedFieldName={focusedFieldName} onSortEnd={onSortEnd} />
+          : <tbody>
+            {taf.changegroups.map((tafChangeGroup, index) => {
+              return <ChangeGroup key={`changegroups-${index}`} tafChangeGroup={tafChangeGroup} inputRef={inputRef} focusedFieldName={focusedFieldName} index={index} />;
+            })}
+          </tbody>
+        }
         <tbody>
-          {taf.changegroups.map((tafChangeGroup, index) => {
-            return this.getChangeGroupForecastLine(tafChangeGroup, focusedFieldName, inputRef, editable, index);
-          })}
           {this.getAddChangeGroupLine(editable)}
         </tbody>
       </table>
@@ -236,14 +242,8 @@ TafTable.defaultProps = {
   setTafValues: () => {},
   onKeyUp: () => {},
   onKeyDown: () => {},
-  shouldCancelStart: function (e) {
-    // Cancel sorting if the event target is an `input`, `textarea`, `select` or `option`
-    const disabledElements = ['input', 'textarea', 'select', 'option'];
-
-    if (disabledElements.indexOf(e.target.tagName.toLowerCase()) !== -1) {
-      return true; // Return true to cancel sorting
-    }
-  }
+  onFocus: () => {},
+  onSortEnd: () => {}
 };
 
 TafTable.propTypes = {
@@ -256,8 +256,7 @@ TafTable.propTypes = {
   onKeyDown: PropTypes.func,
   onClick: PropTypes.func,
   onFocus: PropTypes.func,
-  onSortEnd: PropTypes.func,
-  validationReport:PropTypes.object
+  onSortEnd: PropTypes.func
 };
 
 export default TafTable;
