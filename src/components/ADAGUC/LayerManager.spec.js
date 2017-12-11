@@ -2,7 +2,7 @@ import React from 'react';
 import { default as LayerManager } from './LayerManager';
 import { shallow, mount } from 'enzyme';
 import { Col } from 'reactstrap';
-
+import { BACKEND_SERVER_URL, WEBSERVER_URL } from '../../static/urls.json';
 describe('(Component) LayerManager', () => {
   let _wmjslayers, _panel;
   const emptyFunc = () => { /* intentionally left empty */ };
@@ -11,7 +11,7 @@ describe('(Component) LayerManager', () => {
     _panel = {
       overlays: [
         {
-          service: 'http://birdexp07.knmi.nl:8081/adaguc-services/adagucserver?DATASET=OVL',
+          service: `${BACKEND_SERVER_URL}/adaguc-services/adagucserver?DATASET=OVL`,
           title: 'OVL_EXT',
           name: 'countries',
           label: 'Countries'
@@ -154,10 +154,10 @@ describe('(Component) LayerManager', () => {
         },
         {
           autoupdate: false,
-          service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.OVL.cgi?',
-          getmapURL: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.OVL.cgi?',
-          getfeatureinfoURL: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.OVL.cgi?',
-          getlegendgraphicURL: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.OVL.cgi?',
+          service: `${WEBSERVER_URL}/cgi-bin/geoweb/adaguc.OVL.cgi?`,
+          getmapURL: `${WEBSERVER_URL}/cgi-bin/geoweb/adaguc.OVL.cgi?`,
+          getfeatureinfoURL: `${WEBSERVER_URL}/cgi-bin/geoweb/adaguc.OVL.cgi?`,
+          getlegendgraphicURL: `${WEBSERVER_URL}/cgi-bin/geoweb/adaguc.OVL.cgi?`,
           keepOnTop: true,
           transparent: true,
           hasError: false,
