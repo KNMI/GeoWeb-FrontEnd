@@ -107,7 +107,7 @@ class MapActionContainer extends PureComponent {
   }
 
   toggleLayerChooser () {
-    this.setState({ layerChooserOpen: !this.state.layerChooserOpen });
+    this.setState({ layerChooserOpen: !this.state.layerChooserOpen, filter: '' });
   }
   toggleAnimation () {
     const { dispatch, adagucActions } = this.props;
@@ -160,8 +160,29 @@ class MapActionContainer extends PureComponent {
       return data;
     }
 
+    const filterSource = (source, filter) => {
+      let matchesFilter = false;
+      if (!source) {
+        return false;
+      }
+
+      if (source.name) {
+        matchesFilter = matchesFilter || source.name.toLowerCase().indexOf(filter) !== -1;
+      }
+
+      if (source.title) {
+        matchesFilter = matchesFilter || source.title.toLowerCase().indexOf(filter) !== -1;
+      }
+
+      if (source.abstract) {
+        matchesFilter = matchesFilter || source.abstract.toLowerCase().indexOf(filter) !== -1;
+      }
+
+      return matchesFilter;
+    };
+
     // Don't delete sources whom match the filter
-    const protectedKeys = Object.keys(data).filter((key) => key.toLowerCase().indexOf(filter) !== -1);
+    const protectedKeys = Object.keys(data).filter((key) => key.toLowerCase().indexOf(filter) !== -1 || filterSource(data[key].source, filter));
 
     // For each source....
     Object.keys(data).map((key) => {
@@ -190,6 +211,7 @@ class MapActionContainer extends PureComponent {
         delete data[key];
       }
     });
+
     return data;
   }
 
@@ -197,6 +219,7 @@ class MapActionContainer extends PureComponent {
     // Filter the layers and sources by a string filter
     const filteredData = this.filterSourcesAndLayers(cloneDeep(data), this.state.filter);
 
+    let activeSourceVisible = this.state.activeSource && Object.keys(filteredData).includes(this.state.activeSource.name);
     // If the result is merely one filter, select it by default
     if (Object.keys(filteredData).length === 1 && !this.state.activeSource) {
       this.setState({ activeSource: filteredData[Object.keys(filteredData)[0]].source });
@@ -208,7 +231,7 @@ class MapActionContainer extends PureComponent {
             Add Layer
           </h4>
           <input id='filterInput' style={{ width: '25rem' }} className='form-control'
-            placeholder='Filter&hellip;' onChange={(a) => { this.setState({ activeSource: null, filter: a.target.value }); }} />
+            placeholder='Filter&hellip;' onChange={(a) => { this.setState({ filter: a.target.value }); }} />
         </div>
         <ModalBody>
           <Row style={{ borderBottom: '1px solid #eceeef' }}>
@@ -243,7 +266,7 @@ class MapActionContainer extends PureComponent {
             </Col>
             <Col xs='7' style={{ maxHeight: '25rem', height: '25rem', paddingLeft: '1rem', overflowY: 'auto' }}>
               {
-                this.state.activeSource
+                activeSourceVisible
                   ? <ListGroup>
                     {filteredData[this.state.activeSource.name].layers.map((layer) =>
                       <ListGroupItem style={{ maxHeight: '2.5em' }} tag='a' href='#'

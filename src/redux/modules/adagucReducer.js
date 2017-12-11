@@ -2,7 +2,7 @@ import { createAction, handleActions } from 'redux-actions';
 
 const INITIAL_STATE = {
   animate: false,
-  sources: {},
+  sources: { },
   timeDimension: null,
   cursor: null
 };
@@ -27,5 +27,5 @@ export default handleActions({
   [SET_TIME_DIMENSION]: (state, { payload }) => ({ ...state, timeDimension: payload }),
   [TOGGLE_ANIMATION]: (state, { payload }) => ({ ...state, animate: !state.animate }),
   [CURSOR_LOCATION]: (state, { payload }) => ({ ...state, cursor: { location: payload } }),
-  [SET_SOURCES]: (state, { payload }) => ({ ...state, sources: payload })
+  [SET_SOURCES]: (state, { payload }) => ({ ...state, sources: { ...state.sources, ...payload } })
 }, INITIAL_STATE);

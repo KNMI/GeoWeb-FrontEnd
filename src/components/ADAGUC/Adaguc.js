@@ -2,7 +2,6 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import AdagucMapDraw from './AdagucMapDraw.js';
 import AdagucMeasureDistance from './AdagucMeasureDistance.js';
-import axios from 'axios';
 import ModelTime from './ModelTime';
 import diff from 'deep-diff';
 import moment from 'moment';
@@ -130,9 +129,9 @@ export default class Adaguc extends PureComponent {
   }
 
   initAdaguc (adagucMapRef) {
-    const { mapProperties, layerActions, layers, mapActions, adagucActions, dispatch, mapId, urls } = this.props;
+    const { mapProperties, layerActions, layers, adagucActions, dispatch, mapId, urls } = this.props;
     const { baselayer, panels } = layers;
-    const { BACKEND_SERVER_URL, BACKEND_SERVER_XML2JSON } = urls;
+    const { BACKEND_SERVER_XML2JSON } = urls;
     // Map already created, abort
     if (mapProperties.mapCreated) {
       return;
@@ -158,32 +157,6 @@ export default class Adaguc extends PureComponent {
     if (localStorage && !localStorage.getItem('geoweb')) {
       localStorage.setItem('geoweb', defaultPersonalURLs);
     }
-    // Fetch data sources and custom urls
-    const defaultURLs = ['getServices', 'getOverlayServices'].map(url => `${BACKEND_SERVER_URL}/${url}`);
-    const allURLs = [...defaultURLs];
-    let personalUrls = {};
-    if (localStorage) {
-      personalUrls = JSON.parse(localStorage.getItem('geoweb')).personal_urls;
-    }
-    axios.all(allURLs.map(req => axios.get(req, { withCredentials: true }))).then(
-      axios.spread((services, overlays) => {
-        dispatch(mapActions.createMap());
-        const allSources = [...services.data, ...personalUrls, overlays.data[0]];
-        const promises = [];
-        const sourcesDic = {};
-        for (var i = allSources.length - 1; i >= 0; i--) {
-          const source = allSources[i];
-          var r = new Promise((resolve, reject) => {
-            // eslint-disable-next-line no-undef
-            const service = WMJSgetServiceFromStore(source.service);
-            service.getLayerObjectsFlat((layers) => { sourcesDic[source.name] = { layers, source }; resolve(); });
-          });
-          promises.push(r);
-        }
-        const sort = (obj) => Object.keys(obj).sort().reduce((acc, c) => { acc[c] = obj[c]; return acc; }, {});
-        Promise.all(promises).then(() => { dispatch(adagucActions.setSources(sort(sourcesDic))); });
-      })
-    );
 
     // Set the datalayers
     this.updateLayers(panels[mapId].layers, {});
