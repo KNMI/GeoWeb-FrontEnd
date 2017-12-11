@@ -139,6 +139,7 @@ export default class Adaguc extends PureComponent {
     // eslint-disable-next-line no-undef
     this.webMapJS = new WMJSMap(adagucMapRef, BACKEND_SERVER_XML2JSON);
     this.webMapJS.setBaseURL('./adagucwebmapjs/');
+    this.webMapJS.setWMJSTileRendererTileSettings(require('basemaps'));
     this.webMapJS.showDialogs(false);
     this.resize();
     // Set listener for triggerPoints
