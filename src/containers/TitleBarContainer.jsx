@@ -162,12 +162,18 @@ class TitleBarContainer extends PureComponent {
       personalUrls = JSON.parse(localStorage.getItem('geoweb')).personal_urls;
     }
 
+    // Ensures Promise.all works even when some promises don't resolve
+    const reflect = (promise) => {
+      return promise.then(
+        (v) => { return { 'data':v, 'status': 'resolved' }; },
+        (e) => { return { 'error':e, 'status': 'rejected' }; }
+      );
+    };
     axios.all(allURLs.map((req) => axios.get(req, { withCredentials: true }))).then(
       axios.spread((services, overlays) => {
         dispatch(mapActions.createMap());
         const allSources = [...services.data, ...personalUrls, overlays.data[0]];
         const promises = [];
-        const sourcesDic = {};
         for (var i = allSources.length - 1; i >= 0; i--) {
           const source = allSources[i];
           var r = new Promise((resolve, reject) => {
@@ -180,14 +186,26 @@ class TitleBarContainer extends PureComponent {
             // eslint-disable-next-line no-undef
             const service = WMJSgetServiceFromStore(source.service);
             if (!service) {
-              reject(new Error('Cannot get service from store'));
+              resolve(new Error('Cannot get service from store'));
             }
-            service.getLayerObjectsFlat((layers) => { sourcesDic[source.name] = { layers, source }; resolve(); });
+            service.getLayerObjectsFlat((layers) => { resolve({ layers, source }); });
           });
-          promises.push(new PromiseWithTimout(r, moment.duration(5, 'seconds').asMilliseconds()));
+          promises.push(new PromiseWithTimout(r, moment.duration(3000, 'milliseconds').asMilliseconds()));
         }
         const sort = (obj) => Object.keys(obj).sort().reduce((acc, c) => { acc[c] = obj[c]; return acc; }, {});
-        Promise.all(promises).then(() => { dispatch(adagucActions.setSources(sort(sourcesDic))); });
+
+        Promise.all(promises.map(reflect)).then((res) => {
+          const sourcesDic = {};
+          res.map((promise) => {
+            if (promise.status === 'resolved') {
+              const { layers, source } = promise.data;
+              sourcesDic[source.name] = { layers, source };
+            } else {
+              console.error(promise);
+            }
+          });
+          dispatch(adagucActions.setSources(sort(sourcesDic)));
+        });
       })
     ).catch((e) => console.log('Error!: ', e));
   }
