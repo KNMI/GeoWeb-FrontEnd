@@ -896,94 +896,102 @@ class LayoutDropDown extends PureComponent {
       <Modal isOpen={this.state.popoverOpen} toggle={togglePreset} style={{ width: '40rem', minWidth: '40rem' }}>
         <ModalHeader>Presets</ModalHeader>
         <ModalBody>
-          <Row style={{ flexDirection: 'column' }}>
-            <Row>
-              <h5>Panel layout</h5>
-            </Row>
-            <Row>
-              <ButtonGroup>
-                <Button onClick={() => this.postLayout('single')} active={isActive('single')} size='sm' color='primary'>
-                  <img className={'panelSelectionImage'} src={require('../static/icons/single.svg')} />
-                </Button>
-                <Button onClick={() => this.postLayout('dual')} active={isActive('dual')} size='sm' color='primary'>
-                  <img className={'panelSelectionImage'} src={require('../static/icons/dual_column.svg')} />
-                </Button>
-                <Button onClick={() => this.postLayout('triplecolumn')} active={isActive('triplecolumn')} size='sm' color='primary'>
-                  <img className={'panelSelectionImage'} src={require('../static/icons/three_columns.svg')} />
-                </Button>
-                <Button onClick={() => this.postLayout('tripleuneven')} active={isActive('tripleuneven')} size='sm' color='primary'>
-                  <img className={'panelSelectionImage'} src={require('../static/icons/uneven_triple.svg')} />
-                </Button>
-                <Button onClick={() => this.postLayout('quaduneven')} active={isActive('quaduneven')} size='sm' color='primary'>
-                  <img className={'panelSelectionImage'} src={require('../static/icons/uneven_quad.svg')} />
-                </Button>
-                <Button onClick={() => this.postLayout('quadcol')} active={isActive('quadcol')} size='sm' color='primary'>
-                  <img className={'panelSelectionImage'} src={require('../static/icons/four_columns.svg')} />
-                </Button>
-                <Button onClick={() => this.postLayout('quad')} active={isActive('quad')} size='sm' color='primary'>
-                  <img className={'panelSelectionImage'} src={require('../static/icons/square.svg')} />
-                </Button>
-              </ButtonGroup>
-            </Row>
+          <Row>
+            <Col>
+              <Row>
+                <h5>Panel layout</h5>
+              </Row>
+              <Row>
+                <ButtonGroup>
+                  <Button onClick={() => this.postLayout('single')} active={isActive('single')} size='sm' color='primary'>
+                    <img className={'panelSelectionImage'} src={require('../static/icons/single.svg')} />
+                  </Button>
+                  <Button onClick={() => this.postLayout('dual')} active={isActive('dual')} size='sm' color='primary'>
+                    <img className={'panelSelectionImage'} src={require('../static/icons/dual_column.svg')} />
+                  </Button>
+                  <Button onClick={() => this.postLayout('triplecolumn')} active={isActive('triplecolumn')} size='sm' color='primary'>
+                    <img className={'panelSelectionImage'} src={require('../static/icons/three_columns.svg')} />
+                  </Button>
+                  <Button onClick={() => this.postLayout('tripleuneven')} active={isActive('tripleuneven')} size='sm' color='primary'>
+                    <img className={'panelSelectionImage'} src={require('../static/icons/uneven_triple.svg')} />
+                  </Button>
+                  <Button onClick={() => this.postLayout('quaduneven')} active={isActive('quaduneven')} size='sm' color='primary'>
+                    <img className={'panelSelectionImage'} src={require('../static/icons/uneven_quad.svg')} />
+                  </Button>
+                  <Button onClick={() => this.postLayout('quadcol')} active={isActive('quadcol')} size='sm' color='primary'>
+                    <img className={'panelSelectionImage'} src={require('../static/icons/four_columns.svg')} />
+                  </Button>
+                  <Button onClick={() => this.postLayout('quad')} active={isActive('quad')} size='sm' color='primary'>
+                    <img className={'panelSelectionImage'} src={require('../static/icons/square.svg')} />
+                  </Button>
+                </ButtonGroup>
+              </Row>
+            </Col>
           </Row>
           <hr />
-          <Row style={{ flexDirection: 'column' }}>
-            <Row>
-              <h5>Layers</h5>
-            </Row>
-            <Row>
-              <InputGroup>
-                <Input id='sourceurlinput' ref={ref => { this._urlinput = ref; }} placeholder='Add your own source' disabled={this.state.getCapBusy} />
-                <InputGroupButton>
-                  <Button color='primary' onClick={this.handleAddSource} disabled={this.state.getCapBusy}>Add</Button>
-                </InputGroupButton>
-              </InputGroup>
-              <ListGroup>
-                {
-                  urls.length === 0
-                    ? <h6 style={{ fontStyle: 'italic', marginTop: '1rem' }}>You currently have not added custom sources</h6>
-                    : <div style={{ marginTop: '1rem' }}>
-                      <h6 style={{ fontStyle: 'italic' }}>Current sources</h6>
-                      {urls.map((source, i) => <ListGroupItem key={i}>
-                        <Icon onClick={() => this.removeCustomSource(i)} name='times' style={{ paddingLeft: 0, paddingRight: '1rem' }} />{source.name}
-                      </ListGroupItem>)}
-                    </div>
-                }
-              </ListGroup>
-            </Row>
+          <Row>
+            <Col>
+              <Row>
+                <h5>Layers</h5>
+              </Row>
+              <Row>
+                <InputGroup>
+                  <Input id='sourceurlinput' ref={ref => { this._urlinput = ref; }} placeholder='Add your own source' disabled={this.state.getCapBusy} />
+                  <InputGroupButton>
+                    <Button color='primary' onClick={this.handleAddSource} disabled={this.state.getCapBusy}>Add</Button>
+                  </InputGroupButton>
+                </InputGroup>
+                <ListGroup>
+                  {
+                    urls.length === 0
+                      ? <h6 style={{ fontStyle: 'italic', marginTop: '1rem' }}>You currently have not added custom sources</h6>
+                      : <div style={{ marginTop: '1rem' }}>
+                        <h6 style={{ fontStyle: 'italic' }}>Current sources</h6>
+                        {urls.map((source, i) => <ListGroupItem key={i}>
+                          <Icon onClick={() => this.removeCustomSource(i)} name='times' style={{ paddingLeft: 0, paddingRight: '1rem' }} />{source.name}
+                        </ListGroupItem>)}
+                      </div>
+                  }
+                </ListGroup>
+              </Row>
+            </Col>
           </Row>
           <hr />
 
-          <Row style={{ flexDirection: 'column' }}>
-            <Row>
-              <h5>Location & zoom level</h5>
-            </Row>
-            <Row>
-              {mapProperties.boundingBox.title
-                ? <Col xs='6'>
-                  <h6>Current Location: {mapProperties.boundingBox.title}</h6>
+          <Row>
+            <Col>
+              <Row>
+                <h5>Location & zoom level</h5>
+              </Row>
+              <Row>
+                {mapProperties.boundingBox.title
+                  ? <Col xs='6'>
+                    <h6 style={{ lineHeight: '20px', padding: '0.5rem 0.75rem 0.5rem 0', margin: 0 }}>Current Location: {mapProperties.boundingBox.title}</h6>
+                  </Col>
+                  : <Col xs='auto' />}
+                <Col xs='auto'>
+                  <Typeahead onChange={(bbox) => this.setBBOX(bbox)} options={BOUNDING_BOXES} labelKey='title' placeholder={'Choose a new bounding box'} />
                 </Col>
-                : <Col xs='auto' />}
-              <Col xs='auto' style={{ marginLeft: '1rem', marginTop: '-0.667rem' }}>
-                <Typeahead onChange={(bbox) => this.setBBOX(bbox)} options={BOUNDING_BOXES} labelKey='title' placeholder={'Choose a new bounding box'} />
-              </Col>
-              <Col />
-            </Row>
+                <Col />
+              </Row>
+            </Col>
           </Row>
           <hr />
-          <Row style={{ flexDirection: 'column' }}>
-            <Row>
-              <h5>Projection</h5>
-            </Row>
-            <Row style={{ marginTop: '0.5rem' }}>
-              <Col xs='6'>
-                <h6>Current Projection: {mapProperties.projection.name}</h6>
-              </Col>
-              <Col xs='auto' style={{ marginLeft: '1rem', marginTop: '-0.667rem' }}>
-                <Typeahead onChange={(projection) => this.setProjection(projection)} labelKey={'title'} filterBy={['title', 'code']} options={PROJECTIONS} placeholder={'Choose a new projection'} />
-              </Col>
-              <Col />
-            </Row>
+          <Row>
+            <Col>
+              <Row>
+                <h5>Projection</h5>
+              </Row>
+              <Row>
+                <Col xs='6'>
+                  <h6 style={{ lineHeight: '20px', padding: '0.5rem 0.75rem 0.5rem 0', margin: 0 }}>Current Projection: {mapProperties.projection.name}</h6>
+                </Col>
+                <Col xs='auto'>
+                  <Typeahead onChange={(projection) => this.setProjection(projection)} labelKey={'title'} filterBy={['title', 'code']} options={PROJECTIONS} placeholder={'Choose a new projection'} />
+                </Col>
+                <Col />
+              </Row>
+            </Col>
           </Row>
           <hr />
           <Row>
