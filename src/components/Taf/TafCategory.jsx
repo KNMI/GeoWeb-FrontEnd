@@ -6,6 +6,7 @@ import TimeSchedule from '../TimeSchedule';
 import { TAF_TEMPLATES, TAF_TYPES, CHANGE_TYPES, CHANGE_TYPES_ORDER, CHANGE_TYPES_SHORTHAND, getChangeType, PHENOMENON_TYPES, PHENOMENON_TYPES_ORDER, getPhenomenonType } from './TafTemplates';
 import cloneDeep from 'lodash.clonedeep';
 import setNestedProperty from 'lodash.set';
+// import isEqual from 'lodash.isequal';
 import moment from 'moment';
 import { Button, Row, Col } from 'reactstrap';
 import { jsonToTacForWind, jsonToTacForWeather, jsonToTacForClouds } from './TafFieldsConverter';
@@ -66,7 +67,7 @@ class TafCategory extends Component {
     this.decorateWeatherArray = this.decorateWeatherArray.bind(this);
     this.byPhenomenonType = this.byPhenomenonType.bind(this);
     this.byStartAndChangeType = this.byStartAndChangeType.bind(this);
-    this.validateTAF = this.validateTAF.bind(this);
+    this.validateTaf = this.validateTaf.bind(this);
     this.saveTaf = this.saveTaf.bind(this);
 
     const initialState = {
@@ -78,8 +79,6 @@ class TafCategory extends Component {
         inWindow: null
       }
     };
-
-    console.log('Init', initialState);
 
     // TODO: should we include defaults?
     const defaults = generateDefaultValues();
@@ -100,9 +99,10 @@ class TafCategory extends Component {
     this.register = [];
   };
 
-  validateTAF (tafJSON) {
-    // // Validate typed settings
+  validateTaf (tafAsObject) {
+    // Validate typed settings
     // let taf = removeInputPropsFromTafJSON(cloneObjectAndSkipNullProps(tafJSON));
+    // let taf = tafAsObject;
 
     // axios({
     //   method: 'post',
@@ -700,8 +700,15 @@ class TafCategory extends Component {
       tafAsObject: newTafState,
       hasEdits: true
     });
-    // this.validateTAF(newTaf);
   };
+
+  // shouldComponentUpdate (nextProps, nextState) {
+  //   if (isEqual(nextProps, this.props) && isEqual(nextState, this.state)) {
+  //     return false;
+  //   };
+  //   this.validateTaf(nextState.tafAsObject);
+  //   return true;
+  // }
 
   componentWillReceiveProps (nextProps) {
     const nextP = cloneDeep(nextProps);
@@ -804,7 +811,10 @@ TafCategory.defaultProps = {
 
 TafCategory.propTypes = {
   taf: TAF_TYPES.TAF.isRequired,
-  editable: PropTypes.bool
+  editable: PropTypes.bool,
+  urls: PropTypes.shape({
+    BACKEND_SERVER_URL: PropTypes.string
+  })
 };
 
 export default TafCategory;

@@ -7,7 +7,7 @@ import { TestTafJSON } from './TestTafJSON.js';
 // const taf = TAF_TEMPLATES.TAF;
 
 describe('(Container) Taf/TafCategory.jsx', () => {
-  before(() => { sinon.spy(TafCategory.prototype, 'validateTAF'); });
+  before(() => { sinon.spy(TafCategory.prototype, 'validateTaf'); });
   it('Renders an empty TafCategory', () => {
     const _component = mount(<TafCategory />);
     expect(_component.type()).to.eql(TafCategory);
@@ -35,7 +35,7 @@ describe('(Container) Taf/TafCategory.jsx', () => {
     });
     expect(_wrappingComponent.find(TafCategory)).to.have.length(1);
     _wrappingComponent.find(TafCategory).get(0).onKeyUp(evt);
-    TafCategory.prototype.validateTAF.should.have.been.calledOnce();
+    TafCategory.prototype.validateTaf.should.have.been.calledOnce();
     expect('everything').to.be.ok();
   });
 
@@ -52,7 +52,7 @@ describe('(Container) Taf/TafCategory.jsx', () => {
     });
     expect(_wrappingComponent.find(TafCategory)).to.have.length(1);
     _wrappingComponent.find(TafCategory).get(0).onKeyUp(evt);
-    TafCategory.prototype.validateTAF.should.have.been.calledTwice();
+    TafCategory.prototype.validateTaf.should.have.been.calledTwice();
     expect('everything').to.be.ok();
   });
 
@@ -72,7 +72,7 @@ describe('(Container) Taf/TafCategory.jsx', () => {
     });
     expect(_wrappingComponent.find(TafCategory)).to.have.length(1);
     _wrappingComponent.find(TafCategory).get(0).onKeyUp(evt);
-    TafCategory.prototype.validateTAF.should.have.been.calledTwice();
+    TafCategory.prototype.validateTaf.should.have.been.calledTwice();
     expect('everything').to.be.ok();
   });
 
@@ -89,7 +89,7 @@ describe('(Container) Taf/TafCategory.jsx', () => {
     });
     expect(_wrappingComponent.find(TafCategory)).to.have.length(1);
     _wrappingComponent.find(TafCategory).get(0).onKeyUp(evt);
-    TafCategory.prototype.validateTAF.should.have.been.calledTwice();
+    TafCategory.prototype.validateTaf.should.have.been.calledTwice();
     expect('everything').to.be.ok();
   }); */
 
