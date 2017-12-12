@@ -1,3 +1,5 @@
+import { windUnitMap, windUnitInverseMap, windUnknownMap, windUnknownInverseMap } from './TafWindMaps';
+import { visibilityUnitMap, visibilityUnitInverseMap } from './TafVisibilityMaps';
 import { qualifierMap, qualifierInverseMap, descriptorMap, descriptorInverseMap, phenomenaMap, phenomenaInverseMap } from './TafWeatherMaps';
 import { amountMap, amountInverseMap, modMap, modInverseMap } from './TafCloudsMaps';
 import { probabilityMap, probabilityInverseMap, typeMap, typeInverseMap } from './TafChangeTypeMaps';
@@ -10,107 +12,54 @@ import isEqual from 'lodash.isequal';
 /**
  * Regular expressions for TAC strings
  */
-const probabilityAndChangeTypeRegEx = new RegExp('(' + Object.keys(probabilityInverseMap).map(elmt => escapeRegExp(elmt)).join('|') + ')?' +
-  '\\s?(' + Object.keys(typeInverseMap).map(elmt => escapeRegExp(elmt)).join('|') + ')?', 'i');
+const convertMapToRegExpOptions = (map) => {
+  return Object.keys(map).map(elmt => escapeRegExp(elmt)).join('|');
+};
 
-const probabilityRegEx = new RegExp('(' + Object.keys(probabilityInverseMap).map(elmt => escapeRegExp(elmt)).join('|') + ')', 'i');
+const probabilityAndChangeTypeRegEx = new RegExp('^(' + convertMapToRegExpOptions(probabilityInverseMap) + ')?' +
+  '\\s?(' + convertMapToRegExpOptions(typeInverseMap) + ')?$', 'i');
 
-const changeTypeRegEx = new RegExp('(' + Object.keys(typeInverseMap).map(elmt => escapeRegExp(elmt)).join('|') + ')', 'i');
+const probabilityRegEx = new RegExp('^(' + convertMapToRegExpOptions(probabilityInverseMap) + ')$', 'i');
+
+const changeTypeRegEx = new RegExp('^(' + convertMapToRegExpOptions(typeInverseMap) + ')$', 'i');
 
 const timestampRegEx = /^(\d{2})(\d{2})$/i;
 
-const periodRegEx = /(\d{4})\/(\d{4})/i;
+const periodRegEx = /^(\d{4})\/(\d{4})$/i;
 
-const windRegEx = /^(\d{3}|VRB)(\d{2})(?:G(\d{2}))?$/i;
+const windRegEx = new RegExp('^(\\d{3}|' + convertMapToRegExpOptions(windUnknownInverseMap) + ')' +
+  '(P?\\d{2})' +
+  '(?:G(\\d{2}))?' +
+  '(?:(' + convertMapToRegExpOptions(windUnitInverseMap) + '))?$', 'i');
 
-const cavokRegEx = /CAVOK/i;
+const visibilityRegEx = new RegExp('^(\\d{4})(?:(' + convertMapToRegExpOptions(visibilityUnitInverseMap) + '))?$', 'i');
 
-const weatherRegEx = new RegExp('(' + Object.keys(qualifierInverseMap).map(elmt => escapeRegExp(elmt)).join('|') + ')' +
-    '(' + Object.keys(descriptorInverseMap).map(elmt => escapeRegExp(elmt)).join('|') + ')' +
-    '((?:' + Object.keys(phenomenaInverseMap).map(elmt => escapeRegExp(elmt)).join('|') + ')+)', 'i');
+const cavokRegEx = /^CAVOK$/i;
 
-const cloudsRegEx = new RegExp('(' + Object.keys(amountInverseMap).map(elmt => escapeRegExp(elmt)).join('|') + ')' +
+const weatherRegEx = new RegExp('^(' + convertMapToRegExpOptions(qualifierInverseMap) + ')' +
+    '(' + convertMapToRegExpOptions(descriptorInverseMap) + ')' +
+    '((?:' + convertMapToRegExpOptions(phenomenaInverseMap) + ')+)$', 'i');
+
+const cloudsRegEx = new RegExp('^(' + convertMapToRegExpOptions(amountInverseMap) + ')' +
     '(\\d{3})' +
-    '(' + Object.keys(modInverseMap).join('|') + ')?', 'i');
+    '(' + convertMapToRegExpOptions(modInverseMap) + ')?$', 'i');
 
-const verticalVisibilityRegEx = /VV(\d{3})/i;
+const verticalVisibilityRegEx = /^VV(\d{3})$/i;
 
-const weatherPhenomenaRegEx = new RegExp('(' + Object.keys(phenomenaInverseMap).map(elmt => escapeRegExp(elmt)).join('|') + ')', 'ig');
+const weatherPhenomenaRegEx = new RegExp('(' + convertMapToRegExpOptions(phenomenaInverseMap) + ')', 'ig');
 
 /**
  * Utility methods to shorten / reuse notation
  */
-const mapProbabilityToString = (probability) => {
-  if (probability && typeof probability === 'string') {
-    return probabilityMap.hasOwnProperty(probability.toUpperCase()) ? probabilityMap[probability.toUpperCase()] : null;
-  }
-  return null;
-};
-
-const mapChangeTypeToString = (changetype) => {
-  if (changetype && typeof changetype === 'string') {
-    return typeMap.hasOwnProperty(changetype.toUpperCase()) ? typeMap[changetype.toUpperCase()] : null;
+const getMapValue = (name, mapToUse, allCaps = false) => {
+  if (name !== null && typeof name === 'string') {
+    return mapToUse.hasOwnProperty(allCaps ? name.toUpperCase() : name) ? mapToUse[allCaps ? name.toUpperCase() : name] : null;
   }
   return null;
 };
 
 const numberAsTwoCharacterString = (numberAsNumber) => {
   return numberAsNumber.toString().padStart(2, '0');
-};
-
-const mapWeatherQualifierToTac = (qualifier) => {
-  return qualifierMap.hasOwnProperty(qualifier) ? qualifierMap[qualifier] : null;
-};
-
-const mapWeatherQualifierToJson = (qualifierAsTac) => {
-  if (qualifierAsTac !== null && typeof qualifierAsTac === 'string') {
-    return qualifierInverseMap.hasOwnProperty(qualifierAsTac.toUpperCase()) ? qualifierInverseMap[qualifierAsTac.toUpperCase()] : null;
-  }
-  return null;
-};
-
-const mapWeatherDescriptorToTac = (descriptor) => {
-  return descriptorMap.hasOwnProperty(descriptor) ? descriptorMap[descriptor] : null;
-};
-
-const mapWeatherDescriptorToJson = (descriptorAsTac) => {
-  if (descriptorAsTac && typeof descriptorAsTac === 'string') {
-    return descriptorInverseMap.hasOwnProperty(descriptorAsTac.toUpperCase()) ? descriptorInverseMap[descriptorAsTac.toUpperCase()] : null;
-  }
-  return null;
-};
-
-const mapWeatherPhenomenonToTac = (phenomenon) => {
-  return phenomenaMap.hasOwnProperty(phenomenon) ? phenomenaMap[phenomenon] : null;
-};
-
-const mapWeatherPhenomenonToJson = (phenomenonAsTac) => {
-  if (phenomenonAsTac && typeof phenomenonAsTac === 'string') {
-    return phenomenaInverseMap.hasOwnProperty(phenomenonAsTac.toUpperCase()) ? phenomenaInverseMap[phenomenonAsTac.toUpperCase()] : null;
-  }
-  return null;
-};
-
-const mapCloudsAmountToTac = (amount) => {
-  return amountMap.hasOwnProperty(amount) ? amountMap[amount] : null;
-};
-
-const mapCloudsAmountToJson = (amountAsTac) => {
-  if (amountAsTac && typeof amountAsTac === 'string') {
-    return amountInverseMap.hasOwnProperty(amountAsTac.toUpperCase()) ? amountInverseMap[amountAsTac.toUpperCase()] : null;
-  }
-  return null;
-};
-
-const mapCloudsModToTac = (mod) => {
-  return modMap.hasOwnProperty(mod) ? modMap[mod] : null;
-};
-
-const mapCloudsModToJson = (modAsTac) => {
-  if (modAsTac && typeof modAsTac === 'string') {
-    return modInverseMap.hasOwnProperty(modAsTac.toUpperCase()) ? modInverseMap[modAsTac.toUpperCase()] : null;
-  }
-  return null;
 };
 
 /**
@@ -121,7 +70,7 @@ const jsonToTacForProbability = (probabilityAsJson, useFallback = false) => {
   if (probabilityAsJson && typeof probabilityAsJson === 'string') {
     const matchResult = probabilityAsJson.match(probabilityAndChangeTypeRegEx);
     if (matchResult) {
-      result = mapProbabilityToString(matchResult[1]);
+      result = getMapValue(matchResult[1], probabilityMap, true);
     }
   }
   if (useFallback && !result && probabilityAsJson && probabilityAsJson.hasOwnProperty('fallback')) {
@@ -137,7 +86,7 @@ const jsonToTacForChangeType = (changeTypeAsJson, useFallback = false) => {
   if (changeTypeAsJson && typeof changeTypeAsJson === 'string') {
     const matchResult = changeTypeAsJson.match(probabilityAndChangeTypeRegEx);
     if (matchResult) {
-      result = mapChangeTypeToString(matchResult[2]);
+      result = getMapValue(matchResult[2], typeMap, true);
     }
   }
   if (useFallback && !result && changeTypeAsJson && changeTypeAsJson.hasOwnProperty('fallback')) {
@@ -174,31 +123,49 @@ const jsonToTacForPeriod = (startTimestampAsJson, endTimestampAsJson, useFallbac
 
 const jsonToTacForWind = (windAsJson, useFallback = false) => {
   let result = null;
-  if (windAsJson && windAsJson.hasOwnProperty('direction')) {
+  if (!windAsJson) {
+    return result;
+  }
+  if (windAsJson.hasOwnProperty('direction')) {
     if (typeof windAsJson.direction === 'number') {
       result = windAsJson.direction.toString().padStart(3, '0');
-    } else {
-      if (typeof windAsJson.direction === 'string' && windAsJson.direction === 'VRB') {
-        result = 'VRB';
-      } else {
+    } else if (typeof windAsJson.direction === 'string') {
+      result = getMapValue(windAsJson.direction, windUnknownMap);
+      if (!result) {
         return useFallback && windAsJson.hasOwnProperty('fallback') ? windAsJson.fallback : null;
       }
-    }
-  } else {
-    return useFallback && windAsJson.hasOwnProperty('fallback') ? windAsJson.fallback : null;
-  }
-  if (windAsJson && windAsJson.hasOwnProperty('speed')) {
-    if (typeof windAsJson.speed === 'number') {
-      result += windAsJson.speed.toString().padStart(2, '0');
     } else {
       return useFallback && windAsJson.hasOwnProperty('fallback') ? windAsJson.fallback : null;
     }
   } else {
     return useFallback && windAsJson.hasOwnProperty('fallback') ? windAsJson.fallback : null;
   }
-  if (windAsJson && windAsJson.hasOwnProperty('gusts')) {
+  if (windAsJson.hasOwnProperty('speed')) {
+    if (typeof windAsJson.speed === 'number') {
+      result += windAsJson.speed.toString().padStart(2, '0');
+    } else if (typeof windAsJson.speed === 'string' && /^P\d9$/i.test(windAsJson.speed)) {
+      result += windAsJson.speed;
+    } else {
+      return useFallback && windAsJson.hasOwnProperty('fallback') ? windAsJson.fallback : null;
+    }
+  } else {
+    return useFallback && windAsJson.hasOwnProperty('fallback') ? windAsJson.fallback : null;
+  }
+  if (windAsJson.hasOwnProperty('gusts')) {
     if (typeof windAsJson.gusts === 'number') {
       result += 'G' + windAsJson.gusts.toString().padStart(2, '0');
+    }
+  } else {
+    return useFallback && windAsJson.hasOwnProperty('fallback') ? windAsJson.fallback : null;
+  }
+  if (windAsJson.hasOwnProperty('unit')) {
+    if (typeof windAsJson.unit === 'string') {
+      const unit = getMapValue(windAsJson.unit, windUnitMap);
+      if (!unit) {
+        return useFallback && windAsJson.hasOwnProperty('fallback') ? windAsJson.fallback : null;
+      } else {
+        result += unit;
+      }
     }
   } else {
     return useFallback && windAsJson.hasOwnProperty('fallback') ? windAsJson.fallback : null;
@@ -208,10 +175,23 @@ const jsonToTacForWind = (windAsJson, useFallback = false) => {
 
 const jsonToTacForVisibility = (visibilityAsJson, useFallback = false) => {
   let result = null;
-  if (visibilityAsJson && visibilityAsJson.hasOwnProperty('value') && typeof visibilityAsJson.value === 'number') {
+  if (!visibilityAsJson) {
+    return result;
+  }
+  if (visibilityAsJson.hasOwnProperty('value') && typeof visibilityAsJson.value === 'number') {
     result = visibilityAsJson.value.toString().padStart(4, '0');
   } else if (useFallback && visibilityAsJson.hasOwnProperty('fallback')) {
     result = visibilityAsJson.fallback;
+  }
+  if (visibilityAsJson.hasOwnProperty('unit')) {
+    const unit = getMapValue(visibilityAsJson.unit, visibilityUnitMap);
+    if (!unit) {
+      return useFallback && visibilityAsJson.hasOwnProperty('fallback') ? visibilityAsJson.fallback : null;
+    } else {
+      result += unit;
+    }
+  } else {
+    return useFallback && visibilityAsJson.hasOwnProperty('fallback') ? visibilityAsJson.fallback : null;
   }
   return result;
 };
@@ -222,28 +202,42 @@ const jsonToTacForCavok = (cavokAsJson) => {
 
 const jsonToTacForWeather = (weatherAsJson, useFallback = false) => {
   let result = null;
-  if (weatherAsJson) {
-    if (typeof weatherAsJson === 'string' && weatherAsJson === 'NSW') {
-      result = 'NSW';
-    } else if (typeof weatherAsJson === 'object') {
-      if (weatherAsJson.hasOwnProperty('qualifier') && typeof weatherAsJson.qualifier === 'string') {
-        result = mapWeatherQualifierToTac(weatherAsJson.qualifier);
-      } else {
+  if (!weatherAsJson) {
+    return result;
+  }
+  if (typeof weatherAsJson === 'string' && weatherAsJson === 'NSW') {
+    result = 'NSW';
+  } else if (typeof weatherAsJson === 'object') {
+    if (weatherAsJson.hasOwnProperty('qualifier')) {
+      const qualifier = getMapValue(weatherAsJson.qualifier, qualifierMap);
+      if (qualifier === null) {
         return useFallback && weatherAsJson.hasOwnProperty('fallback') ? weatherAsJson.fallback : null;
-      }
-      if (weatherAsJson.hasOwnProperty('descriptor') && typeof weatherAsJson.descriptor === 'string') {
-        result += mapWeatherDescriptorToTac(weatherAsJson.descriptor);
       } else {
-        return useFallback && weatherAsJson.hasOwnProperty('fallback') ? weatherAsJson.fallback : null;
+        result = qualifier;
       }
-      if (weatherAsJson.hasOwnProperty('phenomena') && Array.isArray(weatherAsJson.phenomena)) {
-        result += weatherAsJson.phenomena.reduce((cumm, current) => {
-          cumm += mapWeatherPhenomenonToTac(current);
-          return cumm;
-        }, '');
+    } else {
+      return useFallback && weatherAsJson.hasOwnProperty('fallback') ? weatherAsJson.fallback : null;
+    }
+    if (weatherAsJson.hasOwnProperty('descriptor')) {
+      const descriptor = getMapValue(weatherAsJson.descriptor, descriptorMap);
+      if (descriptor === null) {
+        return useFallback && weatherAsJson.hasOwnProperty('fallback') ? weatherAsJson.fallback : null;
       } else {
-        return useFallback && weatherAsJson.hasOwnProperty('fallback') ? weatherAsJson.fallback : null;
+        result += descriptor;
       }
+    } else {
+      return useFallback && weatherAsJson.hasOwnProperty('fallback') ? weatherAsJson.fallback : null;
+    }
+    if (weatherAsJson.hasOwnProperty('phenomena') && Array.isArray(weatherAsJson.phenomena)) {
+      result += weatherAsJson.phenomena.reduce((cumm, current) => {
+        const phenomenon = getMapValue(current, phenomenaMap);
+        if (phenomenon !== null) {
+          cumm += phenomenon;
+        }
+        return cumm;
+      }, '');
+    } else {
+      return useFallback && weatherAsJson.hasOwnProperty('fallback') ? weatherAsJson.fallback : null;
     }
   }
   return result;
@@ -251,22 +245,31 @@ const jsonToTacForWeather = (weatherAsJson, useFallback = false) => {
 
 const jsonToTacForClouds = (cloudsAsJson, useFallback = false) => {
   let result = null;
-  if (cloudsAsJson) {
-    if (typeof cloudsAsJson === 'string' && cloudsAsJson === 'NSC') {
-      result = 'NSC';
-    } else if (typeof cloudsAsJson === 'object') {
-      if (cloudsAsJson.hasOwnProperty('amount') && typeof cloudsAsJson.amount === 'string') {
-        result = mapCloudsAmountToTac(cloudsAsJson.amount);
-      } else {
+  if (!cloudsAsJson) {
+    return result;
+  }
+  if (typeof cloudsAsJson === 'string' && cloudsAsJson === 'NSC') {
+    result = 'NSC';
+  } else if (typeof cloudsAsJson === 'object') {
+    if (cloudsAsJson.hasOwnProperty('amount')) {
+      const amount = getMapValue(cloudsAsJson.amount, amountMap);
+      if (amount === null) {
         return useFallback && cloudsAsJson.hasOwnProperty('fallback') ? cloudsAsJson.fallback : null;
-      }
-      if (cloudsAsJson.hasOwnProperty('height') && typeof cloudsAsJson.height === 'number') {
-        result += cloudsAsJson.height.toString().padStart(3, '0');
       } else {
-        return useFallback && cloudsAsJson.hasOwnProperty('fallback') ? cloudsAsJson.fallback : null;
+        result = amount;
       }
-      if (cloudsAsJson.hasOwnProperty('mod') && typeof cloudsAsJson.mod === 'string') {
-        result += mapCloudsModToTac(cloudsAsJson.mod);
+    } else {
+      return useFallback && cloudsAsJson.hasOwnProperty('fallback') ? cloudsAsJson.fallback : null;
+    }
+    if (cloudsAsJson.hasOwnProperty('height') && typeof cloudsAsJson.height === 'number') {
+      result += cloudsAsJson.height.toString().padStart(3, '0');
+    } else {
+      return useFallback && cloudsAsJson.hasOwnProperty('fallback') ? cloudsAsJson.fallback : null;
+    }
+    if (cloudsAsJson.hasOwnProperty('mod')) {
+      const mod = getMapValue(cloudsAsJson.mod, modMap);
+      if (mod !== null) {
+        result += mod;
       }
     }
   }
@@ -291,7 +294,7 @@ const tacToJsonForProbability = (probabilityAsTac, useFallback = false) => {
   if (probabilityAsTac && typeof probabilityAsTac === 'string') {
     let matchResult = probabilityAsTac.match(probabilityRegEx);
     if (matchResult) {
-      result = mapProbabilityToString(matchResult[1]);
+      result = getMapValue(matchResult[1], probabilityInverseMap, true);
     }
   }
   if (useFallback && !result && typeof probabilityAsTac === 'string') {
@@ -305,7 +308,7 @@ const tacToJsonForChangeType = (changeTypeAsTac, useFallback = false) => {
   if (changeTypeAsTac && typeof changeTypeAsTac === 'string') {
     let matchResult = changeTypeAsTac.match(changeTypeRegEx);
     if (matchResult) {
-      result = mapChangeTypeToString(matchResult[1]);
+      result = getMapValue(matchResult[1], typeInverseMap, true);
     }
   }
   if (useFallback && !result && changeTypeAsTac && typeof changeTypeAsTac === 'string') {
@@ -399,12 +402,17 @@ const tacToJsonForWind = (windAsTac, useFallback = false) => {
     const matchResult = windAsTac.match(windRegEx);
     if (matchResult) {
       const direction = parseInt(matchResult[1]);
-      result.direction = isNaN(direction) ? 'VRB' : direction;
-      result.speed = parseInt(matchResult[2]);
+      result.direction = isNaN(direction)
+        ? getMapValue(matchResult[1], windUnknownInverseMap, true)
+        : direction;
+      const speed = parseInt(matchResult[2]);
+      result.speed = isNaN(speed)
+        ? matchResult[2].toUpperCase()
+        : speed;
       if (matchResult[3]) {
         result.gusts = parseInt(matchResult[3]);
       }
-      result.unit = 'KT';
+      result.unit = getMapValue(matchResult[4], windUnitInverseMap, true) || 'KT';
     }
   }
   if (useFallback && isEqual(result, TAF_TEMPLATES.WIND)) {
@@ -414,13 +422,12 @@ const tacToJsonForWind = (windAsTac, useFallback = false) => {
 };
 
 const tacToJsonForVisibility = (visibilityAsTac, useFallback = false) => {
-  const visibilityRegEx = /^(\d{4})$/i;
   const result = cloneDeep(TAF_TEMPLATES.VISIBILITY);
   if (visibilityAsTac && typeof visibilityAsTac === 'string') {
     const matchResult = visibilityAsTac.match(visibilityRegEx);
     if (matchResult) {
       result.value = parseInt(matchResult[1]);
-      result.unit = 'M';
+      result.unit = getMapValue(matchResult[2], visibilityUnitInverseMap, true) || 'M';
     }
   }
   if (useFallback && isEqual(result, TAF_TEMPLATES.VISIBILITY)) {
@@ -445,9 +452,9 @@ const tacToJsonForWeather = (weatherAsTac, useFallback = false) => {
   if (weatherAsTac && typeof weatherAsTac === 'string') {
     const matchResult = weatherAsTac.match(weatherRegEx);
     if (matchResult) {
-      result.qualifier = mapWeatherQualifierToJson(matchResult[1]);
-      result.descriptor = mapWeatherDescriptorToJson(matchResult[2]);
-      result.phenomena = matchResult[3].match(weatherPhenomenaRegEx).map(elmt => mapWeatherPhenomenonToJson(elmt));
+      result.qualifier = getMapValue(matchResult[1], qualifierInverseMap, true);
+      result.descriptor = getMapValue(matchResult[2], descriptorInverseMap, true);
+      result.phenomena = matchResult[3].match(weatherPhenomenaRegEx).map(elmt => getMapValue(elmt, phenomenaInverseMap, true));
     } else if (weatherAsTac.toUpperCase() === 'NSW') {
       result = 'NSW';
     }
@@ -463,10 +470,10 @@ const tacToJsonForClouds = (cloudsAsTac, useFallback = false) => {
   if (cloudsAsTac && typeof cloudsAsTac === 'string') {
     const matchResult = cloudsAsTac.match(cloudsRegEx);
     if (matchResult) {
-      result.amount = mapCloudsAmountToJson(matchResult[1]);
+      result.amount = getMapValue(matchResult[1], amountInverseMap, true);
       result.height = parseInt(matchResult[2]);
       if (matchResult[3]) {
-        result.mod = mapCloudsModToJson(matchResult[3]);
+        result.mod = getMapValue(matchResult[3], modInverseMap, true);
       }
     } else if (cloudsAsTac.toUpperCase() === 'NSC') {
       result = 'NSC';

@@ -65,7 +65,7 @@ describe('(Functions) TafFieldsConverter', () => {
       gusts: 25,
       unit: 'KT'
     });
-    expect(result).to.eql('20015G25');
+    expect(result).to.eql('20015G25KT');
     // No gusts
     result = jsonToTacForWind({
       direction: 230,
@@ -73,7 +73,7 @@ describe('(Functions) TafFieldsConverter', () => {
       gusts: null,
       unit: 'KT'
     });
-    expect(result).to.eql('23010');
+    expect(result).to.eql('23010KT');
     // Variable direction
     result = jsonToTacForWind({
       direction: 'VRB',
@@ -81,7 +81,31 @@ describe('(Functions) TafFieldsConverter', () => {
       gusts: 10,
       unit: 'KT'
     });
-    expect(result).to.eql('VRB12G10');
+    expect(result).to.eql('VRB12G10KT');
+    // Overflow speed
+    result = jsonToTacForWind({
+      direction: 230,
+      speed: 'P99',
+      gusts: null,
+      unit: 'KT'
+    });
+    expect(result).to.eql('230P99KT');
+    // 'Override' default unit
+    result = jsonToTacForWind({
+      direction: 235,
+      speed: 15,
+      gusts: null,
+      unit: 'KT'
+    });
+    expect(result).to.eql('23515KT');
+    // Override default unit
+    result = jsonToTacForWind({
+      direction: 235,
+      speed: 15,
+      gusts: null,
+      unit: 'MPS'
+    });
+    expect(result).to.eql('23515MPS');
     // Direction with one prefix zero
     result = jsonToTacForWind({
       direction: 10,
@@ -89,7 +113,7 @@ describe('(Functions) TafFieldsConverter', () => {
       gusts: 25,
       unit: 'KT'
     });
-    expect(result).to.eql('01015G25');
+    expect(result).to.eql('01015G25KT');
     // Direction with two prefix zeros
     result = jsonToTacForWind({
       direction: 4,
@@ -97,7 +121,7 @@ describe('(Functions) TafFieldsConverter', () => {
       gusts: 25,
       unit: 'KT'
     });
-    expect(result).to.eql('00415G25');
+    expect(result).to.eql('00415G25KT');
     // speed with one prefix zero
     result = jsonToTacForWind({
       direction: 100,
@@ -105,7 +129,7 @@ describe('(Functions) TafFieldsConverter', () => {
       gusts: 25,
       unit: 'KT'
     });
-    expect(result).to.eql('10005G25');
+    expect(result).to.eql('10005G25KT');
     // speed with one prefix zero
     result = jsonToTacForWind({
       direction: 100,
@@ -113,7 +137,7 @@ describe('(Functions) TafFieldsConverter', () => {
       gusts: 5,
       unit: 'KT'
     });
-    expect(result).to.eql('10015G05');
+    expect(result).to.eql('10015G05KT');
     // invalid direction
     result = jsonToTacForWind({
       direction: 'test',
@@ -130,30 +154,36 @@ describe('(Functions) TafFieldsConverter', () => {
       value: 9999,
       unit: 'M'
     });
-    expect(result).to.eql('9999');
+    expect(result).to.eql('9999M');
     // value with one prefix zero
     result = jsonToTacForVisibility({
       value: 100,
       unit: 'M'
     });
-    expect(result).to.eql('0100');
+    expect(result).to.eql('0100M');
     // value with two prefix zeros
     result = jsonToTacForVisibility({
       value: 20,
       unit: 'M'
     });
-    expect(result).to.eql('0020');
+    expect(result).to.eql('0020M');
     // value with three prefix zeros
     result = jsonToTacForVisibility({
       value: 3,
       unit: 'M'
     });
-    expect(result).to.eql('0003');
+    expect(result).to.eql('0003M');
+    // other unit
+    result = jsonToTacForVisibility({
+      value: 2000,
+      unit: 'KM'
+    });
+    expect(result).to.eql('2000KM');
     // missing unit
     result = jsonToTacForVisibility({
       value: 2000
     });
-    expect(result).to.eql('2000');
+    expect(result).to.eql(null);
   });
 
   it('Converts weather data from JSON to TAC', () => {
@@ -394,6 +424,46 @@ describe('(Functions) TafFieldsConverter', () => {
       gusts: 10,
       unit: 'KT'
     });
+    // Overflow speed
+    result = tacToJsonForWind('230P99');
+    expect(result).to.eql({
+      direction: 230,
+      speed: 'P99',
+      gusts: null,
+      unit: 'KT'
+    });
+    // Overflow speed, lowercase
+    result = tacToJsonForWind('230p49');
+    expect(result).to.eql({
+      direction: 230,
+      speed: 'P49',
+      gusts: null,
+      unit: 'KT'
+    });
+    // 'Override' default unit
+    result = tacToJsonForWind('23515KT');
+    expect(result).to.eql({
+      direction: 235,
+      speed: 15,
+      gusts: null,
+      unit: 'KT'
+    });
+    // Override default unit
+    result = tacToJsonForWind('23515MPS');
+    expect(result).to.eql({
+      direction: 235,
+      speed: 15,
+      gusts: null,
+      unit: 'MPS'
+    });
+    // Override default unit, lowercase
+    result = tacToJsonForWind('23515mps');
+    expect(result).to.eql({
+      direction: 235,
+      speed: 15,
+      gusts: null,
+      unit: 'MPS'
+    });
     // Direction with one prefix zero
     result = tacToJsonForWind('01015G25');
     expect(result).to.eql({
@@ -466,6 +536,12 @@ describe('(Functions) TafFieldsConverter', () => {
     expect(result).to.eql({
       value: null,
       unit: null
+    });
+    // other unit
+    result = tacToJsonForVisibility('2000KM');
+    expect(result).to.eql({
+      value: 2000,
+      unit: 'KM'
     });
   });
 

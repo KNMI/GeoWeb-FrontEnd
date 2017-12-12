@@ -371,12 +371,21 @@ class TafCategory extends Component {
 
     tafDataAsJson.changegroups.sort(this.byStartAndChangeType).map(change => {
       const changeType = getChangeType(change.changeType);
+      const fallbackValue = cloneDeep(scopeStart).subtract(1, 'hour');
 
-      const start = change.changeStart ? moment.utc(change.changeStart) : scopeStart;
+      const start = change.changeStart && !change.changeStart.hasOwnProperty('fallback')
+        ? moment.utc(change.changeStart)
+        : fallbackValue;
 
       // FM only has a change start, and persists until scope end
-      const end = changeType === CHANGE_TYPES.FM ? scopeEnd : (change.changeEnd ? moment.utc(change.changeEnd) : scopeStart);
-      if (end.isBefore(start)) {
+      const end = changeType === CHANGE_TYPES.FM
+        ? (start !== fallbackValue
+          ? scopeEnd
+          : fallbackValue)
+        : (change.changeEnd && !change.changeEnd.hasOwnProperty('fallback')
+          ? moment.utc(change.changeEnd)
+          : fallbackValue);
+      if (!end.isAfter(start)) {
         return;
       }
 
@@ -532,6 +541,10 @@ class TafCategory extends Component {
         phenomenonName = nameParts[nameParts.length - 2];
       } else {
         phenomenonName = nameParts[nameParts.length - 1];
+      }
+
+      if (!getPhenomenonType(phenomenonName)) {
+        return;
       }
 
       const getPhenomenonPresetUrl = (phenomenon) => {
