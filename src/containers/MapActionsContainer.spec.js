@@ -128,27 +128,27 @@ describe('(Container) MapActionsContainer', () => {
     _deepComponent.instance().goToNow();
     expect('everything').to.be.ok();
   });
-  it('Allows for triggering generateMap', () => {
-    _deepComponent.instance().generateMap([{ name: 'testName', text: 'testText' }]);
-    expect('everything').to.be.ok();
-  });
-  it('Allows for triggering getLayerName', () => {
-    let obs = _deepComponent.instance().getLayerName({ title: 'OBS' });
-    expect(obs).to.eql('Observations');
-    obs = _deepComponent.instance().getLayerName({ title: 'SAT' });
-    expect(obs).to.eql('Satellite');
-    obs = _deepComponent.instance().getLayerName({ title: 'LGT' });
-    expect(obs).to.eql('Lightning');
-    obs = _deepComponent.instance().getLayerName({ title: 'HARM_N25_EXT' });
-    expect(obs).to.eql('HARMONIE (EXT)');
-    obs = _deepComponent.instance().getLayerName({ title: 'HARM_N25' });
-    expect(obs).to.eql('HARMONIE');
-    obs = _deepComponent.instance().getLayerName({ title: 'OVL' });
-    expect(obs).to.eql('Overlay');
-    obs = _deepComponent.instance().getLayerName({ title: 'RADAR_EXT' });
-    expect(obs).to.eql('Radar (EXT)');
-    expect('everything').to.be.ok();
-  });
+  // it('Allows for triggering generateMap', () => {
+  //   _deepComponent.instance().generateMap([{ name: 'testName', text: 'testText' }]);
+  //   expect('everything').to.be.ok();
+  // });
+  // it('Allows for triggering getLayerName', () => {
+  //   let obs = _deepComponent.instance().getLayerName({ title: 'OBS' });
+  //   expect(obs).to.eql('Observations');
+  //   obs = _deepComponent.instance().getLayerName({ title: 'SAT' });
+  //   expect(obs).to.eql('Satellite');
+  //   obs = _deepComponent.instance().getLayerName({ title: 'LGT' });
+  //   expect(obs).to.eql('Lightning');
+  //   obs = _deepComponent.instance().getLayerName({ title: 'HARM_N25_EXT' });
+  //   expect(obs).to.eql('HARMONIE (EXT)');
+  //   obs = _deepComponent.instance().getLayerName({ title: 'HARM_N25' });
+  //   expect(obs).to.eql('HARMONIE');
+  //   obs = _deepComponent.instance().getLayerName({ title: 'OVL' });
+  //   expect(obs).to.eql('Overlay');
+  //   obs = _deepComponent.instance().getLayerName({ title: 'RADAR_EXT' });
+  //   expect(obs).to.eql('Radar (EXT)');
+  //   expect('everything').to.be.ok();
+  // });
   it('Allows for setting addLayer action state', () => {
     _deepComponent.setState({ action: 'addLayer' });
     expect('everything').to.be.ok();

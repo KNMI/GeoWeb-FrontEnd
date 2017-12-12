@@ -4,10 +4,30 @@ import { shallow, mount } from 'enzyme';
 import { Col } from 'reactstrap';
 
 describe('(Component) LayerManager', () => {
-  let _wmjslayers;
+  let _wmjslayers, _panel;
   const emptyFunc = () => { /* intentionally left empty */ };
   const empytObj = { /* intentionally left empty */ };
   beforeEach(() => {
+    _panel = {
+      overlays: [
+        {
+          service: 'http://birdexp07.knmi.nl:8081/adaguc-services/adagucserver?DATASET=OVL',
+          title: 'OVL_EXT',
+          name: 'countries',
+          label: 'Countries'
+        }
+      ],
+      layers: [
+        {
+          service: 'http://geoservices.knmi.nl/cgi-bin/RADNL_OPER_R___25PCPRR_L3.cgi?',
+          title: 'RADAR_EXT',
+          name: 'RADNL_OPER_R___25PCPRR_L3_COLOR',
+          label: 'RADNL_OPER_R___25PCPRR_L3_COLOR',
+          opacity: 1,
+          enabled: true
+        }
+      ]
+    };
     _wmjslayers = {
       layers: [
         {
@@ -170,9 +190,9 @@ describe('(Component) LayerManager', () => {
   });
 
   it('Renders renders with layers', () => {
-    const _component = shallow(<LayerManager dispatch={emptyFunc} actions={empytObj} wmjslayers={_wmjslayers} />);
+    const _component = shallow(<LayerManager dispatch={emptyFunc} actions={empytObj} panel={_panel} wmjslayers={_wmjslayers} />);
     expect(_component.type()).to.eql(Col);
-    const _deepComponent = mount(<LayerManager dispatch={emptyFunc} actions={empytObj} wmjslayers={_wmjslayers} />);
+    const _deepComponent = mount(<LayerManager dispatch={emptyFunc} actions={empytObj} panel={_panel} wmjslayers={_wmjslayers} />);
     expect(_deepComponent.type()).to.eql(LayerManager);
 
     expect(_deepComponent.state('layers')).to.have.lengthOf(1);

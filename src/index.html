@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang='en'>
+<html lang="en">
 <head>
     <!-- needed for bootstrap javascript. Why though? -->
-    <script src='tether.min.js'></script>
-    <script type='text/javascript'>
+    <script src="tether.min.js"></script>
+    <script type="text/javascript">
       if (typeof Object.assign !== 'function') {
         // Must be writable: true, enumerable: false, configurable: true
         Object.defineProperty(Object, 'assign', {
@@ -41,52 +41,52 @@
         var trace = console.trace;
         var warn = console.warn;
         console.info = function () {
-          var args = Array.prototype.slice.call(arguments)
-          info.apply(this, args );
+          var args = Array.prototype.slice.call(arguments);
+          info.apply(this, args);
           myLogs.push('Info: ' + args.reduce((acc, v) => acc + ', ' + v));
         };
         console.warn = function () {
-          var args = Array.prototype.slice.call(arguments)
-          warn.apply(this, args );
+          var args = Array.prototype.slice.call(arguments);
+          warn.apply(this, args);
           myLogs.push('Warning: ' + args.reduce((acc, v) => acc + ', ' + v));
         };
         console.trace = function () {
-          var args = Array.prototype.slice.call(arguments)
-          trace.apply(this, args );
+          var args = Array.prototype.slice.call(arguments);
+          trace.apply(this, args);
           myLogs.push('Trace: ' + args.reduce((acc, v) => acc + ', ' + v));
         };
         console.log = function () {
-          var args = Array.prototype.slice.call(arguments)
-          log.apply(this, args );
+          var args = Array.prototype.slice.call(arguments);
+          log.apply(this, args);
           myLogs.push('Log: ' + args.reduce((acc, v) => acc + ', ' + v));
         };
         console.error = function () {
-          var args = Array.prototype.slice.call(arguments)
-          error.apply(this, args );
+          var args = Array.prototype.slice.call(arguments);
+          error.apply(this, args);
           myLogs.push('Error: ' + args.reduce((acc, v) => acc + ', ' + v));
         };
-        window.onerror = function(msg, url, line, col, error) {
+        window.onerror = function (msg, url, line, col, error) {
           myLogs.push('Error: ' + msg);
-        }
-        window.addEventListener("error", function (e) {
+        };
+        window.addEventListener('error', function (e) {
           myLogs.push('Error: ' + e.error.message);
         });
       }());
-    </script>
+  </script>
   <title>GeoWeb FrontEnd</title>
-  <meta charset='utf-8'>
-  <meta name='viewport' content='width=device-width, initial-scale=1' />
-  <script type='text/javascript' src='./adagucwebmapjs/webmapjs.min.js' />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script type="text/javascript" src="./adagucwebmapjs/webmapjs.min.js" />
 
   <!-- Bijvoet diagram code -->
-  <script type='text/javascript' src='./progtemp/functions_bijvoet.js'></script>
+  <script type="text/javascript" src="./progtemp/functions_bijvoet.js" />
 
   <!-- ADAGUC styling -->
-  <link rel='stylesheet' type='text/css' href='./adagucwebmapjs/webmapjs.min.css' />
+  <link rel="stylesheet" type="text/css" href="./adagucwebmapjs/webmapjs.min.css" />
 
   <!-- This is a polyfill for IE11 (among others), so this might be removed in the future -->
 </head>
 <body>
-  <div id='root'></div>
+  <div id="root"></div>
 </body>
 </html>

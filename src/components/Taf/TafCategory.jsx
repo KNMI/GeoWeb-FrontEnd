@@ -12,7 +12,6 @@ import { jsonToTacForWind, jsonToTacForWeather, jsonToTacForClouds } from './Taf
 import TafTable from './TafTable';
 // import TACTable from './TACTable';
 import axios from 'axios';
-
 const TMP = '_temp';
 
 const MOVE_DIRECTION = Enum(
@@ -741,7 +740,6 @@ class TafCategory extends Component {
       validationSucceeded = true;
     }
     const series = this.extractScheduleInformation(cloneDeep(this.state.tafAsObject));
-
     return (
       <Row className='TafCategory' style={{ flex: 1 }}>
         <Col style={{ flexDirection: 'column' }}>

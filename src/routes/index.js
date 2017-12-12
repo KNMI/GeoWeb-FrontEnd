@@ -42,14 +42,16 @@ const mapStateToHeaderProps = state => ({
   mapProperties: state.mapProperties,
   layers: state.layers,
   fullState: state,
-  urls: state.urls
+  urls: state.urls,
+  adagucProperties: state.adagucProperties
 });
 const mapDispatchToHeaderProps = function (dispatch) {
   return ({
     dispatch,
     mapActions,
     adagucActions,
-    userActions
+    userActions,
+    layerActions
   });
 };
 const mapStateToSidebarProps = state => ({

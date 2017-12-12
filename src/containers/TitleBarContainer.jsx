@@ -1,18 +1,22 @@
 import React, { PureComponent } from 'react';
-import { Icon, IconStack } from 'react-fa';
+import { Icon } from 'react-fa';
 import GeoWebLogo from '../components/assets/icon.svg';
 import { CheckIfUserHasRole } from '../utils/user';
 import { SaveURLPreset } from '../utils/URLPresets';
+import PromiseWithTimout from '../utils/PromiseWithTimout';
 import { UserRoles } from '../constants/userroles';
+import { BOUNDING_BOXES } from '../constants/bounding_boxes';
+import { PROJECTIONS } from '../constants/projections';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import axios from 'axios';
 import uuidV4 from 'uuid/v4';
-import { Alert, Navbar, NavbarBrand, Row, Col, Nav, NavLink, Breadcrumb, BreadcrumbItem, Collapse, Popover, Form, FormGroup, Label, PopoverContent,
+import { Alert, Navbar, NavbarBrand, Row, Col, Nav, NavLink, Breadcrumb, BreadcrumbItem, Collapse, Popover, Form, FormGroup, Label, ListGroup, ListGroupItem, PopoverContent,
   PopoverTitle, ButtonGroup, InputGroupButton, Modal, ModalHeader, ModalBody, ModalFooter, Button, InputGroup, Input, FormText } from 'reactstrap';
 import { Link, hashHistory } from 'react-router';
 import PropTypes from 'prop-types';
 import moment from 'moment';
 import { addNotification } from 'reapop';
+import { Typeahead } from 'react-bootstrap-typeahead';
 
 const timeFormat = 'YYYY MMM DD - HH:mm';
 const browserFullScreenRequests = [
@@ -153,10 +157,55 @@ class TitleBarContainer extends PureComponent {
     const { dispatch, mapActions, adagucActions } = this.props;
     const defaultURLs = ['getServices', 'getOverlayServices'].map((url) => urls.BACKEND_SERVER_URL + '/' + url);
     const allURLs = [...defaultURLs];
+    let personalUrls = {};
+    if (localStorage) {
+      personalUrls = JSON.parse(localStorage.getItem('geoweb')).personal_urls;
+    }
+
+    // Ensures Promise.all works even when some promises don't resolve
+    const reflect = (promise) => {
+      return promise.then(
+        (v) => { return { 'data':v, 'status': 'resolved' }; },
+        (e) => { return { 'error':e, 'status': 'rejected' }; }
+      );
+    };
     axios.all(allURLs.map((req) => axios.get(req, { withCredentials: true }))).then(
       axios.spread((services, overlays) => {
         dispatch(mapActions.createMap());
-        dispatch(adagucActions.setSources([...services.data, ...JSON.parse(localStorage.getItem('geoweb')).personal_urls, overlays.data[0]]));
+        const allSources = [...services.data, ...personalUrls, overlays.data[0]];
+        const promises = [];
+        for (var i = allSources.length - 1; i >= 0; i--) {
+          const source = allSources[i];
+          var r = new Promise((resolve, reject) => {
+            if (!source) {
+              reject(new Error('Source is not working'));
+            }
+            if (!source.name) {
+              reject(new Error('Source has no name'));
+            }
+            // eslint-disable-next-line no-undef
+            const service = WMJSgetServiceFromStore(source.service);
+            if (!service) {
+              resolve(new Error('Cannot get service from store'));
+            }
+            service.getLayerObjectsFlat((layers) => { resolve({ layers, source }); });
+          });
+          promises.push(new PromiseWithTimout(r, moment.duration(3000, 'milliseconds').asMilliseconds()));
+        }
+        const sort = (obj) => Object.keys(obj).sort().reduce((acc, c) => { acc[c] = obj[c]; return acc; }, {});
+
+        Promise.all(promises.map(reflect)).then((res) => {
+          const sourcesDic = {};
+          res.map((promise) => {
+            if (promise.status === 'resolved') {
+              const { layers, source } = promise.data;
+              sourcesDic[source.name] = { layers, source };
+            } else {
+              console.error(promise);
+            }
+          });
+          dispatch(adagucActions.setSources(sort(sourcesDic)));
+        });
       })
     ).catch((e) => console.log('Error!: ', e));
   }
@@ -411,7 +460,7 @@ class TitleBarContainer extends PureComponent {
       bottom: this.props.mapProperties.boundingBox.bbox[1],
       right: this.props.mapProperties.boundingBox.bbox[2],
       top: this.props.mapProperties.boundingBox.bbox[3],
-      crs: this.props.mapProperties.projectionName
+      crs: this.props.mapProperties.projection.code
     };
     let layerConfig = [];
     this.props.layers.panels.forEach((panel, i) => {
@@ -452,11 +501,11 @@ class TitleBarContainer extends PureComponent {
     return dataToSend;
   }
 
-  savePreset () {
-    const presetName = document.getElementById('presetname').value;
-    const saveLayers = document.getElementsByName('layerCheckbox')[0].checked;
-    const savePanelLayout = document.getElementsByName('panelCheckbox')[0].checked;
-    const saveBoundingBox = document.getElementsByName('viewCheckbox')[0].checked;
+  savePreset (presetName) {
+    // Save all by default now
+    const saveLayers = true; // document.getElementsByName('layerCheckbox')[0].checked;
+    const savePanelLayout = true; // document.getElementsByName('panelCheckbox')[0].checked;
+    const saveBoundingBox = true; // document.getElementsByName('viewCheckbox')[0].checked;
     const role = document.getElementsByName('roleSelect');
     const dataToSend = this.makePresetObj(presetName, saveLayers, savePanelLayout, saveBoundingBox, role);
     let url = this.props.urls.BACKEND_SERVER_URL + '/preset/';
@@ -476,15 +525,15 @@ class TitleBarContainer extends PureComponent {
         params['roles'] = selectedRole;
       }
     }
-
-    axios({
+    // console.log(dataToSend, url);
+    return axios({
       method: 'post',
       url: url,
       params: params,
       withCredentials: true,
       data: dataToSend
     });
-    this.togglePresetModal();
+    // this.togglePresetModal();
   }
 
   returnInputRef (ref) {
@@ -619,7 +668,7 @@ class TitleBarContainer extends PureComponent {
 
   renderFeedbackModal (feedbackModalOpen, toggle) {
     return (<Modal isOpen={feedbackModalOpen} toggle={toggle}>
-      <ModalHeader toggle={toggle}>Tell us what happened</ModalHeader>
+      <ModalHeader>Tell us what happened</ModalHeader>
       <ModalBody>
         <Form>
           <FormGroup>
@@ -677,6 +726,15 @@ class TitleBarContainer extends PureComponent {
 
     );
   }
+  componentWillUpdate (nextprops) {
+    if (!this.state.presets || this.props.user.username !== nextprops.user.username) {
+      axios.get(this.props.urls.BACKEND_SERVER_URL + '/preset/getpresets', { withCredentials: true }).then((res) => {
+        this.setState({ presets: res.data });
+      }).catch((error) => {
+        console.error(error);
+      });
+    }
+  }
   render () {
     const { user, routes } = this.props;
     const { isLoggedIn, username } = user;
@@ -717,7 +775,8 @@ class TitleBarContainer extends PureComponent {
               <NavLink className='active' onClick={this.toggleLoginModal} ><Icon name='user' id='loginIcon' />{isLoggedIn ? ' ' + username : ' Sign in'}</NavLink>
               {hasRoleADMIN ? <Link to='manage' className='active nav-link'><Icon name='cog' /></Link> : '' }
               <NavLink className='active' onClick={this.toggleFeedbackModal}><Icon name='exclamation-triangle' /> Report error</NavLink>
-              <LayoutDropDown dispatch={this.props.dispatch} mapActions={this.props.mapActions} />
+              <LayoutDropDown savePreset={this.savePreset} mapActions={this.props.mapActions} presets={this.state.presets} onChangeServices={this.getServices}
+                layerActions={this.props.layerActions} mapProperties={this.props.mapProperties} dispatch={this.props.dispatch} />
               <NavLink className='active' onClick={this.toggleFullscreen} ><Icon name='expand' /></NavLink>
               {isLoggedIn
                 ? this.renderLoggedInPopover(this.state.loginModal, this.toggleLoginModal, username)
@@ -740,38 +799,235 @@ class LayoutDropDown extends PureComponent {
   constructor () {
     super();
     this.postLayout = this.postLayout.bind(this);
+    this.removeCustomSource = this.removeCustomSource.bind(this);
+    this.handleAddSource = this.handleAddSource.bind(this);
+    this.setBBOX = this.setBBOX.bind(this);
+    this.setPreset = this.setPreset.bind(this);
+    this.setProjection = this.setProjection.bind(this);
     this.state = {
       popoverOpen: false
     };
   }
+
+  removeCustomSource (sourceIdx) {
+    const urls = JSON.parse(localStorage.getItem('geoweb')).personal_urls;
+    urls.splice(sourceIdx, 1);
+    const newItem = { personal_urls: urls };
+    localStorage.setItem('geoweb', JSON.stringify(newItem));
+    document.getElementById('sourceurlinput').value = '';
+    this.setState({ urls: urls });
+    this.props.onChangeServices();
+  }
   postLayout (layout) {
     this.props.dispatch(this.props.mapActions.setLayout(layout));
-    this.setState({ popoverOpen: false });
   }
-  render () {
-    return <NavLink className='active' onClick={() => this.setState({ popoverOpen: !this.state.popoverOpen })} >
-      <Icon id='layoutbutton' name='sliders' />
-      <Popover isOpen={this.state.popoverOpen} target='layoutbutton'>
-        <PopoverContent>
-          <ButtonGroup vertical>
-            <Button onClick={() => this.postLayout('single')}>Single</Button>
-            <Button onClick={() => this.postLayout('dual')}>Dual column</Button>
-            <Button onClick={() => this.postLayout('quaduneven')}>Uneven quad</Button>
-            <Button onClick={() => this.postLayout('tripleuneven')}>Uneven triple</Button>
-            <Button onClick={() => this.postLayout('triplecolumn')}>Three columns</Button>
-            <Button onClick={() => this.postLayout('quadcol')}>Four columns</Button>
-            <Button onClick={() => this.postLayout('quad')}>Square</Button>
-          </ButtonGroup>
+  handleAddSource (e) {
+    var url = document.querySelector('#sourceurlinput').value;
+    let items = JSON.parse(localStorage.getItem('geoweb'));
+    // eslint-disable-next-line no-undef
+    var getCap = WMJSgetServiceFromStore(url);
+    this.setState({ getCapBusy: true });
+    getCap.getCapabilities((e) => {
+      this.setState({ getCapBusy: false });
+      const newServiceObj = {
+        name: getCap.name ? getCap.name : getCap.title,
+        title: getCap.title,
+        service: getCap.service,
+        abstract: getCap.abstract
+      };
+      if (!items['personal_urls']) {
+        items['personal_urls'] = [newServiceObj];
+      } else {
+        items['personal_urls'].push(newServiceObj);
+      }
+      localStorage.setItem('geoweb', JSON.stringify(items));
+      document.getElementById('sourceurlinput').value = '';
+      this.setState({ urls: localStorage.getItem('geoweb').personal_urls });
+      this.props.onChangeServices();
+    }, (error) => {
+      this.setState({ getCapBusy: false });
+      console.error('error: ', error);
+      alert('Source could not be added. Is it a valid WMS url?');
+    });
+  }
 
-        </PopoverContent>
-      </Popover>
+  printBBOX (bbox) {
+    return bbox.map((item) => item.toFixed(2)).join(', ');
+  }
+
+  setBBOX (bbox) {
+    if (bbox && bbox.length > 0) {
+      this.props.dispatch(this.props.mapActions.setCut(bbox[0]));
+    }
+  }
+
+  setProjection (projection) {
+    if (projection && projection.length > 0) {
+      this.props.dispatch(this.props.mapActions.setProjection(projection[0]));
+    }
+  }
+
+  setPreset (preset) {
+    const { dispatch, layerActions, mapActions } = this.props;
+    const thePreset = preset[0];
+    if (thePreset.area) {
+      if (thePreset.projection || thePreset.area.projection) {
+        dispatch(mapActions.setCut({ name: 'Custom', bbox: [0, thePreset.area.bottom, 1, thePreset.area.top], projection: { code: 'EPSG:3857', name: 'Mercator' } }));
+      }
+    }
+    if (thePreset.display) {
+      dispatch(mapActions.setLayout(thePreset.display.type));
+    }
+    if (thePreset.layers) {
+      dispatch(layerActions.setPreset(thePreset.layers));
+    }
+  }
+
+  render () {
+    const togglePreset = () => this.setState({ popoverOpen: !this.state.popoverOpen });
+    const { mapProperties } = this.props;
+    const isActive = (layout) => mapProperties && mapProperties.layout === layout;
+    const stored = JSON.parse(localStorage.getItem('geoweb'));
+    if (!stored) {
+      localStorage.setItem('geoweb', JSON.stringify({ personal_urls: [] }));
+    }
+    const urls = JSON.parse(localStorage.getItem('geoweb')).personal_urls;
+    return <NavLink className='active' onClick={togglePreset}>
+      <Icon id='layoutbutton' name='sliders' />
+      <Modal isOpen={this.state.popoverOpen} toggle={togglePreset} style={{ width: '40rem', minWidth: '40rem' }}>
+        <ModalHeader>Presets</ModalHeader>
+        <ModalBody>
+          <Row style={{ flexDirection: 'column' }}>
+            <Row>
+              <h5>Panel layout</h5>
+            </Row>
+            <Row>
+              <ButtonGroup>
+                <Button onClick={() => this.postLayout('single')} active={isActive('single')} size='sm' color='primary'>
+                  <img className={'panelSelectionImage'} src={require('../static/icons/single.svg')} />
+                </Button>
+                <Button onClick={() => this.postLayout('dual')} active={isActive('dual')} size='sm' color='primary'>
+                  <img className={'panelSelectionImage'} src={require('../static/icons/dual_column.svg')} />
+                </Button>
+                <Button onClick={() => this.postLayout('triplecolumn')} active={isActive('triplecolumn')} size='sm' color='primary'>
+                  <img className={'panelSelectionImage'} src={require('../static/icons/three_columns.svg')} />
+                </Button>
+                <Button onClick={() => this.postLayout('tripleuneven')} active={isActive('tripleuneven')} size='sm' color='primary'>
+                  <img className={'panelSelectionImage'} src={require('../static/icons/uneven_triple.svg')} />
+                </Button>
+                <Button onClick={() => this.postLayout('quaduneven')} active={isActive('quaduneven')} size='sm' color='primary'>
+                  <img className={'panelSelectionImage'} src={require('../static/icons/uneven_quad.svg')} />
+                </Button>
+                <Button onClick={() => this.postLayout('quadcol')} active={isActive('quadcol')} size='sm' color='primary'>
+                  <img className={'panelSelectionImage'} src={require('../static/icons/four_columns.svg')} />
+                </Button>
+                <Button onClick={() => this.postLayout('quad')} active={isActive('quad')} size='sm' color='primary'>
+                  <img className={'panelSelectionImage'} src={require('../static/icons/square.svg')} />
+                </Button>
+              </ButtonGroup>
+            </Row>
+          </Row>
+          <hr />
+          <Row style={{ flexDirection: 'column' }}>
+            <Row>
+              <h5>Layers</h5>
+            </Row>
+            <Row>
+              <InputGroup>
+                <Input id='sourceurlinput' ref={ref => { this._urlinput = ref; }} placeholder='Add your own source' disabled={this.state.getCapBusy} />
+                <InputGroupButton>
+                  <Button color='primary' onClick={this.handleAddSource} disabled={this.state.getCapBusy}>Add</Button>
+                </InputGroupButton>
+              </InputGroup>
+              <ListGroup>
+                {
+                  urls.length === 0
+                    ? <h6 style={{ fontStyle: 'italic', marginTop: '1rem' }}>You currently have not added custom sources</h6>
+                    : <div style={{ marginTop: '1rem' }}>
+                      <h6 style={{ fontStyle: 'italic' }}>Current sources</h6>
+                      {urls.map((source, i) => <ListGroupItem key={i}>
+                        <Icon onClick={() => this.removeCustomSource(i)} name='times' style={{ paddingLeft: 0, paddingRight: '1rem' }} />{source.name}
+                      </ListGroupItem>)}
+                    </div>
+                }
+              </ListGroup>
+            </Row>
+          </Row>
+          <hr />
+          <Row style={{ flexDirection: 'column' }}>
+            <Row>
+              <h5>Location & zoom level</h5>
+            </Row>
+            <Row>
+              {mapProperties.boundingBox.title
+                ? <Col xs='6'>
+                  <h6>Current Location: {mapProperties.boundingBox.title}</h6>
+                </Col>
+                : <Col xs='auto' />}
+              <Col xs='auto' style={{ marginLeft: '1rem', marginTop: '-0.667rem' }}>
+                <Typeahead onChange={(bbox) => this.setBBOX(bbox)} options={BOUNDING_BOXES} labelKey='title' placeholder={'Choose a new bounding box'} />
+              </Col>
+              <Col />
+            </Row>
+          </Row>
+          <hr />
+          <Row style={{ flexDirection: 'column' }}>
+            <Row>
+              <h5>Projection</h5>
+            </Row>
+            <Row style={{ marginTop: '0.5rem' }}>
+              <Col xs='6'>
+                <h6>Current Projection: {mapProperties.projection.name}</h6>
+              </Col>
+              <Col xs='auto' style={{ marginLeft: '1rem', marginTop: '-0.667rem' }}>
+                <Typeahead onChange={(projection) => this.setProjection(projection)} labelKey={'title'} filterBy={['title', 'code']} options={PROJECTIONS} placeholder={'Choose a new projection'} />
+              </Col>
+              <Col />
+            </Row>
+          </Row>
+          <hr />
+          <Row>
+            <Col xs='4' style={{ paddingLeft: 0, marginRight: '0rem', borderRight: '1px solid rgba(0, 0, 0, 0.1)' }}>
+              <Row>
+                <h5>Load preset</h5>
+              </Row>
+              <Row style={{ marginTop: '0.5rem' }}>
+                <Typeahead align='justify' filterBy={['name', 'keywords']} labelKey='name' options={this.props.presets} placeholder={'Type the preset name'} onChange={(ph) => this.setPreset(ph)} />
+              </Row>
+            </Col>
+            <Col xs='8' style={{ paddingLeft: '1rem' }}>
+              <Row>
+                <h5>Save preset</h5>
+              </Row>
+              <Row style={{ marginTop: '0.5rem' }}>
+                <InputGroup>
+                  <input className='form-control' ref={(ref) => { this.presetNameInput = ref; }} placeholder='Preset name' />
+                  <InputGroupButton onClick={() => {
+                    this.props.savePreset(this.presetNameInput.value)
+                      .then(() => { this.presetNameInput.value = 'Saved preset'; })
+                      .catch(() => { this.presetNameInput.value = 'Error saving preset'; });
+                  }} color='primary'>Save preset</InputGroupButton>
+                </InputGroup>
+              </Row>
+            </Col>
+          </Row>
+        </ModalBody>
+        <ModalFooter>
+          <Button onClick={togglePreset} color='secondary'>Exit</Button>
+        </ModalFooter>
+      </Modal>
     </NavLink>;
   }
 }
 
 LayoutDropDown.propTypes = {
   dispatch: PropTypes.func.isRequired,
-  mapActions: PropTypes.object
+  mapActions: PropTypes.object,
+  mapProperties: PropTypes.object,
+  onChangeServices: PropTypes.func,
+  savePreset: PropTypes.func,
+  presets: PropTypes.array,
+  layerActions: PropTypes.object
 };
 
 TitleBarContainer.propTypes = {
@@ -782,16 +1038,16 @@ TitleBarContainer.propTypes = {
   routes: PropTypes.array,
   dispatch: PropTypes.func,
   actions: PropTypes.object,
-  layout: PropTypes.string,
   layers: PropTypes.object,
   user: PropTypes.object,
   userActions: PropTypes.object,
   mapProperties: PropTypes.object,
   mapActions: PropTypes.object,
+  layerActions: PropTypes.object,
   adagucActions: PropTypes.object,
   bbox: PropTypes.array,
   fullState: PropTypes.object,
-  projectionName: PropTypes.string
+  urls: PropTypes.object
 };
 
 TitleBarContainer.defaultProps = {
