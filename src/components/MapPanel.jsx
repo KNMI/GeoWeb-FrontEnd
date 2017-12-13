@@ -64,6 +64,7 @@ class MapPanel extends PureComponent {
   }
   componentWillMount () {
     let refUrl;
+    console.log('MODEL_LEVEL_URL', `${MODEL_LEVEL_URL}`);
     switch (this.state.model.toUpperCase()) {
       default:
         refUrl = `${MODEL_LEVEL_URL}SERVICE=WMS&VERSION=1.3.0&REQUEST=GetReferenceTimes&LAYERS=air_pressure__at_ml`;
