@@ -6,7 +6,7 @@ import TimeSchedule from '../TimeSchedule';
 import { TAF_TEMPLATES, TAF_TYPES, CHANGE_TYPES, CHANGE_TYPES_ORDER, CHANGE_TYPES_SHORTHAND, getChangeType, PHENOMENON_TYPES, PHENOMENON_TYPES_ORDER, getPhenomenonType } from './TafTemplates';
 import cloneDeep from 'lodash.clonedeep';
 import setNestedProperty from 'lodash.set';
-// import isEqual from 'lodash.isequal';
+import isEqual from 'lodash.isequal';
 import moment from 'moment';
 import { Button, Row, Col } from 'reactstrap';
 import { jsonToTacForWind, jsonToTacForWeather, jsonToTacForClouds } from './TafFieldsConverter';
@@ -22,6 +22,10 @@ const MOVE_DIRECTION = Enum(
   'LEFT'
 );
 
+/**
+ * Generate fallback / default values for tafObject
+ * @return {object} Object containing default values for start timestamp, end timestamp, issue timestamp and location
+ */
 const generateDefaultValues = () => {
   const now = moment().utc();
   let TAFStartHour = now.hour();
@@ -32,6 +36,40 @@ const generateDefaultValues = () => {
     issue: 'not yet issued',
     location: 'EHAM'
   };
+};
+
+/**
+ * Collect JSON pointers for all (nested) properties which are matched
+ * @param  {Object|Array|String} collection A Collection or property to descend
+ * @param  {Function} predicate The test to apply to each property
+ * @param  {Array} accumulator The array to store the (intermediate) results
+ * @param  {String, optional} parentName The parent pointer
+ * @return {Array|Boolean} The result of the test, XOR an array with (intermediate) results
+ */
+const getJsonPointers = (collection, predicate, accumulator, parentName = '') => {
+  accumulator = accumulator || [];
+  const propertyList = [];
+  if (Array.isArray(collection)) {
+    const length = collection.length;
+    for (let arrIndex = 0; arrIndex < length; arrIndex++) {
+      propertyList.push(arrIndex);
+    }
+  } else if (typeof collection === 'object') {
+    for (let property in collection) {
+      propertyList.push(property);
+    }
+  }
+  propertyList.forEach((property) => {
+    const myAccum = [];
+    if (getJsonPointers(collection[property], predicate, myAccum, property) === true) {
+      myAccum.push(property);
+    }
+    const length = myAccum.length;
+    for (let accumIndex = 0; accumIndex < length; accumIndex++) {
+      accumulator.push(parentName + '/' + myAccum[accumIndex]);
+    }
+  });
+  return predicate(collection) || accumulator;
 };
 
 /**
@@ -100,6 +138,10 @@ class TafCategory extends Component {
   };
 
   validateTaf (tafAsObject) {
+    console.log('Validating', tafAsObject);
+    const fieldsWithFallback = [];
+    getJsonPointers(tafAsObject, (field) => field && field.hasOwnProperty('fallback'), fieldsWithFallback);
+    console.log('fWF', fieldsWithFallback);
     // Validate typed settings
     // let taf = removeInputPropsFromTafJSON(cloneObjectAndSkipNullProps(tafJSON));
     // let taf = tafAsObject;
@@ -702,13 +744,13 @@ class TafCategory extends Component {
     });
   };
 
-  // shouldComponentUpdate (nextProps, nextState) {
-  //   if (isEqual(nextProps, this.props) && isEqual(nextState, this.state)) {
-  //     return false;
-  //   };
-  //   this.validateTaf(nextState.tafAsObject);
-  //   return true;
-  // }
+  shouldComponentUpdate (nextProps, nextState) {
+    if (isEqual(nextProps, this.props) && isEqual(nextState, this.state)) {
+      return false;
+    };
+    this.validateTaf(nextState.tafAsObject);
+    return true;
+  }
 
   componentWillReceiveProps (nextProps) {
     const nextP = cloneDeep(nextProps);
