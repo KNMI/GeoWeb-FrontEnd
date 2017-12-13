@@ -3,6 +3,7 @@ import { default as MapPanel } from './MapPanel';
 import { shallow, mount } from 'enzyme';
 import sinon from 'sinon';
 import { Row } from 'reactstrap';
+
 const state = {
   adagucActions: {
     setTimeDimension: () => null
@@ -155,6 +156,7 @@ describe('(Component) MapPanel', () => {
       setProjection: emptyFunc,
       setSize: emptyFunc,
       setTimeOffset: emptyFunc,
+      setWMJSTileRendererTileSettings: emptyFunc,
       showDialogs: emptyFunc,
       stopAnimating: emptyFunc
     });

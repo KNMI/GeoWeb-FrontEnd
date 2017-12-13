@@ -5,11 +5,9 @@ describe('(Redux Module) layerReducer', () => {
     const STATE = {
       wmjsLayers: {},
       baselayer: {
-        service: 'http://geoservices.knmi.nl/cgi-bin/bgmaps.cgi?',
-        name: 'streetmap',
+        name: 'OSM',
         title: 'OpenStreetMap',
         type: 'twms', // Can be either wms or twms
-        format: 'image/gif',
         enabled: true
       },
       panels: [
