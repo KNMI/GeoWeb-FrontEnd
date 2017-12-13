@@ -72,14 +72,24 @@ export default class TimeComponent extends PureComponent {
       ctx.strokeRect(-1, y + 0.5, canvasWidth + 2, blockHeight);
       const layerStartIndex = dim.getIndexForValue(this.startDate, false);
       const layerStopIndex = dim.getIndexForValue(this.endDate, false);
-      for (let j = layerStartIndex - 1; j < layerStopIndex + 1; j++) {
+      for (let q = layerStartIndex - 1; q < layerStopIndex + 1; q++) {
         let layerTimeIndex;
         let layerTimeIndexNext;
         try {
-          layerTimeIndex = this.canvasDateInterval.getTimeStepFromISODate(dim.getValueForIndex(j));
-          layerTimeIndexNext = this.canvasDateInterval.getTimeStepFromISODate(dim.getValueForIndex(j + 1));
+          const fstVal = dim.getValueForIndex(q);
+          const sndVal = dim.getValueForIndex(q + 1);
+
+          // Check if actual dates are coming back
+          if (fstVal.length !== 20 || fstVal[19] !== 'Z' || fstVal[10] !== 'T' ||
+              sndVal.length !== 20 || sndVal[19] !== 'Z' || sndVal[10] !== 'T') {
+            continue;
+          }
+
+          layerTimeIndex = this.canvasDateInterval.getTimeStepFromISODate(fstVal);
+          layerTimeIndexNext = this.canvasDateInterval.getTimeStepFromISODate(sndVal);
         } catch (error) {
           console.error('Layer probably does not have a time dimension');
+          console.error(error);
           continue;
         }
         const pos = layerTimeIndex / sliderStopIndex;
