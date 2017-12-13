@@ -59,7 +59,9 @@ const getJsonPointers = (collection, predicate, accumulator, parentName = '') =>
       propertyList.push(property);
     }
   }
-  propertyList.forEach((property) => {
+  const listLength = propertyList.length;
+  for (let listIndex = 0; listIndex < listLength; listIndex++) {
+    const property = propertyList[listIndex];
     const myAccum = [];
     if (getJsonPointers(collection[property], predicate, myAccum, property) === true) {
       myAccum.push(property);
@@ -68,7 +70,7 @@ const getJsonPointers = (collection, predicate, accumulator, parentName = '') =>
     for (let accumIndex = 0; accumIndex < length; accumIndex++) {
       accumulator.push(parentName + '/' + myAccum[accumIndex]);
     }
-  });
+  }
   return predicate(collection) || accumulator;
 };
 
@@ -139,37 +141,43 @@ class TafCategory extends Component {
 
   validateTaf (tafAsObject) {
     console.log('Validating', tafAsObject);
-    const fieldsWithFallback = [];
-    getJsonPointers(tafAsObject, (field) => field && field.hasOwnProperty('fallback'), fieldsWithFallback);
-    console.log('fWF', fieldsWithFallback);
+    const fallbackPointers = [];
+    getJsonPointers(tafAsObject, (field) => field && field.hasOwnProperty('fallback'), fallbackPointers);
+    const nullPointers = [];
+    getJsonPointers(tafAsObject, (field) => field === null, nullPointers);
+
+    console.log('fP', fallbackPointers);
+    console.log('nP', nullPointers);
+
     // Validate typed settings
     // let taf = removeInputPropsFromTafJSON(cloneObjectAndSkipNullProps(tafJSON));
-    // let taf = tafAsObject;
+    let taf = tafAsObject;
 
-    // axios({
-    //   method: 'post',
-    //   url: this.props.urls.BACKEND_SERVER_URL + '/tafs/verify',
-    //   withCredentials: true,
-    //   data: JSON.stringify(taf),
-    //   headers: { 'Content-Type': 'application/json' }
-    // }).then(
-    //   response => {
-    //     if (response.data) {
-    //       this.setState({
-    //         validationReport:response.data
-    //       });
-    //     } else {
-    //       this.setState({
-    //         validationReport:null
-    //       });
-    //     }
-    //   }
-    // ).catch(error => {
-    //   console.log(error);
-    //   this.setState({
-    //     validationReport:{ message: 'Invalid response from TAF verify servlet [/tafs/verify].' }
-    //   });
-    // });
+    axios({
+      method: 'post',
+      url: this.props.urls.BACKEND_SERVER_URL + '/tafs/verify',
+      withCredentials: true,
+      data: JSON.stringify(taf),
+      headers: { 'Content-Type': 'application/json' }
+    }).then(
+      response => {
+        if (response.data) {
+          console.log('Val', response.data);
+          this.setState({
+            validationReport:response.data
+          });
+        } else {
+          this.setState({
+            validationReport:null
+          });
+        }
+      }
+    ).catch(error => {
+      console.log(error);
+      this.setState({
+        validationReport:{ message: 'Invalid response from TAF verify servlet [/tafs/verify].' }
+      });
+    });
   }
 
   saveTaf (tafDATAJSON) {
@@ -748,7 +756,11 @@ class TafCategory extends Component {
     if (isEqual(nextProps, this.props) && isEqual(nextState, this.state)) {
       return false;
     };
-    this.validateTaf(nextState.tafAsObject);
+    if (!isEqual(nextState.tafAsObject, this.state.tafAsObject)) {
+      this.validateTaf(nextState.tafAsObject);
+    } else if (!isEqual(nextProps.taf, this.props.taf)) {
+      this.validateTaf(nextProps.taf);
+    }
     return true;
   }
 
