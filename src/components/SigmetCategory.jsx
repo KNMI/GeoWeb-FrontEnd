@@ -17,6 +17,7 @@ import Tooltip from 'rc-tooltip';
 import PropTypes from 'prop-types';
 import { BOUNDING_BOXES } from '../constants/bounding_boxes';
 import { HARMONIE_URL, HARMONIE_ML_URL, OVERLAY_URL, OBSERVATIONS_URL, RADAR_URL, LIGHTNING_URL, SATELLITE_URL } from '../constants/default_services';
+import { WEBSERVER_URL } from '../static/urls.json';
 const createSliderWithTooltip = Slider.createSliderWithTooltip;
 const Range = createSliderWithTooltip(Slider.Range);
 const Handle = Slider.Handle;
@@ -396,7 +397,7 @@ class SigmetCategory extends Component {
               ], [], [],
               [
                 {
-                  service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.OBS.cgi?',
+                  service: `${WEBSERVER_URL}/cgi-bin/geoweb/adaguc.OBS.cgi?`,
                   title: 'OBS',
                   name: '10M/derived/windforce',
                   label: 'Wind force',
@@ -407,7 +408,7 @@ class SigmetCategory extends Component {
                   overlay: false
                 },
                 {
-                  service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.OVL.cgi?',
+                  service: `${WEBSERVER_URL}/cgi-bin/geoweb/adaguc.OVL.cgi?`,
                   title: 'OVL',
                   name: 'FIR_DEC_2013_EU',
                   label: 'FIR areas',
@@ -432,7 +433,7 @@ class SigmetCategory extends Component {
             layers: [
               [
                 {
-                  service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.SAT.cgi?',
+                  service: `${WEBSERVER_URL}/cgi-bin/geoweb/adaguc.SAT.cgi?`,
                   title: 'SAT',
                   name: 'HRVIS',
                   label: 'HRVIS',
@@ -441,7 +442,7 @@ class SigmetCategory extends Component {
                   overlay: false
                 },
                 {
-                  service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.RADAR.cgi?',
+                  service: `${WEBSERVER_URL}/cgi-bin/geoweb/adaguc.RADAR.cgi?`,
                   title: 'RADAR',
                   name: 'precipitation_eur',
                   label: 'Neerslag EUR',

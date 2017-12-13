@@ -1,6 +1,7 @@
 import createStore from './createStore';
 import { MAP_STYLES } from '../constants/map_styles';
 import { BOUNDING_BOXES } from '../constants/bounding_boxes';
+import { WEBSERVER_URL } from '../static/urls.json';
 var fetchMock = require('fetch-mock');
 
 describe('(Store) createStore', () => {
@@ -10,7 +11,7 @@ describe('(Store) createStore', () => {
       sources: null,
       source: {
         name: 'HARM_N25',
-        service: 'http://birdexp07.knmi.nl/cgi-bin/geoweb/adaguc.HARM_N25.cgi?',
+        service: `${WEBSERVER_URL}/cgi-bin/geoweb/adaguc.HARM_N25.cgi?`,
         title: 'HARM_N25'
       },
       layer: 'precipitation_flux',
