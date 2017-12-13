@@ -1,9 +1,7 @@
 const OSM_STYLE = {
-  service: 'http://geoservices.knmi.nl/cgi-bin/bgmaps.cgi?',
-  name: 'streetmap',
+  name: 'OSM',
   title: 'OpenStreetMap',
-  type: 'twms', // Can be either wms or twms
-  format: 'image/gif',
+  type: 'twms',
   enabled: true
 };
 const MWS_STYLE = {
@@ -14,4 +12,5 @@ const MWS_STYLE = {
   format: 'image/png',
   enabled: true
 };
+
 export const MAP_STYLES = [MWS_STYLE, OSM_STYLE];
