@@ -96,7 +96,7 @@ class BaseForecast extends Component {
 
     return <tr>
       {columns.map((col) => <td className={classNames(col.classes)} key={col.name}>
-        <input ref={inputRef} name={col.name} type='text' defaultValue={col.value} disabled={col.disabled} autoFocus={col.autoFocus} />
+        <input ref={inputRef} name={col.name} type='text' value={col.value} disabled={col.disabled} autoFocus={col.autoFocus} />
       </td>
       )}
     </tr>;

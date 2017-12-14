@@ -6,10 +6,10 @@ import TimeSchedule from '../TimeSchedule';
 import { TAF_TEMPLATES, TAF_TYPES, CHANGE_TYPES, CHANGE_TYPES_ORDER, CHANGE_TYPES_SHORTHAND, getChangeType, PHENOMENON_TYPES, PHENOMENON_TYPES_ORDER, getPhenomenonType } from './TafTemplates';
 import cloneDeep from 'lodash.clonedeep';
 import setNestedProperty from 'lodash.set';
-import isEqual from 'lodash.isequal';
+import removeNestedProperty from 'lodash.unset';
 import moment from 'moment';
 import { Button, Row, Col } from 'reactstrap';
-import { jsonToTacForWind, jsonToTacForWeather, jsonToTacForClouds } from './TafFieldsConverter';
+import { jsonToTacForWind, jsonToTacForWeather, jsonToTacForClouds, converterMessagesMap } from './TafFieldsConverter';
 import TafTable from './TafTable';
 // import TACTable from './TACTable';
 import axios from 'axios';
@@ -140,18 +140,43 @@ class TafCategory extends Component {
   };
 
   validateTaf (tafAsObject) {
-    console.log('Validating', tafAsObject);
+    const taf = cloneDeep(tafAsObject);
+    console.log('Validating', taf);
     const fallbackPointers = [];
-    getJsonPointers(tafAsObject, (field) => field && field.hasOwnProperty('fallback'), fallbackPointers);
+    getJsonPointers(taf, (field) => field && field.hasOwnProperty('fallback'), fallbackPointers);
     const nullPointers = [];
-    getJsonPointers(tafAsObject, (field) => field === null, nullPointers);
+    getJsonPointers(taf, (field) => field === null, nullPointers);
 
-    console.log('fP', fallbackPointers);
-    console.log('nP', nullPointers);
+    // Remove null's -- BackEnd doesn't handle them nicely
+    const nullPointersLength = nullPointers.length;
+    for (let pointerIndex = 0; pointerIndex < nullPointersLength; pointerIndex++) {
+      const pathParts = nullPointers[pointerIndex].split('/');
+      pathParts.shift();
+      removeNestedProperty(taf, pathParts);
+    }
 
-    // Validate typed settings
-    // let taf = removeInputPropsFromTafJSON(cloneObjectAndSkipNullProps(tafJSON));
-    let taf = tafAsObject;
+    const inputParsingReport = {};
+    const fallbackPointersLength = fallbackPointers.length;
+    if (fallbackPointersLength > 0) {
+      inputParsingReport.message = 'TAF is not valid';
+      inputParsingReport.succeeded = false;
+      for (let pointerIndex = 0; pointerIndex < fallbackPointersLength; pointerIndex++) {
+        if (!inputParsingReport.hasOwnProperty('errors')) {
+          inputParsingReport.errors = {};
+        }
+        if (!inputParsingReport.errors.hasOwnProperty(fallbackPointers[pointerIndex])) {
+          inputParsingReport.errors[fallbackPointers[pointerIndex]] = [];
+        }
+        const pointerParts = fallbackPointers[pointerIndex].split('/');
+        let fieldName = pointerParts[pointerParts.length - 1];
+        if (!isNaN(fieldName)) {
+          fieldName = pointerParts[pointerParts.length - 2];
+        }
+        console.log('MC', pointerParts, fieldName, converterMessagesMap);
+        inputParsingReport.errors[fallbackPointers[pointerIndex]].push('The pattern of the input for ' +
+          converterMessagesMap[fieldName]);
+      }
+    }
 
     axios({
       method: 'post',
@@ -162,20 +187,25 @@ class TafCategory extends Component {
     }).then(
       response => {
         if (response.data) {
-          console.log('Val', response.data);
+          const aggregateReport = Object.assign({}, JSON.parse(response.data), inputParsingReport);
           this.setState({
-            validationReport:response.data
+            validationReport: aggregateReport
+          });
+        } else if (!inputParsingReport.succeeded) {
+          this.setState({
+            validationReport: inputParsingReport
           });
         } else {
           this.setState({
-            validationReport:null
+            validationReport: null
           });
         }
       }
     ).catch(error => {
       console.log(error);
+      const aggregateReport = Object.assign({ message: 'Invalid response from TAF verify servlet [/tafs/verify].' }, inputParsingReport);
       this.setState({
-        validationReport:{ message: 'Invalid response from TAF verify servlet [/tafs/verify].' }
+        validationReport: aggregateReport
       });
     });
   }
@@ -569,10 +599,6 @@ class TafCategory extends Component {
         }
         event.preventDefault();
         event.stopPropagation();
-        return;
-      }
-      if (event.target.name.endsWith('sortable')) {
-        console.log('Sortable clicked', event.target.name);
       }
     }
   }
@@ -637,6 +663,7 @@ class TafCategory extends Component {
         }
       });
       if (hasUpdates) {
+        this.validateTaf(newTafState);
         this.setState({
           tafAsObject: newTafState,
           hasEdits: true
@@ -716,9 +743,8 @@ class TafCategory extends Component {
    */
   addRow () {
     const newTafState = cloneDeep(this.state.tafAsObject);
-    // console.log('nwSt', cloneDeep(newTafState));
     newTafState.changegroups.push(cloneDeep(TAF_TEMPLATES.CHANGE_GROUP));
-    // console.log('nwSt2', cloneDeep(newTafState));
+    this.validateTaf(newTafState);
     this.setState({
       tafAsObject: newTafState,
       hasEdits: true
@@ -733,6 +759,7 @@ class TafCategory extends Component {
     if (rowIndex !== null && typeof rowIndex === 'number') {
       const newTafState = cloneDeep(this.state.tafAsObject);
       newTafState.changegroups.splice(rowIndex, 1);
+      this.validateTaf(newTafState);
       this.setState({
         tafAsObject: newTafState,
         hasEdits: true
@@ -746,42 +773,32 @@ class TafCategory extends Component {
   onSortEnd ({ oldIndex, newIndex }) {
     const newTafState = cloneDeep(this.state.tafAsObject);
     newTafState.changegroups = arrayMove(newTafState.changegroups, oldIndex, newIndex);
+    this.validateTaf(newTafState);
     this.setState({
       tafAsObject: newTafState,
       hasEdits: true
     });
   };
 
-  shouldComponentUpdate (nextProps, nextState) {
-    if (isEqual(nextProps, this.props) && isEqual(nextState, this.state)) {
-      return false;
-    };
-    if (!isEqual(nextState.tafAsObject, this.state.tafAsObject)) {
-      this.validateTaf(nextState.tafAsObject);
-    } else if (!isEqual(nextProps.taf, this.props.taf)) {
-      this.validateTaf(nextProps.taf);
-    }
-    return true;
-  }
-
   componentWillReceiveProps (nextProps) {
-    const nextP = cloneDeep(nextProps);
-    if ('taf' in nextProps && nextProps.taf) {
-      const defaults = generateDefaultValues();
-      if (!nextP.taf.metadata.validityStart) {
-        nextP.taf.metadata.validityStart = defaults.start;
-      }
-      if (!nextP.taf.metadata.validityEnd) {
-        nextP.taf.metadata.validityEnd = defaults.end;
-      }
-      if (!nextP.taf.metadata.issueTime) {
-        nextP.taf.metadata.issueTime = defaults.issue;
-      }
-      if (!nextP.taf.metadata.location) {
-        nextP.taf.metadata.location = defaults.location;
-      }
-    }
     if (!this.state.hasEdits) {
+      const nextP = cloneDeep(nextProps);
+      if ('taf' in nextProps && nextProps.taf) {
+        const defaults = generateDefaultValues();
+        if (!nextP.taf.metadata.validityStart) {
+          nextP.taf.metadata.validityStart = defaults.start;
+        }
+        if (!nextP.taf.metadata.validityEnd) {
+          nextP.taf.metadata.validityEnd = defaults.end;
+        }
+        if (!nextP.taf.metadata.issueTime) {
+          nextP.taf.metadata.issueTime = defaults.issue;
+        }
+        if (!nextP.taf.metadata.location) {
+          nextP.taf.metadata.location = defaults.location;
+        }
+      }
+      this.validateTaf(nextP.taf);
       this.setState({ tafAsObject: nextP.taf });
     }
   }
@@ -794,7 +811,7 @@ class TafCategory extends Component {
     let validationErrors = null;
     let validationSucceeded = false;
     if (this.state.validationReport && this.state.validationReport.errors) {
-      validationErrors = JSON.parse(this.state.validationReport.errors);
+      validationErrors = this.state.validationReport.errors;
       console.log('Errors', validationErrors);
     }
     if (this.state.validationReport && this.state.validationReport.succeeded === true) {
@@ -826,7 +843,7 @@ class TafCategory extends Component {
           { this.state.validationReport
             ? <Row className={validationSucceeded ? 'TAFValidationReportSuccess' : 'TAFValidationReportError'} style={{ flex: 'none' }}>
               <Col xs='12'><b>{this.state.validationReport.message}</b></Col>
-              { validationErrors ? (flatten(Object.values(validationErrors).filter(v => Array.isArray(v)))).map((value, index) => {
+              { this.state.validationReport.errors ? (flatten(Object.values(validationErrors).filter(v => Array.isArray(v)))).map((value, index) => {
                 return (<Col xs='12' key={'errmessageno' + index}>{(index + 1)} - {value}</Col>);
               }) : null}
             </Row> : null

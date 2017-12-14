@@ -163,7 +163,7 @@ const jsonToTacForWind = (windAsJson, useFallback = false) => {
       const unit = getMapValue(windAsJson.unit, windUnitMap);
       if (!unit) {
         return useFallback && windAsJson.hasOwnProperty('fallback') ? windAsJson.fallback : null;
-      } else {
+      } else if (!(unit === windUnitMap.KT)) { // Skip default unit
         result += unit;
       }
     }
@@ -187,7 +187,7 @@ const jsonToTacForVisibility = (visibilityAsJson, useFallback = false) => {
     const unit = getMapValue(visibilityAsJson.unit, visibilityUnitMap);
     if (!unit) {
       return useFallback && visibilityAsJson.hasOwnProperty('fallback') ? visibilityAsJson.fallback : null;
-    } else {
+    } else if (!(unit === visibilityUnitMap.M)) { // Skip default unit
       result += unit;
     }
   } else {
@@ -496,6 +496,17 @@ const tacToJsonForVerticalVisibility = (verticalVisibilityAsTac) => {
   return result;
 };
 
+const converterMessagesMap = {
+  changeType: 'for Prob',
+  changeStart: 'Valid period was not recognized. Expected either <4 digits> or <4 digits>\'/\'<4 digits>',
+  changeEnd: 'Valid period was not recognized. Expected either <4 digits> or <4 digits>\'/\'<4 digits>',
+  wind: 'Wind was not recognized. Expected either <3 digits> or <5 digits>\'G\'<2 digits> both optionally followed by \'KT\' or \'MPS\'',
+  visibility: 'Visibility was not recognized. Expected either <4 digits>, optionally followed by \'M\' or \'KM\', or \'CAVOK\'',
+  weather: 'Weather was not recognized. Expected either <1 or 2 character(s) for qualifier><2 characters for descriptor><1 or more times repeated group of 2 characters for phenomena> or \'NSW\'',
+  clouds: 'Cloud was not recognized. Expected one of <3 characters for amount><3 digits for height> optionally followed by <2 or 3 characters for modifier>,' +
+    '\'VV\'<4 digits for height of vertical visibility> or \'NSC\''
+};
+
 module.exports = {
   jsonToTacForProbability: jsonToTacForProbability,
   jsonToTacForChangeType: jsonToTacForChangeType,
@@ -517,5 +528,6 @@ module.exports = {
   tacToJsonForCavok: tacToJsonForCavok,
   tacToJsonForWeather: tacToJsonForWeather,
   tacToJsonForClouds: tacToJsonForClouds,
-  tacToJsonForVerticalVisibility: tacToJsonForVerticalVisibility
+  tacToJsonForVerticalVisibility: tacToJsonForVerticalVisibility,
+  converterMessagesMap: converterMessagesMap
 };
