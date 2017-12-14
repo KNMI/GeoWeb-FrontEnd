@@ -69,7 +69,11 @@ class MapPanel extends PureComponent {
         refUrl = `${MODEL_LEVEL_URL}SERVICE=WMS&VERSION=1.3.0&REQUEST=GetReferenceTimes&LAYERS=air_pressure__at_ml`;
         break;
     }
-    return axios.get(refUrl).then((r) => this.setState({ referenceTime: moment.utc(r.data[0]) }));
+    try {
+      return axios.get(refUrl).then((r) => this.setState({ referenceTime: moment.utc(r.data[0]) }));
+    } catch (e) {
+      console.log('ERROR: unable to fetch ' + refUrl);
+    }
   }
 
   componentDidUpdate () {
