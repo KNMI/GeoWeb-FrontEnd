@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { Button } from 'reactstrap';
 import classNames from 'classnames';
@@ -6,6 +6,31 @@ import { TAF_TEMPLATES, TAF_TYPES } from './TafTemplates';
 import cloneDeep from 'lodash.clonedeep';
 import { jsonToTacForPeriod, jsonToTacForProbability, jsonToTacForChangeType, jsonToTacForWind, jsonToTacForCavok,
   jsonToTacForVerticalVisibility, jsonToTacForVisibility, jsonToTacForWeather, jsonToTacForClouds } from './TafFieldsConverter';
+
+class TafCell extends PureComponent {
+  render () {
+    const { classes, name, value, inputRef, disabled, autoFocus, isSpan, isButton } = this.props;
+    return <td className={classNames(classes)}>
+      {isSpan
+        ? <span name={name} disabled={disabled}>{value}</span>
+        : isButton
+          ? <Button name={name} size='sm' disabled={disabled} autoFocus={autoFocus}>{value}</Button>
+          : <input ref={inputRef} name={name} type='text' value={value} disabled={disabled} autoFocus={autoFocus} />
+      }
+    </td>;
+  }
+}
+
+TafCell.propTypes = {
+  classes: PropTypes.array,
+  name: PropTypes.string,
+  inputRef: PropTypes.func,
+  value: PropTypes.string,
+  disabled: PropTypes.bool,
+  autoFocus: PropTypes.bool,
+  isSpan: PropTypes.bool,
+  isButton: PropTypes.bool
+};
 
 /*
   ChangeGroup of TAF editor
@@ -98,14 +123,8 @@ class ChangeGroup extends Component {
     });
 
     return <tr>
-      {columns.map((col) => <td className={classNames(col.classes)} key={col.name}>
-        {col.isSpan
-          ? <span name={col.name} disabled={col.disabled}>{col.value}</span>
-          : col.isButton
-            ? <Button name={col.name} size='sm' disabled={col.disabled} autoFocus={col.isFocussed}>{col.value}</Button>
-            : <input ref={inputRef} name={col.name} type='text' value={col.value} disabled={col.disabled} autoFocus={col.isFocussed} />
-        }
-      </td>
+      {columns.map((col) =>
+        <TafCell classes={col.classes} key={col.name} name={col.name} value={col.value} inputRef={inputRef} disabled={col.disabled} autoFocus={col.isFocussed} isSpan={col.isSpan} isButton={col.isButton} />
       )}
     </tr>;
   }

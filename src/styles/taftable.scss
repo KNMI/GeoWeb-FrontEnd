@@ -38,7 +38,8 @@
   font-size: 12px;
 }
 
-.TafStyle .noselect {
+.TafStyle .noselect, .TafStyle .noselect input, .TafStyle .noselect button {
+  font-family: FontAwesome;
   width: 2rem;
   -webkit-touch-callout: none; /* iOS Safari */
     -webkit-user-select: none; /* Safari */
@@ -51,7 +52,6 @@
 
 .TafStyle .noselect input:not(:disabled), .TafStyle .noselect button:not(:disabled) {
   cursor: pointer;
-  font-family: FontAwesome;
 }
 
 .TafStyle .TACnotEditable, .TafStyle .TACnotEditable input {

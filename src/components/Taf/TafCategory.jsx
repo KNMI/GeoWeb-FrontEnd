@@ -141,7 +141,6 @@ class TafCategory extends Component {
 
   validateTaf (tafAsObject) {
     const taf = cloneDeep(tafAsObject);
-    console.log('Validating', taf);
     const fallbackPointers = [];
     getJsonPointers(taf, (field) => field && field.hasOwnProperty('fallback'), fallbackPointers);
     const nullPointers = [];
