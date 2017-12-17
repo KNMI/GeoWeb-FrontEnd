@@ -172,7 +172,6 @@ class TafCategory extends Component {
         if (!isNaN(fieldName)) {
           fieldName = pointerParts[pointerParts.length - 2];
         }
-        console.log('MC', pointerParts, fieldName, converterMessagesMap);
         inputParsingReport.errors[fallbackPointers[pointerIndex]].push('The pattern of the input for ' +
           converterMessagesMap[fieldName]);
       }

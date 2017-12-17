@@ -304,6 +304,13 @@ describe('(Functions) TafFieldsConverter', () => {
       mod: 'CB'
     });
     expect(result).to.eql(null);
+    // Mod only
+    result = jsonToTacForClouds({
+      amount: null,
+      height: null,
+      mod: 'CB'
+    });
+    expect(result).to.eql('CB');
   });
 
   /**
@@ -684,6 +691,20 @@ describe('(Functions) TafFieldsConverter', () => {
     });
     // Missing amount
     result = tacToJsonForClouds('060CB');
+    expect(result).to.eql({
+      amount: null,
+      height: null,
+      mod: null
+    });
+    // Mod only
+    result = tacToJsonForClouds('CB');
+    expect(result).to.eql({
+      amount: null,
+      height: null,
+      mod: 'CB'
+    });
+    // Empty
+    result = tacToJsonForClouds('');
     expect(result).to.eql({
       amount: null,
       height: null,

@@ -40,8 +40,8 @@ const weatherRegEx = new RegExp('^(' + convertMapToRegExpOptions(qualifierInvers
     '(' + convertMapToRegExpOptions(descriptorInverseMap) + ')' +
     '((?:' + convertMapToRegExpOptions(phenomenaInverseMap) + ')+)$', 'i');
 
-const cloudsRegEx = new RegExp('^(' + convertMapToRegExpOptions(amountInverseMap) + ')' +
-    '(\\d{3})' +
+const cloudsRegEx = new RegExp('^(?:(' + convertMapToRegExpOptions(amountInverseMap) + ')' +
+    '(\\d{3}))?' +
     '(' + convertMapToRegExpOptions(modInverseMap) + ')?$', 'i');
 
 const verticalVisibilityRegEx = /^VV(\d{3})$/i;
@@ -251,26 +251,40 @@ const jsonToTacForClouds = (cloudsAsJson, useFallback = false) => {
   if (typeof cloudsAsJson === 'string' && cloudsAsJson === 'NSC') {
     result = 'NSC';
   } else if (typeof cloudsAsJson === 'object') {
+    let hasAmount = false;
+    let hasHeight = false;
     if (cloudsAsJson.hasOwnProperty('amount')) {
-      const amount = getMapValue(cloudsAsJson.amount, amountMap);
-      if (amount === null) {
-        return useFallback && cloudsAsJson.hasOwnProperty('fallback') ? cloudsAsJson.fallback : null;
-      } else {
-        result = amount;
-      }
+      result = getMapValue(cloudsAsJson.amount, amountMap);
+      hasAmount = result !== null;
     } else {
       return useFallback && cloudsAsJson.hasOwnProperty('fallback') ? cloudsAsJson.fallback : null;
     }
-    if (cloudsAsJson.hasOwnProperty('height') && typeof cloudsAsJson.height === 'number') {
-      result += cloudsAsJson.height.toString().padStart(3, '0');
+    if (cloudsAsJson.hasOwnProperty('height')) {
+      if (typeof cloudsAsJson.height === 'number') {
+        hasHeight = true;
+        if (hasAmount) {
+          result += cloudsAsJson.height.toString().padStart(3, '0');
+        }
+      } else {
+        result = null;
+      }
     } else {
       return useFallback && cloudsAsJson.hasOwnProperty('fallback') ? cloudsAsJson.fallback : null;
     }
     if (cloudsAsJson.hasOwnProperty('mod')) {
       const mod = getMapValue(cloudsAsJson.mod, modMap);
       if (mod !== null) {
-        result += mod;
+        if (result) {
+          result += mod;
+        } else if (!hasAmount && !hasHeight) {
+          result = mod;
+        }
       }
+    } else {
+      return useFallback && cloudsAsJson.hasOwnProperty('fallback') ? cloudsAsJson.fallback : null;
+    }
+    if (result === null && useFallback) {
+      return cloudsAsJson.hasOwnProperty('fallback') ? cloudsAsJson.fallback : null;
     }
   }
   return result;
@@ -297,7 +311,7 @@ const tacToJsonForProbability = (probabilityAsTac, useFallback = false) => {
       result = getMapValue(matchResult[1], probabilityInverseMap, true);
     }
   }
-  if (useFallback && !result && typeof probabilityAsTac === 'string') {
+  if (useFallback && !result && probabilityAsTac && typeof probabilityAsTac === 'string') {
     result = { fallback: probabilityAsTac };
   }
   return result;
@@ -372,7 +386,7 @@ const tacToJsonForTimestamp = (timestampAsTac, scopeStart, scopeEnd, useFallback
         'T' + matchResult[2] + ':00:00Z';
     }
   }
-  if (useFallback && !result) {
+  if (useFallback && !result && timestampAsTac && typeof timestampAsTac === 'string') {
     result = { fallback: timestampAsTac };
   }
   return result;
@@ -390,7 +404,7 @@ const tacToJsonForPeriod = (periodAsTac, scopeStart, scopeEnd, useFallback = fal
       result.end = tacToJsonForTimestamp(matchResult[2], scopeStart, scopeEnd, useFallback);
     }
   }
-  if (useFallback && isEqual(result, { start: null, end: null })) {
+  if (useFallback && isEqual(result, { start: null, end: null }) && periodAsTac && typeof periodAsTac === 'string') {
     result.start = { fallback: periodAsTac };
   }
   return result;
@@ -415,7 +429,7 @@ const tacToJsonForWind = (windAsTac, useFallback = false) => {
       result.unit = getMapValue(matchResult[4], windUnitInverseMap, true) || 'KT';
     }
   }
-  if (useFallback && isEqual(result, TAF_TEMPLATES.WIND)) {
+  if (useFallback && isEqual(result, TAF_TEMPLATES.WIND) && windAsTac && typeof windAsTac === 'string') {
     result.fallback = windAsTac;
   }
   return result;
@@ -430,7 +444,7 @@ const tacToJsonForVisibility = (visibilityAsTac, useFallback = false) => {
       result.unit = getMapValue(matchResult[2], visibilityUnitInverseMap, true) || 'M';
     }
   }
-  if (useFallback && isEqual(result, TAF_TEMPLATES.VISIBILITY)) {
+  if (useFallback && isEqual(result, TAF_TEMPLATES.VISIBILITY) && visibilityAsTac && typeof visibilityAsTac === 'string') {
     result.fallback = visibilityAsTac;
   }
   return result;
@@ -459,7 +473,7 @@ const tacToJsonForWeather = (weatherAsTac, useFallback = false) => {
       result = 'NSW';
     }
   }
-  if (useFallback && isEqual(result, TAF_TEMPLATES.WEATHER[0])) {
+  if (useFallback && isEqual(result, TAF_TEMPLATES.WEATHER[0]) && weatherAsTac && typeof weatherAsTac === 'string') {
     result.fallback = weatherAsTac;
   }
   return result;
@@ -470,8 +484,10 @@ const tacToJsonForClouds = (cloudsAsTac, useFallback = false) => {
   if (cloudsAsTac && typeof cloudsAsTac === 'string') {
     const matchResult = cloudsAsTac.match(cloudsRegEx);
     if (matchResult) {
-      result.amount = getMapValue(matchResult[1], amountInverseMap, true);
-      result.height = parseInt(matchResult[2]);
+      if (matchResult[1] && matchResult[2]) {
+        result.amount = getMapValue(matchResult[1], amountInverseMap, true);
+        result.height = parseInt(matchResult[2]);
+      }
       if (matchResult[3]) {
         result.mod = getMapValue(matchResult[3], modInverseMap, true);
       }
@@ -479,7 +495,7 @@ const tacToJsonForClouds = (cloudsAsTac, useFallback = false) => {
       result = 'NSC';
     }
   }
-  if (useFallback && isEqual(result, TAF_TEMPLATES.CLOUDS[0])) {
+  if (useFallback && isEqual(result, TAF_TEMPLATES.CLOUDS[0]) && cloudsAsTac && typeof cloudsAsTac === 'string') {
     result.fallback = cloudsAsTac;
   }
   return result;
