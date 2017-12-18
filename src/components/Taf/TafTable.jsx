@@ -164,6 +164,7 @@ class TafTable extends Component {
           if (propertiesToUpdate[1].propertyValue === 'NSC') {
             propertiesToUpdate[1].propertyPath.pop();
           }
+          console.log('Cl', propertiesToUpdate);
           break;
         default:
           break;
