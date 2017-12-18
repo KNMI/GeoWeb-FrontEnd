@@ -1,27 +1,9 @@
-import React, { Component, PureComponent } from 'react';
+import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import classNames from 'classnames';
 import { TAF_TEMPLATES, TAF_TYPES } from './TafTemplates';
+import TafCell from './TafCell';
 import cloneDeep from 'lodash.clonedeep';
 import { jsonToTacForPeriod, jsonToTacForWind, jsonToTacForCavok, jsonToTacForVerticalVisibility, jsonToTacForVisibility, jsonToTacForWeather, jsonToTacForClouds } from './TafFieldsConverter';
-
-class TafCell extends PureComponent {
-  render () {
-    const { classes, name, value, inputRef, disabled, autoFocus } = this.props;
-    return <td className={classNames(classes)}>
-      <input ref={inputRef} name={name} type='text' value={value} disabled={disabled} autoFocus={autoFocus} />
-    </td>;
-  }
-}
-
-TafCell.propTypes = {
-  classes: PropTypes.array,
-  name: PropTypes.string,
-  inputRef: PropTypes.func,
-  value: PropTypes.string,
-  disabled: PropTypes.bool,
-  autoFocus: PropTypes.bool
-};
 
 /*
   BaseForecast of TAF editor, it is the top row visible in the UI.

@@ -6,6 +6,7 @@ import TimeSchedule from '../TimeSchedule';
 import { TAF_TEMPLATES, TAF_TYPES, CHANGE_TYPES, CHANGE_TYPES_ORDER, CHANGE_TYPES_SHORTHAND, getChangeType, PHENOMENON_TYPES, PHENOMENON_TYPES_ORDER, getPhenomenonType } from './TafTemplates';
 import cloneDeep from 'lodash.clonedeep';
 import setNestedProperty from 'lodash.set';
+import getNestedProperty from 'lodash.get';
 import removeNestedProperty from 'lodash.unset';
 import moment from 'moment';
 import { Button, Row, Col } from 'reactstrap';
@@ -35,6 +36,43 @@ const generateDefaultValues = () => {
     end: now.hour(TAFStartHour).minutes(0).seconds(0).add(30, 'hour').format('YYYY-MM-DDTHH:mm:ss') + 'Z',
     issue: 'not yet issued',
     location: 'EHAM'
+  };
+};
+
+/**
+ * Upwards recursively remove empty properties
+ * @param  {Object} objectToClear The object to cleanse
+ * @param  {Array} pathParts Array of JSON-path-elements
+ */
+const clearRecursive = (objectToClear, pathParts) => {
+  pathParts.pop();
+  const parent = getNestedProperty(objectToClear, pathParts);
+  // Check for empty sibling arrays / objects
+  if (Array.isArray(parent) && parent.length === 0) {
+    const length = parent.length;
+    for (let index = 0; index < length; index++) {
+      if (!parent[index] ||
+          (Array.isArray(parent[index]) && parent[index].length === 0) ||
+          (typeof parent[index] === 'object' && Object.indexs(parent[index]).length === 0)) {
+        pathParts.push(index);
+        removeNestedProperty(objectToClear, pathParts);
+        pathParts.pop();
+      }
+    }
+  } else if (typeof parent === 'object') {
+    Object.entries(parent).forEach(([key, value]) => {
+      if (!value ||
+          (Array.isArray(value) && value.length === 0) ||
+          (typeof value === 'object' && Object.keys(value).length === 0)) {
+        pathParts.push(key);
+        removeNestedProperty(objectToClear, pathParts);
+        pathParts.pop();
+      }
+    });
+  }
+  if ((Array.isArray(parent) && parent.length === 0) || (typeof parent === 'object' && Object.keys(parent).length === 0)) {
+    removeNestedProperty(objectToClear, pathParts);
+    clearRecursive(objectToClear, pathParts);
   };
 };
 
@@ -139,6 +177,13 @@ class TafCategory extends Component {
     this.register = [];
   };
 
+  /**
+   * Validates TAF input in two steps:
+   * 1) Check for fallback values
+   * 2) Server side validation
+   * @param  {object} tafAsObject The TAF JSON to validate
+   * @return {object} A report of the validation
+   */
   validateTaf (tafAsObject) {
     const taf = cloneDeep(tafAsObject);
     const fallbackPointers = [];
@@ -146,12 +191,17 @@ class TafCategory extends Component {
     const nullPointers = [];
     getJsonPointers(taf, (field) => field === null, nullPointers);
 
-    // Remove null's -- BackEnd doesn't handle them nicely
+    // TODO: Should this be really necessary?
+    // Remove null's and empty fields -- BackEnd doesn't handle them nicely
     const nullPointersLength = nullPointers.length;
     for (let pointerIndex = 0; pointerIndex < nullPointersLength; pointerIndex++) {
       const pathParts = nullPointers[pointerIndex].split('/');
       pathParts.shift();
       removeNestedProperty(taf, pathParts);
+      clearRecursive(taf, pathParts);
+    }
+    if (getNestedProperty(taf, ['metadata', 'issueTime']) === 'not yet issued') {
+      removeNestedProperty(taf, ['metadata', 'issueTime']);
     }
 
     const inputParsingReport = {};
