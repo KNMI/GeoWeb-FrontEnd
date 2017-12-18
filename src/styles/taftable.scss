@@ -83,9 +83,9 @@
   color: black; /*#9F6000;*/
 }
 
-.TafStyle .TACColumnError {
+.TafStyle .TACColumnError input {
   /* Validation returns an error */
-  border: 1px solid red;
+  border: 0.1rem solid red;
 }
 
 .TACReport {

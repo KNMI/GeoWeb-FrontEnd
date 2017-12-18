@@ -102,8 +102,6 @@ export default class Taf extends Component {
     this.setState({ tafTypeSelections: [...this.state.tafTypeSelections] });
   }
   render () {
-    console.log('Tafs', this.state.tafs);
-    console.log('TafsFilter', this.state.tafTypeSelections);
     if (this.state.tafs) {
       return <Col style={{ flexDirection: 'column' }}>
         { !this.props.editable

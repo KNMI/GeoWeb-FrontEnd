@@ -11,7 +11,7 @@ import { jsonToTacForPeriod, jsonToTacForProbability, jsonToTacForChangeType, js
 */
 class ChangeGroup extends Component {
   render () {
-    const { tafChangeGroup, focusedFieldName, inputRef, index, editable } = this.props;
+    const { tafChangeGroup, focusedFieldName, inputRef, index, editable, invalidFields } = this.props;
     const columns = [
       {
         name: 'changegroups-' + index + '-sortable',
@@ -93,12 +93,31 @@ class ChangeGroup extends Component {
       }
     );
     columns.forEach((column) => {
-      column.isFocussed = column.name === focusedFieldName;
+      column.autoFocus = column.name === focusedFieldName;
+      let name = column.name;
+      if (name.endsWith('probability') || name.endsWith('change')) {
+        const nameParts = name.split('-');
+        nameParts.pop();
+        nameParts.push('changeType');
+        name = nameParts.join('-');
+      }
+      if (name.endsWith('validity')) {
+        const nameParts = name.split('-');
+        nameParts.pop();
+        nameParts.push('changeStart');
+        name = nameParts.join('-');
+      }
+      let isInvalid = invalidFields.includes(name);
+      column.invalid = isInvalid;
+      if (isInvalid) {
+        column.classes.push('TACColumnError');
+      }
     });
 
     return <tr>
       {columns.map((col) =>
-        <TafCell classes={col.classes} key={col.name} name={col.name} value={col.value} inputRef={inputRef} disabled={col.disabled} autoFocus={col.isFocussed} isSpan={col.isSpan} isButton={col.isButton} />
+        <TafCell classes={col.classes} key={col.name} name={col.name} value={col.value} inputRef={inputRef}
+          disabled={col.disabled} autoFocus={col.autoFocus} isSpan={col.isSpan} isButton={col.isButton} />
       )}
     </tr>;
   }
@@ -109,7 +128,8 @@ ChangeGroup.defaultProps = {
   focusedFieldName: null,
   inputRef: () => {},
   index: -1,
-  editable : false
+  editable : false,
+  invalidFields: []
 };
 
 ChangeGroup.propTypes = {
@@ -117,7 +137,8 @@ ChangeGroup.propTypes = {
   focusedFieldName: PropTypes.string,
   inputRef: PropTypes.func,
   index: PropTypes.number,
-  editable : PropTypes.bool
+  editable : PropTypes.bool,
+  invalidFields: PropTypes.array
 };
 
 export default ChangeGroup;

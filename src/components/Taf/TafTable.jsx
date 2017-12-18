@@ -7,13 +7,12 @@ import BaseForecast from './BaseForecast';
 import SortableChangeGroup from './SortableChangeGroup';
 import { TAF_TEMPLATES, TAF_TYPES, PHENOMENON_TYPES, getPhenomenonType } from './TafTemplates';
 import getNestedProperty from 'lodash.get';
+import cloneDeep from 'lodash.clonedeep';
 import { tacToJsonForWind, tacToJsonForCavok, tacToJsonForVisibility, tacToJsonForWeather, tacToJsonForVerticalVisibility, tacToJsonForClouds,
   jsonToTacForChangeType, tacToJsonForProbabilityAndChangeType, jsonToTacForProbability, tacToJsonForTimestamp, tacToJsonForPeriod } from './TafFieldsConverter';
 
-import cloneDeep from 'lodash.clonedeep';
-
-const SortableTBody = SortableContainer(({ tafChangeGroups, inputRef, focusedFieldName }) => {
-  return <tbody className='tester'>
+const SortableTBody = SortableContainer(({ tafChangeGroups, inputRef, focusedFieldName, invalidFields }) => {
+  return <tbody>
     {tafChangeGroups.map((tafChangeGroup, index) => {
       return <SortableChangeGroup
         key={`changegroups-${index}`}
@@ -21,7 +20,8 @@ const SortableTBody = SortableContainer(({ tafChangeGroups, inputRef, focusedFie
         inputRef={inputRef}
         focusedFieldName={focusedFieldName}
         index={index}
-        changeGroupIndex={index} />;
+        changeGroupIndex={index}
+        invalidFields={invalidFields[index] || []} />;
     })}
   </tbody>;
 });
@@ -198,7 +198,7 @@ class TafTable extends Component {
             } else {
               value = tacToJsonForPeriod(element.value, scopeStart, scopeEnd, true);
             }
-            propertiesToUpdate[0].propertyValue = value.start || { fallback: value.fallback };
+            propertiesToUpdate[0].propertyValue = value.start || (value.hasOwnProperty('fallback') ? { fallback: value.fallback } : null);
             propertiesToUpdate[1].propertyValue = value.end;
             break;
           default:
@@ -209,50 +209,56 @@ class TafTable extends Component {
     }
   }
 
-  getBaseForecastLine (tafJSON, focusedFieldName, inputRef, editable) {
+  getBaseForecastLine (tafJSON, focusedFieldName, inputRef, editable, invalidFields) {
     return <tbody>
       <BaseForecast tafMetadata={tafJSON.metadata} tafForecast={tafJSON.forecast}
-        focusedFieldName={focusedFieldName} inputRef={inputRef} editable={editable} validationReport={this.props.validationReport} />
+        focusedFieldName={focusedFieldName} inputRef={inputRef} editable={editable} invalidFields={invalidFields} />
     </tbody>;
   }
 
+  /**
+   * Processes the validationReport into arrays of names of invalid fields
+   * @param  {object} validationReport The validation report with JSON-pointers and messages
+   * @return {object} An object with arrays for base and changegroup field names
+   */
   processValidation (validationReport) {
+    const invalidFields = { base: [], changegroup: [] };
     if (validationReport.hasOwnProperty('succeeded') && !validationReport.succeeded) {
-      const invalidBaseFields = [];
-      const invalidChangeGroupFields = {};
       if (validationReport.hasOwnProperty('errors')) {
         Object.keys(validationReport.errors).map((pointer) => {
           const pointerParts = pointer.split('/');
           pointerParts.shift();
           if (pointerParts[0] === 'forecast') {
-            invalidBaseFields.push(pointerParts.join('-'));
+            invalidFields.base.push(pointerParts.join('-'));
           } else if (pointerParts[0] === 'changegroups' && !isNaN(pointerParts[1])) {
             const groupIndex = parseInt(pointerParts[1]);
-            if (!Array.isArray(invalidChangeGroupFields[groupIndex])) {
-              invalidChangeGroupFields[groupIndex] = [];
+            if (!Array.isArray(invalidFields.changegroup[groupIndex])) {
+              invalidFields.changegroup[groupIndex] = [];
             }
-            invalidChangeGroupFields[groupIndex].push(pointerParts.join('-'));
+            invalidFields.changegroup[groupIndex].push(pointerParts.join('-'));
           }
         });
-        console.log(invalidBaseFields, invalidChangeGroupFields);
       }
     }
+    return invalidFields;
   }
 
   render () {
     const { taf, focusedFieldName, inputRef, editable, onKeyUp, onKeyDown, onClick, onFocus, onSortEnd, validationReport } = this.props;
-    this.processValidation(validationReport);
+    const invalidFields = this.processValidation(validationReport);
     return (
       <table className='TafStyle TafStyleTable' onChange={this.onChange} onKeyUp={onKeyUp} onKeyDown={onKeyDown} onClick={onClick} onFocus={onFocus}>
         <BaseHeaders />
-        {this.getBaseForecastLine(taf, focusedFieldName, inputRef, editable)}
+        {this.getBaseForecastLine(taf, focusedFieldName, inputRef, editable, invalidFields.base)}
         <ChangeGroupHeaders />
 
         {editable
-          ? <SortableTBody tafChangeGroups={taf.changegroups} inputRef={inputRef} focusedFieldName={focusedFieldName} onSortEnd={onSortEnd} />
+          ? <SortableTBody tafChangeGroups={taf.changegroups} inputRef={inputRef} focusedFieldName={focusedFieldName}
+            onSortEnd={onSortEnd} invalidFields={invalidFields.changegroup} />
           : <tbody>
             {taf.changegroups.map((tafChangeGroup, index) => {
-              return <ChangeGroup key={`changegroups-${index}`} tafChangeGroup={tafChangeGroup} inputRef={inputRef} focusedFieldName={focusedFieldName} index={index} />;
+              return <ChangeGroup key={`changegroups-${index}`} tafChangeGroup={tafChangeGroup} inputRef={inputRef}
+                focusedFieldName={focusedFieldName} index={index} invalidFields={invalidFields.changegroup[index] || []} />;
             })}
           </tbody>
         }

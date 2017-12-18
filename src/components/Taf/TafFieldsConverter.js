@@ -513,11 +513,11 @@ const tacToJsonForVerticalVisibility = (verticalVisibilityAsTac) => {
 };
 
 const converterMessagesMap = {
-  changeType: 'for Prob',
-  changeStart: 'Valid period was not recognized. Expected either <4 digits> or <4 digits>\'/\'<4 digits>',
-  changeEnd: 'Valid period was not recognized. Expected either <4 digits> or <4 digits>\'/\'<4 digits>',
-  wind: 'Wind was not recognized. Expected either <3 digits> or <5 digits>\'G\'<2 digits> both optionally followed by \'KT\' or \'MPS\'',
-  visibility: 'Visibility was not recognized. Expected either <4 digits>, optionally followed by \'M\' or \'KM\', or \'CAVOK\'',
+  changeType: 'Prob and Change was not recognized. Expected optionally \'PROB\'<2 digits i.e. 30 or 40> for Prob and optionally \'FM\', \'BECMG\' \'TEMPO\' for Change',
+  changeStart: 'Valid period was not recognized. Expected either <4 digits for start> or <4 digits for start>\'/\'<4 digits for end>',
+  changeEnd: 'Valid period was not recognized. Expected either <4 digits for start> or <4 digits for start>\'/\'<4 digits for end>',
+  wind: 'Wind was not recognized. Expected either <3 digits for direction><2 digits for speed>, optionally appended with \'G\'<2 digits for gust speed>, optionally followed by \'KT\' or \'MPS\'',
+  visibility: 'Visibility was not recognized. Expected either <4 digits for range>, optionally followed by \'M\' or \'KM\', or \'CAVOK\'',
   weather: 'Weather was not recognized. Expected either <1 or 2 character(s) for qualifier><2 characters for descriptor><1 or more times repeated group of 2 characters for phenomena> or \'NSW\'',
   clouds: 'Cloud was not recognized. Expected one of <3 characters for amount><3 digits for height> optionally followed by <2 or 3 characters for modifier>,' +
     '\'VV\'<4 digits for height of vertical visibility> or \'NSC\''

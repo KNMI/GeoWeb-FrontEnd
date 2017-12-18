@@ -10,7 +10,7 @@ import { jsonToTacForPeriod, jsonToTacForWind, jsonToTacForCavok, jsonToTacForVe
 */
 class BaseForecast extends Component {
   render () {
-    const { tafMetadata, tafForecast, focusedFieldName, inputRef, editable } = this.props;
+    const { tafMetadata, tafForecast, focusedFieldName, inputRef, editable, invalidFields } = this.props;
 
     const columns = [
       {
@@ -92,6 +92,11 @@ class BaseForecast extends Component {
     );
     columns.forEach((column) => {
       column.autoFocus = column.name === focusedFieldName;
+      const isInvalid = invalidFields.includes(column.name);
+      column.invalid = isInvalid;
+      if (isInvalid) {
+        column.classes.push('TACColumnError');
+      }
     });
 
     return <tr>
@@ -108,7 +113,7 @@ BaseForecast.defaultProps = {
   focusedFieldName: null,
   inputRef: () => {},
   editable: false,
-  validationReport: null
+  invalidFields: []
 };
 
 BaseForecast.propTypes = {
@@ -117,7 +122,7 @@ BaseForecast.propTypes = {
   focusedFieldName: PropTypes.string,
   inputRef: PropTypes.func,
   editable : PropTypes.bool,
-  validationReport: PropTypes.object
+  invalidFields: PropTypes.array
 };
 
 export default BaseForecast;

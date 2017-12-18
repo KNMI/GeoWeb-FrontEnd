@@ -3,6 +3,7 @@ import { SortableContainer } from 'react-sortable-hoc';
 import PropTypes from 'prop-types';
 import { TAF_TEMPLATES, TAF_TYPES } from './TafTemplates';
 import { Row, Col, Form, FormGroup, Label, Input } from 'reactstrap';
+import cloneDeep from 'lodash.clonedeep';
 
 class TACTable extends SortableContainer(() => {}) {
   constructor (props) {
@@ -158,13 +159,13 @@ class TACTable extends SortableContainer(() => {}) {
   }
 
   render () {
-    const { tafAsObject, onChange } = this.props;
-    console.log('Props taf', tafAsObject);
+    const { taf, onChange } = this.props;
+    console.log('Props taf', taf);
     return <Form className='TACTable row' onChange={onChange} onKeyUp={onChange} onBlur={onChange} onInput={onChange}>
       <Col style={{ flexDirection: 'column' }}>
         {this.getBaseLine()}
-        {tafAsObject.hasOwnProperty('changegroups') && Array.isArray(tafAsObject.changegroups)
-          ? tafAsObject.changegroups.map((changegroup, index) => {
+        {taf.hasOwnProperty('changegroups') && Array.isArray(taf.changegroups)
+          ? taf.changegroups.map((changegroup, index) => {
             return this.getChangeGroupLine(changegroup, index);
           })
           : null}
@@ -173,10 +174,12 @@ class TACTable extends SortableContainer(() => {}) {
   }
 };
 
-TACTable.defaultProps = TAF_TEMPLATES.TAF;
+TACTable.defaultProps = {
+  taf: cloneDeep(TAF_TEMPLATES.TAF)
+};
 
 TACTable.propTypes = {
-  tafAsObject: TAF_TYPES.TAF,
+  taf: TAF_TYPES.TAF,
   onChange: PropTypes.func
 };
 

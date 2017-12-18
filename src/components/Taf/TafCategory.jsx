@@ -201,7 +201,7 @@ class TafCategory extends Component {
       clearRecursive(taf, pathParts);
     }
     if (getNestedProperty(taf, ['metadata', 'issueTime']) === 'not yet issued') {
-      removeNestedProperty(taf, ['metadata', 'issueTime']);
+      setNestedProperty(taf, ['metadata', 'issueTime'], null);
     }
 
     const inputParsingReport = {};
@@ -235,7 +235,13 @@ class TafCategory extends Component {
     }).then(
       response => {
         if (response.data) {
-          const aggregateReport = Object.assign({}, JSON.parse(response.data), inputParsingReport);
+          let responseJson = {};
+          try {
+            responseJson = JSON.parse(response.data);
+          } catch (exception) {
+            console.log('Unparseable response data', exception);
+          }
+          const aggregateReport = Object.assign({}, responseJson, inputParsingReport);
           this.setState({
             validationReport: aggregateReport
           });
@@ -590,7 +596,6 @@ class TafCategory extends Component {
           keyboardEvent.target.blur();
           break;
         default:
-          console.log('No action for event ', event.type, ' on ', event.target);
           break;
       }
     }
@@ -624,7 +629,6 @@ class TafCategory extends Component {
           }
           break;
         default:
-          console.log('No action for event ', event.type, ' on ', event.target);
           break;
       }
     }

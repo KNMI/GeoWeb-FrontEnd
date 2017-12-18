@@ -369,6 +369,9 @@ describe('(Functions) TafFieldsConverter', () => {
     // Year boundary
     result = tacToJsonForTimestamp('0113', '2017-12-31T18:00:00Z', '2018-01-02T00:00:00Z');
     expect(result).to.eql('2018-01-01T13:00:00Z');
+    // Empty
+    result = tacToJsonForTimestamp('', '2017-10-31T12:00:00Z', '2017-11-01T18:00:00Z', true);
+    expect(result).to.eql(null);
   });
 
   it('Converts period data from TAC to JSON', () => {
@@ -392,6 +395,12 @@ describe('(Functions) TafFieldsConverter', () => {
     });
     // Invalid start
     result = tacToJsonForPeriod('2113/2217', '2017-11-21T13:11:43Z', 'Blah');
+    expect(result).to.eql({
+      start: null,
+      end: null
+    });
+    // Empty
+    result = tacToJsonForPeriod('', '2017-11-21T13:11:43Z', '2017-11-22T17:11:43Z');
     expect(result).to.eql({
       start: null,
       end: null
