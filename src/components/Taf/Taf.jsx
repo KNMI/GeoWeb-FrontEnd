@@ -181,9 +181,10 @@ export default class Taf extends Component {
 Taf.propTypes = {
   editable: PropTypes.bool,
   tafEditable: PropTypes.bool,
-  // isOpen: PropTypes.bool,
   source: PropTypes.string,
   latestUpdateTime: PropTypes.object,
-  title: PropTypes.string
-  // ,  updateParent: PropTypes.func
+  title: PropTypes.string,
+  urls: PropTypes.shape({
+    BACKEND_SERVER_URL: PropTypes.string
+  })
 };
