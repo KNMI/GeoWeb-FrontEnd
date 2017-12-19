@@ -2,6 +2,7 @@ import React from 'react';
 import { default as SigmetCategory } from './SigmetCategory';
 import { mount } from 'enzyme';
 import moxios from 'moxios';
+import { BACKEND_SERVER_URL } from '../static/urls.json';
 
 describe('(Container) SigmetCategory', () => {
   it('Renders a SigmetCategory', () => {
@@ -191,7 +192,7 @@ describe('(Container) SigmetCategory', () => {
     };
     let result;
     moxios.wait(() => {
-      const request = moxios.stubRequest('http://birdexp07.knmi.nl:8080/sigmet/getsigmetlist?active=false');
+      const request = moxios.stubRequest(`${BACKEND_SERVER_URL}/sigmet/getsigmetlist?active=false`);
       request.respondWith({
         status: 200,
         response: sigmets

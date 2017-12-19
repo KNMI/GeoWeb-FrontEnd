@@ -25,7 +25,8 @@ export default (initialState = {}, isdev = false) => {
   // ======================================================
   // Store Instantiation and HMR Setup
   // ======================================================
-  return fetch('urls.json').then((res) => res.json()).then((mod) => {
+  return fetch('urls.json', { credentials: 'include' }).then((res) => res.json()).then((mod) => {
+    console.log('Using urls.json with settings', mod);
     const store = createStore(
       makeRootReducer(),
       { ...initialState, urls: mod },
