@@ -9,7 +9,7 @@ import setNestedProperty from 'lodash.set';
 import getNestedProperty from 'lodash.get';
 import removeNestedProperty from 'lodash.unset';
 import moment from 'moment';
-import { Button, Row, Col } from 'reactstrap';
+import { Button, Row, Col, Alert, ListGroup, ListGroupItem } from 'reactstrap';
 import { jsonToTacForWind, jsonToTacForWeather, jsonToTacForClouds, converterMessagesMap } from './TafFieldsConverter';
 import TafTable from './TafTable';
 // import TACTable from './TACTable';
@@ -201,7 +201,7 @@ class TafCategory extends Component {
       clearRecursive(taf, pathParts);
     }
     if (getNestedProperty(taf, ['metadata', 'issueTime']) === 'not yet issued') {
-      setNestedProperty(taf, ['metadata', 'issueTime'], null);
+      setNestedProperty(taf, ['metadata', 'issueTime'], moment.utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z');
     }
 
     const inputParsingReport = {};
@@ -224,6 +224,9 @@ class TafCategory extends Component {
         inputParsingReport.errors[fallbackPointers[pointerIndex]].push('The pattern of the input for ' +
           converterMessagesMap[fieldName]);
       }
+    } else {
+      inputParsingReport.message = 'TAF input is verified';
+      inputParsingReport.succeeded = true;
     }
 
     axios({
@@ -241,23 +244,19 @@ class TafCategory extends Component {
           } catch (exception) {
             console.log('Unparseable response data', exception);
           }
-          const aggregateReport = Object.assign({}, responseJson, inputParsingReport);
+          const aggregateReport = Object.assign({}, inputParsingReport, responseJson);
           this.setState({
             validationReport: aggregateReport
           });
-        } else if (!inputParsingReport.succeeded) {
-          this.setState({
-            validationReport: inputParsingReport
-          });
         } else {
           this.setState({
-            validationReport: null
+            validationReport: inputParsingReport
           });
         }
       }
     ).catch(error => {
       console.log(error);
-      const aggregateReport = Object.assign({ message: 'Invalid response from TAF verify servlet [/tafs/verify].' }, inputParsingReport);
+      const aggregateReport = Object.assign(inputParsingReport, { subheading: 'Could not get validation information from the server, thus only local validation results are shown.' });
       this.setState({
         validationReport: aggregateReport
       });
@@ -452,6 +451,11 @@ class TafCategory extends Component {
           return this.decorateWindObjectValue(phenomenonValueObject, prefix);
         }
         return null;
+      case PHENOMENON_TYPES.CAVOK:
+        if (typeof phenomenonValueObject === 'boolean' && phenomenonValueObject) {
+          return this.decorateStringValue('CaVOK', prefix);
+        }
+        return null;
       case PHENOMENON_TYPES.VISIBILITY:
         if (typeof phenomenonValueObject === 'object' && phenomenonValueObject.hasOwnProperty('value') &&
           typeof phenomenonValueObject.value === 'number' &&
@@ -471,6 +475,11 @@ class TafCategory extends Component {
           return this.decorateStringValue(phenomenonValueObject, prefix);
         } else if (typeof phenomenonValueObject === 'object') {
           return this.decorateCloudsArray(phenomenonValueObject, prefix);
+        }
+        return null;
+      case PHENOMENON_TYPES.VERTICAL_VISIBILITY:
+        if (typeof phenomenonValueObject === 'number') {
+          return this.decorateStringValue(phenomenonValueObject.toString().padStart(3, '0'), prefix);
         }
         return null;
       default: return null;
@@ -862,13 +871,15 @@ class TafCategory extends Component {
     );
     let validationErrors = null;
     let validationSucceeded = false;
-    if (this.state.validationReport && this.state.validationReport.errors) {
-      validationErrors = this.state.validationReport.errors;
-      console.log('Errors', validationErrors);
+    if (this.state.validationReport) {
+      if (this.state.validationReport.errors) {
+        validationErrors = this.state.validationReport.errors;
+      }
+      if (this.state.validationReport.succeeded === true) {
+        validationSucceeded = true;
+      }
     }
-    if (this.state.validationReport && this.state.validationReport.succeeded === true) {
-      validationSucceeded = true;
-    }
+
     const series = this.extractScheduleInformation(cloneDeep(this.state.tafAsObject));
     return (
       <Row className='TafCategory' style={{ flex: 1 }}>
@@ -893,16 +904,29 @@ class TafCategory extends Component {
             </Col>
           </Row>
           { this.state.validationReport
-            ? <Row className={validationSucceeded ? 'TAFValidationReportSuccess' : 'TAFValidationReportError'} style={{ flex: 'none' }}>
-              <Col xs='12'><b>{this.state.validationReport.message}</b></Col>
-              { this.state.validationReport.errors ? (flatten(Object.values(validationErrors).filter(v => Array.isArray(v)))).map((value, index) => {
-                return (<Col xs='12' key={'errmessageno' + index}>{(index + 1)} - {value}</Col>);
-              }) : null}
-            </Row> : null
+            ? <Row style={{ flex: 'none' }}>
+              <Col style={{ padding: '0.5rem' }}>
+                <Alert color={validationSucceeded ? 'success' : 'danger'} style={{ width: '100%', display: 'block', margin: '0' }}>
+                  <h4 className='alert-heading' style={{ fontSize: '1.2rem' }}>{this.state.validationReport.message}</h4>
+                  {this.state.validationReport.subheading
+                    ? <h6>{this.state.validationReport.subheading}</h6>
+                    : null
+                  }
+                  { validationErrors
+                    ? <ListGroup>
+                      {(flatten(Object.values(validationErrors).filter(v => Array.isArray(v)))).map((value, index) => {
+                        return (<ListGroupItem key={'errmessageno' + index} color={validationSucceeded ? 'success' : 'danger'}
+                          style={{ borderColor: '#a94442' }}>{(index + 1)} - {value}</ListGroupItem>);
+                      })}
+                    </ListGroup>
+                    : null
+                  }
+                </Alert>
+              </Col>
+            </Row>
+            : null
           }
-          { this.state.validationReport && this.state.validationReport.tac
-            ? <Row className='TACReport'> <Col style={{ flexDirection: 'column' }}>{this.state.validationReport.tac}</Col></Row> : null }
-          <Row style={{ margin: '0', padding:'4px', backgroundColor:'#EEE', flex: 'none' }}>
+          <Row style={{ padding:'0 0.5rem 0.5rem 0.5rem', flex: 'none' }}>
             <Col />
             <Col xs='auto'>
               <Button style={{ marginRight: '0.33rem' }} color='primary' onClick={() => {

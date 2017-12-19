@@ -85,7 +85,7 @@ describe('(Container) Taf/TafTable.jsx', () => {
       { propertyPath: [ 'changegroups', '2', 'forecast', 'caVOK' ],
         propertyValue: true },
       { propertyPath: [ 'changegroups', '2', 'forecast', 'visibility' ],
-        propertyValue: { unit: null, value: null, fallback: 'CAVOK' } } ]);
+        propertyValue: { unit: null, value: null } } ]);
   });
   it('Performs method updateValue for changegroup validity - one timestamp provided', () => {
     let values;

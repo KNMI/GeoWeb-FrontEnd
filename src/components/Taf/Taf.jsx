@@ -145,15 +145,15 @@ export default class Taf extends Component {
                     </Col>
                   </Row>
                   {taf.metadata.status === 'concept'
-                    ? <Row>
+                    ? <Row style={{ padding: '0.5rem' }}>
                       <Col />
                       <Col xs='auto'>
                         <a href={this.props.urls.BACKEND_SERVER_URL + '/tafs/' + taf.metadata.uuid} target='_blank'>
-                          <Button color='primary'>Show IWXXM</Button>
+                          <Button color='primary' style={{ marginRight: '0.33rem' }}>Show IWXXM</Button>
                         </a>
                       </Col>
                       <Col xs='auto'>
-                        <Button onClick={(e) => { e.preventDefault(); e.stopPropagation(); this.deleteTAF(taf.metadata.uuid); }} color='danger'>Delete</Button>
+                        <Button onClick={(e) => { e.preventDefault(); e.stopPropagation(); this.deleteTAF(taf.metadata.uuid); }} color='primary'>Delete</Button>
                       </Col>
                     </Row>
                     : null }

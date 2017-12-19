@@ -138,11 +138,12 @@ class TafTable extends Component {
           propertiesToUpdate[0].propertyValue = tacToJsonForWind(element.value, true);
           break;
         case PHENOMENON_TYPES.VISIBILITY:
+          const matchCavok = tacToJsonForCavok(element.value);
           propertiesToUpdate.push({
             propertyPath: cloneDeep(propertiesToUpdate[0].propertyPath),
-            propertyValue: tacToJsonForVisibility(element.value, true)
+            propertyValue: tacToJsonForVisibility(element.value, matchCavok === false)
           });
-          propertiesToUpdate[0].propertyValue = tacToJsonForCavok(element.value);
+          propertiesToUpdate[0].propertyValue = matchCavok;
           propertiesToUpdate[0].propertyPath.pop();
           propertiesToUpdate[0].propertyPath.push('caVOK');
           break;
@@ -153,18 +154,18 @@ class TafTable extends Component {
           }
           break;
         case PHENOMENON_TYPES.CLOUDS:
+          const matchVerticalVisibility = tacToJsonForVerticalVisibility(element.value);
           propertiesToUpdate.push({
             propertyPath: cloneDeep(propertiesToUpdate[0].propertyPath),
-            propertyValue: tacToJsonForClouds(element.value, true)
+            propertyValue: tacToJsonForClouds(element.value, matchVerticalVisibility === null)
           });
-          propertiesToUpdate[0].propertyValue = tacToJsonForVerticalVisibility(element.value);
+          propertiesToUpdate[0].propertyValue = matchVerticalVisibility;
           propertiesToUpdate[0].propertyPath.pop();
           propertiesToUpdate[0].propertyPath.pop();
           propertiesToUpdate[0].propertyPath.push('vertical_visibility');
           if (propertiesToUpdate[1].propertyValue === 'NSC') {
             propertiesToUpdate[1].propertyPath.pop();
           }
-          console.log('Cl', propertiesToUpdate);
           break;
         default:
           break;

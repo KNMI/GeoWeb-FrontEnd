@@ -501,13 +501,16 @@ const tacToJsonForClouds = (cloudsAsTac, useFallback = false) => {
   return result;
 };
 
-const tacToJsonForVerticalVisibility = (verticalVisibilityAsTac) => {
+const tacToJsonForVerticalVisibility = (verticalVisibilityAsTac, useFallback = false) => {
   let result = null;
   if (verticalVisibilityAsTac && typeof verticalVisibilityAsTac === 'string') {
     const matchResult = verticalVisibilityAsTac.match(verticalVisibilityRegEx);
     if (matchResult) {
       result = parseInt(matchResult[1]);
     }
+  }
+  if (useFallback && result === null && verticalVisibilityAsTac && typeof verticalVisibilityAsTac === 'string') {
+    result.fallback = verticalVisibilityAsTac;
   }
   return result;
 };
@@ -520,7 +523,7 @@ const converterMessagesMap = {
   visibility: 'Visibility was not recognized. Expected either <4 digits for range>, optionally followed by \'M\' or \'KM\', or \'CAVOK\'',
   weather: 'Weather was not recognized. Expected either <1 or 2 character(s) for qualifier><2 characters for descriptor><1 or more times repeated group of 2 characters for phenomena> or \'NSW\'',
   clouds: 'Cloud was not recognized. Expected one of <3 characters for amount><3 digits for height> optionally followed by <2 or 3 characters for modifier>,' +
-    '\'VV\'<4 digits for height of vertical visibility> or \'NSC\''
+    '\'VV\'<3 digits for height of vertical visibility> or \'NSC\''
 };
 
 module.exports = {
