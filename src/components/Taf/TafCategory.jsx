@@ -764,15 +764,30 @@ class TafCategory extends Component {
   moveFocus (focusedFieldName, direction) {
     if (focusedFieldName && typeof focusedFieldName === 'string') {
       if (direction === MOVE_DIRECTION.RIGHT) {
+        const registerLength = this.register.length;
         const currentItemIndex = this.register.findIndex((item) => item.name === focusedFieldName);
-        if (currentItemIndex < this.register.length - 1) {
-          this.setFocus(this.register[currentItemIndex + 1].name);
+        let nextItemIndex = -1;
+        for (let nextIndex = currentItemIndex + 1; nextIndex < registerLength; nextIndex++) {
+          if (!this.register[nextIndex].element.disabled) {
+            nextItemIndex = nextIndex;
+            break;
+          }
+        }
+        if (nextItemIndex !== -1) {
+          this.setFocus(this.register[nextItemIndex].name);
         }
       }
       if (direction === MOVE_DIRECTION.LEFT) {
         const currentItemIndex = this.register.findIndex((item) => item.name === focusedFieldName);
-        if (currentItemIndex > 0) {
-          this.setFocus(this.register[currentItemIndex - 1].name);
+        let prevItemIndex = -1;
+        for (let prevIndex = currentItemIndex - 1; prevIndex > -1; prevIndex--) {
+          if (!this.register[prevIndex].element.disabled) {
+            prevItemIndex = prevIndex;
+            break;
+          }
+        }
+        if (prevItemIndex !== -1) {
+          this.setFocus(this.register[prevItemIndex].name);
         }
       }
       const nameParts = focusedFieldName.split('-');
@@ -884,9 +899,12 @@ class TafCategory extends Component {
     return (
       <Row className='TafCategory' style={{ flex: 1 }}>
         <Col style={{ flexDirection: 'column' }}>
-          <Row style={{ margin: '0', padding:'4px', backgroundColor:'#EEE', flex: 'auto' }}>
-            <Col>{this.state.tafAsObject.metadata.uuid}</Col>
-          </Row>
+          {this.state.tafAsObject.metadata.uuid
+            ? <Row style={{ margin: '0', padding:'0.5rem', flex: 'auto' }}>
+              <Col style={{ fontSize: '0.9rem' }}>{'id: ' + this.state.tafAsObject.metadata.uuid}</Col>
+            </Row>
+            : null
+          }
           <Row style={{ margin: '0', padding:'4px', backgroundColor:'#EEE', flex: 'none' }}>
             <Col>
               <TafTable
