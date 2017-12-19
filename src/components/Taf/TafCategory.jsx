@@ -541,19 +541,19 @@ class TafCategory extends Component {
             // for persisting changes, correct overlapping
             if (changeType === CHANGE_TYPES.FM || changeType === CHANGE_TYPES.BECMG) {
               scheduleSeries[seriesIndex].ranges.forEach(range => {
-                if (start.isBefore(range.end) && end.isAfter(range.start)) {
+                if (start.isSameOrBefore(range.end) && end.isSameOrAfter(range.start)) {
                   // it does overlap!
-                  if (!start.isAfter(range.start)) {
-                    if (!end.isBefore(range.end)) {
+                  if (start.isSameOrBefore(range.start)) {
+                    if (end.isSameOrAfter(range.end)) {
                       // fully includes / overrides previous range => set duration to 0
                       range.end = range.start;
                     } else {
-                      // there's a remainder at the end
-                      range.start = end;
+                      // there's a remainder at the end, but FM and BECMG changes are persistent => set duration to 0
+                      range.end = range.start;
                     }
                   } else {
                     // there's a remainder at the start
-                    range.end = start;
+                    range.end = moment.max(start, range.start);
                   }
                 }
               });

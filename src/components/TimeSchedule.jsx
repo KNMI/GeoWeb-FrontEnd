@@ -5,6 +5,8 @@ import PropTypes from 'prop-types';
 import MomentPropTypes from 'react-moment-proptypes';
 
 const OVERLAPS = 'overlaps';
+const OVERLAPS_DOUBLE = 'overlapsDouble';
+const OVERLAPS_TRIPLE = 'overlapsTriple';
 const STYLES = 'styles';
 
 class TimeSchedule extends PureComponent {
@@ -23,13 +25,37 @@ class TimeSchedule extends PureComponent {
   annotateOverlappings (series) {
     series.ranges.map((range, index) => {
       for (let prevIndex = 0; prevIndex < index; prevIndex++) {
-        if (range.start.isBefore(series.ranges[prevIndex].end) && range.end.isAfter(series.ranges[prevIndex].start)) {
+        if (range.start.isSameOrBefore(series.ranges[prevIndex].end) && range.end.isSameOrAfter(series.ranges[prevIndex].start)) {
           range[STYLES].push(OVERLAPS);
           if (series.hasOwnProperty(STYLES)) {
             series[STYLES].push(OVERLAPS);
           } else {
             series[STYLES] = [OVERLAPS];
           }
+          break;
+        }
+      }
+    });
+
+    series.ranges.map((range, index) => {
+      for (let prevIndex = 0; prevIndex < index; prevIndex++) {
+        const prevRange = series.ranges[prevIndex];
+        if (range.start.isSameOrBefore(prevRange.end) && range.end.isSameOrAfter(prevRange.start) &&
+            prevRange.hasOwnProperty(STYLES) && prevRange[STYLES].includes(OVERLAPS)) {
+          range[STYLES].push(OVERLAPS_DOUBLE);
+          series[STYLES].push(OVERLAPS_DOUBLE);
+          break;
+        }
+      }
+    });
+
+    series.ranges.map((range, index) => {
+      for (let prevIndex = 0; prevIndex < index; prevIndex++) {
+        const prevRange = series.ranges[prevIndex];
+        if (range.start.isSameOrBefore(prevRange.end) && range.end.isSameOrAfter(prevRange.start) &&
+            prevRange.hasOwnProperty(STYLES) && prevRange[STYLES].includes(OVERLAPS_DOUBLE)) {
+          range[STYLES].push(OVERLAPS_TRIPLE);
+          series[STYLES].push(OVERLAPS_TRIPLE);
           break;
         }
       }
@@ -104,23 +130,32 @@ class TimeSchedule extends PureComponent {
             {serie.ranges.map((range, index) => {
               let offsetPerc = this.getOffset(marginMajorBasis, startMoment, range.start, minorTickInterval, intervalMinorBasis);
               let durationPerc = this.getDuration(range.start, range.end, minorTickInterval, intervalMinorBasis);
-              let arrowClass = '';
-              if (!range.start.isBefore(range.end)) {
-                arrowClass = 'bothArrow';
+              let arrowClasses = [];
+              if (range.start.isSameOrAfter(range.end)) {
+                arrowClasses.push('bothArrow');
                 durationPerc = intervalMinorBasis;
               }
+              // Left out of scope
               if (index > 0 && offsetPerc < marginMajorBasis) {
-                arrowClass = 'leftArrow';
-                offsetPerc = marginMajorBasis - intervalMinorBasis;
+                arrowClasses.push('leftArrow');
+                const newOffsetPerc = marginMajorBasis - intervalMinorBasis;
+                const diffPerc = newOffsetPerc - offsetPerc;
+                offsetPerc = newOffsetPerc;
+                durationPerc -= diffPerc;
+                if (durationPerc < intervalMinorBasis) {
+                  durationPerc = intervalMinorBasis;
+                }
               }
-              if (offsetPerc > 100) {
-                arrowClass = 'rightArrow';
-                offsetPerc = 100 + intervalMinorBasis;
+              // Right out of scope
+              const durationLimit = 100 - marginMajorBasis;
+              if (offsetPerc > (durationLimit - intervalMinorBasis)) {
+                arrowClasses.push('rightArrow');
+                offsetPerc = durationLimit;
                 durationPerc = intervalMinorBasis;
               }
-              if (offsetPerc + durationPerc > (100 + 2 * intervalMinorBasis)) {
-                arrowClass = 'rightArrow';
-                durationPerc = 100 + intervalMinorBasis - offsetPerc;
+              if ((offsetPerc + durationPerc) > (durationLimit + intervalMinorBasis)) {
+                arrowClasses.push('rightArrow');
+                durationPerc = durationLimit + intervalMinorBasis - offsetPerc;
               }
               offsetPerc -= cumOffset;
               cumOffset += durationPerc + offsetPerc;
@@ -128,7 +163,7 @@ class TimeSchedule extends PureComponent {
               durationPerc += '%';
               let classes = range.hasOwnProperty(STYLES) ? range[STYLES].join(' ') : '';
               classes += (range.hasOwnProperty(STYLES) && range[STYLES].includes('scheduleLabel')) ? '' : ' scheduleHighlight';
-              classes += ' ' + arrowClass;
+              classes += ' ' + arrowClasses.join(' ');
               return <Col className={classes}
                 key={serie.label + index} style={{ marginLeft: offsetPerc, flexBasis: durationPerc, maxWidth: durationPerc }}>
                 {(range.hasOwnProperty(STYLES) && range[STYLES].includes('scheduleLabel') && !serie.isLabelVisible) ? '' : range.value}

@@ -226,6 +226,20 @@ describe('(Functions) TafFieldsConverter', () => {
       ]
     });
     expect(result).to.eql('-FZDZFG');
+    // Descriptor only
+    result = jsonToTacForWeather({
+      qualifier: 'moderate',
+      descriptor: 'thunderstorm',
+      phenomena: []
+    });
+    expect(result).to.eql('TS');
+    // One phenomenon only
+    result = jsonToTacForWeather({
+      qualifier: 'moderate',
+      descriptor: null,
+      phenomena: [ 'snow' ]
+    });
+    expect(result).to.eql('SN');
   });
 
   it('Converts CAVOK data from JSON to TAC', () => {
@@ -649,6 +663,20 @@ describe('(Functions) TafFieldsConverter', () => {
       phenomena: [
         'drizzle', 'fog'
       ]
+    });
+    // Descriptor only
+    result = tacToJsonForWeather('TS');
+    expect(result).to.eql({
+      qualifier: 'moderate',
+      descriptor: 'thunderstorm',
+      phenomena: []
+    });
+    // One phenomenon only
+    result = tacToJsonForWeather('SN');
+    expect(result).to.eql({
+      qualifier: 'moderate',
+      descriptor: null,
+      phenomena: [ 'snow' ]
     });
   });
 

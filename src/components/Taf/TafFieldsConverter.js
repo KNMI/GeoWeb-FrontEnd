@@ -37,8 +37,8 @@ const visibilityRegEx = new RegExp('^(\\d{4})(?:(' + convertMapToRegExpOptions(v
 const cavokRegEx = /^CAVOK$/i;
 
 const weatherRegEx = new RegExp('^(' + convertMapToRegExpOptions(qualifierInverseMap) + ')' +
-    '(' + convertMapToRegExpOptions(descriptorInverseMap) + ')' +
-    '((?:' + convertMapToRegExpOptions(phenomenaInverseMap) + ')+)$', 'i');
+    '(?:(' + convertMapToRegExpOptions(descriptorInverseMap) + ')?)' +
+    '((?:' + convertMapToRegExpOptions(phenomenaInverseMap) + ')*)$', 'i');
 
 const cloudsRegEx = new RegExp('^(?:(' + convertMapToRegExpOptions(amountInverseMap) + ')' +
     '(\\d{3}))?' +
@@ -220,9 +220,7 @@ const jsonToTacForWeather = (weatherAsJson, useFallback = false) => {
     }
     if (weatherAsJson.hasOwnProperty('descriptor')) {
       const descriptor = getMapValue(weatherAsJson.descriptor, descriptorMap);
-      if (descriptor === null) {
-        return useFallback && weatherAsJson.hasOwnProperty('fallback') ? weatherAsJson.fallback : null;
-      } else {
+      if (descriptor !== null) {
         result += descriptor;
       }
     } else {
@@ -468,7 +466,10 @@ const tacToJsonForWeather = (weatherAsTac, useFallback = false) => {
     if (matchResult) {
       result.qualifier = getMapValue(matchResult[1], qualifierInverseMap, true);
       result.descriptor = getMapValue(matchResult[2], descriptorInverseMap, true);
-      result.phenomena = matchResult[3].match(weatherPhenomenaRegEx).map(elmt => getMapValue(elmt, phenomenaInverseMap, true));
+      const phenomena = matchResult[3].match(weatherPhenomenaRegEx);
+      if (Array.isArray(phenomena)) {
+        result.phenomena = phenomena.map(elmt => getMapValue(elmt, phenomenaInverseMap, true));
+      }
     } else if (weatherAsTac.toUpperCase() === 'NSW') {
       result = 'NSW';
     }
@@ -521,7 +522,8 @@ const converterMessagesMap = {
   changeEnd: 'Valid period was not recognized. Expected either <4 digits for start> or <4 digits for start>\'/\'<4 digits for end>',
   wind: 'Wind was not recognized. Expected either <3 digits for direction><2 digits for speed>, optionally appended with \'G\'<2 digits for gust speed>, optionally followed by \'KT\' or \'MPS\'',
   visibility: 'Visibility was not recognized. Expected either <4 digits for range>, optionally followed by \'M\' or \'KM\', or \'CAVOK\'',
-  weather: 'Weather was not recognized. Expected either <1 or 2 character(s) for qualifier><2 characters for descriptor><1 or more times repeated group of 2 characters for phenomena> or \'NSW\'',
+  weather: 'Weather was not recognized. Expected either an optionally prefix with <1 or 2 character(s) for qualifier>, ' +
+    'followed by an optional <2 characters for descriptor>, optionally followed by <1 or more times repeated group of 2 characters for phenomena> or \'NSW\'',
   clouds: 'Cloud was not recognized. Expected one of <3 characters for amount><3 digits for height> optionally followed by <2 or 3 characters for modifier>,' +
     '\'VV\'<3 digits for height of vertical visibility> or \'NSC\''
 };
