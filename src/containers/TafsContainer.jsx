@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Button, Col, Row, Card, CardHeader, Badge } from 'reactstrap';
+import { Button, Col, Row, Card, CardHeader, Badge, Label, Input } from 'reactstrap';
 import { Icon } from 'react-fa';
 import CollapseOmni from '../components/CollapseOmni';
 import Panel from '../components/Panel';
@@ -44,7 +44,8 @@ export default class TafsContainer extends Component {
     });
     this.state = {
       isOpen: true,
-      isOpenCategory: isOpenCategory
+      isOpenCategory: isOpenCategory,
+      isFixed: true
     };
     this.toggle = this.toggle.bind(this);
     this.toggleCategory = this.toggleCategory.bind(this);
@@ -73,7 +74,15 @@ export default class TafsContainer extends Component {
       <Col className='TafsContainer'>
         <Panel className='Panel'>
           <Row style={{ marginBottom: '0.7rem' }}>
-            <Button onClick={() => hashHistory.push('/')} color='primary'><Icon name={'times'} /></Button>
+            <Col xs='auto'>
+              <Button onClick={() => hashHistory.push('/')} color='primary' style={{ marginRight: '0.33rem' }}><Icon name={'times'} /></Button>
+            </Col>
+            <Col xs='auto'>
+              <Label check style={{ paddingTop: '0.66rem' }} >
+                <Input type='checkbox' checked={this.state.isFixed} onChange={() => this.setState({ isFixed: !this.state.isFixed })} />{' '}
+                  Fixed table
+              </Label>
+            </Col>
           </Row>
           <Col style={{ flexDirection: 'column' }}>
             {ITEMS.map((item, index) => {
@@ -103,10 +112,9 @@ export default class TafsContainer extends Component {
                 }
                 { this.state.isOpenCategory[item.ref]
                   ? <CollapseOmni className='CollapseOmni' isOpen={this.state.isOpen} minSize={0} maxSize={maxSize}>
-                    <Taf urls={this.props.urls} {...item} latestUpdateTime={moment.utc()} updateParent={() => this.forceUpdate()} />
+                    <Taf urls={this.props.urls} {...item} latestUpdateTime={moment.utc()} updateParent={() => this.forceUpdate()} fixedLayout={this.state.isFixed} />
                   </CollapseOmni> : ''
                 }
-
               </Card>;
             }
             )}

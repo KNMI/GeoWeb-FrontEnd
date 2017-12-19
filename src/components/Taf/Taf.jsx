@@ -129,6 +129,7 @@ export default class Taf extends Component {
                     urls={this.props.urls}
                     taf={this.state.inputValueJSON || cloneDeep(TAF_TEMPLATES.TAF)}
                     update editable={this.props.tafEditable}
+                    fixedLayout={this.props.fixedLayout}
                   />
                 </Col>
               </Row>
@@ -163,6 +164,7 @@ export default class Taf extends Component {
                         urls={this.props.urls}
                         taf={this.state.expandedJSON || cloneDeep(TAF_TEMPLATES.TAF)}
                         editable={this.props.tafEditable}
+                        fixedLayout={this.props.fixedLayout}
                       />
                     </Col>
                   </Row>
@@ -186,5 +188,6 @@ Taf.propTypes = {
   title: PropTypes.string,
   urls: PropTypes.shape({
     BACKEND_SERVER_URL: PropTypes.string
-  })
+  }),
+  fixedLayout: PropTypes.bool
 };
