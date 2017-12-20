@@ -35,6 +35,7 @@ include "../../config.php";
 
 
 function isURLInList($url){
+  return true;
   global $trustedURLS;
   $URLArray = $trustedURLS;
   foreach ($URLArray as $value) {

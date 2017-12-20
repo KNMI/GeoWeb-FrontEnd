@@ -116,27 +116,29 @@ class LayerManagerPanel extends PureComponent {
     // For each source....
     Object.keys(data).map((key) => {
       const vals = data[key].layers;
-      // Delete all layers that do not match the filter
-      const filteredLayers = vals.filter((layer) => layer.name.toLowerCase().indexOf(filter) !== -1 ||
-                                                    layer.text.toLowerCase().indexOf(filter) !== -1);
+      if (vals) {
+        // Delete all layers that do not match the filter
+        const filteredLayers = vals.filter((layer) => layer.name.toLowerCase().indexOf(filter) !== -1 ||
+                                                      layer.text.toLowerCase().indexOf(filter) !== -1);
 
-      // If the source itself is matched by the filter
-      if (protectedKeys.includes(key)) {
-        // but some layers match it too, return those.
-        // else we return all layers in the matched source
-        if (filteredLayers.length !== 0) {
+        // If the source itself is matched by the filter
+        if (protectedKeys.includes(key)) {
+          // but some layers match it too, return those.
+          // else we return all layers in the matched source
+          if (filteredLayers.length !== 0) {
+            data[key].layers = filteredLayers;
+          }
+        } else {
+          // Else filter the layers
           data[key].layers = filteredLayers;
         }
-      } else {
-        // Else filter the layers
-        data[key].layers = filteredLayers;
       }
     });
     // Filter all sources that have no layers that match the filter
     // except if the source itself is matched by the filter
     const keys = Object.keys(data);
     keys.map((key) => {
-      if (data[key].layers.length === 0 && !protectedKeys.includes(key)) {
+      if (!data[key].layers || (data[key].layers.length === 0 && !protectedKeys.includes(key))) {
         delete data[key];
       }
     });
@@ -175,8 +177,8 @@ class LayerManagerPanel extends PureComponent {
             <Col xs='5' style={{ paddingLeft: 0, borderRight: '1px solid #eceeef', overflowY: 'auto' }}>
               <ListGroup>
                 {
-                  Object.keys(filteredData).map((source) =>
-                    <ListGroupItem
+                  Object.keys(filteredData).map((source) => {
+                    return <ListGroupItem
                       style={{
                         maxHeight: '2.5em',
                         padding: '1rem',
@@ -187,9 +189,10 @@ class LayerManagerPanel extends PureComponent {
                         whiteSpace: 'nowrap',
                         overflow: 'hidden'
                       }}
+                      disabled={!filteredData[source] || !filteredData[source].layers}
                       tag='a' href='#'
                       active={this.state.activeSource && source === this.state.activeSource.name}
-                      onClick={(evt) => { evt.stopPropagation(); evt.preventDefault(); this.setState({ activeSource: filteredData[source].source }); }}>{source}</ListGroupItem>)
+                      onClick={(evt) => { evt.stopPropagation(); evt.preventDefault(); this.setState({ activeSource: filteredData[source].source }); }}>{source}</ListGroupItem>;})
                 }
               </ListGroup>
             </Col>
