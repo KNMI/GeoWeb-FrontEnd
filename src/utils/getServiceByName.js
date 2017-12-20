@@ -1,0 +1,119 @@
+import axios from 'axios';
+import PromiseWithTimout from '../utils/PromiseWithTimout';
+import moment from 'moment';
+
+// Return URL of WMS service or null if failed
+// @sources The adagucproperties sources object
+// @name Name of the service as specified by the name attribute in the result of getServices servlet
+// @return URL of WMS service or null if failed
+export const GetServiceByName = (sources, name) => {
+  const _getSourceByName = (sources, name) => {
+    if (sources[name]) {
+      return sources[name];
+    }
+    return null;
+  };
+  let source = _getSourceByName(sources, name);
+  if (source == null) {
+    return;
+  }
+  if (source && source.service) {
+    return source.service;
+  }
+  // TODO we need our own error handling mechanism here, e.g. a dialog showing what errors have occured.
+  console.error('Source not found [' + name + ']', sources);
+  alert('source.service not found [' + name + ']');
+  return null;
+};
+
+// Return promise which resolves URL of WMS service or null if failed
+// @sources The adagucproperties sources object
+// @name Name of the service as specified by the name attribute in the result of getServices servlet
+// @return promise which resolves URL of WMS service or null if failed
+export const GetServiceByNamePromise = (backendurl, name) => {
+  const _getSourceByName = (sources, name) => {
+    // console.log(name, sources);
+    if (sources[name]) {
+      return sources[name];
+    }
+    return null;
+  };
+
+  return new Promise((resolve, reject) => {
+    // console.log('GetServiceByName');
+    GetServices(backendurl).then(
+      (sources) => {
+        // console.log('GetServiceByName, 13 ok', sources);
+        let result = _getSourceByName(sources, name);
+        if (result == null) {
+          reject(Error('Source ' + name + 'not found'));
+        }
+        // console.log('source===', result);
+        if (result.source && result.source.service) {
+          resolve(result.source.service);
+        }
+        reject(Error('source.service not found for ' + name));
+      }
+    );
+  });
+};
+
+/* Promise which resolves all layers and services */
+export const GetServices = (BACKEND_SERVER_URL) => {
+  return new Promise((resolve, reject) => {
+    const defaultURLs = ['getServices', 'getOverlayServices'].map((url) => BACKEND_SERVER_URL + '/' + url);
+    const allURLs = [...defaultURLs];
+    let personalUrls = {};
+    if (localStorage) {
+      personalUrls = JSON.parse(localStorage.getItem('geoweb')).personal_urls;
+    }
+
+    // Ensures Promise.all works even when some promises don't resolve
+    const reflect = (promise) => {
+      return promise.then(
+        (v) => { return { 'data':v, 'status': 'resolved' }; },
+        (e) => { return { 'error':e, 'status': 'rejected' }; }
+      );
+    };
+    axios.all(allURLs.map((req) => axios.get(req, { withCredentials: true }))).then(
+      axios.spread((services, overlays) => {
+        const allSources = [...services.data, ...personalUrls, overlays.data[0]];
+        const promises = [];
+        for (var i = allSources.length - 1; i >= 0; i--) {
+          const source = allSources[i];
+          var r = new Promise((resolve, reject) => {
+            if (!source) {
+              reject(new Error('Source is not working'));
+            }
+            if (!source.name) {
+              reject(new Error('Source has no name'));
+            }
+            // eslint-disable-next-line no-undef
+            const service = WMJSgetServiceFromStore(source.service);
+            if (!service) {
+              resolve(new Error('Cannot get service from store'));
+            }
+            service.getLayerObjectsFlat((layers) => { resolve({ layers, source }); });
+          });
+          promises.push(new PromiseWithTimout(r, moment.duration(3000, 'milliseconds').asMilliseconds()));
+        }
+        const sort = (obj) => Object.keys(obj).sort().reduce((acc, c) => { acc[c] = obj[c]; return acc; }, {});
+
+        Promise.all(promises.map(reflect)).then((res) => {
+          const sourcesDic = {};
+          res.map((promise) => {
+            if (promise.status === 'resolved') {
+              const { layers, source } = promise.data;
+              sourcesDic[source.name] = { layers, source };
+            } else {
+              console.error(promise);
+            }
+          });
+          // dispatch(adagucActions.setSources(sort(sourcesDic)));
+          // console.log(sort(sourcesDic));
+          resolve(sort(sourcesDic));
+        });
+      })
+    ).catch((e) => reject(e));
+  });
+};
