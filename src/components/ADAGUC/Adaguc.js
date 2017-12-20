@@ -10,6 +10,7 @@ import { ReadLocations } from '../../utils/admin';
 import { LoadURLPreset } from '../../utils/URLPresets';
 import { debounce } from '../../utils/debounce';
 require('babel-polyfill');
+const WMJSTileRendererTileSettings = require('../../../config/basemaps');
 var elementResizeEvent = require('element-resize-event');
 export default class Adaguc extends PureComponent {
   constructor (props) {
@@ -131,6 +132,7 @@ export default class Adaguc extends PureComponent {
     // eslint-disable-next-line no-undef
     this.webMapJS = new WMJSMap(adagucMapRef, BACKEND_SERVER_XML2JSON);
     this.webMapJS.setBaseURL('./adagucwebmapjs/');
+    this.webMapJS.setWMJSTileRendererTileSettings(WMJSTileRendererTileSettings);
     this.webMapJS.showDialogs(false);
     this.resize();
     // Set listener for triggerPoints
