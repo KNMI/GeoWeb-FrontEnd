@@ -38,7 +38,8 @@ export default class Adaguc extends PureComponent {
 
   /* istanbul ignore next */
   updateLayer (layer, datalayer) {
-    const shouldAnimate = this.props.adagucProperties.animate && this.props.active;
+    const { adagucProperties } = this.props;
+    const { animationSettings } = adagucProperties;
     if (!layer) {
       return;
     }
@@ -52,16 +53,7 @@ export default class Adaguc extends PureComponent {
       layer.setDimension('modellevel', datalayer.modellevel.toString());
     }
 
-    if (shouldAnimate) {
-      this.webMapJS.drawAutomatic(moment().utc().subtract(4, 'hours'), moment().utc().add(48, 'hours'));
-    } else {
-      const { adagucProperties } = this.props;
-      if (adagucProperties.timeDimension) {
-        this.webMapJS.setDimension('time', adagucProperties.timeDimension, true);
-      }
-      this.webMapJS.draw('66');
-    }
-
+    this.onChangeAnimation(animationSettings, this.props.active);
     this.props.dispatch(this.props.layerActions.setWMJSLayers({ layers: this.webMapJS.getLayers(), baselayers: this.webMapJS.getBaseLayers() }));
   }
 
@@ -199,7 +191,9 @@ export default class Adaguc extends PureComponent {
       return true;
     }
     for (let i = currLayers.length - 1; i >= 0; i--) {
-      if (currLayers[i].service !== prevLayers[i].service || currLayers[i].name !== prevLayers[i].name) {
+      if (currLayers[i].service !== prevLayers[i].service ||
+          currLayers[i].name !== prevLayers[i].name ||
+          currLayers[i].active !== prevLayers[i].active) {
         return true;
       }
     }
@@ -296,8 +290,12 @@ export default class Adaguc extends PureComponent {
         this.webMapJS.stopAnimating();
         const newDatalayers = currDataLayers.map((datalayer) => {
           datalayer.enabled = 'enabled' in datalayer ? datalayer.enabled : true;
+          datalayer.active = 'active' in datalayer ? datalayer.active : true;
           // eslint-disable-next-line no-undef
           const newDataLayer = new WMJSLayer(datalayer);
+          if (datalayer.active) {
+            this.webMapJS.setActiveLayer(newDataLayer);
+          }
           newDataLayer.setAutoUpdate(true, moment.duration(2, 'minutes').asMilliseconds(), (layer) => this.updateLayer(layer, datalayer));
           newDataLayer.onReady = (layer) => this.updateLayer(layer, datalayer);
           return newDataLayer;
@@ -328,7 +326,7 @@ export default class Adaguc extends PureComponent {
   componentDidUpdate (prevProps) {
     const { mapProperties, adagucProperties, layerActions, layers, active, mapId, dispatch } = this.props;
     const { boundingBox, mapMode, projection } = mapProperties;
-    const { timeDimension, animate, cursor } = adagucProperties;
+    const { timeDimension, animationSettings, cursor } = adagucProperties;
     const { baselayer } = layers;
     const activePanel = this.props.layers.panels[mapId];
 
@@ -351,8 +349,8 @@ export default class Adaguc extends PureComponent {
     const baseChanged = this.updateBaselayers(baselayer, prevBaseLayer, overlays, prevOverlays);
 
     // Update animation -- animate iff animate is set and the panel is active.
-    if (prevProps.adagucProperties.animate !== animate) {
-      this.onChangeAnimation(active && animate);
+    if (prevProps.adagucProperties.animationSettings !== animationSettings) {
+      this.onChangeAnimation(animationSettings, active);
     }
 
     // Set the current layers if the panel becomes active (necessary for the layermanager etc.)
@@ -365,11 +363,11 @@ export default class Adaguc extends PureComponent {
   }
 
   /* istanbul ignore next */
-  onChangeAnimation (shouldAnimate) {
+  onChangeAnimation (animationSettings, active) {
+    this.webMapJS.stopAnimating();
+    const shouldAnimate = animationSettings.animate && active;
     if (shouldAnimate) {
-      this.webMapJS.drawAutomatic(moment().utc().subtract(4, 'hours'), moment().utc().add(48, 'hours'));
-    } else {
-      this.webMapJS.stopAnimating();
+      this.webMapJS.drawLastTimes(animationSettings.duration, 'hours');
     }
     this.webMapJS.draw('385');
   }

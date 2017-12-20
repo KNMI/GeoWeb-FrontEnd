@@ -120,7 +120,7 @@ export const createRoutes = (store) => {
   const header = React.createElement(connect(mapStateToHeaderProps, mapDispatchToHeaderProps)(TitleBarContainer));
   const leftSidebar = React.createElement(connect(mapStateToSidebarProps)(TasksContainer));
   const rightSidebar = React.createElement(connect(mapStateToRightSideBarProps, mapDispatchToRightSidebarProps)(MapActionsContainer));
-  const map = React.createElement(connect(mapStateToMapProps, mapDispatchToMainViewportProps)(MapPanel));
+  const map = connect(mapStateToMapProps, mapDispatchToMainViewportProps)(MapPanel);
   const layerManager = React.createElement(connect(mapStateToLayerManagerProps, mapDispatchToLayerManagerProps)(LayerManagerPanel));
   const smallLayerManager = React.createElement(connect(mapStateToLayerManagerProps, mapDispatchToLayerManagerProps)(SmallLayerManagerPanel));
   const products = React.createElement(connect(mapStateToLayerManagerProps, mapDispatchToLayerManagerProps)(ProductsContainer));
@@ -143,8 +143,13 @@ export const createRoutes = (store) => {
     <Route path='/' component={BaseLayout} title='GeoWeb'>
       <Route component={HeaderedLayout} header={header}>
         {/* Here all routes with a header */}
-        <Route component={SidebarredLayout} leftSidebar={leftSidebar} rightSidebar={rightSidebar}>
-          <IndexRoute component={FooteredLayout} viewComponent={map} contextComponent={layerManager} />
+        {/* TODO: Wrapping with empty sidebarredlayout should not be necessary */}
+        <Route component={SidebarredLayout} >
+          <Route component={FooteredLayout} contextComponent={layerManager}>
+            <Route component={SidebarredLayout} leftSidebar={leftSidebar} rightSidebar={rightSidebar}>
+              <IndexRoute component={map} />
+            </Route>
+          </Route>
         </Route>
         <Route path='products' title='Products'>
           {/* Here all product routes */}
