@@ -6,17 +6,14 @@ export default class WithSidebars extends Component {
     const { viewComponent, contextComponent } = route;
     return (
       <div style={{ flex: 1, flexDirection: 'column' }}>
-        {viewComponent
-          ? <Row className='map' tag='main'>
-            {viewComponent}
-          </Row>
-          : null }
+        <Row className='map' tag='main'>
+          {this.props.children}
+        </Row>
         { contextComponent
           ? <Row className='Footer'>
             {contextComponent}
           </Row>
           : null }
-        {this.props.children}
       </div>
     );
   }
