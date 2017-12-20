@@ -159,7 +159,8 @@ class SigmetsContainer extends Component {
                   selectedIndex={typeof this.state.selectedItem.index !== 'undefined' && this.state.selectedItem.category === item.ref ? this.state.selectedItem.index : -1}
                   selectMethod={(index, geo) => this.select(item.ref, index, geo)} toggleMethod={() => this.toggleCategory(item.ref)}
                   dispatch={this.props.dispatch} actions={this.props.actions}
-                  parameters={this.state.parameters || {}} />
+                  parameters={this.state.parameters || {}}
+                  sources={this.props.sources} />
               )}
             </Col>
           </Panel>
@@ -176,7 +177,8 @@ SigmetsContainer.propTypes = {
   mapActions: PropTypes.object,
   layerActions: PropTypes.object,
   dispatch: PropTypes.func,
-  actions: PropTypes.object
+  actions: PropTypes.object,
+  sources: PropTypes.object
 };
 
 export default SigmetsContainer;

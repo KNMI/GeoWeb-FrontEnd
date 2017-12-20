@@ -124,7 +124,9 @@ export const createRoutes = (store) => {
   const layerManager = React.createElement(connect(mapStateToLayerManagerProps, mapDispatchToLayerManagerProps)(LayerManagerPanel));
   const smallLayerManager = React.createElement(connect(mapStateToLayerManagerProps, mapDispatchToLayerManagerProps)(SmallLayerManagerPanel));
   const products = React.createElement(connect(mapStateToLayerManagerProps, mapDispatchToLayerManagerProps)(ProductsContainer));
-  const sigmet = React.createElement(connect((state) => ({ drawProperties: state.drawProperties, urls: state.urls }), mapDispatchToSigmetProps)(SigmetsContainer));
+  const sigmet = React.createElement(connect((state) => ({
+    drawProperties: state.drawProperties, urls: state.urls, sources: state.adagucProperties.sources
+  }), mapDispatchToSigmetProps)(SigmetsContainer));
   const taf = React.createElement(connect(mapStateToLayerManagerProps, mapDispatchToLayerManagerProps)(TafsContainer));
   const trigger = React.createElement(connect(mapStateToLayerManagerProps, mapDispatchToLayerManagerProps)(TriggersContainer));
   const manageLeft = React.createElement(SidebarContainer);
