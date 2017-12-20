@@ -1,7 +1,7 @@
 import React from 'react';
 import { default as TimeComponent } from './TimeComponent';
 import { shallow } from 'enzyme';
-import { Row } from 'reactstrap';
+import { Col } from 'reactstrap';
 
 describe('(Component) TimeComponent', () => {
   let _timeComponent;
@@ -9,7 +9,7 @@ describe('(Component) TimeComponent', () => {
     _timeComponent = shallow(<TimeComponent wmjslayers={{}} />);
   });
 
-  it('Renders a Row', () => {
-    expect(_timeComponent.type()).to.eql(Row);
+  it('Renders a Col', () => {
+    expect(_timeComponent.type()).to.eql(Col);
   });
 });

@@ -1,5 +1,6 @@
 import { createAction, handleActions } from 'redux-actions';
 import { MAP_STYLES } from '../../constants/map_styles';
+import cloneDeep from 'lodash.clonedeep';
 
 const ADD_LAYER = 'ADD_LAYER';
 const ADD_OVERLAY_LAYER = 'ADD_OVERLAY_LAYER';
@@ -9,8 +10,10 @@ const ALTER_LAYER = 'ALTER_LAYER';
 const REORDER_LAYER = 'REORDER_LAYER';
 const SET_WMJSLAYERS = 'SET_WMJSLAYERS';
 const SET_PANEL_TYPE = 'SET_PANEL_TYPE';
+const SET_ACTIVE_LAYER = 'SET_ACTIVE_LAYER';
 
 const addLayer = createAction(ADD_LAYER);
+const setActiveLayer = createAction(SET_ACTIVE_LAYER);
 const addOverlaysLayer = createAction(ADD_OVERLAY_LAYER);
 const deleteLayer = createAction(DELETE_LAYER);
 const setPreset = createAction(SET_PRESET);
@@ -52,12 +55,21 @@ export const actions = {
   addOverlaysLayer,
   deleteLayer,
   setPreset,
+  setActiveLayer,
   alterLayer,
   reorderLayers,
   setWMJSLayers
 };
 
 export default handleActions({
+  [SET_ACTIVE_LAYER]: (state, { payload }) => {
+    const panels = cloneDeep(state.panels);
+    const panel = panels[payload.activeMapId];
+    panel.layers.map((layer, i) => {
+      layer.active = i === payload.layerClicked;
+    });
+    return { ...state, panels };
+  },
   [SET_PANEL_TYPE]: (state, { payload }) => {
     const mapId = payload.mapId;
     const panel = { ...state.panels[mapId], type: payload.type };
@@ -69,7 +81,11 @@ export default handleActions({
     const activeMapId = payload.activeMapId;
     const layer = { ...payload.layer };
     layer.enabled = 'enabled' in payload.layer ? payload.layer.enabled : true;
+    layer.active = 'active' in payload.layer ? payload.layer.active : false;
     const newLayers = [payload.layer, ...state.panels[activeMapId].layers];
+    if (newLayers.length === 1 || !newLayers.some((layer) => layer.active === true)) {
+      newLayers[0].active = true;
+    }
     const newPanel = { ...state.panels[activeMapId], layers: newLayers };
     const newPanels = [...state.panels];
     newPanels[activeMapId] = newPanel;
@@ -92,6 +108,10 @@ export default handleActions({
       case 'data':
         layers = [...state.panels[activeMapId].layers];
         layers.splice(idx, 1);
+        if (layers.length === 1 || (layers.length > 0 && !layers.some((layer) => layer.active === true))) {
+          layers[0].active = true;
+        }
+
         panel = { ...state.panels[activeMapId], layers };
         panels = [...state.panels];
         panels[activeMapId] = panel;

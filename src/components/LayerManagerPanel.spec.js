@@ -5,7 +5,10 @@ import { shallow } from 'enzyme';
 
 const state = {
   adagucProperties: {
-    animate: false,
+    animationSettings: {
+      animate: false,
+      duration: 3
+    },
     sources: {},
     timeDimension: '2017-07-19T11:32:03Z',
     cursor: null
