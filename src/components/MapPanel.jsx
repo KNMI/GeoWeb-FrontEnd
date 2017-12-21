@@ -5,10 +5,10 @@ import { Row, Col } from 'reactstrap';
 import PropTypes from 'prop-types';
 import TimeseriesComponent from './TimeseriesComponent';
 import ProgtempComponent from './ProgtempComponent';
-import { MODEL_LEVEL_URL } from '../constants/default_services';
 import axios from 'axios';
 import moment from 'moment';
 import { ReadLocations } from '../utils/admin';
+import { GetServiceByNamePromise } from '../utils/getServiceByName';
 
 export class SinglePanel extends PureComponent {
   constructor () {
@@ -23,10 +23,10 @@ export class SinglePanel extends PureComponent {
 
     switch (type.toUpperCase()) {
       case 'TIMESERIES':
-        return <TimeseriesComponent layout={mapProperties.layout} location={cursor ? cursor.location : null} referenceTime={this.props.referenceTime}
+        return <TimeseriesComponent urls={urls} layout={mapProperties.layout} location={cursor ? cursor.location : null} referenceTime={this.props.referenceTime}
           selectedModel={this.props.model} time={adaStart} id={'timeseries' + mapId} />;
       case 'PROGTEMP':
-        return <ProgtempComponent layout={mapProperties.layout} location={cursor ? cursor.location : null} referenceTime={this.props.referenceTime}
+        return <ProgtempComponent urls={urls} layout={mapProperties.layout} location={cursor ? cursor.location : null} referenceTime={this.props.referenceTime}
           selectedModel={this.props.model} time={adaStart} style={{ height: '100%', width: '100%', marginLeft: '-3.6rem', marginRight: '1.4rem' }} />;
       default:
         return <Adaguc drawActions={this.props.drawActions} layerActions={this.props.layerActions} mapProperties={mapProperties}
@@ -63,17 +63,23 @@ class MapPanel extends PureComponent {
     });
   }
   componentWillMount () {
-    let refUrl;
-    switch (this.state.model.toUpperCase()) {
-      default:
-        refUrl = `${MODEL_LEVEL_URL}SERVICE=WMS&VERSION=1.3.0&REQUEST=GetReferenceTimes&LAYERS=air_pressure__at_ml`;
-        break;
-    }
-    try {
-      return axios.get(refUrl).then((r) => this.setState({ referenceTime: moment.utc(r.data[0]) }));
-    } catch (e) {
-      console.log('ERROR: unable to fetch ' + refUrl);
-    }
+    GetServiceByNamePromise(this.props.urls.BACKEND_SERVER_URL, 'HARM_N25').then(
+      (serviceURL) => {
+        console.log('MapPanel.jsx serviceURL:' + serviceURL);
+        try {
+          let referenceTimeRequestURL = serviceURL + '&SERVICE=WMS&VERSION=1.3.0&REQUEST=GetReferenceTimes&LAYERS=air_temperature__at_2m';
+          return axios.get(referenceTimeRequestURL).then((r) => {
+            console.log('MapPanel.jsx SUCCESS', moment.utc(r.data[0]).format());
+            this.setState({ referenceTime: moment.utc(r.data[0]) });
+          });
+        } catch (e) {
+          console.error('ERROR: unable to fetch ' + serviceURL);
+        }
+      },
+      (e) => {
+        console.error(e);
+      }
+    );
   }
 
   componentDidUpdate () {
@@ -234,7 +240,8 @@ SinglePanel.propTypes = {
   adagucActions: PropTypes.object.isRequired
 };
 MapPanel.propTypes = {
-  mapProperties: PropTypes.object.isRequired
+  mapProperties: PropTypes.object.isRequired,
+  adagucProperties: PropTypes.object.isRequired
 };
 
 export default MapPanel;

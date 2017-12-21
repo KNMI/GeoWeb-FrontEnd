@@ -12,7 +12,7 @@ require('rc-slider/assets/index.css');
 // ----------------------------------------- \\
 class LayerSource extends PureComponent {
   render () {
-    return <Badge pill className={`alert-${this.props.color}`}>{this.props.name}</Badge>;
+    return <div><Badge pill className={`alert-${this.props.color}`}>{this.props.name}</Badge></div>;
   }
 }
 LayerSource.propTypes = {
@@ -62,16 +62,18 @@ class LayerName extends PureComponent {
     this.setState({ popoverOpen: false });
   }
   render () {
-    const { i, target, placement } = this.props;
+    const { i, target, placement, size } = this.props;
     return (
       <div>
         <Popover placement={placement} width={'auto'} key={`popover${i}`} isOpen={this.state.popoverOpen} target={target} toggle={this.togglePopover}>
           <PopoverTitle>Select layer</PopoverTitle>
-          <PopoverContent>{this.state.layers ? this.state.layers.map((layer, q) => <li id={i} onClick={e => this.alterLayer(e, layer)} key={q}>{layer.text}</li>) : ''}</PopoverContent>
+          <PopoverContent style={size || {}}>{this.state.layers ? this.state.layers.map((layer, q) =>
+            <li id={i} onClick={(e) => { e.stopPropagation(); e.preventDefault(); this.alterLayer(e, layer); }} key={q}>{layer.text}</li>) : ''}</PopoverContent>
         </Popover>
-        <Badge pill color={this.props.color} className={`alert-${this.props.color}${this.props.editable ? ' editable' : ''}`} onClick={this.togglePopover}>
+        <Badge pill color={this.props.color} className={`alert-${this.props.color}${this.props.editable ? ' editable' : ''}`}
+          onClick={(e) => { e.stopPropagation(); e.preventDefault(); this.togglePopover(); }}>
           {this.props.name}
-          <Icon id={target} style={{ marginLeft: '0.25rem' }} name='pencil' />
+          <Icon id={target} style={{ lineHeight: 0.1, marginLeft: '0.25rem' }} name='pencil' />
         </Badge>
       </div>);
   }
@@ -82,6 +84,10 @@ LayerName.propTypes = {
   dispatch: PropTypes.func.isRequired,
   layerActions: PropTypes.object.isRequired,
   activeMapId: PropTypes.number,
+  size: PropTypes.shape({
+    width: PropTypes.string,
+    height: PropTypes.string
+  }),
   name: PropTypes.string.isRequired,
   i: PropTypes.number.isRequired,
   layer: PropTypes.object.isRequired,
@@ -133,7 +139,7 @@ class LayerStyle extends PureComponent {
           <PopoverTitle>Select style</PopoverTitle>
           <PopoverContent>{layer.styles ? layer.styles.map((style, q) => (<li
             id={i}
-            onClick={e => this.alterLayer(e, style)}
+            onClick={e => { e.stopPropagation(); e.preventDefault(); this.alterLayer(e, style); }}
             key={q}
           >{style.title}</li>)) : <li />}
           </PopoverContent>
@@ -143,10 +149,10 @@ class LayerStyle extends PureComponent {
           pill
           color={this.props.color}
           className={`alert-${this.props.color}${this.props.editable ? ' editable' : ''}`}
-          onClick={this.togglePopover}
+          onClick={(e) => { e.stopPropagation(); e.preventDefault(); this.togglePopover(); }}
         >
           {styleObj ? styleObj.title : 'default'}
-          <Icon style={{ marginLeft: '0.25rem' }} id={target} name='pencil' />
+          <Icon style={{ lineHeight: 0.1, marginLeft: '0.25rem' }} id={target} name='pencil' />
         </Badge>
       </div>
     );
@@ -228,10 +234,10 @@ class LayerOpacity extends PureComponent {
             <Slider style={{ margin: '1rem' }} vertical min={0} max={100} marks={marks} step={1} onChange={v => this.alterLayer(v)} defaultValue={this.floatToIntPercentage(layer.opacity)} />
           </PopoverContent>
         </Popover>
-
-        <Badge pill className={`alert-${this.props.color}${this.props.editable ? ' editable' : ''}`} onClick={this.togglePopover}>
+        <Badge pill className={`alert-${this.props.color}${this.props.editable ? ' editable' : ''}`}
+          onClick={(e) => { e.stopPropagation(); e.preventDefault(); this.togglePopover(); }}>
           {`${this.floatToIntPercentage(layer.opacity)} %`}
-          <Icon style={{ marginLeft: '0.25rem' }} id={target} name='pencil' />
+          <Icon style={{ lineHeight: 0.1, marginLeft: '0.25rem' }} id={target} name='pencil' />
         </Badge>
       </div>
     );
@@ -282,9 +288,9 @@ export class LayerModelLevel extends PureComponent {
         </PopoverContent>
       </Popover>
 
-      <Badge pill className={`alert-${this.props.color}${this.props.editable ? ' editable' : ''}`} onClick={this.togglePopover}>
+      <Badge pill className={`alert-${this.props.color}${this.props.editable ? ' editable' : ''}`} onClick={(e) => { e.stopPropagation(); e.preventDefault(); this.togglePopover(); }}>
         {modellevel.currentValue}
-        <Icon style={{ marginLeft: '0.25rem' }} id={target} name='pencil' />
+        <Icon style={{ lineHeight: 0.1, marginLeft: '0.25rem' }} id={target} name='pencil' />
       </Badge>
     </div>;
   }
@@ -326,11 +332,9 @@ export default class LayerManager extends PureComponent {
     switch (type) {
       case 'overlay':
         alternations = { enabled: !this.state.overlays[i].enabled };
-        // dispatch(layerActions.alterLayer(i, type, { enabled: !this.state.overlays[i].enabled }));
         break;
       case 'data':
         alternations = { enabled: !this.state.layers[i].enabled };
-        // dispatch(layerActions.alterLayer(i, type, { enabled: !this.state.layers[i].enabled }));
         break;
       default:
         break;
@@ -358,11 +362,12 @@ export default class LayerManager extends PureComponent {
       <Row className='layerinfo' key={`base${i}`}>
         <Col xs='auto'><Icon style={{ color: 'transparent' }} name='chevron-up' /></Col>
         <Col xs='auto'><Icon style={{ color: 'transparent' }} name='chevron-up' /></Col>
-        <Col xs='auto'><Icon style={{ minWidth: '1rem' }} id='enableButton' name={layer && layer.enabled ? 'check-square-o' : 'square-o'} onClick={() => this.toggleLayer('base', i)} /></Col>
-        <Col xs='auto'><Icon style={{ color: 'transparent' }} name='times' /></Col>
+        <Col xs='auto'><Icon style={{ minWidth: '1rem' }} id='enableButton' name={layer && layer.enabled ? 'check-square-o' : 'square-o'}
+          onClick={(e) => { e.stopPropagation(); e.preventDefault(); this.toggleLayer('base', i); }} /></Col>
         <Col xs='auto'><Icon style={{ color: 'transparent' }} name='times' /></Col>
         <LayerName
           i={i}
+          size={{ height: '5rem', width: '15rem' }}
           color='success'
           editable
           name={this.props.baselayer ? (this.props.baselayer.label ? this.props.baselayer.label : this.props.baselayer.title) : '???'}
@@ -386,10 +391,12 @@ export default class LayerManager extends PureComponent {
       <Row className='layerinfo' key={`over${i}`} style={{ marginBottom: '0.1rem' }}>
         <Col xs='auto'><Icon style={{ color: 'transparent' }} name='chevron-up' /></Col>
         <Col xs='auto'><Icon style={{ color: 'transparent' }} name='chevron-up' /></Col>
-        <Col xs='auto'><Icon style={{ minWidth: '1rem' }} id='enableButton' name={layer.enabled ? 'check-square-o' : 'square-o'} onClick={() => this.toggleLayer('overlay', i)} /></Col>
-        <Col xs='auto'><Icon id='deleteButton' name='times' onClick={() => this.deleteLayer('overlay', i)} /></Col>
-        <Col xs='auto'><Icon style={{ color: 'transparent' }} name='chevron-up' /></Col>
-        <LayerSource color='danger' name={this.props.panel.overlays[i].label ? this.props.panel.overlays[i].label : this.props.panel.overlays[i].name} />
+        <Col xs='auto'><Icon style={{ minWidth: '1rem' }} id='enableButton' name={layer.enabled ? 'check-square-o' : 'square-o'}
+          onClick={(e) => { e.stopPropagation(); e.preventDefault(); this.toggleLayer('overlay', i); }} /></Col>
+        <Col xs='auto'><Icon id='deleteButton' name='times' onClick={(e) => { e.stopPropagation(); e.preventDefault(); this.deleteLayer('overlay', i); }} /></Col>
+        <LayerSource color='danger' name={this.props.panel.overlays[i]
+          ? (this.props.panel.overlays[i].label ? this.props.panel.overlays[i].label : this.props.panel.overlays[i].name)
+          : ''} />
         <Col />
         <Col />
         <Col />
@@ -416,12 +423,20 @@ export default class LayerManager extends PureComponent {
         sourceName = wmjsLayer.WMJSService.title;
       }
       return (
-        <Row className='layerinfo' key={`lgi${i}`} style={{ marginBottom: '0.1rem' }}>
-          <Col xs='auto'><Icon name='chevron-up' onClick={() => dispatch(layerActions.reorderLayers({ direction: 'up', index: i, activeMapId }))} /></Col>
-          <Col xs='auto'><Icon name='chevron-down' onClick={() => dispatch(layerActions.reorderLayers({ direction: 'down', index: i, activeMapId }))} /></Col>
-          <Col xs='auto'><Icon style={{ minWidth: '1rem' }} id='enableButton' name={layer.enabled ? 'check-square-o' : 'square-o'} onClick={() => this.toggleLayer('data', i)} /></Col>
-          <Col xs='auto'><Icon id='deleteButton' name='times' onClick={() => this.deleteLayer('data', i)} /></Col>
-          <Col xs='auto'><Icon title='Jump to latest time in layer' name='clock-o' onClick={() => this.jumpToLatestTime(i)} /></Col>
+        <Row className={'layerinfo datalayer' + (panelLayer.active === true ? ' active' : '')} key={`lgi${i}`}
+          onClick={(evt) => { evt.stopPropagation(); evt.preventDefault(); dispatch(layerActions.setActiveLayer({ activeMapId: activeMapId, layerClicked: i })); }}>
+          <Col xs='auto' onClick={(evt) => { evt.stopPropagation(); evt.preventDefault(); dispatch(layerActions.reorderLayers({ direction: 'up', index: i, activeMapId })); }}>
+            <Icon name='chevron-up' />
+          </Col>
+          <Col xs='auto' onClick={(evt) => { evt.stopPropagation(); evt.preventDefault(); dispatch(layerActions.reorderLayers({ direction: 'down', index: i, activeMapId })); }}>
+            <Icon name='chevron-down' />
+          </Col>
+          <Col xs='auto' onClick={(evt) => { evt.stopPropagation(); evt.preventDefault(); this.toggleLayer('data', i); }} >
+            <Icon style={{ minWidth: '1rem' }} id='enableButton' name={layer.enabled ? 'check-square-o' : 'square-o'} />
+          </Col>
+          <Col xs='auto' onClick={(evt) => { evt.stopPropagation(); evt.preventDefault(); this.deleteLayer('data', i); }} >
+            <Icon id='deleteButton' name='times' />
+          </Col>
           <LayerSource color='info' name={sourceName} />
           <LayerName color='info' editable activeMapId={activeMapId} name={layer.title} i={i} target={`datalayer${i}`} layer={layer} dispatch={dispatch} layerActions={this.props.layerActions} />
           <LayerStyle color='info' editable activeMapId={activeMapId} style={layer.currentStyle} layer={layer}
@@ -466,6 +481,7 @@ export default class LayerManager extends PureComponent {
         {this.renderOverLayerSet(this.state.overlays)}
         {this.renderLayerSet(this.state.layers)}
         {this.renderBaseLayerSet(this.state.baselayers)}
+        <Row className='layerinfo' style={{ marginBottom: '0.1rem', height: '1rem' }} />
       </Col>
     );
   }

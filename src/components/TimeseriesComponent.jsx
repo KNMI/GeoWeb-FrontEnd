@@ -2,7 +2,8 @@ import React, { PureComponent } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import axios from 'axios';
 import PropTypes from 'prop-types';
-import { HARMONIE_URL } from '../constants/default_services';
+import { GetServiceByNamePromise } from '../utils/getServiceByName';
+
 var moment = require('moment');
 export default class TimeseriesComponent extends PureComponent {
   /* istanbul ignore next */
@@ -34,21 +35,29 @@ export default class TimeseriesComponent extends PureComponent {
     }
   }
   setModelData (model, location, referenceTime) {
-    let url;
+    console.log('TimeseriesComponent setModelData');
     if (!(model && location && referenceTime)) return;
     const refTimeStr = referenceTime.format('YYYY-MM-DDTHH:mm:ss') + 'Z';
-    switch (model.toUpperCase()) {
-      default:
-        url = `${HARMONIE_URL}SERVICE=WMS&&SERVICE=WMS&VERSION=1.3.0&REQUEST=GetPointValue&LAYERS=&QUERY_LAYERS=
-air_pressure_at_sea_level,wind__at_10m,dew_point_temperature__at_2m,air_temperature__at_2m,precipitation_flux,wind_speed_of_gust__at_10m&CRS=EPSG%3A4326&
-INFO_FORMAT=application/json&time=*&DIM_reference_time=` + refTimeStr + `&x=` + location.x + `&y=` + location.y;
-        break;
-    }
-    return axios.get(url).then((d) => {
-      this.setState({ timeData: this.modifyData(d.data), origData: d.data });
-    });
-  }
 
+    return GetServiceByNamePromise(this.props.urls.BACKEND_SERVER_URL, 'HARM_N25').then(
+      (serviceURL) => {
+        try {
+          let url = serviceURL + '&SERVICE=WMS&VERSION=1.3.0&REQUEST=GetPointValue&LAYERS=&' +
+            'QUERY_LAYERS=air_pressure_at_sea_level,wind__at_10m,dew_point_temperature__at_2m,air_temperature__at_2m,precipitation_flux,wind_speed_of_gust__at_10m&' +
+            'CRS=EPSG%3A4326&INFO_FORMAT=application/json&time=*&DIM_reference_time=' + refTimeStr + '&x=' + location.x + '&y=' + location.y;
+          return axios.get(url).then((d) => {
+            console.log('TimeseriesComponent SUCCESS setModelData', d.data);
+            this.setState({ timeData: this.modifyData(d.data), origData: d.data });
+          });
+        } catch (e) {
+          console.error('ERROR: unable to fetch ' + serviceURL);
+        }
+      },
+      (e) => {
+        console.error(e);
+      }
+    );
+  }
   setSelectedDot (time) {
     const dataLines = ['air_temp', 'dew_point_temp', 'wind_dir', 'wind_speed', 'wind_gust', 'precipitation', 'pressure'];
 
@@ -345,5 +354,6 @@ TimeseriesComponent.propTypes = {
   adagucProperties: PropTypes.object.isRequired,
   isOpen: PropTypes.bool.isRequired,
   dispatch: PropTypes.func.isRequired,
-  adagucActions: PropTypes.object.isRequired
+  adagucActions: PropTypes.object.isRequired,
+  urls: PropTypes.object.isRequired
 };

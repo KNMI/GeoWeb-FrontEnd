@@ -16,7 +16,8 @@ import Slider from 'rc-slider';
 import Tooltip from 'rc-tooltip';
 import PropTypes from 'prop-types';
 import { BOUNDING_BOXES } from '../constants/bounding_boxes';
-import { HARMONIE_URL, HARMONIE_ML_URL, OVERLAY_URL, OBSERVATIONS_URL, RADAR_URL, LIGHTNING_URL, SATELLITE_URL } from '../constants/default_services';
+import { GetServiceByName } from '../utils/getServiceByName';
+
 import { WEBSERVER_URL } from '../static/urls.json';
 const createSliderWithTooltip = Slider.createSliderWithTooltip;
 const Range = createSliderWithTooltip(Slider.Range);
@@ -268,6 +269,13 @@ class SigmetCategory extends Component {
   }
 
   sigmetLayers (p) {
+    let HARMONIE_URL = GetServiceByName(this.props.sources, 'HARM_N25');
+    let OVERLAY_URL = GetServiceByName(this.props.sources, 'OVL');
+    let OBSERVATIONS_URL = GetServiceByName(this.props.sources, 'OBS');
+    let RADAR_URL = GetServiceByName(this.props.sources, 'RADAR');
+    let LIGHTNING_URL = GetServiceByName(this.props.sources, 'LGT');
+    let SATELLITE_URL = GetServiceByName(this.props.sources, 'SAT');
+    let HARMONIE_ML_URL = GetServiceByName(this.props.sources, 'HARM_N25_ML');
     switch (p) {
       case 'sigmet_layer_TS':
         return (
@@ -1138,7 +1146,8 @@ SigmetCategory.propTypes = {
   layerActions      : PropTypes.object,
   drawProperties : PropTypes.shape({
     geojson: PropTypes.object
-  })
+  }),
+  sources      : PropTypes.object
 };
 
 export default SigmetCategory;

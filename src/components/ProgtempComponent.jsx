@@ -1,9 +1,9 @@
 import React, { PureComponent } from 'react';
 import CanvasComponent from './ADAGUC/CanvasComponent';
-import { MODEL_LEVEL_URL } from '../constants/default_services';
 import axios from 'axios';
 import moment from 'moment';
 import PropTypes from 'prop-types';
+import { GetServiceByNamePromise } from '../utils/getServiceByName';
 import { drawProgtemp, drawProgtempBg, plotHodo, calc_Tw, calc_Tv } from '../static/progtemp/functions_bijvoet.js';
 export default class ProgtempComponent extends PureComponent {
   constructor () {
@@ -102,19 +102,28 @@ export default class ProgtempComponent extends PureComponent {
   }
 
   setModelData (model, location, referenceTime) {
-    let url;
+    console.log('ProgTempComponent setModelData');
     if (!(model && location && referenceTime)) return;
     const refTimeStr = referenceTime.format('YYYY-MM-DDTHH:mm:ss') + 'Z';
-    switch (model.toUpperCase()) {
-      default:
-        url = `${MODEL_LEVEL_URL}SERVICE=WMS&VERSION=1.3.0&REQUEST=GetPointValue&LAYERS=&
-QUERY_LAYERS=air_pressure__at_ml,y_wind__at_ml,x_wind__at_ml,dewpoint_temperature__at_ml,air_temperature__at_ml&CRS=EPSG%3A4326&
-INFO_FORMAT=application/json&time=*&DIM_reference_time=` + refTimeStr + `&x=` + location.x + `&y=` + location.y + `&DIM_modellevel=*`;
-        break;
-    }
-    return axios.get(url).then((d) => {
-      this.setState({ progtempData: d.data });
-    });
+
+    GetServiceByNamePromise(this.props.urls.BACKEND_SERVER_URL, 'HARM_N25_ML').then(
+      (serviceURL) => {
+        try {
+          let url = serviceURL + '&SERVICE=WMS&VERSION=1.3.0&REQUEST=GetPointValue&LAYERS=&' +
+            'QUERY_LAYERS=air_pressure__at_ml,y_wind__at_ml,x_wind__at_ml,dewpoint_temperature__at_ml,air_temperature__at_ml&' +
+            'CRS=EPSG%3A4326&INFO_FORMAT=application/json&time=*&DIM_reference_time=' + refTimeStr + '&x=' + location.x + '&y=' + location.y + '&DIM_modellevel=*';
+          return axios.get(url).then((d) => {
+            console.log('ProgtempComponent SUCCESS setModelData', d.data);
+            this.setState({ progtempData: d.data });
+          });
+        } catch (e) {
+          console.error('ERROR: unable to fetch ' + serviceURL);
+        }
+      },
+      (e) => {
+        console.error(e);
+      }
+    );
   }
 
   fetchAndRender (model, location, referenceTime) {
@@ -166,5 +175,6 @@ ProgtempComponent.propTypes = {
   time: PropTypes.object,
   selectedModel: PropTypes.string.isRequired,
   referenceTime: PropTypes.object.isRequired,
-  location: PropTypes.object
+  location: PropTypes.object,
+  urls: PropTypes.object.isRequired
 };

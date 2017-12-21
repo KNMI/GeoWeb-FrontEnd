@@ -171,8 +171,14 @@ class TitleBarContainer extends PureComponent {
     };
     axios.all(allURLs.map((req) => axios.get(req, { withCredentials: true }))).then(
       axios.spread((services, overlays) => {
+        const sort = (obj) => Object.keys(obj).sort().reduce((acc, c) => { acc[c] = obj[c]; return acc; }, {});
         dispatch(mapActions.createMap());
         const allSources = [...services.data, ...personalUrls, overlays.data[0]];
+        const disabledSources = {};
+        allSources.map((source) => {
+          disabledSources[source.name] = {};
+        });
+        dispatch(adagucActions.setSources(sort(disabledSources)));
         const promises = [];
         for (var i = allSources.length - 1; i >= 0; i--) {
           const source = allSources[i];
@@ -192,7 +198,6 @@ class TitleBarContainer extends PureComponent {
           });
           promises.push(new PromiseWithTimout(r, moment.duration(3000, 'milliseconds').asMilliseconds()));
         }
-        const sort = (obj) => Object.keys(obj).sort().reduce((acc, c) => { acc[c] = obj[c]; return acc; }, {});
 
         Promise.all(promises.map(reflect)).then((res) => {
           const sourcesDic = {};
