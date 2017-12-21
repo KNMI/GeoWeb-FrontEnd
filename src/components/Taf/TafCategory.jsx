@@ -217,12 +217,14 @@ class TafCategory extends Component {
           inputParsingReport.errors[fallbackPointers[pointerIndex]] = [];
         }
         const pointerParts = fallbackPointers[pointerIndex].split('/');
+        pointerParts.shift();
         let fieldName = pointerParts[pointerParts.length - 1];
         if (!isNaN(fieldName)) {
           fieldName = pointerParts[pointerParts.length - 2];
         }
         inputParsingReport.errors[fallbackPointers[pointerIndex]].push('The pattern of the input for ' +
           converterMessagesMap[fieldName]);
+        removeNestedProperty(taf, pointerParts);
       }
     } else {
       inputParsingReport.message = 'TAF input is verified';
@@ -246,7 +248,11 @@ class TafCategory extends Component {
               console.log('Unparseable errors data from response', exception);
             }
           }
-          const aggregateReport = Object.assign({}, inputParsingReport, responseJson);
+          const aggregateReport = {
+            message: inputParsingReport.succeeded && responseJson.succeeded ? 'TAF input is verified' : 'TAF input is not valid',
+            succeeded: inputParsingReport.succeeded && responseJson.succeeded,
+            errors: Object.assign({}, inputParsingReport.errors, responseJson.errors)
+          };
           this.setState({
             validationReport: aggregateReport
           });
