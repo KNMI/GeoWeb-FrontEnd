@@ -238,11 +238,13 @@ class TafCategory extends Component {
     }).then(
       response => {
         if (response.data) {
-          let responseJson = {};
-          try {
-            responseJson = JSON.parse(response.data);
-          } catch (exception) {
-            console.log('Unparseable response data', exception);
+          let responseJson = response.data;
+          if (responseJson.hasOwnProperty('errors') && typeof responseJson.errors === 'string') {
+            try {
+              responseJson.errors = JSON.parse(responseJson.errors);
+            } catch (exception) {
+              console.log('Unparseable errors data from response', exception);
+            }
           }
           const aggregateReport = Object.assign({}, inputParsingReport, responseJson);
           this.setState({
