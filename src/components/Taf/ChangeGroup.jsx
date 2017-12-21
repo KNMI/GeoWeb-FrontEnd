@@ -107,7 +107,9 @@ class ChangeGroup extends Component {
         nameParts.push('changeStart');
         name = nameParts.join('-');
       }
-      let isInvalid = invalidFields.includes(name);
+      let isInvalid = invalidFields.findIndex((element) => {
+        return element.startsWith(name);
+      }) !== -1;
       column.invalid = isInvalid;
       if (isInvalid) {
         column.classes.push('TACColumnError');
