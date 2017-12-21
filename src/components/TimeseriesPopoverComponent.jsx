@@ -3,10 +3,10 @@ import { Popover, PopoverTitle, Row, ButtonDropdown, DropdownToggle, DropdownMen
 import { Typeahead } from 'react-bootstrap-typeahead';
 import axios from 'axios';
 import { DefaultLocations } from '../constants/defaultlocations';
-import { MODEL_LEVEL_URL } from '../constants/default_services';
 import { ReadLocations } from '../utils/admin';
 import PropTypes from 'prop-types';
 import TimeseriesComponent from './TimeseriesComponent';
+import { GetServiceByNamePromise } from '../utils/getServiceByName';
 var moment = require('moment');
 
 export default class ProgtempPopoverComponent extends Component {
@@ -35,13 +35,23 @@ export default class ProgtempPopoverComponent extends Component {
   }
 
   setReferenceTime (model) {
-    let refUrl;
-    switch (model.toUpperCase()) {
-      default:
-        refUrl = `${MODEL_LEVEL_URL}SERVICE=WMS&VERSION=1.3.0&REQUEST=GetReferenceTimes&LAYERS=air_pressure__at_ml`;
-        break;
-    }
-    return axios.get(refUrl).then((r) => this.setState({ referenceTime: moment.utc(r.data[0]) }));
+    return GetServiceByNamePromise(this.props.urls.BACKEND_SERVER_URL, 'HARM_N25').then(
+      (serviceURL) => {
+        console.log(serviceURL);
+        try {
+          let referenceTimeRequestURL = serviceURL + '&SERVICE=WMS&VERSION=1.3.0&REQUEST=GetReferenceTimes&LAYERS=air_temperature__at_2m';
+          return axios.get(referenceTimeRequestURL).then((r) => {
+            console.log('TimeseriesComponent.jsx SUCCESS', moment.utc(r.data[0]));
+            this.setState({ referenceTime: moment.utc(r.data[0]) });
+          });
+        } catch (e) {
+          console.error('ERROR: unable to fetch ' + serviceURL);
+        }
+      },
+      (e) => {
+        console.error(e);
+      }
+    );
   }
 
   convertMinSec (loc) {
@@ -100,6 +110,7 @@ export default class ProgtempPopoverComponent extends Component {
   /* istanbul ignore next */
   render () {
     const { cursor } = this.props.adagucProperties;
+    const { urls } = this.props;
     const adaStart = moment.utc(this.props.adagucProperties.timeDimension).startOf('hour');
     if (!this.state.referenceTime) {
       return null;
@@ -107,7 +118,7 @@ export default class ProgtempPopoverComponent extends Component {
     return (
       <Popover placement='left' isOpen={this.props.isOpen} target='timeseries_button'>
         <PopoverTitle>Reference time: <strong>{this.state.referenceTime ? this.state.referenceTime.format('ddd DD, HH:mm UTC') : '??'}</strong></PopoverTitle>
-        <TimeseriesComponent location={cursor ? cursor.location : null} referenceTime={this.state.referenceTime}
+        <TimeseriesComponent urls={urls} location={cursor ? cursor.location : null} referenceTime={this.state.referenceTime}
           selectedModel={this.state.selectedModel} time={adaStart} id='timeseriesPopover' />
         <Row style={{ padding: '0 0 1rem 1rem' }}>
           {this.getLocationAsString(cursor)}

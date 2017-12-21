@@ -1,9 +1,9 @@
 import React, { PureComponent } from 'react';
 import CanvasComponent from './CanvasComponent.js';
-import { Icon } from 'react-fa';
-import { Button, Col, Row } from 'reactstrap';
+import { Col } from 'reactstrap';
 import PropTypes from 'prop-types';
 import { debounce } from '../../utils/debounce';
+import moment from 'moment';
 
 export default class TimeComponent extends PureComponent {
   constructor () {
@@ -40,7 +40,7 @@ export default class TimeComponent extends PureComponent {
       const layerTimeIndexNext = this.canvasDateInterval.getTimeStepFromDate(canvasDateIntervalHour.getDateAtTimeStep(j + 1));
       const pos = layerTimeIndex / sliderStopIndex;
       const width = (layerTimeIndexNext - layerTimeIndex) / sliderStopIndex;
-      ctx.fillStyle = '#AAA';
+      ctx.fillStyle = moment.utc(dateAtTimeStep).isBefore(moment.utc()) ? '#fff3cd' : '#d4edda';
       ctx.strokeStyle = '#000';
       ctx.lineWidth = 0.5;
       const x = parseInt(pos * scaleWidth);
@@ -62,14 +62,22 @@ export default class TimeComponent extends PureComponent {
     for (let j = 0; j < layers.length; j++) {
       const y = j * layerHeight + 1 + overlayers.length * layerHeight;
       const layer = layers[j];
+      const activeLayer = this.props.panel.layers[j].active;
       const dim = layer.getDimension('time');
       if (!dim) {
         continue;
       }
-      ctx.fillStyle = '#F66';
+      if (activeLayer) {
+        // ctx.fillStyle = '#beeef0';
+        ctx.fillStyle = '#d9edf7';
+        ctx.strokeStyle = '#888';
+        ctx.fillRect(0, y + 0.5, canvasWidth, blockHeight);
+        ctx.strokeRect(-1, y + 0.5, canvasWidth + 2, blockHeight);
+      }
+      ctx.fillStyle = '#fbaeae';
       ctx.strokeStyle = '#AAA';
-      ctx.fillRect(0, y + 0.5, canvasWidth, blockHeight);
-      ctx.strokeRect(-1, y + 0.5, canvasWidth + 2, blockHeight);
+      ctx.fillRect(0, y + 4.5, canvasWidth, blockHeight - 8);
+      ctx.strokeRect(-1, y + 4.5, canvasWidth + 2, blockHeight - 8);
       const layerStartIndex = dim.getIndexForValue(this.startDate, false);
       const layerStopIndex = dim.getIndexForValue(this.endDate, false);
       for (let q = layerStartIndex - 1; q < layerStopIndex + 1; q++) {
@@ -94,7 +102,7 @@ export default class TimeComponent extends PureComponent {
         }
         const pos = layerTimeIndex / sliderStopIndex;
         const posNext = layerTimeIndexNext / sliderStopIndex;
-        ctx.fillStyle = '#BBB';
+        ctx.fillStyle = activeLayer ? '#beeef0' : '#f0f0f0';
         if (sliderMapIndex >= layerTimeIndex && sliderMapIndex < layerTimeIndexNext) {
           ctx.fillStyle = '#FFFF60';
         }
@@ -126,18 +134,17 @@ export default class TimeComponent extends PureComponent {
     const canvasWidth = ctx.canvas.width;
     // eslint-disable-next-line no-undef
     const numlayers = wmjslayers.baselayers && wmjslayers.layers ? wmjslayers.baselayers.length + wmjslayers.layers.length + 1 : 2;
-    const canvasHeight = 20 * numlayers;
-
+    const canvasHeight = Math.max(20 * (numlayers - 2), this.props.height);
     this.canvasHeight = canvasHeight;
     this.timedim = timedim;
     this.ctxCanvasHeight = ctx.canvas.height;
     this.ctxCanvasWidth = ctx.canvas.width;
 
-    ctx.fillStyle = '#CCC';
+    ctx.fillStyle = '#FFF';
     ctx.fillRect(0, 0, canvasWidth, canvasHeight);
     ctx.strokeStyle = '#FF0000';
 
-    ctx.font = '14px Arial';
+    ctx.font = '14px Helvetica';
     ctx.lineWidth = 1;
     const scaleWidth = canvasWidth;
     // eslint-disable-next-line no-undef
@@ -182,10 +189,8 @@ export default class TimeComponent extends PureComponent {
 
     /* Draw system time, past and future */
     let x = parseInt((sliderCurrentIndex / sliderStopIndex) * scaleWidth) + 0.5;
-    ctx.fillStyle = '#CFC';
-    ctx.fillRect(0, 0, x - 0, canvasHeight);
-    ctx.fillStyle = '#DDF';
-    ctx.fillRect(x, 0, canvasWidth - x, canvasHeight);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
     /* Draw time indication blocks */
     this.drawTimeIndicationBlocks(ctx, timeBlockStartIndex, timeBlockStopIndex, canvasDateIntervalHour, sliderStopIndex, scaleWidth, canvasHeight);
@@ -206,7 +211,6 @@ export default class TimeComponent extends PureComponent {
     /* Draw current map time */
     ctx.lineWidth = 2;
 
-    ctx.strokeStyle = '#333';
     x = parseInt((sliderMapIndex / sliderStopIndex) * scaleWidth);
     ctx.fillStyle = '#333';
     ctx.strokeStyle = '#444';
@@ -218,9 +222,10 @@ export default class TimeComponent extends PureComponent {
 
     ctx.strokeStyle = '#000000';
     ctx.lineWidth = 0.5;
-    ctx.fillStyle = '#EEE';
+    ctx.fillStyle = '#FFF';
     ctx.fillRect(x - 26, canvasHeight - 15, 52, 14);
     ctx.fillStyle = '#000000';
+    ctx.font = 'bold 14px Helvetica';
     ctx.fillText(timedim.substring(11, 16), x - 15, canvasHeight - 3);
   }
   /* istanbul ignore next */
@@ -326,8 +331,19 @@ export default class TimeComponent extends PureComponent {
     this.ctx = ctx;
   }
   /* istanbul ignore next */
-  onCanvasClick (x) {
+  onCanvasClick (x, y) {
+    const { panel, dispatch, layerActions, activeMapId } = this.props;
+    const { overlays, layers } = panel;
+
     const t = x / this.ctx.canvas.clientWidth;
+
+    // TODO: Replace with "global" height variable
+    const layerHeight = 20;
+    const overlaysHeight = overlays.length * layerHeight;
+    const layerClicked = Math.floor((y - overlaysHeight) / layerHeight);
+    if (layerClicked >= 0 && layerClicked < layers.length) {
+      dispatch(layerActions.setActiveLayer({ activeMapId, layerClicked }));
+    }
     const s = this.canvasDateInterval.getTimeSteps() - 1;
     const newTimeStep = parseInt(t * s);
     /* istanbul ignore next */
@@ -360,31 +376,18 @@ export default class TimeComponent extends PureComponent {
     return this.props.timedim !== nextProps.timedim ||
            this.props.width !== nextProps.width ||
            this.props.height !== nextProps.height ||
+           this.props.panel !== nextProps.panel ||
+           this.props.wmjslayers !== nextProps.wmjslayers ||
            currentNumlayers !== nextNumlayers ||
            this.props.activeMapId !== nextProps.activeMapId;
   }
 
   /* istanbul ignore next */
   render () {
-    const { wmjslayers } = this.props;
-    const numlayers = wmjslayers.baselayers && wmjslayers.layers ? wmjslayers.baselayers.length + wmjslayers.layers.length + 1 : 2;
-    const height = 20 * numlayers;
     return (
-      <Row style={{ flex: 1 }}>
-        <Col xs='auto'>
-          <Button outline color='info' onClick={this.handleButtonClickPrevPage}>
-            <Icon name='chevron-left' />
-          </Button>
-        </Col>
-        <Col style={{ height: height }}>
-          <CanvasComponent onRenderCanvas={this.onRenderCanvas} onCanvasClick={this.onCanvasClick} />
-        </Col>
-        <Col xs='auto'>
-          <Button outline color='info' onClick={this.handleButtonClickNextPage}>
-            <Icon name='chevron-right' />
-          </Button>
-        </Col>
-      </Row>
+      <Col style={{ flex: 1 }}>
+        <CanvasComponent borderRadius='0.19rem' onRenderCanvas={this.onRenderCanvas} onCanvasClick={this.onCanvasClick} />
+      </Col>
     );
   }
 }
@@ -396,5 +399,9 @@ TimeComponent.propTypes = {
   width: PropTypes.number,
   height: PropTypes.number,
   adagucActions: PropTypes.object,
-  activeMapId: PropTypes.number
+  activeMapId: PropTypes.number,
+  panel: PropTypes.shape({
+    layers: PropTypes.array
+  }),
+  layerActions: PropTypes.object
 };

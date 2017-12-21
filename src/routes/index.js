@@ -120,99 +120,134 @@ export const createRoutes = (store) => {
   const header = React.createElement(connect(mapStateToHeaderProps, mapDispatchToHeaderProps)(TitleBarContainer));
   const leftSidebar = React.createElement(connect(mapStateToSidebarProps)(TasksContainer));
   const rightSidebar = React.createElement(connect(mapStateToRightSideBarProps, mapDispatchToRightSidebarProps)(MapActionsContainer));
-  const map = React.createElement(connect(mapStateToMapProps, mapDispatchToMainViewportProps)(MapPanel));
+  const map = connect(mapStateToMapProps, mapDispatchToMainViewportProps)(MapPanel);
   const layerManager = React.createElement(connect(mapStateToLayerManagerProps, mapDispatchToLayerManagerProps)(LayerManagerPanel));
   const smallLayerManager = React.createElement(connect(mapStateToLayerManagerProps, mapDispatchToLayerManagerProps)(SmallLayerManagerPanel));
   const products = React.createElement(connect(mapStateToLayerManagerProps, mapDispatchToLayerManagerProps)(ProductsContainer));
-  const sigmet = React.createElement(connect((state) => ({ drawProperties: state.drawProperties, urls: state.urls }), mapDispatchToSigmetProps)(SigmetsContainer));
-  const taf = React.createElement(connect(mapStateToLayerManagerProps, mapDispatchToLayerManagerProps)(TafsContainer));
+  const sigmet = React.createElement(connect((state) => ({
+    drawProperties: state.drawProperties, urls: state.urls, sources: state.adagucProperties.sources
+  }), mapDispatchToSigmetProps)(SigmetsContainer));
+  const taf = connect(mapStateToLayerManagerProps, mapDispatchToLayerManagerProps)(TafsContainer);
   const trigger = React.createElement(connect(mapStateToLayerManagerProps, mapDispatchToLayerManagerProps)(TriggersContainer));
   const manageLeft = React.createElement(SidebarContainer);
-  const appmanPanel = React.createElement(AppManagementPanel);
-  const prodmanPanel = React.createElement(ProductsManagementPanel);
-  const progmanPanel = React.createElement(connect((state) => ({ urls: state.urls }))(ProgtempManagementPanel));
-  const tafmanPanel = React.createElement(TafManagementPanel);
-  const tafValidmanPanel = React.createElement(connect((state) => ({ urls: state.urls }))(TafValidationManagementPanel));
-  const tafexTafmanPanel = React.createElement(connect((state) => ({ urls: state.urls }))(TafExampleTafManagementPanel));
-  const sigmanPanel = React.createElement(SigmetManagementPanel);
-  const sigparmanPanel = React.createElement(connect((state) => ({ urls: state.urls }))(SigmetParameterManagementPanel));
-  const locmanPanel = React.createElement(connect((state) => ({ urls: state.urls }))(LocationManagementPanel));
+  const appmanPanel = AppManagementPanel;
+  const prodmanPanel = ProductsManagementPanel;
+  const progmanPanel = connect((state) => ({ urls: state.urls }))(ProgtempManagementPanel);
+  const tafmanPanel = TafManagementPanel;
+  const tafValidmanPanel = connect((state) => ({ urls: state.urls }))(TafValidationManagementPanel);
+  const tafexTafmanPanel = connect((state) => ({ urls: state.urls }))(TafExampleTafManagementPanel);
+  const sigmanPanel = SigmetManagementPanel;
+  const sigparmanPanel = connect((state) => ({ urls: state.urls }))(SigmetParameterManagementPanel);
+  const locmanPanel = connect((state) => ({ urls: state.urls }))(LocationManagementPanel);
   const manPanel = React.createElement(ManagementPanel);
   return (
     /* Default route */
     <Route path='/' component={BaseLayout} title='GeoWeb'>
       <Route component={HeaderedLayout} header={header}>
         {/* Here all routes with a header */}
-        <Route component={SidebarredLayout} leftSidebar={leftSidebar} rightSidebar={rightSidebar}>
-          <IndexRoute component={FooteredLayout} viewComponent={map} contextComponent={layerManager} />
+        {/* TODO: Wrapping with empty sidebarredlayout should not be necessary */}
+        <Route component={SidebarredLayout} >
+          <Route component={FooteredLayout} contextComponent={layerManager}>
+            <Route component={SidebarredLayout} leftSidebar={leftSidebar} rightSidebar={rightSidebar}>
+              <IndexRoute component={map} />
+            </Route>
+          </Route>
         </Route>
         <Route path='products' title='Products'>
           {/* Here all product routes */}
           <Route component={SidebarredLayout} secondLeftSidebar={products} leftSidebar={leftSidebar} rightSidebar={rightSidebar}>
-            <IndexRoute component={FooteredLayout} viewComponent={map} contextComponent={layerManager} />
+            <Route component={FooteredLayout} contextComponent={layerManager} >
+              <IndexRoute component={map} />
+            </Route>
           </Route>
           <Route path='sigmets' title='SIGMETs'>
             <Route component={SidebarredLayout} secondLeftSidebar={sigmet} leftSidebar={leftSidebar} rightSidebar={rightSidebar}>
-              <IndexRoute component={FooteredLayout} viewComponent={map} contextComponent={layerManager} />
+              <Route component={FooteredLayout} contextComponent={layerManager} >
+                <IndexRoute component={map} />
+              </Route>
             </Route>
           </Route>
           <Route path='tafs' title='TAFs'>
             <Route component={SidebarredLayout} leftSidebar={leftSidebar} >
-              <IndexRoute component={FooteredLayout} viewComponent={taf} />
+              <Route component={FooteredLayout} >
+                <IndexRoute component={taf} />
+              </Route>
             </Route>
           </Route>
 
         </Route>
         <Route path='monitoring_and_triggers' title='Monitoring & Triggers'>
           <Route component={SidebarredLayout} secondLeftSidebar={trigger} leftSidebar={leftSidebar} rightSidebar={rightSidebar}>
-            <IndexRoute component={FooteredLayout} viewComponent={map} contextComponent={layerManager} />
+            <Route component={FooteredLayout} contextComponent={layerManager} >
+              <IndexRoute component={map} />
+            </Route>
           </Route>
         </Route>
         <Route path='manage' title='Management'>
           <Route component={SidebarredLayout} leftSidebar={manageLeft}>
-            <IndexRoute component={FooteredLayout} viewComponent={manPanel} />
+            <Route component={FooteredLayout} >
+              <IndexRoute component={manPanel} />
+            </Route>
             <Route path='app' title='Application'>
               <Route>
-                <IndexRoute component={FooteredLayout} viewComponent={appmanPanel} />
+                <Route component={FooteredLayout} >
+                  <IndexRoute component={appmanPanel} />
+                </Route>
               </Route>
               <Route path='locations' title='Locations'>
                 <Route>
-                  <IndexRoute component={FooteredLayout} viewComponent={locmanPanel} />
+                  <Route component={FooteredLayout} >
+                    <IndexRoute component={locmanPanel} />
+                  </Route>
                 </Route>
               </Route>
 
             </Route>
             <Route path='products' title='Products'>
               <Route>
-                <IndexRoute component={FooteredLayout} viewComponent={prodmanPanel} />
+                <Route component={FooteredLayout} >
+                  <IndexRoute component={prodmanPanel} />
+                </Route>
               </Route>
               <Route path='progtemp' title='Bijvoet'>
                 <Route>
-                  <IndexRoute component={FooteredLayout} viewComponent={progmanPanel} />
+                  <Route component={FooteredLayout} >
+                    <IndexRoute component={progmanPanel} />
+                  </Route>
                 </Route>
               </Route>
               <Route path='sigmet' title='SIGMET'>
                 <Route>
-                  <IndexRoute component={FooteredLayout} viewComponent={sigmanPanel} />
+                  <Route component={FooteredLayout} >
+                    <IndexRoute component={sigmanPanel} />
+                  </Route>
                 </Route>
                 <Route path='parameters' title='Parameters'>
                   <Route>
-                    <IndexRoute component={FooteredLayout} viewComponent={sigparmanPanel} />
+                    <Route component={FooteredLayout} >
+                      <IndexRoute component={sigparmanPanel} />
+                    </Route>
                   </Route>
                 </Route>
               </Route>
               <Route path='taf' title='TAF'>
                 <Route>
-                  <IndexRoute component={FooteredLayout} viewComponent={tafmanPanel} />
+                  <Route component={FooteredLayout} >
+                    <IndexRoute component={tafmanPanel} />
+                  </Route>
                 </Route>
                 <Route path='validation' title='Validation'>
                   <Route>
-                    <IndexRoute component={FooteredLayout} viewComponent={tafValidmanPanel} />
+                    <Route component={FooteredLayout} >
+                      <IndexRoute component={tafValidmanPanel} />
+                    </Route>
                   </Route>
                 </Route>
                 <Route path='example_tafs' title='Example TAFs'>
                   <Route>
-                    <IndexRoute component={FooteredLayout} viewComponent={tafexTafmanPanel} />
+                    <Route component={FooteredLayout}>
+                      <IndexRoute component={tafexTafmanPanel} />
+                    </Route>
                   </Route>
                 </Route>
               </Route>
@@ -223,7 +258,9 @@ export const createRoutes = (store) => {
       <Route path='full_screen' title='Full Screen'>
         <Route component={HeaderedLayout}>
           <Route component={SidebarredLayout}>
-            <IndexRoute component={FooteredLayout} viewComponent={map} contextComponent={smallLayerManager} />
+            <Route component={FooteredLayout} contextComponent={smallLayerManager} >
+              <IndexRoute component={map} />
+            </Route>
           </Route>
         </Route>
       </Route>

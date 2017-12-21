@@ -542,6 +542,31 @@ main:fullscreen {
   flex-direction: column;
 }
 
+.Footer .datalayer {
+  margin-bottom: 0.1rem;
+}
+// .Footer .datalayer:not(:nth-child(2)) {
+//   margin-top: 5px;
+// }
+// .Footer .datalayer .fa {
+//   line-height: 0.75;
+//   font-size: 0.8rem!important;
+// }
+.Footer .datalayer  .badge {
+  font-size: 80%;
+  height: 17px;
+}
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+}
+.Footer .datalayer.active {
+  background-color: rgba(217,237,247, 0.6);
+}
+// .Footer :not(.datalayer.active) {
+//   border-top: 1px solid #fff;
+//   border-bottom: 1px solid #fff;
+// }
 .Panel {
   flex-direction: column;
   width: 100%;
@@ -596,10 +621,6 @@ main:fullscreen {
   flex-direction: column;
 }
 
-.CollapseOmni .Panel > .content {
-  flex-direction: row;
-}
-
 .Panel .accordionsWrapper {
   flex-direction: column;
   min-width: 100%;
@@ -614,14 +635,6 @@ main:fullscreen {
 
 .Panel .accordionsWrapper .collapse.show .btn.active {
   z-index: 2;
-}
-
-.Footer .col-auto:first-child .btn-outline-info {
-  @extend .rounded-left;
-}
-
-.Footer .col-auto:last-child .btn-outline-info {
-  @extend .rounded-right;
 }
 
 .SmallLayerManagerPanel .btn:not(:last-child) {

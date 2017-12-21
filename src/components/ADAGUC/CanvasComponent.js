@@ -65,9 +65,12 @@ export default class CanvasComponent extends Component {
   /* istanbul ignore next */
   render () {
     this.updateCanvas();
-
+    const styleObj = { ...this.props.style, border: 'none', width: 'inherit', height: 'inherit', overflow: 'hidden' };
+    if (this.props.borderRadius) {
+      styleObj['borderRadius'] = this.props.borderRadius;
+    }
     return (
-      <div ref={(container) => { this.container = container; }} style={{ ...this.props.style, border: 'none', width: 'inherit', height: 'inherit', overflow: 'hidden' }} >
+      <div ref={(container) => { this.container = container; }} style={styleObj} >
         <div style={{ overflow: 'visible', width:0, height:0 }} >
           <canvas ref={(canvas) => { this.canvas = canvas; }} style={{ width: this.width + 'px', height: this.height + 'px', display: 'block' }} />
         </div>
@@ -81,7 +84,8 @@ CanvasComponent.propTypes = {
   onCanvasClick: PropTypes.func,
   style: PropTypes.object,
   onMouseMove: PropTypes.func,
-  drawOnce: PropTypes.bool
+  drawOnce: PropTypes.bool,
+  borderRadius: PropTypes.string
 };
 
 CanvasComponent.defaultProps = {
