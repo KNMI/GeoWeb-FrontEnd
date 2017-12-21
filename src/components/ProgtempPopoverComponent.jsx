@@ -37,11 +37,11 @@ export default class ProgtempPopoverComponent extends Component {
   }
 
   setReferenceTime (model) {
-    return GetServiceByNamePromise(this.props.urls.BACKEND_SERVER_URL, 'HARM_N25').then(
+    return GetServiceByNamePromise(this.props.urls.BACKEND_SERVER_URL, 'HARM_N25_ML').then(
       (serviceURL) => {
         console.log('ProgtempComponent setReferenceTime serviceURL: ', serviceURL);
         try {
-          let referenceTimeRequestURL = serviceURL + '&SERVICE=WMS&VERSION=1.3.0&REQUEST=GetReferenceTimes&LAYERS=air_temperature__at_2m';
+          let referenceTimeRequestURL = serviceURL + '&SERVICE=WMS&VERSION=1.3.0&REQUEST=GetReferenceTimes&LAYERS=air_temperature__at_ml';
           return axios.get(referenceTimeRequestURL).then((r) => {
             console.log('ProgtempComponent setReferenceTime : ', moment.utc(r.data[0]).format());
             this.setState({ referenceTime: moment.utc(r.data[0]) });
