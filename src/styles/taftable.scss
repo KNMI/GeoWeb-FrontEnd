@@ -1,0 +1,109 @@
+.TafStyle .TACbold {
+  font-weight:bold;
+}
+
+.TafStyle.TafStyleTable {
+  border-collapse: collapse;
+  width: 100%;
+  margin-top:.1em;
+}
+
+.TafStyle th {
+  background-color: #5cb85c;
+  color: white;
+  white-space: nowrap;
+  text-align:center;
+  font-weight: bold;
+}
+
+.TafStyle td {
+  white-space: nowrap;
+  text-align:center;
+  font-size: 12px;
+}
+
+.TafStyle td .form-control {
+  padding: 0.1rem 0;
+}
+
+.TafStyle input {
+  width:100%;
+  text-align:center;
+  background-image: none;
+  background-clip: padding-box;
+  background-color: #FFF;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 0.25rem;
+  transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
+  font-size: 12px;
+}
+
+.TafStyle .noselect, .TafStyle .noselect input, .TafStyle .noselect button {
+  font-family: FontAwesome;
+  width: 2rem;
+  -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+     -khtml-user-select: none; /* Konqueror HTML */
+       -moz-user-select: none; /* Firefox */
+        -ms-user-select: none; /* Internet Explorer/Edge */
+            user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome and Opera */
+}
+
+.TafStyle .noselect input:not(:disabled), .TafStyle .noselect button:not(:disabled) {
+  cursor: pointer;
+}
+
+.TafStyle .TACnotEditable, .TafStyle .TACnotEditable input {
+  background-color:#DDD;
+  font-weight:bold;
+  border: none;
+  border-left:1px solid white;
+  border-right:1px solid white;
+  font-size: 12px;
+}
+
+.TafStyle .TACnotEditable input, .TafStyle .noselect input, .TafStyle input:disabled {
+  border: none;
+  background: none;
+}
+
+.TafStyle .hideValue input:disabled {
+  color: transparent;
+}
+
+.TafStyle .TACColumnOK input {
+  background-color: #DFF2BF;
+  color:black;/*#4F8A10;*/
+}
+
+.TafStyle .TACColumnWarning input {
+  /* Input cannot be converted to JSON */
+  background-color: #FFCD93;
+  color: black; /*#9F6000;*/
+}
+
+.TafStyle .TACColumnError input {
+  /* Validation returns an error */
+  border: 0.1rem solid #a94442;
+}
+
+.TACReport {
+  padding:2px 8px 2px 8px;
+  margin: 0px 0px 4px 0px;
+
+  background-color: #DDD;
+  color: #444;
+  font-family: Courier New,Courier,Lucida Sans Typewriter,Lucida Typewriter,monospace;
+}
+
+.TafStyle button, .TafStyle button.btn {
+  font-size: 1rem;
+  font-weight: normal;
+  line-height: 1.25;
+}
+
+
+.TafsContainer .CollapseOmni .CollapseOmni:not(.show) {
+  overflow: hidden;
+}

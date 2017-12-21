@@ -7,7 +7,7 @@ import Panel from '../components/Panel';
 import cloneDeep from 'lodash.clonedeep';
 import axios from 'axios';
 import PropTypes from 'prop-types';
-import { Link, hashHistory } from 'react-router';
+import { hashHistory } from 'react-router';
 
 let GET_SIGMETS_URL, SET_SIGMET_URL;
 const ITEMS = [
@@ -178,6 +178,9 @@ SigmetsContainer.propTypes = {
   layerActions: PropTypes.object,
   dispatch: PropTypes.func,
   actions: PropTypes.object,
+  urls: PropTypes.shape({
+    BACKEND_SERVER_URL: PropTypes.string
+  }),
   sources: PropTypes.object
 };
 

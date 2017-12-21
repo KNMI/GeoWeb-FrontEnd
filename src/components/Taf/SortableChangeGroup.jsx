@@ -2,37 +2,30 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { SortableElement } from 'react-sortable-hoc';
 import ChangeGroup from './ChangeGroup';
+import { TAF_TEMPLATES, TAF_TYPES } from './TafTemplates';
+import cloneDeep from 'lodash.clonedeep';
 
 /*
   SortableChangeGroup makes ChangeGroups sortable via Drag and Drop, using SortableElement and SortableContainer.
 */
-class SortableChangeGroup extends SortableElement(() => {}) {
-  render () {
-    let { value, onChange, onKeyUp, rowIndex, onDeleteRow, onFocusOut, onFocus } = this.props;
-    return (<ChangeGroup
-      ref='sortablechangegroup'
-      value={value}
-      onChange={onChange}
-      onKeyUp={onKeyUp}
-      rowIndex={rowIndex}
-      onDeleteRow={onDeleteRow}
-      onFocus={onFocus}
-      editable
-      onFocusOut={onFocusOut}
-      validationReport={this.props.validationReport}
-    />);
-  }
+const SortableChangeGroup = SortableElement(({ tafChangeGroup, focusedFieldName, inputRef, changeGroupIndex, invalidFields }) =>
+  <ChangeGroup tafChangeGroup={tafChangeGroup} focusedFieldName={focusedFieldName} inputRef={inputRef} index={changeGroupIndex} editable invalidFields={invalidFields} />
+);
+
+SortableChangeGroup.defaultProps = {
+  tafChangeGroup: cloneDeep(TAF_TEMPLATES.CHANGE_GROUP),
+  focusedFieldName: null,
+  inputRef: () => {},
+  index: -1,
+  invalidFields: []
 };
 
 SortableChangeGroup.propTypes = {
-  value: PropTypes.object,
-  onChange: PropTypes.func,
-  onKeyUp: PropTypes.func,
-  rowIndex: PropTypes.number,
-  onDeleteRow: PropTypes.func,
-  editable : PropTypes.bool,
-  onFocusOut: PropTypes.func,
-  validationReport: PropTypes.object
+  tafChangeGroup: TAF_TYPES.CHANGE_GROUP.isRequired,
+  focusedFieldName: PropTypes.string,
+  inputRef: PropTypes.func,
+  index: PropTypes.number,
+  invalidFields: PropTypes.array
 };
 
 export default SortableChangeGroup;

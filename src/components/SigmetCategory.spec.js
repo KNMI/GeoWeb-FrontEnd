@@ -80,6 +80,10 @@ describe('(Container) SigmetCategory', () => {
         phenomenon = _instance.getHRT4code('RDOACT_CLD');
         expect(phenomenon).to.eql('Radioactive cloud');
         moxios.done();
+      }).catch((error) => {
+        console.error('This test gave an error: ', error);
+        expect(false).to.equal(true);
+        moxios.done();
       });
     });
     moxios.uninstall();

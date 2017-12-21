@@ -4,6 +4,8 @@ import { Col, Row, Card, CardTitle, CardText, Button, ButtonGroup } from 'reacts
 import CollapseOmni from '../CollapseOmni';
 import moment from 'moment';
 import axios from 'axios';
+import { TAF_TEMPLATES } from './TafTemplates';
+import cloneDeep from 'lodash.clonedeep';
 import TafCategory from './TafCategory';
 /*
   Renders multiple TafCategories, provides additional functions for loading and saving, and has functions for filtering on type and status.
@@ -64,10 +66,9 @@ export default class Taf extends Component {
 
   setExpandedTAF (uuid) {
     // Clicking the already expanded TAF collapses it
-    // if (this.state.expandedTAF === uuid) {
-    //   this.setState({ expandedTAF: null, expandedTAC: null });
-    // } else
-    if (uuid === 'edit') {
+    if (this.state.expandedTAF === uuid) {
+      this.setState({ expandedTAF: null, expandedTAC: null });
+    } else if (uuid === 'edit') {
       this.setState({ expandedTAF: 'edit', expandedTAC: null });
     } else {
       // Selecting a new or another TAF, loads its TAC and sets it to expanded
@@ -121,20 +122,21 @@ export default class Taf extends Component {
           : null }
         {
           this.props.editable
-            ? <Card block onClick={() => this.setExpandedTAF('edit')}>
+            ? <Card block>
               <Row>
                 <Col>
                   <TafCategory
                     urls={this.props.urls}
-                    taf={this.state.inputValueJSON}
+                    taf={this.state.inputValueJSON || cloneDeep(TAF_TEMPLATES.TAF)}
                     update editable={this.props.tafEditable}
+                    fixedLayout={this.props.fixedLayout}
                   />
                 </Col>
               </Row>
             </Card>
-            : this.state.tafs.filter((taf) => this.state.tafTypeSelections.includes(taf.type) || this.state.tafTypeSelections.length === 0).map((taf, index) => {
-              return <Card key={index} block onClick={() => this.setExpandedTAF(taf.metadata.uuid)}>
-                <CardTitle>
+            : this.state.tafs.filter((taf) => this.state.tafTypeSelections.includes(taf.metadata.type.toUpperCase()) || this.state.tafTypeSelections.length === 0).map((taf, index) => {
+              return <Card key={index} block>
+                <CardTitle onClick={() => this.setExpandedTAF(taf.metadata.uuid)} style={{ cursor: 'pointer' }}>
                   {taf.metadata ? taf.metadata.location : 'EWat?'} - {moment.utc(taf.metadata.validityStart).format('DD/MM/YYYY - HH:mm UTC')}
                 </CardTitle>
                 <CollapseOmni className='CollapseOmni' style={{ flexDirection: 'column' }} isOpen={this.state.expandedTAF === taf.metadata.uuid} minSize={0} maxSize={800}>
@@ -144,23 +146,25 @@ export default class Taf extends Component {
                     </Col>
                   </Row>
                   {taf.metadata.status === 'concept'
-                    ? <Row>
+                    ? <Row style={{ padding: '0.5rem' }}>
                       <Col />
                       <Col xs='auto'>
                         <a href={this.props.urls.BACKEND_SERVER_URL + '/tafs/' + taf.metadata.uuid} target='_blank'>
-                          <Button color='primary'>Show IWXXM</Button>
+                          <Button color='primary' style={{ marginRight: '0.33rem' }}>Show IWXXM</Button>
                         </a>
                       </Col>
                       <Col xs='auto'>
-                        <Button onClick={(e) => { e.preventDefault(); e.stopPropagation(); this.deleteTAF(taf.metadata.uuid); }} color='danger'>Delete</Button>
+                        <Button onClick={(e) => { e.preventDefault(); e.stopPropagation(); this.deleteTAF(taf.metadata.uuid); }} color='primary'>Delete</Button>
                       </Col>
-                    </Row> : null }
+                    </Row>
+                    : null }
                   <Row>
                     <Col>
                       <TafCategory
                         urls={this.props.urls}
-                        taf={this.state.expandedJSON}
+                        taf={this.state.expandedJSON || cloneDeep(TAF_TEMPLATES.TAF)}
                         editable={this.props.tafEditable}
+                        fixedLayout={this.props.fixedLayout}
                       />
                     </Col>
                   </Row>
@@ -179,9 +183,11 @@ export default class Taf extends Component {
 Taf.propTypes = {
   editable: PropTypes.bool,
   tafEditable: PropTypes.bool,
-  // isOpen: PropTypes.bool,
   source: PropTypes.string,
   latestUpdateTime: PropTypes.object,
-  title: PropTypes.string
-  // ,  updateParent: PropTypes.func
+  title: PropTypes.string,
+  urls: PropTypes.shape({
+    BACKEND_SERVER_URL: PropTypes.string
+  }),
+  fixedLayout: PropTypes.bool
 };

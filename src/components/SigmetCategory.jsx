@@ -949,26 +949,28 @@ class SigmetCategory extends Component {
 
     return (
       <Card className='row accordion'>
-        {parentCollapsed ? <CardHeader>
-          <Col xs='auto'>
-            <Icon name={icon} />
-          </Col>
-          <Col xs='auto'>&nbsp;</Col>
-          <Col xs='auto'>
-            {notifications > 0 ? <Badge color='danger' pill className='collapsed'>{notifications}</Badge> : null}
-          </Col>
-        </CardHeader>
-        : <CardHeader onClick={maxSize > 0 ? toggleMethod : null} className={maxSize > 0 ? null : 'disabled'} title={title}>
-          <Col xs='auto'>
-            <Icon name={icon} />
-          </Col>
-          <Col style={{ marginLeft: '0.9rem' }}>
-            {title}
-          </Col>
-          <Col xs='auto'>
-            {notifications > 0 ? <Badge color='danger' pill>{notifications}</Badge> : null}
-          </Col>
-        </CardHeader>}
+        {parentCollapsed
+          ? <CardHeader>
+            <Col xs='auto'>
+              <Icon name={icon} />
+            </Col>
+            <Col xs='auto'>&nbsp;</Col>
+            <Col xs='auto'>
+              {notifications > 0 ? <Badge color='danger' pill className='collapsed'>{notifications}</Badge> : null}
+            </Col>
+          </CardHeader>
+          : <CardHeader onClick={maxSize > 0 ? toggleMethod : null} className={maxSize > 0 ? null : 'disabled'} title={title}>
+            <Col xs='auto'>
+              <Icon name={icon} />
+            </Col>
+            <Col style={{ marginLeft: '0.9rem' }}>
+              {title}
+            </Col>
+            <Col xs='auto'>
+              {notifications > 0 ? <Badge color='danger' pill>{notifications}</Badge> : null}
+            </Col>
+          </CardHeader>
+        }
         <CollapseOmni className='CollapseOmni' isOpen={this.state.isOpen} minSize={0} maxSize={maxSize}>
           <CardBlock>
             <Row>
@@ -982,19 +984,19 @@ class SigmetCategory extends Component {
                       </Col>
                       <Col xs='9'>
                         { editable
-                         ? <Typeahead style={{ width: '100%' }} filterBy={['name', 'code']} labelKey='name'
-                           options={this.getPhenomena()} onChange={(phenomenonList) => this.setSelectedPhenomenon(phenomenonList)}
-                           onClick={(evt) => console.log(evt)} />
-                         : <span style={{ fontWeight: 'bold' }}>{item.phenomenonHRT}</span>
+                          ? <Typeahead style={{ width: '100%' }} filterBy={['name', 'code']} labelKey='name'
+                            options={this.getPhenomena()} onChange={(phenomenonList) => this.setSelectedPhenomenon(phenomenonList)}
+                            onClick={(evt) => console.log(evt)} />
+                          : <span style={{ fontWeight: 'bold' }}>{item.phenomenonHRT}</span>
                         }
                       </Col>
                     </Row>
                     <Row style={editable ? { marginTop: '0.19rem', minHeight: '2rem' } : null}>
                       <Col xs={{ size: 9, offset: 3 }}>
                         { editable
-                         ? <SwitchButton id='obsfcstswitch' name='obsfcstswitch'
-                           labelRight='Observed' labelLeft='Forecast' isChecked={item.obs_or_forecast.obs} action={(evt) => this.setSelectedObservedForecast(evt.target.checked)} />
-                         : <span>{item.obs_or_forecast.obs ? 'Observed' : 'Forecast'}</span>
+                          ? <SwitchButton id='obsfcstswitch' name='obsfcstswitch'
+                            labelRight='Observed' labelLeft='Forecast' isChecked={item.obs_or_forecast.obs} action={(evt) => this.setSelectedObservedForecast(evt.target.checked)} />
+                          : <span>{item.obs_or_forecast.obs ? 'Observed' : 'Forecast'}</span>
                         }
                       </Col>
                     </Row>
@@ -1045,10 +1047,10 @@ class SigmetCategory extends Component {
                       </Col>
                       <Col xs='9'>
                         {editable
-                        ? <Typeahead style={{ width: '100%' }} filterBy={['firname', 'location_indicator_icao']} labelKey='firname'
-                          options={this.getParameters().firareas} onChange={(firList) => this.setSelectedFir(firList)} defaultValue={this.getParameters().firareas[0]} />
-                        : <span>{item.firname || '--'}</span>
-                      }
+                          ? <Typeahead style={{ width: '100%' }} filterBy={['firname', 'location_indicator_icao']} labelKey='firname'
+                            options={this.getParameters().firareas} onChange={(firList) => this.setSelectedFir(firList)} defaultValue={this.getParameters().firareas[0]} />
+                          : <span>{item.firname || '--'}</span>
+                        }
                       </Col>
                     </Row>
                     <Row>
@@ -1142,6 +1144,9 @@ SigmetCategory.propTypes = {
   updateParent      : PropTypes.func,
   mapActions        : PropTypes.object,
   layerActions      : PropTypes.object,
+  drawProperties : PropTypes.shape({
+    geojson: PropTypes.object
+  }),
   sources      : PropTypes.object
 };
 

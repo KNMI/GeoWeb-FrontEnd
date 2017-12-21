@@ -1,0 +1,60 @@
+.ResponsiveTafTable {
+  padding: 0.5rem;
+}
+
+.ResponsiveTafTable .form-group {
+  flex-direction: column;
+  padding: 0.05rem;
+}
+
+.ResponsiveTafTable.row .form-group .row {
+  flex: none;
+}
+
+.ResponsiveTafTable.row .changegroup.row {
+  flex: unset;
+}
+
+.ResponsiveTafTable.row .changegroup.row .form-group {
+  margin-bottom: 0rem;
+}
+
+.ResponsiveTafTable .form-group label {
+  background-color: #f7f8fa;
+  border: 0.05rem solid #cdcfd2;
+  color: #464a4e;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 0.1rem;
+  border-radius: 0.3rem 0.3rem 0 0;
+}
+
+.ResponsiveTafTable .form-group label.wind {
+  background-color: #e1fcff;
+  border-color: #aed5db;
+}
+
+.ResponsiveTafTable .form-group label.visibility {
+  background-color: #e4fdea;
+  border-color: #b3d6bb;
+}
+
+.ResponsiveTafTable .form-group label.weather {
+  background-color: #ffffed;
+  border-color: #efdeaa;
+}
+
+.ResponsiveTafTable .form-group label.clouds {
+  background-color: #ffefef;
+  border-color: #edbec3;
+}
+
+.ResponsiveTafTable .form-group input:disabled {
+  background-color: #f7f8fa;
+  font-weight: 600;
+}
+
+.ResponsiveTafTable .form-group input::placeholder {
+  color: #82848f;
+  font-style: italic;
+}

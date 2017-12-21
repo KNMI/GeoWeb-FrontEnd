@@ -1,65 +1,128 @@
 import React, { Component } from 'react';
-import moment from 'moment';
 import PropTypes from 'prop-types';
-import { getValidPeriodTAC } from './TafjsonToTacFields';
-import TACColumn from './TACColumn';
+import { TAF_TEMPLATES, TAF_TYPES } from './TafTemplates';
+import TafCell from './TafCell';
+import cloneDeep from 'lodash.clonedeep';
+import { jsonToTacForPeriod, jsonToTacForWind, jsonToTacForCavok, jsonToTacForVerticalVisibility, jsonToTacForVisibility, jsonToTacForWeather, jsonToTacForClouds } from './TafFieldsConverter';
 
 /*
   BaseForecast of TAF editor, it is the top row visible in the UI.
 */
 class BaseForecast extends Component {
   render () {
-    let { value, onChange, onKeyUp, editable, onFocusOut, onFocus } = this.props;
-    let cols = [];
-    let location = 'EHAM';
-    if (value && value.metadata && value.metadata.location) {
-      location = value.metadata.location;
-    } else {
-      if (!value.metadata) value.metadata = {};
-      value.metadata.location = location;
+    const { tafMetadata, tafForecast, focusedFieldName, inputRef, editable, invalidFields } = this.props;
+
+    const columns = [
+      {
+        name: 'sortable',
+        value: '',
+        disabled: true,
+        classes: [ 'noselect' ]
+      },
+      {
+        name: 'metadata-location',
+        value: tafMetadata.hasOwnProperty('location') ? tafMetadata.location || '' : '',
+        disabled: true,
+        classes: [ 'TACnotEditable' ]
+      },
+      {
+        name: 'metadata-issueTime',
+        value: tafMetadata.hasOwnProperty('issueTime') ? tafMetadata.issueTime || '' : '',
+        disabled: true,
+        classes: [ 'TACnotEditable' ]
+      },
+      {
+        name: 'metadata-validity',
+        value: tafMetadata.hasOwnProperty('validityStart') && tafMetadata.hasOwnProperty('validityEnd') ? jsonToTacForPeriod(tafMetadata.validityStart, tafMetadata.validityEnd) || '' : '',
+        disabled: true,
+        classes: [ 'TACnotEditable' ]
+      },
+      {
+        name: 'forecast-wind',
+        value: tafForecast.hasOwnProperty('wind') ? jsonToTacForWind(tafForecast.wind, true) || '' : '',
+        disabled: !editable,
+        classes: []
+      },
+      {
+        name: 'forecast-visibility',
+        value: (tafForecast.hasOwnProperty('caVOK') || tafForecast.hasOwnProperty('visibility'))
+          ? jsonToTacForCavok(tafForecast.caVOK) || (jsonToTacForVisibility(tafForecast.visibility, true) || '')
+          : '',
+        disabled: !editable,
+        classes: []
+      }
+    ];
+    for (let weatherIndex = 0; weatherIndex < 3; weatherIndex++) {
+      columns.push({
+        name: 'forecast-weather-' + weatherIndex,
+        value: tafForecast.hasOwnProperty('weather')
+          ? (Array.isArray(tafForecast.weather) && tafForecast.weather.length > weatherIndex
+            ? jsonToTacForWeather(tafForecast.weather[weatherIndex], true) || ''
+            : weatherIndex === 0
+              ? jsonToTacForWeather(tafForecast.weather, true) || '' // NSW
+              : '')
+          : '',
+        disabled: !editable || (jsonToTacForWeather(tafForecast.weather) && weatherIndex !== 0),
+        classes: []
+      });
     }
-    let issueTime = moment().utc().add(1, 'hour').format('DD-MM-YYYY HH:00');
-    if (value && value.metadata && value.metadata.issueTime) {
-      issueTime = value.metadata.issueTime;
-    } else {
-      if (!value.metadata) value.metadata = {};
-      value.metadata.issueTime = moment().utc().add(1, 'hour').format('YYYY-MM-DDTHH:00:00') + 'Z';
+    for (let cloudsIndex = 0; cloudsIndex < 4; cloudsIndex++) {
+      columns.push({
+        name: 'forecast-clouds-' + cloudsIndex,
+        value: tafForecast.hasOwnProperty('vertical_visibility') || tafForecast.hasOwnProperty('clouds')
+          ? jsonToTacForVerticalVisibility(tafForecast.vertical_visibility) ||
+            (Array.isArray(tafForecast.clouds) && tafForecast.clouds.length > cloudsIndex
+              ? jsonToTacForClouds(tafForecast.clouds[cloudsIndex], true) || ''
+              : cloudsIndex === 0
+                ? jsonToTacForClouds(tafForecast.clouds, true) || '' // NSC
+                : '')
+          : '',
+        disabled: !editable || (jsonToTacForClouds(tafForecast.clouds) && cloudsIndex !== 0) ||
+          (jsonToTacForVerticalVisibility(tafForecast.vertical_visibility) && cloudsIndex !== 0),
+        classes: [ (jsonToTacForVerticalVisibility(tafForecast.vertical_visibility) && cloudsIndex !== 0) ? 'hideValue' : null ]
+      });
     }
-    cols.push(<td key={cols.length} className='noselect' >&nbsp;</td>);
-    cols.push(<td key={cols.length} className='TACnotEditable'>{location}</td>);
-    cols.push(<td key={cols.length} className='TACnotEditable'>{issueTime}</td>);
-    cols.push(<td key={cols.length} className='TACnotEditable'>{getValidPeriodTAC(value).tacValue}</td>);
-    for (let j = 4; j < 13; j++) {
-      cols.push(
-        (<TACColumn
-          ref={'column_' + j}
-          key={cols.length}
-          value={value}
-          rowIndex={-1}
-          colIndex={j}
-          onChange={onChange}
-          onKeyUp={onKeyUp}
-          editable={editable}
-          onFocusOut={onFocusOut}
-          onFocus={onFocus}
-          validationReport={this.props.validationReport}
-        />));
-    }
-    return (
-      <tr>
-        {cols}
-      </tr>
+    columns.push(
+      {
+        name: 'removable',
+        value: '',
+        disabled: true,
+        classes: [ 'noselect' ]
+      }
     );
+    columns.forEach((column) => {
+      column.autoFocus = column.name === focusedFieldName;
+      const isInvalid = invalidFields.includes(column.name);
+      column.invalid = isInvalid;
+      if (isInvalid) {
+        column.classes.push('TACColumnError');
+      }
+    });
+
+    return <tr>
+      {columns.map((col) =>
+        <TafCell classes={col.classes} key={col.name} name={col.name} inputRef={inputRef} value={col.value} disabled={col.disabled} autoFocus={col.autoFocus} />
+      )}
+    </tr>;
   }
 };
 
+BaseForecast.defaultProps = {
+  tafMetadata: cloneDeep(TAF_TEMPLATES.METADATA),
+  tafForecast: cloneDeep(TAF_TEMPLATES.FORECAST),
+  focusedFieldName: null,
+  inputRef: () => {},
+  editable: false,
+  invalidFields: []
+};
+
 BaseForecast.propTypes = {
-  value: PropTypes.object.isRequired,
-  onChange: PropTypes.func,
-  onKeyUp: PropTypes.func,
+  tafMetadata: TAF_TYPES.METADATA.isRequired,
+  tafForecast: TAF_TYPES.FORECAST.isRequired,
+  focusedFieldName: PropTypes.string,
+  inputRef: PropTypes.func,
   editable : PropTypes.bool,
-  onFocusOut: PropTypes.func,
-  validationReport: PropTypes.object
+  invalidFields: PropTypes.array
 };
 
 export default BaseForecast;

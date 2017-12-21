@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import Icon from 'react-fa';
+import { Icon } from 'react-fa';
 import GeoWebLogo from '../components/assets/icon.svg';
 import { CheckIfUserHasRole } from '../utils/user';
 import { SaveURLPreset } from '../utils/URLPresets';
@@ -508,9 +508,9 @@ class TitleBarContainer extends PureComponent {
 
   savePreset (presetName) {
     // Save all by default now
-    const saveLayers = true; //document.getElementsByName('layerCheckbox')[0].checked;
-    const savePanelLayout = true; //document.getElementsByName('panelCheckbox')[0].checked;
-    const saveBoundingBox = true; //document.getElementsByName('viewCheckbox')[0].checked;
+    const saveLayers = true; // document.getElementsByName('layerCheckbox')[0].checked;
+    const savePanelLayout = true; // document.getElementsByName('panelCheckbox')[0].checked;
+    const saveBoundingBox = true; // document.getElementsByName('viewCheckbox')[0].checked;
     const role = document.getElementsByName('roleSelect');
     const dataToSend = this.makePresetObj(presetName, saveLayers, savePanelLayout, saveBoundingBox, role);
     let url = this.props.urls.BACKEND_SERVER_URL + '/preset/';
@@ -780,7 +780,8 @@ class TitleBarContainer extends PureComponent {
               <NavLink className='active' onClick={this.toggleLoginModal} ><Icon name='user' id='loginIcon' />{isLoggedIn ? ' ' + username : ' Sign in'}</NavLink>
               {hasRoleADMIN ? <Link to='manage' className='active nav-link'><Icon name='cog' /></Link> : '' }
               <NavLink className='active' onClick={this.toggleFeedbackModal}><Icon name='exclamation-triangle' /> Report error</NavLink>
-              <LayoutDropDown savePreset={this.savePreset} mapActions={this.props.mapActions} presets={this.state.presets} onChangeServices={this.getServices} layerActions={this.props.layerActions} mapProperties={this.props.mapProperties} dispatch={this.props.dispatch} mapActions={this.props.mapActions} />
+              <LayoutDropDown savePreset={this.savePreset} mapActions={this.props.mapActions} presets={this.state.presets} onChangeServices={this.getServices}
+                layerActions={this.props.layerActions} mapProperties={this.props.mapProperties} dispatch={this.props.dispatch} />
               <NavLink className='active' onClick={this.toggleFullscreen} ><Icon name='expand' /></NavLink>
               {isLoggedIn
                 ? this.renderLoggedInPopover(this.state.loginModal, this.toggleLoginModal, username)
@@ -962,8 +963,7 @@ class LayoutDropDown extends PureComponent {
             </Col>
           </Row>
           <hr />
-
-          <Row>
+          <Row style={{ flexDirection: 'column' }}>
             <Col>
               <Row>
                 <h5>Location & zoom level</h5>
@@ -1036,7 +1036,11 @@ class LayoutDropDown extends PureComponent {
 LayoutDropDown.propTypes = {
   dispatch: PropTypes.func.isRequired,
   mapActions: PropTypes.object,
-  mapProperties: PropTypes.object
+  mapProperties: PropTypes.object,
+  onChangeServices: PropTypes.func,
+  savePreset: PropTypes.func,
+  presets: PropTypes.array,
+  layerActions: PropTypes.object
 };
 
 TitleBarContainer.propTypes = {
@@ -1047,16 +1051,16 @@ TitleBarContainer.propTypes = {
   routes: PropTypes.array,
   dispatch: PropTypes.func,
   actions: PropTypes.object,
-  layout: PropTypes.string,
   layers: PropTypes.object,
   user: PropTypes.object,
   userActions: PropTypes.object,
   mapProperties: PropTypes.object,
   mapActions: PropTypes.object,
+  layerActions: PropTypes.object,
   adagucActions: PropTypes.object,
   bbox: PropTypes.array,
   fullState: PropTypes.object,
-  projectionName: PropTypes.string
+  urls: PropTypes.object
 };
 
 TitleBarContainer.defaultProps = {
