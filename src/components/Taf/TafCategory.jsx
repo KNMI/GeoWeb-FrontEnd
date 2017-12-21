@@ -727,10 +727,26 @@ class TafCategory extends Component {
       let hasUpdates = false;
       values.map((entry) => {
         if (entry && typeof entry === 'object' && entry.hasOwnProperty('propertyPath') && entry.hasOwnProperty('propertyValue')) {
-          setNestedProperty(newTafState, entry.propertyPath, entry.propertyValue);
+          if (entry.deleteProperty === true) {
+            // removeNestedProperty on an array leaves an empty array element
+            // Therefore, the array needs to be cleaned by this one neat trick
+            removeNestedProperty(newTafState, entry.propertyPath);
+
+            // If the last element is a number, then it is an index in an array, so we know we are dealing with an array
+            const lastPathElem = entry.propertyPath.pop();
+            if (!isNaN(lastPathElem)) {
+              // Retrieve the array and leave all items that evaluate truthy.
+              // this filters everything as null, undefined, 0, {}, false, "", etc...
+              const theArr = getNestedProperty(newTafState, entry.propertyPath);
+              setNestedProperty(newTafState, entry.propertyPath, theArr.filter(n => n));
+            }
+          } else {
+            setNestedProperty(newTafState, entry.propertyPath, entry.propertyValue);
+          }
           hasUpdates = true;
         }
       });
+      console.log(newTafState);
       if (hasUpdates) {
         this.validateTaf(newTafState);
         this.setState({

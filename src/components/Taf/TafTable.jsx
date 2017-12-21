@@ -123,6 +123,12 @@ class TafTable extends Component {
    */
   updateValue (element) {
     let name = element ? (element.name || element.props.name) : null;
+    // Empty in this case means that val is an object which has keys, but for every key its value is null
+    const isObjInArrayEmpty = (val, lastPathElem) => {
+      const allValuesNull = (obj) => Object.values(obj).every((value) => value === null || (Array.isArray(value) && value.length === 0));
+      const isFirstElem = parseInt(lastPathElem) === 0;
+      return !isFirstElem && allValuesNull(val);
+    };
     if (name && typeof name === 'string') {
       const propertiesToUpdate = [];
       propertiesToUpdate.push({
@@ -152,6 +158,9 @@ class TafTable extends Component {
           if (propertiesToUpdate[0].propertyValue === 'NSW') {
             propertiesToUpdate[0].propertyPath.pop();
           }
+          if (isObjInArrayEmpty(propertiesToUpdate[0].propertyValue, propertiesToUpdate[0].propertyPath[propertiesToUpdate[0].propertyPath.length - 1])) {
+            propertiesToUpdate[0].deleteProperty = true;
+          }
           break;
         case PHENOMENON_TYPES.CLOUDS:
           const matchVerticalVisibility = tacToJsonForVerticalVisibility(element.value);
@@ -165,6 +174,9 @@ class TafTable extends Component {
           propertiesToUpdate[0].propertyPath.push('vertical_visibility');
           if (propertiesToUpdate[1].propertyValue === 'NSC') {
             propertiesToUpdate[1].propertyPath.pop();
+          }
+          if (isObjInArrayEmpty(propertiesToUpdate[1].propertyValue, propertiesToUpdate[1].propertyPath[propertiesToUpdate[1].propertyPath.length - 1])) {
+            propertiesToUpdate[1].deleteProperty = true;
           }
           break;
         default:
