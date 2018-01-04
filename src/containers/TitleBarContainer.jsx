@@ -664,8 +664,6 @@ class TitleBarContainer extends PureComponent {
       },
       latestLogs: myLogs.slice(Math.max(0, numLogs - 100)).reverse()
     };
-
-    // TODO send this to the webserver for further distribution
     axios({
       method: 'post',
       url: urls.WEBSERVER_URL + '/admin/receiveFeedback',
@@ -679,19 +677,25 @@ class TitleBarContainer extends PureComponent {
       <ModalBody>
         <AvForm onValidSubmit={this.sendFeedback}>
           <AvGroup>
-            <Label for='activity'>What were you doing?</Label>
-            <AvField validate={{ required: { value: true, errorMessage: 'A short description is required' } }}
-              onChange={(evt) => { this.setState({ shortDescription: evt.target.value }); }} type='text' name='activity' placeholder='Short description' />
+            <Label for='activity'>What is the problem? *</Label>
+            <AvField validate={{ required: { value: true, errorMessage: 'A problem summary is required.' } }}
+              onChange={(evt) => { this.setState({ shortDescription: evt.target.value }); }} type='text' name='activity' placeholder='Summarize the problem, e.g. "Progtemp is broken".' />
           </AvGroup>
           <AvGroup>
-            <Label for='description'>What happened?</Label>
-            <AvField validate={{ required: { value: true, errorMessage: 'A more detailed description is required' } }}
-              onChange={(evt) => { this.setState({ longDescription: evt.target.value }); }} type='textarea' name='description' placeholder='Long description' />
+            <Label for='description'>What happened? *</Label>
+            <AvField validate={{ required: { value: true, errorMessage: 'A more detailed problem description is required.' } }}
+              onChange={(evt) => { this.setState({ longDescription: evt.target.value }); }} type='textarea'
+              name='description' placeholder='Describe what you were doing, what went wrong, and what do you think that should have happened instead.' />
           </AvGroup>
           <AvGroup>
-            <Label for='description'>Who are you? (optional)</Label>
+            <Label for='description'>Who are you? (optional)
+              <br />
+              <Alert style={{ 'color': '#818182', 'padding': 0, 'marginBottom': 0 }} color='light'>
+                Someone from GeoWeb might contact you to help us solve the issue.
+              </Alert>
+            </Label>
             <AvField onChange={(evt) => { this.setState({ feedbackSender: evt.target.value }); }}
-              type='textarea' name='feedbackName' placeholder='Someone from GeoWeb might contact you to help us solve the issue.' />
+              type='text' name='feedbackName' placeholder='Your name' />
           </AvGroup>
           <Row style={{ width: '100%' }}>
             <Col />
@@ -710,7 +714,7 @@ class TitleBarContainer extends PureComponent {
       <ModalFooter style={{ flexDirection: 'column' }}>
         <Row style={{ width: '100%' }}>
           <Alert style={{ 'color': '#818182', 'padding': 0 }} color='light'>
-            Technical diagnostics will be sent with your error report to help us debug the problem.
+            Technical diagnostics will be sent with your error report to help us debug the problem. An asterisk (*) indicates a required field.
           </Alert>
         </Row>
       </ModalFooter>
@@ -788,7 +792,7 @@ class TitleBarContainer extends PureComponent {
             <Nav>
               <NavLink className='active' onClick={this.toggleLoginModal} ><Icon name='user' id='loginIcon' />{isLoggedIn ? ' ' + username : ' Sign in'}</NavLink>
               {hasRoleADMIN ? <Link to='manage' className='active nav-link'><Icon name='cog' /></Link> : '' }
-              <NavLink className='active' onClick={this.toggleFeedbackModal}><Icon name='exclamation-triangle' /> Report error</NavLink>
+              <NavLink className='active' onClick={this.toggleFeedbackModal}><Icon name='exclamation-triangle' /> Report problem</NavLink>
               <LayoutDropDown savePreset={this.savePreset} mapActions={this.props.mapActions} presets={this.state.presets} onChangeServices={this.getServices}
                 layerActions={this.props.layerActions} mapProperties={this.props.mapProperties} dispatch={this.props.dispatch} />
               <NavLink className='active' onClick={this.toggleFullscreen} ><Icon name='expand' /></NavLink>
