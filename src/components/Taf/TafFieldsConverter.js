@@ -58,10 +58,6 @@ const getMapValue = (name, mapToUse, allCaps = false) => {
   return null;
 };
 
-const numberAsTwoCharacterString = (numberAsNumber) => {
-  return numberAsNumber.toString().padStart(2, '0');
-};
-
 /**
  * JSON to TAC converters
  */
@@ -370,18 +366,17 @@ const tacToJsonForTimestamp = (timestampAsTac, scopeStart, scopeEnd, useFallback
       timestampAsTac && typeof timestampAsTac === 'string') {
     const matchResult = timestampAsTac.match(timestampRegEx);
     if (matchResult) {
+      const resultMoment = scopeStartMoment.clone();
       const dateValue = parseInt(matchResult[1]);
-      let monthValue = scopeStartMoment.month() + 1;
-      let yearValue = scopeStartMoment.year();
-      if (scopeEndMoment.month() !== scopeStartMoment.month() && dateValue < 15) {
-        monthValue += 1;
-        if (monthValue > 12) {
-          monthValue = 1;
-          yearValue += 1;
+      const hourValue = parseInt(matchResult[2]);
+      resultMoment.date(dateValue).hours(hourValue).minutes(0).seconds(0).milliseconds(0);
+      // Only proceed if moment has not bubbled dates overflow to months and not bubbled hours overflow to days
+      if (resultMoment.date() === dateValue && resultMoment.hours() === hourValue) {
+        if (scopeEndMoment.month() !== scopeStartMoment.month() && dateValue < 15) {
+          resultMoment.add(1, 'months');
         }
+        result = resultMoment.format('YYYY-MM-DDTHH:mm:ss') + 'Z';
       }
-      result = yearValue.toString() + '-' + numberAsTwoCharacterString(monthValue) + '-' + numberAsTwoCharacterString(dateValue) +
-        'T' + matchResult[2] + ':00:00Z';
     }
   }
   if (useFallback && !result && timestampAsTac && typeof timestampAsTac === 'string') {
@@ -518,7 +513,8 @@ const tacToJsonForVerticalVisibility = (verticalVisibilityAsTac, useFallback = f
 
 const converterMessagesMap = {
   changeType: 'Prob and Change was not recognized. Expected optionally \'PROB\'<2 digits i.e. 30 or 40> for Prob and optionally \'FM\', \'BECMG\' \'TEMPO\' for Change',
-  changeStart: 'Valid period was not recognized. Expected either <4 digits for start> or <4 digits for start>\'/\'<4 digits for end>',
+  changeStart: 'Valid period was not recognized. Expected either <2 digits for start date><2 digits for start hour> or' +
+    '<2 digits for start date><2 digits for start hour>\'/\'<2 digits for end date><2 digits for end hour>',
   changeEnd: 'Valid period was not recognized. Expected either <4 digits for start> or <4 digits for start>\'/\'<4 digits for end>',
   wind: 'Wind was not recognized. Expected either <3 digits for direction><2 digits for speed>, optionally appended with \'G\'<2 digits for gust speed>, optionally followed by \'KT\' or \'MPS\'',
   visibility: 'Visibility was not recognized. Expected either <4 digits for range>, optionally followed by \'M\' or \'KM\', or \'CAVOK\'',
