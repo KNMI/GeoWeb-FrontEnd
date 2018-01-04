@@ -14,6 +14,7 @@ import { jsonToTacForWind, jsonToTacForWeather, jsonToTacForClouds, converterMes
 import TafTable from './TafTable';
 import ResponsiveTafTable from './ResponsiveTafTable';
 import axios from 'axios';
+import { debounce } from '../../utils/debounce';
 const TMP = '_temp';
 
 const MOVE_DIRECTION = Enum(
@@ -145,7 +146,7 @@ class TafCategory extends Component {
     this.decorateWeatherArray = this.decorateWeatherArray.bind(this);
     this.byPhenomenonType = this.byPhenomenonType.bind(this);
     this.byStartAndChangeType = this.byStartAndChangeType.bind(this);
-    this.validateTaf = this.validateTaf.bind(this);
+    this.validateTaf = debounce(this.validateTaf.bind(this), 1250, false);
     this.saveTaf = this.saveTaf.bind(this);
 
     const initialState = {
@@ -190,7 +191,6 @@ class TafCategory extends Component {
     getJsonPointers(taf, (field) => field && field.hasOwnProperty('fallback'), fallbackPointers);
     const nullPointers = [];
     getJsonPointers(taf, (field) => field === null, nullPointers);
-
     // TODO: Should this be really necessary?
     // Remove null's and empty fields -- BackEnd doesn't handle them nicely
     const nullPointersLength = nullPointers.length;
@@ -199,6 +199,9 @@ class TafCategory extends Component {
       pathParts.shift();
       removeNestedProperty(taf, pathParts);
       clearRecursive(taf, pathParts);
+    }
+    if (!getNestedProperty(taf, ['changegroups'])) {
+      setNestedProperty(taf, ['changegroups'], []);
     }
     if (getNestedProperty(taf, ['metadata', 'issueTime']) === 'not yet issued') {
       setNestedProperty(taf, ['metadata', 'issueTime'], moment.utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z');
@@ -746,7 +749,6 @@ class TafCategory extends Component {
           hasUpdates = true;
         }
       });
-      console.log(newTafState);
       if (hasUpdates) {
         this.validateTaf(newTafState);
         this.setState({
@@ -835,6 +837,7 @@ class TafCategory extends Component {
           }
         }
       }
+      this.validateTaf(this.state.tafAsObject);
     }
   }
 
