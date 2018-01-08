@@ -70,8 +70,8 @@ const jsonToTacForProbability = (probabilityAsJson, useFallback = false) => {
     }
   }
   if (useFallback && !result && probabilityAsJson && probabilityAsJson.hasOwnProperty('fallback')) {
-    if (probabilityAsJson.fallback && probabilityAsJson.fallback.hasOwnProperty('probability')) {
-      result = probabilityAsJson.fallback.probability;
+    if (probabilityAsJson.fallback && probabilityAsJson.fallback.hasOwnProperty('value') && probabilityAsJson.fallback.value.hasOwnProperty('probability')) {
+      result = probabilityAsJson.fallback.value.probability;
     }
   }
   return result;
@@ -86,8 +86,8 @@ const jsonToTacForChangeType = (changeTypeAsJson, useFallback = false) => {
     }
   }
   if (useFallback && !result && changeTypeAsJson && changeTypeAsJson.hasOwnProperty('fallback')) {
-    if (changeTypeAsJson.fallback && changeTypeAsJson.fallback.hasOwnProperty('change')) {
-      result = changeTypeAsJson.fallback.change;
+    if (changeTypeAsJson.fallback && changeTypeAsJson.fallback.hasOwnProperty('value') && changeTypeAsJson.fallback.value.hasOwnProperty('change')) {
+      result = changeTypeAsJson.fallback.value.change;
     }
   }
   return result;
@@ -98,7 +98,7 @@ const jsonToTacForTimestamp = (timestampAsJson, useFallback = false) => {
   if (timestampAsJson && typeof timestampAsJson === 'string' && moment(timestampAsJson).isValid()) {
     result = moment.utc(timestampAsJson).format('DDHH');
   } else if (useFallback && timestampAsJson && timestampAsJson.hasOwnProperty('fallback')) {
-    result = timestampAsJson.fallback;
+    result = timestampAsJson.fallback.value;
   }
   return result;
 };
@@ -112,7 +112,7 @@ const jsonToTacForPeriod = (startTimestampAsJson, endTimestampAsJson, useFallbac
   } else if (periodStart) {
     result = periodStart;
   } else if (useFallback && startTimestampAsJson && startTimestampAsJson.hasOwnProperty('fallback')) {
-    result = startTimestampAsJson.fallback;
+    result = startTimestampAsJson.fallback.value;
   }
   return result;
 };
@@ -128,13 +128,13 @@ const jsonToTacForWind = (windAsJson, useFallback = false) => {
     } else if (typeof windAsJson.direction === 'string') {
       result = getMapValue(windAsJson.direction, windUnknownMap);
       if (!result) {
-        return useFallback && windAsJson.hasOwnProperty('fallback') ? windAsJson.fallback : null;
+        return useFallback && windAsJson.hasOwnProperty('fallback') ? windAsJson.fallback.value : null;
       }
     } else {
-      return useFallback && windAsJson.hasOwnProperty('fallback') ? windAsJson.fallback : null;
+      return useFallback && windAsJson.hasOwnProperty('fallback') ? windAsJson.fallback.value : null;
     }
   } else {
-    return useFallback && windAsJson.hasOwnProperty('fallback') ? windAsJson.fallback : null;
+    return useFallback && windAsJson.hasOwnProperty('fallback') ? windAsJson.fallback.value : null;
   }
   if (windAsJson.hasOwnProperty('speed')) {
     if (typeof windAsJson.speed === 'number') {
@@ -142,29 +142,29 @@ const jsonToTacForWind = (windAsJson, useFallback = false) => {
     } else if (typeof windAsJson.speed === 'string' && /^P\d9$/i.test(windAsJson.speed)) {
       result += windAsJson.speed;
     } else {
-      return useFallback && windAsJson.hasOwnProperty('fallback') ? windAsJson.fallback : null;
+      return useFallback && windAsJson.hasOwnProperty('fallback') ? windAsJson.fallback.value : null;
     }
   } else {
-    return useFallback && windAsJson.hasOwnProperty('fallback') ? windAsJson.fallback : null;
+    return useFallback && windAsJson.hasOwnProperty('fallback') ? windAsJson.fallback.value : null;
   }
   if (windAsJson.hasOwnProperty('gusts')) {
     if (typeof windAsJson.gusts === 'number') {
       result += 'G' + windAsJson.gusts.toString().padStart(2, '0');
     }
   } else {
-    return useFallback && windAsJson.hasOwnProperty('fallback') ? windAsJson.fallback : null;
+    return useFallback && windAsJson.hasOwnProperty('fallback') ? windAsJson.fallback.value : null;
   }
   if (windAsJson.hasOwnProperty('unit')) {
     if (typeof windAsJson.unit === 'string') {
       const unit = getMapValue(windAsJson.unit, windUnitMap);
       if (!unit) {
-        return useFallback && windAsJson.hasOwnProperty('fallback') ? windAsJson.fallback : null;
+        return useFallback && windAsJson.hasOwnProperty('fallback') ? windAsJson.fallback.value : null;
       } else if (!(unit === windUnitMap.KT)) { // Skip default unit
         result += unit;
       }
     }
   } else {
-    return useFallback && windAsJson.hasOwnProperty('fallback') ? windAsJson.fallback : null;
+    return useFallback && windAsJson.hasOwnProperty('fallback') ? windAsJson.fallback.value : null;
   }
   return result;
 };
@@ -177,17 +177,17 @@ const jsonToTacForVisibility = (visibilityAsJson, useFallback = false) => {
   if (visibilityAsJson.hasOwnProperty('value') && typeof visibilityAsJson.value === 'number') {
     result = visibilityAsJson.value.toString().padStart(4, '0');
   } else if (useFallback && visibilityAsJson.hasOwnProperty('fallback')) {
-    result = visibilityAsJson.fallback;
+    result = visibilityAsJson.fallback.value;
   }
   if (visibilityAsJson.hasOwnProperty('unit')) {
     const unit = getMapValue(visibilityAsJson.unit, visibilityUnitMap);
     if (!unit) {
-      return useFallback && visibilityAsJson.hasOwnProperty('fallback') ? visibilityAsJson.fallback : null;
+      return useFallback && visibilityAsJson.hasOwnProperty('fallback') ? visibilityAsJson.fallback.value : null;
     } else if (!(unit === visibilityUnitMap.M)) { // Skip default unit
       result += unit;
     }
   } else {
-    return useFallback && visibilityAsJson.hasOwnProperty('fallback') ? visibilityAsJson.fallback : null;
+    return useFallback && visibilityAsJson.hasOwnProperty('fallback') ? visibilityAsJson.fallback.value : null;
   }
   return result;
 };
@@ -207,12 +207,12 @@ const jsonToTacForWeather = (weatherAsJson, useFallback = false) => {
     if (weatherAsJson.hasOwnProperty('qualifier')) {
       const qualifier = getMapValue(weatherAsJson.qualifier, qualifierMap);
       if (qualifier === null) {
-        return useFallback && weatherAsJson.hasOwnProperty('fallback') ? weatherAsJson.fallback : null;
+        return useFallback && weatherAsJson.hasOwnProperty('fallback') ? weatherAsJson.fallback.value : null;
       } else {
         result = qualifier;
       }
     } else {
-      return useFallback && weatherAsJson.hasOwnProperty('fallback') ? weatherAsJson.fallback : null;
+      return useFallback && weatherAsJson.hasOwnProperty('fallback') ? weatherAsJson.fallback.value : null;
     }
     if (weatherAsJson.hasOwnProperty('descriptor')) {
       const descriptor = getMapValue(weatherAsJson.descriptor, descriptorMap);
@@ -220,7 +220,7 @@ const jsonToTacForWeather = (weatherAsJson, useFallback = false) => {
         result += descriptor;
       }
     } else {
-      return useFallback && weatherAsJson.hasOwnProperty('fallback') ? weatherAsJson.fallback : null;
+      return useFallback && weatherAsJson.hasOwnProperty('fallback') ? weatherAsJson.fallback.value : null;
     }
     if (weatherAsJson.hasOwnProperty('phenomena') && Array.isArray(weatherAsJson.phenomena)) {
       result += weatherAsJson.phenomena.reduce((cumm, current) => {
@@ -231,7 +231,7 @@ const jsonToTacForWeather = (weatherAsJson, useFallback = false) => {
         return cumm;
       }, '');
     } else {
-      return useFallback && weatherAsJson.hasOwnProperty('fallback') ? weatherAsJson.fallback : null;
+      return useFallback && weatherAsJson.hasOwnProperty('fallback') ? weatherAsJson.fallback.value : null;
     }
   }
   return result;
@@ -251,7 +251,7 @@ const jsonToTacForClouds = (cloudsAsJson, useFallback = false) => {
       result = getMapValue(cloudsAsJson.amount, amountMap);
       hasAmount = result !== null;
     } else {
-      return useFallback && cloudsAsJson.hasOwnProperty('fallback') ? cloudsAsJson.fallback : null;
+      return useFallback && cloudsAsJson.hasOwnProperty('fallback') ? cloudsAsJson.fallback.value : null;
     }
     if (cloudsAsJson.hasOwnProperty('height')) {
       if (typeof cloudsAsJson.height === 'number') {
@@ -263,7 +263,7 @@ const jsonToTacForClouds = (cloudsAsJson, useFallback = false) => {
         result = null;
       }
     } else {
-      return useFallback && cloudsAsJson.hasOwnProperty('fallback') ? cloudsAsJson.fallback : null;
+      return useFallback && cloudsAsJson.hasOwnProperty('fallback') ? cloudsAsJson.fallback.value : null;
     }
     if (cloudsAsJson.hasOwnProperty('mod')) {
       const mod = getMapValue(cloudsAsJson.mod, modMap);
@@ -278,7 +278,7 @@ const jsonToTacForClouds = (cloudsAsJson, useFallback = false) => {
       return useFallback && cloudsAsJson.hasOwnProperty('fallback') ? cloudsAsJson.fallback : null;
     }
     if (result === null && useFallback) {
-      return cloudsAsJson.hasOwnProperty('fallback') ? cloudsAsJson.fallback : null;
+      return cloudsAsJson.hasOwnProperty('fallback') ? cloudsAsJson.fallback.value : null;
     }
   }
   return result;
@@ -289,7 +289,7 @@ const jsonToTacForVerticalVisibility = (verticalVisibilityAsJson, useFallback = 
   if (verticalVisibilityAsJson && typeof verticalVisibilityAsJson === 'number') {
     result = 'VV' + verticalVisibilityAsJson.toString().padStart(3, '0');
   } else if (useFallback && verticalVisibilityAsJson && verticalVisibilityAsJson.hasOwnProperty('fallback')) {
-    result = verticalVisibilityAsJson.fallback;
+    result = verticalVisibilityAsJson.fallback.value;
   }
   return result;
 };
@@ -306,7 +306,7 @@ const tacToJsonForProbability = (probabilityAsTac, useFallback = false) => {
     }
   }
   if (useFallback && !result && probabilityAsTac && typeof probabilityAsTac === 'string') {
-    result = { fallback: probabilityAsTac };
+    result = { fallback: { value: probabilityAsTac, message: '' } };
   }
   return result;
 };
@@ -320,7 +320,7 @@ const tacToJsonForChangeType = (changeTypeAsTac, useFallback = false) => {
     }
   }
   if (useFallback && !result && changeTypeAsTac && typeof changeTypeAsTac === 'string') {
-    result = { fallback: changeTypeAsTac };
+    result = { fallback: { value: changeTypeAsTac, message: '' } };
   }
   return result;
 };
@@ -338,21 +338,21 @@ const tacToJsonForProbabilityAndChangeType = (probabilityAsTac, changeTypeAsTac,
   if (useFallback &&
     ((probResult && probResult.hasOwnProperty('fallback') && probResult.fallback) ||
     (changeResult && changeResult.hasOwnProperty('fallback') && changeResult.fallback))) { // one of the values has fallbacked, and so should the entire field
-    const fallback = {};
+    const fallbackValue = {};
     if (probResult && probResult.hasOwnProperty('fallback') && probResult.fallback) {
-      fallback.probability = probResult.fallback;
+      fallbackValue.probability = probResult.fallback.value;
       if (result) {
-        fallback.change = result;
+        fallbackValue.change = result;
       }
     }
     if (changeResult && changeResult.hasOwnProperty('fallback') && changeResult.fallback) {
-      fallback.change = changeResult.fallback;
+      fallbackValue.change = changeResult.fallback.value;
       if (result) {
-        fallback.probability = result;
+        fallbackValue.probability = result;
       }
     }
-    if (!isEqual(fallback, {})) {
-      result = { fallback: fallback };
+    if (!isEqual(fallbackValue, {})) {
+      result = { fallback: { value: fallbackValue, message: '' } };
     }
   }
   return result;
@@ -380,7 +380,7 @@ const tacToJsonForTimestamp = (timestampAsTac, scopeStart, scopeEnd, useFallback
     }
   }
   if (useFallback && !result && timestampAsTac && typeof timestampAsTac === 'string') {
-    result = { fallback: timestampAsTac };
+    result = { fallback: { value: timestampAsTac, message: '' } };
   }
   return result;
 };
@@ -398,7 +398,7 @@ const tacToJsonForPeriod = (periodAsTac, scopeStart, scopeEnd, useFallback = fal
     }
   }
   if (useFallback && isEqual(result, { start: null, end: null }) && periodAsTac && typeof periodAsTac === 'string') {
-    result.start = { fallback: periodAsTac };
+    result.start = { fallback: { value: periodAsTac, message: '' } };
   }
   return result;
 };
@@ -423,7 +423,7 @@ const tacToJsonForWind = (windAsTac, useFallback = false) => {
     }
   }
   if (useFallback && isEqual(result, TAF_TEMPLATES.WIND) && windAsTac && typeof windAsTac === 'string') {
-    result.fallback = windAsTac;
+    result.fallback = { value: windAsTac, message: '' };
   }
   return result;
 };
@@ -438,7 +438,7 @@ const tacToJsonForVisibility = (visibilityAsTac, useFallback = false) => {
     }
   }
   if (useFallback && isEqual(result, TAF_TEMPLATES.VISIBILITY) && visibilityAsTac && typeof visibilityAsTac === 'string') {
-    result.fallback = visibilityAsTac;
+    result.fallback = { value: visibilityAsTac, message: '' };
   }
   return result;
 };
@@ -470,7 +470,7 @@ const tacToJsonForWeather = (weatherAsTac, useFallback = false) => {
     }
   }
   if (useFallback && isEqual(result, TAF_TEMPLATES.WEATHER[0]) && weatherAsTac && typeof weatherAsTac === 'string') {
-    result.fallback = weatherAsTac;
+    result.fallback = { value: weatherAsTac, message: '' };
   }
   return result;
 };
@@ -492,7 +492,7 @@ const tacToJsonForClouds = (cloudsAsTac, useFallback = false) => {
     }
   }
   if (useFallback && isEqual(result, TAF_TEMPLATES.CLOUDS[0]) && cloudsAsTac && typeof cloudsAsTac === 'string') {
-    result.fallback = cloudsAsTac;
+    result.fallback = { value: cloudsAsTac, message: '' };
   }
   return result;
 };
@@ -506,7 +506,7 @@ const tacToJsonForVerticalVisibility = (verticalVisibilityAsTac, useFallback = f
     }
   }
   if (useFallback && result === null && verticalVisibilityAsTac && typeof verticalVisibilityAsTac === 'string') {
-    result.fallback = verticalVisibilityAsTac;
+    result.fallback = { value: verticalVisibilityAsTac, message: '' };
   }
   return result;
 };

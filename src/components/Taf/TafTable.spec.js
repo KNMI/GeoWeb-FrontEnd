@@ -134,7 +134,7 @@ describe('(Container) Taf/TafTable.jsx', () => {
     _instance.updateValue(inputMock);
     expect(values).to.eql([
       { propertyPath: [ 'changegroups', '3', 'changeStart' ],
-        propertyValue: { fallback: '0410/04' } },
+        propertyValue: { fallback: { value: '0410/04', message: '' } } },
       { propertyPath: [ 'changegroups', '3', 'changeEnd' ],
         propertyValue: null } ]);
   });
