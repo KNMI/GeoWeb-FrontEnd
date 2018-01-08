@@ -16,6 +16,10 @@ const convertMapToRegExpOptions = (map) => {
   return Object.keys(map).map(elmt => escapeRegExp(elmt)).join('|');
 };
 
+const convertMapToString = (map) => {
+  return Object.keys(map).filter(elmt => !!elmt).join(', ');
+};
+
 const probabilityAndChangeTypeRegEx = new RegExp('^(' + convertMapToRegExpOptions(probabilityInverseMap) + ')?' +
   '\\s?(' + convertMapToRegExpOptions(typeInverseMap) + ')?$', 'i');
 
@@ -306,7 +310,7 @@ const tacToJsonForProbability = (probabilityAsTac, useFallback = false) => {
     }
   }
   if (useFallback && !result && probabilityAsTac && typeof probabilityAsTac === 'string') {
-    result = { fallback: { value: probabilityAsTac, message: '' } };
+    result = { fallback: { value: probabilityAsTac, message: 'Probability is not one of the allowed values (' + convertMapToString(probabilityInverseMap) + ').' } };
   }
   return result;
 };
@@ -339,8 +343,10 @@ const tacToJsonForProbabilityAndChangeType = (probabilityAsTac, changeTypeAsTac,
     ((probResult && probResult.hasOwnProperty('fallback') && probResult.fallback) ||
     (changeResult && changeResult.hasOwnProperty('fallback') && changeResult.fallback))) { // one of the values has fallbacked, and so should the entire field
     const fallbackValue = {};
+    const fallbackMessages = [];
     if (probResult && probResult.hasOwnProperty('fallback') && probResult.fallback) {
       fallbackValue.probability = probResult.fallback.value;
+      fallbackMessages.push(probResult.fallback.message);
       if (result) {
         fallbackValue.change = result;
       }
@@ -352,7 +358,7 @@ const tacToJsonForProbabilityAndChangeType = (probabilityAsTac, changeTypeAsTac,
       }
     }
     if (!isEqual(fallbackValue, {})) {
-      result = { fallback: { value: fallbackValue, message: '' } };
+      result = { fallback: { value: fallbackValue, message: fallbackMessages.join(',') } };
     }
   }
   return result;
@@ -380,7 +386,7 @@ const tacToJsonForTimestamp = (timestampAsTac, scopeStart, scopeEnd, useFallback
     }
   }
   if (useFallback && !result && timestampAsTac && typeof timestampAsTac === 'string') {
-    result = { fallback: { value: timestampAsTac, message: '' } };
+    result = { fallback: { value: timestampAsTac, message: converterMessagesMap.changeStart } };
   }
   return result;
 };
@@ -398,7 +404,7 @@ const tacToJsonForPeriod = (periodAsTac, scopeStart, scopeEnd, useFallback = fal
     }
   }
   if (useFallback && isEqual(result, { start: null, end: null }) && periodAsTac && typeof periodAsTac === 'string') {
-    result.start = { fallback: { value: periodAsTac, message: '' } };
+    result.start = { fallback: { value: periodAsTac, message: converterMessagesMap.changeStart } };
   }
   return result;
 };
@@ -423,7 +429,7 @@ const tacToJsonForWind = (windAsTac, useFallback = false) => {
     }
   }
   if (useFallback && isEqual(result, TAF_TEMPLATES.WIND) && windAsTac && typeof windAsTac === 'string') {
-    result.fallback = { value: windAsTac, message: '' };
+    result.fallback = { value: windAsTac, message: converterMessagesMap.wind };
   }
   return result;
 };
@@ -438,7 +444,7 @@ const tacToJsonForVisibility = (visibilityAsTac, useFallback = false) => {
     }
   }
   if (useFallback && isEqual(result, TAF_TEMPLATES.VISIBILITY) && visibilityAsTac && typeof visibilityAsTac === 'string') {
-    result.fallback = { value: visibilityAsTac, message: '' };
+    result.fallback = { value: visibilityAsTac, message: converterMessagesMap.visibility };
   }
   return result;
 };
@@ -470,7 +476,7 @@ const tacToJsonForWeather = (weatherAsTac, useFallback = false) => {
     }
   }
   if (useFallback && isEqual(result, TAF_TEMPLATES.WEATHER[0]) && weatherAsTac && typeof weatherAsTac === 'string') {
-    result.fallback = { value: weatherAsTac, message: '' };
+    result.fallback = { value: weatherAsTac, message: converterMessagesMap.weather };
   }
   return result;
 };
@@ -492,7 +498,7 @@ const tacToJsonForClouds = (cloudsAsTac, useFallback = false) => {
     }
   }
   if (useFallback && isEqual(result, TAF_TEMPLATES.CLOUDS[0]) && cloudsAsTac && typeof cloudsAsTac === 'string') {
-    result.fallback = { value: cloudsAsTac, message: '' };
+    result.fallback = { value: cloudsAsTac, message: converterMessagesMap.clouds };
   }
   return result;
 };
@@ -506,7 +512,7 @@ const tacToJsonForVerticalVisibility = (verticalVisibilityAsTac, useFallback = f
     }
   }
   if (useFallback && result === null && verticalVisibilityAsTac && typeof verticalVisibilityAsTac === 'string') {
-    result.fallback = { value: verticalVisibilityAsTac, message: '' };
+    result.fallback = { value: verticalVisibilityAsTac, message: converterMessagesMap.clouds };
   }
   return result;
 };
@@ -545,6 +551,5 @@ module.exports = {
   tacToJsonForCavok: tacToJsonForCavok,
   tacToJsonForWeather: tacToJsonForWeather,
   tacToJsonForClouds: tacToJsonForClouds,
-  tacToJsonForVerticalVisibility: tacToJsonForVerticalVisibility,
-  converterMessagesMap: converterMessagesMap
+  tacToJsonForVerticalVisibility: tacToJsonForVerticalVisibility
 };
