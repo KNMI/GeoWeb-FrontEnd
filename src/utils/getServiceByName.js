@@ -46,7 +46,7 @@ export const GetServiceByNamePromise = (backendurl, name) => {
         // console.log('GetServiceByName, 13 ok', sources);
         let result = _getSourceByName(sources, name);
         if (result == null) {
-          reject(Error('Source ' + name + 'not found'));
+          reject(Error('Source ' + name + ' not found'));
         }
         // console.log('source===', result);
         if (result.source && result.source.service) {
@@ -95,7 +95,7 @@ export const GetServices = (BACKEND_SERVER_URL) => {
             }
             service.getLayerObjectsFlat((layers) => { resolve({ layers, source }); });
           });
-          promises.push(new PromiseWithTimout(r, moment.duration(3000, 'milliseconds').asMilliseconds()));
+          promises.push(new PromiseWithTimout(r, moment.duration(5000, 'milliseconds').asMilliseconds()));
         }
         const sort = (obj) => Object.keys(obj).sort().reduce((acc, c) => { acc[c] = obj[c]; return acc; }, {});
 

@@ -1,7 +1,6 @@
 import { createAction, handleActions } from 'redux-actions';
 import { MAP_STYLES } from '../../constants/map_styles';
 import cloneDeep from 'lodash.clonedeep';
-
 const ADD_LAYER = 'ADD_LAYER';
 const ADD_OVERLAY_LAYER = 'ADD_OVERLAY_LAYER';
 const DELETE_LAYER = 'DELETE_LAYER';
@@ -22,7 +21,7 @@ const reorderLayers = createAction(REORDER_LAYER);
 const setWMJSLayers = createAction(SET_WMJSLAYERS);
 const setPanelType = createAction(SET_PANEL_TYPE);
 
-const INITIAL_STATE = {
+let INITIAL_STATE = {
   wmjsLayers: {},
   baselayer: MAP_STYLES[1],
   panels: [

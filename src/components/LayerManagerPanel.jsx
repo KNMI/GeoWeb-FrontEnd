@@ -7,6 +7,7 @@ import { Row, Col, Button, Modal, ModalBody, Input, Label, ListGroup, ListGroupI
 import { Icon } from 'react-fa';
 import PropTypes from 'prop-types';
 import cloneDeep from 'lodash.clonedeep';
+import { GetServiceByNamePromise } from '../utils/getServiceByName';
 
 var elementResizeEvent = require('element-resize-event');
 
@@ -28,6 +29,48 @@ class LayerManagerPanel extends PureComponent {
       initialized: false
     };
   }
+
+  componentDidMount () {
+    const { urls, dispatch, layerActions } = this.props;
+    const contains = (objArr, objField) => {
+      let anyContains = false;
+      objArr.map((obj) => {
+        const thisContains = Object.values(obj).some((elem) => elem === objField);
+        if (thisContains) {
+          anyContains = true;
+        }
+      });
+      return anyContains;
+    };
+    const { layers } = this.props;
+    const { panels } = layers;
+    let allContains = true;
+    const missingIndices = [];
+    panels.map((panel, i) => {
+      if (!contains(panel.overlays, 'Countries')) {
+        allContains = false;
+        missingIndices.push(i);
+      }
+    });
+
+    if (allContains) {
+      return;
+    }
+    GetServiceByNamePromise(urls.BACKEND_SERVER_URL, 'OVL').then((url) => {
+      missingIndices.map((id) => {
+        dispatch(layerActions.addOverlaysLayer({
+          activeMapId: id,
+          layer: {
+            service: url,
+            title: 'OVL_EXT',
+            name: 'countries',
+            label: 'Countries'
+          }
+        }));
+      });
+    });
+  }
+
   goToNow () {
     const { dispatch, adagucActions } = this.props;
     // eslint-disable-next-line no-undef
@@ -48,7 +91,7 @@ class LayerManagerPanel extends PureComponent {
           title: this.state.activeSource.title,
           name: addItem.name,
           label: addItem.text,
-          opacity: 1,
+          opacity: 0.8,
           active: false
         }
       }));

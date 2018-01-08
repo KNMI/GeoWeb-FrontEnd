@@ -12,7 +12,7 @@ import axios from 'axios';
 import uuidV4 from 'uuid/v4';
 import { Alert, Navbar, NavbarBrand, Row, Col, Nav, NavLink, Breadcrumb, BreadcrumbItem, Collapse, Popover, Form, FormGroup, FormFeedback, Label, ListGroup, ListGroupItem, PopoverContent,
   PopoverTitle, ButtonGroup, InputGroupButton, Modal, ModalHeader, ModalBody, ModalFooter, Button, InputGroup, Input, FormText } from 'reactstrap';
-import { AvForm, AvFeedback, AvField, AvGroup } from 'availity-reactstrap-validation';
+import { AvForm, AvFeedback, AvRadioGroup, AvRadio, AvField, AvGroup } from 'availity-reactstrap-validation';
 import { Link, hashHistory } from 'react-router';
 import PropTypes from 'prop-types';
 import moment from 'moment';
@@ -648,7 +648,7 @@ class TitleBarContainer extends PureComponent {
     </Modal>);
   }
 
-  sendFeedback () {
+  sendFeedback (e, formValues) {
     const numLogs = myLogs.length;
     const { urls } = this.props;
 
@@ -657,11 +657,7 @@ class TitleBarContainer extends PureComponent {
       url: window.location.href,
       config: { ...require('config'), backend_url: urls.BACKEND_SERVER_URL },
       userAgent: navigator.userAgent,
-      descriptions: {
-        short: this.state.shortDescription,
-        long: this.state.longDescription,
-        name: this.state.feedbackSender
-      },
+      descriptions: {...formValues},
       latestLogs: myLogs.slice(Math.max(0, numLogs - 100)).reverse()
     };
     axios({
@@ -677,25 +673,36 @@ class TitleBarContainer extends PureComponent {
       <ModalBody>
         <AvForm onValidSubmit={this.sendFeedback}>
           <AvGroup>
-            <Label for='activity'>What is the problem? *</Label>
+            <Label for='problemSummary'>What is the problem? *</Label>
             <AvField validate={{ required: { value: true, errorMessage: 'A problem summary is required.' } }}
-              onChange={(evt) => { this.setState({ shortDescription: evt.target.value }); }} type='text' name='activity' placeholder='Summarize the problem, e.g. "Progtemp is broken".' />
+              type='text' name='problemSummary' placeholder="Summarize the problem, e.g. 'Progtemp is broken'." />
           </AvGroup>
           <AvGroup>
-            <Label for='description'>What happened? *</Label>
-            <AvField validate={{ required: { value: true, errorMessage: 'A more detailed problem description is required.' } }}
-              onChange={(evt) => { this.setState({ longDescription: evt.target.value }); }} type='textarea'
-              name='description' placeholder='Describe what you were doing, what went wrong, and what do you think that should have happened instead.' />
+            <Label for='problemDescription'>What happened? *</Label>
+            <AvField validate={{ required: { value: true, errorMessage: 'A more detailed problem description is required.' } }} type='textarea'
+              name='problemDescription' placeholder='Describe what you were doing, what went wrong, and what do you think that should have happened instead.' />
           </AvGroup>
           <AvGroup>
-            <Label for='description'>Who are you? (optional)
+            <Label for='role'>What are you? *</Label>
+            <AvRadioGroup name='role' required>
+              <div style={{ float: 'left' }}>
+                <AvRadio label='Meteorologist' value='Meteorologist' id='meteoRole' />
+                <AvRadio label='Administrator' value='Administrator' id='adminRole' />
+              </div>
+              <div style={{ marginLeft: '12.5rem' }}>
+                <AvRadio label='Process operator' value='Process operator' id='operatorRole' />
+                <AvRadio label='Researcher' value='Researcher' id='researchRole' />
+              </div>
+            </AvRadioGroup>
+          </AvGroup>
+          <AvGroup>
+            <Label for='feedbackName'>Who are you? (optional)
               <br />
               <Alert style={{ 'color': '#818182', 'padding': 0, 'marginBottom': 0 }} color='light'>
                 Someone from GeoWeb might contact you to help us solve the issue.
               </Alert>
             </Label>
-            <AvField onChange={(evt) => { this.setState({ feedbackSender: evt.target.value }); }}
-              type='text' name='feedbackName' placeholder='Your name' />
+            <AvField type='text' name='feedbackName' placeholder='Your name' />
           </AvGroup>
           <Row style={{ width: '100%' }}>
             <Col />
