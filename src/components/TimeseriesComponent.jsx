@@ -82,7 +82,8 @@ export default class TimeseriesComponent extends PureComponent {
       Object.keys(obj).map((k) => { newObj.push({ 'date': k, 'value': parseFloat(obj[k][refTime]) }); });
       return newObj;
     }
-    function getWindInfo (windX, windY) {
+    function getWindInfo (windX, windY, unit) {
+
       let toRadians = (deg) => {
         return (deg / 180) * Math.PI;
       };
@@ -93,7 +94,11 @@ export default class TimeseriesComponent extends PureComponent {
       let windSpeed = [];
       let windDirection = [];
       for (var i = 0; i < windX.length; ++i) {
-        windSpeed.push({ 'date': windX[i].date, 'value': Math.sqrt(windX[i].value * windX[i].value + windY[i].value * windY[i].value) });
+        let windVelocity = Math.sqrt(windX[i].value * windX[i].value + windY[i].value * windY[i].value);
+        if (unit === 'ms' || unit === 'mps' || unit === 'm/s') {
+          windVelocity *= 1.9438;
+        }
+        windSpeed.push({ 'date': windX[i].date, 'value': windVelocity });
         windDirection.push({ 'date': windX[i].date, 'value': toDegrees(toRadians(270) - Math.atan2(windY[i].value, windX[i].value)) });
       }
       return { windSpeed, windDirection };
@@ -105,7 +110,13 @@ export default class TimeseriesComponent extends PureComponent {
     const refTimeStr = this.props.referenceTime.format('YYYY-MM-DDTHH:mm:ss') + 'Z';
 
     const windData = data.filter((d) => d.name === 'wind__at_10m');
+    if (windData[0].units !== windData[1].units) {
+      console.error('Wind data directions do not have same units!');
+    }
     const windGustData = data.filter((d) => d.name === 'wind_speed_of_gust__at_10m');
+    if (windGustData[0].units !== windGustData[1].units) {
+      console.error('Wind gust data directions do not have same units!');
+    }
     const pressureData = remap(data.filter((d) => d.name === 'air_pressure_at_sea_level')[0].data, refTimeStr);
     const windX = remap(windData.filter((d) => d.standard_name === 'x_wind')[0].data, refTimeStr);
     const windY = remap(windData.filter((d) => d.standard_name === 'y_wind')[0].data, refTimeStr);
@@ -116,11 +127,15 @@ export default class TimeseriesComponent extends PureComponent {
     const dewData = remap(data.filter((d) => d.name === 'dew_point_temperature__at_2m')[0].data, refTimeStr);
     const tempData = remap(data.filter((d) => d.name === 'air_temperature__at_2m')[0].data, refTimeStr);
     const rainData = remap(data.filter((d) => d.name === 'precipitation_flux')[0].data, refTimeStr);
-    const windDataMapped = getWindInfo(windX, windY);
+    const windDataMapped = getWindInfo(windX, windY, windData[0].units);
     const windSpeedData = windDataMapped.windSpeed;
-    const windGustDataMapped = getWindInfo(windGustX, windGustY);
+    const windGustDataMapped = getWindInfo(windGustX, windGustY, windGustData[0].units);
     const windGust = windGustDataMapped.windSpeed;
 
+    windData[0].units = 'kt';
+    windData[1].units = 'kt';
+    windGustData[0].units = 'kt';
+    windGustData[1].units = 'kt';
     let returnArr = [];
     const windDirectionData = windDataMapped.windDirection;
     let minPressure, maxPressure;
