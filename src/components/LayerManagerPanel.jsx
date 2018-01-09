@@ -7,6 +7,7 @@ import { Row, Col, Button, Modal, ModalBody, Input, Label, ListGroup, ListGroupI
 import { Icon } from 'react-fa';
 import PropTypes from 'prop-types';
 import cloneDeep from 'lodash.clonedeep';
+import { GetServiceByNamePromise } from '../utils/getServiceByName';
 
 var elementResizeEvent = require('element-resize-event');
 
@@ -28,6 +29,27 @@ class LayerManagerPanel extends PureComponent {
       initialized: false
     };
   }
+
+  componentDidMount () {
+    const { urls, dispatch, layerActions, layers } = this.props;
+
+    // By default add Countries overlay layer to each panel
+    // The call [...Array(a.length).keys()] generates an array [0, 1, 2, ..., a.length - 1]
+    GetServiceByNamePromise(urls.BACKEND_SERVER_URL, 'OVL').then((url) => {
+      [...Array(layers.panels.length).keys()].map((id) => {
+        dispatch(layerActions.addOverlaysLayer({
+          activeMapId: id,
+          layer: {
+            service: url,
+            title: 'OVL_EXT',
+            name: 'countries',
+            label: 'Countries'
+          }
+        }));
+      });
+    });
+  }
+
   goToNow () {
     const { dispatch, adagucActions } = this.props;
     // eslint-disable-next-line no-undef
@@ -48,7 +70,7 @@ class LayerManagerPanel extends PureComponent {
           title: this.state.activeSource.title,
           name: addItem.name,
           label: addItem.text,
-          opacity: 1,
+          opacity: 0.8,
           active: false
         }
       }));

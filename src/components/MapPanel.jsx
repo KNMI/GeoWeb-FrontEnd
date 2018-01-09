@@ -65,11 +65,11 @@ class MapPanel extends PureComponent {
   componentWillMount () {
     GetServiceByNamePromise(this.props.urls.BACKEND_SERVER_URL, 'HARM_N25').then(
       (serviceURL) => {
-        console.log('MapPanel.jsx serviceURL:' + serviceURL);
+        // console.log('MapPanel.jsx serviceURL:' + serviceURL);
         try {
           let referenceTimeRequestURL = serviceURL + '&SERVICE=WMS&VERSION=1.3.0&REQUEST=GetReferenceTimes&LAYERS=air_temperature__at_2m';
           return axios.get(referenceTimeRequestURL).then((r) => {
-            console.log('MapPanel.jsx SUCCESS', moment.utc(r.data[0]).format());
+            // console.log('MapPanel.jsx SUCCESS', moment.utc(r.data[0]).format());
             this.setState({ referenceTime: moment.utc(r.data[0]) });
           });
         } catch (e) {

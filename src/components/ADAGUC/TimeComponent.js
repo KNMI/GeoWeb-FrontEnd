@@ -68,7 +68,6 @@ export default class TimeComponent extends PureComponent {
         continue;
       }
       if (activeLayer) {
-        // ctx.fillStyle = '#beeef0';
         ctx.fillStyle = '#d9edf7';
         ctx.strokeStyle = '#888';
         ctx.fillRect(0, y + 0.5, canvasWidth, blockHeight);
@@ -88,13 +87,11 @@ export default class TimeComponent extends PureComponent {
           const sndVal = dim.getValueForIndex(q + 1);
 
           // Check if actual dates are coming back
-          if (fstVal.length !== 20 || fstVal[19] !== 'Z' || fstVal[10] !== 'T' ||
-              sndVal.length !== 20 || sndVal[19] !== 'Z' || sndVal[10] !== 'T') {
-            continue;
+          if (fstVal.length === 20 && fstVal[19] === 'Z' && fstVal[10] === 'T' &&
+              sndVal.length === 20 && sndVal[19] === 'Z' && sndVal[10] === 'T') {
+            layerTimeIndex = this.canvasDateInterval.getTimeStepFromISODate(fstVal);
+            layerTimeIndexNext = this.canvasDateInterval.getTimeStepFromISODate(sndVal);
           }
-
-          layerTimeIndex = this.canvasDateInterval.getTimeStepFromISODate(fstVal);
-          layerTimeIndexNext = this.canvasDateInterval.getTimeStepFromISODate(sndVal);
         } catch (error) {
           console.error('Layer probably does not have a time dimension');
           console.error(error);
@@ -244,13 +241,12 @@ export default class TimeComponent extends PureComponent {
     if (typeof value === 'string') {
       return value;
     }
-    let iso = prf(value.year, 4) +
+    return prf(value.year, 4) +
     '-' + prf(value.month, 2) +
     '-' + prf(value.day, 2) +
     'T' + prf(value.hour, 2) +
     ':' + prf(value.minute, 2) +
     ':' + prf(value.second, 2) + 'Z';
-    return iso;
   }
   /* istanbul ignore next */
   setNewDate (value) {
@@ -260,7 +256,9 @@ export default class TimeComponent extends PureComponent {
     const isodate = this.toISO8601(value);
     // eslint-disable-next-line no-undef
     const date = parseISO8601DateToDate(isodate);
-    this.props.dispatch(this.props.adagucActions.setTimeDimension(date.toISO8601()));
+    this.props.dispatch(
+      this.props.adagucActions.setTimeDimension(date.toISO8601())
+    );
     this.eventOnDimChange();
   }
   /* istanbul ignore next */

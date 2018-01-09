@@ -10,8 +10,9 @@ import { PROJECTIONS } from '../constants/projections';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import axios from 'axios';
 import uuidV4 from 'uuid/v4';
-import { Alert, Navbar, NavbarBrand, Row, Col, Nav, NavLink, Breadcrumb, BreadcrumbItem, Collapse, Popover, Form, FormGroup, Label, ListGroup, ListGroupItem, PopoverContent,
+import { Alert, Navbar, NavbarBrand, Row, Col, Nav, NavLink, Breadcrumb, BreadcrumbItem, Collapse, Popover, Form, FormGroup, FormFeedback, Label, ListGroup, ListGroupItem, PopoverContent,
   PopoverTitle, ButtonGroup, InputGroupButton, Modal, ModalHeader, ModalBody, ModalFooter, Button, InputGroup, Input, FormText } from 'reactstrap';
+import { AvForm, AvFeedback, AvRadioGroup, AvRadio, AvField, AvGroup } from 'availity-reactstrap-validation';
 import { Link, hashHistory } from 'react-router';
 import PropTypes from 'prop-types';
 import moment from 'moment';
@@ -48,7 +49,6 @@ class TitleBarContainer extends PureComponent {
     this.checkCredentialsBadCallback = this.checkCredentialsBadCallback.bind(this);
     this.getServices = this.getServices.bind(this);
     this.render = this.render.bind(this);
-    this.componentDidUpdate = this.componentDidUpdate.bind(this);
     this.inputfieldUserName = '';
     this.inputfieldPassword = '';
     this.timer = -1;
@@ -647,7 +647,7 @@ class TitleBarContainer extends PureComponent {
     </Modal>);
   }
 
-  sendFeedback () {
+  sendFeedback (e, formValues) {
     const numLogs = myLogs.length;
     const { urls } = this.props;
 
@@ -656,18 +656,13 @@ class TitleBarContainer extends PureComponent {
       url: window.location.href,
       config: { ...require('config'), backend_url: urls.BACKEND_SERVER_URL },
       userAgent: navigator.userAgent,
-      descriptions: {
-        short: this.shortDescription,
-        long: this.longDescription
-      },
+      descriptions: {...formValues},
       latestLogs: myLogs.slice(Math.max(0, numLogs - 100)).reverse()
     };
-
-    // TODO send this to the webserver for further distribution
     axios({
       method: 'post',
-      url: urls.WEBSERVER_URL + '/cgi-bin/geoweb/receiveFeedback.cgi',
-      data: JSON.stringify(feedbackObj, null, 2)
+      url: urls.WEBSERVER_URL + '/admin/receiveFeedback',
+      data: feedbackObj
     }).then((res) => { this.setState({ feedbackModalOpen: false }); });
   }
 
@@ -675,34 +670,59 @@ class TitleBarContainer extends PureComponent {
     return (<Modal isOpen={feedbackModalOpen} toggle={toggle}>
       <ModalHeader>Tell us what happened</ModalHeader>
       <ModalBody>
-        <Form>
-          <FormGroup>
-            <Label for='activity'>What were you doing?</Label>
-            <Input onChange={(evt) => { this.shortDescription = evt.target.value; }} type='text' name='activity' placeholder='Short description' />
-          </FormGroup>
-          <FormGroup>
-            <Label for='description'>What happened?</Label>
-            <Input onChange={(evt) => { this.longDescription = evt.target.value; }} type='textarea' name='description' placeholder='Long description' />
-          </FormGroup>
-        </Form>
+        <AvForm onValidSubmit={this.sendFeedback}>
+          <AvGroup>
+            <Label for='problemSummary'>What is the problem? *</Label>
+            <AvField validate={{ required: { value: true, errorMessage: 'A problem summary is required.' } }}
+              type='text' name='problemSummary' placeholder="Summarize the problem, e.g. 'Progtemp is broken'." />
+          </AvGroup>
+          <AvGroup>
+            <Label for='problemDescription'>What happened? *</Label>
+            <AvField validate={{ required: { value: true, errorMessage: 'A more detailed problem description is required.' } }} type='textarea'
+              name='problemDescription' placeholder='Describe what you were doing, what went wrong, and what do you think that should have happened instead.' />
+          </AvGroup>
+          <AvGroup>
+            <Label for='role'>What are you? *</Label>
+            <AvRadioGroup name='role' required>
+              <Row>
+                <Col>
+                  <AvRadio label='Meteorologist' value='Meteorologist' id='meteoRole' />
+                  <AvRadio label='Administrator' value='Administrator' id='adminRole' />
+                </Col><Col>
+                  <AvRadio label='Process operator' value='Process operator' id='operatorRole' />
+                  <AvRadio label='Researcher' value='Researcher' id='researchRole' />
+                </Col>
+              </Row>
+            </AvRadioGroup>
+          </AvGroup>
+          <AvGroup>
+            <Label for='feedbackName'>Who are you? (optional)
+              <br />
+              <Alert style={{ 'color': '#818182', 'padding': 0, 'marginBottom': 0 }} color='light'>
+                Someone from GeoWeb might contact you to help us solve the issue.
+              </Alert>
+            </Label>
+            <AvField type='text' name='feedbackName' placeholder='Your name' />
+          </AvGroup>
+          <Row style={{ width: '100%' }}>
+            <Col />
+            <Col xs='auto' style={{ marginRight: '0.4rem' }}>
+              <Button color='primary' className='signInOut'>
+                <Icon className='icon' name='paper-plane' />
+               Send to developers
+              </Button>
+            </Col>
+            <Col xs='auto'>
+              <Button color='secondary' onClick={toggle}>Cancel</Button>
+            </Col>
+          </Row>
+        </AvForm>
       </ModalBody>
       <ModalFooter style={{ flexDirection: 'column' }}>
         <Row style={{ width: '100%' }}>
           <Alert style={{ 'color': '#818182', 'padding': 0 }} color='light'>
-            Technical diagnostics will be sent with your error report to help us debug the problem.
+            Technical diagnostics will be sent with your error report to help us debug the problem. An asterisk (*) indicates a required field.
           </Alert>
-        </Row>
-        <Row style={{ width: '100%' }}>
-          <Col />
-          <Col xs='auto' style={{ marginRight: '0.4rem' }}>
-            <Button color='primary' onClick={this.sendFeedback} className='signInOut'>
-              <Icon className='icon' name='paper-plane' />
-             Send to developers
-            </Button>
-          </Col>
-          <Col xs='auto'>
-            <Button color='secondary' onClick={toggle}>Cancel</Button>
-          </Col>
         </Row>
       </ModalFooter>
     </Modal>);
@@ -779,7 +799,7 @@ class TitleBarContainer extends PureComponent {
             <Nav>
               <NavLink className='active' onClick={this.toggleLoginModal} ><Icon name='user' id='loginIcon' />{isLoggedIn ? ' ' + username : ' Sign in'}</NavLink>
               {hasRoleADMIN ? <Link to='manage' className='active nav-link'><Icon name='cog' /></Link> : '' }
-              <NavLink className='active' onClick={this.toggleFeedbackModal}><Icon name='exclamation-triangle' /> Report error</NavLink>
+              <NavLink className='active' onClick={this.toggleFeedbackModal}><Icon name='exclamation-triangle' /> Report problem</NavLink>
               <LayoutDropDown savePreset={this.savePreset} mapActions={this.props.mapActions} presets={this.state.presets} onChangeServices={this.getServices}
                 layerActions={this.props.layerActions} mapProperties={this.props.mapProperties} dispatch={this.props.dispatch} />
               <NavLink className='active' onClick={this.toggleFullscreen} ><Icon name='expand' /></NavLink>
@@ -876,8 +896,14 @@ class LayoutDropDown extends PureComponent {
     const { dispatch, layerActions, mapActions } = this.props;
     const thePreset = preset[0];
     if (thePreset.area) {
-      if (thePreset.projection || thePreset.area.projection) {
-        dispatch(mapActions.setCut({ name: 'Custom', bbox: [0, thePreset.area.bottom, 1, thePreset.area.top], projection: { code: 'EPSG:3857', name: 'Mercator' } }));
+      if (thePreset.crs || thePreset.area.crs) {
+        dispatch(mapActions.setCut({
+          name: 'Custom',
+          bbox: [thePreset.area.left, thePreset.area.bottom, thePreset.area.right, thePreset.area.top],
+          projection: { code: thePreset.crs || thePreset.area.crs || 'EPSG:3857', name: 'Mercator' }
+        }));
+      } else {
+        dispatch(mapActions.setCut({ name: 'Custom', bbox: [thePreset.area.left, thePreset.area.bottom, thePreset.area.right, thePreset.area.top] }));
       }
     }
     if (thePreset.display) {
