@@ -49,7 +49,6 @@ class TitleBarContainer extends PureComponent {
     this.checkCredentialsBadCallback = this.checkCredentialsBadCallback.bind(this);
     this.getServices = this.getServices.bind(this);
     this.render = this.render.bind(this);
-    this.componentDidUpdate = this.componentDidUpdate.bind(this);
     this.inputfieldUserName = '';
     this.inputfieldPassword = '';
     this.timer = -1;
@@ -685,14 +684,15 @@ class TitleBarContainer extends PureComponent {
           <AvGroup>
             <Label for='role'>What are you? *</Label>
             <AvRadioGroup name='role' required>
-              <div style={{ float: 'left' }}>
-                <AvRadio label='Meteorologist' value='Meteorologist' id='meteoRole' />
-                <AvRadio label='Administrator' value='Administrator' id='adminRole' />
-              </div>
-              <div style={{ marginLeft: '12.5rem' }}>
-                <AvRadio label='Process operator' value='Process operator' id='operatorRole' />
-                <AvRadio label='Researcher' value='Researcher' id='researchRole' />
-              </div>
+              <Row>
+                <Col>
+                  <AvRadio label='Meteorologist' value='Meteorologist' id='meteoRole' />
+                  <AvRadio label='Administrator' value='Administrator' id='adminRole' />
+                </Col><Col>
+                  <AvRadio label='Process operator' value='Process operator' id='operatorRole' />
+                  <AvRadio label='Researcher' value='Researcher' id='researchRole' />
+                </Col>
+              </Row>
             </AvRadioGroup>
           </AvGroup>
           <AvGroup>

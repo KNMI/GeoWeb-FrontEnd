@@ -92,6 +92,12 @@ export default handleActions({
   },
   [ADD_OVERLAY_LAYER]: (state, { payload }) => {
     const activeMapId = payload.activeMapId;
+    const currentOverlays = state.panels[activeMapId].overlays;
+
+    // Dont add it if it is already in the panel
+    if (currentOverlays.some((layer) => layer.service === payload.layer.service && layer.name === payload.layer.name)) {
+      return state;
+    }
     const newLayers = [payload.layer, ...state.panels[activeMapId].overlays];
     const newPanel = { ...state.panels[activeMapId], overlays: newLayers };
     const newPanels = [...state.panels];

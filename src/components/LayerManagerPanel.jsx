@@ -31,33 +31,12 @@ class LayerManagerPanel extends PureComponent {
   }
 
   componentDidMount () {
-    const { urls, dispatch, layerActions } = this.props;
-    const contains = (objArr, objField) => {
-      let anyContains = false;
-      objArr.map((obj) => {
-        const thisContains = Object.values(obj).some((elem) => elem === objField);
-        if (thisContains) {
-          anyContains = true;
-        }
-      });
-      return anyContains;
-    };
-    const { layers } = this.props;
-    const { panels } = layers;
-    let allContains = true;
-    const missingIndices = [];
-    panels.map((panel, i) => {
-      if (!contains(panel.overlays, 'Countries')) {
-        allContains = false;
-        missingIndices.push(i);
-      }
-    });
+    const { urls, dispatch, layerActions, layers } = this.props;
 
-    if (allContains) {
-      return;
-    }
+    // By default add Countries overlay layer to each panel
+    // The call [...Array(a.length).keys()] generates an array [0, 1, 2, ..., a.length - 1]
     GetServiceByNamePromise(urls.BACKEND_SERVER_URL, 'OVL').then((url) => {
-      missingIndices.map((id) => {
+      [...Array(layers.panels.length).keys()].map((id) => {
         dispatch(layerActions.addOverlaysLayer({
           activeMapId: id,
           layer: {

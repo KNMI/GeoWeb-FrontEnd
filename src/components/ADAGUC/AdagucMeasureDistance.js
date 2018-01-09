@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { haverSine } from '../../utils/Distance';
+import { drawVertice } from '../../utils/DrawUtils';
 
 export const ADAGUCMEASUREDISTANCE_EDITING = 'ADAGUCMEASUREDISTANCE_EDITING';
 export const ADAGUCMEASUREDISTANCE_UPDATE = 'ADAGUCMEASUREDISTANCE_UPDATE';
@@ -8,47 +9,12 @@ export const ADAGUCMEASUREDISTANCE_UPDATE = 'ADAGUCMEASUREDISTANCE_UPDATE';
 export default class AdagucMeasureDistance extends PureComponent {
   constructor () {
     super();
-    this.drawVertice = this.drawVertice.bind(this);
     this.drawTextBG = this.drawTextBG.bind(this);
     this.adagucBeforeDraw = this.adagucBeforeDraw.bind(this);
     this.adagucMouseMove = this.adagucMouseMove.bind(this);
     this.adagucMouseDown = this.adagucMouseDown.bind(this);
     this.adagucMouseUp = this.adagucMouseUp.bind(this);
     this.handleKeyDown = this.handleKeyDown.bind(this);
-  }
-
-  /* istanbul ignore next */
-  drawVertice (ctx, coord, selected, middle) {
-    let w = 7;
-    if (this.props.isInEditMode === false) {
-      /* Standard style, no editing, just display location of vertices */
-      ctx.strokeStyle = '#000';
-      ctx.fillStyle = '#000';
-      ctx.lineWidth = 1.0;
-      w = 5;
-    } else if (selected === false) {
-      if (middle === true) {
-        /* Style for middle editable vertice */
-        ctx.strokeStyle = '#000';
-        ctx.fillStyle = '#D87502';
-        ctx.lineWidth = 1.0;
-      } else {
-        /* Style for standard editable vertice */
-        ctx.strokeStyle = '#000';
-        ctx.fillStyle = '#0275D8';
-        ctx.lineWidth = 1.0;
-      }
-    } else {
-      /* Style for selected editable vertice */
-      ctx.strokeStyle = '#000';
-      ctx.fillStyle = '#FF0';
-      ctx.lineWidth = 1.0;
-      w = 11;
-    }
-    ctx.globalAlpha = 1.0;
-    ctx.fillRect(coord.x - w / 2, coord.y - w / 2, w, w);
-    ctx.strokeRect(coord.x - w / 2, coord.y - w / 2, w, w);
-    ctx.strokeRect(coord.x - 0.5, coord.y - 0.5, 1, 1);
   }
 
   /* istanbul ignore next */
@@ -87,8 +53,8 @@ export default class AdagucMeasureDistance extends PureComponent {
     ctx.lineTo(lineStop.x, lineStop.y);
     ctx.stroke();
 
-    this.drawVertice(ctx, lineStart, false, false);
-    this.drawVertice(ctx, lineStop, false, false);
+    drawVertice(ctx, lineStart, false, false, true);
+    drawVertice(ctx, lineStop, false, false, true);
     const mx = (lineStart.x + lineStop.x) / 2;
     const my = (lineStart.y + lineStop.y) / 2;
     ctx.strokeStyle = '#000';
@@ -176,13 +142,6 @@ export default class AdagucMeasureDistance extends PureComponent {
     }
   }
 
-  /* istanbul ignore next */
-  componentWillReceiveProps () {
-    // if (this.props.webmapjs !== undefined) {
-    //   this.props.webmapjs.draw('AdagucMeasureDistance::componentWillReceiveProps');
-    // }
-  }
-
   componentWillMount () {
     document.addEventListener('keydown', this.handleKeyDown);
   }
@@ -206,16 +165,13 @@ export default class AdagucMeasureDistance extends PureComponent {
     if (this.disabled === undefined) {
       this.disabled = true;
     }
-    if (webmapjs !== undefined) {
-      if (this.listenersInitialized === undefined) {
-        this.listenersInitialized = true;
-        webmapjs.addListener('beforecanvasdisplay', this.adagucBeforeDraw, true);
-        webmapjs.addListener('beforemousemove', this.adagucMouseMove, true);
-        webmapjs.addListener('beforemousedown', this.adagucMouseDown, true);
-        webmapjs.addListener('beforemouseup', this.adagucMouseUp, true);
-        this.disabled = false;
-      }
-      // webmapjs.draw('AdagucMeasureDistance::render');
+    if (webmapjs !== undefined && this.listenersInitialized === undefined) {
+      this.listenersInitialized = true;
+      webmapjs.addListener('beforecanvasdisplay', this.adagucBeforeDraw, true);
+      webmapjs.addListener('beforemousemove', this.adagucMouseMove, true);
+      webmapjs.addListener('beforemousedown', this.adagucMouseDown, true);
+      webmapjs.addListener('beforemouseup', this.adagucMouseUp, true);
+      this.disabled = false;
     }
     return <div />;
   }

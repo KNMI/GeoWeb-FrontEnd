@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import Enum from 'es6-enum';
-
+import { drawVertice } from '../../utils/DrawUtils';
 export default class AdagucMapDraw extends PureComponent {
   constructor () {
     super();
@@ -38,41 +38,6 @@ export default class AdagucMapDraw extends PureComponent {
       XYCoords.push(coord);
     }
     return XYCoords;
-  }
-
-  /* Function for drawing vertices with several styles */
-  /* istanbul ignore next */
-  drawVertice (ctx, coord, selected, middle) {
-    let w = 7;
-    if (this.props.isInEditMode === false) {
-      /* Standard style, no editing, just display location of vertices */
-      ctx.strokeStyle = '#000';
-      ctx.fillStyle = '#000';
-      ctx.lineWidth = 1.0;
-      w = 5;
-    } else if (selected === false) {
-      if (middle === true) {
-        /* Style for middle editable vertice */
-        ctx.strokeStyle = '#000';
-        ctx.fillStyle = '#D87502';
-        ctx.lineWidth = 1.0;
-      } else {
-        /* Style for standard editable vertice */
-        ctx.strokeStyle = '#000';
-        ctx.fillStyle = '#0275D8';
-        ctx.lineWidth = 1.0;
-      }
-    } else {
-      /* Style for selected editable vertice */
-      ctx.strokeStyle = '#000';
-      ctx.fillStyle = '#FF0';
-      ctx.lineWidth = 1.0;
-      w = 11;
-    }
-    ctx.globalAlpha = 1.0;
-    ctx.fillRect(coord.x - w / 2, coord.y - w / 2, w, w);
-    ctx.strokeRect(coord.x - w / 2, coord.y - w / 2, w, w);
-    ctx.strokeRect(coord.x - 0.5, coord.y - 0.5, 1, 1);
   }
 
   /* istanbul ignore next */
@@ -144,12 +109,12 @@ export default class AdagucMapDraw extends PureComponent {
 
       /* Draw all vertices on the edges of the polygons */
       for (let j = 0; j < XYCoords.length; j++) {
-        this.drawVertice(ctx, XYCoords[j], this.snappedPolygonIndex === polygonIndex && this.mouseIsOverVertexNr === j);
+        drawVertice(ctx, XYCoords[j], this.snappedPolygonIndex === polygonIndex && this.mouseIsOverVertexNr === j, this.props.isInEditMode);
       }
 
       if (this.props.isInEditMode === true && XYCoords.length >= 3) {
         /* Draw middle vertice for the poly if poly covers an area, e.g. when it contains more than three points */
-        this.drawVertice(ctx, middle, this.snappedPolygonIndex === polygonIndex && this.mouseIsOverVertexNr === this.VERTEX.MIDDLE_POINT_OF_POLYGON, true);
+        drawVertice(ctx, middle, this.snappedPolygonIndex === polygonIndex && this.mouseIsOverVertexNr === this.VERTEX.MIDDLE_POINT_OF_POLYGON, true, this.props.isInEditMode);
       }
     }
   }
@@ -557,9 +522,6 @@ export default class AdagucMapDraw extends PureComponent {
     } else if (this.editMode === this.EDITMODE.DELETE_FEATURES) {
       this.editMode = this.EDITMODE.EMPTY;
     }
-    // if (this.props.webmapjs) {
-    //   this.props.webmapjs.draw('AdagucMapDraw::componentWillReceiveProps');
-    // }
     if (nextProps.isInEditMode === false && nextProps.isInDeleteMode === false) {
       this.editMode = this.EDITMODE.EMPTY;
     }
@@ -570,16 +532,13 @@ export default class AdagucMapDraw extends PureComponent {
     if (this.disabled === undefined) {
       this.disabled = this.props.isInDeleteMode;
     }
-    if (webmapjs !== undefined) {
-      if (this.listenersInitialized === undefined) {
-        this.listenersInitialized = true;
-        webmapjs.addListener('beforecanvasdisplay', this.adagucBeforeDraw, true);
-        webmapjs.addListener('beforemousemove', this.adagucMouseMove, true);
-        webmapjs.addListener('beforemousedown', this.adagucMouseDown, true);
-        webmapjs.addListener('beforemouseup', this.adagucMouseUp, true);
-        this.disabled = false;
-      }
-      // webmapjs.draw('AdagucMapDraw::render');
+    if (webmapjs !== undefined && this.listenersInitialized === undefined) {
+      this.listenersInitialized = true;
+      webmapjs.addListener('beforecanvasdisplay', this.adagucBeforeDraw, true);
+      webmapjs.addListener('beforemousemove', this.adagucMouseMove, true);
+      webmapjs.addListener('beforemousedown', this.adagucMouseDown, true);
+      webmapjs.addListener('beforemouseup', this.adagucMouseUp, true);
+      this.disabled = false;
     }
     return (<div />);
   }

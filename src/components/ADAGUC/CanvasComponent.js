@@ -54,8 +54,12 @@ export default class CanvasComponent extends Component {
     if (!ctx) {
       return;
     }
-    if (parseInt(ctx.canvas.height) !== this.height) ctx.canvas.height = this.height;
-    if (parseInt(ctx.canvas.width) !== this.width) ctx.canvas.width = this.width;
+    if (parseInt(ctx.canvas.height) !== this.height) {
+      ctx.canvas.height = this.height;
+    }
+    if (parseInt(ctx.canvas.width) !== this.width) {
+      ctx.canvas.width = this.width;
+    }
     if (this.props.drawOnce) {
       this.setState({ drawn: true });
     }
