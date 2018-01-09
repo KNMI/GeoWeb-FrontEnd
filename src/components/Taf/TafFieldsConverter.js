@@ -42,7 +42,7 @@ const cavokRegEx = /^CAVOK$/i;
 
 const weatherRegEx = new RegExp('^(' + convertMapToRegExpOptions(qualifierInverseMap) + ')' +
     '(?:(' + convertMapToRegExpOptions(descriptorInverseMap) + ')?)' +
-    '((?:' + convertMapToRegExpOptions(phenomenaInverseMap) + ')*)$', 'i');
+    '((?:' + convertMapToRegExpOptions(phenomenaInverseMap) + '){0,6})$', 'i');
 
 const cloudsRegEx = new RegExp('^(?:(' + convertMapToRegExpOptions(amountInverseMap) + ')' +
     '(\\d{3}))?' +
@@ -109,14 +109,12 @@ const jsonToTacForTimestamp = (timestampAsJson, useFallback = false) => {
 
 const jsonToTacForPeriod = (startTimestampAsJson, endTimestampAsJson, useFallback = false) => {
   let result = null;
-  const periodStart = jsonToTacForTimestamp(startTimestampAsJson, true);
-  const periodEnd = jsonToTacForTimestamp(endTimestampAsJson, true);
+  const periodStart = jsonToTacForTimestamp(startTimestampAsJson, useFallback);
+  const periodEnd = jsonToTacForTimestamp(endTimestampAsJson, useFallback);
   if (periodStart && periodEnd) {
     result = periodStart + '/' + periodEnd;
   } else if (periodStart) {
     result = periodStart;
-  } else if (useFallback && startTimestampAsJson && startTimestampAsJson.hasOwnProperty('fallback')) {
-    result = startTimestampAsJson.fallback.value;
   }
   return result;
 };
@@ -279,7 +277,7 @@ const jsonToTacForClouds = (cloudsAsJson, useFallback = false) => {
         }
       }
     } else {
-      return useFallback && cloudsAsJson.hasOwnProperty('fallback') ? cloudsAsJson.fallback : null;
+      return useFallback && cloudsAsJson.hasOwnProperty('fallback') ? cloudsAsJson.fallback.value : null;
     }
     if (result === null && useFallback) {
       return cloudsAsJson.hasOwnProperty('fallback') ? cloudsAsJson.fallback.value : null;
@@ -310,7 +308,7 @@ const tacToJsonForProbability = (probabilityAsTac, useFallback = false) => {
     }
   }
   if (useFallback && !result && probabilityAsTac && typeof probabilityAsTac === 'string') {
-    result = { fallback: { value: probabilityAsTac, message: 'Probability is not one of the allowed values (' + convertMapToString(probabilityInverseMap) + ').' } };
+    result = { fallback: { value: probabilityAsTac, message: converterMessagesMap.prefix + 'Probability is not one of the allowed values (' + convertMapToString(probabilityInverseMap) + ').' } };
   }
   return result;
 };
@@ -324,7 +322,7 @@ const tacToJsonForChangeType = (changeTypeAsTac, useFallback = false) => {
     }
   }
   if (useFallback && !result && changeTypeAsTac && typeof changeTypeAsTac === 'string') {
-    result = { fallback: { value: changeTypeAsTac, message: '' } };
+    result = { fallback: { value: changeTypeAsTac, message: converterMessagesMap.prefix + 'Change type is not one of the allowed values (' + convertMapToString(typeInverseMap) + ').' } };
   }
   return result;
 };
@@ -353,28 +351,32 @@ const tacToJsonForProbabilityAndChangeType = (probabilityAsTac, changeTypeAsTac,
     }
     if (changeResult && changeResult.hasOwnProperty('fallback') && changeResult.fallback) {
       fallbackValue.change = changeResult.fallback.value;
+      fallbackMessages.push(changeResult.fallback.message);
       if (result) {
         fallbackValue.probability = result;
       }
     }
     if (!isEqual(fallbackValue, {})) {
-      result = { fallback: { value: fallbackValue, message: fallbackMessages.join(',') } };
+      result = { fallback: { value: fallbackValue, message: fallbackMessages.join(' ') } };
     }
   }
   return result;
 };
 
-const tacToJsonForTimestamp = (timestampAsTac, scopeStart, scopeEnd, useFallback = false) => {
+const tacToJsonForTimestamp = (timestampAsTac, scopeStart, scopeEnd, useFallback = false, prefix = true) => {
   let result = null;
   const scopeStartMoment = moment.utc(scopeStart);
   const scopeEndMoment = moment.utc(scopeEnd);
+  let matchResult;
+  let dateValue;
+  let hourValue;
   if (scopeStartMoment.isValid() && scopeEndMoment.isValid() && scopeStartMoment.isBefore(scopeEndMoment) &&
       timestampAsTac && typeof timestampAsTac === 'string') {
-    const matchResult = timestampAsTac.match(timestampRegEx);
+    matchResult = timestampAsTac.match(timestampRegEx);
     if (matchResult) {
       const resultMoment = scopeStartMoment.clone();
-      const dateValue = parseInt(matchResult[1]);
-      const hourValue = parseInt(matchResult[2]);
+      dateValue = parseInt(matchResult[1]);
+      hourValue = parseInt(matchResult[2]);
       resultMoment.date(dateValue).hours(hourValue).minutes(0).seconds(0).milliseconds(0);
       // Only proceed if moment has not bubbled dates overflow to months and not bubbled hours overflow to days
       if (resultMoment.date() === dateValue && resultMoment.hours() === hourValue) {
@@ -386,7 +388,20 @@ const tacToJsonForTimestamp = (timestampAsTac, scopeStart, scopeEnd, useFallback
     }
   }
   if (useFallback && !result && timestampAsTac && typeof timestampAsTac === 'string') {
-    result = { fallback: { value: timestampAsTac, message: converterMessagesMap.changeStart } };
+    const fallbackMessages = [];
+    const prefixMessage = prefix ? converterMessagesMap.prefix + 'Valid period Start ' : '';
+    if (!matchResult) {
+      fallbackMessages.push(prefixMessage + 'is expected to equal 4 digits');
+    } else {
+      if (dateValue < 1 || dateValue > 31) {
+        fallbackMessages.push(prefixMessage + 'should have a date value between 01 and 31.');
+      } else if (hourValue < 0 || hourValue > 23) {
+        fallbackMessages.push(prefixMessage + 'should have an hour value between 00 and 23.');
+      } else {
+        fallbackMessages.push(prefixMessage + 'should equal <date><hour>, with <date> a valid, 2 digit date and <hour> a valid, 2 digit hour');
+      }
+    }
+    result = { fallback: { value: timestampAsTac, message: fallbackMessages } };
   }
   return result;
 };
@@ -399,12 +414,35 @@ const tacToJsonForPeriod = (periodAsTac, scopeStart, scopeEnd, useFallback = fal
   if (periodAsTac && typeof periodAsTac === 'string') {
     const matchResult = periodAsTac.match(periodRegEx);
     if (matchResult) {
-      result.start = tacToJsonForTimestamp(matchResult[1], scopeStart, scopeEnd, useFallback);
-      result.end = tacToJsonForTimestamp(matchResult[2], scopeStart, scopeEnd, useFallback);
+      result.start = tacToJsonForTimestamp(matchResult[1], scopeStart, scopeEnd, useFallback, false);
+      result.end = tacToJsonForTimestamp(matchResult[2], scopeStart, scopeEnd, useFallback, false);
+    }
+  }
+  if (result.start && result.start.hasOwnProperty('fallback')) {
+    if (useFallback) {
+      const startFallbackMessages = [];
+      result.start.fallback.message.map((message) => {
+        startFallbackMessages.push(converterMessagesMap.prefix + 'Valid period Start ' + message);
+      });
+      result.start.fallback.message = startFallbackMessages.join(' ');
+    } else {
+      result.start = null;
+    }
+  }
+  if (result.end && result.end.hasOwnProperty('fallback')) {
+    if (useFallback) {
+      const endFallbackMessages = [];
+      result.end.fallback.message.map((message) => {
+        endFallbackMessages.push(converterMessagesMap.prefix + 'Valid period End ' + message);
+      });
+      result.end.fallback.message = endFallbackMessages.join(' ');
+    } else {
+      result.end = null;
     }
   }
   if (useFallback && isEqual(result, { start: null, end: null }) && periodAsTac && typeof periodAsTac === 'string') {
-    result.start = { fallback: { value: periodAsTac, message: converterMessagesMap.changeStart } };
+    result.start = { fallback: { value: periodAsTac, message: converterMessagesMap.prefix + converterMessagesMap.period } };
+    result.end = null;
   }
   return result;
 };
@@ -518,10 +556,8 @@ const tacToJsonForVerticalVisibility = (verticalVisibilityAsTac, useFallback = f
 };
 
 const converterMessagesMap = {
-  changeType: 'Prob and Change was not recognized. Expected optionally \'PROB\'<2 digits i.e. 30 or 40> for Prob and optionally \'FM\', \'BECMG\' \'TEMPO\' for Change',
-  changeStart: 'Valid period was not recognized. Expected either <2 digits for start date><2 digits for start hour> or' +
-    '<2 digits for start date><2 digits for start hour>\'/\'<2 digits for end date><2 digits for end hour>',
-  changeEnd: 'Valid period was not recognized. Expected either <4 digits for start> or <4 digits for start>\'/\'<4 digits for end>',
+  prefix: 'The input value for ',
+  period: 'Valid period was not recognized. Expected either <timestamp> or <timestamp>/<timestamp>, with <timestamp> equal to 4 digits',
   wind: 'Wind was not recognized. Expected either <3 digits for direction><2 digits for speed>, optionally appended with \'G\'<2 digits for gust speed>, optionally followed by \'KT\' or \'MPS\'',
   visibility: 'Visibility was not recognized. Expected either <4 digits for range>, optionally followed by \'M\' or \'KM\', or \'CAVOK\'',
   weather: 'Weather was not recognized. Expected either an optionally prefix with <1 or 2 character(s) for qualifier>, ' +

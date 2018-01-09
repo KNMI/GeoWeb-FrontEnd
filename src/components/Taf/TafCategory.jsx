@@ -204,12 +204,12 @@ class TafCategory extends Component {
         }
         const pointerParts = fallbackPointers[pointerIndex].split('/');
         pointerParts.shift();
-        let message = 'unknown field';
+        let message = 'The pattern of the input was not recognized.';
         const fallbackedProperty = getNestedProperty(taf, pointerParts);
         if (fallbackedProperty.hasOwnProperty('fallback') && fallbackedProperty.fallback.hasOwnProperty('message')) {
           message = fallbackedProperty.fallback.message;
         }
-        inputParsingReport.errors[fallbackPointers[pointerIndex]].push('The pattern of the input for ' + message);
+        inputParsingReport.errors[fallbackPointers[pointerIndex]].push(message);
         removeNestedProperty(taf, pointerParts);
       }
     } else {

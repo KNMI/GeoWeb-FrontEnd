@@ -206,9 +206,9 @@ class TafTable extends Component {
             });
             propertiesToUpdate[0].propertyPath.push('changeStart');
             propertiesToUpdate[1].propertyPath.push('changeEnd');
-            let value = tacToJsonForTimestamp(element.value, scopeStart, scopeEnd);
-            if (value) {
-              value = { start: value, end: null };
+            let value;
+            if (element.value.length === 4) {
+              value = { start: tacToJsonForTimestamp(element.value, scopeStart, scopeEnd, true), end: null };
             } else {
               value = tacToJsonForPeriod(element.value, scopeStart, scopeEnd, true);
             }
