@@ -5,6 +5,7 @@ import AdagucMeasureDistance from './AdagucMeasureDistance.js';
 import ModelTime from './ModelTime';
 import diff from 'deep-diff';
 import moment from 'moment';
+import cloneDeep from 'lodash.clonedeep';
 import { DefaultLocations } from '../../constants/defaultlocations';
 import { ReadLocations } from '../../utils/admin';
 import { LoadURLPreset } from '../../utils/URLPresets';
@@ -21,6 +22,8 @@ export default class Adaguc extends PureComponent {
     this.onChangeAnimation = this.onChangeAnimation.bind(this);
     this.timeHandler = this.timeHandler.bind(this);
     this.adagucBeforeDraw = this.adagucBeforeDraw.bind(this);
+    this.defineNewWMJSLayer = this.defineNewWMJSLayer.bind(this);
+    this.updateLayersInline = this.updateLayersInline.bind(this);
     this.updateBBOX = debounce(this.updateBBOX.bind(this), 300, false);
     this.state = {
       dropdownOpenView: false,
@@ -58,7 +61,6 @@ export default class Adaguc extends PureComponent {
     this.props.dispatch(this.props.layerActions.setWMJSLayers({ layers: this.webMapJS.getLayers(), baselayers: this.webMapJS.getBaseLayers() }));
   }
 
-  /* istanbul ignore next */
   timeHandler () {
     const wmjstime = this.webMapJS.getDimension('time').currentValue;
     if (!this.prevTime) {
@@ -71,18 +73,20 @@ export default class Adaguc extends PureComponent {
       }
     }
   }
-  /* istanbul ignore next */
   resize () {
     const element = this.refs.adaguccontainer;
     if (element) {
       this.webMapJS.setSize(element.clientWidth, element.clientHeight);
     }
   }
-  /* istanbul ignore next */
   updateBBOX (wmjsmap) {
-    if (!wmjsmap) return;
+    if (!wmjsmap) {
+      return;
+    }
     const bbox = wmjsmap.getBBOX();
-    if (bbox === undefined) return;
+    if (bbox === undefined) {
+      return;
+    }
     const { dispatch, mapActions } = this.props;
     const currBbox = this.props.mapProperties.boundingBox.bbox;
     const currProj = this.props.mapProperties.projection;
@@ -178,7 +182,6 @@ export default class Adaguc extends PureComponent {
     });
   }
 
-  /* istanbul ignore next */
   componentWillUnmount () {
     this.webMapJS.removeListener('beforecanvasdisplay', this.adagucBeforeDraw);
     // Let webmapjs destory itself
@@ -187,7 +190,6 @@ export default class Adaguc extends PureComponent {
     }
   }
 
-  /* istanbul ignore next */
   orderChanged (currLayers, prevLayers) {
     if (currLayers.length !== prevLayers.length) {
       return true;
@@ -201,20 +203,15 @@ export default class Adaguc extends PureComponent {
     }
     return false;
   }
-  /* istanbul ignore next */
   findClosestCursorLoc (event) {
     // Find the latlong from the pixel coordinate
     const latlong = this.webMapJS.getLatLongFromPixelCoord({ x: event.x, y: event.y });
     this.props.dispatch(this.props.adagucActions.setCursorLocation(latlong));
   }
 
-  /* istanbul ignore next */
   updateBoundingBox (boundingBox, prevBoundingBox, projectionCode, prevProjectionCode) {
-    if (boundingBox !== prevBoundingBox) {
-      // eslint-disable-next-line no-undef
-      if (this.webMapJS.setBBOX(boundingBox.bbox.join()) === true) {
-        this.webMapJS.draw('updateBoundingBox');
-      }
+    if (boundingBox !== prevBoundingBox && this.webMapJS.setBBOX(boundingBox.bbox.join()) === true) {
+      this.webMapJS.draw('updateBoundingBox');
     }
 
     if (projectionCode !== prevProjectionCode) {
@@ -223,16 +220,13 @@ export default class Adaguc extends PureComponent {
     }
   }
 
-  /* istanbul ignore next */
   updateTime (timedim, prevTime) {
     if (timedim !== prevTime) {
-      // eslint-disable-next-line no-undef
       this.webMapJS.setDimension('time', timedim, true);
       this.webMapJS.draw('updateTime');
     }
   }
 
-  /* istanbul ignore next */
   updateMapMode (mapMode, prevMapMode, active) {
     // Update mapmode
     if (mapMode !== prevMapMode) {
@@ -284,40 +278,47 @@ export default class Adaguc extends PureComponent {
     return false;
   }
 
+  defineNewWMJSLayer (layer) {
+    const datalayer = cloneDeep(layer);
+    datalayer.enabled = 'enabled' in datalayer ? datalayer.enabled : true;
+    datalayer.active = 'active' in datalayer ? datalayer.active : true;
+    // eslint-disable-next-line no-undef
+    const newDataLayer = new WMJSLayer(datalayer);
+    if (datalayer.active) {
+      this.webMapJS.setActiveLayer(newDataLayer);
+    }
+    newDataLayer.setAutoUpdate(true, moment.duration(2, 'minutes').asMilliseconds(), (layer) => this.updateLayer(layer, datalayer));
+    newDataLayer.onReady = (layer) => this.updateLayer(layer, datalayer);
+    return newDataLayer;
+  }
+
+  updateLayersInline (currDataLayers) {
+    const layers = this.webMapJS.getLayers();
+    for (let i = layers.length - 1; i >= 0; i--) {
+      layers[i].enabled = 'enabled' in currDataLayers[i] ? currDataLayers[i].enabled : true;
+      layers[i].opacity = currDataLayers[i].opacity;
+      layers[i].service = currDataLayers[i].service;
+      layers[i].name = currDataLayers[i].name;
+      layers[i].label = currDataLayers[i].label;
+      layers[i].currentStyle = currDataLayers[i].style || layers[i].currentStyle;
+      if (currDataLayers[i].modellevel) {
+        layers[i].setDimension('modellevel', currDataLayers[i].modellevel.toString());
+      }
+      this.webMapJS.getListener().triggerEvent('onmapdimupdate');
+    }
+  }
+
   // Returns true when the layers are actually different w.r.t. prev layers, otherwise false
   /* istanbul ignore next */
   updateLayers (currDataLayers, prevDataLayers) {
     if (diff(currDataLayers, prevDataLayers)) {
       if (this.orderChanged(currDataLayers, prevDataLayers)) {
         this.webMapJS.stopAnimating();
-        const newDatalayers = currDataLayers.map((datalayer) => {
-          datalayer.enabled = 'enabled' in datalayer ? datalayer.enabled : true;
-          datalayer.active = 'active' in datalayer ? datalayer.active : true;
-          // eslint-disable-next-line no-undef
-          const newDataLayer = new WMJSLayer(datalayer);
-          if (datalayer.active) {
-            this.webMapJS.setActiveLayer(newDataLayer);
-          }
-          newDataLayer.setAutoUpdate(true, moment.duration(2, 'minutes').asMilliseconds(), (layer) => this.updateLayer(layer, datalayer));
-          newDataLayer.onReady = (layer) => this.updateLayer(layer, datalayer);
-          return newDataLayer;
-        });
+        const newDatalayers = currDataLayers.map((datalayer) => this.defineNewWMJSLayer(datalayer));
         this.webMapJS.removeAllLayers();
         newDatalayers.reverse().forEach(layer => this.webMapJS.addLayer(layer));
       } else {
-        const layers = this.webMapJS.getLayers();
-        for (let i = layers.length - 1; i >= 0; i--) {
-          layers[i].enabled = 'enabled' in currDataLayers[i] ? currDataLayers[i].enabled : true;
-          layers[i].opacity = currDataLayers[i].opacity;
-          layers[i].service = currDataLayers[i].service;
-          layers[i].name = currDataLayers[i].name;
-          layers[i].label = currDataLayers[i].label;
-          layers[i].currentStyle = currDataLayers[i].style || layers[i].currentStyle;
-          if (currDataLayers[i].modellevel) {
-            layers[i].setDimension('modellevel', currDataLayers[i].modellevel.toString());
-          }
-          this.webMapJS.getListener().triggerEvent('onmapdimupdate');
-        }
+        this.updateLayersInline(currDataLayers);
       }
       return true;
     }
