@@ -38,7 +38,6 @@ class TitleBarContainer extends PureComponent {
     this.gotTriggersCallback = this.gotTriggersCallback.bind(this);
     this.errorTriggersCallback = this.errorTriggersCallback.bind(this);
     this.toggleLoginModal = this.toggleLoginModal.bind(this);
-    this.togglePresetModal = this.togglePresetModal.bind(this);
     this.toggleFeedbackModal = this.toggleFeedbackModal.bind(this);
     this.toggleSharePresetModal = this.toggleSharePresetModal.bind(this);
     this.handleOnChange = this.handleOnChange.bind(this);
@@ -52,7 +51,6 @@ class TitleBarContainer extends PureComponent {
     this.inputfieldUserName = '';
     this.inputfieldPassword = '';
     this.timer = -1;
-    this.savePreset = this.savePreset.bind(this);
     this.sharePreset = this.sharePreset.bind(this);
     this.makePresetObj = this.makePresetObj.bind(this);
     this.state = {
@@ -60,7 +58,6 @@ class TitleBarContainer extends PureComponent {
       loginModal: this.props.loginModal,
       loginModalMessage: '',
       feedbackModalOpen: false,
-      presetModal: false,
       sharePresetModal: false,
       sharePresetName: ''
     };
@@ -416,9 +413,6 @@ class TitleBarContainer extends PureComponent {
     }
   }
 
-  togglePresetModal () {
-    this.setState({ presetModal: !this.state.presetModal, loginModal: false, feedbackModalOpen: false });
-  }
   toggleFeedbackModal () {
     this.setState({ presetModal: false, loginModal: false, feedbackModalOpen: !this.state.feedbackModalOpen });
   }
@@ -506,41 +500,6 @@ class TitleBarContainer extends PureComponent {
     return dataToSend;
   }
 
-  savePreset (presetName) {
-    // Save all by default now
-    const saveLayers = true; // document.getElementsByName('layerCheckbox')[0].checked;
-    const savePanelLayout = true; // document.getElementsByName('panelCheckbox')[0].checked;
-    const saveBoundingBox = true; // document.getElementsByName('viewCheckbox')[0].checked;
-    const role = document.getElementsByName('roleSelect');
-    const dataToSend = this.makePresetObj(presetName, saveLayers, savePanelLayout, saveBoundingBox, role);
-    let url = this.props.urls.BACKEND_SERVER_URL + '/preset/';
-    let params = {
-      name: presetName
-    };
-    if (role.length === 0) {
-      url += 'putuserpreset';
-    } else {
-      const selectedRole = role[0].options[role[0].selectedIndex].value;
-      if (selectedRole === 'system') {
-        url += 'putsystempreset';
-      } else if (selectedRole === 'user') {
-        url += 'putuserpreset';
-      } else {
-        url += 'putsrolespreset';
-        params['roles'] = selectedRole;
-      }
-    }
-    // console.log(dataToSend, url);
-    return axios({
-      method: 'post',
-      url: url,
-      params: params,
-      withCredentials: true,
-      data: dataToSend
-    });
-    // this.togglePresetModal();
-  }
-
   returnInputRef (ref) {
     this.input = ref;
   }
@@ -564,64 +523,7 @@ class TitleBarContainer extends PureComponent {
     </Modal>);
   };
 
-  renderPresetModal (presetModalOpen, togglePresetModal, hasRoleADMIN) {
-    return (<Modal isOpen={presetModalOpen} toggle={togglePresetModal}>
-      <ModalHeader toggle={togglePresetModal}>Save preset</ModalHeader>
-      <ModalBody>
-        <Form>
-          <FormGroup>
-            <InputGroup>
-              <Input id='presetname' placeholder='Preset name' />
-              <InputGroupButton><Button color='primary' onClick={this.savePreset}><Icon className='icon' name='cloud' />Save</Button></InputGroupButton>
-            </InputGroup>
-          </FormGroup>
-          <FormGroup tag='fieldset' row>
-            <Row>
-              <Col xs='6'>
-                <FormGroup check>
-                  <Label check>
-                    <Input type='checkbox' name='layerCheckbox' />{' '}
-                    Layers
-                  </Label>
-                </FormGroup>
-                <FormGroup check>
-                  <Label check>
-                    <Input type='checkbox' name='panelCheckbox' />{' '}
-                    Panel setting
-                  </Label>
-                </FormGroup>
-                <FormGroup check>
-                  <Label check>
-                    <Input type='checkbox' name='viewCheckbox' />{' '}
-                    View
-                  </Label>
-                </FormGroup>
-              </Col>
-              {hasRoleADMIN
-                ? <Col xs='6'>
-                  <FormGroup>
-                    <Label for='roleSelect'>Save for</Label>
-                    <Input type='select' name='roleSelect' id='roleSelect'>
-                      <option value='user' >Me</option>
-                      <option value='MET'>Role Meteorologist</option>
-                      <option value='system'>System wide</option>
-                    </Input>
-                  </FormGroup>
-                </Col>
-                : ''}
-            </Row>
-          </FormGroup>
-        </Form>
-      </ModalBody>
-      <ModalFooter>
-        <Button color='primary' onClick={this.savePreset}>
-          <Icon className='icon' name='cloud' />
-         Save
-        </Button>
-        <Button color='secondary' onClick={togglePresetModal}>Cancel</Button>
-      </ModalFooter>
-    </Modal>);
-  }
+
   renderLoginModal (loginModalOpen, loginModalMessage, toggleLoginModal, handleOnChange, handleKeyPressPassword) {
     return (<Modal isOpen={loginModalOpen} toggle={toggleLoginModal}>
       <ModalHeader toggle={toggleLoginModal}>Sign in</ModalHeader>
@@ -733,10 +635,6 @@ class TitleBarContainer extends PureComponent {
         <PopoverTitle>Hi {userName}</PopoverTitle>
         <PopoverContent>
           <ButtonGroup vertical style={{ padding: '0.5rem' }}>
-            <Button onClick={this.togglePresetModal} >
-              <Icon className='icon' name='floppy-o' />
-              Save preset
-            </Button>
             <Button onClick={this.sharePreset} >
               <Icon className='icon' name='share-alt' />
               Share preset
@@ -809,7 +707,6 @@ class TitleBarContainer extends PureComponent {
                   this.state.loginModalMessage, this.toggleLoginModal, this.handleOnChange, this.handleKeyPressPassword)
               }
               {this.renderFeedbackModal(this.state.feedbackModalOpen, this.toggleFeedbackModal)}
-              {this.renderPresetModal(this.state.presetModal, this.togglePresetModal, hasRoleADMIN)}
               {this.renderSharePresetModal(this.state.sharePresetModal, this.toggleSharePresetModal, this.state.sharePresetName)}
             </Nav>
           </Col>
