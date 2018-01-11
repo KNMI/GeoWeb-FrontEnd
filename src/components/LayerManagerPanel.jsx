@@ -279,6 +279,9 @@ class LayerManagerPanel extends PureComponent {
     } else {
       const newValInt = parseInt(newVal);
       dispatch(adagucActions.setAnimationLength(newValInt));
+      if (!adagucProperties.animationSettings.animate) {
+        dispatch(adagucActions.toggleAnimation());
+      }
     }
   }
 

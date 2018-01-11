@@ -11,7 +11,7 @@ import CopyToClipboard from 'react-copy-to-clipboard';
 import axios from 'axios';
 import uuidV4 from 'uuid/v4';
 import { Alert, Navbar, NavbarBrand, Row, Col, Nav, NavLink, Breadcrumb, BreadcrumbItem, Collapse, Popover, Form, FormGroup, FormFeedback, Label, ListGroup, ListGroupItem, PopoverContent,
-  PopoverTitle, ButtonGroup, InputGroupButton, Modal, ModalHeader, ModalBody, ModalFooter, Button, InputGroup, Input, FormText } from 'reactstrap';
+  PopoverTitle, InputGroupAddon, ButtonGroup, InputGroupButton, Modal, ModalHeader, ModalBody, ModalFooter, Button, InputGroup, Input, FormText } from 'reactstrap';
 import { AvForm, AvFeedback, AvRadioGroup, AvRadio, AvField, AvGroup } from 'availity-reactstrap-validation';
 import { Link, hashHistory } from 'react-router';
 import PropTypes from 'prop-types';
@@ -51,8 +51,6 @@ class TitleBarContainer extends PureComponent {
     this.inputfieldUserName = '';
     this.inputfieldPassword = '';
     this.timer = -1;
-    this.sharePreset = this.sharePreset.bind(this);
-    this.makePresetObj = this.makePresetObj.bind(this);
     this.state = {
       currentTime: moment().utc().format(timeFormat).toString(),
       loginModal: this.props.loginModal,
@@ -417,112 +415,12 @@ class TitleBarContainer extends PureComponent {
     this.setState({ presetModal: false, loginModal: false, feedbackModalOpen: !this.state.feedbackModalOpen });
   }
   toggleSharePresetModal () {
-    this.setState({ sharePresetModal: !this.state.sharePresetModal, loginModal: false, feedbackModalOpen: false });
-  }
-
-  sharePreset () {
-    this.setState({ loginModal: false });
-    const presetName = uuidV4();
-    const dataToSend = this.makePresetObj(presetName, true, true, true, '');
-    SaveURLPreset(presetName, dataToSend, `${this.props.urls.BACKEND_SERVER_URL}/store/create`, (message) => {
-      if (message.status === 'ok') {
-        this.setState({
-          sharePresetModal: true,
-          sharePresetName: location.protocol + '//' + location.host + location.pathname + '?presetid=' + presetName + location.hash
-        });
-      } else {
-        alert('failed');
-      }
-    });
-  }
-
-  makePresetObj (presetName, saveLayers, savePanelLayout, saveBoundingBox, role) {
-    const { mapProperties } = this.props;
-    const { layout } = mapProperties;
-    let numPanels;
-    if (/quad/.test(layout)) {
-      numPanels = 4;
-    } else if (/triple/.test(layout)) {
-      numPanels = 3;
-    } else if (/dual/.test(layout)) {
-      numPanels = 2;
-    } else {
-      numPanels = 1;
-    }
-
-    const displayObj = {
-      type: layout,
-      npanels: numPanels
-    };
-    const bbox = {
-      left: this.props.mapProperties.boundingBox.bbox[0],
-      bottom: this.props.mapProperties.boundingBox.bbox[1],
-      right: this.props.mapProperties.boundingBox.bbox[2],
-      top: this.props.mapProperties.boundingBox.bbox[3],
-      crs: this.props.mapProperties.projection.code
-    };
-    let layerConfig = [];
-    this.props.layers.panels.forEach((panel, i) => {
-      if (i >= numPanels) {
-        return;
-      }
-      let panelArr = [];
-      panel.layers.forEach((layer) => {
-        panelArr.push({
-          active: true,
-          dimensions: {},
-          service: layer.service,
-          name: layer.name,
-          opacity: layer.opacity,
-          overlay: false
-        });
-      });
-      panel.overlays.forEach((layer) => {
-        panelArr.push({
-          active: true,
-          dimensions: {},
-          service: layer.service,
-          name: layer.name,
-          opacity: 1,
-          overlay: true
-        });
-      });
-      layerConfig.push(panelArr);
-    });
-
-    const dataToSend = {
-      area: saveBoundingBox ? bbox : null,
-      display: savePanelLayout ? displayObj : null,
-      layers: saveLayers ? layerConfig : null,
-      name: presetName,
-      keywords: []
-    };
-    return dataToSend;
+    this.setState({ sharePresetModal: !this.state.sharePresetModal, loginModal: false, feedbackModalOpen: false, popoverOpen: false });
   }
 
   returnInputRef (ref) {
     this.input = ref;
   }
-
-  renderSharePresetModal (sharePresetModelOpen, toggleSharePresetModal, sharePresetName) {
-    return (<Modal isOpen={sharePresetModelOpen} toggle={toggleSharePresetModal}>
-      <ModalHeader toggle={toggleSharePresetModal}> Share preset URL</ModalHeader>
-      <ModalBody >
-        <CopyToClipboard text={sharePresetName} onCopy={toggleSharePresetModal}>
-          <Button color='primary'>
-            <Icon className='icon' name='share-alt' />
-           Copy link to Clipboard
-          </Button>
-        </CopyToClipboard><br /><hr />
-        <p>The link URL is:</p>
-        <a target='_blank' href={sharePresetName}>{sharePresetName}</a><br />
-      </ModalBody>
-      <ModalFooter>
-        <Button color='secondary' onClick={toggleSharePresetModal}>Cancel</Button>
-      </ModalFooter>
-    </Modal>);
-  };
-
 
   renderLoginModal (loginModalOpen, loginModalMessage, toggleLoginModal, handleOnChange, handleKeyPressPassword) {
     return (<Modal isOpen={loginModalOpen} toggle={toggleLoginModal}>
@@ -635,10 +533,6 @@ class TitleBarContainer extends PureComponent {
         <PopoverTitle>Hi {userName}</PopoverTitle>
         <PopoverContent>
           <ButtonGroup vertical style={{ padding: '0.5rem' }}>
-            <Button onClick={this.sharePreset} >
-              <Icon className='icon' name='share-alt' />
-              Share preset
-            </Button>
             <Button onClick={this.doLogout} className='signInOut'>
               <Icon className='icon' name='sign-out' />
              Sign out
@@ -698,8 +592,8 @@ class TitleBarContainer extends PureComponent {
               <NavLink className='active' onClick={this.toggleLoginModal} ><Icon name='user' id='loginIcon' />{isLoggedIn ? ' ' + username : ' Sign in'}</NavLink>
               {hasRoleADMIN ? <Link to='manage' className='active nav-link'><Icon name='cog' /></Link> : '' }
               <NavLink className='active' onClick={this.toggleFeedbackModal}><Icon name='exclamation-triangle' /> Report problem</NavLink>
-              <LayoutDropDown savePreset={this.savePreset} mapActions={this.props.mapActions} presets={this.state.presets} onChangeServices={this.getServices}
-                layerActions={this.props.layerActions} mapProperties={this.props.mapProperties} dispatch={this.props.dispatch} />
+              <LayoutDropDown layers={this.props.layers} savePreset={this.savePreset} mapActions={this.props.mapActions} presets={this.state.presets} onChangeServices={this.getServices}
+                urls={this.props.urls} layerActions={this.props.layerActions} mapProperties={this.props.mapProperties} dispatch={this.props.dispatch} />
               <NavLink className='active' onClick={this.toggleFullscreen} ><Icon name='expand' /></NavLink>
               {isLoggedIn
                 ? this.renderLoggedInPopover(this.state.loginModal, this.toggleLoginModal, username)
@@ -707,7 +601,6 @@ class TitleBarContainer extends PureComponent {
                   this.state.loginModalMessage, this.toggleLoginModal, this.handleOnChange, this.handleKeyPressPassword)
               }
               {this.renderFeedbackModal(this.state.feedbackModalOpen, this.toggleFeedbackModal)}
-              {this.renderSharePresetModal(this.state.sharePresetModal, this.toggleSharePresetModal, this.state.sharePresetName)}
             </Nav>
           </Col>
         </Row>
@@ -720,12 +613,15 @@ class TitleBarContainer extends PureComponent {
 class LayoutDropDown extends PureComponent {
   constructor () {
     super();
+    this.makePresetObj = this.makePresetObj.bind(this);
     this.postLayout = this.postLayout.bind(this);
     this.removeCustomSource = this.removeCustomSource.bind(this);
     this.handleAddSource = this.handleAddSource.bind(this);
     this.setBBOX = this.setBBOX.bind(this);
     this.setPreset = this.setPreset.bind(this);
     this.setProjection = this.setProjection.bind(this);
+    this.sharePreset = this.sharePreset.bind(this);
+    this.renderSharePresetModal = this.renderSharePresetModal.bind(this);
     this.state = {
       popoverOpen: false
     };
@@ -811,6 +707,107 @@ class LayoutDropDown extends PureComponent {
     }
   }
 
+  sharePreset () {
+    this.setState({ popoverOpen: false });
+    const presetName = uuidV4();
+    const dataToSend = this.makePresetObj(presetName, true, true, true, '');
+    SaveURLPreset(presetName, dataToSend, `${this.props.urls.BACKEND_SERVER_URL}/store/create`, (message) => {
+      if (message.status === 'ok') {
+        this.setState({
+          sharePresetModal: true,
+          sharePresetName: location.protocol + '//' + location.host + location.pathname + '?presetid=' + presetName + location.hash
+        });
+      } else {
+        alert('failed');
+      }
+    });
+  }
+
+
+
+  makePresetObj (presetName, saveLayers, savePanelLayout, saveBoundingBox, role) {
+    const { mapProperties } = this.props;
+    const { layout } = mapProperties;
+    let numPanels;
+    if (/quad/.test(layout)) {
+      numPanels = 4;
+    } else if (/triple/.test(layout)) {
+      numPanels = 3;
+    } else if (/dual/.test(layout)) {
+      numPanels = 2;
+    } else {
+      numPanels = 1;
+    }
+
+    const displayObj = {
+      type: layout,
+      npanels: numPanels
+    };
+    const bbox = {
+      left: this.props.mapProperties.boundingBox.bbox[0],
+      bottom: this.props.mapProperties.boundingBox.bbox[1],
+      right: this.props.mapProperties.boundingBox.bbox[2],
+      top: this.props.mapProperties.boundingBox.bbox[3],
+      crs: this.props.mapProperties.projection.code
+    };
+    let layerConfig = [];
+    this.props.layers.panels.forEach((panel, i) => {
+      if (i >= numPanels) {
+        return;
+      }
+      let panelArr = [];
+      panel.layers.forEach((layer) => {
+        panelArr.push({
+          active: true,
+          dimensions: {},
+          service: layer.service,
+          name: layer.name,
+          opacity: layer.opacity,
+          overlay: false
+        });
+      });
+      panel.overlays.forEach((layer) => {
+        panelArr.push({
+          active: true,
+          dimensions: {},
+          service: layer.service,
+          name: layer.name,
+          opacity: 1,
+          overlay: true
+        });
+      });
+      layerConfig.push(panelArr);
+    });
+
+    const dataToSend = {
+      area: saveBoundingBox ? bbox : null,
+      display: savePanelLayout ? displayObj : null,
+      layers: saveLayers ? layerConfig : null,
+      name: presetName,
+      keywords: []
+    };
+    return dataToSend;
+  }
+
+  renderSharePresetModal (sharePresetModelOpen, toggleSharePresetModal, sharePresetName) {
+    return (<Modal isOpen={sharePresetModelOpen} toggle={toggleSharePresetModal}>
+      <ModalHeader toggle={toggleSharePresetModal}> Share preset URL</ModalHeader>
+      <ModalBody >
+        <CopyToClipboard text={sharePresetName} onCopy={toggleSharePresetModal}>
+          <Button color='primary'>
+            <Icon className='icon' name='share-alt' />
+           Copy link to Clipboard
+          </Button>
+        </CopyToClipboard><br /><hr />
+        <p>The link URL is:</p>
+        <a target='_blank' href={sharePresetName}>{sharePresetName}</a><br />
+      </ModalBody>
+      <ModalFooter>
+        <Button color='secondary' onClick={toggleSharePresetModal}>Cancel</Button>
+      </ModalFooter>
+    </Modal>);
+  };
+
   render () {
     const togglePreset = () => this.setState({ popoverOpen: !this.state.popoverOpen });
     const { mapProperties } = this.props;
@@ -822,6 +819,7 @@ class LayoutDropDown extends PureComponent {
     const urls = JSON.parse(localStorage.getItem('geoweb')).personal_urls;
     return <NavLink className='active' onClick={togglePreset}>
       <Icon id='layoutbutton' name='sliders' />
+      {this.renderSharePresetModal(this.state.sharePresetModal, () => { this.setState({ sharePresetModal: !this.state.sharePresetModal }); }, this.state.sharePresetName)}
       <Modal isOpen={this.state.popoverOpen} toggle={togglePreset} style={{ width: '40rem', minWidth: '40rem' }}>
         <ModalHeader>Presets</ModalHeader>
         <ModalBody>
@@ -886,7 +884,7 @@ class LayoutDropDown extends PureComponent {
             </Col>
           </Row>
           <hr />
-          <Row style={{ flexDirection: 'column' }}>
+          <Row>
             <Col>
               <Row>
                 <h5>Location & zoom level</h5>
@@ -938,14 +936,24 @@ class LayoutDropDown extends PureComponent {
               <Row style={{ marginTop: '0.5rem' }}>
                 <InputGroup>
                   <input className='form-control' ref={(ref) => { this.presetNameInput = ref; }} placeholder='Preset name' />
-                  <InputGroupButton onClick={() => {
-                    this.props.savePreset(this.presetNameInput.value)
-                      .then(() => { this.presetNameInput.value = 'Saved preset'; })
-                      .catch(() => { this.presetNameInput.value = 'Error saving preset'; });
-                  }} color='primary'>Save preset</InputGroupButton>
+                  <InputGroupButton>
+                    <Button style={{ minWidth: '9.25rem' }} onClick={() => {
+                      this.props.savePreset(this.presetNameInput.value)
+                        .then(() => { this.presetNameInput.value = 'Saved preset'; })
+                        .catch(() => { this.presetNameInput.value = 'Error saving preset'; });
+                    }} color='primary'><Icon name='star' /> Save preset</Button>
+                  </InputGroupButton>
                 </InputGroup>
               </Row>
             </Col>
+
+          </Row>
+          <Row style={{ marginTop: '0.5rem' }}>
+            <Col />
+            <Col xs='auto'>
+              <Button onClick={this.sharePreset} color='primary'><Icon name='share-alt' /> Share preset</Button>
+            </Col>
+
           </Row>
         </ModalBody>
         <ModalFooter>
