@@ -365,7 +365,6 @@ export default class Adaguc extends PureComponent {
     }
 
     if (animationLength !== null && animationLength !== this.props.adagucProperties.animationSettings.duration) {
-      console.log('dispatch');
       dispatch(adagucActions.setAnimationLength(animationLength));
     }
   }
