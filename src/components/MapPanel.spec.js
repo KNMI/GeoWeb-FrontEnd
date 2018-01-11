@@ -134,6 +134,7 @@ describe('(Component) MapPanel', () => {
       destroy: emptyFunc,
       draw: emptyFunc,
       drawAutomatic: emptyFunc,
+      getActiveLayer: emptyFunc,
       getBaseLayers: emptyFunc,
       getDimension: emptyFunc,
       getLatLongFromPixelCoord: emptyFunc,

@@ -261,31 +261,27 @@ class LayerManagerPanel extends PureComponent {
     const closestTime = timeDimension.getClosestValue(currentTime, true);
     const index = timeDimension.getIndexForValue(closestTime);
     let nextTime;
-    if (direction === 'up')
+    if (direction === 'up') {
       nextTime = timeDimension.getValueForIndex(index + 1);
-    else
+    } else {
       nextTime = timeDimension.getValueForIndex(index - 1);
+    }
     dispatch(adagucActions.setTimeDimension(nextTime));
   }
-  handleDurationUpdate(e) {
-    this.setState({ inputValue: e.target.value });
-  }
-
-  componentDidUpdate(prevProps, prevState) {
-    if (prevState.inputValue !== this.state.inputValue &&
-        this.state.inputValue !== '' && !isNaN(this.state.inputValue) &&
-        this.props.adagucProperties.animationSettings.duration !== this.state.inputValue) {
-      this.props.dispatch(this.props.adagucActions.setAnimationLength(parseInt(this.state.inputValue)));
-
-      if (this.state.wasAnimating && !this.props.adagucProperties.animationSettings.animate) {
-        this.setState({ wasAnimating: false });
-        this.props.dispatch(this.props.adagucActions.toggleAnimation());
+  handleDurationUpdate (e) {
+    const newVal = e.target.value;
+    const { dispatch, adagucActions, adagucProperties } = this.props;
+    if (newVal === '' || newVal === null || newVal === undefined || newVal === '0' || newVal === 0) {
+      if (adagucProperties.animationSettings.animate) {
+        dispatch(adagucActions.toggleAnimation());
       }
-    }
-    if (this.state.inputValue === '' && prevState.inputValue !== '' &&
-        this.props.adagucProperties.animationSettings.animate) {
-      this.setState({ wasAnimating: true });
-      this.props.dispatch(this.props.adagucActions.toggleAnimation());
+      dispatch(adagucActions.setAnimationLength(null));
+    } else {
+      const newValInt = parseInt(newVal);
+      dispatch(adagucActions.setAnimationLength(newValInt));
+      if (!adagucProperties.animationSettings.animate) {
+        dispatch(adagucActions.toggleAnimation());
+      }
     }
   }
 
@@ -298,15 +294,16 @@ class LayerManagerPanel extends PureComponent {
           {this.renderLayerChooser(this.props.adagucProperties.sources)}
           <Col xs='auto' style={{ flexDirection: 'column-reverse', marginRight: '.33rem' }}>
             <Row style={{ alignItems: 'center' }}>
-              <Button style={{ width: '3rem', marginRight: '0.25rem' }} onClick={() => { this.props.dispatch(this.props.adagucActions.toggleAnimation()); }} color='primary' className='row' title='Play animation'>
-                <Icon name={this.props.adagucProperties.animationSettings.animate ? 'pause' : 'play'} />
+              <Button style={{ width: '3rem', marginRight: '0.25rem' }} onClick={() => { this.props.dispatch(this.props.adagucActions.toggleAnimation()); }}
+                color='primary' className='row' title='Play animation'>
+                <Icon name={animationSettings.animate ? 'pause' : 'play'} />
               </Button>
               <Button style={{ width: '3rem', marginRight: '0.5rem' }} onClick={this.goToNow} color='primary' className='row' title='Go to current time'>
                 <Icon name='clock-o' />
               </Button>
               <Row>
-                <Input style={{ maxWidth: '7rem' }} value={this.state.inputValue} onChange={this.handleDurationUpdate}
-                placeholder="Duration" type="number" step="1" min="0" ref={elm=>{this.durationInput=elm}}/>
+                <Input style={{ maxWidth: '7rem' }} value={this.props.adagucProperties.animationSettings.duration} onChange={this.handleDurationUpdate}
+                  placeholder='Duration' type='number' step='1' min='0' ref={elm => { this.durationInput = elm; }} />
               </Row>
             </Row>
             <Row style={{ marginBottom: '.33rem' }}>
@@ -321,10 +318,12 @@ class LayerManagerPanel extends PureComponent {
           </Col>
           <Col style={{ flex: 1, flexDirection: 'column-reverse' }}>
             <Row style={{ flex: 1 }}>
-              <TimeComponent activeMapId={mapProperties.activeMapId} width={this.state.width} panel={layers.panels[mapProperties.activeMapId]} height={this.state.height} timedim={adagucProperties.timeDimension}
-                wmjslayers={layers.wmjsLayers} layerActions={this.props.layerActions} dispatch={dispatch} adagucActions={this.props.adagucActions} ref={(panel) => this.setResizeListener(ReactDOM.findDOMNode(panel))} />
+              <TimeComponent activeMapId={mapProperties.activeMapId} width={this.state.width} panel={layers.panels[mapProperties.activeMapId]}
+                height={this.state.height} timedim={adagucProperties.timeDimension}
+                wmjslayers={layers.wmjsLayers} layerActions={this.props.layerActions}
+                dispatch={dispatch} adagucActions={adagucActions} ref={(panel) => this.setResizeListener(ReactDOM.findDOMNode(panel))} />
               <LayerManager wmjslayers={layers.wmjsLayers} dispatch={dispatch} layerActions={this.props.layerActions}
-                adagucActions={this.props.adagucActions} baselayer={layers.baselayer} panel={layers.panels[mapProperties.activeMapId]} activeMapId={mapProperties.activeMapId} />
+                adagucActions={adagucActions} baselayer={layers.baselayer} panel={layers.panels[mapProperties.activeMapId]} activeMapId={mapProperties.activeMapId} />
             </Row>
             <Row />
           </Col>
