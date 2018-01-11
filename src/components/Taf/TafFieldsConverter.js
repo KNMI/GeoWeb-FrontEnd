@@ -491,7 +491,7 @@ const tacToJsonForWind = (windAsTac, useFallback = false) => {
       if (!windAsTac.match(windGustsRegEx) && windAsTac.toUpperCase().indexOf('G') !== -1) {
         fallbackMessages.push(prefixMessage + 'Gusts should equal (G) followed by 2 digits.');
       }
-      if (!windAsTac.match(windUnitRegEx)) {
+      if (!windAsTac.match(windUnitRegEx) && windAsTac.match(/.+[A-FH-Z]/i)) {
         fallbackMessages.push(prefixMessage + 'Unit is not one of the allowed values (' + convertMapToString(windUnitInverseMap) + ') or it is not the last token.');
       }
     }
@@ -615,7 +615,7 @@ const tacToJsonForVerticalVisibility = (verticalVisibilityAsTac, useFallback = f
 const converterMessagesMap = {
   prefix: 'The input value for ',
   period: 'Valid period was not recognized. Expected either <timestamp> or <timestamp>/<timestamp>, with <timestamp> equal to 4 digits.',
-  wind: 'Wind was not recognized. Expected at least <direction><speed>, with <direction> to equal either 3 digits or VRB and <speed> equal to 2 digits',
+  wind: 'was not recognized. Expected at least <direction><speed>, with <direction> to equal either 3 digits or VRB and <speed> equal to 2 digits',
   visibility: 'was not recognized. Expected either <value>, <value><unit> or (CAVOK), with <value> equal to 4 digits and <unit> ' +
     'one of (' + convertMapToString(visibilityUnitInverseMap) + ').',
   weather: 'Weather was not recognized. Expected either <descriptor>, <qualifier><descriptor>, <phenomena>, <descriptor><phenomena> ' +
