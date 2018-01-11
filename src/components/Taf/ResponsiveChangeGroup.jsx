@@ -17,40 +17,51 @@ class ResponsiveChangeGroup extends PureComponent {
     const columns = [
       {
         name: 'changegroups-' + index + '-probability',
+        label: 'Prob',
         value: tafChangeGroup.hasOwnProperty('changeType') ? jsonToTacForProbability(tafChangeGroup.changeType, true) || '' : '',
+        placeholder: 'probability',
         disabled: false,
         classes: []
       },
       {
         name: 'changegroups-' + index + '-change',
+        label: 'Change',
         value: tafChangeGroup.hasOwnProperty('changeType') ? jsonToTacForChangeType(tafChangeGroup.changeType, true) || '' : '',
+        placeholder: 'persistency',
         disabled: false,
         classes: []
       },
       {
         name: 'changegroups-' + index + '-validity',
+        label: 'Valid Period',
         value: tafChangeGroup.hasOwnProperty('changeStart') && tafChangeGroup.hasOwnProperty('changeEnd') ? jsonToTacForPeriod(tafChangeGroup.changeStart, tafChangeGroup.changeEnd, true) || '' : '',
+        placeholder: 'start/end',
         disabled: false,
         classes: []
       },
       {
         name: 'changegroups-' + index + '-forecast-wind',
+        label: 'Wind',
         value: tafChangeGroup.hasOwnProperty('forecast') && tafChangeGroup.forecast.hasOwnProperty('wind') ? jsonToTacForWind(tafChangeGroup.forecast.wind, true) || '' : '',
+        placeholder: 'wind',
         disabled: !editable,
-        classes: []
+        classes: ['wind']
       },
       {
         name: 'changegroups-' + index + '-forecast-visibility',
+        label: 'Visibility',
         value: (tafChangeGroup.hasOwnProperty('forecast') && (tafChangeGroup.forecast.hasOwnProperty('caVOK') || tafChangeGroup.forecast.hasOwnProperty('visibility')))
           ? jsonToTacForCavok(tafChangeGroup.forecast.caVOK) || (jsonToTacForVisibility(tafChangeGroup.forecast.visibility, true) || '')
           : '',
+        placeholder: 'visibility',
         disabled: !editable,
-        classes: []
+        classes: ['visibility']
       }
     ];
     for (let weatherIndex = 0; weatherIndex < 3; weatherIndex++) {
       columns.push({
         name: 'changegroups-' + index + '-forecast-weather-' + weatherIndex,
+        label: 'Weather',
         value: (tafChangeGroup.hasOwnProperty('forecast') && tafChangeGroup.forecast.hasOwnProperty('weather'))
           ? (Array.isArray(tafChangeGroup.forecast.weather) && tafChangeGroup.forecast.weather.length > weatherIndex
             ? jsonToTacForWeather(tafChangeGroup.forecast.weather[weatherIndex], true) || ''
@@ -58,13 +69,15 @@ class ResponsiveChangeGroup extends PureComponent {
               ? jsonToTacForWeather(tafChangeGroup.forecast.weather, true) || '' // NSW
               : '')
           : '',
+        placeholder: 'weather',
         disabled: !editable || (jsonToTacForWeather(tafChangeGroup.forecast.weather) && weatherIndex !== 0),
-        classes: []
+        classes: ['weather']
       });
     }
     for (let cloudsIndex = 0; cloudsIndex < 4; cloudsIndex++) {
       columns.push({
         name: 'changegroups-' + index + '-forecast-clouds-' + cloudsIndex,
+        label: 'Clouds',
         value: (tafChangeGroup.hasOwnProperty('forecast') && (tafChangeGroup.forecast.hasOwnProperty('vertical_visibility') || tafChangeGroup.forecast.hasOwnProperty('clouds')))
           ? jsonToTacForVerticalVisibility(tafChangeGroup.forecast.vertical_visibility) ||
             (Array.isArray(tafChangeGroup.forecast.clouds) && tafChangeGroup.forecast.clouds.length > cloudsIndex
@@ -73,9 +86,10 @@ class ResponsiveChangeGroup extends PureComponent {
                 ? jsonToTacForClouds(tafChangeGroup.forecast.clouds, true) || '' // NSC
                 : '')
           : '',
+        placeholder: 'clouds',
         disabled: !editable || (jsonToTacForClouds(tafChangeGroup.forecast.clouds) && cloudsIndex !== 0) ||
           (jsonToTacForVerticalVisibility(tafChangeGroup.forecast.vertical_visibility) && cloudsIndex !== 0),
-        classes: [ (jsonToTacForVerticalVisibility(tafChangeGroup.forecast.vertical_visibility) && cloudsIndex !== 0) ? 'hideValue' : null ]
+        classes: [ (jsonToTacForVerticalVisibility(tafChangeGroup.forecast.vertical_visibility) && cloudsIndex !== 0) ? 'clouds hideValue' : 'clouds' ]
       });
     }
     columns.push(
@@ -111,7 +125,7 @@ class ResponsiveChangeGroup extends PureComponent {
 
     return <Row className='changegroup' key={'changeGroupLine-' + index}>
       {columns.map((col) =>
-        <ResponsiveTafCell classes={col.classes} key={col.name} name={col.name} value={col.value} inputRef={inputRef}
+        <ResponsiveTafCell classes={col.classes} key={col.name} name={col.name} label={col.label} value={col.value} placeholder={col.placeholder} inputRef={inputRef}
           disabled={col.disabled} autoFocus={col.autoFocus} isSpan={col.isSpan} isButton={col.isButton} />
       )}
     </Row>;

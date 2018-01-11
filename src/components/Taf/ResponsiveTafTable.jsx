@@ -10,7 +10,6 @@ class ResponsiveTafTable extends SortableContainer(() => {}) {
   constructor (props) {
     super(props);
     this.getBaseLine = this.getBaseLine.bind(this);
-    this.getChangeGroupLine = this.getChangeGroupLine.bind(this);
     this.processValidation = this.processValidation.bind(this);
   }
 
@@ -87,79 +86,6 @@ class ResponsiveTafTable extends SortableContainer(() => {}) {
     </Row>;
   }
 
-  getChangeGroupLine (changegroup, index) {
-    return <Row className='changegroup' key={'changeGroupLine-' + index}>
-      <FormGroup className='col-1'>
-        <Label for={'changegroups-' + index + '-changeType-prob'} size='sm' hidden={index !== 0}>Prob</Label>
-        <Input type='text' name={'changegroups-' + index + '-changeType-prob'} id={'changegroups-' + index + '-changeType-prob'} placeholder={index === 0 ? 'probability' : ''} size='sm' />
-      </FormGroup>
-      <FormGroup className='col-1'>
-        <Label for={'changegroups-' + index + '-changeType-change'} size='sm' hidden={index !== 0}>Change</Label>
-        <Input type='text' name={'changegroups-' + index + '-changeType-change'} id={'changegroups-' + index + '-changeType-change'} placeholder={index === 0 ? 'persistency' : ''} size='sm' />
-      </FormGroup>
-      <FormGroup className='col-1'>
-        <Label for={'changegroups-' + index + '-changePeriod'} size='sm' hidden={index !== 0}>Valid period</Label>
-        <Row>
-          <Col>
-            <Label for={'changegroups-' + index + '-changeStart'} size='sm' hidden>Start</Label>
-            <Input type='text' name={'changegroups-' + index + '-changeStart'} id={'changegroups-' + index + '-changeStart'} placeholder={index === 0 ? 'start' : ''} size='sm' />
-          </Col>
-          <Col xs='auto'>/</Col>
-          <Col>
-            <Label for={'changegroups-' + index + '-changeEnd'} size='sm' hidden>End</Label>
-            <Input type='text' name={'changegroups-' + index + '-changeEnd'} id={'changegroups-' + index + '-changeEnd'} placeholder={index === 0 ? 'end' : ''} size='sm' />
-          </Col>
-        </Row>
-      </FormGroup>
-      <FormGroup className='col-1'>
-        <Label className='wind' for={'changegroups-' + index + '-forecast-wind'} size='sm' hidden={index !== 0}>Wind</Label>
-        <Input type='text' name={'changegroups-' + index + '-forecast-wind'} id={'changegroups-' + index + '-forecast-wind'} placeholder={index === 0 ? 'wind' : ''} size='sm' />
-      </FormGroup>
-      <FormGroup className='col-1'>
-        <Label className='visibility' for={'changegroups-' + index + '-forecast-visibility'} size='sm' hidden={index !== 0}>Visibility</Label>
-        <Input type='text' name={'changegroups-' + index + '-forecast-visibility'} id={'changegroups-' + index + '-forecast-visibility'} placeholder={index === 0 ? 'visibility' : ''} size='sm' />
-      </FormGroup>
-      <FormGroup className='col-3'>
-        <Label className='weather' for='weather' size='sm' hidden={index !== 0}>Weather</Label>
-        <Row>
-          <Col>
-            <Label for={'changegroups-' + index + '-forecast-weather-1'} size='sm' hidden>Weather 1</Label>
-            <Input type='text' name={'changegroups-' + index + '-forecast-weather-1'} id={'changegroups-' + index + '-forecast-weather-1'} placeholder={index === 0 ? 'weather-1' : ''} size='sm' />
-          </Col>
-          <Col>
-            <Label for={'changegroups-' + index + '-forecast-weather-2'} size='sm' hidden>Weather 2</Label>
-            <Input type='text' name={'changegroups-' + index + '-forecast-weather-2'} id={'changegroups-' + index + '-forecast-weather-2'} placeholder={index === 0 ? 'weather-2' : ''} size='sm' />
-          </Col>
-          <Col>
-            <Label for={'changegroups-' + index + '-forecast-weather-3'} size='sm' hidden>Weather 3</Label>
-            <Input type='text' name={'changegroups-' + index + '-forecast-weather-3'} id={'changegroups-' + index + '-forecast-weather-3'} placeholder={index === 0 ? 'weather-3' : ''} size='sm' />
-          </Col>
-        </Row>
-      </FormGroup>
-      <FormGroup className='col-4'>
-        <Label className='clouds' for={'changegroups-' + index + '-forecast-clouds'} size='sm' hidden={index !== 0}>Clouds</Label>
-        <Row>
-          <Col>
-            <Label for={'changegroups-' + index + '-forecast-clouds-1'} size='sm' hidden>Clouds 1</Label>
-            <Input type='text' name={'changegroups-' + index + '-forecast-clouds-1'} id={'changegroups-' + index + '-forecast-clouds-1'} placeholder={index === 0 ? 'clouds-1' : ''} size='sm' />
-          </Col>
-          <Col>
-            <Label for={'changegroups-' + index + '-forecast-clouds-2'} size='sm' hidden>Clouds 2</Label>
-            <Input type='text' name={'changegroups-' + index + '-forecast-clouds-2'} id={'changegroups-' + index + '-forecast-clouds-2'} placeholder={index === 0 ? 'clouds-2' : ''} size='sm' />
-          </Col>
-          <Col>
-            <Label for={'changegroups-' + index + '-forecast-clouds-3'} size='sm' hidden>Clouds 3</Label>
-            <Input type='text' name={'changegroups-' + index + '-forecast-clouds-3'} id={'changegroups-' + index + '-forecast-clouds-3'} placeholder={index === 0 ? 'clouds-3' : ''} size='sm' />
-          </Col>
-          <Col>
-            <Label for={'changegroups-' + index + '-forecast-clouds-4'} size='sm' hidden>Clouds 4</Label>
-            <Input type='text' name={'changegroups-' + index + '-forecast-clouds-4'} id={'changegroups-' + index + '-forecast-clouds-4'} placeholder={index === 0 ? 'clouds-4' : ''} size='sm' />
-          </Col>
-        </Row>
-      </FormGroup>
-    </Row>;
-  }
-
   /**
    * Processes the validationReport into arrays of names of invalid fields
    * @param  {object} validationReport The validation report with JSON-pointers and messages
@@ -203,6 +129,7 @@ class ResponsiveTafTable extends SortableContainer(() => {}) {
               focusedFieldName={focusedFieldName}
               index={index}
               changeGroupIndex={index}
+              editable={editable}
               invalidFields={invalidFields[index] || []} />
           )
           : null}

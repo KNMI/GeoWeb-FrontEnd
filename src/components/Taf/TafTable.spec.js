@@ -132,10 +132,15 @@ describe('(Container) Taf/TafTable.jsx', () => {
     };
     const _instance = _component.instance();
     _instance.updateValue(inputMock);
-    expect(values).to.eql([
-      { propertyPath: [ 'changegroups', '3', 'changeStart' ],
-        propertyValue: { fallback: '0410/04' } },
+    expect(values).to.deep.include(
       { propertyPath: [ 'changegroups', '3', 'changeEnd' ],
-        propertyValue: null } ]);
+        propertyValue: null }
+    );
+    expect(values).to.have.nested.property(
+      '[0].propertyValue.fallback.value', '0410/04'
+    );
+    expect(values).to.have.deep.nested.property(
+      '[0].propertyPath', [ 'changegroups', '3', 'changeStart' ]
+    );
   });
 });

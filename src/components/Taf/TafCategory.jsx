@@ -10,7 +10,7 @@ import getNestedProperty from 'lodash.get';
 import removeNestedProperty from 'lodash.unset';
 import moment from 'moment';
 import { Button, Row, Col, Alert, ListGroup, ListGroupItem } from 'reactstrap';
-import { jsonToTacForWind, jsonToTacForWeather, jsonToTacForClouds, converterMessagesMap } from './TafFieldsConverter';
+import { jsonToTacForWind, jsonToTacForWeather, jsonToTacForClouds } from './TafFieldsConverter';
 import TafTable from './TafTable';
 import ResponsiveTafTable from './ResponsiveTafTable';
 import axios from 'axios';
@@ -189,6 +189,34 @@ class TafCategory extends Component {
     const taf = cloneDeep(tafAsObject);
     const fallbackPointers = [];
     getJsonPointers(taf, (field) => field && field.hasOwnProperty('fallback'), fallbackPointers);
+
+    const inputParsingReport = {};
+    const fallbackPointersLength = fallbackPointers.length;
+    if (fallbackPointersLength > 0) {
+      inputParsingReport.message = 'TAF is not valid';
+      inputParsingReport.succeeded = false;
+      for (let pointerIndex = 0; pointerIndex < fallbackPointersLength; pointerIndex++) {
+        if (!inputParsingReport.hasOwnProperty('errors')) {
+          inputParsingReport.errors = {};
+        }
+        if (!inputParsingReport.errors.hasOwnProperty(fallbackPointers[pointerIndex])) {
+          inputParsingReport.errors[fallbackPointers[pointerIndex]] = [];
+        }
+        const pointerParts = fallbackPointers[pointerIndex].split('/');
+        pointerParts.shift();
+        let message = 'The pattern of the input was not recognized.';
+        const fallbackedProperty = getNestedProperty(taf, pointerParts);
+        if (fallbackedProperty.hasOwnProperty('fallback') && fallbackedProperty.fallback.hasOwnProperty('message')) {
+          message = fallbackedProperty.fallback.message;
+        }
+        inputParsingReport.errors[fallbackPointers[pointerIndex]].push(message);
+        removeNestedProperty(taf, pointerParts);
+      }
+    } else {
+      inputParsingReport.message = 'TAF input is verified';
+      inputParsingReport.succeeded = true;
+    }
+
     const nullPointers = [];
     getJsonPointers(taf, (field) => field === null, nullPointers);
     // TODO: Should this be really necessary?
@@ -205,33 +233,6 @@ class TafCategory extends Component {
     }
     if (getNestedProperty(taf, ['metadata', 'issueTime']) === 'not yet issued') {
       setNestedProperty(taf, ['metadata', 'issueTime'], moment.utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z');
-    }
-
-    const inputParsingReport = {};
-    const fallbackPointersLength = fallbackPointers.length;
-    if (fallbackPointersLength > 0) {
-      inputParsingReport.message = 'TAF is not valid';
-      inputParsingReport.succeeded = false;
-      for (let pointerIndex = 0; pointerIndex < fallbackPointersLength; pointerIndex++) {
-        if (!inputParsingReport.hasOwnProperty('errors')) {
-          inputParsingReport.errors = {};
-        }
-        if (!inputParsingReport.errors.hasOwnProperty(fallbackPointers[pointerIndex])) {
-          inputParsingReport.errors[fallbackPointers[pointerIndex]] = [];
-        }
-        const pointerParts = fallbackPointers[pointerIndex].split('/');
-        pointerParts.shift();
-        let fieldName = pointerParts[pointerParts.length - 1];
-        if (!isNaN(fieldName)) {
-          fieldName = pointerParts[pointerParts.length - 2];
-        }
-        inputParsingReport.errors[fallbackPointers[pointerIndex]].push('The pattern of the input for ' +
-          converterMessagesMap[fieldName]);
-        removeNestedProperty(taf, pointerParts);
-      }
-    } else {
-      inputParsingReport.message = 'TAF input is verified';
-      inputParsingReport.succeeded = true;
     }
 
     axios({
