@@ -18,7 +18,7 @@ export default class ProgtempPopoverComponent extends Component {
     this.clearTypeAhead = this.clearTypeAhead.bind(this);
     this.state = {
       locationDropdownOpen: false,
-      selectedModel: 'HARMONIE'
+      selectedModel: 'Harmonie36'
     };
     this.progtempLocations = DefaultLocations;
     ReadLocations(`${this.props.urls.BACKEND_SERVER_URL}/admin/read`, (data) => {

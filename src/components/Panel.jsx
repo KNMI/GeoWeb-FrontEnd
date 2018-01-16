@@ -91,11 +91,11 @@ class Panel extends PureComponent {
       return <ButtonDropdown size='sm' style={{ marginRight: '0.25rem' }} isOpen={this.state.modelIsOpen} toggle={() => {}}>
         <DropdownToggle caret size='sm'>
           {this.props.referenceTime
-            ? 'HARMONIE - ' + this.props.referenceTime.format('ddd DD, HH:mm UTC')
-            : 'HARMONIE'}
+            ? 'Harmonie36 - ' + this.props.referenceTime.format('ddd DD, HH:mm UTC')
+            : 'Harmonie36'}
         </DropdownToggle>
         <DropdownMenu>
-          <DropdownItem>HARMONIE</DropdownItem>
+          <DropdownItem>Harmonie36</DropdownItem>
         </DropdownMenu>
       </ButtonDropdown>;
     }
