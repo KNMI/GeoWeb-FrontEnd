@@ -1,4 +1,4 @@
-import { windUnitMap, windUnitInverseMap, windUnknownMap, windUnknownInverseMap } from './TafWindMaps';
+import { windUnitMap, windUnitInverseMap, windDirectionMap, windDirectionInverseMap } from './TafWindMaps';
 import { visibilityUnitMap, visibilityUnitInverseMap } from './TafVisibilityMaps';
 import { qualifierMap, qualifierInverseMap, descriptorMap, descriptorInverseMap, phenomenaMap, phenomenaInverseMap } from './TafWeatherMaps';
 import { amountMap, amountInverseMap, modMap, modInverseMap } from './TafCloudsMaps';
@@ -16,6 +16,10 @@ const convertMapToRegExpOptions = (map) => {
   return Object.keys(map).map(elmt => escapeRegExp(elmt)).join('|');
 };
 
+const convertMapToString = (map) => {
+  return Object.keys(map).filter(elmt => !!elmt).join(', ');
+};
+
 const probabilityAndChangeTypeRegEx = new RegExp('^(' + convertMapToRegExpOptions(probabilityInverseMap) + ')?' +
   '\\s?(' + convertMapToRegExpOptions(typeInverseMap) + ')?$', 'i');
 
@@ -27,22 +31,30 @@ const timestampRegEx = /^(\d{2})(\d{2})$/i;
 
 const periodRegEx = /^(\d{4})\/(\d{4})$/i;
 
-const windRegEx = new RegExp('^(\\d{3}|' + convertMapToRegExpOptions(windUnknownInverseMap) + ')' +
+const windRegEx = new RegExp('^(\\d{3}|' + convertMapToRegExpOptions(windDirectionInverseMap) + ')' +
   '(P?\\d{2})' +
   '(?:G(\\d{2}))?' +
   '(?:(' + convertMapToRegExpOptions(windUnitInverseMap) + '))?$', 'i');
+const windDirectionRegEx = new RegExp('^(\\d{3}|' + convertMapToRegExpOptions(windDirectionInverseMap) + ')', 'i');
+const windSpeedRegEx = /.*P?\d{2}/i;
+const windGustsRegEx = /.*G\d{2}/i;
+const windUnitRegEx = new RegExp('.*(' + convertMapToRegExpOptions(windUnitInverseMap) + ')$', 'i');
 
 const visibilityRegEx = new RegExp('^(\\d{4})(?:(' + convertMapToRegExpOptions(visibilityUnitInverseMap) + '))?$', 'i');
+const visibilityUnitRegEx = new RegExp('.*(' + convertMapToRegExpOptions(visibilityUnitInverseMap) + ')$', 'i');
 
 const cavokRegEx = /^CAVOK$/i;
 
 const weatherRegEx = new RegExp('^(' + convertMapToRegExpOptions(qualifierInverseMap) + ')' +
     '(?:(' + convertMapToRegExpOptions(descriptorInverseMap) + ')?)' +
-    '((?:' + convertMapToRegExpOptions(phenomenaInverseMap) + ')*)$', 'i');
+    '((?:' + convertMapToRegExpOptions(phenomenaInverseMap) + '){0,6})$', 'i');
 
 const cloudsRegEx = new RegExp('^(?:(' + convertMapToRegExpOptions(amountInverseMap) + ')' +
     '(\\d{3}))?' +
     '(' + convertMapToRegExpOptions(modInverseMap) + ')?$', 'i');
+const cloudsAmountRegEx = new RegExp('^(' + convertMapToRegExpOptions(amountInverseMap) + ')', 'i');
+const cloudsHeightRegEx = /\D+\d{3}/;
+const cloudsModifierRegEx = new RegExp('.+(' + convertMapToRegExpOptions(modInverseMap) + ')$', 'i');
 
 const verticalVisibilityRegEx = /^VV(\d{3})$/i;
 
@@ -58,10 +70,6 @@ const getMapValue = (name, mapToUse, allCaps = false) => {
   return null;
 };
 
-const numberAsTwoCharacterString = (numberAsNumber) => {
-  return numberAsNumber.toString().padStart(2, '0');
-};
-
 /**
  * JSON to TAC converters
  */
@@ -74,8 +82,8 @@ const jsonToTacForProbability = (probabilityAsJson, useFallback = false) => {
     }
   }
   if (useFallback && !result && probabilityAsJson && probabilityAsJson.hasOwnProperty('fallback')) {
-    if (probabilityAsJson.fallback && probabilityAsJson.fallback.hasOwnProperty('probability')) {
-      result = probabilityAsJson.fallback.probability;
+    if (probabilityAsJson.fallback && probabilityAsJson.fallback.hasOwnProperty('value') && probabilityAsJson.fallback.value.hasOwnProperty('probability')) {
+      result = probabilityAsJson.fallback.value.probability;
     }
   }
   return result;
@@ -90,8 +98,8 @@ const jsonToTacForChangeType = (changeTypeAsJson, useFallback = false) => {
     }
   }
   if (useFallback && !result && changeTypeAsJson && changeTypeAsJson.hasOwnProperty('fallback')) {
-    if (changeTypeAsJson.fallback && changeTypeAsJson.fallback.hasOwnProperty('change')) {
-      result = changeTypeAsJson.fallback.change;
+    if (changeTypeAsJson.fallback && changeTypeAsJson.fallback.hasOwnProperty('value') && changeTypeAsJson.fallback.value.hasOwnProperty('change')) {
+      result = changeTypeAsJson.fallback.value.change;
     }
   }
   return result;
@@ -102,21 +110,19 @@ const jsonToTacForTimestamp = (timestampAsJson, useFallback = false) => {
   if (timestampAsJson && typeof timestampAsJson === 'string' && moment(timestampAsJson).isValid()) {
     result = moment.utc(timestampAsJson).format('DDHH');
   } else if (useFallback && timestampAsJson && timestampAsJson.hasOwnProperty('fallback')) {
-    result = timestampAsJson.fallback;
+    result = timestampAsJson.fallback.value;
   }
   return result;
 };
 
 const jsonToTacForPeriod = (startTimestampAsJson, endTimestampAsJson, useFallback = false) => {
   let result = null;
-  const periodStart = jsonToTacForTimestamp(startTimestampAsJson, true);
-  const periodEnd = jsonToTacForTimestamp(endTimestampAsJson, true);
+  const periodStart = jsonToTacForTimestamp(startTimestampAsJson, useFallback);
+  const periodEnd = jsonToTacForTimestamp(endTimestampAsJson, useFallback);
   if (periodStart && periodEnd) {
     result = periodStart + '/' + periodEnd;
   } else if (periodStart) {
     result = periodStart;
-  } else if (useFallback && startTimestampAsJson && startTimestampAsJson.hasOwnProperty('fallback')) {
-    result = startTimestampAsJson.fallback;
   }
   return result;
 };
@@ -130,45 +136,45 @@ const jsonToTacForWind = (windAsJson, useFallback = false) => {
     if (typeof windAsJson.direction === 'number') {
       result = windAsJson.direction.toString().padStart(3, '0');
     } else if (typeof windAsJson.direction === 'string') {
-      result = getMapValue(windAsJson.direction, windUnknownMap);
+      result = getMapValue(windAsJson.direction, windDirectionMap);
       if (!result) {
-        return useFallback && windAsJson.hasOwnProperty('fallback') ? windAsJson.fallback : null;
+        return useFallback && windAsJson.hasOwnProperty('fallback') ? windAsJson.fallback.value : null;
       }
     } else {
-      return useFallback && windAsJson.hasOwnProperty('fallback') ? windAsJson.fallback : null;
+      return useFallback && windAsJson.hasOwnProperty('fallback') ? windAsJson.fallback.value : null;
     }
   } else {
-    return useFallback && windAsJson.hasOwnProperty('fallback') ? windAsJson.fallback : null;
+    return useFallback && windAsJson.hasOwnProperty('fallback') ? windAsJson.fallback.value : null;
   }
   if (windAsJson.hasOwnProperty('speed')) {
     if (typeof windAsJson.speed === 'number') {
       result += windAsJson.speed.toString().padStart(2, '0');
-    } else if (typeof windAsJson.speed === 'string' && /^P\d9$/i.test(windAsJson.speed)) {
+    } else if (typeof windAsJson.speed === 'string' && /^P\d{2}$/i.test(windAsJson.speed)) {
       result += windAsJson.speed;
     } else {
-      return useFallback && windAsJson.hasOwnProperty('fallback') ? windAsJson.fallback : null;
+      return useFallback && windAsJson.hasOwnProperty('fallback') ? windAsJson.fallback.value : null;
     }
   } else {
-    return useFallback && windAsJson.hasOwnProperty('fallback') ? windAsJson.fallback : null;
+    return useFallback && windAsJson.hasOwnProperty('fallback') ? windAsJson.fallback.value : null;
   }
   if (windAsJson.hasOwnProperty('gusts')) {
     if (typeof windAsJson.gusts === 'number') {
       result += 'G' + windAsJson.gusts.toString().padStart(2, '0');
     }
   } else {
-    return useFallback && windAsJson.hasOwnProperty('fallback') ? windAsJson.fallback : null;
+    return useFallback && windAsJson.hasOwnProperty('fallback') ? windAsJson.fallback.value : null;
   }
   if (windAsJson.hasOwnProperty('unit')) {
     if (typeof windAsJson.unit === 'string') {
       const unit = getMapValue(windAsJson.unit, windUnitMap);
       if (!unit) {
-        return useFallback && windAsJson.hasOwnProperty('fallback') ? windAsJson.fallback : null;
+        return useFallback && windAsJson.hasOwnProperty('fallback') ? windAsJson.fallback.value : null;
       } else if (!(unit === windUnitMap.KT)) { // Skip default unit
         result += unit;
       }
     }
   } else {
-    return useFallback && windAsJson.hasOwnProperty('fallback') ? windAsJson.fallback : null;
+    return useFallback && windAsJson.hasOwnProperty('fallback') ? windAsJson.fallback.value : null;
   }
   return result;
 };
@@ -181,17 +187,17 @@ const jsonToTacForVisibility = (visibilityAsJson, useFallback = false) => {
   if (visibilityAsJson.hasOwnProperty('value') && typeof visibilityAsJson.value === 'number') {
     result = visibilityAsJson.value.toString().padStart(4, '0');
   } else if (useFallback && visibilityAsJson.hasOwnProperty('fallback')) {
-    result = visibilityAsJson.fallback;
+    result = visibilityAsJson.fallback.value;
   }
   if (visibilityAsJson.hasOwnProperty('unit')) {
     const unit = getMapValue(visibilityAsJson.unit, visibilityUnitMap);
     if (!unit) {
-      return useFallback && visibilityAsJson.hasOwnProperty('fallback') ? visibilityAsJson.fallback : null;
+      return useFallback && visibilityAsJson.hasOwnProperty('fallback') ? visibilityAsJson.fallback.value : null;
     } else if (!(unit === visibilityUnitMap.M)) { // Skip default unit
       result += unit;
     }
   } else {
-    return useFallback && visibilityAsJson.hasOwnProperty('fallback') ? visibilityAsJson.fallback : null;
+    return useFallback && visibilityAsJson.hasOwnProperty('fallback') ? visibilityAsJson.fallback.value : null;
   }
   return result;
 };
@@ -211,12 +217,12 @@ const jsonToTacForWeather = (weatherAsJson, useFallback = false) => {
     if (weatherAsJson.hasOwnProperty('qualifier')) {
       const qualifier = getMapValue(weatherAsJson.qualifier, qualifierMap);
       if (qualifier === null) {
-        return useFallback && weatherAsJson.hasOwnProperty('fallback') ? weatherAsJson.fallback : null;
+        return useFallback && weatherAsJson.hasOwnProperty('fallback') ? weatherAsJson.fallback.value : null;
       } else {
         result = qualifier;
       }
     } else {
-      return useFallback && weatherAsJson.hasOwnProperty('fallback') ? weatherAsJson.fallback : null;
+      return useFallback && weatherAsJson.hasOwnProperty('fallback') ? weatherAsJson.fallback.value : null;
     }
     if (weatherAsJson.hasOwnProperty('descriptor')) {
       const descriptor = getMapValue(weatherAsJson.descriptor, descriptorMap);
@@ -224,7 +230,7 @@ const jsonToTacForWeather = (weatherAsJson, useFallback = false) => {
         result += descriptor;
       }
     } else {
-      return useFallback && weatherAsJson.hasOwnProperty('fallback') ? weatherAsJson.fallback : null;
+      return useFallback && weatherAsJson.hasOwnProperty('fallback') ? weatherAsJson.fallback.value : null;
     }
     if (weatherAsJson.hasOwnProperty('phenomena') && Array.isArray(weatherAsJson.phenomena)) {
       result += weatherAsJson.phenomena.reduce((cumm, current) => {
@@ -235,7 +241,7 @@ const jsonToTacForWeather = (weatherAsJson, useFallback = false) => {
         return cumm;
       }, '');
     } else {
-      return useFallback && weatherAsJson.hasOwnProperty('fallback') ? weatherAsJson.fallback : null;
+      return useFallback && weatherAsJson.hasOwnProperty('fallback') ? weatherAsJson.fallback.value : null;
     }
   }
   return result;
@@ -255,7 +261,7 @@ const jsonToTacForClouds = (cloudsAsJson, useFallback = false) => {
       result = getMapValue(cloudsAsJson.amount, amountMap);
       hasAmount = result !== null;
     } else {
-      return useFallback && cloudsAsJson.hasOwnProperty('fallback') ? cloudsAsJson.fallback : null;
+      return useFallback && cloudsAsJson.hasOwnProperty('fallback') ? cloudsAsJson.fallback.value : null;
     }
     if (cloudsAsJson.hasOwnProperty('height')) {
       if (typeof cloudsAsJson.height === 'number') {
@@ -267,7 +273,7 @@ const jsonToTacForClouds = (cloudsAsJson, useFallback = false) => {
         result = null;
       }
     } else {
-      return useFallback && cloudsAsJson.hasOwnProperty('fallback') ? cloudsAsJson.fallback : null;
+      return useFallback && cloudsAsJson.hasOwnProperty('fallback') ? cloudsAsJson.fallback.value : null;
     }
     if (cloudsAsJson.hasOwnProperty('mod')) {
       const mod = getMapValue(cloudsAsJson.mod, modMap);
@@ -279,10 +285,10 @@ const jsonToTacForClouds = (cloudsAsJson, useFallback = false) => {
         }
       }
     } else {
-      return useFallback && cloudsAsJson.hasOwnProperty('fallback') ? cloudsAsJson.fallback : null;
+      return useFallback && cloudsAsJson.hasOwnProperty('fallback') ? cloudsAsJson.fallback.value : null;
     }
     if (result === null && useFallback) {
-      return cloudsAsJson.hasOwnProperty('fallback') ? cloudsAsJson.fallback : null;
+      return cloudsAsJson.hasOwnProperty('fallback') ? cloudsAsJson.fallback.value : null;
     }
   }
   return result;
@@ -293,7 +299,7 @@ const jsonToTacForVerticalVisibility = (verticalVisibilityAsJson, useFallback = 
   if (verticalVisibilityAsJson && typeof verticalVisibilityAsJson === 'number') {
     result = 'VV' + verticalVisibilityAsJson.toString().padStart(3, '0');
   } else if (useFallback && verticalVisibilityAsJson && verticalVisibilityAsJson.hasOwnProperty('fallback')) {
-    result = verticalVisibilityAsJson.fallback;
+    result = verticalVisibilityAsJson.fallback.value;
   }
   return result;
 };
@@ -310,7 +316,7 @@ const tacToJsonForProbability = (probabilityAsTac, useFallback = false) => {
     }
   }
   if (useFallback && !result && probabilityAsTac && typeof probabilityAsTac === 'string') {
-    result = { fallback: probabilityAsTac };
+    result = { fallback: { value: probabilityAsTac, message: converterMessagesMap.prefix + 'Probability is not one of the allowed values (' + convertMapToString(probabilityInverseMap) + ').' } };
   }
   return result;
 };
@@ -324,7 +330,7 @@ const tacToJsonForChangeType = (changeTypeAsTac, useFallback = false) => {
     }
   }
   if (useFallback && !result && changeTypeAsTac && typeof changeTypeAsTac === 'string') {
-    result = { fallback: changeTypeAsTac };
+    result = { fallback: { value: changeTypeAsTac, message: converterMessagesMap.prefix + 'Change type is not one of the allowed values (' + convertMapToString(typeInverseMap) + ').' } };
   }
   return result;
 };
@@ -342,50 +348,73 @@ const tacToJsonForProbabilityAndChangeType = (probabilityAsTac, changeTypeAsTac,
   if (useFallback &&
     ((probResult && probResult.hasOwnProperty('fallback') && probResult.fallback) ||
     (changeResult && changeResult.hasOwnProperty('fallback') && changeResult.fallback))) { // one of the values has fallbacked, and so should the entire field
-    const fallback = {};
+    const fallbackValue = {};
+    const fallbackMessages = [];
     if (probResult && probResult.hasOwnProperty('fallback') && probResult.fallback) {
-      fallback.probability = probResult.fallback;
+      fallbackValue.probability = probResult.fallback.value;
+      fallbackMessages.push(probResult.fallback.message);
       if (result) {
-        fallback.change = result;
+        fallbackValue.change = result;
       }
     }
     if (changeResult && changeResult.hasOwnProperty('fallback') && changeResult.fallback) {
-      fallback.change = changeResult.fallback;
+      fallbackValue.change = changeResult.fallback.value;
+      fallbackMessages.push(changeResult.fallback.message);
       if (result) {
-        fallback.probability = result;
+        fallbackValue.probability = result;
       }
     }
-    if (!isEqual(fallback, {})) {
-      result = { fallback: fallback };
+    if (!isEqual(fallbackValue, {})) {
+      result = { fallback: { value: fallbackValue, message: fallbackMessages.join(' ') } };
     }
   }
   return result;
 };
 
-const tacToJsonForTimestamp = (timestampAsTac, scopeStart, scopeEnd, useFallback = false) => {
+const tacToJsonForTimestamp = (timestampAsTac, scopeStart, scopeEnd, useFallback = false, prefix = true) => {
   let result = null;
   const scopeStartMoment = moment.utc(scopeStart);
   const scopeEndMoment = moment.utc(scopeEnd);
+  let matchResult;
+  let dateValue;
+  let hourValue;
   if (scopeStartMoment.isValid() && scopeEndMoment.isValid() && scopeStartMoment.isBefore(scopeEndMoment) &&
       timestampAsTac && typeof timestampAsTac === 'string') {
-    const matchResult = timestampAsTac.match(timestampRegEx);
+    matchResult = timestampAsTac.match(timestampRegEx);
     if (matchResult) {
-      const dateValue = parseInt(matchResult[1]);
-      let monthValue = scopeStartMoment.month() + 1;
-      let yearValue = scopeStartMoment.year();
-      if (scopeEndMoment.month() !== scopeStartMoment.month() && dateValue < 15) {
-        monthValue += 1;
-        if (monthValue > 12) {
-          monthValue = 1;
-          yearValue += 1;
+      const resultMoment = scopeStartMoment.clone();
+      dateValue = parseInt(matchResult[1]);
+      hourValue = parseInt(matchResult[2]);
+      resultMoment.date(dateValue).hours(hourValue).minutes(0).seconds(0).milliseconds(0);
+      // Only proceed if moment has not bubbled dates overflow to months and not bubbled hours overflow to days
+      if (resultMoment.date() === dateValue && resultMoment.hours() === hourValue) {
+        if (scopeEndMoment.month() !== scopeStartMoment.month() && dateValue < 15) {
+          resultMoment.add(1, 'months');
         }
+        result = resultMoment.format('YYYY-MM-DDTHH:mm:ss') + 'Z';
       }
-      result = yearValue.toString() + '-' + numberAsTwoCharacterString(monthValue) + '-' + numberAsTwoCharacterString(dateValue) +
-        'T' + matchResult[2] + ':00:00Z';
     }
   }
   if (useFallback && !result && timestampAsTac && typeof timestampAsTac === 'string') {
-    result = { fallback: timestampAsTac };
+    const fallbackMessages = [];
+    let prefixMessage = prefix ? converterMessagesMap.prefix + 'Valid period Start ' : '';
+    if (!matchResult) {
+      fallbackMessages.push(prefixMessage + 'is expected to equal 4 digits');
+    } else {
+      if (dateValue < 1 || dateValue > 31) {
+        fallbackMessages.push(prefixMessage + 'should have a date value between 01 and 31.');
+      }
+      if (hourValue < 0 || hourValue > 23) {
+        if (prefixMessage && fallbackMessages.length > 0) {
+          prefixMessage = 'And also, it ';
+        }
+        fallbackMessages.push(prefixMessage + 'should have an hour value between 00 and 23.');
+      }
+      if (fallbackMessages.length === 0) {
+        fallbackMessages.push(prefixMessage + 'should equal <date><hour>, with <date> a valid, 2 digit date and <hour> a valid, 2 digit hour');
+      }
+    }
+    result = { fallback: { value: timestampAsTac, message: fallbackMessages } };
   }
   return result;
 };
@@ -398,12 +427,34 @@ const tacToJsonForPeriod = (periodAsTac, scopeStart, scopeEnd, useFallback = fal
   if (periodAsTac && typeof periodAsTac === 'string') {
     const matchResult = periodAsTac.match(periodRegEx);
     if (matchResult) {
-      result.start = tacToJsonForTimestamp(matchResult[1], scopeStart, scopeEnd, useFallback);
-      result.end = tacToJsonForTimestamp(matchResult[2], scopeStart, scopeEnd, useFallback);
+      result.start = tacToJsonForTimestamp(matchResult[1], scopeStart, scopeEnd, useFallback, false);
+      result.end = tacToJsonForTimestamp(matchResult[2], scopeStart, scopeEnd, useFallback, false);
+    }
+  }
+  if (result.start && result.start.hasOwnProperty('fallback')) {
+    if (useFallback) {
+      const startFallbackMessages = [];
+      result.start.fallback.message.forEach((message) => {
+        startFallbackMessages.push(converterMessagesMap.prefix + 'Valid period Start ' + message);
+      });
+      result.start.fallback.message = startFallbackMessages.join(' ');
+    } else {
+      result.start = null;
+    }
+  }
+  if (result.end && result.end.hasOwnProperty('fallback')) {
+    if (useFallback) {
+      const endFallbackMessages = [];
+      result.end.fallback.message.forEach((message) => {
+        endFallbackMessages.push(converterMessagesMap.prefix + 'Valid period End ' + message);
+      });
+      result.end.fallback.message = endFallbackMessages.join(' ');
+    } else {
+      result.end = null;
     }
   }
   if (useFallback && isEqual(result, { start: null, end: null }) && periodAsTac && typeof periodAsTac === 'string') {
-    result.start = { fallback: periodAsTac };
+    result.fallback = { value: periodAsTac, message: converterMessagesMap.prefix + converterMessagesMap.period };
   }
   return result;
 };
@@ -415,7 +466,7 @@ const tacToJsonForWind = (windAsTac, useFallback = false) => {
     if (matchResult) {
       const direction = parseInt(matchResult[1]);
       result.direction = isNaN(direction)
-        ? getMapValue(matchResult[1], windUnknownInverseMap, true)
+        ? getMapValue(matchResult[1], windDirectionInverseMap, true)
         : direction;
       const speed = parseInt(matchResult[2]);
       result.speed = isNaN(speed)
@@ -428,7 +479,27 @@ const tacToJsonForWind = (windAsTac, useFallback = false) => {
     }
   }
   if (useFallback && isEqual(result, TAF_TEMPLATES.WIND) && windAsTac && typeof windAsTac === 'string') {
-    result.fallback = windAsTac;
+    const prefixMessage = converterMessagesMap.prefix + 'Wind ';
+    const fallbackMessages = [];
+    if (!windAsTac.match(windDirectionRegEx)) {
+      fallbackMessages.push(prefixMessage + 'Direction was not recognized. It is required and should equal 3 digits or (' + convertMapToString(windDirectionInverseMap) + ').');
+    }
+    if (!windAsTac.match(windSpeedRegEx)) {
+      fallbackMessages.push(prefixMessage + 'Speed was not recognized. It is required and should equal 2 digits or (P) followed by 2 digits.');
+    }
+    if (fallbackMessages.length === 0) {
+      if (!windAsTac.match(windGustsRegEx) && windAsTac.toUpperCase().indexOf('G') !== -1) {
+        fallbackMessages.push(prefixMessage + 'Gusts should equal (G) followed by 2 digits.');
+      }
+      if (!windAsTac.match(windUnitRegEx) && windAsTac.match(/.+[A-FH-Z]/i)) {
+        fallbackMessages.push(prefixMessage + 'Unit is not one of the allowed values (' + convertMapToString(windUnitInverseMap) + ') or it is not the last token.');
+      }
+    }
+
+    if (fallbackMessages.length === 0) {
+      fallbackMessages.push(prefixMessage + converterMessagesMap.wind);
+    }
+    result.fallback = { value: windAsTac, message: fallbackMessages.join(' ') };
   }
   return result;
 };
@@ -443,7 +514,18 @@ const tacToJsonForVisibility = (visibilityAsTac, useFallback = false) => {
     }
   }
   if (useFallback && isEqual(result, TAF_TEMPLATES.VISIBILITY) && visibilityAsTac && typeof visibilityAsTac === 'string') {
-    result.fallback = visibilityAsTac;
+    const prefixMessage = converterMessagesMap.prefix + 'Visibility ';
+    const fallbackMessages = [];
+    if (visibilityAsTac.match(/^\d/) && !visibilityAsTac.match(/^\d{4}/)) {
+      fallbackMessages.push(prefixMessage + 'Value is expected to equal 4 digits.');
+    }
+    if (!visibilityAsTac.match(visibilityUnitRegEx) && visibilityAsTac.match(/\d+\D/)) {
+      fallbackMessages.push(prefixMessage + 'Unit is not one of the allowed values (' + convertMapToString(visibilityUnitInverseMap) + ').');
+    }
+    if (fallbackMessages.length === 0) {
+      fallbackMessages.push(prefixMessage + converterMessagesMap.visibility);
+    }
+    result.fallback = { value: visibilityAsTac, message: fallbackMessages.join(' ') };
   }
   return result;
 };
@@ -475,7 +557,7 @@ const tacToJsonForWeather = (weatherAsTac, useFallback = false) => {
     }
   }
   if (useFallback && isEqual(result, TAF_TEMPLATES.WEATHER[0]) && weatherAsTac && typeof weatherAsTac === 'string') {
-    result.fallback = weatherAsTac;
+    result.fallback = { value: weatherAsTac, message: converterMessagesMap.prefix + converterMessagesMap.weather };
   }
   return result;
 };
@@ -497,7 +579,21 @@ const tacToJsonForClouds = (cloudsAsTac, useFallback = false) => {
     }
   }
   if (useFallback && isEqual(result, TAF_TEMPLATES.CLOUDS[0]) && cloudsAsTac && typeof cloudsAsTac === 'string') {
-    result.fallback = cloudsAsTac;
+    const prefixMessage = converterMessagesMap.prefix + 'Cloud ';
+    const fallbackMessages = [];
+    if (!cloudsAsTac.match(cloudsAmountRegEx) && cloudsAsTac.match(/^(F|S|B|O)/i)) {
+      fallbackMessages.push(prefixMessage + 'Amount is not one of the allowed values (' + convertMapToString(amountInverseMap) + ').');
+    }
+    if (!cloudsAsTac.match(cloudsHeightRegEx) && cloudsAsTac.match(/[^0-9V]+\d{1,2}/i)) {
+      fallbackMessages.push(prefixMessage + 'Height is expected to equal 3 digits.');
+    }
+    if (!cloudsAsTac.match(cloudsModifierRegEx) && fallbackMessages.length === 0 && cloudsAsTac.toUpperCase().includes('C')) {
+      fallbackMessages.push(prefixMessage + 'Modifier is not one of the allowed values (' + convertMapToString(modInverseMap) + ').');
+    }
+    if (fallbackMessages.length === 0) {
+      fallbackMessages.push(converterMessagesMap.clouds);
+    }
+    result.fallback = { value: cloudsAsTac, message: fallbackMessages.join(' ') };
   }
   return result;
 };
@@ -511,21 +607,24 @@ const tacToJsonForVerticalVisibility = (verticalVisibilityAsTac, useFallback = f
     }
   }
   if (useFallback && result === null && verticalVisibilityAsTac && typeof verticalVisibilityAsTac === 'string') {
-    result.fallback = verticalVisibilityAsTac;
+    result.fallback = { value: verticalVisibilityAsTac, message: converterMessagesMap.clouds };
   }
   return result;
 };
 
 const converterMessagesMap = {
-  changeType: 'Prob and Change was not recognized. Expected optionally \'PROB\'<2 digits i.e. 30 or 40> for Prob and optionally \'FM\', \'BECMG\' \'TEMPO\' for Change',
-  changeStart: 'Valid period was not recognized. Expected either <4 digits for start> or <4 digits for start>\'/\'<4 digits for end>',
-  changeEnd: 'Valid period was not recognized. Expected either <4 digits for start> or <4 digits for start>\'/\'<4 digits for end>',
-  wind: 'Wind was not recognized. Expected either <3 digits for direction><2 digits for speed>, optionally appended with \'G\'<2 digits for gust speed>, optionally followed by \'KT\' or \'MPS\'',
-  visibility: 'Visibility was not recognized. Expected either <4 digits for range>, optionally followed by \'M\' or \'KM\', or \'CAVOK\'',
-  weather: 'Weather was not recognized. Expected either an optionally prefix with <1 or 2 character(s) for qualifier>, ' +
-    'followed by an optional <2 characters for descriptor>, optionally followed by <1 or more times repeated group of 2 characters for phenomena> or \'NSW\'',
-  clouds: 'Cloud was not recognized. Expected one of <3 characters for amount><3 digits for height> optionally followed by <2 or 3 characters for modifier>,' +
-    '\'VV\'<3 digits for height of vertical visibility> or \'NSC\''
+  prefix: 'The input value for ',
+  period: 'Valid period was not recognized. Expected either <timestamp> or <timestamp>/<timestamp>, with <timestamp> equal to 4 digits.',
+  wind: 'was not recognized. Expected at least <direction><speed>, with <direction> to equal either 3 digits or VRB and <speed> equal to 2 digits',
+  visibility: 'was not recognized. Expected either <value>, <value><unit> or (CAVOK), with <value> equal to 4 digits and <unit> ' +
+    'one of (' + convertMapToString(visibilityUnitInverseMap) + ').',
+  weather: 'Weather was not recognized. Expected either <descriptor>, <qualifier><descriptor>, <phenomena>, <descriptor><phenomena> ' +
+    'or <qualifier><descriptor><phenomena> or (NSW), ' +
+    'with <qualifier> one of (' + convertMapToString(qualifierInverseMap) + '), <descriptor> one of (' + convertMapToString(descriptorInverseMap) + '), ' +
+    '<phenomena> any of (' + convertMapToString(phenomenaInverseMap) + ').',
+  clouds: 'Cloud was not recognized. Expected at least one of <amount><height>, <modifier>, <vertical_visibility> or (NSC), ' +
+    'with <amount> one of (' + convertMapToString(amountInverseMap) + '), <height> equal to 3 digits, <modifier> one of ' +
+    '(' + convertMapToString(modInverseMap) + ') and <vertical_visibility> equal to (VV) followed by 3 digits.'
 };
 
 module.exports = {
@@ -549,6 +648,5 @@ module.exports = {
   tacToJsonForCavok: tacToJsonForCavok,
   tacToJsonForWeather: tacToJsonForWeather,
   tacToJsonForClouds: tacToJsonForClouds,
-  tacToJsonForVerticalVisibility: tacToJsonForVerticalVisibility,
-  converterMessagesMap: converterMessagesMap
+  tacToJsonForVerticalVisibility: tacToJsonForVerticalVisibility
 };

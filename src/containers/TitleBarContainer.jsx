@@ -10,16 +10,16 @@ import { PROJECTIONS } from '../constants/projections';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import axios from 'axios';
 import uuidV4 from 'uuid/v4';
-import { Alert, Navbar, NavbarBrand, Row, Col, Nav, NavLink, Breadcrumb, BreadcrumbItem, Collapse, Popover, Form, FormGroup, FormFeedback, Label, ListGroup, ListGroupItem, PopoverContent,
-  PopoverTitle, InputGroupAddon, ButtonGroup, InputGroupButton, Modal, ModalHeader, ModalBody, ModalFooter, Button, InputGroup, Input, FormText } from 'reactstrap';
-import { AvForm, AvFeedback, AvRadioGroup, AvRadio, AvField, AvGroup } from 'availity-reactstrap-validation';
+import { Alert, Navbar, NavbarBrand, Row, Col, Nav, NavLink, Breadcrumb, BreadcrumbItem, Collapse, Popover, Form, FormGroup, Label, ListGroup, ListGroupItem, PopoverContent,
+  PopoverTitle, ButtonGroup, InputGroupButton, Modal, ModalHeader, ModalBody, ModalFooter, Button, InputGroup, Input, FormText } from 'reactstrap';
+import { AvForm, AvRadioGroup, AvRadio, AvField, AvGroup } from 'availity-reactstrap-validation';
 import { Link, hashHistory } from 'react-router';
 import PropTypes from 'prop-types';
 import moment from 'moment';
 import { addNotification } from 'reapop';
 import { Typeahead } from 'react-bootstrap-typeahead';
 import { GetServices } from '../utils/getServiceByName';
-const timeFormat = 'YYYY MMM DD - HH:mm';
+const timeFormat = 'ddd DD MMM YYYY HH:mm [UTC]';
 const browserFullScreenRequests = [
   'mozRequestFullScreen',
   'msRequestFullscreen',
@@ -530,7 +530,7 @@ class TitleBarContainer extends PureComponent {
             </Breadcrumb>
           </Col>
           <Col>
-            <span className='navbar-text mx-auto'>{this.state.currentTime} UTC</span>
+            <span className='navbar-text mx-auto'>{this.state.currentTime}</span>
           </Col>
           <Col xs='auto'>
             <Nav>
