@@ -2,13 +2,13 @@
  * Maps to construct TAC from JSON Wind and vice versa.
  */
 
-export const windUnknownMap = {
+export const windDirectionMap = {
   VRB: 'VRB'
 };
 
-const windUnknownInverse = {};
-Object.entries(windUnknownMap).map(entry => { windUnknownInverse[entry[1]] = entry[0]; });
-export const windUnknownInverseMap = windUnknownInverse;
+const windDirectionInverse = {};
+Object.entries(windDirectionMap).map(entry => { windDirectionInverse[entry[1]] = entry[0]; });
+export const windDirectionInverseMap = windDirectionInverse;
 
 export const windUnitMap = {
   KT: 'KT',

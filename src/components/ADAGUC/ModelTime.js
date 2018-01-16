@@ -30,11 +30,12 @@ export default class ModelTime extends Component {
     const d = moment.duration(ms);
 
     const hourDifference = parseInt(d.asHours());
+    const timeFormat = 'ddd DD MMM YYYY HH:mm [UTC]';
     if (hourDifference >= 0) {
-      this.setState({ display: `${adagucTime.format('ddd D HH:mm').toString()} (+${hourDifference})` });
+      this.setState({ display: `${adagucTime.format(timeFormat).toString()} (+${hourDifference})` });
     } else {
       if (hourDifference < 0) {
-        this.setState({ display: `${adagucTime.format('ddd D HH:mm').toString()} (${hourDifference})` });
+        this.setState({ display: `${adagucTime.format(timeFormat).toString()} (${hourDifference})` });
       } else {
         this.setState({ display: null });
       }

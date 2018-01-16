@@ -312,16 +312,23 @@ class LayerManagerPanel extends PureComponent {
               </Button>
               <Row>
                 <Input style={{ maxWidth: '7rem' }} value={this.props.adagucProperties.animationSettings.duration} onChange={this.handleDurationUpdate}
-                  placeholder='Duration' type='number' step='1' min='0' ref={elm => { this.durationInput = elm; }} />
+                  placeholder='No. hours' type='number' step='1' min='0' ref={elm => { this.durationInput = elm; }} />
               </Row>
             </Row>
             <Row style={{ marginBottom: '.33rem' }}>
-              <Button className='row' color='primary' style={{ width: '3rem', marginRight: '0.25rem' }} onClick={() => this.handleButtonClickNextPrev('down')}>
-                <Icon name='step-backward' />
-              </Button>
-              <Button className='row' color='primary' style={{ width: '3rem', marginRight: '0.5rem' }} onClick={() => this.handleButtonClickNextPrev('up')}>
-                <Icon name='step-forward' />
-              </Button>
+              <Col xs='auto'>
+                <Button color='primary' style={{ width: '3rem', marginRight: '0.25rem' }} onClick={() => this.handleButtonClickNextPrev('down')}>
+                  <Icon name='step-backward' />
+                </Button>
+              </Col>
+              <Col xs='auto'>
+                <Button color='primary' style={{ width: '3rem', marginRight: '0.5rem' }} onClick={() => this.handleButtonClickNextPrev('up')}>
+                  <Icon name='step-forward' />
+                </Button>
+              </Col>
+              <Col>
+                <Label style={{ marginTop: '1.5rem', marginBottom: '-1.5rem' }}>Duration</Label>
+              </Col>
             </Row>
             <Row />
           </Col>

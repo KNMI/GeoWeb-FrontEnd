@@ -269,7 +269,6 @@ class SigmetCategory extends Component {
   }
 
   sigmetLayers (p) {
-    console.log('Sources props: ', this.props.sources);
     let HARMONIE_URL = GetServiceByName(this.props.sources, 'HARM_N25');
     let OVERLAY_URL = GetServiceByName(this.props.sources, 'OVL');
     let OBSERVATIONS_URL = GetServiceByName(this.props.sources, 'OBS');

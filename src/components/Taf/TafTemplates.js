@@ -68,7 +68,15 @@ TEMPLATES.TAF = {
  * TYPES
  */
 const TYPE_FALLBACK = PropTypes.shape({
-  fallback: PropTypes.string
+  fallback: PropTypes.shape({
+    value: PropTypes.string,
+    message: PropTypes.oneOfType([
+      PropTypes.string,
+      PropTypes.arrayOf(
+        PropTypes.string
+      )
+    ])
+  })
 });
 const TYPES = {
   CLOUDS: PropTypes.oneOfType([

@@ -40,7 +40,7 @@ describe('(Component) TitleBarContainer', () => {
     expect(_component.type()).to.eql(TitleBarContainer);
   });
   it('Renders initially with the current time', () => {
-    const currentTime = moment.utc().format('YYYY MMM DD - HH:mm').toString();
+    const currentTime = moment.utc().format('ddd DD MMM YYYY HH:mm [UTC]').toString();
     expect(_component.state().currentTime).to.equal(currentTime);
   });
   it('Calls the login function when the login button is clicked', () => {
@@ -146,7 +146,7 @@ describe('(Component) TitleBarContainer', () => {
         routes={[{ path: 'testpath' }]}
       />
     );
-    const currentTime = moment.utc().format('YYYY MMM DD - HH:mm').toString();
+    const currentTime = moment.utc().format('ddd DD MMM YYYY HH:mm [UTC]').toString();
     _component.instance().setTime();
     expect(_component.state().currentTime).to.equal(currentTime);
   });

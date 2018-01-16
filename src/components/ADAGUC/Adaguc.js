@@ -389,8 +389,8 @@ export default class Adaguc extends PureComponent {
       if (this.orderChanged(currDataLayers, prevDataLayers)) {
         this.webMapJS.stopAnimating();
         const newDatalayers = currDataLayers.map((datalayer) => this.defineNewWMJSLayer(datalayer));
+        this.webMapJS.removeAllLayers();
         if (newDatalayers && newDatalayers.length > 0) {
-          this.webMapJS.removeAllLayers();
           newDatalayers.reverse().forEach(layer => this.webMapJS.addLayer(layer));
         }
       } else {

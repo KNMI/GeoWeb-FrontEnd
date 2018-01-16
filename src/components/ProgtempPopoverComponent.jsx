@@ -107,7 +107,6 @@ export default class ProgtempPopoverComponent extends Component {
   }
 
   getLocationOrErrors (cursor, error) {
-    console.log(this.state);
     if (this.state.isLoading) {
       return 'Loading...';
     }
