@@ -19,7 +19,6 @@ import moment from 'moment';
 import { addNotification } from 'reapop';
 import { Typeahead } from 'react-bootstrap-typeahead';
 import { GetServices } from '../utils/getServiceByName';
-
 const timeFormat = 'ddd DD MMM YYYY HH:mm [UTC]';
 const browserFullScreenRequests = [
   'mozRequestFullScreen',
