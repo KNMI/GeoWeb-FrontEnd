@@ -62,7 +62,11 @@ export default class TimeComponent extends PureComponent {
     for (let j = 0; j < layers.length; j++) {
       const y = j * layerHeight + 1 + overlayers.length * layerHeight;
       const layer = layers[j];
-      const activeLayer = this.props.panel.layers[j].active;
+      const panelLayer = this.props.panel.layers[j];
+      if (!panelLayer) {
+        continue;
+      }
+      const activeLayer = panelLayer.active;
       const dim = layer.getDimension('time');
       if (!dim) {
         continue;

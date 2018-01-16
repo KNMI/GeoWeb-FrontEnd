@@ -192,6 +192,9 @@ export default class Adaguc extends PureComponent {
   }
 
   orderChanged (currLayers, prevLayers) {
+    if (!currLayers || !prevLayers) {
+      return true;
+    }
     if (currLayers.length !== prevLayers.length) {
       return true;
     }
@@ -335,6 +338,15 @@ export default class Adaguc extends PureComponent {
       }
       const prevActiveWMJSLayer = this.props.layers.wmjsLayers.layers.filter(layer => layer.service === prevActiveLayer.service && layer.name === prevActiveLayer.name)[0];
       const currActiveWMJSLayer = this.props.layers.wmjsLayers.layers.filter(layer => layer.service === currActiveLayer.service && layer.name === currActiveLayer.name)[0];
+
+      if (!currActiveWMJSLayer) {
+        dispatch(adagucActions.setAnimationLength(''));
+      }
+
+      if (!prevActiveWMJSLayer || !currActiveWMJSLayer) {
+        return;
+      }
+
       const prevHasRefTime = prevActiveWMJSLayer.getDimension('reference_time');
       const currHasRefTime = currActiveWMJSLayer.getDimension('reference_time');
 
@@ -377,8 +389,10 @@ export default class Adaguc extends PureComponent {
       if (this.orderChanged(currDataLayers, prevDataLayers)) {
         this.webMapJS.stopAnimating();
         const newDatalayers = currDataLayers.map((datalayer) => this.defineNewWMJSLayer(datalayer));
-        this.webMapJS.removeAllLayers();
-        newDatalayers.reverse().forEach(layer => this.webMapJS.addLayer(layer));
+        if (newDatalayers && newDatalayers.length > 0) {
+          this.webMapJS.removeAllLayers();
+          newDatalayers.reverse().forEach(layer => this.webMapJS.addLayer(layer));
+        }
       } else {
         this.updateLayersInline(currDataLayers);
       }

@@ -2,23 +2,29 @@ import axios from 'axios';
 import PromiseWithTimout from '../utils/PromiseWithTimout';
 import moment from 'moment';
 
+const _getSourceByName = (sources, name) => {
+  if (Object.keys(sources).includes(name)) {
+    return sources[name];
+  }
+  return null;
+};
+
 // Return URL of WMS service or null if failed
 // @sources The adagucproperties sources object
 // @name Name of the service as specified by the name attribute in the result of getServices servlet
 // @return URL of WMS service or null if failed
 export const GetServiceByName = (sources, name) => {
-  const _getSourceByName = (sources, name) => {
-    if (sources[name]) {
-      return sources[name];
-    }
-    return null;
-  };
+  console.log(sources, name);
   let source = _getSourceByName(sources, name);
-  if (source == null) {
+  console.log(source);
+  if (!source) {
     return;
   }
-  if (source && source.service) {
+  if (source.service) {
     return source.service;
+  }
+  if (source.source && source.source.service) {
+    return source.source.service;
   }
   // TODO we need our own error handling mechanism here, e.g. a dialog showing what errors have occured.
   console.error('Source not found [' + name + ']', sources);
@@ -31,14 +37,6 @@ export const GetServiceByName = (sources, name) => {
 // @name Name of the service as specified by the name attribute in the result of getServices servlet
 // @return promise which resolves URL of WMS service or null if failed
 export const GetServiceByNamePromise = (backendurl, name) => {
-  const _getSourceByName = (sources, name) => {
-    // console.log(name, sources);
-    if (sources[name]) {
-      return sources[name];
-    }
-    return null;
-  };
-
   return new Promise((resolve, reject) => {
     // console.log('GetServiceByName');
     GetServices(backendurl).then(

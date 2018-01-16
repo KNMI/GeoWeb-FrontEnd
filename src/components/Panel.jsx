@@ -65,8 +65,10 @@ class Panel extends PureComponent {
       if (location) {
         if (location.name) {
           return <span style={{ lineHeight: '2rem', verticalAlign: 'middle' }}>Location: <strong>{location.name}</strong></span>;
-        } else {
+        } else if (location.x && location.y) {
           return <span style={{ lineHeight: '2rem', verticalAlign: 'middle' }}>Location: <strong>{this.convertMinSec(location.x) + ', ' + this.convertMinSec(location.y)}</strong></span>;
+        } else {
+          return <span style={{ lineHeight: '2rem', verticalAlign: 'middle' }}>{location}</span>;
         }
       }
     }

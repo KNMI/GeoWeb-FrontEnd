@@ -18,7 +18,7 @@ import PropTypes from 'prop-types';
 import moment from 'moment';
 import { addNotification } from 'reapop';
 import { Typeahead } from 'react-bootstrap-typeahead';
-
+import { GetServices } from '../utils/getServiceByName';
 const timeFormat = 'YYYY MMM DD - HH:mm';
 const browserFullScreenRequests = [
   'mozRequestFullScreen',
@@ -148,66 +148,11 @@ class TitleBarContainer extends PureComponent {
   }
 
   getServices () {
-    const { urls } = this.props;
-    const { dispatch, mapActions, adagucActions } = this.props;
-    const defaultURLs = ['getServices', 'getOverlayServices'].map((url) => urls.BACKEND_SERVER_URL + '/' + url);
-    const allURLs = [...defaultURLs];
-    let personalUrls = {};
-    if (localStorage) {
-      personalUrls = JSON.parse(localStorage.getItem('geoweb')).personal_urls;
-    }
+    const { urls, dispatch, adagucActions } = this.props;
 
-    // Ensures Promise.all works even when some promises don't resolve
-    const reflect = (promise) => {
-      return promise.then(
-        (v) => { return { 'data':v, 'status': 'resolved' }; },
-        (e) => { return { 'error':e, 'status': 'rejected' }; }
-      );
-    };
-    axios.all(allURLs.map((req) => axios.get(req, { withCredentials: true }))).then(
-      axios.spread((services, overlays) => {
-        const sort = (obj) => Object.keys(obj).sort().reduce((acc, c) => { acc[c] = obj[c]; return acc; }, {});
-        dispatch(mapActions.createMap());
-        const allSources = [...services.data, ...personalUrls, overlays.data[0]];
-        const disabledSources = {};
-        allSources.map((source) => {
-          disabledSources[source.name] = {};
-        });
-        dispatch(adagucActions.setSources(sort(disabledSources)));
-        const promises = [];
-        for (var i = allSources.length - 1; i >= 0; i--) {
-          const source = allSources[i];
-          var r = new Promise((resolve, reject) => {
-            if (!source) {
-              reject(new Error('Source is not working'));
-            }
-            if (!source.name) {
-              reject(new Error('Source has no name'));
-            }
-            // eslint-disable-next-line no-undef
-            const service = WMJSgetServiceFromStore(source.service);
-            if (!service) {
-              resolve(new Error('Cannot get service from store'));
-            }
-            service.getLayerObjectsFlat((layers) => { resolve({ layers, source }); });
-          });
-          promises.push(new PromiseWithTimout(r, moment.duration(3000, 'milliseconds').asMilliseconds()));
-        }
-
-        Promise.all(promises.map(reflect)).then((res) => {
-          const sourcesDic = {};
-          res.map((promise) => {
-            if (promise.status === 'resolved') {
-              const { layers, source } = promise.data;
-              sourcesDic[source.name] = { layers, source };
-            } else {
-              console.error(promise);
-            }
-          });
-          dispatch(adagucActions.setSources(sort(sourcesDic)));
-        });
-      })
-    ).catch((e) => console.log('Error!: ', e));
+    GetServices(urls.BACKEND_SERVER_URL).then((sources) => {
+      dispatch(adagucActions.setSources(sources));
+    });
   }
 
   getTitleForRoute (routeItem) {

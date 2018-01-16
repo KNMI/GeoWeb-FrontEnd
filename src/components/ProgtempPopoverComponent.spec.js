@@ -1,5 +1,5 @@
 import React from 'react';
-import { default as ProgtempComponent } from './ProgtempComponent';
+import { default as ProgtempPopoverComponent } from './ProgtempPopoverComponent';
 import { mount } from 'enzyme';
 import sinon from 'sinon';
 
@@ -14,10 +14,10 @@ const adagucProperties = {
 const emptyDispatch = () => { /* intentionally left blank */ };
 const emptyActions = {};
 
-describe('(Component) ProgtempComponent', () => {
-  it('Renders a ProgtempComponent', () => {
+describe('(Component) ProgtempPopoverComponent', () => {
+  it('Renders a ProgtempPopoverComponent', () => {
     global.drawProgtempBg = sinon.stub().returns('asdf');
-    const _component = mount(<ProgtempComponent adagucProperties={adagucProperties} dispatch={emptyDispatch} actions={emptyActions} />);
-    expect(_component.type()).to.eql(ProgtempComponent);
+    const _component = mount(<ProgtempPopoverComponent adagucProperties={adagucProperties} isOpen dispatch={emptyDispatch} adagucActions={emptyActions} urls={{}} />);
+    expect(_component.type()).to.eql(ProgtempPopoverComponent);
   });
 });

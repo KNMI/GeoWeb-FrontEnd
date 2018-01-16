@@ -7,7 +7,7 @@ import { Row, Col, Button, Modal, ModalBody, Input, Label, ListGroup, ListGroupI
 import { Icon } from 'react-fa';
 import PropTypes from 'prop-types';
 import cloneDeep from 'lodash.clonedeep';
-import { GetServiceByNamePromise } from '../utils/getServiceByName';
+import { GetServiceByName } from '../utils/getServiceByName';
 
 var elementResizeEvent = require('element-resize-event');
 
@@ -30,24 +30,33 @@ class LayerManagerPanel extends PureComponent {
     };
   }
 
-  componentDidMount () {
-    const { urls, dispatch, layerActions, layers } = this.props;
+  componentDidUpdate (prevProps) {
+    const { dispatch, layerActions, layers, adagucProperties } = this.props;
+    const { sources } = adagucProperties;
+    const prevSources = prevProps.adagucProperties.sources;
 
+    if (prevSources === sources) {
+      return;
+    }
     // By default add Countries overlay layer to each panel
     // The call [...Array(a.length).keys()] generates an array [0, 1, 2, ..., a.length - 1]
-    GetServiceByNamePromise(urls.BACKEND_SERVER_URL, 'OVL').then((url) => {
+    if (!sources || (Object.keys(sources).length === 0 && sources.constructor === Object)) {
+      return;
+    }
+    const source = GetServiceByName(sources, 'OVL');
+    if (source) {
       [...Array(layers.panels.length).keys()].map((id) => {
         dispatch(layerActions.addOverlaysLayer({
           activeMapId: id,
           layer: {
-            service: url,
+            service: source,
             title: 'OVL_EXT',
             name: 'countries',
             label: 'Countries'
           }
         }));
       });
-    });
+    }
   }
 
   goToNow () {

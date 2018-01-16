@@ -39,7 +39,7 @@ export default class ProgtempComponent extends PureComponent {
   modifyData (data, referenceTime, timeOffset) {
     if (!data) return {};
     function fetchData (data, referenceTime, timeOffset, name) {
-      if (!data) return null;
+      if (!data || !Array.isArray(data)) return null;
       let selectedData = data.filter((obj) => obj.name === name)[0].data;
       if (timeOffset in selectedData) {
         selectedData = selectedData[timeOffset];
@@ -96,47 +96,63 @@ export default class ProgtempComponent extends PureComponent {
   renderProgtempData (ctx, canvasWidth, canvasHeight, progtempTime) {
     if (!this.state.isLoading && ctx) {
       const { PSounding, TSounding, TdSounding, ddSounding, ffSounding, TwSounding, TvSounding } = this.modifyData(this.state.progtempData, this.props.referenceTime, progtempTime);
+      if (!(PSounding && TSounding && TdSounding && ddSounding && ffSounding && TwSounding && TvSounding)) {
+        this.setState({ errorSet: true });
+        this.props.onError('Error: some data is missing. Progtemp might be incomplete');
+      }
       drawProgtemp(ctx, canvasWidth, canvasHeight, PSounding, TSounding, TdSounding, ddSounding, ffSounding, TwSounding, TvSounding);
       plotHodo(ctx, canvasWidth, canvasHeight, PSounding, TSounding, TdSounding, ddSounding, ffSounding, TwSounding);
+    }
+    const MODEL_RUN_LENGTH = 48;
+    const hourDifference = moment.duration(this.props.time.diff(this.props.referenceTime)).asHours();
+    if (!this.state.errorSet) {
+      if (hourDifference < 0 || hourDifference > MODEL_RUN_LENGTH) {
+        this.props.onError('Warning: Time is outside of range for this model');
+      } else {
+        this.setState({ errorSet: false });
+        this.props.onError(null);
+      }
     }
   }
 
   setModelData (model, location, referenceTime) {
-    console.log('ProgTempComponent setModelData');
     if (!(model && location && referenceTime)) return;
     const refTimeStr = referenceTime.format('YYYY-MM-DDTHH:mm:ss') + 'Z';
 
-    GetServiceByNamePromise(this.props.urls.BACKEND_SERVER_URL, 'HARM_N25_ML').then(
-      (serviceURL) => {
-        try {
-          let url = serviceURL + '&SERVICE=WMS&VERSION=1.3.0&REQUEST=GetPointValue&LAYERS=&' +
-            'QUERY_LAYERS=air_pressure__at_ml,y_wind__at_ml,x_wind__at_ml,dewpoint_temperature__at_ml,air_temperature__at_ml&' +
-            'CRS=EPSG%3A4326&INFO_FORMAT=application/json&time=*&DIM_reference_time=' + refTimeStr + '&x=' + location.x + '&y=' + location.y + '&DIM_modellevel=*';
-          return axios.get(url).then((d) => {
-            console.log('ProgtempComponent SUCCESS setModelData', d.data);
-            this.setState({ progtempData: d.data });
-          });
-        } catch (e) {
-          console.error('ERROR: unable to fetch ' + serviceURL);
+    return new Promise((resolve, reject) => {
+      GetServiceByNamePromise(this.props.urls.BACKEND_SERVER_URL, 'HARM_N25_ML').then(
+        (serviceURL) => {
+          try {
+            let url = serviceURL + '&SERVICE=WMS&VERSION=1.3.0&REQUEST=GetPointValue&LAYERS=&' +
+              'QUERY_LAYERS=air_pressure__at_ml,y_wind__at_ml,x_wind__at_ml,dewpoint_temperature__at_ml,air_temperature__at_ml&' +
+              'CRS=EPSG%3A4326&INFO_FORMAT=application/json&time=*&DIM_reference_time=' + refTimeStr + '&x=' + location.x + '&y=' + location.y + '&DIM_modellevel=*';
+            resolve(axios.get(url));
+          } catch (e) {
+            reject(new Error('ERROR: unable to fetch ' + serviceURL));
+          }
+        },
+        (e) => {
+          reject(e);
         }
-      },
-      (e) => {
-        console.error(e);
-      }
-    );
+      );
+    });
   }
 
   fetchAndRender (model, location, referenceTime) {
     if (!(model && location && referenceTime)) return;
-    this.setState({ isLoading: true });
     const m = this.setModelData(model, location, referenceTime);
     if (m) {
-      m.then(() => {
+      m.then((d) => {
+        this.setState({ progtempData: d.data, isLoading: false });
         this.renderProgtempData(this.progtempContext, this.width, this.height, this.props.time.format('YYYY-MM-DDTHH:mm:ss') + 'Z');
-        this.setState({ isLoading: false });
-      }).catch(() => this.setState({ isLoading: false }));
+        this.props.loadingDone();
+      }).catch((e) => {
+        this.props.onError(e);
+        this.props.loadingDone();
+      });
     } else {
-      this.setState({ isLoading: false });
+      this.props.loadingDone();
+      this.props.onError('Failed to fetch data. Maybe there is no data for this reference time?');
     }
   }
 
@@ -176,5 +192,7 @@ ProgtempComponent.propTypes = {
   selectedModel: PropTypes.string.isRequired,
   referenceTime: PropTypes.object.isRequired,
   location: PropTypes.object,
-  urls: PropTypes.object.isRequired
+  urls: PropTypes.object.isRequired,
+  onError: PropTypes.func,
+  loadingDone: PropTypes.func
 };

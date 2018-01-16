@@ -269,6 +269,7 @@ class SigmetCategory extends Component {
   }
 
   sigmetLayers (p) {
+    console.log('Sources props: ', this.props.sources);
     let HARMONIE_URL = GetServiceByName(this.props.sources, 'HARM_N25');
     let OVERLAY_URL = GetServiceByName(this.props.sources, 'OVL');
     let OBSERVATIONS_URL = GetServiceByName(this.props.sources, 'OBS');
@@ -600,7 +601,7 @@ class SigmetCategory extends Component {
     const preset = this.sigmetLayers(onlyObj.layerpreset);
     this.props.dispatch(this.props.mapActions.setLayout(preset.display.type));
     this.props.dispatch(this.props.layerActions.setPreset(preset.layers));
-    this.props.dispatch(this.props.mapActions.setCut({ name: 'Custom', bbox: [570875, preset.area.bottom, 570875, preset.area.top] }));
+    this.props.dispatch(this.props.mapActions.setCut({ name: 'Custom', bbox: [preset.area.left || 570875, preset.area.bottom, preset.area.right || 570875, preset.area.top] }));
   }
 
   setSelectedFir (firList) {
@@ -946,7 +947,7 @@ class SigmetCategory extends Component {
     if (editable) {
       maxSize = 900;
     }
-
+    const sourceless = Object.keys(this.props.sources || {}).length === 0;
     return (
       <Card className='row accordion'>
         {parentCollapsed
@@ -982,11 +983,11 @@ class SigmetCategory extends Component {
                       <Col xs='3'>
                         <Badge color='success'>What</Badge>
                       </Col>
-                      <Col xs='9'>
+                      <Col xs='9' style={{ flexDirection: 'column' }}>
                         { editable
-                          ? <Typeahead style={{ width: '100%' }} filterBy={['name', 'code']} labelKey='name'
-                            options={this.getPhenomena()} onChange={(phenomenonList) => this.setSelectedPhenomenon(phenomenonList)}
-                            onClick={(evt) => console.log(evt)} />
+                          ? <Typeahead disabled={sourceless} filterBy={['name', 'code']} labelKey='name'
+                            options={this.getPhenomena()} placeholder={sourceless ? 'Loading phenomena ⏳' : 'Select phenomenon'} onChange={(phenomenonList) => this.setSelectedPhenomenon(phenomenonList)}
+                            />
                           : <span style={{ fontWeight: 'bold' }}>{item.phenomenonHRT}</span>
                         }
                       </Col>
@@ -1045,7 +1046,7 @@ class SigmetCategory extends Component {
                       <Col xs='3'>
                         <Badge color='success'>Where</Badge>
                       </Col>
-                      <Col xs='9'>
+                      <Col xs='9' style={{ flexDirection: 'column' }}>
                         {editable
                           ? <Typeahead style={{ width: '100%' }} filterBy={['firname', 'location_indicator_icao']} labelKey='firname'
                             options={this.getParameters().firareas} onChange={(firList) => this.setSelectedFir(firList)} defaultValue={this.getParameters().firareas[0]} />
