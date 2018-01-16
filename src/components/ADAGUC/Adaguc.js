@@ -151,7 +151,7 @@ export default class Adaguc extends PureComponent {
     this.webMapJS.addListener('mouseclicked', e => this.findClosestCursorLoc(e), true);
 
     // Set the baselayer and possible overlays
-    this.updateBaselayers(baselayer, {}, panels[mapId].overlays, {});
+    this.updateBaselayers({}, baselayer, {}, panels[mapId].overlays);
     const defaultPersonalURLs = JSON.stringify({ personal_urls: [] });
     if (localStorage && !localStorage.getItem('geoweb')) {
       localStorage.setItem('geoweb', defaultPersonalURLs);
@@ -275,11 +275,11 @@ export default class Adaguc extends PureComponent {
 
   // Returns true when the layers are actually different w.r.t. next layers, otherwise false
   /* istanbul ignore next */
-  updateBaselayers (baselayer, prevBaselayer, overlays, prevOverlays) {
-    if (diff(baselayer, prevBaselayer) || diff(overlays, prevOverlays)) {
+  updateBaselayers (baselayer, nextBaselayer, overlays, nextOverlays) {
+    if (Array.isArray(nextOverlays) && (diff(baselayer, nextBaselayer) || diff(overlays, nextOverlays))) {
       // eslint-disable-next-line no-undef
-      const baseLayer = new WMJSLayer(baselayer);
-      const overlayers = overlays.map((overlay) => {
+      const baseLayer = new WMJSLayer(nextBaselayer);
+      const overlayers = nextOverlays.map((overlay) => {
         // eslint-disable-next-line no-undef
         const newOverlay = new WMJSLayer(overlay);
         newOverlay.keepOnTop = true;
@@ -323,91 +323,129 @@ export default class Adaguc extends PureComponent {
     }
   }
 
-  updateAnimationActiveLayerChange (currDataLayers, prevDataLayers) {
+  updateAnimationActiveLayerChange (currDataLayers, nextDataLayers, wmjsLayers, nextWmjsLayers) {
     const { dispatch, adagucActions } = this.props;
     const ANIMATION_LENGTH_REF_TIME = 48;
     const ANIMATION_LENGTH_NO_REF_TIME = 6;
     let animationLength = null;
-    if (Array.isArray(prevDataLayers) && prevDataLayers.length > 0 && Array.isArray(currDataLayers) && currDataLayers.length > 0) {
-      const prevActiveLayer = prevDataLayers.filter(layer => layer.active)[0];
-      const currActiveLayer = currDataLayers.filter(layer => layer.active)[0];
 
-      // If the active layer hadn't changed we're done
-      if (prevActiveLayer === currActiveLayer) {
-        return;
+    if (Array.isArray(nextDataLayers) && Array.isArray(currDataLayers)) {
+      const nextActiveLayers = nextDataLayers.filter(layer => layer.active);
+      const currActiveLayers = currDataLayers.filter(layer => layer.active);
+
+      // Encode length of arrays as state as to switch on it.
+      const layerState = [nextActiveLayers.length, currActiveLayers.length].join('');
+      let nextActiveLayer, currActiveLayer, nextActiveWMJSLayer, currActiveWMJSLayer, nextHasRefTime, currHasRefTime;
+      switch (layerState) {
+        // 11 means active layer has possibly switched within this panel, so find the new one
+        case '11':
+          nextActiveLayer = nextActiveLayers[0];
+          currActiveLayer = currActiveLayers[0];
+
+          // if the active layer remained the same, we don't have to do anything
+          if (nextActiveLayer === currActiveLayer) {
+            return;
+          }
+
+          nextActiveWMJSLayer = nextWmjsLayers.layers.filter(layer => layer.service === nextActiveLayer.service && layer.name === nextActiveLayer.name)[0];
+          currActiveWMJSLayer = wmjsLayers.layers.filter(layer => layer.service === currActiveLayer.service && layer.name === currActiveLayer.name)[0];
+
+          // if ADAGUC doesn't know the layers, bail
+          if (!nextActiveWMJSLayer || !currActiveWMJSLayer) {
+            return;
+          }
+          nextHasRefTime = nextActiveWMJSLayer.getDimension('reference_time');
+          currHasRefTime = currActiveWMJSLayer.getDimension('reference_time');
+
+          // If the having of a reference_time didn't change, we're done
+          if ((!!nextHasRefTime) === (!!currHasRefTime)) {
+            return;
+          }
+          // set the respective animation length
+          if (nextHasRefTime) {
+            animationLength = ANIMATION_LENGTH_REF_TIME;
+          } else {
+            animationLength = ANIMATION_LENGTH_NO_REF_TIME;
+          }
+          break;
+
+        // First layer got added, or active layer got deleted so set a new one
+        case '12': // TODO: y tho???
+        case '10':
+          nextActiveWMJSLayer = this.webMapJS.getActiveLayer();
+          if (!nextActiveWMJSLayer) {
+            break;
+          }
+          nextHasRefTime = nextActiveWMJSLayer.getDimension('reference_time');
+          if (nextHasRefTime) {
+            animationLength = ANIMATION_LENGTH_REF_TIME;
+          } else {
+            animationLength = ANIMATION_LENGTH_NO_REF_TIME;
+          }
+          break;
+        case '01':
+        case '00':
+          break;
       }
-      const prevActiveWMJSLayer = this.props.layers.wmjsLayers.layers.filter(layer => layer.service === prevActiveLayer.service && layer.name === prevActiveLayer.name)[0];
-      const currActiveWMJSLayer = this.props.layers.wmjsLayers.layers.filter(layer => layer.service === currActiveLayer.service && layer.name === currActiveLayer.name)[0];
-
-      if (!currActiveWMJSLayer) {
-        dispatch(adagucActions.setAnimationLength(''));
+      if (animationLength !== this.props.adagucProperties.animationSettings.duration) {
+        dispatch(adagucActions.setAnimationLength(animationLength));
       }
-
-      if (!prevActiveWMJSLayer || !currActiveWMJSLayer) {
-        return;
-      }
-
-      const prevHasRefTime = prevActiveWMJSLayer.getDimension('reference_time');
-      const currHasRefTime = currActiveWMJSLayer.getDimension('reference_time');
-
-      // If the having of a reference_time didn't change, we're done
-      if ((!!prevHasRefTime) === (!!currHasRefTime)) {
-        return;
-      }
-
-      // set the respective animation length
-      if (currHasRefTime) {
-        animationLength = ANIMATION_LENGTH_REF_TIME;
-      } else {
-        animationLength = ANIMATION_LENGTH_NO_REF_TIME;
-      }
-    } else {
-      // No prevLayers, so only layer in the system, set default animation time
-      const activeLayer = this.webMapJS.getActiveLayer();
-      if (!activeLayer) {
-        return;
-      }
-
-      const currHasRefTime = activeLayer.getDimension('reference_time');
-      if (currHasRefTime) {
-        animationLength = ANIMATION_LENGTH_REF_TIME;
-      } else {
-        animationLength = ANIMATION_LENGTH_NO_REF_TIME;
-      }
-    }
-
-    if (animationLength !== null && animationLength !== this.props.adagucProperties.animationSettings.duration) {
-      dispatch(adagucActions.setAnimationLength(animationLength));
     }
   }
 
-  // Returns true when the layers are actually different w.r.t. prev layers, otherwise false
+  // Returns true when the layers are actually different w.r.t. next layers, otherwise false
   /* istanbul ignore next */
-  updateLayers (currDataLayers, prevDataLayers, wmjsLayers, prevWmjsLayers) {
-    const change = diff(currDataLayers, prevDataLayers);
-    if (change) {
-      if (this.orderChanged(currDataLayers, prevDataLayers)) {
+  updateLayers (currDataLayers, nextDataLayers, wmjsLayers, nextWmjsLayers) {
+    const change = diff(currDataLayers, nextDataLayers);
+    if (change && nextDataLayers && Array.isArray(nextDataLayers)) {
+      if (this.orderChanged(currDataLayers, nextDataLayers)) {
         this.webMapJS.stopAnimating();
-        const newDatalayers = currDataLayers.map((datalayer) => this.defineNewWMJSLayer(datalayer));
+        const newDataLayers = nextDataLayers.map((datalayer) => this.defineNewWMJSLayer(datalayer));
         this.webMapJS.removeAllLayers();
-        if (newDatalayers && newDatalayers.length > 0) {
-          newDatalayers.reverse().forEach(layer => this.webMapJS.addLayer(layer));
+        if (newDataLayers && newDataLayers.length > 0) {
+          newDataLayers.reverse().forEach(layer => this.webMapJS.addLayer(layer));
         }
       } else {
-        this.updateLayersInline(currDataLayers);
+        this.updateLayersInline(nextDataLayers);
       }
     }
-    this.updateAnimationActiveLayerChange(currDataLayers, prevDataLayers);
+    this.updateAnimationActiveLayerChange(currDataLayers, nextDataLayers, wmjsLayers, nextWmjsLayers);
     return change;
+  }
+
+  componentWillUpdate (nextProps) {
+    const { adagucProperties, layerActions, layers, active, mapId, dispatch } = this.props;
+    const { animationSettings } = adagucProperties;
+    const { baselayer } = layers;
+
+    const activePanel = this.props.layers.panels[mapId];
+
+    const nextActivePanel = nextProps.layers.panels[mapId];
+    const nextBaseLayer = nextProps.layers.baselayer;
+    const overlays = activePanel.overlays;
+    const nextOverlays = nextActivePanel.overlays;
+    const layersChanged = this.updateLayers(activePanel.layers, nextActivePanel.layers, layers.wmjsLayers, nextProps.layers.wmjsLayers);
+    const baseChanged = this.updateBaselayers(baselayer, nextBaseLayer, overlays, nextOverlays);
+
+    // Update animation -- animate iff animate is set and the panel is active.
+    if (nextProps.adagucProperties.animationSettings !== animationSettings) {
+      this.onChangeAnimation(nextProps.adagucProperties.animationSettings, nextProps.active);
+    }
+
+    // Set the current layers if the panel becomes active (necessary for the layermanager etc.)
+    if (active && (!nextProps.active || layersChanged || baseChanged)) {
+      this.resize();
+      dispatch(layerActions.setWMJSLayers({ layers: this.webMapJS.getLayers(), baselayers: this.webMapJS.getBaseLayers() }));
+    }
+
+    this.webMapJS.draw('368');
   }
 
   /* istanbul ignore next */
   componentDidUpdate (prevProps) {
-    const { mapProperties, adagucProperties, layerActions, layers, active, mapId, dispatch } = this.props;
+    const { mapProperties, adagucProperties, active } = this.props;
     const { boundingBox, mapMode, projection } = mapProperties;
-    const { timeDimension, animationSettings, cursor } = adagucProperties;
-    const { baselayer } = layers;
-    const activePanel = this.props.layers.panels[mapId];
+    const { timeDimension, cursor } = adagucProperties;
 
     // Updates that need to happen across all panels
     this.updateBoundingBox(boundingBox, prevProps.mapProperties.boundingBox, projection.code, prevProps.mapProperties.projection.code);
@@ -419,25 +457,6 @@ export default class Adaguc extends PureComponent {
     if (cursor && cursor.location && cursor !== prevCursor) {
       this.webMapJS.positionMapPinByLatLon({ x: cursor.location.x, y: cursor.location.y });
     }
-
-    const prevActivePanel = prevProps.layers.panels[mapId];
-    const prevBaseLayer = prevProps.layers.baselayer;
-    const overlays = activePanel.overlays;
-    const prevOverlays = prevActivePanel.overlays;
-    const layersChanged = this.updateLayers(activePanel.layers, prevActivePanel.layers, layers.wmjsLayers, prevProps.layers.wmjsLayers);
-    const baseChanged = this.updateBaselayers(baselayer, prevBaseLayer, overlays, prevOverlays);
-
-    // Update animation -- animate iff animate is set and the panel is active.
-    if (prevProps.adagucProperties.animationSettings !== animationSettings) {
-      this.onChangeAnimation(animationSettings, active);
-    }
-
-    // Set the current layers if the panel becomes active (necessary for the layermanager etc.)
-    if (active && (!prevProps.active || layersChanged || baseChanged)) {
-      this.resize();
-      dispatch(layerActions.setWMJSLayers({ layers: this.webMapJS.getLayers(), baselayers: this.webMapJS.getBaseLayers() }));
-    }
-
     this.webMapJS.draw('368');
   }
 

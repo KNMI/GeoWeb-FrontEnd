@@ -1,4 +1,4 @@
-import React, { PureComponent } from 'react';
+import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
 import { default as LayerManager } from './ADAGUC/LayerManager';
 import { default as TimeComponent } from './ADAGUC/TimeComponent';
@@ -11,7 +11,7 @@ import { GetServiceByName } from '../utils/getServiceByName';
 
 var elementResizeEvent = require('element-resize-event');
 
-class LayerManagerPanel extends PureComponent {
+class LayerManagerPanel extends Component {
   constructor (props) {
     super(props);
     this.setResizeListener = this.setResizeListener.bind(this);
@@ -311,7 +311,7 @@ class LayerManagerPanel extends PureComponent {
                 <Icon name='clock-o' />
               </Button>
               <Row>
-                <Input style={{ maxWidth: '7rem' }} value={this.props.adagucProperties.animationSettings.duration} onChange={this.handleDurationUpdate}
+                <Input style={{ maxWidth: '7rem' }} value={this.props.adagucProperties.animationSettings.duration || ''} onChange={this.handleDurationUpdate}
                   placeholder='No. hours' type='number' step='1' min='0' ref={elm => { this.durationInput = elm; }} />
               </Row>
             </Row>

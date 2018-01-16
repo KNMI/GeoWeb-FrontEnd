@@ -3,7 +3,10 @@ import layerReducer from './layerReducer';
 describe('(Redux Module) layerReducer', () => {
   describe('(Reducer)', () => {
     const STATE = {
-      wmjsLayers: {},
+      wmjsLayers: {
+        layers: [],
+        baselayers: []
+      },
       baselayer: {
         name: 'OSM',
         title: 'OpenStreetMap',
