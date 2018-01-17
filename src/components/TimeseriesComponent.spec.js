@@ -15,7 +15,7 @@ describe('(Component) TimeseriesComponent', () => {
     };
     const referenceTime = moment.utc((moment.utc().format('YYYY-MM-DDT06:00:00')));
     const _component = mount(<TimeseriesComponent urls={urls} location={location} referenceTime={referenceTime}
-      selectedModel={'HARMONIE'} time={moment.utc()} id={'timeseries0'} />);
+      selectedModel={'Harmonie36'} time={moment.utc()} id={'timeseries0'} />);
     expect(_component.type()).to.eql(TimeseriesComponent);
   });
 });

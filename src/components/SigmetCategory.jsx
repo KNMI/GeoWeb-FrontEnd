@@ -269,13 +269,13 @@ class SigmetCategory extends Component {
   }
 
   sigmetLayers (p) {
-    let HARMONIE_URL = GetServiceByName(this.props.sources, 'HARM_N25');
+    let HARMONIE_URL = GetServiceByName(this.props.sources, 'Harmonie36');
     let OVERLAY_URL = GetServiceByName(this.props.sources, 'OVL');
     let OBSERVATIONS_URL = GetServiceByName(this.props.sources, 'OBS');
     let RADAR_URL = GetServiceByName(this.props.sources, 'RADAR');
     let LIGHTNING_URL = GetServiceByName(this.props.sources, 'LGT');
     let SATELLITE_URL = GetServiceByName(this.props.sources, 'SAT');
-    let HARMONIE_ML_URL = GetServiceByName(this.props.sources, 'HARM_N25_ML');
+    let HARMONIE_ML_URL = GetServiceByName(this.props.sources, 'Harmonie36');
     switch (p) {
       case 'sigmet_layer_TS':
         return (
@@ -293,7 +293,7 @@ class SigmetCategory extends Component {
               [
                 {
                   service: HARMONIE_URL,
-                  title: 'HARM_N25_EXT',
+                  title: 'Harmonie36',
                   name: 'precipitation_flux',
                   label: 'Prec: Precipitation rate',
                   opacity: 1,
@@ -502,7 +502,7 @@ class SigmetCategory extends Component {
               [
                 {
                   service: HARMONIE_URL,
-                  title: 'HARM_N25_EXT',
+                  title: 'Harmonie36',
                   name: 'precipitation_flux',
                   label: 'Prec: Precipitation rate',
                   opacity: 1,

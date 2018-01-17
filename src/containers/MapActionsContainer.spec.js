@@ -132,9 +132,9 @@ describe('(Container) MapActionsContainer', () => {
   //   expect(obs).to.eql('Satellite');
   //   obs = _deepComponent.instance().getLayerName({ title: 'LGT' });
   //   expect(obs).to.eql('Lightning');
-  //   obs = _deepComponent.instance().getLayerName({ title: 'HARM_N25_EXT' });
-  //   expect(obs).to.eql('HARMONIE (EXT)');
-  //   obs = _deepComponent.instance().getLayerName({ title: 'HARM_N25' });
+  //   obs = _deepComponent.instance().getLayerName({ title: 'Harmonie36' });
+  //   expect(obs).to.eql('Harmonie36');
+  //   obs = _deepComponent.instance().getLayerName({ title: 'Harmonie36' });
   //   expect(obs).to.eql('HARMONIE');
   //   obs = _deepComponent.instance().getLayerName({ title: 'OVL' });
   //   expect(obs).to.eql('Overlay');
@@ -162,11 +162,11 @@ describe('(Container) MapActionsContainer', () => {
     const newAdaguc = {
       layers: {
         datalayers: [
-          { title: 'HARM', getDimension: () => '2017-03-24T06:00:00' }
+          { title: 'Harmonie36', getDimension: () => '2017-03-24T06:00:00' }
         ]
       },
       wmjslayers: {
-        layers: [{ title: 'HARM', service: 'HARM', getDimension: () => '2017-03-24T06:00:00' }],
+        layers: [{ title: 'Harmonie36', service: 'Harmonie36', getDimension: () => '2017-03-24T06:00:00' }],
         baselayers: [],
         overlays: []
       },

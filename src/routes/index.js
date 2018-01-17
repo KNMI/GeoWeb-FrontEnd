@@ -22,7 +22,8 @@ import TafsContainer from '../containers/TafsContainer';
 import TriggersContainer from '../containers/TriggersContainer';
 import MapPanel from '../components/MapPanel';
 import LayerManagerPanel from '../components/LayerManagerPanel';
-import SmallLayerManagerPanel from '../components/SmallLayerManagerPanel';
+// TODO: fix fullscreen
+// import SmallLayerManagerPanel from '../components/SmallLayerManagerPanel';
 
 import AppManagementPanel from '../components/Management/AppManagementPanel';
 import ProductsManagementPanel from '../components/Management/ProductsManagementPanel';
@@ -122,7 +123,6 @@ export const createRoutes = (store) => {
   const rightSidebar = React.createElement(connect(mapStateToRightSideBarProps, mapDispatchToRightSidebarProps)(MapActionsContainer));
   const map = connect(mapStateToMapProps, mapDispatchToMainViewportProps)(MapPanel);
   const layerManager = React.createElement(connect(mapStateToLayerManagerProps, mapDispatchToLayerManagerProps)(LayerManagerPanel));
-  const smallLayerManager = React.createElement(connect(mapStateToLayerManagerProps, mapDispatchToLayerManagerProps)(SmallLayerManagerPanel));
   const products = React.createElement(connect(mapStateToLayerManagerProps, mapDispatchToLayerManagerProps)(ProductsContainer));
   const sigmet = React.createElement(connect((state) => ({
     drawProperties: state.drawProperties, urls: state.urls, sources: state.adagucProperties.sources
@@ -258,7 +258,7 @@ export const createRoutes = (store) => {
       <Route path='full_screen' title='Full Screen'>
         <Route component={HeaderedLayout}>
           <Route component={SidebarredLayout}>
-            <Route component={FooteredLayout} contextComponent={smallLayerManager} >
+            <Route component={FooteredLayout} contextComponent={layerManager} >
               <IndexRoute component={map} />
             </Route>
           </Route>

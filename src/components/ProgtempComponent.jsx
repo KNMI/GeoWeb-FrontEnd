@@ -94,11 +94,19 @@ export default class ProgtempComponent extends PureComponent {
   }
 
   renderProgtempData (ctx, canvasWidth, canvasHeight, progtempTime) {
-    if (!this.state.isLoading && ctx) {
+    if (!this.state.isLoading && ctx && this.props.selectedModel && this.props.location && this.props.referenceTime) {
       const { PSounding, TSounding, TdSounding, ddSounding, ffSounding, TwSounding, TvSounding } = this.modifyData(this.state.progtempData, this.props.referenceTime, progtempTime);
-      if (!(PSounding && TSounding && TdSounding && ddSounding && ffSounding && TwSounding && TvSounding)) {
-        this.setState({ errorSet: true });
+      if (!(Array.isArray(PSounding) && Array.isArray(TSounding) && Array.isArray(TdSounding) &&
+            Array.isArray(ddSounding) && Array.isArray(ffSounding) && (!!TwSounding) && (!!TvSounding))) {
+        if (!this.state.errorSet) {
+          this.setState({ errorSet: true });
+        }
         this.props.onError('Error: some data is missing. Progtemp might be incomplete');
+      } else {
+        if (this.state.errorSet) {
+          this.setState({ errorSet: false });
+        }
+        this.props.onError(null);
       }
       drawProgtemp(ctx, canvasWidth, canvasHeight, PSounding, TSounding, TdSounding, ddSounding, ffSounding, TwSounding, TvSounding);
       plotHodo(ctx, canvasWidth, canvasHeight, PSounding, TSounding, TdSounding, ddSounding, ffSounding, TwSounding);
@@ -109,7 +117,9 @@ export default class ProgtempComponent extends PureComponent {
       if (hourDifference < 0 || hourDifference > MODEL_RUN_LENGTH) {
         this.props.onError('Warning: Time is outside of range for this model');
       } else {
-        this.setState({ errorSet: false });
+        if (this.state.errorSet) {
+          this.setState({ errorSet: false });
+        }
         this.props.onError(null);
       }
     }
@@ -120,7 +130,7 @@ export default class ProgtempComponent extends PureComponent {
     const refTimeStr = referenceTime.format('YYYY-MM-DDTHH:mm:ss') + 'Z';
 
     return new Promise((resolve, reject) => {
-      GetServiceByNamePromise(this.props.urls.BACKEND_SERVER_URL, 'HARM_N25_ML').then(
+      GetServiceByNamePromise(this.props.urls.BACKEND_SERVER_URL, 'Harmonie36').then(
         (serviceURL) => {
           try {
             let url = serviceURL + '&SERVICE=WMS&VERSION=1.3.0&REQUEST=GetPointValue&LAYERS=&' +
@@ -143,7 +153,9 @@ export default class ProgtempComponent extends PureComponent {
     const m = this.setModelData(model, location, referenceTime);
     if (m) {
       m.then((d) => {
-        this.setState({ progtempData: d.data, isLoading: false });
+        if (this.state.progtempData !== d.data || this.state.isLoading) {
+          this.setState({ progtempData: d.data, isLoading: false });
+        }
         this.renderProgtempData(this.progtempContext, this.width, this.height, this.props.time.format('YYYY-MM-DDTHH:mm:ss') + 'Z');
         this.props.loadingDone();
       }).catch((e) => {
@@ -152,7 +164,12 @@ export default class ProgtempComponent extends PureComponent {
       });
     } else {
       this.props.loadingDone();
-      this.props.onError('Failed to fetch data. Maybe there is no data for this reference time?');
+      if (!this.state.errorSet) {
+        this.props.onError('Failed to fetch data. Maybe there is no data for this reference time?');
+        if (!this.state.errorSet) {
+          this.setState({ errorSet: true });
+        }
+      }
     }
   }
 
@@ -162,7 +179,9 @@ export default class ProgtempComponent extends PureComponent {
         nextProps.referenceTime !== this.props.referenceTime) {
       this.fetchAndRender(nextProps.selectedModel, nextProps.location, nextProps.referenceTime);
     } else {
-      this.renderProgtempData(this.progtempContext, this.width, this.height, nextProps.time.format('YYYY-MM-DDTHH:mm:ss') + 'Z');
+      if (this.props.time.format('YYYY-MM-DDTHH:mm:ss') + 'Z' !== nextProps.time.format('YYYY-MM-DDTHH:mm:ss') + 'Z') {
+        this.renderProgtempData(this.progtempContext, this.width, this.height, nextProps.time.format('YYYY-MM-DDTHH:mm:ss') + 'Z');
+      }
     }
   }
 

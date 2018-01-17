@@ -118,10 +118,8 @@ class MapAnimationControlsContainer extends Component {
           return 'Satellite';
         case 'LGT':
           return 'Lightning';
-        case 'HARM_N25_EXT':
-          return 'HARMONIE (EXT)';
-        case 'HARM_N25':
-          return 'HARMONIE';
+        case 'Harmonie36':
+          return 'Harmonie36';
         case 'OVL':
           return 'Overlay';
         case 'RADAR_EXT':

@@ -18,6 +18,8 @@ export default class ProgtempPopoverComponent extends Component {
     this.setChosenLocation = this.setChosenLocation.bind(this);
     this.getLocationOrErrors = this.getLocationOrErrors.bind(this);
     this.clearTypeAhead = this.clearTypeAhead.bind(this);
+    this.setIsLoadingDone = this.setIsLoadingDone.bind(this);
+    this.onError = this.onError.bind(this);
     this.state = {
       locationDropdownOpen: false,
       selectedModel: 'Harmonie36'
@@ -37,7 +39,7 @@ export default class ProgtempPopoverComponent extends Component {
   }
 
   setReferenceTime (model) {
-    return GetServiceByNamePromise(this.props.urls.BACKEND_SERVER_URL, 'HARM_N25_ML').then(
+    return GetServiceByNamePromise(this.props.urls.BACKEND_SERVER_URL, 'Harmonie36').then(
       (serviceURL) => {
         try {
           let referenceTimeRequestURL = serviceURL + '&SERVICE=WMS&VERSION=1.3.0&REQUEST=GetReferenceTimes&LAYERS=air_temperature__at_ml';
@@ -106,12 +108,12 @@ export default class ProgtempPopoverComponent extends Component {
     }
   }
 
-  getLocationOrErrors (cursor, error) {
+  getLocationOrErrors (cursor) {
     if (this.state.isLoading) {
       return 'Loading...';
     }
-    if (error) {
-      return error;
+    if (this.state.error) {
+      return this.state.error;
     } else {
       if (cursor && cursor.location) {
         if (cursor.location.name) {
@@ -122,6 +124,16 @@ export default class ProgtempPopoverComponent extends Component {
       } else {
         return 'Select location';
       }
+    }
+  }
+
+  setIsLoadingDone () {
+    this.setState({ isLoading: false });
+  }
+
+  onError (arg) {
+    if (this.state.error !== arg) {
+      this.setState({ error: arg });
     }
   }
 
@@ -137,15 +149,10 @@ export default class ProgtempPopoverComponent extends Component {
       <Popover placement='left' isOpen={this.props.isOpen} target='progtemp_button'>
         <PopoverTitle>Reference time: <strong>{this.state.referenceTime ? this.state.referenceTime.format('ddd DD, HH:mm UTC') : '??'}</strong></PopoverTitle>
         <ProgtempComponent urls={urls} location={cursor ? cursor.location : null} referenceTime={this.state.referenceTime}
-          selectedModel={this.state.selectedModel} loadingDone={() => this.setState({ isLoading: false })} onError={(error) => {
-            console.log(error);
-            if (this.state.error !== error) {
-              this.setState({ error });
-            }
-          }} time={adaStart} className='popover-content'
+          selectedModel={this.state.selectedModel} loadingDone={this.setIsLoadingDone} onError={this.onError} time={adaStart} className='popover-content'
           style={{ height: '600px', width: '450px', marginLeft: '-3.6rem', marginRight: '1.4rem' }} />
         <Row style={{ padding: '0 0 1rem 1rem' }}>
-          {this.getLocationOrErrors(cursor, this.state.error)}
+          {this.getLocationOrErrors(cursor)}
         </Row>
         <Row style={{ flexDirection: 'column' }} >
           <Typeahead ref={ref => { this._typeahead = ref; }}
@@ -155,7 +162,7 @@ export default class ProgtempPopoverComponent extends Component {
               {this.state.selectedModel || 'Select model'}
             </DropdownToggle>
             <DropdownMenu>
-              <DropdownItem onClick={() => { this.setReferenceTime('HARMONIE'); this.setState({ selectedModel: 'HARMONIE' }); }}>HARMONIE</DropdownItem>
+              <DropdownItem onClick={() => { this.setReferenceTime('Harmonie36'); this.setState({ selectedModel: 'Harmonie36' }); }}>Harmonie36</DropdownItem>
             </DropdownMenu>
           </ButtonDropdown>
         </Row>

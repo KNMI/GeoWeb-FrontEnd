@@ -54,7 +54,6 @@ export default class TimeComponent extends PureComponent {
   /* istanbul ignore next */
   drawLayerBlocks (ctx, canvasWidth, sliderStopIndex, sliderMapIndex, scaleWidth) {
     // TODO: if only time changes just redraw that part?
-    console.log(this.props.wmjslayers);
     const layers = this.props.wmjslayers.layers;
     const overlayers = this.props.wmjslayers.baselayers.filter(layer => layer.keepOnTop === true);
     const layerHeight = 20;

@@ -14,9 +14,7 @@ const _getSourceByName = (sources, name) => {
 // @name Name of the service as specified by the name attribute in the result of getServices servlet
 // @return URL of WMS service or null if failed
 export const GetServiceByName = (sources, name) => {
-  console.log(sources, name);
   let source = _getSourceByName(sources, name);
-  console.log(source);
   if (!source) {
     return;
   }
@@ -28,7 +26,6 @@ export const GetServiceByName = (sources, name) => {
   }
   // TODO we need our own error handling mechanism here, e.g. a dialog showing what errors have occured.
   console.error('Source not found [' + name + ']', sources);
-  alert('source.service not found [' + name + ']');
   return null;
 };
 

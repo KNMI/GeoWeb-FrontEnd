@@ -80,7 +80,7 @@ class MapPanel extends PureComponent {
   constructor (props) {
     super(props);
     this.state = {
-      model: 'HARMONIE'
+      model: 'Harmonie36'
     };
     ReadLocations(`${this.props.urls.BACKEND_SERVER_URL}/admin/read`, (data) => {
       if (data) {
@@ -91,7 +91,7 @@ class MapPanel extends PureComponent {
     });
   }
   componentWillMount () {
-    GetServiceByNamePromise(this.props.urls.BACKEND_SERVER_URL, 'HARM_N25').then(
+    GetServiceByNamePromise(this.props.urls.BACKEND_SERVER_URL, 'Harmonie36').then(
       (serviceURL) => {
         // console.log('MapPanel.jsx serviceURL:' + serviceURL);
         try {
