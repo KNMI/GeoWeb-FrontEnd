@@ -1,4 +1,4 @@
-import React, { PureComponent } from 'react';
+import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
 import { default as LayerManager } from './ADAGUC/LayerManager';
 import { default as TimeComponent } from './ADAGUC/TimeComponent';
@@ -7,11 +7,11 @@ import { Row, Col, Button, Modal, ModalBody, Input, Label, ListGroup, ListGroupI
 import { Icon } from 'react-fa';
 import PropTypes from 'prop-types';
 import cloneDeep from 'lodash.clonedeep';
-import { GetServiceByNamePromise } from '../utils/getServiceByName';
+import { GetServiceByName } from '../utils/getServiceByName';
 
 var elementResizeEvent = require('element-resize-event');
 
-class LayerManagerPanel extends PureComponent {
+class LayerManagerPanel extends Component {
   constructor (props) {
     super(props);
     this.setResizeListener = this.setResizeListener.bind(this);
@@ -30,24 +30,33 @@ class LayerManagerPanel extends PureComponent {
     };
   }
 
-  componentDidMount () {
-    const { urls, dispatch, layerActions, layers } = this.props;
+  componentDidUpdate (prevProps) {
+    const { dispatch, layerActions, layers, adagucProperties } = this.props;
+    const { sources } = adagucProperties;
+    const prevSources = prevProps.adagucProperties.sources;
 
+    if (prevSources === sources) {
+      return;
+    }
     // By default add Countries overlay layer to each panel
     // The call [...Array(a.length).keys()] generates an array [0, 1, 2, ..., a.length - 1]
-    GetServiceByNamePromise(urls.BACKEND_SERVER_URL, 'OVL').then((url) => {
+    if (!sources || (Object.keys(sources).length === 0 && sources.constructor === Object)) {
+      return;
+    }
+    const source = GetServiceByName(sources, 'OVL');
+    if (source) {
       [...Array(layers.panels.length).keys()].map((id) => {
         dispatch(layerActions.addOverlaysLayer({
           activeMapId: id,
           layer: {
-            service: url,
+            service: source,
             title: 'OVL_EXT',
             name: 'countries',
             label: 'Countries'
           }
         }));
       });
-    });
+    }
   }
 
   goToNow () {
@@ -302,17 +311,24 @@ class LayerManagerPanel extends PureComponent {
                 <Icon name='clock-o' />
               </Button>
               <Row>
-                <Input style={{ maxWidth: '7rem' }} value={this.props.adagucProperties.animationSettings.duration} onChange={this.handleDurationUpdate}
-                  placeholder='Duration' type='number' step='1' min='0' ref={elm => { this.durationInput = elm; }} />
+                <Input style={{ maxWidth: '7rem' }} value={this.props.adagucProperties.animationSettings.duration || ''} onChange={this.handleDurationUpdate}
+                  placeholder='No. hours' type='number' step='1' min='0' ref={elm => { this.durationInput = elm; }} />
               </Row>
             </Row>
             <Row style={{ marginBottom: '.33rem' }}>
-              <Button className='row' color='primary' style={{ width: '3rem', marginRight: '0.25rem' }} onClick={() => this.handleButtonClickNextPrev('down')}>
-                <Icon name='step-backward' />
-              </Button>
-              <Button className='row' color='primary' style={{ width: '3rem', marginRight: '0.5rem' }} onClick={() => this.handleButtonClickNextPrev('up')}>
-                <Icon name='step-forward' />
-              </Button>
+              <Col xs='auto'>
+                <Button color='primary' style={{ width: '3rem', marginRight: '0.25rem' }} onClick={() => this.handleButtonClickNextPrev('down')}>
+                  <Icon name='step-backward' />
+                </Button>
+              </Col>
+              <Col xs='auto'>
+                <Button color='primary' style={{ width: '3rem', marginRight: '0.5rem' }} onClick={() => this.handleButtonClickNextPrev('up')}>
+                  <Icon name='step-forward' />
+                </Button>
+              </Col>
+              <Col>
+                <Label style={{ marginTop: '1.5rem', marginBottom: '-1.5rem' }}>Duration</Label>
+              </Col>
             </Row>
             <Row />
           </Col>

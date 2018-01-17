@@ -10,9 +10,9 @@ describe('(Store) createStore', () => {
     adagucProperties: {
       sources: null,
       source: {
-        name: 'HARM_N25',
-        service: `${WEBSERVER_URL}/cgi-bin/geoweb/adaguc.HARM_N25.cgi?`,
-        title: 'HARM_N25'
+        name: 'Harmonie36',
+        service: `${WEBSERVER_URL}/cgi-bin/geoweb/adaguc.Harmonie36.cgi?`,
+        title: 'Harmonie36'
       },
       layer: 'precipitation_flux',
       layers: [

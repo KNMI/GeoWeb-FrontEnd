@@ -18,7 +18,7 @@ export default class ProgtempPopoverComponent extends Component {
     this.clearTypeAhead = this.clearTypeAhead.bind(this);
     this.state = {
       locationDropdownOpen: false,
-      selectedModel: 'HARMONIE'
+      selectedModel: 'Harmonie36'
     };
     this.progtempLocations = DefaultLocations;
     ReadLocations(`${this.props.urls.BACKEND_SERVER_URL}/admin/read`, (data) => {
@@ -35,13 +35,11 @@ export default class ProgtempPopoverComponent extends Component {
   }
 
   setReferenceTime (model) {
-    return GetServiceByNamePromise(this.props.urls.BACKEND_SERVER_URL, 'HARM_N25').then(
+    return GetServiceByNamePromise(this.props.urls.BACKEND_SERVER_URL, 'Harmonie36').then(
       (serviceURL) => {
-        console.log(serviceURL);
         try {
           let referenceTimeRequestURL = serviceURL + '&SERVICE=WMS&VERSION=1.3.0&REQUEST=GetReferenceTimes&LAYERS=air_temperature__at_2m';
           return axios.get(referenceTimeRequestURL).then((r) => {
-            console.log('TimeseriesComponent.jsx SUCCESS', moment.utc(r.data[0]));
             this.setState({ referenceTime: moment.utc(r.data[0]) });
           });
         } catch (e) {
@@ -131,7 +129,7 @@ export default class ProgtempPopoverComponent extends Component {
               {this.state.selectedModel || 'Select model'}
             </DropdownToggle>
             <DropdownMenu>
-              <DropdownItem onClick={() => { this.setReferenceTime('HARMONIE'); this.setState({ selectedModel: 'HARMONIE' }); }}>HARMONIE</DropdownItem>
+              <DropdownItem onClick={() => { this.setReferenceTime('Harmonie36'); this.setState({ selectedModel: 'Harmonie36' }); }}>Harmonie36</DropdownItem>
             </DropdownMenu>
           </ButtonDropdown>
         </Row>

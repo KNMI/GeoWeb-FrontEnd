@@ -40,24 +40,20 @@ div.rc-slider-rail {
     background-color: $border-inactive-color;
 }
 
-.Panel .rsbc-switch-button.rsbc-switch-button.rsbc-switch-button-flat-round input[type="checkbox"] + label,
-.Panel .rsbc-switch-button.rsbc-switch-button.rsbc-switch-button-flat-round.rsbc-mode-select:hover input[type="checkbox"]:checked + label, .Panel .rsbc-switch-button.rsbc-switch-button.rsbc-switch-button-flat-round.rsbc-mode-select input[type="checkbox"] + label {
-    background-color: $ux-interactive-color!important;
-    /* border-radius: 0.42rem; */
+.input + .toggle {
+  width: 3.4rem!important;
+  height: 1.4rem!important;
+  background-color: $ux-interactive-color!important;
+  border-radius: 4rem!important;
 }
 
-.Panel .rsbc-switch-button.rsbc-switch-button.rsbc-switch-button-flat-round input[type="checkbox"]:checked + label:after,
-.Panel .rsbc-switch-button.rsbc-switch-button.rsbc-switch-button-flat-round.rsbc-mode-select input[type="checkbox"] + label:after {
-    background-color: $ux-interactive-color!important;
-    /* border-radius: 0.19rem; */
-    width: 1rem;
+.input + .toggle:after {
+  width: 1rem!important;
+  border-radius: 3rem!important;
+  background-color: $ux-interactive-color!important;
 }
 
-.Panel .rsbc-switch-button.rsbc-switch-button-flat-round input[type="checkbox"]:checked + label:after {
-    margin-left: 1.5rem;
-}
+.input + .toggle:before {
 
-.Panel .rsbc-switch-button.rsbc-switch-button-flat-round input[type="checkbox"] + label:before {
-    background-color: #fff;
-    /* border-radius: 0.32rem; */
+  border-radius: 3.75rem!important;
 }

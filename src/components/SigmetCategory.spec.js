@@ -80,13 +80,14 @@ describe('(Container) SigmetCategory', () => {
         phenomenon = _instance.getHRT4code('RDOACT_CLD');
         expect(phenomenon).to.eql('Radioactive cloud');
         moxios.done();
+        moxios.uninstall();
       }).catch((error) => {
         console.error('This test gave an error: ', error);
         expect(false).to.equal(true);
         moxios.done();
+        moxios.uninstall();
       });
     });
-    moxios.uninstall();
   });
   it('Handles triggering of showLevels', () => {
     const _component = mount(<SigmetCategory title={'test'} icon='star' />);
@@ -206,12 +207,13 @@ describe('(Container) SigmetCategory', () => {
         expect(result).to.eql(1);
         expect(false).to.equal(true);
         moxios.done();
+        moxios.uninstall();
       }).catch((error) => {
         console.error('This test gave an error: ', error);
         expect(false).to.equal(true);
         moxios.done();
+        moxios.uninstall();
       });
     });
-    moxios.uninstall();
   });
 });

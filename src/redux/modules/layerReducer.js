@@ -22,7 +22,10 @@ const setWMJSLayers = createAction(SET_WMJSLAYERS);
 const setPanelType = createAction(SET_PANEL_TYPE);
 
 let INITIAL_STATE = {
-  wmjsLayers: {},
+  wmjsLayers: {
+    layers: [],
+    baselayers: []
+  },
   baselayer: MAP_STYLES[1],
   panels: [
     {

@@ -60,10 +60,10 @@ describe('(Container) MapAnimationControlsContainer', () => {
     expect(obs).to.eql('Satellite');
     obs = _component.instance().getLayerName({ title: 'LGT' });
     expect(obs).to.eql('Lightning');
-    obs = _component.instance().getLayerName({ title: 'HARM_N25_EXT' });
-    expect(obs).to.eql('HARMONIE (EXT)');
-    obs = _component.instance().getLayerName({ title: 'HARM_N25' });
-    expect(obs).to.eql('HARMONIE');
+    obs = _component.instance().getLayerName({ title: 'Harmonie36' });
+    expect(obs).to.eql('Harmonie36');
+    obs = _component.instance().getLayerName({ title: 'Harmonie36' });
+    expect(obs).to.eql('Harmonie36');
     obs = _component.instance().getLayerName({ title: 'OVL' });
     expect(obs).to.eql('Overlay');
     obs = _component.instance().getLayerName({ title: 'RADAR_EXT' });

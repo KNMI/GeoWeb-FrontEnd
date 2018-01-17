@@ -14,7 +14,18 @@ export class SinglePanel extends PureComponent {
   constructor () {
     super();
     this.renderPanelContent = this.renderPanelContent.bind(this);
+    this.state = {
+      isLoading: false,
+      error: null
+    };
   }
+
+  componentWillUpdate (nextProps) {
+    if (this.props.adagucProperties.cursor !== nextProps.adagucProperties.cursor) {
+      this.setState({ isLoading: true });
+    }
+  }
+
   renderPanelContent (type) {
     const { mapProperties, dispatch, mapId, drawProperties, layers, adagucProperties, urls } = this.props;
     const { activeMapId } = mapProperties;
@@ -27,7 +38,12 @@ export class SinglePanel extends PureComponent {
           selectedModel={this.props.model} time={adaStart} id={'timeseries' + mapId} />;
       case 'PROGTEMP':
         return <ProgtempComponent urls={urls} layout={mapProperties.layout} location={cursor ? cursor.location : null} referenceTime={this.props.referenceTime}
-          selectedModel={this.props.model} time={adaStart} style={{ height: '100%', width: '100%', marginLeft: '-3.6rem', marginRight: '1.4rem' }} />;
+          selectedModel={this.props.model} loadingDone={() => this.setState({ isLoading: false })} onError={(error) => {
+            console.log(error);
+            if (this.state.error !== error) {
+              this.setState({ error });
+            }
+          }} time={adaStart} style={{ height: '100%', width: '100%', marginLeft: '-3.6rem', marginRight: '1.4rem' }} />;
       default:
         return <Adaguc drawActions={this.props.drawActions} layerActions={this.props.layerActions} mapProperties={mapProperties}
           adagucActions={this.props.adagucActions} adagucProperties={adagucProperties} layers={layers} drawProperties={drawProperties}
@@ -40,7 +56,19 @@ export class SinglePanel extends PureComponent {
     const { activeMapId } = mapProperties;
     const type = layers.panels[mapId].type;
     const { cursor } = this.props.adagucProperties;
-    return (<Panel layout={mapProperties.layout} adagucActions={adagucActions} locations={this.props.progtempLocations} location={cursor ? cursor.location : null} dispatch={dispatch}
+
+    let text;
+    if (this.state.isLoading) {
+      text = 'Loading...';
+    } else {
+      if (this.state.error) {
+        text = this.state.error;
+      } else {
+        text = cursor ? cursor.location : null;
+      }
+    }
+
+    return (<Panel layout={mapProperties.layout} adagucActions={adagucActions} locations={this.props.progtempLocations} location={text} dispatch={dispatch}
       layerActions={layerActions} type={type} mapActions={mapActions} title={title} mapMode={mapProperties.mapMode} mapId={mapId}
       className={mapId === activeMapId && type === 'ADAGUC' ? 'activePanel' : ''} referenceTime={this.props.referenceTime}>
       {this.renderPanelContent(type)}
@@ -52,7 +80,7 @@ class MapPanel extends PureComponent {
   constructor (props) {
     super(props);
     this.state = {
-      model: 'HARMONIE'
+      model: 'Harmonie36'
     };
     ReadLocations(`${this.props.urls.BACKEND_SERVER_URL}/admin/read`, (data) => {
       if (data) {
@@ -63,7 +91,7 @@ class MapPanel extends PureComponent {
     });
   }
   componentWillMount () {
-    GetServiceByNamePromise(this.props.urls.BACKEND_SERVER_URL, 'HARM_N25').then(
+    GetServiceByNamePromise(this.props.urls.BACKEND_SERVER_URL, 'Harmonie36').then(
       (serviceURL) => {
         // console.log('MapPanel.jsx serviceURL:' + serviceURL);
         try {
@@ -82,7 +110,7 @@ class MapPanel extends PureComponent {
     );
   }
 
-  componentDidUpdate () {
+  componentDidUpdate (prevProps) {
     const getNumPanels = (name) => {
       let numPanels = 0;
       if (/quad/.test(name)) {

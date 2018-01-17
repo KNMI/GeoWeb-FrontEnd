@@ -39,7 +39,7 @@ export default class TimeseriesComponent extends PureComponent {
     if (!(model && location && referenceTime)) return;
     const refTimeStr = referenceTime.format('YYYY-MM-DDTHH:mm:ss') + 'Z';
 
-    return GetServiceByNamePromise(this.props.urls.BACKEND_SERVER_URL, 'HARM_N25').then(
+    return GetServiceByNamePromise(this.props.urls.BACKEND_SERVER_URL, 'Harmonie36').then(
       (serviceURL) => {
         try {
           let url = serviceURL + '&SERVICE=WMS&VERSION=1.3.0&REQUEST=GetPointValue&LAYERS=&' +
@@ -306,9 +306,9 @@ export default class TimeseriesComponent extends PureComponent {
         {this.state.timeData.length > 0
           ? <div style={{ flexDirection: 'column', height: '100%', width: '100%', maxWidth: '100%' }}>
             <ResponsiveContainer minHeight={'10px'} debounce={50} width='100%' height={'20%'}>
-              <LineChart data={this.state.timeData} margin={{ top: 0, left: 0, right: 10, bottom: 0 }}>
+              <LineChart data={this.state.timeData} syncId='timeseriesSync' margin={{ top: 0, left: 0, right: 10, bottom: 0 }}>
                 <XAxis dataKey='date' />
-                <YAxis />
+                <YAxis label={{ value: this.getUnits(['air_temp']), angle: -90, offset: 15, position: 'insideLeft' }} />
                 <Legend margin={{ top: 0 }} verticalAlign='top' payload={[ { type: 'line', value: this.getLabels(['air_temp']), color: '#ff0000' },
                   { type: 'line', value: this.getLabels(['dew_point_temp']), color: '#0000ff' } ]} />
                 <Tooltip content={(props) => this.customTooltip(props, this.getLabels(['air_temp', 'dew_point_temp']), this.getUnits(['air_temp', 'dew_point_temp']))} />
@@ -318,9 +318,9 @@ export default class TimeseriesComponent extends PureComponent {
               </LineChart>
             </ResponsiveContainer>
             <ResponsiveContainer minHeight={'10px'} debounce={50} width='100%' height={'20%'}>
-              <LineChart data={this.state.timeData} margin={{ top: 0, left: 0, right: 10, bottom: 0 }}>
+              <LineChart data={this.state.timeData} syncId='timeseriesSync' margin={{ top: 0, left: 0, right: 10, bottom: 0 }}>
                 <XAxis dataKey='date' />
-                <YAxis domain={[0, 360]} />
+                <YAxis label={{ value: '°', angle: -90, offset: 15, position: 'insideLeft' }} domain={[0, 360]} />
                 <Legend margin={{ top: 0 }} verticalAlign='top' payload={[ { type: 'line', value: this.getLabels(['wind_dir']), color: '#ff7300' } ]} />
                 <Tooltip content={(props) => this.customTooltip(props, this.getLabels(['wind_dir']), '°')} />
                 <CartesianGrid stroke='#f5f5f5' />
@@ -328,21 +328,21 @@ export default class TimeseriesComponent extends PureComponent {
               </LineChart>
             </ResponsiveContainer>
             <ResponsiveContainer minHeight={'10px'} debounce={50} width='100%' height={'20%'}>
-              <LineChart data={this.state.timeData} margin={{ top: 0, left: 0, right: 10, bottom: 0 }}>
+              <LineChart data={this.state.timeData} syncId='timeseriesSync' margin={{ top: 0, left: 0, right: 10, bottom: 0 }}>
                 <XAxis dataKey='date' />
-                <YAxis />
+                <YAxis label={{ value: this.getUnits(['wind_speed']), angle: -90, offset: 15, position: 'insideLeft' }} />
                 <Legend margin={{ top: 0 }} verticalAlign='top' payload={[ { type: 'line', value: this.getLabels(['wind_speed']), color: '#ff3562' },
                   { type: 'line', value: this.getLabels(['wind_gust']), color: '#69a2b0' } ]} />
                 <Tooltip content={(props) => this.customTooltip(props, this.getLabels(['wind_speed', 'wind_gust']), this.getUnits(['wind_speed', 'wind_gust']))} />
                 <CartesianGrid stroke='#f5f5f5' />
-                <Line dot={(props) => this.renderDot('wind_speed', props)} isAnimationActive={false} type='monotone' dataKey='wind_speed' stroke='#ff3562' />
                 <Line dot={(props) => this.renderDot('wind_gust', props)} isAnimationActive={false} type='monotone' dataKey='wind_gust' stroke='#69a2b0' />
+                <Line dot={(props) => this.renderDot('wind_speed', props)} isAnimationActive={false} type='monotone' dataKey='wind_speed' stroke='#ff3562' />
               </LineChart>
             </ResponsiveContainer>
             <ResponsiveContainer minHeight={'10px'} debounce={50} width='100%' height={'20%'}>
-              <LineChart data={this.state.timeData} margin={{ top: 0, left: 0, right: 10, bottom: 0 }}>
+              <LineChart data={this.state.timeData} syncId='timeseriesSync' margin={{ top: 0, left: 0, right: 10, bottom: 0 }}>
                 <XAxis dataKey='date' />
-                <YAxis />
+                <YAxis label={{ value: this.getUnits(['precipitation']), angle: -90, offset: 15, position: 'insideLeft' }} />
                 <Legend margin={{ top: 0 }} verticalAlign='top' payload={[ { type: 'line', value: this.getLabels(['precipitation']), color: '#ff7300' } ]} />
                 <Tooltip content={(props) => this.customTooltip(props, this.getLabels(['precipitation']), this.getUnits(['precipitation']))} />
                 <CartesianGrid stroke='#f5f5f5' />
@@ -350,9 +350,9 @@ export default class TimeseriesComponent extends PureComponent {
               </LineChart>
             </ResponsiveContainer>
             <ResponsiveContainer minHeight={'10px'} debounce={50} width='100%' height={'20%'}>
-              <LineChart data={this.state.timeData} margin={{ top: 0, left: 0, right: 10, bottom: 0 }}>
+              <LineChart data={this.state.timeData} syncId='timeseriesSync' margin={{ top: 0, left: 0, right: 10, bottom: 0 }}>
                 <XAxis dataKey='date' />
-                <YAxis domain={['auto', 'auto']} />
+                <YAxis label={{ value: this.getUnits(['pressure']), angle: -90, offset: 15, position: 'insideLeft' }} domain={['auto', 'auto']} />
                 <Legend margin={{ top: 0 }} verticalAlign='top' payload={[ { type: 'line', value: this.getLabels(['pressure']), color: '#ff7300' } ]} />
                 <Tooltip content={(props) => this.customTooltip(props, this.getLabels(['pressure']), this.getUnits(['pressure']))} />
                 <CartesianGrid stroke='#f5f5f5' />

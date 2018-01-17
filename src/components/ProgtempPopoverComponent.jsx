@@ -16,11 +16,13 @@ export default class ProgtempPopoverComponent extends Component {
   constructor (props) {
     super(props);
     this.setChosenLocation = this.setChosenLocation.bind(this);
-    this.getLocationAsString = this.getLocationAsString.bind(this);
+    this.getLocationOrErrors = this.getLocationOrErrors.bind(this);
     this.clearTypeAhead = this.clearTypeAhead.bind(this);
+    this.setIsLoadingDone = this.setIsLoadingDone.bind(this);
+    this.onError = this.onError.bind(this);
     this.state = {
       locationDropdownOpen: false,
-      selectedModel: 'HARMONIE'
+      selectedModel: 'Harmonie36'
     };
     this.progtempLocations = DefaultLocations;
     ReadLocations(`${this.props.urls.BACKEND_SERVER_URL}/admin/read`, (data) => {
@@ -37,15 +39,17 @@ export default class ProgtempPopoverComponent extends Component {
   }
 
   setReferenceTime (model) {
-    return GetServiceByNamePromise(this.props.urls.BACKEND_SERVER_URL, 'HARM_N25_ML').then(
+    return GetServiceByNamePromise(this.props.urls.BACKEND_SERVER_URL, 'Harmonie36').then(
       (serviceURL) => {
-        console.log('ProgtempComponent setReferenceTime serviceURL: ', serviceURL);
         try {
           let referenceTimeRequestURL = serviceURL + '&SERVICE=WMS&VERSION=1.3.0&REQUEST=GetReferenceTimes&LAYERS=air_temperature__at_ml';
           return axios.get(referenceTimeRequestURL).then((r) => {
-            console.log('ProgtempComponent setReferenceTime : ', moment.utc(r.data[0]).format());
             this.setState({ referenceTime: moment.utc(r.data[0]) });
-            return axios.get(referenceTimeRequestURL).then((r) => this.setState({ referenceTime: moment.utc(r.data[0]) }));
+            return axios.get(referenceTimeRequestURL).then((r) => {
+              this.setState({ referenceTime: moment.utc(r.data[0]) });
+              // Check ref time too long ago
+              // TODO: this
+            });
           });
         } catch (e) {
           console.error('ERROR: unable to fetch ' + serviceURL);
@@ -77,6 +81,7 @@ export default class ProgtempPopoverComponent extends Component {
     // (this happens when the typeahead is cleared because this is a change from its filled state)
     if (loc.length > 0) {
       dispatch(adagucActions.setCursorLocation(loc[0]));
+      this.setState({ isLoading: true });
     }
   }
 
@@ -84,6 +89,12 @@ export default class ProgtempPopoverComponent extends Component {
     if (!this._typeahead) return;
     if (!this._typeahead.getInstance()) return;
     this._typeahead.getInstance().clear();
+  }
+
+  componentWillUpdate (nextProps) {
+    if (this.props.adagucProperties.cursor !== nextProps.adagucProperties.cursor) {
+      this.setState({ isLoading: true });
+    }
   }
 
   componentDidUpdate (prevProps) {
@@ -97,16 +108,32 @@ export default class ProgtempPopoverComponent extends Component {
     }
   }
 
-  getLocationAsString () {
-    const { cursor } = this.props.adagucProperties;
-    if (cursor && cursor.location) {
-      if (cursor.location.name) {
-        return <span>Location from list: <strong>{cursor.location.name}</strong></span>;
-      } else {
-        return <span>Location from map: <strong>{this.convertMinSec(cursor.location.x) + ', ' + this.convertMinSec(cursor.location.y)}</strong></span>;
-      }
+  getLocationOrErrors (cursor) {
+    if (this.state.isLoading) {
+      return 'Loading...';
+    }
+    if (this.state.error) {
+      return this.state.error;
     } else {
-      return 'Select location';
+      if (cursor && cursor.location) {
+        if (cursor.location.name) {
+          return <span>Location from list: <strong>{cursor.location.name}</strong></span>;
+        } else {
+          return <span>Location from map: <strong>{this.convertMinSec(cursor.location.x) + ', ' + this.convertMinSec(cursor.location.y)}</strong></span>;
+        }
+      } else {
+        return 'Select location';
+      }
+    }
+  }
+
+  setIsLoadingDone () {
+    this.setState({ isLoading: false });
+  }
+
+  onError (arg) {
+    if (this.state.error !== arg) {
+      this.setState({ error: arg });
     }
   }
 
@@ -122,10 +149,10 @@ export default class ProgtempPopoverComponent extends Component {
       <Popover placement='left' isOpen={this.props.isOpen} target='progtemp_button'>
         <PopoverTitle>Reference time: <strong>{this.state.referenceTime ? this.state.referenceTime.format('ddd DD, HH:mm UTC') : '??'}</strong></PopoverTitle>
         <ProgtempComponent urls={urls} location={cursor ? cursor.location : null} referenceTime={this.state.referenceTime}
-          selectedModel={this.state.selectedModel} time={adaStart} className='popover-content'
+          selectedModel={this.state.selectedModel} loadingDone={this.setIsLoadingDone} onError={this.onError} time={adaStart} className='popover-content'
           style={{ height: '600px', width: '450px', marginLeft: '-3.6rem', marginRight: '1.4rem' }} />
         <Row style={{ padding: '0 0 1rem 1rem' }}>
-          {this.getLocationAsString(cursor)}
+          {this.getLocationOrErrors(cursor)}
         </Row>
         <Row style={{ flexDirection: 'column' }} >
           <Typeahead ref={ref => { this._typeahead = ref; }}
@@ -135,7 +162,7 @@ export default class ProgtempPopoverComponent extends Component {
               {this.state.selectedModel || 'Select model'}
             </DropdownToggle>
             <DropdownMenu>
-              <DropdownItem onClick={() => { this.setReferenceTime('HARMONIE'); this.setState({ selectedModel: 'HARMONIE' }); }}>HARMONIE</DropdownItem>
+              <DropdownItem onClick={() => { this.setReferenceTime('Harmonie36'); this.setState({ selectedModel: 'Harmonie36' }); }}>Harmonie36</DropdownItem>
             </DropdownMenu>
           </ButtonDropdown>
         </Row>
