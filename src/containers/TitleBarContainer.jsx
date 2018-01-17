@@ -32,6 +32,8 @@ class TitleBarContainer extends PureComponent {
     this.setTime = this.setTime.bind(this);
     this.doLogin = this.doLogin.bind(this);
     this.doLogout = this.doLogout.bind(this);
+    this.savePreset = this.savePreset.bind(this);
+    this.makePresetObj = this.makePresetObj.bind(this);
     this.sendFeedback = this.sendFeedback.bind(this);
     this.triggerService = this.triggerService.bind(this);
     this.retrieveTriggers = this.retrieveTriggers.bind(this);
@@ -497,6 +499,107 @@ class TitleBarContainer extends PureComponent {
       });
     }
   }
+
+  makePresetObj (presetName, saveLayers, savePanelLayout, saveBoundingBox, role) {
+    const { mapProperties } = this.props;
+    const { layout } = mapProperties;
+    let numPanels;
+    if (/quad/.test(layout)) {
+      numPanels = 4;
+    } else if (/triple/.test(layout)) {
+      numPanels = 3;
+    } else if (/dual/.test(layout)) {
+      numPanels = 2;
+    } else {
+      numPanels = 1;
+    }
+
+    const displayObj = {
+      type: layout,
+      npanels: numPanels
+    };
+    const bbox = {
+      left: this.props.mapProperties.boundingBox.bbox[0],
+      bottom: this.props.mapProperties.boundingBox.bbox[1],
+      right: this.props.mapProperties.boundingBox.bbox[2],
+      top: this.props.mapProperties.boundingBox.bbox[3],
+      crs: this.props.mapProperties.projection.code
+    };
+    let layerConfig = [];
+    this.props.layers.panels.forEach((panel, i) => {
+      if (i >= numPanels) {
+        return;
+      }
+      let panelArr = [];
+      panel.layers.forEach((layer) => {
+        panelArr.push({
+          active: true,
+          dimensions: {},
+          service: layer.service,
+          name: layer.name,
+          opacity: layer.opacity,
+          overlay: false
+        });
+      });
+      panel.overlays.forEach((layer) => {
+        panelArr.push({
+          active: true,
+          dimensions: {},
+          service: layer.service,
+          name: layer.name,
+          opacity: 1,
+          overlay: true
+        });
+      });
+      layerConfig.push(panelArr);
+    });
+
+    const dataToSend = {
+      area: saveBoundingBox ? bbox : null,
+      display: savePanelLayout ? displayObj : null,
+      layers: saveLayers ? layerConfig : null,
+      name: presetName,
+      keywords: []
+    };
+    return dataToSend;
+  }
+
+
+  savePreset (presetName) {
+    // Save all by default now
+    const saveLayers = true; // document.getElementsByName('layerCheckbox')[0].checked;
+    const savePanelLayout = true; // document.getElementsByName('panelCheckbox')[0].checked;
+    const saveBoundingBox = true; // document.getElementsByName('viewCheckbox')[0].checked;
+    const role = document.getElementsByName('roleSelect');
+    const dataToSend = this.makePresetObj(presetName, saveLayers, savePanelLayout, saveBoundingBox, role);
+    let url = this.props.urls.BACKEND_SERVER_URL + '/preset/';
+    let params = {
+      name: presetName
+    };
+    if (role.length === 0) {
+      url += 'putuserpreset';
+    } else {
+      const selectedRole = role[0].options[role[0].selectedIndex].value;
+      if (selectedRole === 'system') {
+        url += 'putsystempreset';
+      } else if (selectedRole === 'user') {
+        url += 'putuserpreset';
+      } else {
+        url += 'putsrolespreset';
+        params['roles'] = selectedRole;
+      }
+    }
+    // console.log(dataToSend, url);
+    return axios({
+      method: 'post',
+      url: url,
+      params: params,
+      withCredentials: true,
+      data: dataToSend
+    });
+    // this.togglePresetModal();
+  }
+
   render () {
     const { user, routes } = this.props;
     const { isLoggedIn, username } = user;
