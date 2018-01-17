@@ -408,7 +408,7 @@ class TitleBarContainer extends PureComponent {
     };
     axios({
       method: 'post',
-      url: urls.WEBSERVER_URL + '/admin/receiveFeedback',
+      url: urls.BACKEND_SERVER_URL + '/admin/receiveFeedback',
       data: feedbackObj
     }).then((res) => { this.setState({ feedbackModalOpen: false }); });
   }
