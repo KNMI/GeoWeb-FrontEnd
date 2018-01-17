@@ -37,11 +37,16 @@ class Panel extends PureComponent {
     return Math.floor(loc) + ':' + padLeft(Math.floor(minutes), 2, '0') + ':' + padLeft(seconds, 2, '0');
   }
   clearTypeAhead () {
-    if (!this.state.typeahead) return;
-    if (!this.state.typeahead.getInstance()) return;
+    const { typeahead } = this.state;
+    if (typeahead === null || typeahead === undefined || typeahead.instanceRef === null) return;
+    const instance = typeahead.getInstance();
+    if (instance === null || instance === undefined) return;
     this.state.typeahead.getInstance().clear();
   }
   componentDidUpdate (prevProps) {
+    if (this.props.type !== 'ADAGUC') {
+      return;
+    }
     const { location } = this.props;
 
     // Clear the Typeahead if previously a location was selected from the dropdown
@@ -78,8 +83,12 @@ class Panel extends PureComponent {
     const panelOpts = ['TIMESERIES', 'PROGTEMP'];
     if (panelOpts.some((t) => t === this.props.type)) {
       return <div style={{ marginRight: '0.25rem', maxWidth: '13rem' }}>
-        <Typeahead onClick={this.clearTypeAhead} onFocus={this.clearTypeAhead} bsSize='sm' ref={(typeahead) => this.setState({ typeahead: typeahead })} onChange={this.setChosenLocation}
-          options={this.props.locations || []} labelKey='name' placeholder='Select ICAO location&hellip;' submitFormOnEnter />
+        <Typeahead onClick={this.clearTypeAhead} onFocus={this.clearTypeAhead} bsSize='sm' ref={(typeahead) => {
+          if (typeahead !== null && typeahead !== this.state.typeahead) {
+            this.setState({ typeahead: typeahead });
+          }
+        }}
+        onChange={this.setChosenLocation} options={this.props.locations || []} labelKey='name' placeholder='Select ICAO location&hellip;' submitFormOnEnter />
       </div>;
     }
   }

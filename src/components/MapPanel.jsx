@@ -39,7 +39,6 @@ export class SinglePanel extends PureComponent {
       case 'PROGTEMP':
         return <ProgtempComponent urls={urls} layout={mapProperties.layout} location={cursor ? cursor.location : null} referenceTime={this.props.referenceTime}
           selectedModel={this.props.model} loadingDone={() => this.setState({ isLoading: false })} onError={(error) => {
-            console.log(error);
             if (this.state.error !== error) {
               this.setState({ error });
             }
@@ -129,6 +128,13 @@ class MapPanel extends PureComponent {
     const { activeMapId } = mapProperties;
     const { panels } = layers;
 
+    prevProps.layers.panels.map((panel, i) => {
+      const prevType = panel.type;
+      const currType = this.props.layers.panels[i].type;
+      if (prevType !== 'ADAGUC' && currType === 'ADAGUC') {
+        dispatch(mapActions.setActivePanel(i));
+      }
+    });
     const numPanels = getNumPanels(mapProperties.layout);
     // Get all visibile panels that are currently adaguc with their id in the original array
     const adagucPanels = (panels.map((panel, index) => { return { panel, index }; }).slice(0, numPanels).filter((p) => p.panel.type === 'ADAGUC'));
