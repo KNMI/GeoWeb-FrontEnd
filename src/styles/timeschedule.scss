@@ -88,6 +88,11 @@ div.TimeSchedule > div.col > div.row > div.col{
   cursor: default;
 }
 
+.TimeSchedule .scheduleHighlight.showPrefix:before {
+  content: attr(data-prefix) ':\00A0'; /* &nbsp; */
+  font-weight: bolder;
+}
+
 .TimeSchedule .overlaps.scheduleHighlight {
   margin-top: 1.5rem;
   margin-bottom: -1.5rem;
@@ -108,7 +113,7 @@ div.TimeSchedule > div.col > div.row > div.col{
   border-color: #9ec5cb;
 }
 
-.TimeSchedule .wind_temp .scheduleHighlight, .TimeSchedule .wind .striped.scheduleHighlight {
+.TimeSchedule .wind◷ .scheduleHighlight, .TimeSchedule .wind .striped.scheduleHighlight {
   background: repeating-linear-gradient(
     45deg,
     #d1ecf1,
@@ -119,7 +124,7 @@ div.TimeSchedule > div.col > div.row > div.col{
   border-color: #9ec5cb;
 }
 
-.TimeSchedule .wind_temp .split.scheduleHighlight {
+.TimeSchedule .wind◷ .split.scheduleHighlight {
   background: linear-gradient(
     to bottom,
     #d1ecf1,
@@ -134,7 +139,7 @@ div.TimeSchedule > div.col > div.row > div.col{
   border-color: #a3c6ab;
 }
 
-.TimeSchedule .visibility_temp .scheduleHighlight, .TimeSchedule .visibility .striped.scheduleHighlight{
+.TimeSchedule .visibility◷ .scheduleHighlight, .TimeSchedule .visibility .striped.scheduleHighlight{
   background: repeating-linear-gradient(
     45deg,
     #d4edda,
@@ -145,7 +150,7 @@ div.TimeSchedule > div.col > div.row > div.col{
   border-color: #a3c6ab;
 }
 
-.TimeSchedule .visibility_temp .split.scheduleHighlight {
+.TimeSchedule .visibility◷ .split.scheduleHighlight {
   background: linear-gradient(
     to bottom,
     #d4edda,
@@ -160,7 +165,7 @@ div.TimeSchedule > div.col > div.row > div.col{
   border-color: #dfce9a;
 }
 
-.TimeSchedule .weather_temp .scheduleHighlight, .TimeSchedule .weather .striped.scheduleHighlight {
+.TimeSchedule .weather◷ .scheduleHighlight, .TimeSchedule .weather .striped.scheduleHighlight {
   background: repeating-linear-gradient(
     45deg,
     #fff3cd,
@@ -171,7 +176,7 @@ div.TimeSchedule > div.col > div.row > div.col{
   border-color: #dfce9a;
 }
 
-.TimeSchedule .weather_temp .split.scheduleHighlight {
+.TimeSchedule .weather◷ .split.scheduleHighlight {
   background: linear-gradient(
     to bottom,
     #fff3cd,
@@ -186,7 +191,7 @@ div.TimeSchedule > div.col > div.row > div.col{
   border-color: #d5a6ab;
 }
 
-.TimeSchedule .clouds_temp .scheduleHighlight, .TimeSchedule .clouds .striped.scheduleHighlight {
+.TimeSchedule .clouds◷ .scheduleHighlight, .TimeSchedule .clouds .striped.scheduleHighlight {
   background: repeating-linear-gradient(
     45deg,
     #f8d7da,
@@ -197,7 +202,7 @@ div.TimeSchedule > div.col > div.row > div.col{
   border-color: #d5a6ab;
 }
 
-.TimeSchedule .clouds_temp .split.scheduleHighlight {
+.TimeSchedule .clouds◷ .split.scheduleHighlight {
   background: linear-gradient(
     to bottom,
     #f8d7da,

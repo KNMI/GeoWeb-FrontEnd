@@ -14,7 +14,7 @@ import { jsonToTacForWind, jsonToTacForWeather, jsonToTacForClouds } from './Taf
 import TafTable from './TafTable';
 import axios from 'axios';
 import { debounce } from '../../utils/debounce';
-const TMP = '_temp';
+const TMP = '◷';
 
 const MOVE_DIRECTION = Enum(
   'UP',
@@ -138,11 +138,10 @@ class TafCategory extends Component {
     this.moveFocus = this.moveFocus.bind(this);
     this.onFocus = this.onFocus.bind(this);
     this.extractScheduleInformation = this.extractScheduleInformation.bind(this);
-    this.decoratePhenomenonValue = this.decoratePhenomenonValue.bind(this);
-    this.decorateStringValue = this.decorateStringValue.bind(this);
-    this.decorateWindObjectValue = this.decorateWindObjectValue.bind(this);
-    this.decorateCloudsArray = this.decorateCloudsArray.bind(this);
-    this.decorateWeatherArray = this.decorateWeatherArray.bind(this);
+    this.serializePhenomenonValue = this.serializePhenomenonValue.bind(this);
+    this.serializeWindObjectValue = this.serializeWindObjectValue.bind(this);
+    this.serializeCloudsArray = this.serializeCloudsArray.bind(this);
+    this.serializeWeatherArray = this.serializeWeatherArray.bind(this);
     this.byPhenomenonType = this.byPhenomenonType.bind(this);
     this.byStartAndChangeType = this.byStartAndChangeType.bind(this);
     this.validateTaf = debounce(this.validateTaf.bind(this), 1250, false);
@@ -248,7 +247,7 @@ class TafCategory extends Component {
             try {
               responseJson.errors = JSON.parse(responseJson.errors);
             } catch (exception) {
-              console.log('Unparseable errors data from response', exception);
+              console.error('Unparseable errors data from response', exception);
             }
           }
           const aggregateReport = {
@@ -266,7 +265,7 @@ class TafCategory extends Component {
         }
       }
     ).catch(error => {
-      console.log(error);
+      console.error(error);
       const aggregateReport = Object.assign(inputParsingReport, { subheading: 'Could not get validation information from the server, thus only local validation results are shown.' });
       this.setState({
         validationReport: aggregateReport
@@ -287,12 +286,12 @@ class TafCategory extends Component {
     }).catch(error => {
       this.setState({ validationReport:{ message: 'Unable to save: error occured while saving TAF.' } });
       try {
-        console.log('Error occured', error);
+        console.error('Error occured', error);
         if (error.response.data.message) {
           this.setState({ validationReport:{ message: error.response.data.message } });
         }
       } catch (e) {
-        console.log(e);
+        console.error(e);
         this.setState({ validationReport:{ message: JSON.stringify(error.response) } });
       }
     });
@@ -344,47 +343,15 @@ class TafCategory extends Component {
   }
 
   /**
-   * Maps the string value into a presentable form
-   * @param {string} value The text to present
-   * @param {string} prefix The text to prepend
-   * @return {React.Component} A component with a readable presentation of the phenomenon value
-   */
-  decorateStringValue (value, prefix) {
-    return <div className='col-auto' title={value}>
-      {prefix
-        ? <div className='col-auto' style={{ fontWeight: 'bolder' }}>
-          {prefix}:&nbsp;
-        </div>
-        : null}
-      {value}
-    </div>;
-  }
-
-  /**
    * Maps the wind object value into a presentable form
-   * @param {string} value The wind object to present
-   * @param {string} prefix The text to prepend
-   * @return {React.Component} A component with a readable presentation of the phenomenon value
+   * @param {object} value The wind object to present
+   * @return {string} A readable presentation of the phenomenon value
    */
-  decorateWindObjectValue (value, prefix) {
-    if (value.hasOwnProperty('direction') && (typeof value.direction === 'number' || (typeof value.direction === 'string' && value.direction === 'VRB')) &&
+  serializeWindObjectValue (value) {
+    if (typeof value === 'object' && value.hasOwnProperty('direction') &&
+        (typeof value.direction === 'number' || (typeof value.direction === 'string' && value.direction === 'VRB')) &&
         value.hasOwnProperty('speed') && typeof value.speed === 'number') {
-      const title = (prefix ? prefix + ': ' : '') + jsonToTacForWind(value);
-      return <div className='col-auto' title={title}>
-        {prefix
-          ? <div className='col-auto' style={{ fontWeight: 'bolder' }}>
-            {prefix}:&nbsp;
-          </div>
-          : null
-        }
-        {!isNaN(value.direction)
-          ? <div className='col-auto'>
-            <i className='fa fa-location-arrow' style={{ transform: 'rotate(' + (value.direction + 135) + 'deg)' }} aria-hidden='true' />
-          </div>
-          : null
-        }
-        <div className='col-auto'>{jsonToTacForWind(value)}</div>
-      </div>;
+      return jsonToTacForWind(value);
     } else {
       return null;
     }
@@ -393,56 +360,29 @@ class TafCategory extends Component {
   /**
    * Maps the clouds array value into a presentable form
    * @param {array} value The clouds array to present
-   * @param {string} prefix The text to prepend
-   * @return {React.Component} A component with a readable presentation of the phenomenon value
+   * @return {string} A readable presentation of the phenomenon value
    */
-  decorateCloudsArray (value, prefix) {
-    if (value.length && value.length > 0 && value[0] && value[0].hasOwnProperty('amount') && typeof value[0].amount === 'string') {
-      const title = (prefix ? prefix + ': ' : '') + value.map((cloud, index) => {
+  serializeCloudsArray (value) {
+    if (Array.isArray(value) && value.length > 0 && typeof value[0] === 'object' && value[0].hasOwnProperty('amount') && typeof value[0].amount === 'string') {
+      return value.map((cloud, index) => {
         return jsonToTacForClouds(cloud);
-      });
-      return <div className='col-auto' title={title}>
-        {prefix
-          ? <div className='col-auto' style={{ fontWeight: 'bolder' }}>
-            {prefix}:&nbsp;
-          </div>
-          : null}
-        {value.map((cloud, index) => {
-          return <div className='col-auto'>
-            {jsonToTacForClouds(cloud)}
-            {index < value.length - 1 ? <div className='col-auto'>,&nbsp;</div> : null}
-          </div>;
-        })}
-      </div>;
+      }).join(', ');
     } else {
       return null;
     }
   }
 
   /**
-   * Maps the weather array value into a presentable form
+   * Maps the weather array value into a presentable string
    * @param {array} value The weather array to present
-   * @param {string} prefix The text to prepend
-   * @return {React.Component} A component with a readable presentation of the phenomenon value
+   * @return {string} A readable presentation of the phenomenon value
    */
-  decorateWeatherArray (value, prefix) {
-    if (value.length && value.length > 0 && value[0] && value[0].hasOwnProperty('phenomena') && value[0].phenomena.length > 0) {
-      const title = (prefix ? prefix + ': ' : '') + value.map((weather, index) => {
+  serializeWeatherArray (value) {
+    if (Array.isArray(value) && value.length > 0 && typeof value[0] === 'object' &&
+        value[0].hasOwnProperty('phenomena') && Array.isArray(value[0].phenomena) && value[0].phenomena.length > 0) {
+      return value.map((weather, index) => {
         return jsonToTacForWeather(weather);
-      });
-      return <div className='col-auto' title={title}>
-        {prefix
-          ? <div className='col-auto' style={{ fontWeight: 'bolder' }}>
-            {prefix}:&nbsp;
-          </div>
-          : null}
-        {value.map((weather, index) => {
-          return <div className='col-auto'>
-            {jsonToTacForWeather(weather)}
-            {index < value.length - 1 ? <div className='col-auto'>,&nbsp;</div> : null}
-          </div>;
-        })}
-      </div>;
+      }).join(', ');
     } else {
       return null;
     }
@@ -452,45 +392,44 @@ class TafCategory extends Component {
    * Maps the data in the phenomenon-value object into a presentable form
    * @param {string} phenomenonType The type of the phenomenon
    * @param {object} phenomenonValueObject The phenomenon-value object to map (i.e. to serialize)
-   * @param {string} prefix The text to prepend
    * @return {React.Component} A component with a readable presentation of the phenomenon value
    */
-  decoratePhenomenonValue (phenomenonType, phenomenonValueObject, prefix) {
+  serializePhenomenonValue (phenomenonType, phenomenonValueObject) {
     switch (getPhenomenonType(phenomenonType)) {
       case PHENOMENON_TYPES.WIND:
         if (typeof phenomenonValueObject === 'object') {
-          return this.decorateWindObjectValue(phenomenonValueObject, prefix);
+          return this.serializeWindObjectValue(phenomenonValueObject);
         }
         return null;
       case PHENOMENON_TYPES.CAVOK:
         if (typeof phenomenonValueObject === 'boolean' && phenomenonValueObject) {
-          return this.decorateStringValue('CaVOK', prefix);
+          return 'CaVOK';
         }
         return null;
       case PHENOMENON_TYPES.VISIBILITY:
         if (typeof phenomenonValueObject === 'object' && phenomenonValueObject.hasOwnProperty('value') &&
           typeof phenomenonValueObject.value === 'number' &&
           !isNaN(phenomenonValueObject.value)) {
-          return this.decorateStringValue(phenomenonValueObject.value.toString().padStart(4, '0'), prefix);
+          return phenomenonValueObject.value.toString().padStart(4, '0');
         }
         return null;
       case PHENOMENON_TYPES.WEATHER:
         if (typeof phenomenonValueObject === 'string') {
-          return this.decorateStringValue(phenomenonValueObject, prefix);
-        } else if (typeof phenomenonValueObject === 'object') {
-          return this.decorateWeatherArray(phenomenonValueObject, prefix);
+          return phenomenonValueObject;
+        } else if (Array.isArray(phenomenonValueObject)) {
+          return this.serializeWeatherArray(phenomenonValueObject);
         }
         return null;
       case PHENOMENON_TYPES.CLOUDS:
         if (typeof phenomenonValueObject === 'string') {
-          return this.decorateStringValue(phenomenonValueObject, prefix);
-        } else if (typeof phenomenonValueObject === 'object') {
-          return this.decorateCloudsArray(phenomenonValueObject, prefix);
+          return phenomenonValueObject;
+        } else if (Array.isArray(phenomenonValueObject)) {
+          return this.serializeCloudsArray(phenomenonValueObject);
         }
         return null;
       case PHENOMENON_TYPES.VERTICAL_VISIBILITY:
         if (typeof phenomenonValueObject === 'number') {
-          return this.decorateStringValue(phenomenonValueObject.toString().padStart(3, '0'), prefix);
+          return phenomenonValueObject.toString().padStart(3, '0');
         }
         return null;
       default: return null;
@@ -507,7 +446,7 @@ class TafCategory extends Component {
     const scopeStart = moment.utc(tafDataAsJson.metadata.validityStart);
     const scopeEnd = moment.utc(tafDataAsJson.metadata.validityEnd);
     Object.entries(tafDataAsJson.forecast).map((entry) => {
-      const value = this.decoratePhenomenonValue(entry[0], entry[1], null);
+      const value = this.serializePhenomenonValue(entry[0], entry[1], null);
       if (value !== null) {
         scheduleSeries.push({
           label: entry[0],
@@ -543,7 +482,7 @@ class TafCategory extends Component {
       }
 
       Object.entries(change.forecast).map((entry) => {
-        const value = this.decoratePhenomenonValue(entry[0], entry[1], CHANGE_TYPES_SHORTHAND[changeType]);
+        let value = this.serializePhenomenonValue(entry[0], entry[1]);
         if (value !== null) {
           const labelSuffix = (changeType !== CHANGE_TYPES.FM && changeType !== CHANGE_TYPES.BECMG) ? TMP : '';
           const label = entry[0] + labelSuffix;
@@ -562,6 +501,9 @@ class TafCategory extends Component {
                       // there's a remainder at the end, but FM and BECMG changes are persistent => set duration to 0
                       range.end = range.start;
                     }
+                    if (changeType === CHANGE_TYPES.BECMG && start.isSame(range.start)) {
+                      value = `${range.value}\u2026 ${this.serializePhenomenonValue(entry[0], entry[1])}`; // \u2026 horizontal ellipsis
+                    }
                   } else {
                     // there's a remainder at the start
                     range.end = moment.max(start, range.start);
@@ -573,7 +515,8 @@ class TafCategory extends Component {
               start: start,
               end: end,
               value: value,
-              styles: [ changeType === CHANGE_TYPES.BECMG ? 'striped' : changeType === CHANGE_TYPES.PROB30 || changeType === CHANGE_TYPES.PROB40 ? 'split' : null ]
+              prefix: CHANGE_TYPES_SHORTHAND[changeType],
+              styles: [ changeType === CHANGE_TYPES.BECMG ? 'striped' : (changeType === CHANGE_TYPES.PROB30 || changeType === CHANGE_TYPES.PROB40) ? 'split' : null ]
             });
           } else {
             seriesIndex = scheduleSeries.push({
@@ -583,6 +526,7 @@ class TafCategory extends Component {
                 start: start,
                 end: end,
                 value: value,
+                prefix: CHANGE_TYPES_SHORTHAND[changeType],
                 styles: [ changeType === CHANGE_TYPES.BECMG ? 'striped' : changeType === CHANGE_TYPES.PROB30 || changeType === CHANGE_TYPES.PROB40 ? 'split' : null ]
               } ]
             }) - 1; // push returns the length, but the last index is needed
@@ -591,7 +535,7 @@ class TafCategory extends Component {
             scheduleSeries[seriesIndex].ranges.push({
               start: end,
               end: scopeEnd,
-              value: this.decoratePhenomenonValue(entry[0], entry[1], null),
+              value: this.serializePhenomenonValue(entry[0], entry[1]),
               styles: []
             });
           }
@@ -979,11 +923,6 @@ class TafCategory extends Component {
               <Button disabled={!validationSucceeded} onClick={() => { alert('Sending a TAF out is not yet implemented'); }} color='primary'>Send</Button>
             </Col>
           </Row>
-          {/* <Row style={{ flex: 'auto', width: '100%' }}>
-            <Col>
-              <TACTable tafAsObject={tafJson} onChange={this.onTACChange} />
-            </Col>
-          </Row> */}
           <Row style={{ flex: 'auto' }}>
             <Col>
               <TimeSchedule startMoment={moment.utc(this.state.tafAsObject.metadata.validityStart)} endMoment={moment.utc(this.state.tafAsObject.metadata.validityEnd)} series={series} />
