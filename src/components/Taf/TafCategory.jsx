@@ -12,7 +12,6 @@ import moment from 'moment';
 import { Button, Row, Col, Alert, ListGroup, ListGroupItem } from 'reactstrap';
 import { jsonToTacForWind, jsonToTacForWeather, jsonToTacForClouds } from './TafFieldsConverter';
 import TafTable from './TafTable';
-import ResponsiveTafTable from './ResponsiveTafTable';
 import axios from 'axios';
 import { debounce } from '../../utils/debounce';
 const TMP = '_temp';
@@ -908,7 +907,6 @@ class TafCategory extends Component {
   }
 
   render () {
-    const { fixedLayout } = this.props;
     const flatten = list => list.reduce(
       (a, b) => a.concat(Array.isArray(b) ? flatten(b) : b), []
     );
@@ -933,40 +931,22 @@ class TafCategory extends Component {
             </Row>
             : null
           }
-          {fixedLayout
-            ? <Row style={{ margin: '0', padding:'4px', backgroundColor:'#EEE', flex: 'none' }}>
-              <Col>
-                <TafTable
-                  validationReport={this.state.validationReport}
-                  taf={this.state.tafAsObject}
-                  focusedFieldName={this.state.focusedFieldName}
-                  inputRef={this.registerElement}
-                  onSortEnd={this.onSortEnd}
-                  setTafValues={this.setTafValues}
-                  onClick={this.onClick}
-                  onKeyUp={this.onKeyUp}
-                  onKeyDown={this.onKeyDown}
-                  onFocus={this.onFocus}
-                  editable={this.props.editable} />
-              </Col>
-            </Row>
-            : <Row style={{ flex: 'auto', width: '100%' }}>
-              <Col>
-                <ResponsiveTafTable
-                  validationReport={this.state.validationReport}
-                  taf={this.state.tafAsObject}
-                  focusedFieldName={this.state.focusedFieldName}
-                  inputRef={this.registerElement}
-                  onSortEnd={this.onSortEnd}
-                  setTafValues={this.setTafValues}
-                  onClick={this.onClick}
-                  onKeyUp={this.onKeyUp}
-                  onKeyDown={this.onKeyDown}
-                  onFocus={this.onFocus}
-                  editable={this.props.editable} />
-              </Col>
-            </Row>
-          }
+          <Row style={{ margin: '0', padding:'4px', backgroundColor:'#EEE', flex: 'none' }}>
+            <Col>
+              <TafTable
+                validationReport={this.state.validationReport}
+                taf={this.state.tafAsObject}
+                focusedFieldName={this.state.focusedFieldName}
+                inputRef={this.registerElement}
+                onSortEnd={this.onSortEnd}
+                setTafValues={this.setTafValues}
+                onClick={this.onClick}
+                onKeyUp={this.onKeyUp}
+                onKeyDown={this.onKeyDown}
+                onFocus={this.onFocus}
+                editable={this.props.editable} />
+            </Col>
+          </Row>
           { this.state.validationReport
             ? <Row style={{ flex: 'none' }}>
               <Col style={{ padding: '0.5rem' }}>
@@ -1025,8 +1005,7 @@ TafCategory.propTypes = {
   editable: PropTypes.bool,
   urls: PropTypes.shape({
     BACKEND_SERVER_URL: PropTypes.string
-  }),
-  fixedLayout: PropTypes.bool
+  })
 };
 
 export default TafCategory;
