@@ -77,12 +77,6 @@ export default class TafsContainer extends Component {
             <Col xs='auto'>
               <Button onClick={() => hashHistory.push('/')} color='primary' style={{ marginRight: '0.33rem' }}><Icon name={'times'} /></Button>
             </Col>
-            {/* <Col xs='auto'>
-              <Label check style={{ paddingTop: '0.66rem' }} >
-                <Input type='checkbox' checked={this.state.isFixed} onChange={() => this.setState({ isFixed: !this.state.isFixed })} />{' '}
-                  Fixed table
-              </Label>
-            </Col> */}
           </Row>
           <Col style={{ flexDirection: 'column' }}>
             {ITEMS.map((item, index) => {

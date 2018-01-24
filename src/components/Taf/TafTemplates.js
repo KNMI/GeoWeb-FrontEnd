@@ -178,7 +178,7 @@ const CHANGE_TYPES = Enum(
   'PROB40', // probability of 40% for a temporary steady change
   'TEMPO', // temporary fluctuating change
   'PROB30_TEMPO', // probability of 30% for a temporary fluctating change
-  'PROP40_TEMPO' // probability of 40% for a temporary fluctating change
+  'PROB40_TEMPO' // probability of 40% for a temporary fluctating change
 );
 
 const CHANGE_TYPES_ORDER = [
@@ -188,7 +188,7 @@ const CHANGE_TYPES_ORDER = [
   CHANGE_TYPES.PROB40,
   CHANGE_TYPES.TEMPO,
   CHANGE_TYPES.PROB30_TEMPO,
-  CHANGE_TYPES.PROP40_TEMPO
+  CHANGE_TYPES.PROB40_TEMPO
 ];
 
 const CHANGE_TYPES_SHORTHAND = {};
