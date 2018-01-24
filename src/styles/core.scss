@@ -4,8 +4,8 @@
 @import 'collapse';
 @import 'timeschedule';
 @import 'slider';
-@import 'responsivetaftable';
 @import 'taftable';
+@import 'sigmetcontainer';
 @import 'popover';
 @import 'datetime';
 $radius-size: 0.19rem;
@@ -411,21 +411,6 @@ a.breadcrumb-active:hover, a.nav-link.active:hover {
 .accordion .row.section {
   border-top: 0.06rem solid #eee;
   padding-top: 0.5rem;
-}
-
-.accordion .Sigmet .badge {
-  padding: 0.25em 0.4em;
-  width: 100%;
-  height: 1.2rem;
-}
-
-.accordion .Sigmet .bootstrap-typeahead,
-.accordion .Sigmet .bootstrap-typeahead-input {
-  width: 100%;
-}
-
-.accordion .Sigmet .btn-group .btn {
-  padding: 0.19rem 0.5rem;
 }
 
 .dropdown-item, .bootstrap-typeahead-menu > li, .popover-content > li {

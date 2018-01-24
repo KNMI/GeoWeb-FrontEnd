@@ -169,7 +169,7 @@ const jsonToTacForWind = (windAsJson, useFallback = false) => {
       const unit = getMapValue(windAsJson.unit, windUnitMap);
       if (!unit) {
         return useFallback && windAsJson.hasOwnProperty('fallback') ? windAsJson.fallback.value : null;
-      } else if (!(unit === windUnitMap.KT)) { // Skip default unit
+      } else if (unit !== windUnitMap.KT) { // Skip default unit
         result += unit;
       }
     }
@@ -193,7 +193,7 @@ const jsonToTacForVisibility = (visibilityAsJson, useFallback = false) => {
     const unit = getMapValue(visibilityAsJson.unit, visibilityUnitMap);
     if (!unit) {
       return useFallback && visibilityAsJson.hasOwnProperty('fallback') ? visibilityAsJson.fallback.value : null;
-    } else if (!(unit === visibilityUnitMap.M)) { // Skip default unit
+    } else if (unit !== visibilityUnitMap.M) { // Skip default unit
       result += unit;
     }
   } else {

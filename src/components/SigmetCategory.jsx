@@ -1,12 +1,12 @@
 import React, { Component } from 'react';
-import { Button, ButtonGroup, Col, Row, Badge, Card, CardHeader, CardBlock } from 'reactstrap';
+import { Button, ButtonGroup, Col, Row, Badge, Card, CardHeader, CardBlock, Alert } from 'reactstrap';
 import Moment from 'react-moment';
 import moment from 'moment';
 import Icon from 'react-fa';
 import axios from 'axios';
 import cloneDeep from 'lodash.clonedeep';
 import isEmpty from 'lodash.isempty';
-// import { cloneDeep, isEmpty } from 'lodash';
+import isEqual from 'lodash.isequal';
 import CollapseOmni from '../components/CollapseOmni';
 import SwitchButton from 'lyef-switch-button';
 import 'lyef-switch-button/css/main.css';
@@ -44,49 +44,52 @@ const EMPTY_GEO_JSON = {
         coordinates: []
       },
       properties: {
-        prop0: 'value0'
+        prop0: 'value0',
+        prop1: {
+          this: 'that'
+        }
       }
     }
   ]
 };
 const EMPTY_SIGMET = {
-  geojson                   : EMPTY_GEO_JSON,
-  phenomenon                : '',
-  obs_or_forecast           : {
-    obs                     : true
+  geojson: EMPTY_GEO_JSON,
+  phenomenon: '',
+  obs_or_forecast: {
+    obs: true
   },
-  level                     : {
-    lev1                    : {
-      value                 : 100.0,
-      unit                  : 'FL'
+  level: {
+    lev1: {
+      value: 100.0,
+      unit: 'FL'
     }
   },
-  movement                  : {
-    stationary              : true
+  movement: {
+    stationary: true
   },
-  change                    : 'NC',
-  forecast_position         : '',
-  issuedate                 : '',
-  validdate                 : moment().utc().format(),
-  validdate_end              : moment().utc().add(4, 'hour').format(),
-  firname                   : '',
-  location_indicator_icao   : '',
-  location_indicator_mwo    : 'EHDB',
-  uuid                      : '00000000-0000-0000-0000-000000000000',
-  status                    : 'PRODUCTION'
+  change: 'NC',
+  forecast_position: '',
+  issuedate: '',
+  validdate: moment().utc().format(),
+  validdate_end: moment().utc().add(4, 'hour').format(),
+  firname: '',
+  location_indicator_icao: '',
+  location_indicator_mwo: 'EHDB',
+  uuid: '00000000-0000-0000-0000-000000000000',
+  status: 'PRODUCTION'
 };
 
 const FALLBACK_PARAMS = {
-  maxhoursofvalidity      : 4,
-  hoursbeforevalidity     : 4,
-  firareas                : [
+  maxhoursofvalidity: 4,
+  hoursbeforevalidity: 4,
+  firareas: [
     {
-      location_indicator_icao   : 'EHAA',
-      firname                   : 'AMSTERDAM FIR',
-      areapreset                : 'NL_FIR'
+      location_indicator_icao: 'EHAA',
+      firname: 'AMSTERDAM FIR',
+      areapreset: 'NL_FIR'
     }
   ],
-  location_indicator_wmo  :'EHDB'
+  location_indicator_wmo: 'EHDB'
 };
 
 class SigmetCategory extends Component {
@@ -269,13 +272,13 @@ class SigmetCategory extends Component {
   }
 
   sigmetLayers (p) {
-    let HARMONIE_URL = GetServiceByName(this.props.sources, 'Harmonie36');
-    let OVERLAY_URL = GetServiceByName(this.props.sources, 'OVL');
-    let OBSERVATIONS_URL = GetServiceByName(this.props.sources, 'OBS');
-    let RADAR_URL = GetServiceByName(this.props.sources, 'RADAR');
-    let LIGHTNING_URL = GetServiceByName(this.props.sources, 'LGT');
-    let SATELLITE_URL = GetServiceByName(this.props.sources, 'SAT');
-    let HARMONIE_ML_URL = GetServiceByName(this.props.sources, 'Harmonie36');
+    const HARMONIE_URL = GetServiceByName(this.props.sources, 'Harmonie36');
+    const OVERLAY_URL = GetServiceByName(this.props.sources, 'OVL');
+    const OBSERVATIONS_URL = GetServiceByName(this.props.sources, 'OBS');
+    const RADAR_URL = GetServiceByName(this.props.sources, 'RADAR');
+    const LIGHTNING_URL = GetServiceByName(this.props.sources, 'LGT');
+    const SATELLITE_URL = GetServiceByName(this.props.sources, 'SAT');
+    const HARMONIE_ML_URL = GetServiceByName(this.props.sources, 'Harmonie36');
     switch (p) {
       case 'sigmet_layer_TS':
         return (
@@ -665,7 +668,7 @@ class SigmetCategory extends Component {
   }
 
   couldntSaveSigmetCallback (message) {
-    console.log('Error while trying to save SIGMET', message);
+    console.error('Error while trying to save SIGMET', message);
     if (this.props.selectedIndex === 0) {
       this.props.selectMethod(0);
     }
@@ -682,6 +685,14 @@ class SigmetCategory extends Component {
   componentWillReceiveProps (nextProps) {
     if (typeof nextProps.isOpen !== 'undefined') {
       this.setState({ isOpen: nextProps.isOpen });
+    }
+    if (nextProps.hasOwnProperty('drawProperties') && typeof nextProps.drawProperties === 'object' &&
+        nextProps.drawProperties.hasOwnProperty('geojson') && nextProps.drawProperties.geojson &&
+        !isEqual(nextProps.drawProperties.geojson, EMPTY_GEO_JSON) &&
+        Array.isArray(this.state.list) && this.state.list.length > 0) {
+      const newList = cloneDeep(this.state.list);
+      newList[0].geojson = this.props.drawProperties.geojson;
+      this.setState({ list: newList });
     }
   }
 
@@ -983,17 +994,18 @@ class SigmetCategory extends Component {
                         <Badge color='success'>What</Badge>
                       </Col>
                       <Col xs='9' style={{ flexDirection: 'column' }}>
-                        { editable
+                        {editable
                           ? <Typeahead disabled={sourceless} filterBy={['name', 'code']} labelKey='name'
-                            options={this.getPhenomena()} placeholder={sourceless ? 'Loading phenomena ⏳' : 'Select phenomenon'} onChange={(phenomenonList) => this.setSelectedPhenomenon(phenomenonList)}
-                            />
+                            options={this.getPhenomena()} placeholder={sourceless ? 'Loading phenomena ⏳' : 'Select phenomenon'}
+                            onChange={(phenomenonList) => this.setSelectedPhenomenon(phenomenonList)}
+                          />
                           : <span style={{ fontWeight: 'bold' }}>{item.phenomenonHRT}</span>
                         }
                       </Col>
                     </Row>
                     <Row style={editable ? { marginTop: '0.19rem', minHeight: '2rem' } : null}>
                       <Col xs={{ size: 9, offset: 3 }}>
-                        { editable
+                        {editable
                           ? <SwitchButton id='obsfcstswitch' name='obsfcstswitch'
                             labelRight='Observed' labelLeft='Forecast' isChecked={item.obs_or_forecast.obs} action={(evt) => this.setSelectedObservedForecast(evt.target.checked)} />
                           : <span>{item.obs_or_forecast.obs ? 'Observed' : 'Forecast'}</span>
@@ -1015,10 +1027,12 @@ class SigmetCategory extends Component {
                             onChange={(validFrom) => this.setSelectedValidFromMoment(validFrom)}
                             isValidDate={(curr, selected) => curr.isAfter(moment().utc().subtract(1, 'day')) &&
                               curr.isBefore(moment().utc().add(this.getParameters().hoursbeforevalidity, 'hour'))}
-                            timeConstraints={{ hours: {
-                              min: moment().utc().hour(),
-                              max: (moment().utc().hour() + this.getParameters().hoursbeforevalidity)
-                            } }} />
+                            timeConstraints={{
+                              hours: {
+                                min: moment().utc().hour(),
+                                max: (moment().utc().hour() + this.getParameters().hoursbeforevalidity)
+                              }
+                            }} />
                           : <Moment format={DATE_TIME_FORMAT} date={item.validdate} />
                         }
                       </Col>
@@ -1033,10 +1047,12 @@ class SigmetCategory extends Component {
                             onChange={(validUntil) => this.setSelectedValidUntilMoment(validUntil)}
                             isValidDate={(curr, selected) => curr.isAfter(moment(this.state.list[0].validdate).subtract(1, 'day')) &&
                               curr.isBefore(moment(this.state.list[0].validdate).add(this.getParameters().maxhoursofvalidity, 'hour'))}
-                            timeConstraints={{ hours: {
-                              min: moment(this.state.list[0].validdate).hour(),
-                              max: (moment(this.state.list[0].validdate).hour() + this.getParameters().maxhoursofvalidity)
-                            } }} />
+                            timeConstraints={{
+                              hours: {
+                                min: moment(this.state.list[0].validdate).hour(),
+                                max: (moment(this.state.list[0].validdate).hour() + this.getParameters().maxhoursofvalidity)
+                              }
+                            }} />
                           : <Moment format={DATE_TIME_FORMAT} date={item.validdate_end} />
                         }
                       </Col>
@@ -1068,12 +1084,12 @@ class SigmetCategory extends Component {
                         <Badge color='success'>Progress</Badge>
                       </Col>
                       <Col xs='9'>
-                        {item.movement.stationary ? 'Stationary' : 'Move' }
+                        {item.movement.stationary ? 'Stationary' : 'Move'}
                       </Col>
                     </Row>
                     <Row>
                       <Col xs={{ size: 9, offset: 3 }}>
-                        {item.change === 'NC' ? 'No change' : '' }
+                        {item.change === 'NC' ? 'No change' : ''}
                       </Col>
                     </Row>
                     <Row>
@@ -1108,6 +1124,16 @@ class SigmetCategory extends Component {
                         </Col>
                       </Row>
                     }
+                    {editable && isEqual(this.state.list[0].geojson, EMPTY_GEO_JSON)
+                      ? <Row style={{ flex: 'none', padding: '0.5rem 0 0.5rem 0.12rem', maxWidth: '22.5rem' }}>
+                        <Col>
+                          <Alert color='danger' style={{ display: 'block', margin: '0', whiteSpace: 'normal', padding: '0.75rem' }}>
+                            Please draw a polygon (<i className='fa fa-pencil' />) to indicate where the phenomenon is expected to occur.
+                          </Alert>
+                        </Col>
+                      </Row>
+                      : ''
+                    }
                     {editable
                       ? <Row style={{ minHeight: '2.5rem' }}>
                         <Col xs={{ size: 3, offset: 9 }}>
@@ -1127,27 +1153,27 @@ class SigmetCategory extends Component {
 }
 
 SigmetCategory.propTypes = {
-  isOpen        : PropTypes.bool,
-  title         : PropTypes.string.isRequired,
-  icon          : PropTypes.string,
-  source        : PropTypes.string,
-  editable      : PropTypes.bool,
-  selectedIndex : PropTypes.number,
-  selectMethod  : PropTypes.func,
-  toggleMethod  : PropTypes.func,
-  parameters    : PropTypes.object,
-  parentCollapsed   : PropTypes.bool,
-  adagucProperties  : PropTypes.object,
-  phenomenonMapping : PropTypes.array,
-  dispatch          : PropTypes.func,
-  actions           : PropTypes.object,
-  updateParent      : PropTypes.func,
-  mapActions        : PropTypes.object,
-  layerActions      : PropTypes.object,
-  drawProperties : PropTypes.shape({
+  isOpen: PropTypes.bool,
+  title: PropTypes.string.isRequired,
+  icon: PropTypes.string,
+  source: PropTypes.string,
+  editable: PropTypes.bool,
+  selectedIndex: PropTypes.number,
+  selectMethod: PropTypes.func,
+  toggleMethod: PropTypes.func,
+  parameters: PropTypes.object,
+  parentCollapsed: PropTypes.bool,
+  adagucProperties: PropTypes.object,
+  phenomenonMapping: PropTypes.array,
+  dispatch: PropTypes.func,
+  actions: PropTypes.object,
+  updateParent: PropTypes.func,
+  mapActions: PropTypes.object,
+  layerActions: PropTypes.object,
+  drawProperties: PropTypes.shape({
     geojson: PropTypes.object
   }),
-  sources      : PropTypes.object
+  sources: PropTypes.object
 };
 
 export default SigmetCategory;
