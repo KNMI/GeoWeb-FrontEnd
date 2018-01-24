@@ -1,12 +1,10 @@
 import React, { PureComponent } from 'react';
-import { Button, Col, Row, Popover, PopoverContent, ButtonGroup, Modal, ModalBody, ModalFooter, ListGroup, ListGroupItem } from 'reactstrap';
+import { Button, Col, Row } from 'reactstrap';
 import Panel from '../components/Panel';
-import { BOUNDING_BOXES } from '../constants/bounding_boxes';
 import { Icon } from 'react-fa';
 import ProgtempPopoverComponent from '../components/ProgtempPopoverComponent';
 import TimeseriesPopoverComponent from '../components/TimeseriesPopoverComponent';
 import PropTypes from 'prop-types';
-import cloneDeep from 'lodash.clonedeep';
 var moment = require('moment');
 
 class MapActionContainer extends PureComponent {
@@ -92,7 +90,6 @@ class MapActionContainer extends PureComponent {
 
   render () {
     const { title, adagucProperties, mapProperties } = this.props;
-    const { sources } = adagucProperties;
     const items = [
       {
         title: 'Pan / zoom',
@@ -157,9 +154,8 @@ MapActionContainer.propTypes = {
   adagucProperties: PropTypes.object,
   adagucActions: PropTypes.object,
   layers: PropTypes.object,
-  layerActions: PropTypes.object,
   mapActions: PropTypes.object,
-  user: PropTypes.object
+  urls: PropTypes.arrayOf(PropTypes.string)
 };
 
 export default MapActionContainer;

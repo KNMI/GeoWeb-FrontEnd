@@ -9,6 +9,7 @@ coverage
 utils/latest
 .idea/
 .nyc_output
+.vscode
 
 config/config.json
 config/config.*.json
