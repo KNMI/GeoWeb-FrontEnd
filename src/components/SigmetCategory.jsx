@@ -1128,7 +1128,8 @@ class SigmetCategory extends Component {
                       ? <Row style={{ flex: 'none', padding: '0.5rem 0 0.5rem 0.12rem', maxWidth: '22.5rem' }}>
                         <Col>
                           <Alert color='danger' style={{ display: 'block', margin: '0', whiteSpace: 'normal', padding: '0.75rem' }}>
-                            Please draw a polygon (<i className='fa fa-pencil' />) to indicate where the phenomenon is expected to occur.
+                            Please draw a polygon (<i className='fa fa-pencil' />) to indicate where the phenomenon is
+                            {item.obs_or_forecast.obs ? ' observed.' : ' expected to occur.'}
                           </Alert>
                         </Col>
                       </Row>
