@@ -2,6 +2,8 @@ import React, { PureComponent } from 'react';
 import ConcreteCell from './ConcreteCell';
 import EditableCell from './EditableCell';
 import { Col } from 'reactstrap';
+import { SortableElement } from 'react-sortable-hoc';
+
 export default class Layer extends PureComponent {
   render () {
     const { layer, color } = this.props;
@@ -21,3 +23,8 @@ export default class Layer extends PureComponent {
     }
   }
 }
+
+export const SortableLayer = SortableElement(({ role, color, layer, layerIndex }) => {
+  return <Layer role={role} color={color} layer={layer} index={layerIndex} />
+});
+
