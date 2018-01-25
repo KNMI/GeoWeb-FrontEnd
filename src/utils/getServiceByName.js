@@ -41,13 +41,13 @@ export const GetServiceByNamePromise = (backendurl, name) => {
         // console.log('GetServiceByName, 13 ok', sources);
         let result = _getSourceByName(sources, name);
         if (result == null) {
-          reject(Error('Source ' + name + ' not found'));
+          return reject(Error('Source ' + name + ' not found'));
         }
         // console.log('source===', result);
         if (result.source && result.source.service) {
-          resolve(result.source.service);
+          return resolve(result.source.service);
         }
-        reject(Error('source.service not found for ' + name));
+        return reject(Error('source.service not found for ' + name));
       }
     );
   });
@@ -78,17 +78,17 @@ export const GetServices = (BACKEND_SERVER_URL) => {
           const source = allSources[i];
           var r = new Promise((resolve, reject) => {
             if (!source) {
-              reject(new Error('Source is not working'));
+              return reject(new Error('Source is not working'));
             }
             if (!source.name) {
-              reject(new Error('Source has no name'));
+              return reject(new Error('Source has no name'));
             }
             // eslint-disable-next-line no-undef
             const service = WMJSgetServiceFromStore(source.service);
             if (!service) {
-              resolve(new Error('Cannot get service from store'));
+              return reject(new Error('Cannot get service from store'));
             }
-            service.getLayerObjectsFlat((panelsProperties) => { resolve({ panelsProperties, source }); });
+            service.getLayerObjectsFlat((layers) => { return resolve({ layers, source }); });
           });
           promises.push(new PromiseWithTimout(r, moment.duration(5000, 'milliseconds').asMilliseconds()));
         }
@@ -106,7 +106,7 @@ export const GetServices = (BACKEND_SERVER_URL) => {
           });
           // dispatch(adagucActions.setSources(sort(sourcesDic)));
           // console.log(sort(sourcesDic));
-          resolve(sort(sourcesDic));
+          return resolve(sort(sourcesDic));
         });
       })
     ).catch((e) => reject(e));

@@ -136,13 +136,13 @@ export default class ProgtempComponent extends PureComponent {
             let url = serviceURL + '&SERVICE=WMS&VERSION=1.3.0&REQUEST=GetPointValue&LAYERS=&' +
               'QUERY_LAYERS=air_pressure__at_ml,y_wind__at_ml,x_wind__at_ml,dewpoint_temperature__at_ml,air_temperature__at_ml&' +
               'CRS=EPSG%3A4326&INFO_FORMAT=application/json&time=*&DIM_reference_time=' + refTimeStr + '&x=' + location.x + '&y=' + location.y + '&DIM_modellevel=*';
-            resolve(axios.get(url));
+            return resolve(axios.get(url));
           } catch (e) {
-            reject(new Error('ERROR: unable to fetch ' + serviceURL));
+            return reject(new Error('ERROR: unable to fetch ' + serviceURL));
           }
         },
         (e) => {
-          reject(e);
+          return reject(e);
         }
       );
     });
