@@ -46,18 +46,23 @@ class LayerManagerPanel extends Component {
     const source = GetServiceByName(sources, 'OVL');
     if (source) {
       [...Array(panelsProperties.panels.length).keys()].map((id) => {
-        dispatch(panelsActions.addOverlaysLayer({
-          panelId: id,
-          layer: {
-            service: source,
-            title: 'OVL_EXT',
-            name: 'countries',
-            label: 'Countries'
-          }
-        }));
+        new WMJSLayer({
+          service: source,
+          title: 'OVL_EXT',
+          name: 'countries',
+          label: 'Countries',
+          keepOnTop: true
+        }).parseLayer((layerObj) => {
+          dispatch(panelsActions.addOverlaysLayer({
+            panelId: id,
+            layer: layerObj
+          }))
+
+        });
       });
     }
   }
+
 
   goToNow () {
     const { dispatch, adagucActions } = this.props;
@@ -70,28 +75,35 @@ class LayerManagerPanel extends Component {
     this.setState({ layerChooserOpen: !this.state.layerChooserOpen, filter: '' });
   }
   handleAddLayer (addItem) {
-    const { dispatch, panelsActions, mapProperties } = this.props;
+    const { dispatch, panelsActions, panelsProperties } = this.props;
     if (this.state.activeSource.goal !== 'OVERLAY') {
-      dispatch(panelsActions.addLayer({
-        activeMapId: mapProperties.activeMapId,
-        layer: {
-          service: this.state.activeSource.service,
-          title: this.state.activeSource.title,
-          name: addItem.name,
-          label: addItem.text,
-          opacity: 0.8,
-          active: false
-        }
-      }));
+      new WMJSLayer({
+        service: this.state.activeSource.service,
+        title: this.state.activeSource.title,
+        name: addItem.name,
+        label: addItem.text,
+        keepOnTop: false,
+        opacity: 0.8,
+        active: false
+      }).parseLayer((layerObj) => {
+        dispatch(panelsActions.addLayer({
+          panelId: panelsProperties.activePanelId,
+          layer: layerObj
+        }))
+      });
     } else {
-      dispatch(panelsActions.addOverlaysLayer({
-        activeMapId: mapProperties.activeMapId,
-        layer: {
-          service: this.state.activeSource.service,
-          title: this.state.activeSource.title,
-          name: addItem.name,
-          label: addItem.text }
-      }));
+      new WMJSLayer({
+        service: this.state.activeSource.service,
+        title: this.state.activeSource.title,
+        name: addItem.name,
+        label: addItem.text,
+        keepOnTop: true,
+      }).parseLayer((layerObj) => {
+        dispatch(panelsActions.addOverlaysLayer({
+          panelId: panelsProperties.activePanelId,
+          layer: layerObj
+        }))
+      });
     }
     this.setState({
       layerChooserOpen: false,
@@ -146,30 +158,30 @@ class LayerManagerPanel extends Component {
 
     // For each source....
     Object.keys(data).map((key) => {
-      const vals = data[key].panelsProperties;
+      const vals = data[key].layers;
       if (vals) {
-        // Delete all panelsProperties that do not match the filter
+        // Delete all layers that do not match the filter
         const filteredLayers = vals.filter((layer) => layer.name.toLowerCase().indexOf(filter) !== -1 ||
                                                       layer.text.toLowerCase().indexOf(filter) !== -1);
 
         // If the source itself is matched by the filter
         if (protectedKeys.includes(key)) {
-          // but some panelsProperties match it too, return those.
-          // else we return all panelsProperties in the matched source
+          // but some layers match it too, return those.
+          // else we return all layers in the matched source
           if (filteredLayers.length !== 0) {
-            data[key].panelsProperties = filteredLayers;
+            data[key].layers = filteredLayers;
           }
         } else {
-          // Else filter the panelsProperties
-          data[key].panelsProperties = filteredLayers;
+          // Else filter the layers
+          data[key].layers = filteredLayers;
         }
       }
     });
-    // Filter all sources that have no panelsProperties that match the filter
+    // Filter all sources that have no layers that match the filter
     // except if the source itself is matched by the filter
     const keys = Object.keys(data);
     keys.map((key) => {
-      if (!data[key].panelsProperties || (data[key].panelsProperties.length === 0 && !protectedKeys.includes(key))) {
+      if (!data[key].layers || (data[key].layers.length === 0 && !protectedKeys.includes(key))) {
         delete data[key];
       }
     });
@@ -220,7 +232,7 @@ class LayerManagerPanel extends Component {
                         whiteSpace: 'nowrap',
                         overflow: 'hidden'
                       }}
-                      disabled={!filteredData[source] || !filteredData[source].panelsProperties}
+                      disabled={!filteredData[source] || !filteredData[source].layers}
                       tag='a' href='#'
                       active={this.state.activeSource && source === this.state.activeSource.name}
                       onClick={(evt) => { evt.stopPropagation(); evt.preventDefault(); this.setState({ activeSource: filteredData[source].source }); }}>{source}</ListGroupItem>;})
@@ -231,7 +243,7 @@ class LayerManagerPanel extends Component {
               {
                 activeSourceVisible
                   ? <ListGroup>
-                    {filteredData[this.state.activeSource.name].panelsProperties.map((layer) =>
+                    {filteredData[this.state.activeSource.name].layers.map((layer) =>
                       <ListGroupItem style={{ maxHeight: '2.5em' }} tag='a' href='#'
                         onClick={(evt) => { evt.stopPropagation(); evt.preventDefault(); this.handleAddLayer({ ...layer, service: this.state.activeSource.service }); }}>{layer.text}</ListGroupItem>)}
                   </ListGroup>
@@ -248,18 +260,19 @@ class LayerManagerPanel extends Component {
 
   handleButtonClickNextPrev (direction) {
     const { panelsProperties, mapProperties, adagucProperties, adagucActions, dispatch } = this.props;
-    const panel = panelsProperties.panels[mapProperties.activeMapId];
+    const { panels, activePanelId } = panelsProperties;
+    const panel = panels[activePanelId];
     let i = 0;
-    if (panel.panelsProperties.length === 0) {
+    if (panel.layers.length === 0) {
       // move one hour?
       return;
     }
-    for (; i < panel.panelsProperties.length; ++i) {
-      if (panel.panelsProperties[i].active) {
+    for (; i < panel.layers.length; ++i) {
+      if (panel.layers[i].active) {
         break;
       }
     }
-    const activeWMJSLayer = panelsProperties.wmjsLayers.panelsProperties[i];
+    const activeWMJSLayer = panel.layers[i];
     if (!activeWMJSLayer) {
       // move one hour?
       return;
@@ -337,9 +350,9 @@ class LayerManagerPanel extends Component {
             <Row style={{ flex: 1 }}>
               <TimeComponent activePanelId={activePanelId} width={this.state.width} panel={panels[activePanelId]}
                 height={this.state.height} timedim={adagucProperties.timeDimension}
-                layerActions={this.props.layerActions} dispatch={dispatch} adagucActions={adagucActions} ref={(panel) => this.setResizeListener(ReactDOM.findDOMNode(panel))} />
-              <LayerManager panel={panels[activePanelId]} dispatch={dispatch} layerActions={this.props.layerActions}
-                adagucActions={adagucActions} activeMapId={activePanelId} />
+                panelsActions={this.props.panelsActions} dispatch={dispatch} adagucActions={adagucActions} ref={(panel) => this.setResizeListener(ReactDOM.findDOMNode(panel))} />
+              <LayerManager panel={panels[activePanelId]} dispatch={dispatch} panelsActions={this.props.panelsActions}
+                adagucActions={adagucActions} activePanelId={activePanelId} />
             </Row>
             <Row />
           </Col>
@@ -365,7 +378,7 @@ LayerManagerPanel.propTypes = {
   adagucProperties: PropTypes.object,
   mapProperties: PropTypes.object,
   adagucActions: PropTypes.object,
-  layerActions: PropTypes.object
+  panelsActions: PropTypes.object
 };
 
 export default LayerManagerPanel;

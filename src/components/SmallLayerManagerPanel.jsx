@@ -37,7 +37,7 @@ class SmallLayerManagerPanel extends Component {
     return (
       <Panel title={title} style={{ background: '#EEF' }}>
         <Row style={{ flex: 1 }}>
-          <LayerManager wmjslayers={panelsProperties.wmjsLayers} dispatch={dispatch} layerActions={this.props.layerActions} adagucActions={this.props.adagucActions} activeMapId={mapProperties.activeMapId} />
+          <LayerManager wmjslayers={panelsProperties.wmjsLayers} dispatch={dispatch} panelsActions={this.props.panelsActions} adagucActions={this.props.adagucActions} activeMapId={mapProperties.activeMapId} />
           <Col />
           <Col xs='auto' className='SmallLayerManagerPanel' style={{ flexDirection: 'column' }}>
             <Row style={{ flexDirection: 'row', paddingBottom: '0.33rem' }}>
@@ -52,7 +52,7 @@ class SmallLayerManagerPanel extends Component {
             </Row>
             <Row style={{ flex: 1 }} />
             <Row >
-              {this.state.showControls ? <MapAnimationControlsContainer adagucProperties={adagucProperties} dispatch={dispatch} adagucActions={this.props.adagucActions} mapActions={this.props.mapActions} activeMapId={mapProperties.activeMapId} layerActions={this.props.layerActions} /> : ''}
+              {this.state.showControls ? <MapAnimationControlsContainer adagucProperties={adagucProperties} dispatch={dispatch} adagucActions={this.props.adagucActions} mapActions={this.props.mapActions} activeMapId={mapProperties.activeMapId} panelsActions={this.props.panelsActions} /> : ''}
             </Row>
           </Col>
         </Row>

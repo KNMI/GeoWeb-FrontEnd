@@ -641,7 +641,7 @@ class TitleBarContainer extends PureComponent {
               {hasRoleADMIN ? <Link to='manage' className='active nav-link'><Icon name='cog' /></Link> : '' }
               <NavLink className='active' onClick={this.toggleFeedbackModal}><Icon name='exclamation-triangle' /> Report problem</NavLink>
               <LayoutDropDown panelsProperties={this.props.panelsProperties} savePreset={this.savePreset} mapActions={this.props.mapActions} presets={this.state.presets} onChangeServices={this.getServices}
-                urls={this.props.urls} layerActions={this.props.layerActions} mapProperties={this.props.mapProperties} dispatch={this.props.dispatch} />
+                urls={this.props.urls} panelsActions={this.props.panelsActions} mapProperties={this.props.mapProperties} dispatch={this.props.dispatch} />
               <NavLink className='active' onClick={this.toggleFullscreen} ><Icon name='expand' /></NavLink>
               {isLoggedIn
                 ? this.renderLoggedInPopover(this.state.loginModal, this.toggleLoginModal, username)
@@ -685,7 +685,7 @@ class LayoutDropDown extends PureComponent {
     this.props.onChangeServices();
   }
   postLayout (layout) {
-    this.props.dispatch(this.props.mapActions.setLayout(layout));
+    this.props.dispatch(this.props.panelsActions.setPanelLayout(layout));
   }
   handleAddSource (e) {
     var url = document.querySelector('#sourceurlinput').value;
@@ -734,7 +734,7 @@ class LayoutDropDown extends PureComponent {
   }
 
   setPreset (preset) {
-    const { dispatch, layerActions, mapActions } = this.props;
+    const { dispatch, panelsActions, mapActions } = this.props;
     const thePreset = preset[0];
     if (thePreset.area) {
       if (thePreset.crs || thePreset.area.crs) {
@@ -751,7 +751,7 @@ class LayoutDropDown extends PureComponent {
       dispatch(mapActions.setLayout(thePreset.display.type));
     }
     if (thePreset.panelsProperties) {
-      dispatch(layerActions.setPreset(thePreset.panelsProperties));
+      dispatch(panelsActions.setPreset(thePreset.panelsProperties));
     }
   }
 
@@ -858,8 +858,8 @@ class LayoutDropDown extends PureComponent {
 
   render () {
     const togglePreset = () => this.setState({ popoverOpen: !this.state.popoverOpen });
-    const { mapProperties } = this.props;
-    const isActive = (layout) => mapProperties && mapProperties.layout === layout;
+    const { panelsProperties, mapProperties } = this.props;
+    const isActive = (layout) => panelsProperties && panelsProperties.panelLayout === layout;
     const stored = JSON.parse(localStorage.getItem('geoweb'));
     if (!stored) {
       localStorage.setItem('geoweb', JSON.stringify({ personal_urls: [] }));
@@ -1019,7 +1019,7 @@ LayoutDropDown.propTypes = {
   onChangeServices: PropTypes.func,
   savePreset: PropTypes.func,
   presets: PropTypes.array,
-  layerActions: PropTypes.object
+  panelsActions: PropTypes.object
 };
 
 TitleBarContainer.propTypes = {
@@ -1035,7 +1035,7 @@ TitleBarContainer.propTypes = {
   userActions: PropTypes.object,
   mapProperties: PropTypes.object,
   mapActions: PropTypes.object,
-  layerActions: PropTypes.object,
+  panelsActions: PropTypes.object,
   adagucActions: PropTypes.object,
   bbox: PropTypes.array,
   fullState: PropTypes.object,

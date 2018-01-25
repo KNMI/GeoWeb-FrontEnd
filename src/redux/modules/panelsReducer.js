@@ -81,7 +81,7 @@ export const actions = {
 export default handleActions({
   [SET_ACTIVE_LAYER]: (state, { payload }) => {
     const panels = cloneDeep(state.panels);
-    const panel = panels[payload.activeMapId];
+    const panel = panels[payload.activePanelId];
     panel.layers.map((layer, i) => {
       layer.active = i === payload.layerClicked;
     });
@@ -95,18 +95,14 @@ export default handleActions({
     return { ...state, panels: panelsCpy };
   },
   [ADD_LAYER]: (state, { payload }) => {
-    const activeMapId = payload.activeMapId;
-    const layer = { ...payload.layer };
-    layer.enabled = 'enabled' in payload.layer ? payload.layer.enabled : true;
-    layer.active = 'active' in payload.layer ? payload.layer.active : false;
-    const newLayers = [payload.layer, ...state.panels[activeMapId].panelsProperties];
-    if (newLayers.length === 1 || !newLayers.some((layer) => layer.active === true)) {
-      newLayers[0].active = true;
+    const panelId = payload.panelId;
+
+    const stateCpy = cloneDeep(state);
+    stateCpy.panels[panelId].layers.unshift(payload.layer);
+    if (stateCpy.panels[panelId].layers.length === 1) {
+      stateCpy.panels[panelId].layers[0].active = true;
     }
-    const newPanel = { ...state.panels[activeMapId], panelsProperties: newLayers };
-    const newPanels = [...state.panels];
-    newPanels[activeMapId] = newPanel;
-    return { ...state, panels: newPanels };
+    return stateCpy;
   },
   [ADD_OVERLAY_LAYER]: (state, { payload }) => {
     const panelId = payload.panelId;
@@ -116,9 +112,8 @@ export default handleActions({
     if (currentOverlays.some((layer) => layer.service === payload.layer.service && layer.name === payload.layer.name)) {
       return state;
     }
-    const newWMJSLayer = new WMJSLayer({ ...payload, keepOnTop: true });
     const stateCpy = cloneDeep(state);
-    stateCpy.panels[panelId].baselayers.unshift(newWMJSLayer);
+    stateCpy.panels[panelId].baselayers.unshift(payload.layer);
     return stateCpy;
   },
   [DELETE_LAYER]: (state, { payload }) => {
@@ -227,14 +222,14 @@ export default handleActions({
     return { ...state, panels };
   },
   [SET_ACTIVE_PANEL]: (state, { payload }) => {
-    const numPanels = getNumPanels(state.layout);
-    const activeMapId = payload < numPanels ? payload : 0;
-    return { ...state, activeMapId };
+    const numPanels = getNumPanels(state.panelLayout);
+    const activePanelId = payload < numPanels ? payload : 0;
+    return { ...state, activePanelId };
   },
   [SET_PANEL_LAYOUT]: (state, { payload }) => {
     const numPanels = getNumPanels(payload);
-    const layout = numPanels === 1 ? 'single' : payload;
-    const activeMapId = state.activeMapId < numPanels ? state.activeMapId : 0;
-    return { ...state, layout, activeMapId };
+    const panelLayout = numPanels === 1 ? 'single' : payload;
+    const activePanelId = state.activePanelId < numPanels ? state.activePanelId : 0;
+    return { ...state, panelLayout, activePanelId };
   }
 }, INITIAL_STATE);

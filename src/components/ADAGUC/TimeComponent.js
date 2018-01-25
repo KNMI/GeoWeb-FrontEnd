@@ -63,7 +63,7 @@ export default class TimeComponent extends PureComponent {
     for (let j = 0; j < layers.length; j++) {
       const y = j * layerHeight + 1 + overlayers.length * layerHeight;
       const layer = layers[j];
-      const activeLayer = panelLayer.active;
+      const activeLayer = layer.active;
       const dim = layer.getDimension('time');
       if (!dim) {
         continue;
@@ -332,17 +332,17 @@ export default class TimeComponent extends PureComponent {
   }
   /* istanbul ignore next */
   onCanvasClick (x, y) {
-    const { panel, dispatch, layerActions, activeMapId } = this.props;
-    const { overlays, panelsProperties } = panel;
-
+    const { panel, dispatch, panelsActions, activePanelId } = this.props;
+    const { layers, baselayers } = panel;
+    const overlays = baselayers.filter((layer) => layer.keepOnTop === true);
     const t = x / this.ctx.canvas.clientWidth;
 
     // TODO: Replace with "global" height variable
     const layerHeight = 20;
     const overlaysHeight = overlays.length * layerHeight;
     const layerClicked = Math.floor((y - overlaysHeight) / layerHeight);
-    if (layerClicked >= 0 && layerClicked < panelsProperties.length) {
-      dispatch(layerActions.setActiveLayer({ activeMapId, layerClicked }));
+    if (layerClicked >= 0 && layerClicked < layers.length) {
+      dispatch(panelsActions.setActiveLayer({ activePanelId, layerClicked }));
     }
     const s = this.canvasDateInterval.getTimeSteps() - 1;
     const newTimeStep = parseInt(t * s);
@@ -403,5 +403,5 @@ TimeComponent.propTypes = {
   panel: PropTypes.shape({
     panelsProperties: PropTypes.array
   }),
-  layerActions: PropTypes.object
+  panelsActions: PropTypes.object
 };

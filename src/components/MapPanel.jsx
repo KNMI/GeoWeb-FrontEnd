@@ -68,7 +68,7 @@ export class SinglePanel extends PureComponent {
     }
 
     return (<Panel layout={panelLayout} adagucActions={adagucActions} locations={this.props.progtempLocations} location={text} dispatch={dispatch}
-      layerActions={panelsActions} type={type} mapActions={mapActions} title={title} mapMode={mapProperties.mapMode} mapId={mapId}
+      panelsActions={panelsActions} type={type} mapActions={mapActions} title={title} mapMode={mapProperties.mapMode} mapId={mapId}
       className={mapId === activePanelId && type === 'ADAGUC' ? 'activePanel' : ''} referenceTime={this.props.referenceTime}>
       {this.renderPanelContent(type)}
     </Panel>);
@@ -124,27 +124,26 @@ class MapPanel extends PureComponent {
       return numPanels;
     };
 
-    const { panelsProperties, mapProperties, dispatch, mapActions } = this.props;
-    const { activeMapId } = mapProperties;
-    const { panels } = panelsProperties;
+    const { panelsProperties, mapProperties, dispatch, panelsActions } = this.props;
+    const { panels, activePanelId } = panelsProperties;
 
     prevProps.panelsProperties.panels.map((panel, i) => {
       const prevType = panel.type;
       const currType = this.props.panelsProperties.panels[i].type;
       if (prevType !== 'ADAGUC' && currType === 'ADAGUC') {
-        dispatch(mapActions.setActivePanel(i));
+        dispatch(panelsActions.setActivePanel(i));
       }
     });
-    const numPanels = getNumPanels(mapProperties.layout);
+    const numPanels = getNumPanels(panelsProperties.panelLayout);
     // Get all visibile panels that are currently adaguc with their id in the original array
     const adagucPanels = (panels.map((panel, index) => { return { panel, index }; }).slice(0, numPanels).filter((p) => p.panel.type === 'ADAGUC'));
-    if (adagucPanels.length > 0 && panels[activeMapId].type !== 'ADAGUC') {
-      dispatch(mapActions.setActivePanel(adagucPanels[0].index));
+    if (adagucPanels.length > 0 && panels[activePanelId].type !== 'ADAGUC') {
+      dispatch(panelsActions.setActivePanel(adagucPanels[0].index));
     }
   }
   render () {
-    const { mapProperties } = this.props;
-    switch (mapProperties.layout) {
+    const { panelsProperties } = this.props;
+    switch (panelsProperties.panelLayout) {
       case 'dual':
         return (
           <Row style={{ flex: 1 }}>
@@ -270,7 +269,7 @@ SinglePanel.propTypes = {
   adagucProperties: PropTypes.object.isRequired,
   mapId: PropTypes.number.isRequired,
   drawActions: PropTypes.object.isRequired,
-  layerActions: PropTypes.object.isRequired,
+  panelsActions: PropTypes.object.isRequired,
   adagucActions: PropTypes.object.isRequired
 };
 MapPanel.propTypes = {

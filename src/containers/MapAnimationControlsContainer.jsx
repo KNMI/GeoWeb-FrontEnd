@@ -38,12 +38,12 @@ class MapAnimationControlsContainer extends Component {
   }
 
   handleAddLayer (e) {
-    const { dispatch, layerActions, mapProperties, activeMapId } = this.props;
+    const { dispatch, panelsActions, mapProperties, activeMapId } = this.props;
     const addItem = e[0];
     if (!this.state.overlay) {
-      dispatch(layerActions.addLayer({ activeMapId: activeMapId, layer: { service: this.state.selectedSource.service, title: this.state.selectedSource.title, name: addItem.id, label: addItem.label, opacity: 1 }}));
+      dispatch(panelsActions.addLayer({ activeMapId: activeMapId, layer: { service: this.state.selectedSource.service, title: this.state.selectedSource.title, name: addItem.id, label: addItem.label, opacity: 1 }}));
     } else {
-      dispatch(layerActions.addOverlaysLayer({ activeMapId: activeMapId, layer: { service: this.state.selectedSource.service, title: this.state.selectedSource.title, name: addItem.id, label: addItem.label }}));
+      dispatch(panelsActions.addOverlaysLayer({ activeMapId: activeMapId, layer: { service: this.state.selectedSource.service, title: this.state.selectedSource.title, name: addItem.id, label: addItem.label }}));
     }
     this.setState({
       layerChooserOpen: false,

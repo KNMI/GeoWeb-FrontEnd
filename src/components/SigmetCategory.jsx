@@ -602,7 +602,7 @@ class SigmetCategory extends Component {
     this.setState({ list: listCpy });
     const preset = this.sigmetLayers(onlyObj.layerpreset);
     this.props.dispatch(this.props.mapActions.setLayout(preset.display.type));
-    this.props.dispatch(this.props.layerActions.setPreset(preset.panelsProperties));
+    this.props.dispatch(this.props.panelsActions.setPreset(preset.panelsProperties));
     this.props.dispatch(this.props.mapActions.setCut({ name: 'Custom', bbox: [preset.area.left || 570875, preset.area.bottom, preset.area.right || 570875, preset.area.top] }));
   }
 
@@ -1170,7 +1170,7 @@ SigmetCategory.propTypes = {
   actions: PropTypes.object,
   updateParent: PropTypes.func,
   mapActions: PropTypes.object,
-  layerActions: PropTypes.object,
+  panelsActions: PropTypes.object,
   drawProperties: PropTypes.shape({
     geojson: PropTypes.object
   }),

@@ -8,7 +8,7 @@ const state = {
   adagucActions: {
     setTimeDimension: () => null
   },
-  layerActions: {
+  panelsActions: {
     setWMJSLayers: () => null
   },
   adagucProperties: {
@@ -182,7 +182,7 @@ describe('(Component) MapPanel', () => {
       drawProperties={state.drawProperties}
       mapProperties={state.mapProperties}
       panelsProperties={state.panelsProperties}
-      layerActions={state.layerActions}
+      panelsActions={state.panelsActions}
       dispatch={emptyDispatch}
       actions={emptyActions} />);
     expect(_component.type()).to.eql(MapPanel);

@@ -117,7 +117,7 @@ class Panel extends PureComponent {
   }
 
   renderMenu () {
-    const { type, mapId, dispatch, layerActions } = this.props;
+    const { type, mapId, dispatch, panelsActions } = this.props;
     return (<ButtonDropdown style={{ marginRight: '0.25rem' }} isOpen={this.state.typeIsOpen} toggle={() => {}}>
       <DropdownToggle caret style={{ textTransform: 'capitalize' }} size='sm'>
         {type.toLowerCase()}
@@ -125,22 +125,22 @@ class Panel extends PureComponent {
       <DropdownMenu>
         {
           ['ADAGUC', 'TIMESERIES', 'PROGTEMP'].map((type) =>
-            <DropdownItem style={{ textTransform: 'capitalize' }} onClick={(e) => { dispatch(layerActions.setPanelType({ type, mapId })); }} >{type.toLowerCase()}</DropdownItem>)
+            <DropdownItem style={{ textTransform: 'capitalize' }} onClick={(e) => { dispatch(panelsActions.setPanelType({ type, mapId })); }} >{type.toLowerCase()}</DropdownItem>)
         }
       </DropdownMenu>
     </ButtonDropdown>);
   }
 
   render () {
-    const { title, style, className, mapId, dispatch, type, mapActions, mapMode } = this.props;
+    const { title, style, className, mapId, dispatch, type, panelsActions, mapMode } = this.props;
     const panelOpts = ['ADAGUC', 'TIMESERIES', 'PROGTEMP'];
     if (!title) {
       const onClick = type === 'ADAGUC' ? (e) => {
         e.stopPropagation();
         e.preventDefault();
-        if (!mapActions) return;
+        if (!panelsActions) return;
         if (mapMode !== 'progtemp' && mapMode !== 'timeseries' && !className && type === 'ADAGUC') {
-          dispatch(mapActions.setActivePanel(mapId));
+          dispatch(panelsActions.setActivePanel(mapId));
         }
       } : null;
       let id;
@@ -170,9 +170,9 @@ class Panel extends PureComponent {
     } else {
       return (
         <div className={'Panel ' + className} onClick={() => {
-          if (!mapActions) return;
+          if (!panelsActions) return;
           if (mapMode !== 'progtemp' && mapMode !== 'timeseries' && !className) {
-            dispatch(mapActions.setActivePanel(mapId));
+            dispatch(panelsActions.setActivePanel(mapId));
           }
         }}>
           <Row className='title' style={style}>
@@ -195,7 +195,7 @@ Panel.propTypes = {
   mapId: PropTypes.number,
   dispatch: PropTypes.func,
   mapActions: PropTypes.object,
-  layerActions: PropTypes.object,
+  panelsActions: PropTypes.object,
   adagucActions: PropTypes.object,
   id: PropTypes.string,
   mapMode: PropTypes.string,

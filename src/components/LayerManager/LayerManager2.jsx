@@ -8,9 +8,9 @@ export default class LayerManager extends PureComponent {
     const dataLayers = this.props.panel.layers;
     return (
       <Col xs='auto' style={{ minWidth: '40rem', flexDirection: 'column' }}>
-        <Layers data={overLayers} color='danger' />
-        <Layers data={dataLayers} color='info' />
-        <Layers data={baseLayers} color='success' />
+        <Layers role='overlays' data={overLayers} color='danger' />
+        <Layers role='datalayers' data={dataLayers} color='info' />
+        <Layers role='maplayers' data={baseLayers} color='success' />
       </Col>);
   }
 }

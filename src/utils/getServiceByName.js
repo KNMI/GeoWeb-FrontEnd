@@ -98,8 +98,8 @@ export const GetServices = (BACKEND_SERVER_URL) => {
           const sourcesDic = {};
           res.map((promise) => {
             if (promise.status === 'resolved') {
-              const { panelsProperties, source } = promise.data;
-              sourcesDic[source.name] = { panelsProperties, source };
+              const { layers, source } = promise.data;
+              sourcesDic[source.name] = { layers, source };
             } else {
               console.error(promise);
             }

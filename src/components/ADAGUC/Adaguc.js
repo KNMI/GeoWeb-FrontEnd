@@ -126,7 +126,7 @@ export default class Adaguc extends PureComponent {
   }
 
   initAdaguc (adagucMapRef) {
-    const { mapProperties, layerActions, panelsProperties, adagucActions, dispatch, mapId, urls } = this.props;
+    const { mapProperties, panelsActions, panelsProperties, adagucActions, dispatch, mapId, urls } = this.props;
     const { panels } = panelsProperties;
     const { BACKEND_SERVER_XML2JSON } = urls;
     // Map already created, abort
@@ -148,7 +148,8 @@ export default class Adaguc extends PureComponent {
 
     this.webMapJS.addListener('aftersetbbox', this.updateBBOX, true);
     this.webMapJS.addListener('mouseclicked', e => this.findClosestCursorLoc(e), true);
-
+    console.log(panels[mapId].baselayers);
+    this.webMapJS.setBaseLayers(panels[mapId].baselayers.map((layer) => new WMJSLayer(layer)));
     // Set the baselayer and possible overlays
     const defaultPersonalURLs = JSON.stringify({ personal_urls: [] });
     if (localStorage && !localStorage.getItem('geoweb')) {
@@ -320,74 +321,74 @@ export default class Adaguc extends PureComponent {
     }
   }
 
-  updateAnimationActiveLayerChange (currDataLayers, nextDataLayers, wmjsLayers, nextWmjsLayers) {
-    const { dispatch, adagucActions } = this.props;
-    const ANIMATION_LENGTH_REF_TIME = 48;
-    const ANIMATION_LENGTH_NO_REF_TIME = 6;
-    let animationLength = null;
+  updateAnimationActiveLayerChange (currDataLayers, nextDataLayers) {
+    // const { dispatch, adagucActions } = this.props;
+    // const ANIMATION_LENGTH_REF_TIME = 48;
+    // const ANIMATION_LENGTH_NO_REF_TIME = 6;
+    // let animationLength = null;
 
-    if (Array.isArray(nextDataLayers) && Array.isArray(currDataLayers)) {
-      const nextActiveLayers = nextDataLayers.filter(layer => layer.active);
-      const currActiveLayers = currDataLayers.filter(layer => layer.active);
+    // if (Array.isArray(nextDataLayers) && Array.isArray(currDataLayers)) {
+    //   const nextActiveLayers = nextDataLayers.filter(layer => layer.active);
+    //   const currActiveLayers = currDataLayers.filter(layer => layer.active);
 
-      // Encode length of arrays as state as to switch on it.
-      const layerState = [nextActiveLayers.length, currActiveLayers.length].join('');
-      let nextActiveLayer, currActiveLayer, nextActiveWMJSLayer, currActiveWMJSLayer, nextHasRefTime, currHasRefTime;
-      switch (layerState) {
-        // 11 means active layer has possibly switched within this panel, so find the new one
-        case '11':
-          nextActiveLayer = nextActiveLayers[0];
-          currActiveLayer = currActiveLayers[0];
+    //   // Encode length of arrays as state as to switch on it.
+    //   const layerState = [nextActiveLayers.length, currActiveLayers.length].join('');
+    //   let nextActiveLayer, currActiveLayer, nextActiveWMJSLayer, currActiveWMJSLayer, nextHasRefTime, currHasRefTime;
+    //   switch (layerState) {
+    //     // 11 means active layer has possibly switched within this panel, so find the new one
+    //     case '11':
+    //       nextActiveLayer = nextActiveLayers[0];
+    //       currActiveLayer = currActiveLayers[0];
 
-          // if the active layer remained the same, we don't have to do anything
-          if (nextActiveLayer === currActiveLayer) {
-            return;
-          }
+    //       // if the active layer remained the same, we don't have to do anything
+    //       if (nextActiveLayer === currActiveLayer) {
+    //         return;
+    //       }
 
-          nextActiveWMJSLayer = nextWmjsLayers.panelsProperties.filter(layer => layer.service === nextActiveLayer.service && layer.name === nextActiveLayer.name)[0];
-          currActiveWMJSLayer = wmjsLayers.panelsProperties.filter(layer => layer.service === currActiveLayer.service && layer.name === currActiveLayer.name)[0];
+    //       nextActiveWMJSLayer = nextWmjsLayers.panelsProperties.filter(layer => layer.service === nextActiveLayer.service && layer.name === nextActiveLayer.name)[0];
+    //       currActiveWMJSLayer = wmjsLayers.panelsProperties.filter(layer => layer.service === currActiveLayer.service && layer.name === currActiveLayer.name)[0];
 
-          // if ADAGUC doesn't know the panelsProperties, bail
-          if (!nextActiveWMJSLayer || !currActiveWMJSLayer) {
-            return;
-          }
-          nextHasRefTime = nextActiveWMJSLayer.getDimension('reference_time');
-          currHasRefTime = currActiveWMJSLayer.getDimension('reference_time');
+    //       // if ADAGUC doesn't know the panelsProperties, bail
+    //       if (!nextActiveWMJSLayer || !currActiveWMJSLayer) {
+    //         return;
+    //       }
+    //       nextHasRefTime = nextActiveWMJSLayer.getDimension('reference_time');
+    //       currHasRefTime = currActiveWMJSLayer.getDimension('reference_time');
 
-          // If the having of a reference_time didn't change, we're done
-          if ((!!nextHasRefTime) === (!!currHasRefTime)) {
-            return;
-          }
-          // set the respective animation length
-          if (nextHasRefTime) {
-            animationLength = ANIMATION_LENGTH_REF_TIME;
-          } else {
-            animationLength = ANIMATION_LENGTH_NO_REF_TIME;
-          }
-          break;
+    //       // If the having of a reference_time didn't change, we're done
+    //       if ((!!nextHasRefTime) === (!!currHasRefTime)) {
+    //         return;
+    //       }
+    //       // set the respective animation length
+    //       if (nextHasRefTime) {
+    //         animationLength = ANIMATION_LENGTH_REF_TIME;
+    //       } else {
+    //         animationLength = ANIMATION_LENGTH_NO_REF_TIME;
+    //       }
+    //       break;
 
-        // First layer got added, or active layer got deleted so set a new one
-        case '12': // TODO: y tho???
-        case '10':
-          nextActiveWMJSLayer = this.webMapJS.getActiveLayer();
-          if (!nextActiveWMJSLayer) {
-            break;
-          }
-          nextHasRefTime = nextActiveWMJSLayer.getDimension('reference_time');
-          if (nextHasRefTime) {
-            animationLength = ANIMATION_LENGTH_REF_TIME;
-          } else {
-            animationLength = ANIMATION_LENGTH_NO_REF_TIME;
-          }
-          break;
-        case '01':
-        case '00':
-          break;
-      }
-      if (animationLength !== this.props.adagucProperties.animationSettings.duration) {
-        dispatch(adagucActions.setAnimationLength(animationLength));
-      }
-    }
+    //     // First layer got added, or active layer got deleted so set a new one
+    //     case '12': // TODO: y tho???
+    //     case '10':
+    //       nextActiveWMJSLayer = this.webMapJS.getActiveLayer();
+    //       if (!nextActiveWMJSLayer) {
+    //         break;
+    //       }
+    //       nextHasRefTime = nextActiveWMJSLayer.getDimension('reference_time');
+    //       if (nextHasRefTime) {
+    //         animationLength = ANIMATION_LENGTH_REF_TIME;
+    //       } else {
+    //         animationLength = ANIMATION_LENGTH_NO_REF_TIME;
+    //       }
+    //       break;
+    //     case '01':
+    //     case '00':
+    //       break;
+    //   }
+    //   if (animationLength !== this.props.adagucProperties.animationSettings.duration) {
+    //     dispatch(adagucActions.setAnimationLength(animationLength));
+    //   }
+    // }
   }
 
   // Returns true when the panelsProperties are actually different w.r.t. next panelsProperties, otherwise false
@@ -411,7 +412,7 @@ export default class Adaguc extends PureComponent {
   }
 
   componentWillUpdate (nextProps) {
-    const { adagucProperties, layerActions, panelsProperties, active, mapId, dispatch } = this.props;
+    const { adagucProperties, panelsActions, panelsProperties, active, mapId, dispatch } = this.props;
     const { animationSettings } = adagucProperties;
     const { panels, activePanelId, panelLayout } = panelsProperties;
     const activePanel = panels[mapId];
@@ -502,7 +503,7 @@ export default class Adaguc extends PureComponent {
 Adaguc.propTypes = {
   active: PropTypes.bool,
   dispatch: PropTypes.func.isRequired,
-  layerActions: PropTypes.object,
+  panelsActions: PropTypes.object,
   adagucProperties: PropTypes.object,
   mapProperties: PropTypes.object,
   adagucActions: PropTypes.object,
