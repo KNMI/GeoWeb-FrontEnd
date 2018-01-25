@@ -59,7 +59,6 @@ export default class Adaguc extends PureComponent {
     }
 
     this.onChangeAnimation(animationSettings, this.props.active);
-    this.props.dispatch(this.props.layerActions.setWMJSLayers({ layers: this.webMapJS.getLayers(), baselayers: this.webMapJS.getBaseLayers() }));
   }
 
   timeHandler () {
@@ -127,8 +126,8 @@ export default class Adaguc extends PureComponent {
   }
 
   initAdaguc (adagucMapRef) {
-    const { mapProperties, layerActions, layers, adagucActions, dispatch, mapId, urls } = this.props;
-    const { baselayer, panels } = layers;
+    const { mapProperties, layerActions, panelsProperties, adagucActions, dispatch, mapId, urls } = this.props;
+    const { panels } = panelsProperties;
     const { BACKEND_SERVER_XML2JSON } = urls;
     // Map already created, abort
     if (mapProperties.mapCreated) {
@@ -151,7 +150,6 @@ export default class Adaguc extends PureComponent {
     this.webMapJS.addListener('mouseclicked', e => this.findClosestCursorLoc(e), true);
 
     // Set the baselayer and possible overlays
-    this.updateBaselayers({}, baselayer, {}, panels[mapId].overlays);
     const defaultPersonalURLs = JSON.stringify({ personal_urls: [] });
     if (localStorage && !localStorage.getItem('geoweb')) {
       localStorage.setItem('geoweb', defaultPersonalURLs);
@@ -164,7 +162,6 @@ export default class Adaguc extends PureComponent {
     const currentDate = getCurrentDateIso8601();
     if (this.props.active) {
       dispatch(adagucActions.setTimeDimension(currentDate.toISO8601()));
-      dispatch(layerActions.setWMJSLayers({ layers: this.webMapJS.getLayers(), baselayers: this.webMapJS.getBaseLayers() }));
     }
     this.webMapJS.draw('171');
   }
@@ -273,7 +270,7 @@ export default class Adaguc extends PureComponent {
     }
   }
 
-  // Returns true when the layers are actually different w.r.t. next layers, otherwise false
+  // Returns true when the panelsProperties are actually different w.r.t. next panelsProperties, otherwise false
   /* istanbul ignore next */
   updateBaselayers (baselayer, nextBaselayer, overlays, nextOverlays) {
     if (Array.isArray(nextOverlays) && (diff(baselayer, nextBaselayer) || diff(overlays, nextOverlays))) {
@@ -308,16 +305,16 @@ export default class Adaguc extends PureComponent {
   }
 
   updateLayersInline (currDataLayers) {
-    const layers = this.webMapJS.getLayers();
-    for (let i = layers.length - 1; i >= 0; i--) {
-      layers[i].enabled = 'enabled' in currDataLayers[i] ? currDataLayers[i].enabled : true;
-      layers[i].opacity = currDataLayers[i].opacity;
-      layers[i].service = currDataLayers[i].service;
-      layers[i].name = currDataLayers[i].name;
-      layers[i].label = currDataLayers[i].label;
-      layers[i].currentStyle = currDataLayers[i].style || layers[i].currentStyle;
+    const panelsProperties = this.webMapJS.getLayers();
+    for (let i = panelsProperties.length - 1; i >= 0; i--) {
+      panelsProperties[i].enabled = 'enabled' in currDataLayers[i] ? currDataLayers[i].enabled : true;
+      panelsProperties[i].opacity = currDataLayers[i].opacity;
+      panelsProperties[i].service = currDataLayers[i].service;
+      panelsProperties[i].name = currDataLayers[i].name;
+      panelsProperties[i].label = currDataLayers[i].label;
+      panelsProperties[i].currentStyle = currDataLayers[i].style || panelsProperties[i].currentStyle;
       if (currDataLayers[i].modellevel) {
-        layers[i].setDimension('modellevel', currDataLayers[i].modellevel.toString());
+        panelsProperties[i].setDimension('modellevel', currDataLayers[i].modellevel.toString());
       }
       this.webMapJS.getListener().triggerEvent('onmapdimupdate');
     }
@@ -347,10 +344,10 @@ export default class Adaguc extends PureComponent {
             return;
           }
 
-          nextActiveWMJSLayer = nextWmjsLayers.layers.filter(layer => layer.service === nextActiveLayer.service && layer.name === nextActiveLayer.name)[0];
-          currActiveWMJSLayer = wmjsLayers.layers.filter(layer => layer.service === currActiveLayer.service && layer.name === currActiveLayer.name)[0];
+          nextActiveWMJSLayer = nextWmjsLayers.panelsProperties.filter(layer => layer.service === nextActiveLayer.service && layer.name === nextActiveLayer.name)[0];
+          currActiveWMJSLayer = wmjsLayers.panelsProperties.filter(layer => layer.service === currActiveLayer.service && layer.name === currActiveLayer.name)[0];
 
-          // if ADAGUC doesn't know the layers, bail
+          // if ADAGUC doesn't know the panelsProperties, bail
           if (!nextActiveWMJSLayer || !currActiveWMJSLayer) {
             return;
           }
@@ -393,7 +390,7 @@ export default class Adaguc extends PureComponent {
     }
   }
 
-  // Returns true when the layers are actually different w.r.t. next layers, otherwise false
+  // Returns true when the panelsProperties are actually different w.r.t. next panelsProperties, otherwise false
   /* istanbul ignore next */
   updateLayers (currDataLayers, nextDataLayers, wmjsLayers, nextWmjsLayers) {
     const change = diff(currDataLayers, nextDataLayers);
@@ -414,28 +411,26 @@ export default class Adaguc extends PureComponent {
   }
 
   componentWillUpdate (nextProps) {
-    const { adagucProperties, layerActions, layers, active, mapId, dispatch } = this.props;
+    const { adagucProperties, layerActions, panelsProperties, active, mapId, dispatch } = this.props;
     const { animationSettings } = adagucProperties;
-    const { baselayer } = layers;
-
-    const activePanel = this.props.layers.panels[mapId];
-
-    const nextActivePanel = nextProps.layers.panels[mapId];
-    const nextBaseLayer = nextProps.layers.baselayer;
+    const { panels, activePanelId, panelLayout } = panelsProperties;
+    const activePanel = panels[mapId];
+    console.log(activePanel);
+    const nextActivePanel = nextProps.panelsProperties.panels[mapId];
+    const nextBaseLayer = nextProps.panelsProperties.panels[mapId].baselayers[0];
     const overlays = activePanel.overlays;
     const nextOverlays = nextActivePanel.overlays;
-    const layersChanged = this.updateLayers(activePanel.layers, nextActivePanel.layers, layers.wmjsLayers, nextProps.layers.wmjsLayers);
-    const baseChanged = this.updateBaselayers(baselayer, nextBaseLayer, overlays, nextOverlays);
-
+    const layersChanged = this.updateLayers(activePanel.layers, nextActivePanel.layers, panelsProperties.wmjsLayers, nextProps.panelsProperties.wmjsLayers);
+    // const baseChanged = this.updateBaselayers(baselayer, nextBaseLayer, overlays, nextOverlays);
+    const baseChanged = false;
     // Update animation -- animate iff animate is set and the panel is active.
     if (nextProps.adagucProperties.animationSettings !== animationSettings) {
       this.onChangeAnimation(nextProps.adagucProperties.animationSettings, nextProps.active);
     }
 
-    // Set the current layers if the panel becomes active (necessary for the layermanager etc.)
+    // Set the current panelsProperties if the panel becomes active (necessary for the layermanager etc.)
     if (active && (!nextProps.active || layersChanged || baseChanged)) {
       this.resize();
-      dispatch(layerActions.setWMJSLayers({ layers: this.webMapJS.getLayers(), baselayers: this.webMapJS.getBaseLayers() }));
     }
 
     this.webMapJS.draw('368');
@@ -512,7 +507,7 @@ Adaguc.propTypes = {
   mapProperties: PropTypes.object,
   adagucActions: PropTypes.object,
   mapActions: PropTypes.object,
-  layers: PropTypes.object,
+  panelsProperties: PropTypes.object,
   mapId: PropTypes.number,
   drawProperties: PropTypes.object,
   drawActions: PropTypes.object,

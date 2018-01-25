@@ -51,17 +51,17 @@ class MapAnimationControlsContainer extends Component {
       selectedSource: null,
       overlay: false,
       action: null,
-      layers: null
+      panelsProperties: null
     });
   }
 
-  generateMap (layers) {
+  generateMap (panelsProperties) {
     let layerobjs = [];
-    for (var i = 0; i < layers.length; ++i) {
-      layerobjs.push({ id: layers[i].name, label: layers[i].text });
+    for (var i = 0; i < panelsProperties.length; ++i) {
+      layerobjs.push({ id: panelsProperties[i].name, label: panelsProperties[i].text });
     }
     this.setState({
-      layers: layerobjs,
+      panelsProperties: layerobjs,
       activeTab: '3'
     });
   }
@@ -75,7 +75,7 @@ class MapAnimationControlsContainer extends Component {
     // eslint-disable-next-line no-undef
     var srv = WMJSgetServiceFromStore(selectedSource.service);
     this.setState({ selectedSource: selectedSource });
-    srv.getLayerObjectsFlat((layers) => this.generateMap(layers), (err) => { throw new Error(err); });
+    srv.getLayerObjectsFlat((panelsProperties) => this.generateMap(panelsProperties), (err) => { throw new Error(err); });
   }
   toggleLayerChooser () {
     this.setState({ layerChooserOpen: !this.state.layerChooserOpen });
@@ -177,7 +177,7 @@ class MapAnimationControlsContainer extends Component {
       selectedSource: null,
       overlay: false,
       action: null,
-      layers: null,
+      panelsProperties: null,
       presetUnit: null
     });
   }
@@ -222,7 +222,7 @@ class MapAnimationControlsContainer extends Component {
               : this.renderURLInput()}
           </TabPane>
           <TabPane tabId='3'>
-            <Typeahead ref='layerSelectorTypeRef' onChange={this.handleAddLayer} options={this.state.layers ? this.state.layers : []} autoFocus />
+            <Typeahead ref='layerSelectorTypeRef' onChange={this.handleAddLayer} options={this.state.panelsProperties ? this.state.panelsProperties : []} autoFocus />
           </TabPane>
         </TabContent>
       </ModalBody>
@@ -237,7 +237,7 @@ class MapAnimationControlsContainer extends Component {
       <Col xs='auto' className='MapAnimationControlsContainer'>
         {this.renderLayerChooser()}
         {this.renderPopOver()}
-        <Button onClick={this.toggleLayerChooser} color='primary' title='Choose layers'>
+        <Button onClick={this.toggleLayerChooser} color='primary' title='Choose panelsProperties'>
           <Icon name='bars' />
         </Button>
         <Button onClick={this.togglePopside} id='setAreaButton' color='primary' title='Set area'>

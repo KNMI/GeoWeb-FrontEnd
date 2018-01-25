@@ -59,7 +59,7 @@ describe('(Component) Adaguc', () => {
         username: '',
         roles: []
       },
-      layers: {
+      panelsProperties: {
         wmjsLayers: [],
         baselayer: {
           service: 'http://geoservices.knmi.nl/cgi-bin/bgmaps.cgi?',
@@ -71,19 +71,19 @@ describe('(Component) Adaguc', () => {
         panels: [
           {
             overlays: [],
-            layers: []
+            panelsProperties: []
           },
           {
             overlays: [],
-            layers: []
+            panelsProperties: []
           },
           {
             overlays: [],
-            layers: []
+            panelsProperties: []
           },
           {
             overlays: [],
-            layers: []
+            panelsProperties: []
           }
         ]
       },
@@ -105,7 +105,7 @@ describe('(Component) Adaguc', () => {
       drawActions={{}}
       adagucProperties={_globalState.adagucProperties}
       mapProperties={_globalState.mapProperties}
-      layers={_globalState.layers}
+      panelsProperties={_globalState.panelsProperties}
       mapId={0}
       drawProperties={_globalState.drawProperties} />);
     expect(_component.type()).to.eql('div');

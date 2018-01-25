@@ -4,7 +4,7 @@ import recentTriggerReducer from './modules/recentTriggerReducer';
 import adagucReducer from './modules/adagucReducer';
 import mapReducer from './modules/mapReducer';
 import userReducer from './modules/userReducer';
-import layerReducer from './modules/layerReducer';
+import panelsReducer from './modules/panelsReducer';
 import drawReducer from './modules/drawReducer';
 import urlsReducer from './modules/urlsReducer';
 
@@ -13,7 +13,7 @@ export const makeRootReducer = () => combineReducers({
   drawProperties: drawReducer,
   mapProperties: mapReducer,
   userProperties: userReducer,
-  layers: layerReducer,
+  panelsProperties: panelsReducer,
   recentTriggers: recentTriggerReducer,
   notifications: notificationsReducer(),
   urls: urlsReducer

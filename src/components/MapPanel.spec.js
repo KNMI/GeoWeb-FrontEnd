@@ -60,7 +60,7 @@ const state = {
     }
   },
 
-  layers: {
+  panelsProperties: {
     wmjsLayers: [],
     baselayer: {
       service: 'http://geoservices.knmi.nl/cgi-bin/bgmaps.cgi?',
@@ -72,22 +72,22 @@ const state = {
     panels: [
       {
         overlays: [],
-        layers: [],
+        panelsProperties: [],
         type: 'ADAGUC'
       },
       {
         overlays: [],
-        layers: [],
+        panelsProperties: [],
         type: 'PROGTEMP'
       },
       {
         overlays: [],
-        layers: [],
+        panelsProperties: [],
         type: 'TIMESERIES'
       },
       {
         overlays: [],
-        layers: [],
+        panelsProperties: [],
         type: 'ADAGUC'
       }
     ]
@@ -168,7 +168,7 @@ describe('(Component) MapPanel', () => {
       adagucProperties={state.adagucProperties}
       drawProperties={state.drawProperties}
       mapProperties={state.mapProperties}
-      layers={state.layers}
+      panelsProperties={state.panelsProperties}
       dispatch={emptyDispatch}
       actions={emptyActions} />);
     expect(_component.type()).to.eql(Row);
@@ -181,7 +181,7 @@ describe('(Component) MapPanel', () => {
       adagucProperties={state.adagucProperties}
       drawProperties={state.drawProperties}
       mapProperties={state.mapProperties}
-      layers={state.layers}
+      panelsProperties={state.panelsProperties}
       layerActions={state.layerActions}
       dispatch={emptyDispatch}
       actions={emptyActions} />);

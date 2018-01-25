@@ -15,7 +15,7 @@ describe('(Store) createStore', () => {
         title: 'Harmonie36'
       },
       layer: 'precipitation_flux',
-      layers: [
+      panelsProperties: [
         { title: 'cloud_base_altitude' },
         { title: 'cloud_top_altitude' },
         { title: 'convective_cloud_area_fraction' },

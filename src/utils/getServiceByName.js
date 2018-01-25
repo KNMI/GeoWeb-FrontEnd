@@ -53,7 +53,7 @@ export const GetServiceByNamePromise = (backendurl, name) => {
   });
 };
 
-/* Promise which resolves all layers and services */
+/* Promise which resolves all panelsProperties and services */
 export const GetServices = (BACKEND_SERVER_URL) => {
   return new Promise((resolve, reject) => {
     const defaultURLs = ['getServices', 'getOverlayServices'].map((url) => BACKEND_SERVER_URL + '/' + url);
@@ -88,7 +88,7 @@ export const GetServices = (BACKEND_SERVER_URL) => {
             if (!service) {
               resolve(new Error('Cannot get service from store'));
             }
-            service.getLayerObjectsFlat((layers) => { resolve({ layers, source }); });
+            service.getLayerObjectsFlat((panelsProperties) => { resolve({ panelsProperties, source }); });
           });
           promises.push(new PromiseWithTimout(r, moment.duration(5000, 'milliseconds').asMilliseconds()));
         }
@@ -98,8 +98,8 @@ export const GetServices = (BACKEND_SERVER_URL) => {
           const sourcesDic = {};
           res.map((promise) => {
             if (promise.status === 'resolved') {
-              const { layers, source } = promise.data;
-              sourcesDic[source.name] = { layers, source };
+              const { panelsProperties, source } = promise.data;
+              sourcesDic[source.name] = { panelsProperties, source };
             } else {
               console.error(promise);
             }

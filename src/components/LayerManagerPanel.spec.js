@@ -30,7 +30,7 @@ const state = {
     }
   },
 
-  layers: {
+  panelsProperties: {
     wmjsLayers: [],
     baselayer: {
       service: 'http://geoservices.knmi.nl/cgi-bin/bgmaps.cgi?',
@@ -42,19 +42,19 @@ const state = {
     panels: [
       {
         overlays: [],
-        layers: []
+        panelsProperties: []
       },
       {
         overlays: [],
-        layers: []
+        panelsProperties: []
       },
       {
         overlays: [],
-        layers: []
+        panelsProperties: []
       },
       {
         overlays: [],
-        layers: []
+        panelsProperties: []
       }
     ]
   }
@@ -68,7 +68,7 @@ describe('(Component) LayerManagerPanel', () => {
     const _component = shallow(<LayerManagerPanel
       mapProperties={state.mapProperties}
       title='title'
-      layers={state.layers}
+      panelsProperties={state.panelsProperties}
       adagucProperties={state.adagucProperties}
       dispatch={emptyDispatch}
       actions={emptyActions} />);

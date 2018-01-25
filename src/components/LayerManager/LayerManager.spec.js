@@ -17,7 +17,7 @@ describe('(Component) LayerManager', () => {
           label: 'Countries'
         }
       ],
-      layers: [
+      panelsProperties: [
         {
           service: 'http://geoservices.knmi.nl/cgi-bin/RADNL_OPER_R___25PCPRR_L3.cgi?',
           title: 'RADAR_EXT',
@@ -29,7 +29,7 @@ describe('(Component) LayerManager', () => {
       ]
     };
     _wmjslayers = {
-      layers: [
+      panelsProperties: [
         {
           autoupdate: true,
           timer: 425,
@@ -184,12 +184,12 @@ describe('(Component) LayerManager', () => {
       ]
     };
   });
-  it('Renders an empty div without layers', () => {
+  it('Renders an empty div without panelsProperties', () => {
     const _component = mount(<LayerManager dispatch={emptyFunc} actions={empytObj} />);
     expect(_component.type()).to.eql(LayerManager);
   });
 
-  it('Renders renders with layers', () => {
+  it('Renders renders with panelsProperties', () => {
     const _component = shallow(<LayerManager dispatch={emptyFunc} actions={empytObj} panel={_panel} wmjslayers={_wmjslayers} />);
     expect(_component.type()).to.eql(Col);
     const _deepComponent = mount(<LayerManager dispatch={emptyFunc} actions={empytObj} panel={_panel} wmjslayers={_wmjslayers} />);

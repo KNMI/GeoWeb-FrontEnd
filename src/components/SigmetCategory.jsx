@@ -292,7 +292,7 @@ class SigmetCategory extends Component {
               npanels: 4,
               type: 'quaduneven'
             },
-            layers: [
+            panelsProperties: [
               [
                 {
                   service: HARMONIE_URL,
@@ -384,7 +384,7 @@ class SigmetCategory extends Component {
               npanels: 4,
               type: 'quaduneven'
             },
-            layers: [
+            panelsProperties: [
               [
                 {
                   service: OVERLAY_URL,
@@ -441,7 +441,7 @@ class SigmetCategory extends Component {
               npanels: 4,
               type: 'quaduneven'
             },
-            layers: [
+            panelsProperties: [
               [
                 {
                   service: `${WEBSERVER_URL}/cgi-bin/geoweb/adaguc.SAT.cgi?`,
@@ -501,7 +501,7 @@ class SigmetCategory extends Component {
               npanels: 4,
               type: 'quaduneven'
             },
-            layers: [
+            panelsProperties: [
               [
                 {
                   service: HARMONIE_URL,
@@ -602,7 +602,7 @@ class SigmetCategory extends Component {
     this.setState({ list: listCpy });
     const preset = this.sigmetLayers(onlyObj.layerpreset);
     this.props.dispatch(this.props.mapActions.setLayout(preset.display.type));
-    this.props.dispatch(this.props.layerActions.setPreset(preset.layers));
+    this.props.dispatch(this.props.layerActions.setPreset(preset.panelsProperties));
     this.props.dispatch(this.props.mapActions.setCut({ name: 'Custom', bbox: [preset.area.left || 570875, preset.area.bottom, preset.area.right || 570875, preset.area.top] }));
   }
 

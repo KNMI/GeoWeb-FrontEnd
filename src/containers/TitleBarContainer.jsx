@@ -526,12 +526,12 @@ class TitleBarContainer extends PureComponent {
       crs: this.props.mapProperties.projection.code
     };
     let layerConfig = [];
-    this.props.layers.panels.forEach((panel, i) => {
+    this.props.panelsProperties.panels.forEach((panel, i) => {
       if (i >= numPanels) {
         return;
       }
       let panelArr = [];
-      panel.layers.forEach((layer) => {
+      panel.panelsProperties.forEach((layer) => {
         panelArr.push({
           active: true,
           dimensions: {},
@@ -557,7 +557,7 @@ class TitleBarContainer extends PureComponent {
     const dataToSend = {
       area: saveBoundingBox ? bbox : null,
       display: savePanelLayout ? displayObj : null,
-      layers: saveLayers ? layerConfig : null,
+      panelsProperties: saveLayers ? layerConfig : null,
       name: presetName,
       keywords: []
     };
@@ -640,7 +640,7 @@ class TitleBarContainer extends PureComponent {
               <NavLink className='active' onClick={this.toggleLoginModal} ><Icon name='user' id='loginIcon' />{isLoggedIn ? ' ' + username : ' Sign in'}</NavLink>
               {hasRoleADMIN ? <Link to='manage' className='active nav-link'><Icon name='cog' /></Link> : '' }
               <NavLink className='active' onClick={this.toggleFeedbackModal}><Icon name='exclamation-triangle' /> Report problem</NavLink>
-              <LayoutDropDown layers={this.props.layers} savePreset={this.savePreset} mapActions={this.props.mapActions} presets={this.state.presets} onChangeServices={this.getServices}
+              <LayoutDropDown panelsProperties={this.props.panelsProperties} savePreset={this.savePreset} mapActions={this.props.mapActions} presets={this.state.presets} onChangeServices={this.getServices}
                 urls={this.props.urls} layerActions={this.props.layerActions} mapProperties={this.props.mapProperties} dispatch={this.props.dispatch} />
               <NavLink className='active' onClick={this.toggleFullscreen} ><Icon name='expand' /></NavLink>
               {isLoggedIn
@@ -750,8 +750,8 @@ class LayoutDropDown extends PureComponent {
     if (thePreset.display) {
       dispatch(mapActions.setLayout(thePreset.display.type));
     }
-    if (thePreset.layers) {
-      dispatch(layerActions.setPreset(thePreset.layers));
+    if (thePreset.panelsProperties) {
+      dispatch(layerActions.setPreset(thePreset.panelsProperties));
     }
   }
 
@@ -799,12 +799,12 @@ class LayoutDropDown extends PureComponent {
       crs: this.props.mapProperties.projection.code
     };
     let layerConfig = [];
-    this.props.layers.panels.forEach((panel, i) => {
+    this.props.panelsProperties.panels.forEach((panel, i) => {
       if (i >= numPanels) {
         return;
       }
       let panelArr = [];
-      panel.layers.forEach((layer) => {
+      panel.panelsProperties.forEach((layer) => {
         panelArr.push({
           active: true,
           dimensions: {},
@@ -830,7 +830,7 @@ class LayoutDropDown extends PureComponent {
     const dataToSend = {
       area: saveBoundingBox ? bbox : null,
       display: savePanelLayout ? displayObj : null,
-      layers: saveLayers ? layerConfig : null,
+      panelsProperties: saveLayers ? layerConfig : null,
       name: presetName,
       keywords: []
     };
@@ -1030,7 +1030,7 @@ TitleBarContainer.propTypes = {
   routes: PropTypes.array,
   dispatch: PropTypes.func,
   actions: PropTypes.object,
-  layers: PropTypes.object,
+  panelsProperties: PropTypes.object,
   user: PropTypes.object,
   userActions: PropTypes.object,
   mapProperties: PropTypes.object,

@@ -49,7 +49,7 @@ const state = {
     }
   },
 
-  layers: {
+  panelsProperties: {
     wmjsLayers: [],
     baselayer: {
       service: 'http://geoservices.knmi.nl/cgi-bin/bgmaps.cgi?',
@@ -61,19 +61,19 @@ const state = {
     panels: [
       {
         overlays: [],
-        layers: []
+        panelsProperties: []
       },
       {
         overlays: [],
-        layers: []
+        panelsProperties: []
       },
       {
         overlays: [],
-        layers: []
+        panelsProperties: []
       },
       {
         overlays: [],
-        layers: []
+        panelsProperties: []
       }
     ]
   }
@@ -92,20 +92,20 @@ describe('(Component) SmallLayerManagerPanel', () => {
   it('Renders a SmallLayerManagerPanel', () => {
     const _component = mount(<SmallLayerManagerPanel
       adagucProperties={state.adagucProperties}
-      mapProperties={state.mapProperties} layers={state.layers} dispatch={emptyDispatch} actions={emptyActions} />);
+      mapProperties={state.mapProperties} panelsProperties={state.panelsProperties} dispatch={emptyDispatch} actions={emptyActions} />);
     expect(_component.type()).to.eql(SmallLayerManagerPanel);
   });
   it('Renders with 5 buttons', () => {
     const _component = mount(<SmallLayerManagerPanel
       adagucProperties={state.adagucProperties}
-      mapProperties={state.mapProperties} layers={state.layers} dispatch={emptyDispatch} actions={emptyActions} />);
+      mapProperties={state.mapProperties} panelsProperties={state.panelsProperties} dispatch={emptyDispatch} actions={emptyActions} />);
     expect(_component.type()).to.eql(SmallLayerManagerPanel);
     expect(_component.find('.btn').length).to.eql(6);
   });
   it('Allows for triggering visibility of buttons', () => {
     const _component = mount(<SmallLayerManagerPanel
       adagucProperties={state.adagucProperties}
-      mapProperties={state.mapProperties} layers={state.layers} dispatch={emptyDispatch} actions={emptyActions} />);
+      mapProperties={state.mapProperties} panelsProperties={state.panelsProperties} dispatch={emptyDispatch} actions={emptyActions} />);
     expect(_component.find('.btn').length).to.eql(6);
     _component.instance().toggle(evt);
     expect(_component.find('.btn').length).to.eql(2);

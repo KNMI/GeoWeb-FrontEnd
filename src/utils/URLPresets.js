@@ -38,8 +38,8 @@ export const _loadPreset = (props, presetName, failure) => {
     if (obj.display) {
       props.dispatch(props.mapActions.setLayout(obj.display.type));
     }
-    if (obj.layers) {
-      props.dispatch(props.layerActions.setPreset(obj.layers));
+    if (obj.panelsProperties) {
+      props.dispatch(props.layerActions.setPreset(obj.panelsProperties));
     }
     if (obj.area) {
       props.dispatch(props.mapActions.setCut({ name: 'Custom', bbox: [obj.area.left, obj.area.bottom, obj.area.right, obj.area.top] }));

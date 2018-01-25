@@ -27,8 +27,8 @@ export class SinglePanel extends PureComponent {
   }
 
   renderPanelContent (type) {
-    const { mapProperties, dispatch, mapId, drawProperties, layers, adagucProperties, urls } = this.props;
-    const { activeMapId } = mapProperties;
+    const { mapProperties, dispatch, mapId, drawProperties, panelsProperties, adagucProperties, urls } = this.props;
+    const { activePanelId } = panelsProperties;
     const { cursor } = this.props.adagucProperties;
     const adaStart = moment.utc(this.props.adagucProperties.timeDimension).startOf('hour');
 
@@ -44,16 +44,16 @@ export class SinglePanel extends PureComponent {
             }
           }} time={adaStart} style={{ height: '100%', width: '100%', marginLeft: '-3.6rem', marginRight: '1.4rem' }} />;
       default:
-        return <Adaguc drawActions={this.props.drawActions} layerActions={this.props.layerActions} mapProperties={mapProperties}
-          adagucActions={this.props.adagucActions} adagucProperties={adagucProperties} layers={layers} drawProperties={drawProperties}
-          mapId={mapId} urls={urls} dispatch={dispatch} mapActions={this.props.mapActions} active={mapId === activeMapId} />;
+        return <Adaguc drawActions={this.props.drawActions} drawActions={this.props.drawActions} mapProperties={mapProperties}
+          adagucActions={this.props.adagucActions} adagucProperties={adagucProperties} panelsProperties={panelsProperties} drawProperties={drawProperties}
+          mapId={mapId} urls={urls} dispatch={dispatch} mapActions={this.props.mapActions} active={mapId === activePanelId} />;
     }
   }
 
   render () {
-    const { title, mapProperties, dispatch, mapActions, mapId, layers, layerActions, adagucActions } = this.props;
-    const { activeMapId } = mapProperties;
-    const type = layers.panels[mapId].type;
+    const { title, mapProperties, dispatch, mapActions, mapId, panelsProperties, panelsActions, adagucActions } = this.props;
+    const { activePanelId, panels, panelLayout } = panelsProperties;
+    const type = panels[mapId].type;
     const { cursor } = this.props.adagucProperties;
 
     let text;
@@ -67,9 +67,9 @@ export class SinglePanel extends PureComponent {
       }
     }
 
-    return (<Panel layout={mapProperties.layout} adagucActions={adagucActions} locations={this.props.progtempLocations} location={text} dispatch={dispatch}
-      layerActions={layerActions} type={type} mapActions={mapActions} title={title} mapMode={mapProperties.mapMode} mapId={mapId}
-      className={mapId === activeMapId && type === 'ADAGUC' ? 'activePanel' : ''} referenceTime={this.props.referenceTime}>
+    return (<Panel layout={panelLayout} adagucActions={adagucActions} locations={this.props.progtempLocations} location={text} dispatch={dispatch}
+      layerActions={panelsActions} type={type} mapActions={mapActions} title={title} mapMode={mapProperties.mapMode} mapId={mapId}
+      className={mapId === activePanelId && type === 'ADAGUC' ? 'activePanel' : ''} referenceTime={this.props.referenceTime}>
       {this.renderPanelContent(type)}
     </Panel>);
   }
@@ -124,13 +124,13 @@ class MapPanel extends PureComponent {
       return numPanels;
     };
 
-    const { layers, mapProperties, dispatch, mapActions } = this.props;
+    const { panelsProperties, mapProperties, dispatch, mapActions } = this.props;
     const { activeMapId } = mapProperties;
-    const { panels } = layers;
+    const { panels } = panelsProperties;
 
-    prevProps.layers.panels.map((panel, i) => {
+    prevProps.panelsProperties.panels.map((panel, i) => {
       const prevType = panel.type;
-      const currType = this.props.layers.panels[i].type;
+      const currType = this.props.panelsProperties.panels[i].type;
       if (prevType !== 'ADAGUC' && currType === 'ADAGUC') {
         dispatch(mapActions.setActivePanel(i));
       }
@@ -266,7 +266,7 @@ SinglePanel.propTypes = {
   dispatch: PropTypes.func.isRequired,
   mapActions: PropTypes.object.isRequired,
   drawProperties: PropTypes.object.isRequired,
-  layers: PropTypes.object.isRequired,
+  panelsProperties: PropTypes.object.isRequired,
   adagucProperties: PropTypes.object.isRequired,
   mapId: PropTypes.number.isRequired,
   drawActions: PropTypes.object.isRequired,

@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
-import { default as LayerManager } from './ADAGUC/LayerManager';
+import LayerManager from './LayerManager';
 import { default as TimeComponent } from './ADAGUC/TimeComponent';
 import { default as Panel } from './Panel';
 import { Row, Col, Button, Modal, ModalBody, Input, Label, ListGroup, ListGroupItem, ModalFooter } from 'reactstrap';
@@ -31,7 +31,7 @@ class LayerManagerPanel extends Component {
   }
 
   componentDidUpdate (prevProps) {
-    const { dispatch, layerActions, layers, adagucProperties } = this.props;
+    const { dispatch, panelsActions, panelsProperties, adagucProperties } = this.props;
     const { sources } = adagucProperties;
     const prevSources = prevProps.adagucProperties.sources;
 
@@ -45,9 +45,9 @@ class LayerManagerPanel extends Component {
     }
     const source = GetServiceByName(sources, 'OVL');
     if (source) {
-      [...Array(layers.panels.length).keys()].map((id) => {
-        dispatch(layerActions.addOverlaysLayer({
-          activeMapId: id,
+      [...Array(panelsProperties.panels.length).keys()].map((id) => {
+        dispatch(panelsActions.addOverlaysLayer({
+          panelId: id,
           layer: {
             service: source,
             title: 'OVL_EXT',
@@ -70,9 +70,9 @@ class LayerManagerPanel extends Component {
     this.setState({ layerChooserOpen: !this.state.layerChooserOpen, filter: '' });
   }
   handleAddLayer (addItem) {
-    const { dispatch, layerActions, mapProperties } = this.props;
+    const { dispatch, panelsActions, mapProperties } = this.props;
     if (this.state.activeSource.goal !== 'OVERLAY') {
-      dispatch(layerActions.addLayer({
+      dispatch(panelsActions.addLayer({
         activeMapId: mapProperties.activeMapId,
         layer: {
           service: this.state.activeSource.service,
@@ -84,7 +84,7 @@ class LayerManagerPanel extends Component {
         }
       }));
     } else {
-      dispatch(layerActions.addOverlaysLayer({
+      dispatch(panelsActions.addOverlaysLayer({
         activeMapId: mapProperties.activeMapId,
         layer: {
           service: this.state.activeSource.service,
@@ -98,7 +98,7 @@ class LayerManagerPanel extends Component {
       activeTab: '1',
       activeSource: null,
       action: null,
-      layers: null,
+      panelsProperties: null,
       filter: ''
     });
   }
@@ -146,30 +146,30 @@ class LayerManagerPanel extends Component {
 
     // For each source....
     Object.keys(data).map((key) => {
-      const vals = data[key].layers;
+      const vals = data[key].panelsProperties;
       if (vals) {
-        // Delete all layers that do not match the filter
+        // Delete all panelsProperties that do not match the filter
         const filteredLayers = vals.filter((layer) => layer.name.toLowerCase().indexOf(filter) !== -1 ||
                                                       layer.text.toLowerCase().indexOf(filter) !== -1);
 
         // If the source itself is matched by the filter
         if (protectedKeys.includes(key)) {
-          // but some layers match it too, return those.
-          // else we return all layers in the matched source
+          // but some panelsProperties match it too, return those.
+          // else we return all panelsProperties in the matched source
           if (filteredLayers.length !== 0) {
-            data[key].layers = filteredLayers;
+            data[key].panelsProperties = filteredLayers;
           }
         } else {
-          // Else filter the layers
-          data[key].layers = filteredLayers;
+          // Else filter the panelsProperties
+          data[key].panelsProperties = filteredLayers;
         }
       }
     });
-    // Filter all sources that have no layers that match the filter
+    // Filter all sources that have no panelsProperties that match the filter
     // except if the source itself is matched by the filter
     const keys = Object.keys(data);
     keys.map((key) => {
-      if (!data[key].layers || (data[key].layers.length === 0 && !protectedKeys.includes(key))) {
+      if (!data[key].panelsProperties || (data[key].panelsProperties.length === 0 && !protectedKeys.includes(key))) {
         delete data[key];
       }
     });
@@ -178,7 +178,7 @@ class LayerManagerPanel extends Component {
   }
 
   renderLayerChooser (data) {
-    // Filter the layers and sources by a string filter
+    // Filter the panelsProperties and sources by a string filter
     const filteredData = this.filterSourcesAndLayers(cloneDeep(data), this.state.filter);
 
     let activeSourceVisible = this.state.activeSource && Object.keys(filteredData).includes(this.state.activeSource.name);
@@ -220,7 +220,7 @@ class LayerManagerPanel extends Component {
                         whiteSpace: 'nowrap',
                         overflow: 'hidden'
                       }}
-                      disabled={!filteredData[source] || !filteredData[source].layers}
+                      disabled={!filteredData[source] || !filteredData[source].panelsProperties}
                       tag='a' href='#'
                       active={this.state.activeSource && source === this.state.activeSource.name}
                       onClick={(evt) => { evt.stopPropagation(); evt.preventDefault(); this.setState({ activeSource: filteredData[source].source }); }}>{source}</ListGroupItem>;})
@@ -231,11 +231,11 @@ class LayerManagerPanel extends Component {
               {
                 activeSourceVisible
                   ? <ListGroup>
-                    {filteredData[this.state.activeSource.name].layers.map((layer) =>
+                    {filteredData[this.state.activeSource.name].panelsProperties.map((layer) =>
                       <ListGroupItem style={{ maxHeight: '2.5em' }} tag='a' href='#'
                         onClick={(evt) => { evt.stopPropagation(); evt.preventDefault(); this.handleAddLayer({ ...layer, service: this.state.activeSource.service }); }}>{layer.text}</ListGroupItem>)}
                   </ListGroup>
-                  : <div style={{ fontStyle: 'italic' }}>Select a source from the left to view its layers</div>
+                  : <div style={{ fontStyle: 'italic' }}>Select a source from the left to view its panelsProperties</div>
               }
             </Col>
           </Row>
@@ -247,19 +247,19 @@ class LayerManagerPanel extends Component {
   }
 
   handleButtonClickNextPrev (direction) {
-    const { layers, mapProperties, adagucProperties, adagucActions, dispatch } = this.props;
-    const panel = layers.panels[mapProperties.activeMapId];
+    const { panelsProperties, mapProperties, adagucProperties, adagucActions, dispatch } = this.props;
+    const panel = panelsProperties.panels[mapProperties.activeMapId];
     let i = 0;
-    if (panel.layers.length === 0) {
+    if (panel.panelsProperties.length === 0) {
       // move one hour?
       return;
     }
-    for (; i < panel.layers.length; ++i) {
-      if (panel.layers[i].active) {
+    for (; i < panel.panelsProperties.length; ++i) {
+      if (panel.panelsProperties[i].active) {
         break;
       }
     }
-    const activeWMJSLayer = layers.wmjsLayers.layers[i];
+    const activeWMJSLayer = panelsProperties.wmjsLayers.panelsProperties[i];
     if (!activeWMJSLayer) {
       // move one hour?
       return;
@@ -295,8 +295,9 @@ class LayerManagerPanel extends Component {
   }
 
   render () {
-    const { title, dispatch, adagucProperties, layers, mapProperties, adagucActions } = this.props;
+    const { title, dispatch, adagucProperties, panelsProperties, mapProperties, adagucActions } = this.props;
     const { sources, animationSettings } = adagucProperties;
+    const { panels, activePanelId } = panelsProperties;
     return (
       <Panel title={title}>
         <Row style={{ flex: 1 }}>
@@ -334,19 +335,18 @@ class LayerManagerPanel extends Component {
           </Col>
           <Col style={{ flex: 1, flexDirection: 'column-reverse' }}>
             <Row style={{ flex: 1 }}>
-              <TimeComponent activeMapId={mapProperties.activeMapId} width={this.state.width} panel={layers.panels[mapProperties.activeMapId]}
+              <TimeComponent activePanelId={activePanelId} width={this.state.width} panel={panels[activePanelId]}
                 height={this.state.height} timedim={adagucProperties.timeDimension}
-                wmjslayers={layers.wmjsLayers} layerActions={this.props.layerActions}
-                dispatch={dispatch} adagucActions={adagucActions} ref={(panel) => this.setResizeListener(ReactDOM.findDOMNode(panel))} />
-              <LayerManager wmjslayers={layers.wmjsLayers} dispatch={dispatch} layerActions={this.props.layerActions}
-                adagucActions={adagucActions} baselayer={layers.baselayer} panel={layers.panels[mapProperties.activeMapId]} activeMapId={mapProperties.activeMapId} />
+                layerActions={this.props.layerActions} dispatch={dispatch} adagucActions={adagucActions} ref={(panel) => this.setResizeListener(ReactDOM.findDOMNode(panel))} />
+              <LayerManager panel={panels[activePanelId]} dispatch={dispatch} layerActions={this.props.layerActions}
+                adagucActions={adagucActions} activeMapId={activePanelId} />
             </Row>
             <Row />
           </Col>
           <Col xs='auto' style={{ flexDirection: 'column-reverse', marginLeft: '.66rem' }}>
             <Row>
               <Button disabled={Array.isArray(sources) || Object.keys(sources).length === 0} onClick={this.toggleLayerChooser}
-                color='primary' className='row' title='Add layers'>
+                color='primary' className='row' title='Add panelsProperties'>
                 <Icon name='plus' />
               </Button>
             </Row>
@@ -361,7 +361,7 @@ class LayerManagerPanel extends Component {
 LayerManagerPanel.propTypes = {
   title: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
   dispatch: PropTypes.func.isRequired,
-  layers: PropTypes.object.isRequired,
+  panelsProperties: PropTypes.object.isRequired,
   adagucProperties: PropTypes.object,
   mapProperties: PropTypes.object,
   adagucActions: PropTypes.object,

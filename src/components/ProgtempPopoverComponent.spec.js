@@ -5,7 +5,7 @@ import sinon from 'sinon';
 
 const adagucProperties = {
   wmjslayers: {
-    layers: [],
+    panelsProperties: [],
     baselayers: [],
     overlays: []
   }

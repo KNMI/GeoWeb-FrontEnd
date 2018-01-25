@@ -5,7 +5,7 @@ describe('(Redux Module) layerReducer', () => {
   describe('(Reducer)', () => {
     const STATE = {
       wmjsLayers: {
-        layers: [],
+        panelsProperties: [],
         baselayers: []
       },
       baselayer: {
@@ -17,28 +17,28 @@ describe('(Redux Module) layerReducer', () => {
       panels: [
         {
           overlays: [],
-          layers: [],
+          panelsProperties: [],
           type: 'ADAGUC'
         },
         {
           overlays: [],
-          layers: [],
+          panelsProperties: [],
           type: 'ADAGUC'
         },
         {
           overlays: [],
-          layers: [],
+          panelsProperties: [],
           type: 'ADAGUC'
         },
         {
           overlays: [],
-          layers: [],
+          panelsProperties: [],
           type: 'ADAGUC'
         }
       ]
     };
     const ALT_STATE = cloneDeep(STATE);
-    ALT_STATE.panels[1].layers = [
+    ALT_STATE.panels[1].panelsProperties = [
       { index: 0 },
       { index: 1 },
       { index: 2 }
@@ -70,22 +70,22 @@ describe('(Redux Module) layerReducer', () => {
       const newState = layerReducer(ALT_STATE, setActiveLayer);
       expect(newState.panels[0]).to.eql({
         overlays: [],
-        layers: [],
+        panelsProperties: [],
         type: 'ADAGUC'
       });
       expect(newState.panels[2]).to.eql({
         overlays: [],
-        layers: [],
+        panelsProperties: [],
         type: 'ADAGUC'
       });
       expect(newState.panels[3]).to.eql({
         overlays: [],
-        layers: [],
+        panelsProperties: [],
         type: 'ADAGUC'
       });
-      expect(newState).to.have.nested.property('panels[1].layers[0].active', false);
-      expect(newState).to.have.nested.property('panels[1].layers[1].active', false);
-      expect(newState).to.have.nested.property('panels[1].layers[2].active', true);
+      expect(newState).to.have.nested.property('panels[1].panelsProperties[0].active', false);
+      expect(newState).to.have.nested.property('panels[1].panelsProperties[1].active', false);
+      expect(newState).to.have.nested.property('panels[1].panelsProperties[2].active', true);
     });
 
     it('Handles the set panel type action', () => {
@@ -99,22 +99,22 @@ describe('(Redux Module) layerReducer', () => {
       const newState = layerReducer(STATE, setPanelType);
       expect(newState.panels[0]).to.eql({
         overlays: [],
-        layers: [],
+        panelsProperties: [],
         type: 'ADAGUC'
       });
       expect(newState.panels[1]).to.eql({
         overlays: [],
-        layers: [],
+        panelsProperties: [],
         type: 'ADAGUC'
       });
       expect(newState.panels[3]).to.eql({
         overlays: [],
-        layers: [],
+        panelsProperties: [],
         type: 'ADAGUC'
       });
       expect(newState.panels[2]).to.eql({
         overlays: [],
-        layers: [],
+        panelsProperties: [],
         type: 'TEST'
       });
     });
@@ -137,28 +137,28 @@ describe('(Redux Module) layerReducer', () => {
       let newState = layerReducer(STATE, addLayer);
       expect(newState.panels[0]).to.eql({
         overlays: [],
-        layers: [],
+        panelsProperties: [],
         type: 'ADAGUC'
       });
       expect(newState.panels[1]).to.eql({
         overlays: [],
-        layers: [],
+        panelsProperties: [],
         type: 'ADAGUC'
       });
       expect(newState.panels[2]).to.eql({
         overlays: [],
-        layers: [],
+        panelsProperties: [],
         type: 'ADAGUC'
       });
       expect(newState.panels[3]).to.eql({
         overlays: [],
-        layers: [ { active: true, enabled: true } ],
+        panelsProperties: [ { active: true, enabled: true } ],
         type: 'ADAGUC'
       });
       newState = layerReducer(STATE, addLayer1);
       expect(newState.panels[3]).to.eql({
         overlays: [],
-        layers: [ { active: true, enabled: false } ],
+        panelsProperties: [ { active: true, enabled: false } ],
         type: 'ADAGUC'
       });
     });
@@ -179,22 +179,22 @@ describe('(Redux Module) layerReducer', () => {
             service: 'coolOverlayService'
           }
         ],
-        layers: [],
+        panelsProperties: [],
         type: 'ADAGUC'
       });
       expect(newState.panels[1]).to.eql({
         overlays: [],
-        layers: [],
+        panelsProperties: [],
         type: 'ADAGUC'
       });
       expect(newState.panels[2]).to.eql({
         overlays: [],
-        layers: [],
+        panelsProperties: [],
         type: 'ADAGUC'
       });
       expect(newState.panels[3]).to.eql({
         overlays: [],
-        layers: [],
+        panelsProperties: [],
         type: 'ADAGUC'
       });
     });

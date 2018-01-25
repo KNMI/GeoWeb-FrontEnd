@@ -10,6 +10,8 @@ const REORDER_LAYER = 'REORDER_LAYER';
 const SET_WMJSLAYERS = 'SET_WMJSLAYERS';
 const SET_PANEL_TYPE = 'SET_PANEL_TYPE';
 const SET_ACTIVE_LAYER = 'SET_ACTIVE_LAYER';
+const SET_ACTIVE_PANEL = 'SET_ACTIVE_PANEL';
+const SET_PANEL_LAYOUT = 'SET_PANEL_LAYOUT';
 
 const addLayer = createAction(ADD_LAYER);
 const setActiveLayer = createAction(SET_ACTIVE_LAYER);
@@ -18,56 +20,69 @@ const deleteLayer = createAction(DELETE_LAYER);
 const setPreset = createAction(SET_PRESET);
 const alterLayer = createAction(ALTER_LAYER);
 const reorderLayers = createAction(REORDER_LAYER);
-const setWMJSLayers = createAction(SET_WMJSLAYERS);
 const setPanelType = createAction(SET_PANEL_TYPE);
+const setActivePanel = createAction(SET_ACTIVE_PANEL);
+const setPanelLayout = createAction(SET_PANEL_LAYOUT);
+
+const getNumPanels = (name) => {
+  let numPanels = 0;
+  if (/quad/.test(name)) {
+    numPanels = 4;
+  } else if (/triple/.test(name)) {
+    numPanels = 3;
+  } else if (/dual/.test(name)) {
+    numPanels = 2;
+  } else {
+    numPanels = 1;
+  }
+  return numPanels;
+};
 
 let INITIAL_STATE = {
-  wmjsLayers: {
-    panelsProperties: [],
-    baselayers: []
-  },
-  baselayer: MAP_STYLES[1],
   panels: [
     {
-      overlays: [],
-      panelsProperties: [],
+      baselayers: [MAP_STYLES[1]],
+      layers: [],
       type: 'ADAGUC'
     },
     {
-      overlays: [],
-      panelsProperties: [],
+      baselayers: [MAP_STYLES[1]],
+      layers: [],
       type: 'ADAGUC'
     },
     {
-      overlays: [],
-      panelsProperties: [],
+      baselayers: [MAP_STYLES[1]],
+      layers: [],
       type: 'ADAGUC'
     },
     {
-      overlays: [],
-      panelsProperties: [],
+      baselayers: [MAP_STYLES[1]],
+      layers: [],
       type: 'ADAGUC'
     }
-  ]
+  ],
+  panelLayout: 'single',
+  activePanelId: 0
 };
 
 export const actions = {
   addLayer,
-  setPanelType,
   addOverlaysLayer,
   deleteLayer,
-  setPreset,
-  setActiveLayer,
   alterLayer,
   reorderLayers,
-  setWMJSLayers
+  setActiveLayer,
+  setPreset,
+  setPanelType,
+  setActivePanel,
+  setPanelLayout
 };
 
 export default handleActions({
   [SET_ACTIVE_LAYER]: (state, { payload }) => {
     const panels = cloneDeep(state.panels);
     const panel = panels[payload.activeMapId];
-    panel.panelsProperties.map((layer, i) => {
+    panel.layers.map((layer, i) => {
       layer.active = i === payload.layerClicked;
     });
     return { ...state, panels };
@@ -94,18 +109,17 @@ export default handleActions({
     return { ...state, panels: newPanels };
   },
   [ADD_OVERLAY_LAYER]: (state, { payload }) => {
-    const activeMapId = payload.activeMapId;
-    const currentOverlays = state.panels[activeMapId].overlays;
+    const panelId = payload.panelId;
+    const currentOverlays = state.panels[panelId].baselayers.filter((layer) => layer.keepOnTop === true);
 
     // Dont add it if it is already in the panel
     if (currentOverlays.some((layer) => layer.service === payload.layer.service && layer.name === payload.layer.name)) {
       return state;
     }
-    const newLayers = [payload.layer, ...state.panels[activeMapId].overlays];
-    const newPanel = { ...state.panels[activeMapId], overlays: newLayers };
-    const newPanels = [...state.panels];
-    newPanels[activeMapId] = newPanel;
-    return { ...state, panels: newPanels };
+    const newWMJSLayer = new WMJSLayer({ ...payload, keepOnTop: true });
+    const stateCpy = cloneDeep(state);
+    stateCpy.panels[panelId].baselayers.unshift(newWMJSLayer);
+    return stateCpy;
   },
   [DELETE_LAYER]: (state, { payload }) => {
     const { idx, type, activeMapId } = payload;
@@ -181,7 +195,6 @@ export default handleActions({
     panels[activeMapId] = panel;
     return { ...state, panels };
   },
-  [SET_WMJSLAYERS]: (state, { payload }) => ({ ...state, wmjsLayers: payload }),
   [SET_PRESET]: (state, { payload }) => {
     const panels = [
       {
@@ -212,5 +225,16 @@ export default handleActions({
     });
 
     return { ...state, panels };
+  },
+  [SET_ACTIVE_PANEL]: (state, { payload }) => {
+    const numPanels = getNumPanels(state.layout);
+    const activeMapId = payload < numPanels ? payload : 0;
+    return { ...state, activeMapId };
+  },
+  [SET_PANEL_LAYOUT]: (state, { payload }) => {
+    const numPanels = getNumPanels(payload);
+    const layout = numPanels === 1 ? 'single' : payload;
+    const activeMapId = state.activeMapId < numPanels ? state.activeMapId : 0;
+    return { ...state, layout, activeMapId };
   }
 }, INITIAL_STATE);

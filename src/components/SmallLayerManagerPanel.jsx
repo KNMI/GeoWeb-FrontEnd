@@ -33,11 +33,11 @@ class SmallLayerManagerPanel extends Component {
   };
 
   render () {
-    const { title, dispatch, actions, adagucProperties, layers,mapProperties } = this.props;
+    const { title, dispatch, actions, adagucProperties, panelsProperties,mapProperties } = this.props;
     return (
       <Panel title={title} style={{ background: '#EEF' }}>
         <Row style={{ flex: 1 }}>
-          <LayerManager wmjslayers={layers.wmjsLayers} dispatch={dispatch} layerActions={this.props.layerActions} adagucActions={this.props.adagucActions} activeMapId={mapProperties.activeMapId} />
+          <LayerManager wmjslayers={panelsProperties.wmjsLayers} dispatch={dispatch} layerActions={this.props.layerActions} adagucActions={this.props.adagucActions} activeMapId={mapProperties.activeMapId} />
           <Col />
           <Col xs='auto' className='SmallLayerManagerPanel' style={{ flexDirection: 'column' }}>
             <Row style={{ flexDirection: 'row', paddingBottom: '0.33rem' }}>
