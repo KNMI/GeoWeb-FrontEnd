@@ -1,9 +1,7 @@
 import React, { Component } from 'react';
-import { Container, Row, Col } from 'reactstrap';
+import { Container } from 'reactstrap';
 import '../../styles/core.scss';
 import PropTypes from 'prop-types';
-import NotificationsSystem from 'reapop';
-import theme from 'reapop-theme-wybo';
 
 const browserFullScreenRequests = [
   'mozRequestFullScreen',
@@ -52,12 +50,7 @@ class BaseLayout extends Component {
   }
 }
 BaseLayout.propTypes = {
-  header: PropTypes.element,
-  leftSideBar: PropTypes.element,
-  secondLeftSideBar: PropTypes.element,
-  map: PropTypes.element,
-  layerManager: PropTypes.element,
-  rightSideBar: PropTypes.element,
+  children: PropTypes.object,
   routes: PropTypes.array
 };
 
