@@ -230,8 +230,8 @@ class LayerManagerPanel extends Component {
             <Col xs='5' style={{ paddingLeft: 0, borderRight: '1px solid #eceeef', overflowY: 'auto' }}>
               <ListGroup>
                 {
-                  Object.keys(filteredData).map((source) => {
-                    return <ListGroupItem
+                  Object.keys(filteredData).map((source, index) => {
+                    return <ListGroupItem key={`layer-add-source-${index}`}
                       style={{
                         maxHeight: '2.5em',
                         padding: '1rem',
@@ -254,8 +254,8 @@ class LayerManagerPanel extends Component {
               {
                 activeSourceVisible
                   ? <ListGroup>
-                    {filteredData[this.state.activeSource.name].layers.map((layer) =>
-                      <ListGroupItem style={{ maxHeight: '2.5em' }} tag='a' href='#'
+                    {filteredData[this.state.activeSource.name].layers.map((layer, index) =>
+                      <ListGroupItem key={`layer-add-layer-${index}`} style={{ maxHeight: '2.5em' }} tag='a' href='#'
                         onClick={(evt) => { evt.stopPropagation(); evt.preventDefault(); this.handleAddLayer({ ...layer, service: this.state.activeSource.service }); }}>{layer.text}</ListGroupItem>)}
                   </ListGroup>
                   : <div style={{ fontStyle: 'italic' }}>Select a source from the left to view its layers</div>
