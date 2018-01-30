@@ -623,8 +623,12 @@ input[type=number]::-webkit-inner-spin-button {
   z-index: 2;
 }
 
-.SmallLayerManagerPanel .btn:not(:last-child) {
+.LayerManagerPanel .col:not(:last-child), .LayerManagerPanel .col-auto:not(:last-child) {
   margin-right: 0.33rem;
+}
+
+.LayerManagerPanel .btn {
+  width: 3rem;
 }
 
 .Sigmet .btn-primary {
