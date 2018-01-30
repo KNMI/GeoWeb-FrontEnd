@@ -27,7 +27,7 @@ export class SinglePanel extends PureComponent {
   }
 
   renderPanelContent (type) {
-    const { mapProperties, dispatch, mapId, drawProperties, panelsProperties, adagucProperties, urls } = this.props;
+    const { mapProperties, dispatch, mapId, drawProperties, panelsActions, panelsProperties, adagucProperties, urls } = this.props;
     const { activePanelId } = panelsProperties;
     const { cursor } = this.props.adagucProperties;
     const adaStart = moment.utc(this.props.adagucProperties.timeDimension).startOf('hour');
@@ -46,7 +46,7 @@ export class SinglePanel extends PureComponent {
       default:
         return <Adaguc drawActions={this.props.drawActions} drawActions={this.props.drawActions} mapProperties={mapProperties}
           adagucActions={this.props.adagucActions} adagucProperties={adagucProperties} panelsProperties={panelsProperties} drawProperties={drawProperties}
-          mapId={mapId} urls={urls} dispatch={dispatch} mapActions={this.props.mapActions} active={mapId === activePanelId} />;
+          panelsActions={panelsActions} mapId={mapId} urls={urls} dispatch={dispatch} mapActions={this.props.mapActions} active={mapId === activePanelId} />;
     }
   }
 

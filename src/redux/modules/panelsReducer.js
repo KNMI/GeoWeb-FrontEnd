@@ -5,8 +5,8 @@ const ADD_LAYER = 'ADD_LAYER';
 const ADD_OVERLAY_LAYER = 'ADD_OVERLAY_LAYER';
 const DELETE_LAYER = 'DELETE_LAYER';
 const SET_PRESET = 'SET_PRESET';
-const ALTER_LAYER = 'ALTER_LAYER';
-const REORDER_LAYER = 'REORDER_LAYER';
+const REPLACE_LAYER = 'REPLACE_LAYER';
+const MOVE_LAYER = 'MOVE_LAYER';
 const SET_WMJSLAYERS = 'SET_WMJSLAYERS';
 const SET_PANEL_TYPE = 'SET_PANEL_TYPE';
 const SET_ACTIVE_LAYER = 'SET_ACTIVE_LAYER';
@@ -18,8 +18,8 @@ const setActiveLayer = createAction(SET_ACTIVE_LAYER);
 const addOverlaysLayer = createAction(ADD_OVERLAY_LAYER);
 const deleteLayer = createAction(DELETE_LAYER);
 const setPreset = createAction(SET_PRESET);
-const alterLayer = createAction(ALTER_LAYER);
-const reorderLayers = createAction(REORDER_LAYER);
+const replaceLayer = createAction(REPLACE_LAYER);
+const moveLayer = createAction(MOVE_LAYER);
 const setPanelType = createAction(SET_PANEL_TYPE);
 const setActivePanel = createAction(SET_ACTIVE_PANEL);
 const setPanelLayout = createAction(SET_PANEL_LAYOUT);
@@ -69,8 +69,8 @@ export const actions = {
   addLayer,
   addOverlaysLayer,
   deleteLayer,
-  alterLayer,
-  reorderLayers,
+  replaceLayer,
+  moveLayer,
   setActiveLayer,
   setPreset,
   setPanelType,
@@ -98,7 +98,7 @@ export default handleActions({
     const panelId = payload.panelId;
 
     const stateCpy = cloneDeep(state);
-    stateCpy.panels[panelId].layers.unshift(payload.layer);
+    stateCpy.panels[panelId].layers.push(payload.layer);
     if (stateCpy.panels[panelId].layers.length === 1) {
       stateCpy.panels[panelId].layers[0].active = true;
     }
@@ -113,82 +113,69 @@ export default handleActions({
       return state;
     }
     const stateCpy = cloneDeep(state);
-    stateCpy.panels[panelId].baselayers.unshift(payload.layer);
+    stateCpy.panels[panelId].baselayers.push(payload.layer);
     return stateCpy;
   },
   [DELETE_LAYER]: (state, { payload }) => {
-    const { idx, type, activeMapId } = payload;
-    let panelsProperties,
-      panel,
-      panels;
+    const { idx, type, mapId } = payload;
+    const stateCpy = cloneDeep(state);
     switch (type) {
       case 'data':
-        panelsProperties = [...state.panels[activeMapId].panelsProperties];
-        panelsProperties.splice(idx, 1);
-        if (panelsProperties.length === 1 || (panelsProperties.length > 0 && !layers.some((layer) => layer.active === true))) {
-          panelsProperties[0].active = true;
+        const { layers } = stateCpy.panels[mapId || state.activePanelId];
+        layers.splice(idx, 1);
+        if (layers.length === 1 || (layers.length > 0 && !layers.some((layer) => layer.active === true))) {
+          layers[0].active = true;
         }
+        return stateCpy;
 
-        panel = { ...state.panels[activeMapId], panelsProperties };
-        panels = [...state.panels];
-        panels[activeMapId] = panel;
-        return { ...state, panels };
 
       case 'overlay':
-        panelsProperties = [...state.panels[activeMapId].overlays];
-        panelsProperties.splice(idx, 1);
-        panel = { ...state.panels[activeMapId], overlays: panelsProperties };
-        panels = [...state.panels];
-        panels[activeMapId] = panel;
-        return { ...state, panels };
-
+        const { baselayers } = stateCpy.panels[mapId || state.activePanelId];
+        const base = baselayers.filter((layer) => layer.keepOnTop === false);
+        const overlay = baselayers.filter((layer) => layer.keepOnTop === true);
+        overlay.splice(idx, 1);
+        stateCpy.panels[mapId || state.activePanelId].baselayers = base.concat(overlay);
+        return stateCpy;
       default:
         return state;
     }
   },
-  [ALTER_LAYER]: (state, { payload }) => {
-    const { index, layerType, fieldsNewValuesObj, activeMapId } = payload;
-    let alteredLayer,
-      panelsProperties,
-      panel,
-      panels;
-    switch (layerType) {
-      case 'data':
-        alteredLayer = Object.assign({}, state.panels[activeMapId].panelsProperties[index], fieldsNewValuesObj);
-        panelsProperties = [...state.panels[activeMapId].panelsProperties];
-        panelsProperties[index] = alteredLayer;
-        panel = { ...state.panels[activeMapId], panelsProperties };
-        panels = [...state.panels];
-        panels[activeMapId] = panel;
-        return { ...state, panels };
+  [REPLACE_LAYER]: (state, { payload }) => {
+    const { index, layer } = payload;
+    const stateCpy = cloneDeep(state);
 
-      case 'overlay':
-        alteredLayer = Object.assign({}, state.panels[activeMapId].overlays[index], fieldsNewValuesObj);
-        panelsProperties = [...state.panels[activeMapId].overlays];
-        panelsProperties[index] = alteredLayer;
-        panel = { ...state.panels[activeMapId], overlays: panelsProperties };
-        panels = [...state.panels];
-        panels[activeMapId] = panel;
-        return { ...state, panels };
+    stateCpy.panels[state.activePanelId].layers[index] = layer;
 
-      case 'base':
-        const newBaseLayer = Object.assign({}, state.baselayer, fieldsNewValuesObj);
-        return { ...state, baselayer: newBaseLayer };
-      default:
-        return state;
+    const numActiveLayers = stateCpy.panels[state.activePanelId].layers.filter((layer) => layer.active === true).length;
+
+    // If there are no active layers left, set it active
+    if (numActiveLayers === 0) {
+      stateCpy.panels[state.activePanelId].layers[index].active = true;
     }
+
+    // If there are more than one, set it to false and figure this out later
+    if (numActiveLayers > 1) {
+      stateCpy.panels[state.activePanelId].layers[index].active = false;
+    }
+
+    return stateCpy;
   },
-  [REORDER_LAYER]: (state, { payload }) => {
-    const { direction, index, activeMapId } = payload;
-    if ((index === 0 && direction === 'up') || (index === state.panels[activeMapId].panelsProperties.length - 1 && direction === 'down')) {
-      return state;
+  [MOVE_LAYER]: (state, { payload }) => {
+    const { oldIndex, newIndex, type } = payload;
+    const move = function(arr, from, to) {
+        arr.splice(to, 0, arr.splice(from, 1)[0]);
+    };
+
+    const stateCpy = cloneDeep(state);
+    if (type === 'data') {
+      move(stateCpy.panels[state.activePanelId].layers, oldIndex, newIndex);
+    } else {
+      const base = stateCpy.panels[state.activePanelId].baselayers.filter((layer) => layer.keepOnTop === false);
+      const overlays = stateCpy.panels[state.activePanelId].baselayers.filter((layer) => layer.keepOnTop === true);
+      move(overlays, oldIndex, newIndex);
+      stateCpy.panels[state.activePanelId].baselayers = base.concat(overlays);
     }
-    const panelsProperties = [...state.panels[activeMapId].panelsProperties];
-    panelsProperties.splice(index + (direction === 'up' ? -1 : 1), 0, panelsProperties.splice(index, 1)[0]);
-    const panel = { ...state.panels[activeMapId], panelsProperties };
-    const panels = [...state.panels];
-    panels[activeMapId] = panel;
-    return { ...state, panels };
+    return stateCpy;
   },
   [SET_PRESET]: (state, { payload }) => {
     const panels = [

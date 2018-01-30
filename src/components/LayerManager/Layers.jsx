@@ -5,10 +5,10 @@ import { Row } from 'reactstrap';
 import { SortableContainer } from 'react-sortable-hoc';
 
 
-const SortableLayers = SortableContainer(({ role, color, data }) => {
+const SortableLayers = SortableContainer(({ role, color, data, dispatch, panelsActions }) => {
   return (
     <Row style={{ flexDirection: 'column' }}>
-      {data.map((layer, i) => <SortableLayer key={i} index={i} layerIndex={i} role={role} color={color} layer={layer} />)}
+      {data.map((layer, i) => <SortableLayer key={i} index={i} layerIndex={i} role={role} color={color} layer={layer} dispatch={dispatch} panelsActions={panelsActions}/>)}
     </Row>
   )}
 );
@@ -19,18 +19,14 @@ export default class Layers extends PureComponent {
     this.onSortEnd = this.onSortEnd.bind(this);
   }
   onSortEnd ({ oldIndex, newIndex }) {
-    console.log(oldIndex, newIndex);
-    // const newTafState = cloneDeep(this.state.tafAsObject);
-    // newTafState.changegroups = arrayMove(newTafState.changegroups, oldIndex, newIndex);
-    // this.validateTaf(newTafState);
-    // this.setState({
-    //   tafAsObject: newTafState,
-    //   hasEdits: true
-    // });
+    console.log(this.props);
+    const { panelsActions, dispatch, role } = this.props;
+    const type = role === 'datalayers' ? 'data' : 'overlay'
+    dispatch(panelsActions.moveLayer({ oldIndex, newIndex, type }));
   };
 
   render () {
-    const { color, role, data } = this.props;
-    return (<SortableLayers useDragHandle={true} onSortEnd={this.onSortEnd} role={role} color={color} data={data} />);
+    const { color, role, data, dispatch, panelsActions } = this.props;
+    return (<SortableLayers dispatch={dispatch} panelsActions={panelsActions} useDragHandle={true} onSortEnd={this.onSortEnd} role={role} color={color} data={data} />);
   }
 }
