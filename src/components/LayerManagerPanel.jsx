@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
+import { hashHistory } from 'react-router';
 import { default as LayerManager } from './ADAGUC/LayerManager';
 import { default as TimeComponent } from './ADAGUC/TimeComponent';
 import { default as Panel } from './Panel';
@@ -22,11 +23,14 @@ class LayerManagerPanel extends Component {
     this.handleButtonClickNextPrev = this.handleButtonClickNextPrev.bind(this);
     this.handleDurationUpdate = this.handleDurationUpdate.bind(this);
     this.goToNow = this.goToNow.bind(this);
+    this.toggleControls = this.toggleControls.bind(this);
+    this.toggleFullscreen = this.toggleFullscreen.bind(this);
     this.state = {
       width: 0,
       height: 0,
       inputValue: this.props.adagucProperties.animationSettings.duration,
-      initialized: false
+      initialized: false,
+      showControls: true
     };
   }
 
@@ -58,6 +62,24 @@ class LayerManagerPanel extends Component {
       });
     }
   }
+
+  toggleControls (evt) {
+    this.setState({ showControls: !this.state.showControls });
+    evt.preventDefault();
+  }
+
+  toggleFullscreen (evt) {
+    if (document.exitFullscreen) {
+      document.exitFullscreen();
+    } else if (document.mozCancelFullScreen) {
+      document.mozCancelFullScreen();
+    } else if (document.webkitExitFullscreen) {
+      document.webkitExitFullscreen();
+    } else {
+      document.msExitFullscreen();
+    }
+    hashHistory.goBack();
+  };
 
   goToNow () {
     const { dispatch, adagucActions } = this.props;
@@ -208,8 +230,8 @@ class LayerManagerPanel extends Component {
             <Col xs='5' style={{ paddingLeft: 0, borderRight: '1px solid #eceeef', overflowY: 'auto' }}>
               <ListGroup>
                 {
-                  Object.keys(filteredData).map((source) => {
-                    return <ListGroupItem
+                  Object.keys(filteredData).map((source, index) => {
+                    return <ListGroupItem key={`layer-add-source-${index}`}
                       style={{
                         maxHeight: '2.5em',
                         padding: '1rem',
@@ -223,7 +245,8 @@ class LayerManagerPanel extends Component {
                       disabled={!filteredData[source] || !filteredData[source].layers}
                       tag='a' href='#'
                       active={this.state.activeSource && source === this.state.activeSource.name}
-                      onClick={(evt) => { evt.stopPropagation(); evt.preventDefault(); this.setState({ activeSource: filteredData[source].source }); }}>{source}</ListGroupItem>;})
+                      onClick={(evt) => { evt.stopPropagation(); evt.preventDefault(); this.setState({ activeSource: filteredData[source].source }); }}>{source}</ListGroupItem>;
+                  })
                 }
               </ListGroup>
             </Col>
@@ -231,8 +254,8 @@ class LayerManagerPanel extends Component {
               {
                 activeSourceVisible
                   ? <ListGroup>
-                    {filteredData[this.state.activeSource.name].layers.map((layer) =>
-                      <ListGroupItem style={{ maxHeight: '2.5em' }} tag='a' href='#'
+                    {filteredData[this.state.activeSource.name].layers.map((layer, index) =>
+                      <ListGroupItem key={`layer-add-layer-${index}`} style={{ maxHeight: '2.5em' }} tag='a' href='#'
                         onClick={(evt) => { evt.stopPropagation(); evt.preventDefault(); this.handleAddLayer({ ...layer, service: this.state.activeSource.service }); }}>{layer.text}</ListGroupItem>)}
                   </ListGroup>
                   : <div style={{ fontStyle: 'italic' }}>Select a source from the left to view its layers</div>
@@ -297,39 +320,48 @@ class LayerManagerPanel extends Component {
   render () {
     const { title, dispatch, adagucProperties, layers, mapProperties, adagucActions } = this.props;
     const { sources, animationSettings } = adagucProperties;
+    const isFullScreen = hashHistory.getCurrentLocation().pathname === '/full_screen';
     return (
-      <Panel title={title}>
+      <Panel title={title} className='LayerManagerPanel'>
         <Row style={{ flex: 1 }}>
           {this.renderLayerChooser(this.props.adagucProperties.sources)}
-          <Col xs='auto' style={{ flexDirection: 'column-reverse', marginRight: '.33rem' }}>
-            <Row style={{ alignItems: 'center' }}>
-              <Button style={{ width: '3rem', marginRight: '0.25rem' }} onClick={() => { this.props.dispatch(this.props.adagucActions.toggleAnimation()); }}
-                color='primary' className='row' title='Play animation'>
-                <Icon name={animationSettings.animate ? 'pause' : 'play'} />
-              </Button>
-              <Button style={{ width: '3rem', marginRight: '0.5rem' }} onClick={this.goToNow} color='primary' className='row' title='Go to current time'>
-                <Icon name='clock-o' />
-              </Button>
-              <Row>
-                <Input style={{ maxWidth: '7rem' }} value={this.props.adagucProperties.animationSettings.duration || ''} onChange={this.handleDurationUpdate}
-                  placeholder='No. hours' type='number' step='1' min='0' ref={elm => { this.durationInput = elm; }} />
+          <Col xs='auto' style={{ flexDirection: 'column-reverse', marginRight: '.66rem' }}>
+            {this.state.showControls
+              ? <Row>
+                <Col xs='auto'>
+                  <Button onClick={() => { this.props.dispatch(this.props.adagucActions.toggleAnimation()); }}
+                    color='primary' title='Play animation'>
+                    <Icon name={animationSettings.animate ? 'pause' : 'play'} />
+                  </Button>
+                </Col>
+                <Col xs='auto'>
+                  <Button onClick={this.goToNow} color='primary' title='Go to current time'>
+                    <Icon name='clock-o' />
+                  </Button>
+                </Col>
+                <Col xs='auto'>
+                  <Input style={{ maxWidth: '7rem', marginLeft: '0.17rem' }} value={this.props.adagucProperties.animationSettings.duration || ''} onChange={this.handleDurationUpdate}
+                    placeholder='No. hours' type='number' step='1' min='0' ref={elm => { this.durationInput = elm; }} />
+                </Col>
               </Row>
-            </Row>
-            <Row style={{ marginBottom: '.33rem' }}>
-              <Col xs='auto'>
-                <Button color='primary' style={{ width: '3rem', marginRight: '0.25rem' }} onClick={() => this.handleButtonClickNextPrev('down')}>
-                  <Icon name='step-backward' />
-                </Button>
-              </Col>
-              <Col xs='auto'>
-                <Button color='primary' style={{ width: '3rem', marginRight: '0.5rem' }} onClick={() => this.handleButtonClickNextPrev('up')}>
-                  <Icon name='step-forward' />
-                </Button>
-              </Col>
-              <Col>
-                <Label style={{ marginTop: '1.5rem', marginBottom: '-1.5rem' }}>Duration</Label>
-              </Col>
-            </Row>
+              : null }
+            {this.state.showControls
+              ? <Row style={{ marginBottom: '.33rem' }}>
+                <Col xs='auto'>
+                  <Button color='primary' onClick={() => this.handleButtonClickNextPrev('down')}>
+                    <Icon name='step-backward' />
+                  </Button>
+                </Col>
+                <Col xs='auto'>
+                  <Button color='primary' onClick={() => this.handleButtonClickNextPrev('up')}>
+                    <Icon name='step-forward' />
+                  </Button>
+                </Col>
+                <Col xs='auto'>
+                  <Label style={{ marginTop: '1.5rem', marginBottom: '-1.5rem', marginLeft: '0.17rem' }}>Duration</Label>
+                </Col>
+              </Row>
+              : null}
             <Row />
           </Col>
           <Col style={{ flex: 1, flexDirection: 'column-reverse' }}>
@@ -344,13 +376,32 @@ class LayerManagerPanel extends Component {
             <Row />
           </Col>
           <Col xs='auto' style={{ flexDirection: 'column-reverse', marginLeft: '.66rem' }}>
-            <Row>
-              <Button disabled={Array.isArray(sources) || Object.keys(sources).length === 0} onClick={this.toggleLayerChooser}
-                color='primary' className='row' title='Add layers'>
-                <Icon name='plus' />
-              </Button>
-            </Row>
-            <Row />
+            {this.state.showControls
+              ? <Row>
+                <Col />
+                <Col xs='auto'>
+                  <Button disabled={Array.isArray(sources) || Object.keys(sources).length === 0} onClick={this.toggleLayerChooser}
+                    color='primary' title='Add layers'>
+                    <Icon name='plus' />
+                  </Button>
+                </Col>
+              </Row>
+              : null }
+            {isFullScreen
+              ? <Row style={{ marginBottom: '.33rem' }}>
+                <Col xs='auto'>
+                  <Button onClick={this.toggleControls} color='primary' title={this.state.showControls ? 'Hide controls' : 'Show controls'}>
+                    <Icon name={this.state.showControls ? 'eye-slash' : 'eye'} />
+                  </Button>
+                </Col>
+                <Col xs='auto'>
+                  <Button onClick={this.toggleFullscreen} color='primary' title='Exit full screen mode'>
+                    <Icon name='compress' />
+                  </Button>
+                </Col>
+              </Row>
+              : null }
+            <Row style={{ flex: 1 }} />
           </Col>
         </Row>
       </Panel>

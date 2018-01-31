@@ -9,34 +9,37 @@ import axios from 'axios';
 import PropTypes from 'prop-types';
 import { hashHistory } from 'react-router';
 
-let GET_SIGMETS_URL, SET_SIGMET_URL;
 const ITEMS = [
   {
     title: 'Open issued SIGMETs',
     ref:   'active-sigmets',
     icon: 'folder-open',
-    source: GET_SIGMETS_URL + 'active=true',
+    source: 'active=true',
+    isGetType: true,
     editable: false
   },
   {
     title: 'Open archived SIGMETs',
     ref:  'archived-sigmets',
     icon: 'archive',
-    source: GET_SIGMETS_URL + 'active=false&status=CANCELLED',
+    source: 'active=false&status=CANCELLED',
+    isGetType: true,
     editable: false
   },
   {
     title: 'Open concept SIGMETs',
     ref:   'concept-sigmets',
     icon: 'folder-open-o',
-    source: GET_SIGMETS_URL + 'active=false&status=PRODUCTION',
+    source: 'active=false&status=PRODUCTION',
+    isGetType: true,
     editable: false
   },
   {
     title: 'Create new SIGMET',
     ref:   'add-sigmet',
     icon: 'star-o',
-    source: SET_SIGMET_URL,
+    source: '',
+    isGetType: false,
     editable: true
   }
 ];
@@ -59,14 +62,15 @@ const EMPTY_GEO_JSON = {
 class SigmetsContainer extends Component {
   constructor (props) {
     super(props);
-    GET_SIGMETS_URL = this.props.urls.BACKEND_SERVER_URL + '/sigmet/getsigmetlist?';
-    SET_SIGMET_URL = this.props.urls.BACKEND_SERVER_URL + '/sigmet/storesigmet';
+    const GET_SIGMETS_URL = this.props.urls.BACKEND_SERVER_URL + '/sigmet/getsigmetlist?';
+    const SET_SIGMET_URL = this.props.urls.BACKEND_SERVER_URL + '/sigmet/storesigmet';
 
     this.toggle = this.toggle.bind(this);
     this.select = this.select.bind(this);
     let isOpenCategory = {};
-    ITEMS.forEach((item, index) => {
+    ITEMS.map((item, index) => {
       isOpenCategory[item.ref] = false;
+      item.source = (item.isGetType ? GET_SIGMETS_URL : SET_SIGMET_URL) + item.source;
     });
     this.state = { isOpen: true, selectedItem: {}, isOpenCategory: isOpenCategory };
     axios.get(this.props.urls.BACKEND_SERVER_URL + '/sigmet/getsigmetphenomena').then((result) => {

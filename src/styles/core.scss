@@ -432,23 +432,38 @@ a.breadcrumb-active:hover, a.nav-link.active:hover {
   padding: 0;
 }
 
-.innerContainer {
-  height: inherit;
+.col.footeredLayout, .col.headeredLayout, .col.sidebarredLayout {
   display: inherit;
   flex-direction: inherit;
-  flex: inherit;
-  padding: inherit;
 }
 
-.innerContainer div:not(.collapse):not(.dropdown-menu):not(.btn-group-vertical):not(.managementPanel):not(.loc-card):not(.managementRow):not(.rdt):not(.rdtPicker) {
+.row.headeredContent, .row.footeredContent {
+  flex: 1;
+  flex-direction: inherit;
+
+}
+
+.row.headeredContent {
+  margin: 0 0.2rem 0.2rem 0.2rem;
+}
+
+.col.sidebarredLayout > .row {
+  flex: 1;
+}
+
+.col.sidebarredContent {
+  flex-direction: column;
+}
+
+.container-fluid div:not(.collapse):not(.dropdown-menu):not(.btn-group-vertical):not(.managementPanel):not(.loc-card):not(.managementRow):not(.rdt):not(.rdtPicker) {
   display: inherit;
 }
 
-.container-fluid .MainSection .MainViewport .map .managementPanel .content .tab-content > .tab-pane {
+.container-fluid .map .managementPanel .content .tab-content > .tab-pane {
     display: none;
 }
 
-.container-fluid .MainSection .MainViewport .map .managementPanel .content .tab-content > .active {
+.container-fluid .map .managementPanel .content .tab-content > .active {
     display: block;
 }
 
@@ -461,6 +476,10 @@ a.breadcrumb-active:hover, a.nav-link.active:hover {
 }
 aside, header, main {
   display: inherit;
+}
+
+main {
+  flex: 1;
 }
 
 main:-moz-full-screen {
@@ -490,10 +509,6 @@ main:fullscreen {
   flex: 1;
   flex-direction: column;
   overflow: hidden;
-}
-.row.MainSection {
-  flex: 1;
-  margin: 0 0.2rem 0.2rem 0.2rem;
 }
 
 .TasksContainer, .SigmetsContainer, .ProductsContainer, .ManageSideContainer {
@@ -530,13 +545,7 @@ main:fullscreen {
 .Footer .datalayer {
   margin-bottom: 0.1rem;
 }
-// .Footer .datalayer:not(:nth-child(2)) {
-//   margin-top: 5px;
-// }
-// .Footer .datalayer .fa {
-//   line-height: 0.75;
-//   font-size: 0.8rem!important;
-// }
+
 .Footer .datalayer  .badge {
   font-size: 80%;
   height: 17px;
@@ -548,10 +557,7 @@ input[type=number]::-webkit-inner-spin-button {
 .Footer .datalayer.active {
   background-color: rgba(217,237,247, 0.6);
 }
-// .Footer :not(.datalayer.active) {
-//   border-top: 1px solid #fff;
-//   border-bottom: 1px solid #fff;
-// }
+
 .Panel {
   flex-direction: column;
   width: 100%;
@@ -578,11 +584,6 @@ input[type=number]::-webkit-inner-spin-button {
 .Panel > .title .row {
   flex-flow: row nowrap;
 }
-
-/*.map.row .Panel > .title:not(.notitle) {
-  border: none;
-  padding-bottom: 0.67rem;
-}*/
 
 .Panel > .title .input-group {
   margin-left: 0.8rem;
@@ -622,8 +623,12 @@ input[type=number]::-webkit-inner-spin-button {
   z-index: 2;
 }
 
-.SmallLayerManagerPanel .btn:not(:last-child) {
+.LayerManagerPanel .col:not(:last-child), .LayerManagerPanel .col-auto:not(:last-child) {
   margin-right: 0.33rem;
+}
+
+.LayerManagerPanel .btn {
+  width: 3rem;
 }
 
 .Sigmet .btn-primary {

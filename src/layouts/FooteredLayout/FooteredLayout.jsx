@@ -1,20 +1,31 @@
-import React, { Component } from 'react';
-import { Row } from 'reactstrap';
-export default class WithSidebars extends Component {
+import React, { PureComponent } from 'react';
+import { Col, Row } from 'reactstrap';
+import PropTypes from 'prop-types';
+
+class FooteredLayout extends PureComponent {
   render () {
     const { route } = this.props;
-    const { viewComponent, contextComponent } = route;
+    const { footer } = route;
     return (
-      <div style={{ flex: 1, flexDirection: 'column' }}>
-        <Row className='map' tag='main'>
+      <Col className='footeredLayout'>
+        <Row className='footeredContent'>
           {this.props.children}
         </Row>
-        { contextComponent
-          ? <Row className='Footer'>
-            {contextComponent}
+        {footer
+          ? <Row className='Footer' tag='footer'>
+            {footer}
           </Row>
           : null }
-      </div>
+      </Col>
     );
   }
 }
+
+FooteredLayout.propTypes = {
+  route: PropTypes.shape({
+    footer: PropTypes.element
+  }),
+  children: PropTypes.element
+};
+
+export default FooteredLayout;

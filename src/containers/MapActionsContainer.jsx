@@ -155,7 +155,7 @@ MapActionContainer.propTypes = {
   adagucActions: PropTypes.object,
   layers: PropTypes.object,
   mapActions: PropTypes.object,
-  urls: PropTypes.arrayOf(PropTypes.string)
+  urls: PropTypes.object
 };
 
 export default MapActionContainer;
