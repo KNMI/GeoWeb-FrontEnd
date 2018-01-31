@@ -105,10 +105,15 @@ const jsonToTacForChangeType = (changeTypeAsJson, useFallback = false) => {
   return result;
 };
 
-const jsonToTacForTimestamp = (timestampAsJson, useFallback = false) => {
+const jsonToTacForTimestamp = (timestampAsJson, useFallback = false, isPeriodEnd = false) => {
   let result = null;
   if (timestampAsJson && typeof timestampAsJson === 'string' && moment(timestampAsJson).isValid()) {
-    result = moment.utc(timestampAsJson).format('DDHH');
+    const timestampMoment = moment.utc(timestampAsJson);
+    if (isPeriodEnd && timestampMoment.hours() === 0) {
+      result = timestampMoment.add(-1, 'days').format('DD') + '24';
+    } else {
+      result = timestampMoment.format('DDHH');
+    }
   } else if (useFallback && timestampAsJson && timestampAsJson.hasOwnProperty('fallback')) {
     result = timestampAsJson.fallback.value;
   }
@@ -118,7 +123,7 @@ const jsonToTacForTimestamp = (timestampAsJson, useFallback = false) => {
 const jsonToTacForPeriod = (startTimestampAsJson, endTimestampAsJson, useFallback = false) => {
   let result = null;
   const periodStart = jsonToTacForTimestamp(startTimestampAsJson, useFallback);
-  const periodEnd = jsonToTacForTimestamp(endTimestampAsJson, useFallback);
+  const periodEnd = jsonToTacForTimestamp(endTimestampAsJson, useFallback, true);
   if (periodStart && periodEnd) {
     result = periodStart + '/' + periodEnd;
   } else if (periodStart) {
@@ -387,7 +392,7 @@ const tacToJsonForTimestamp = (timestampAsTac, scopeStart, scopeEnd, useFallback
       hourValue = parseInt(matchResult[2]);
       resultMoment.date(dateValue).hours(hourValue).minutes(0).seconds(0).milliseconds(0);
       // Only proceed if moment has not bubbled dates overflow to months and not bubbled hours overflow to days
-      if (resultMoment.date() === dateValue && resultMoment.hours() === hourValue) {
+      if ((resultMoment.date() === dateValue && resultMoment.hours() === hourValue) || (hourValue === 24)) {
         if (scopeEndMoment.month() !== scopeStartMoment.month() && dateValue < 15) {
           resultMoment.add(1, 'months');
         }
@@ -404,11 +409,11 @@ const tacToJsonForTimestamp = (timestampAsTac, scopeStart, scopeEnd, useFallback
       if (dateValue < 1 || dateValue > 31) {
         fallbackMessages.push(prefixMessage + 'should have a date value between 01 and 31.');
       }
-      if (hourValue < 0 || hourValue > 23) {
+      if (hourValue < 0 || hourValue > 24) {
         if (prefixMessage && fallbackMessages.length > 0) {
           prefixMessage = 'And also, it ';
         }
-        fallbackMessages.push(prefixMessage + 'should have an hour value between 00 and 23.');
+        fallbackMessages.push(prefixMessage + 'should have an hour value between 00 and 24.');
       }
       if (fallbackMessages.length === 0) {
         fallbackMessages.push(prefixMessage + 'should equal <date><hour>, with <date> a valid, 2 digit date and <hour> a valid, 2 digit hour');

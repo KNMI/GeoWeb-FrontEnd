@@ -610,7 +610,7 @@ class TafCategory extends Component {
       }
       if (event.target.name.endsWith('removable')) {
         const nameParts = event.target.name.split('-');
-        if (nameParts.length > 1 && nameParts[1] > 0) {
+        if (nameParts.length > 1 && nameParts[1] >= 0) {
           this.removeRow(parseInt(nameParts[1]));
         }
         event.preventDefault();
@@ -806,6 +806,10 @@ class TafCategory extends Component {
     if (rowIndex !== null && typeof rowIndex === 'number') {
       const newTafState = cloneDeep(this.state.tafAsObject);
       newTafState.changegroups.splice(rowIndex, 1);
+      if (newTafState.changegroups.length === 0) {
+        // Prepend empty TAF row as to clear it rather than deleting
+        newTafState.changegroups.unshift(TAF_TEMPLATES.CHANGE_GROUP);
+      }
       this.validateTaf(newTafState);
       this.setState({
         tafAsObject: newTafState,
