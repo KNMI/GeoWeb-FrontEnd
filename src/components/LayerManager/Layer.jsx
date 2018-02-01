@@ -22,13 +22,13 @@ export default class Layer extends PureComponent {
       serviceLayers: [],
       serviceStyles: [],
       target: ''
-    }
+    };
   }
 
   alterLayer (newValue) {
     const { dispatch, panelsActions, index } = this.props;
     const { name, text } = newValue;
-    const newLayer = {...this.props.layer, name, title: text};
+    const newLayer = { ...this.props.layer, name, title: text };
     new WMJSLayer(newLayer).parseLayer((l) => {
       dispatch(panelsActions.replaceLayer({ index: index, layer: l }));
     });
@@ -47,7 +47,6 @@ export default class Layer extends PureComponent {
     newLayer.setOpacity(newValue);
     dispatch(panelsActions.replaceLayer({ index: index, layer: newLayer }));
   }
-
 
   renderLayerChanger () {
     const { layerChangerOpen, serviceLayers, target } = this.state;
@@ -89,9 +88,9 @@ export default class Layer extends PureComponent {
     const { opacityChangerOpen, target } = this.state;
     return (
       <Popover width={'auto'} isOpen={opacityChangerOpen} target={target} toggle={() => this.setState({
-          opacityChangerOpen: !opacityChangerOpen,
-          target: ''
-        })}>
+        opacityChangerOpen: !opacityChangerOpen,
+        target: ''
+      })}>
         <PopoverTitle>Opacity</PopoverTitle>
         <PopoverContent style={{ height: '15rem', marginBottom: '1rem' }}>
           <Slider style={{ margin: '1rem' }} vertical min={0} max={100}
@@ -127,7 +126,7 @@ export default class Layer extends PureComponent {
   render () {
     const { layer, color, index } = this.props;
     const styles = layer && layer.styles ? layer.styles.map((styleObj) => styleObj.name) : [];
-    switch(this.props.role) {
+    switch (this.props.role) {
       case 'datalayers':
         const refTime = layer.getDimension('reference_time');
         const id = 'datalayer' + index;
@@ -136,24 +135,22 @@ export default class Layer extends PureComponent {
           {this.renderStyleChanger()}
           {this.renderOpacityChanger()}
           <ConcreteCell active={layer.active} color={color}>{layer.WMJSService.title}</ConcreteCell>
-          <EditableCell id={'layer'+id} onClick={() =>
-            {
-              layer.WMJSService.getLayerObjectsFlat((layers) => {
-                this.setState({ layerChangerOpen: true, target: 'layer'+id, serviceLayers: layers });
-              });
+          <EditableCell id={'layer'+id} onClick={() => {
+            layer.WMJSService.getLayerObjectsFlat((layers) => {
+              this.setState({ layerChangerOpen: true, target: 'layer'+id, serviceLayers: layers });
+            });
           }} active={layer.active} color={color}>{layer.title}</EditableCell>
-          <EditableCell id={'style'+id} onClick={() =>
-            {
-              this.setState({ styleChangerOpen: true, target: 'style'+id, serviceStyles: styles });
+          <EditableCell id={'style'+id} onClick={() => {
+            this.setState({ styleChangerOpen: true, target: 'style'+id, serviceStyles: styles });
           }} active={layer.active} color={color}>{layer.currentStyle}</EditableCell>
-          <EditableCell id={'opacity'+id} onClick={() =>
-            {
-              this.setState({ opacityChangerOpen: true, target: 'opacity'+id });
+          <EditableCell id={'opacity'+id} onClick={() => {
+            this.setState({ opacityChangerOpen: true, target: 'opacity'+id });
           }} active={layer.active} color={color}>{parseInt(layer.opacity * 100) + '%'}</EditableCell>
           <ConcreteCell active={layer.active} color={color}>{refTime ? refTime.currentValue : null}</ConcreteCell></Col>);
       case 'overlays':
         return <Col><ConcreteCell color={color}>{layer.title}</ConcreteCell></Col>
       case 'maplayers':
+        console.log(layer);
         return <Col><EditableCell color={color}>{layer.title}</EditableCell></Col>
     }
   }
@@ -169,4 +166,3 @@ export const SortableLayer = SortableElement(({ role, color, layer, layerIndex, 
       <LayerModifier dispatch={dispatch} role={role} panelsActions={panelsActions} layer={layer} index={layerIndex} />
     </Row>);
 });
-

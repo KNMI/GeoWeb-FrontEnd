@@ -98,7 +98,7 @@ export default handleActions({
     const panelId = payload.panelId;
 
     const stateCpy = cloneDeep(state);
-    stateCpy.panels[panelId].layers.push(payload.layer);
+    stateCpy.panels[panelId].layers.unshift(payload.layer);
     if (stateCpy.panels[panelId].layers.length === 1) {
       stateCpy.panels[panelId].layers[0].active = true;
     }
@@ -113,7 +113,7 @@ export default handleActions({
       return state;
     }
     const stateCpy = cloneDeep(state);
-    stateCpy.panels[panelId].baselayers.push(payload.layer);
+    stateCpy.panels[panelId].baselayers.unshift(payload.layer);
     return stateCpy;
   },
   [DELETE_LAYER]: (state, { payload }) => {
@@ -127,7 +127,6 @@ export default handleActions({
           layers[0].active = true;
         }
         return stateCpy;
-
 
       case 'overlay':
         const { baselayers } = stateCpy.panels[mapId || state.activePanelId];

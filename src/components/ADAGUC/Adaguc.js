@@ -151,7 +151,7 @@ export default class Adaguc extends PureComponent {
     const { mapId, panelsProperties, dispatch, panelsActions, adagucProperties } = this.props;
     const panel = panelsProperties.panels[mapId];
     const { animationSettings } = adagucProperties;
-    panel.layers.map((layer, i) => {
+    panel.layers.reverse().map((layer, i) => {
       layer.parseLayer((newLayer) => {
         if (newLayer.active) {
           this.webMapJS.setActiveLayer(newLayer);
@@ -296,19 +296,19 @@ export default class Adaguc extends PureComponent {
 
   updateLayersInline (currDataLayers) {
     const layers = this.webMapJS.getLayers();
-    const reversedDataLayers = cloneDeep(currDataLayers).reverse();
     for (let i = 0; i < layers.length; i++) {
-      layers[i].enabled = 'enabled' in reversedDataLayers[i] ? reversedDataLayers[i].enabled : true;
-      layers[i].opacity = reversedDataLayers[i].opacity;
-      layers[i].service = reversedDataLayers[i].service;
-      layers[i].name = reversedDataLayers[i].name;
-      layers[i].label = reversedDataLayers[i].label;
-      layers[i].currentStyle = reversedDataLayers[i].currentStyle;
-      if (reversedDataLayers[i].modellevel) {
-        layers[i].setDimension('modellevel', reversedDataLayers[i].modellevel.toString());
+      const j = layers.length - i - 1;
+      layers[j].enabled = 'enabled' in currDataLayers[i] ? currDataLayers[i].enabled : true;
+      layers[j].opacity = currDataLayers[i].opacity;
+      layers[j].service = currDataLayers[i].service;
+      layers[j].name = currDataLayers[i].name;
+      layers[j].label = currDataLayers[i].label;
+      layers[j].currentStyle = currDataLayers[i].currentStyle;
+      if (currDataLayers[i].modellevel) {
+        layers[j].setDimension('modellevel', currDataLayers[i].modellevel.toString());
       }
-      if (layers[i].active) {
-        this.webMapJS.setActiveLayer(layers[i]);
+      if (layers[j].active) {
+        this.webMapJS.setActiveLayer(layers[j]);
       }
 
       this.webMapJS.getListener().triggerEvent('onmapdimupdate');
@@ -393,7 +393,7 @@ export default class Adaguc extends PureComponent {
       if (this.orderChanged(currDataLayers, nextDataLayers)) {
         this.webMapJS.removeAllLayers();
         if (nextDataLayers && nextDataLayers.length > 0) {
-          nextDataLayers.forEach(layer => {
+          nextDataLayers.reverse().map((layer) => {
             this.webMapJS.addLayer(layer);
             if (layer.active) {
               this.webMapJS.setActiveLayer(layer);

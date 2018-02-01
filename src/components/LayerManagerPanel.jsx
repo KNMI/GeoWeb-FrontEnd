@@ -89,7 +89,7 @@ class LayerManagerPanel extends Component {
         dispatch(panelsActions.addLayer({
           panelId: panelsProperties.activePanelId,
           layer: layerObj
-        }))
+        }));
       });
     } else {
       new WMJSLayer({
@@ -97,12 +97,12 @@ class LayerManagerPanel extends Component {
         title: this.state.activeSource.title,
         name: addItem.name,
         label: addItem.text,
-        keepOnTop: true,
+        keepOnTop: true
       }).parseLayer((layerObj) => {
         dispatch(panelsActions.addOverlaysLayer({
           panelId: panelsProperties.activePanelId,
           layer: layerObj
-        }))
+        }));
       });
     }
     this.setState({
