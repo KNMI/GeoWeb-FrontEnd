@@ -381,6 +381,7 @@ class TafCategory extends Component {
    * @return {string} A readable presentation of the phenomenon value
    */
   serializeCloudsArray (value) {
+    console.log('Cloudarray: ', value);
     if (Array.isArray(value) && value.length > 0 && typeof value[0] === 'object' && value[0].hasOwnProperty('amount') && typeof value[0].amount === 'string') {
       return value.map((cloud, index) => {
         return jsonToTacForClouds(cloud);
@@ -867,6 +868,24 @@ class TafCategory extends Component {
           nextP.taf.metadata.location = defaults.location;
         }
       }
+      const nullPointers = [];
+      getJsonPointers(nextP.taf, (field) => field === null, nullPointers);
+      // TODO: Should this be really necessary?
+      // Remove null's and empty fields -- BackEnd doesn't handle them nicely
+      const nullPointersLength = nullPointers.length;
+      for (let pointerIndex = 0; pointerIndex < nullPointersLength; pointerIndex++) {
+        const pathParts = nullPointers[pointerIndex].split('/');
+        pathParts.shift();
+        removeNestedProperty(nextP.taf, pathParts);
+        clearRecursive(nextP.taf, pathParts);
+      }
+      if (!getNestedProperty(nextP.taf, ['changegroups'])) {
+        setNestedProperty(nextP.taf, ['changegroups'], []);
+      }
+      if (getNestedProperty(nextP.taf, ['metadata', 'issueTime']) === 'not yet issued') {
+        setNestedProperty(nextP.taf, ['metadata', 'issueTime'], moment.utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z');
+      }
+
       this.validateTaf(nextP.taf);
       this.setState({ tafAsObject: nextP.taf });
     }
