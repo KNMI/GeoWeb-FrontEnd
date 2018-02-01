@@ -274,6 +274,24 @@ class TafCategory extends Component {
   }
 
   saveTaf (tafDATAJSON) {
+        const nullPointers = [];
+    getJsonPointers(tafDATAJSON, (field) => field === null, nullPointers);
+    // TODO: Should this be really necessary?
+    // Remove null's and empty fields -- BackEnd doesn't handle them nicely
+    const nullPointersLength = nullPointers.length;
+    for (let pointerIndex = 0; pointerIndex < nullPointersLength; pointerIndex++) {
+      const pathParts = nullPointers[pointerIndex].split('/');
+      pathParts.shift();
+      removeNestedProperty(tafDATAJSON, pathParts);
+      clearRecursive(tafDATAJSON, pathParts);
+    }
+    if (!getNestedProperty(tafDATAJSON, ['changegroups'])) {
+      setNestedProperty(tafDATAJSON, ['changegroups'], []);
+    }
+    if (getNestedProperty(tafDATAJSON, ['metadata', 'issueTime']) === 'not yet issued') {
+      setNestedProperty(tafDATAJSON, ['metadata', 'issueTime'], moment.utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z');
+    }
+
     axios({
       method: 'post',
       url: this.props.urls.BACKEND_SERVER_URL + '/tafs',
