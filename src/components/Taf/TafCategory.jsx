@@ -381,7 +381,6 @@ class TafCategory extends Component {
    * @return {string} A readable presentation of the phenomenon value
    */
   serializeCloudsArray (value) {
-    console.log('Cloudarray: ', value);
     if (Array.isArray(value) && value.length > 0 && typeof value[0] === 'object' && value[0].hasOwnProperty('amount') && typeof value[0].amount === 'string') {
       return value.map((cloud, index) => {
         return jsonToTacForClouds(cloud);
@@ -464,7 +463,7 @@ class TafCategory extends Component {
     const scheduleSeries = [];
     const scopeStart = moment.utc(tafDataAsJson.metadata.validityStart);
     const scopeEnd = moment.utc(tafDataAsJson.metadata.validityEnd);
-    Object.entries(tafDataAsJson.forecast).map((entry) => {
+    Object.entries(tafDataAsJson.forecast || {}).map((entry) => {
       const value = this.serializePhenomenonValue(entry[0], entry[1], null);
       if (value !== null) {
         scheduleSeries.push({
@@ -497,6 +496,11 @@ class TafCategory extends Component {
           ? moment.utc(change.changeEnd)
           : fallbackValue);
       if (!end.isAfter(start)) {
+        return;
+      }
+
+      // What to do in this case?
+      if (!change.forecast) {
         return;
       }
 

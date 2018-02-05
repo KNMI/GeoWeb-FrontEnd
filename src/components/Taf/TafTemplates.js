@@ -26,10 +26,10 @@ const TEMPLATES = {
     gusts: null, // number
     unit: null // string
   },
-  TEMPERATURE: {
+  TEMPERATURE: [{
     minimum: null, // number
     maximum: null // number
-  },
+  }],
   METADATA: {
     issueTime: null, // string
     location: null, // string
