@@ -86,6 +86,7 @@ export default class Taf extends Component {
         responseType: 'json',
         headers: { 'Accept': 'application/json' }
       }).then(src => {
+
         this.setState({ expandedTAF: uuid, expandedJSON: src.data });
       }
       );

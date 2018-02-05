@@ -89,7 +89,6 @@ class TimeSchedule extends PureComponent {
 
   render () {
     const { startMoment, endMoment, majorTickInterval, minorTickInterval, series } = this.props;
-
     // prepend with label and annotate overlappings
     series.forEach(serie => {
       serie.ranges.unshift({

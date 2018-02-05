@@ -280,6 +280,7 @@ const jsonToTacForClouds = (cloudsAsJson, useFallback = false) => {
     } else {
       return useFallback && cloudsAsJson.hasOwnProperty('fallback') ? cloudsAsJson.fallback.value : null;
     }
+    // TODO: What to do if mod is not present? This is reasonable
     if (cloudsAsJson.hasOwnProperty('mod')) {
       const mod = getMapValue(cloudsAsJson.mod, modMap);
       if (mod !== null) {
@@ -290,7 +291,7 @@ const jsonToTacForClouds = (cloudsAsJson, useFallback = false) => {
         }
       }
     } else {
-      return useFallback && cloudsAsJson.hasOwnProperty('fallback') ? cloudsAsJson.fallback.value : null;
+      return useFallback && cloudsAsJson.hasOwnProperty('fallback') ? cloudsAsJson.fallback.value : result;
     }
     if (result === null && useFallback) {
       return cloudsAsJson.hasOwnProperty('fallback') ? cloudsAsJson.fallback.value : null;
