@@ -19,9 +19,7 @@ export default class Adaguc extends PureComponent {
     this.initAdaguc = this.initAdaguc.bind(this);
     this.resize = debounce(this.resize.bind(this), 100, false);
     this.onChangeAnimation = this.onChangeAnimation.bind(this);
-    // this.timeHandler = this.timeHandler.bind(this);
     this.adagucBeforeDraw = this.adagucBeforeDraw.bind(this);
-    this.updateLayersInline = this.updateLayersInline.bind(this);
     this.reparseLayers = this.reparseLayers.bind(this);
     this.updateAnimationActiveLayerChange = this.updateAnimationActiveLayerChange.bind(this);
     this.updateBBOX = debounce(this.updateBBOX.bind(this), 300, false);
@@ -41,18 +39,6 @@ export default class Adaguc extends PureComponent {
     });
   }
 
-  // timeHandler () {
-  //   const wmjstime = this.webMapJS.getDimension('time').currentValue;
-  //   if (!this.prevTime) {
-  //     this.prevTime = wmjstime;
-  //   }
-  //   if (wmjstime !== this.prevTime) {
-  //     this.prevTime = wmjstime;
-  //     if (this.props.active) {
-  //       this.props.dispatch(this.props.adagucActions.setTimeDimension(wmjstime));
-  //     }
-  //   }
-  // }
   resize () {
     const element = this.refs.adaguccontainer;
     if (element) {
@@ -151,21 +137,21 @@ export default class Adaguc extends PureComponent {
     const { mapId, panelsProperties, dispatch, panelsActions, adagucProperties } = this.props;
     const panel = panelsProperties.panels[mapId];
     const { animationSettings } = adagucProperties;
-    panel.layers.reverse().map((layer, i) => {
+    panel.layers.map((layer, i) => {
       layer.parseLayer((newLayer) => {
         if (newLayer.active) {
           this.webMapJS.setActiveLayer(newLayer);
           this.onChangeAnimation(animationSettings, this.props.active);
         }
-        dispatch(panelsActions.replaceLayer({ index: i, layer: newLayer }));
+        dispatch(panelsActions.replaceLayer({ mapId, index: i, layer: newLayer }));
       }, true);
     });
   }
 
   componentDidMount () {
     this.initAdaguc(this.refs.adaguc);
-    elementResizeEvent(this.refs.adaguccontainer, () => this.resize());
-    this.interval = setInterval(this.reparseLayers, moment.duration(15, 'seconds').asMilliseconds());
+    elementResizeEvent(this.refs.adaguccontainer, this.resize);
+    this.interval = setInterval(this.reparseLayers, moment.duration(1, 'minute').asMilliseconds());
   }
 
   componentWillMount () {
@@ -294,117 +280,81 @@ export default class Adaguc extends PureComponent {
     return false;
   }
 
-  updateLayersInline (currDataLayers) {
-    const layers = this.webMapJS.getLayers();
-    for (let i = 0; i < layers.length; i++) {
-      const j = layers.length - i - 1;
-      layers[j].enabled = 'enabled' in currDataLayers[i] ? currDataLayers[i].enabled : true;
-      layers[j].opacity = currDataLayers[i].opacity;
-      layers[j].service = currDataLayers[i].service;
-      layers[j].name = currDataLayers[i].name;
-      layers[j].label = currDataLayers[i].label;
-      layers[j].currentStyle = currDataLayers[i].currentStyle;
-      if (currDataLayers[i].modellevel) {
-        layers[j].setDimension('modellevel', currDataLayers[i].modellevel.toString());
-      }
-      if (layers[j].active) {
-        this.webMapJS.setActiveLayer(layers[j]);
-      }
+  updateAnimationActiveLayerChange (currDataLayers, nextDataLayers, active) {
+    const { dispatch, adagucActions } = this.props;
+    const ANIMATION_LENGTH_REF_TIME = 48;
+    const ANIMATION_LENGTH_NO_REF_TIME = 6;
+    let animationLength = null;
 
-      this.webMapJS.getListener().triggerEvent('onmapdimupdate');
+    if (Array.isArray(nextDataLayers) && Array.isArray(currDataLayers) &&
+        nextDataLayers.length > 0) {
+      const nextActiveLayers = nextDataLayers.filter(layer => layer.active);
+      const currActiveLayers = currDataLayers.filter(layer => layer.active);
+
+      // Encode length of arrays as state as to switch on it.
+      const layerState = [nextActiveLayers.length, currActiveLayers.length].join('');
+      let nextActiveLayer, currActiveLayer, nextActiveWMJSLayer, currActiveWMJSLayer, nextHasRefTime, currHasRefTime;
+      switch (layerState) {
+        // 11 means active layer has possibly switched within this panel, so find the new one
+        case '11':
+          nextActiveLayer = nextActiveLayers[0];
+          currActiveLayer = currActiveLayers[0];
+
+          nextHasRefTime = nextActiveLayer.getDimension('reference_time');
+          currHasRefTime = currActiveLayer.getDimension('reference_time');
+
+          // set the respective animation length
+          if (nextHasRefTime) {
+            animationLength = ANIMATION_LENGTH_REF_TIME;
+          } else {
+            animationLength = ANIMATION_LENGTH_NO_REF_TIME;
+          }
+          break;
+
+        // First layer got added, or active layer got deleted so set a new one
+        case '12': // TODO: y tho???
+        case '10':
+          nextActiveWMJSLayer = this.webMapJS.getActiveLayer();
+          if (!nextActiveWMJSLayer) {
+            break;
+          }
+          nextHasRefTime = nextActiveWMJSLayer.getDimension('reference_time');
+          if (nextHasRefTime) {
+            animationLength = ANIMATION_LENGTH_REF_TIME;
+          } else {
+            animationLength = ANIMATION_LENGTH_NO_REF_TIME;
+          }
+          break;
+        case '01':
+        case '00':
+          break;
+      }
     }
-  }
-
-  updateAnimationActiveLayerChange (currDataLayers, nextDataLayers) {
-    // const { dispatch, adagucActions } = this.props;
-    // const ANIMATION_LENGTH_REF_TIME = 48;
-    // const ANIMATION_LENGTH_NO_REF_TIME = 6;
-    // let animationLength = null;
-
-    // if (Array.isArray(nextDataLayers) && Array.isArray(currDataLayers)) {
-    //   const nextActiveLayers = nextDataLayers.filter(layer => layer.active);
-    //   const currActiveLayers = currDataLayers.filter(layer => layer.active);
-
-    //   // Encode length of arrays as state as to switch on it.
-    //   const layerState = [nextActiveLayers.length, currActiveLayers.length].join('');
-    //   let nextActiveLayer, currActiveLayer, nextActiveWMJSLayer, currActiveWMJSLayer, nextHasRefTime, currHasRefTime;
-    //   switch (layerState) {
-    //     // 11 means active layer has possibly switched within this panel, so find the new one
-    //     case '11':
-    //       nextActiveLayer = nextActiveLayers[0];
-    //       currActiveLayer = currActiveLayers[0];
-
-    //       // if the active layer remained the same, we don't have to do anything
-    //       if (nextActiveLayer === currActiveLayer) {
-    //         return;
-    //       }
-
-    //       nextActiveWMJSLayer = nextWmjsLayers.panelsProperties.filter(layer => layer.service === nextActiveLayer.service && layer.name === nextActiveLayer.name)[0];
-    //       currActiveWMJSLayer = wmjsLayers.panelsProperties.filter(layer => layer.service === currActiveLayer.service && layer.name === currActiveLayer.name)[0];
-
-    //       // if ADAGUC doesn't know the panelsProperties, bail
-    //       if (!nextActiveWMJSLayer || !currActiveWMJSLayer) {
-    //         return;
-    //       }
-    //       nextHasRefTime = nextActiveWMJSLayer.getDimension('reference_time');
-    //       currHasRefTime = currActiveWMJSLayer.getDimension('reference_time');
-
-    //       // If the having of a reference_time didn't change, we're done
-    //       if ((!!nextHasRefTime) === (!!currHasRefTime)) {
-    //         return;
-    //       }
-    //       // set the respective animation length
-    //       if (nextHasRefTime) {
-    //         animationLength = ANIMATION_LENGTH_REF_TIME;
-    //       } else {
-    //         animationLength = ANIMATION_LENGTH_NO_REF_TIME;
-    //       }
-    //       break;
-
-    //     // First layer got added, or active layer got deleted so set a new one
-    //     case '12': // TODO: y tho???
-    //     case '10':
-    //       nextActiveWMJSLayer = this.webMapJS.getActiveLayer();
-    //       if (!nextActiveWMJSLayer) {
-    //         break;
-    //       }
-    //       nextHasRefTime = nextActiveWMJSLayer.getDimension('reference_time');
-    //       if (nextHasRefTime) {
-    //         animationLength = ANIMATION_LENGTH_REF_TIME;
-    //       } else {
-    //         animationLength = ANIMATION_LENGTH_NO_REF_TIME;
-    //       }
-    //       break;
-    //     case '01':
-    //     case '00':
-    //       break;
-    //   }
-    //   if (animationLength !== this.props.adagucProperties.animationSettings.duration) {
-    //     dispatch(adagucActions.setAnimationLength(animationLength));
-    //   }
-    // }
+    if (active && animationLength !== this.props.adagucProperties.animationSettings.duration &&
+        (this.props.adagucProperties.animationSettings.duration !== ANIMATION_LENGTH_REF_TIME ||
+         this.props.adagucProperties.animationSettings.duration !== ANIMATION_LENGTH_NO_REF_TIME)) {
+      dispatch(adagucActions.setAnimationLength(animationLength));
+    }
   }
 
   // Returns true when the panelsProperties are actually different w.r.t. next panelsProperties, otherwise false
   /* istanbul ignore next */
-  updateLayers (currDataLayers, nextDataLayers) {
+  updateLayers (currDataLayers, nextDataLayers, active) {
     const change = diff(currDataLayers, nextDataLayers);
     if (change && nextDataLayers && Array.isArray(nextDataLayers)) {
-      if (this.orderChanged(currDataLayers, nextDataLayers)) {
-        this.webMapJS.removeAllLayers();
-        if (nextDataLayers && nextDataLayers.length > 0) {
-          nextDataLayers.reverse().map((layer) => {
-            this.webMapJS.addLayer(layer);
-            if (layer.active) {
-              this.webMapJS.setActiveLayer(layer);
-            }
-          });
-        }
-      } else {
-        this.updateLayersInline(nextDataLayers);
+      this.webMapJS.removeAllLayers();
+      if (nextDataLayers && nextDataLayers.length > 0) {
+        const layersCpy = cloneDeep(nextDataLayers).reverse();
+        layersCpy.map((layer) => {
+          this.webMapJS.addLayer(layer);
+          if (layer.active) {
+            this.webMapJS.setActiveLayer(layer);
+          }
+        });
       }
+      console.log(change);
+      this.updateAnimationActiveLayerChange(currDataLayers, nextDataLayers, active);
     }
-    this.updateAnimationActiveLayerChange(currDataLayers, nextDataLayers);
     return change;
   }
 
@@ -414,10 +364,15 @@ export default class Adaguc extends PureComponent {
     const { panels, activePanelId, panelLayout } = panelsProperties;
     const activePanel = panels[mapId];
 
+
     const nextActivePanel = nextProps.panelsProperties.panels[mapId];
     const nextBaseLayers = nextProps.panelsProperties.panels[mapId].baselayers;
     const baseLayers = activePanel.baselayers;
-    const layersChanged = this.updateLayers(activePanel.layers, nextActivePanel.layers, panelsProperties.wmjsLayers, nextProps.panelsProperties.wmjsLayers);
+
+    if (activePanelId !== nextProps.panelsProperties.activePanelId) {
+      this.updateAnimationActiveLayerChange(activePanel.layers, nextActivePanel.layers, nextProps.active);
+    }
+    const layersChanged = this.updateLayers(activePanel.layers, nextActivePanel.layers, nextProps.active);
     const baseChanged = this.updateBaselayers(baseLayers, nextBaseLayers);
     // Update animation -- animate iff animate is set and the panel is active.
     if (nextProps.adagucProperties.animationSettings !== animationSettings) {

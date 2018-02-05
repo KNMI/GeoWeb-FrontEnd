@@ -26,26 +26,26 @@ export default class Layer extends PureComponent {
   }
 
   alterLayer (newValue) {
-    const { dispatch, panelsActions, index } = this.props;
+    const { dispatch, panelsActions, index, activePanelId } = this.props;
     const { name, text } = newValue;
     const newLayer = { ...this.props.layer, name, title: text };
     new WMJSLayer(newLayer).parseLayer((l) => {
-      dispatch(panelsActions.replaceLayer({ index: index, layer: l }));
+      dispatch(panelsActions.replaceLayer({ mapId: activePanelId, index: index, layer: l }));
     });
   }
 
   alterStyle (newValue) {
-    const { dispatch, panelsActions, index } = this.props;
+    const { dispatch, panelsActions, index, activePanelId } = this.props;
     const newLayer = { ...this.props.layer };
     newLayer.setStyle(newValue);
-    dispatch(panelsActions.replaceLayer({ index: index, layer: newLayer }));
+    dispatch(panelsActions.replaceLayer({ mapId: activePanelId, index: index, layer: newLayer }));
   }
 
   alterOpacity (newValue) {
-    const { dispatch, panelsActions, index } = this.props;
+    const { dispatch, panelsActions, index, activePanelId } = this.props;
     const newLayer = { ...this.props.layer };
     newLayer.setOpacity(newValue);
-    dispatch(panelsActions.replaceLayer({ index: index, layer: newLayer }));
+    dispatch(panelsActions.replaceLayer({ mapId: activePanelId, index: index, layer: newLayer }));
   }
 
   renderLayerChanger () {
@@ -156,13 +156,13 @@ export default class Layer extends PureComponent {
   }
 }
 
-export const SortableLayer = SortableElement(({ role, color, layer, layerIndex, dispatch, panelsActions }) => {
+export const SortableLayer = SortableElement(({ role, color, layer, layerIndex, dispatch, panelsActions, activePanelId }) => {
   const backgroundColor = role === 'datalayers' && layer.active ? 'rgba(217, 237, 247, 0.6)' : null;
   return (
     <Row className='Layer' style={{ backgroundColor: backgroundColor }}>
-      <Layer dispatch={dispatch} panelsActions={panelsActions}
+      <Layer dispatch={dispatch} panelsActions={panelsActions} activePanelId={activePanelId}
         role={role} color={color} layer={layer} index={layerIndex} />
       <DragHandle />
-      <LayerModifier dispatch={dispatch} role={role} panelsActions={panelsActions} layer={layer} index={layerIndex} />
+      <LayerModifier activePanelId={activePanelId} dispatch={dispatch} role={role} panelsActions={panelsActions} layer={layer} index={layerIndex} />
     </Row>);
 });

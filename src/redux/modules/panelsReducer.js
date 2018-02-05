@@ -80,12 +80,11 @@ export const actions = {
 
 export default handleActions({
   [SET_ACTIVE_LAYER]: (state, { payload }) => {
-    const panels = cloneDeep(state.panels);
-    const panel = panels[payload.activePanelId];
-    panel.layers.map((layer, i) => {
-      layer.active = i === payload.layerClicked;
+    const stateCpy = cloneDeep(state);
+    stateCpy.panels[payload.activePanelId].layers.map((layer, i) => {
+      layer.active = (i === payload.layerClicked);
     });
-    return { ...state, panels };
+    return stateCpy;
   },
   [SET_PANEL_TYPE]: (state, { payload }) => {
     const mapId = payload.mapId;
@@ -98,7 +97,7 @@ export default handleActions({
     const panelId = payload.panelId;
 
     const stateCpy = cloneDeep(state);
-    stateCpy.panels[panelId].layers.unshift(payload.layer);
+    stateCpy.panels[panelId].layers.push(payload.layer);
     if (stateCpy.panels[panelId].layers.length === 1) {
       stateCpy.panels[panelId].layers[0].active = true;
     }
@@ -113,7 +112,7 @@ export default handleActions({
       return state;
     }
     const stateCpy = cloneDeep(state);
-    stateCpy.panels[panelId].baselayers.unshift(payload.layer);
+    stateCpy.panels[panelId].baselayers.push(payload.layer);
     return stateCpy;
   },
   [DELETE_LAYER]: (state, { payload }) => {
@@ -140,29 +139,29 @@ export default handleActions({
     }
   },
   [REPLACE_LAYER]: (state, { payload }) => {
-    const { index, layer } = payload;
+    const { index, layer, mapId } = payload;
     const stateCpy = cloneDeep(state);
 
-    stateCpy.panels[state.activePanelId].layers[index] = layer;
+    stateCpy.panels[mapId].layers[index] = layer;
 
-    const numActiveLayers = stateCpy.panels[state.activePanelId].layers.filter((layer) => layer.active === true).length;
+    const numActiveLayers = stateCpy.panels[mapId].layers.filter((layer) => layer.active === true).length;
 
     // If there are no active layers left, set it active
     if (numActiveLayers === 0) {
-      stateCpy.panels[state.activePanelId].layers[index].active = true;
+      stateCpy.panels[mapId].layers[index].active = true;
     }
 
     // If there are more than one, set it to false and figure this out later
     if (numActiveLayers > 1) {
-      stateCpy.panels[state.activePanelId].layers[index].active = false;
+      stateCpy.panels[mapId].layers[index].active = false;
     }
 
     return stateCpy;
   },
   [MOVE_LAYER]: (state, { payload }) => {
     const { oldIndex, newIndex, type } = payload;
-    const move = function(arr, from, to) {
-        arr.splice(to, 0, arr.splice(from, 1)[0]);
+    const move = function (arr, from, to) {
+      arr.splice(to, 0, arr.splice(from, 1)[0]);
     };
 
     const stateCpy = cloneDeep(state);
