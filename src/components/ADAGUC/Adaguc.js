@@ -352,8 +352,13 @@ export default class Adaguc extends PureComponent {
           }
         });
       }
-      console.log(change);
-      this.updateAnimationActiveLayerChange(currDataLayers, nextDataLayers, active);
+      const nextActiveLayers = nextDataLayers.filter(layer => layer.active);
+      const currActiveLayers = currDataLayers.filter(layer => layer.active);
+
+      if (nextActiveLayers.length > 0 && (currActiveLayers.length === 0 || (currActiveLayers[0].service !== nextActiveLayers[0].service &&
+            currActiveLayers[0].name !== nextActiveLayers[0].name))) {
+        this.updateAnimationActiveLayerChange(currDataLayers, nextDataLayers, active);
+      }
     }
     return change;
   }
