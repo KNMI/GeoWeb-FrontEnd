@@ -92,8 +92,9 @@ export default class Adaguc extends PureComponent {
   }
 
   initAdaguc (adagucMapRef) {
-    const { mapProperties, panelsActions, panelsProperties, adagucActions, dispatch, mapId, urls } = this.props;
+    const { mapProperties, adagucProperties, panelsActions, panelsProperties, adagucActions, dispatch, mapId, urls } = this.props;
     const { panels } = panelsProperties;
+    const { animationSettings } = adagucProperties;
     const { BACKEND_SERVER_XML2JSON } = urls;
     // Map already created, abort
     if (mapProperties.mapCreated) {
@@ -123,13 +124,14 @@ export default class Adaguc extends PureComponent {
     }
 
     // Set the datalayers
-    this.updateLayers(panels[mapId].layers, {});
-    // this.webMapJS.addListener('ondimchange', this.timeHandler, true);
+    this.updateLayers([], panels[mapId].layers);
+    this.reparseLayers();
     // eslint-disable-next-line no-undef
     const currentDate = getCurrentDateIso8601();
     if (this.props.active) {
       dispatch(adagucActions.setTimeDimension(currentDate.toISO8601()));
     }
+
     this.webMapJS.draw('171');
   }
 
@@ -167,10 +169,12 @@ export default class Adaguc extends PureComponent {
     this.webMapJS.removeListener('beforecanvasdisplay', this.adagucBeforeDraw);
     // Let webmapjs destory itself
     if (this.webMapJS) {
+      this.webMapJS.stopAnimating();
+      this.webMapJS.removeAllLayers();
       this.webMapJS.destroy();
     }
     clearInterval(this.interval);
-    this.webMapJS.stopAnimating();
+    this.setState({ layersChangedListenerInitialized: false });
   }
 
   orderChanged (currLayers, prevLayers) {

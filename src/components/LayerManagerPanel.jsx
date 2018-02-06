@@ -60,7 +60,7 @@ class LayerManagerPanel extends Component {
           dispatch(panelsActions.addOverlaysLayer({
             panelId: id,
             layer: layerObj
-          }))
+          }));
 
         });
       });
