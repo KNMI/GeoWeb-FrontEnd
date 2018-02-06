@@ -3,10 +3,10 @@ import { SortableLayer } from './Layer';
 import { Row } from 'reactstrap';
 import { SortableContainer } from 'react-sortable-hoc';
 
-const SortableLayers = SortableContainer(({ role, color, data, dispatch, panelsActions, activePanelId }) => {
+const SortableLayers = SortableContainer(({ role, color, data, dispatch, panelsActions, activePanelId, onLayerClick }) => {
   return (
     <Row style={{ flexDirection: 'column' }}>
-      {data.map((layer, i) => <SortableLayer activePanelId={activePanelId} key={i} index={i} layerIndex={i} role={role} color={color} layer={layer} dispatch={dispatch} panelsActions={panelsActions}/>)}
+      {data.map((layer, i) => <SortableLayer onLayerClick={onLayerClick} activePanelId={activePanelId} key={i} index={i} layerIndex={i} role={role} color={color} layer={layer} dispatch={dispatch} panelsActions={panelsActions}/>)}
     </Row>
   );
 });
@@ -23,7 +23,7 @@ export default class Layers extends PureComponent {
   };
 
   render () {
-    const { color, role, data, dispatch, panelsActions, activePanelId } = this.props;
-    return (<SortableLayers activePanelId={activePanelId} dispatch={dispatch} panelsActions={panelsActions} useDragHandle={true} onSortEnd={this.onSortEnd} role={role} color={color} data={data} />);
+    const { color, role, data, dispatch, panelsActions, activePanelId, onLayerClick } = this.props;
+    return (<SortableLayers onLayerClick={onLayerClick} activePanelId={activePanelId} dispatch={dispatch} panelsActions={panelsActions} useDragHandle={true} onSortEnd={this.onSortEnd} role={role} color={color} data={data} />);
   }
 }

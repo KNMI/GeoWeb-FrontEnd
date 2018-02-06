@@ -138,15 +138,21 @@ export default class Layer extends PureComponent {
           {this.renderStyleChanger()}
           {this.renderOpacityChanger()}
           <ConcreteCell active={layer.active} color={color}>{layer.WMJSService.title}</ConcreteCell>
-          <EditableCell id={'layer'+id} onClick={() => {
+          <EditableCell id={'layer'+id} onClick={(e) => {
+          	e.preventDefault();
+          	e.stopPropagation();
             layer.WMJSService.getLayerObjectsFlat((layers) => {
               this.setState({ layerChangerOpen: true, target: 'layer'+id, serviceLayers: layers });
             });
           }} active={layer.active} color={color}>{layer.title}</EditableCell>
-          <EditableCell id={'style'+id} onClick={() => {
+          <EditableCell id={'style'+id} onClick={(e) => {
+          	e.preventDefault();
+          	e.stopPropagation();
             this.setState({ styleChangerOpen: true, target: 'style'+id, serviceStyles: styles });
           }} active={layer.active} color={color}>{layer.currentStyle}</EditableCell>
-          <EditableCell id={'opacity'+id} onClick={() => {
+          <EditableCell id={'opacity'+id} onClick={(e) => {
+          	e.preventDefault();
+          	e.stopPropagation();
             this.setState({ opacityChangerOpen: true, target: 'opacity'+id });
           }} active={layer.active} color={color}>{parseInt(layer.opacity * 100) + '%'}</EditableCell>
           <ConcreteCell active={layer.active} color={color}>{refTime ? refTime.currentValue : null}</ConcreteCell></Col>);
@@ -158,10 +164,10 @@ export default class Layer extends PureComponent {
   }
 }
 
-export const SortableLayer = SortableElement(({ role, color, layer, layerIndex, dispatch, panelsActions, activePanelId }) => {
+export const SortableLayer = SortableElement(({ role, color, layer, layerIndex, dispatch, panelsActions, activePanelId, onLayerClick }) => {
   const backgroundColor = role === 'datalayers' && layer.active ? 'rgba(217, 237, 247, 0.6)' : null;
   return (
-    <Row className='Layer' style={{ backgroundColor: backgroundColor }}>
+    <Row onClick={() => onLayerClick ? onLayerClick(layerIndex) : null} className='Layer' style={{ backgroundColor: backgroundColor }}>
       <Layer dispatch={dispatch} panelsActions={panelsActions} activePanelId={activePanelId}
         role={role} color={color} layer={layer} index={layerIndex} />
       <DragHandle />
