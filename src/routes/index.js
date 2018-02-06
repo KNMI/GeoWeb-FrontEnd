@@ -103,15 +103,15 @@ const mapStateToMapProps = state => ({
   mapProperties: { ...state.mapProperties },
   adagucProperties: state.adagucProperties,
   panelsProperties: { ...state.panelsProperties },
-  urls: state.urls
+  urls: state.urls,
+  user: state.userProperties
 });
 
 const mapStateToLayerManagerProps = state => ({
   adagucProperties: state.adagucProperties,
   panelsProperties: state.panelsProperties,
   mapProperties: state.mapProperties,
-  drawProperties: state.drawProperties,
-  urls: state.urls
+  drawProperties: state.drawProperties
 });
 
 // TODO: research this; http://henleyedition.com/implicit-code-splitting-with-react-router-and-webpack/

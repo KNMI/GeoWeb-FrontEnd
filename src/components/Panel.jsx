@@ -117,7 +117,10 @@ class Panel extends PureComponent {
   }
 
   renderMenu () {
-    const { type, mapId, dispatch, panelsActions } = this.props;
+    const { type, mapId, dispatch, panelsActions, isLoggedIn } = this.props;
+    if(!isLoggedIn) {
+    	return null;
+    }
     return (<ButtonDropdown style={{ marginRight: '0.25rem' }} isOpen={this.state.typeIsOpen} toggle={() => {}}>
       <DropdownToggle caret style={{ textTransform: 'capitalize' }} size='sm'>
         {type.toLowerCase()}
