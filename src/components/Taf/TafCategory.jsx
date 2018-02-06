@@ -59,18 +59,18 @@ const clearRecursive = (objectToClear, pathParts) => {
         pathParts.pop();
       }
     }
-  } else if (typeof parent === 'object') {
+  } else if (parent && typeof parent === 'object') {
     Object.entries(parent).forEach(([key, value]) => {
       if (!value ||
           (Array.isArray(value) && value.length === 0) ||
-          (typeof value === 'object' && Object.keys(value).length === 0)) {
+          (value && typeof value === 'object' && Object.keys(value).length === 0)) {
         pathParts.push(key);
         removeNestedProperty(objectToClear, pathParts);
         pathParts.pop();
       }
     });
   }
-  if ((Array.isArray(parent) && parent.length === 0) || (typeof parent === 'object' && Object.keys(parent).length === 0)) {
+  if ((Array.isArray(parent) && parent.length === 0) || (parent && typeof parent === 'object' && Object.keys(parent).length === 0)) {
     removeNestedProperty(objectToClear, pathParts);
     clearRecursive(objectToClear, pathParts);
   };
@@ -92,7 +92,7 @@ const getJsonPointers = (collection, predicate, accumulator, parentName = '') =>
     for (let arrIndex = 0; arrIndex < length; arrIndex++) {
       propertyList.push(arrIndex);
     }
-  } else if (typeof collection === 'object') {
+  } else if (collection && typeof collection === 'object') {
     for (let property in collection) {
       propertyList.push(property);
     }
@@ -274,7 +274,7 @@ class TafCategory extends Component {
   }
 
   saveTaf (tafDATAJSON) {
-        const nullPointers = [];
+    const nullPointers = [];
     getJsonPointers(tafDATAJSON, (field) => field === null, nullPointers);
     // TODO: Should this be really necessary?
     // Remove null's and empty fields -- BackEnd doesn't handle them nicely
@@ -366,7 +366,7 @@ class TafCategory extends Component {
    * @return {string} A readable presentation of the phenomenon value
    */
   serializeWindObjectValue (value) {
-    if (typeof value === 'object' && value.hasOwnProperty('direction') &&
+    if (value && typeof value === 'object' && value.hasOwnProperty('direction') &&
         (typeof value.direction === 'number' || (typeof value.direction === 'string' && value.direction === 'VRB')) &&
         value.hasOwnProperty('speed') && typeof value.speed === 'number') {
       return jsonToTacForWind(value);
@@ -381,7 +381,7 @@ class TafCategory extends Component {
    * @return {string} A readable presentation of the phenomenon value
    */
   serializeCloudsArray (value) {
-    if (Array.isArray(value) && value.length > 0 && typeof value[0] === 'object' && value[0].hasOwnProperty('amount') && typeof value[0].amount === 'string') {
+    if (Array.isArray(value) && value.length > 0 && value[0] && typeof value[0] === 'object' && value[0].hasOwnProperty('amount') && typeof value[0].amount === 'string') {
       return value.map((cloud, index) => {
         return jsonToTacForClouds(cloud);
       }).join(', ');
@@ -396,7 +396,7 @@ class TafCategory extends Component {
    * @return {string} A readable presentation of the phenomenon value
    */
   serializeWeatherArray (value) {
-    if (Array.isArray(value) && value.length > 0 && typeof value[0] === 'object' &&
+    if (Array.isArray(value) && value.length > 0 && value[0] && typeof value[0] === 'object' &&
         value[0].hasOwnProperty('phenomena') && Array.isArray(value[0].phenomena) && value[0].phenomena.length > 0) {
       return value.map((weather, index) => {
         return jsonToTacForWeather(weather);
@@ -415,7 +415,7 @@ class TafCategory extends Component {
   serializePhenomenonValue (phenomenonType, phenomenonValueObject) {
     switch (getPhenomenonType(phenomenonType)) {
       case PHENOMENON_TYPES.WIND:
-        if (typeof phenomenonValueObject === 'object') {
+        if (phenomenonValueObject && typeof phenomenonValueObject === 'object') {
           return this.serializeWindObjectValue(phenomenonValueObject);
         }
         return null;
@@ -425,7 +425,7 @@ class TafCategory extends Component {
         }
         return null;
       case PHENOMENON_TYPES.VISIBILITY:
-        if (typeof phenomenonValueObject === 'object' && phenomenonValueObject.hasOwnProperty('value') &&
+        if (phenomenonValueObject && typeof phenomenonValueObject === 'object' && phenomenonValueObject.hasOwnProperty('value') &&
           typeof phenomenonValueObject.value === 'number' &&
           !isNaN(phenomenonValueObject.value)) {
           return phenomenonValueObject.value.toString().padStart(4, '0');
@@ -872,24 +872,6 @@ class TafCategory extends Component {
           nextP.taf.metadata.location = defaults.location;
         }
       }
-      const nullPointers = [];
-      getJsonPointers(nextP.taf, (field) => field === null, nullPointers);
-      // TODO: Should this be really necessary?
-      // Remove null's and empty fields -- BackEnd doesn't handle them nicely
-      const nullPointersLength = nullPointers.length;
-      for (let pointerIndex = 0; pointerIndex < nullPointersLength; pointerIndex++) {
-        const pathParts = nullPointers[pointerIndex].split('/');
-        pathParts.shift();
-        removeNestedProperty(nextP.taf, pathParts);
-        clearRecursive(nextP.taf, pathParts);
-      }
-      if (!getNestedProperty(nextP.taf, ['changegroups'])) {
-        setNestedProperty(nextP.taf, ['changegroups'], []);
-      }
-      if (getNestedProperty(nextP.taf, ['metadata', 'issueTime']) === 'not yet issued') {
-        setNestedProperty(nextP.taf, ['metadata', 'issueTime'], moment.utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z');
-      }
-
       this.validateTaf(nextP.taf);
       this.setState({ tafAsObject: nextP.taf });
     }
@@ -963,7 +945,7 @@ class TafCategory extends Component {
             <Col />
             <Col xs='auto'>
               <Button style={{ marginRight: '0.33rem' }} color='primary' onClick={() => {
-                this.saveTaf(this.state.tafAsObject);
+                this.saveTaf(cloneDeep(this.state.tafAsObject));
               }} >Save</Button>
               <Button disabled={!validationSucceeded} onClick={() => { alert('Sending a TAF out is not yet implemented'); }} color='primary'>Send</Button>
             </Col>
