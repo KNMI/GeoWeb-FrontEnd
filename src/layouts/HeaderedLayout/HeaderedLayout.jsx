@@ -1,20 +1,31 @@
 import React, { Component } from 'react';
-import { Row } from 'reactstrap';
-export default class HeaderLayout extends Component {
+import { Col, Row } from 'reactstrap';
+import PropTypes from 'prop-types';
+
+class HeaderedLayout extends Component {
   render () {
     const { route } = this.props;
     const { header } = route;
     return (
-      <div className='innerContainer'>
+      <Col className='headeredLayout'>
         { header
           ? <Row className='Header' tag='header'>
             {React.cloneElement(header, this.props) || 'Oops'}
           </Row>
           : null }
-        <Row className='MainSection'>
+        <Row className='headeredContent'>
           {this.props.children}
         </Row>
-      </div>
+      </Col>
     );
   }
 }
+
+HeaderedLayout.propTypes = {
+  route: PropTypes.shape({
+    footer: PropTypes.element
+  }),
+  children: PropTypes.element
+};
+
+export default HeaderedLayout;

@@ -22,8 +22,6 @@ import TafsContainer from '../containers/TafsContainer';
 import TriggersContainer from '../containers/TriggersContainer';
 import MapPanel from '../components/MapPanel';
 import LayerManagerPanel from '../components/LayerManagerPanel';
-// TODO: fix fullscreen
-// import SmallLayerManagerPanel from '../components/SmallLayerManagerPanel';
 
 import AppManagementPanel from '../components/Management/AppManagementPanel';
 import ProductsManagementPanel from '../components/Management/ProductsManagementPanel';
@@ -139,31 +137,29 @@ export const createRoutes = (store) => {
   const sigmanPanel = SigmetManagementPanel;
   const sigparmanPanel = connect((state) => ({ urls: state.urls }))(SigmetParameterManagementPanel);
   const locmanPanel = connect((state) => ({ urls: state.urls }))(LocationManagementPanel);
-  const manPanel = React.createElement(ManagementPanel);
+  const manPanel = ManagementPanel;
   return (
     /* Default route */
     <Route path='/' component={BaseLayout} title='GeoWeb'>
       <Route component={HeaderedLayout} header={header}>
-        {/* Here all routes with a header */}
-        {/* TODO: Wrapping with empty sidebarredlayout should not be necessary */}
-        <Route component={SidebarredLayout} >
-          <Route component={FooteredLayout} contextComponent={layerManager}>
-            <Route component={SidebarredLayout} leftSidebar={leftSidebar} rightSidebar={rightSidebar}>
-              <IndexRoute component={map} />
-            </Route>
+        <Route component={FooteredLayout} footer={layerManager}>
+          <Route component={SidebarredLayout} leftSidebar={leftSidebar} rightSidebar={rightSidebar}>
+            <IndexRoute component={map} />
           </Route>
         </Route>
         <Route path='products' title='Products'>
           {/* Here all product routes */}
-          <Route component={SidebarredLayout} secondLeftSidebar={products} leftSidebar={leftSidebar} rightSidebar={rightSidebar}>
-            <Route component={FooteredLayout} contextComponent={layerManager} >
+          <Route component={FooteredLayout} footer={layerManager} >
+            <Route component={SidebarredLayout} secondLeftSidebar={products} leftSidebar={leftSidebar} rightSidebar={rightSidebar}>
               <IndexRoute component={map} />
             </Route>
           </Route>
           <Route path='sigmets' title='SIGMETs'>
-            <Route component={SidebarredLayout} secondLeftSidebar={sigmet} leftSidebar={leftSidebar} rightSidebar={rightSidebar}>
-              <Route component={FooteredLayout} contextComponent={layerManager} >
-                <IndexRoute component={map} />
+            <Route component={SidebarredLayout} secondLeftSidebar={sigmet} leftSidebar={leftSidebar}>
+              <Route component={FooteredLayout} footer={layerManager} >
+                <Route component={SidebarredLayout} rightSidebar={rightSidebar}>
+                  <IndexRoute component={map} />
+                </Route>
               </Route>
             </Route>
           </Route>
@@ -177,9 +173,11 @@ export const createRoutes = (store) => {
 
         </Route>
         <Route path='monitoring_and_triggers' title='Monitoring & Triggers'>
-          <Route component={SidebarredLayout} secondLeftSidebar={trigger} leftSidebar={leftSidebar} rightSidebar={rightSidebar}>
-            <Route component={FooteredLayout} contextComponent={layerManager} >
-              <IndexRoute component={map} />
+          <Route component={SidebarredLayout} secondLeftSidebar={trigger} leftSidebar={leftSidebar}>
+            <Route component={FooteredLayout} footer={layerManager} >
+              <Route component={SidebarredLayout} rightSidebar={rightSidebar}>
+                <IndexRoute component={map} />
+              </Route>
             </Route>
           </Route>
         </Route>
@@ -256,12 +254,8 @@ export const createRoutes = (store) => {
         </Route>
       </Route>
       <Route path='full_screen' title='Full Screen'>
-        <Route component={HeaderedLayout}>
-          <Route component={SidebarredLayout}>
-            <Route component={FooteredLayout} contextComponent={layerManager} >
-              <IndexRoute component={map} />
-            </Route>
-          </Route>
+        <Route component={FooteredLayout} footer={layerManager} >
+          <IndexRoute component={map} />
         </Route>
       </Route>
       <Route path='*' title='Not found'>

@@ -274,6 +274,24 @@ class TafCategory extends Component {
   }
 
   saveTaf (tafDATAJSON) {
+        const nullPointers = [];
+    getJsonPointers(tafDATAJSON, (field) => field === null, nullPointers);
+    // TODO: Should this be really necessary?
+    // Remove null's and empty fields -- BackEnd doesn't handle them nicely
+    const nullPointersLength = nullPointers.length;
+    for (let pointerIndex = 0; pointerIndex < nullPointersLength; pointerIndex++) {
+      const pathParts = nullPointers[pointerIndex].split('/');
+      pathParts.shift();
+      removeNestedProperty(tafDATAJSON, pathParts);
+      clearRecursive(tafDATAJSON, pathParts);
+    }
+    if (!getNestedProperty(tafDATAJSON, ['changegroups'])) {
+      setNestedProperty(tafDATAJSON, ['changegroups'], []);
+    }
+    if (getNestedProperty(tafDATAJSON, ['metadata', 'issueTime']) === 'not yet issued') {
+      setNestedProperty(tafDATAJSON, ['metadata', 'issueTime'], moment.utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z');
+    }
+
     axios({
       method: 'post',
       url: this.props.urls.BACKEND_SERVER_URL + '/tafs',
@@ -445,7 +463,7 @@ class TafCategory extends Component {
     const scheduleSeries = [];
     const scopeStart = moment.utc(tafDataAsJson.metadata.validityStart);
     const scopeEnd = moment.utc(tafDataAsJson.metadata.validityEnd);
-    Object.entries(tafDataAsJson.forecast).map((entry) => {
+    Object.entries(tafDataAsJson.forecast || {}).map((entry) => {
       const value = this.serializePhenomenonValue(entry[0], entry[1], null);
       if (value !== null) {
         scheduleSeries.push({
@@ -478,6 +496,11 @@ class TafCategory extends Component {
           ? moment.utc(change.changeEnd)
           : fallbackValue);
       if (!end.isAfter(start)) {
+        return;
+      }
+
+      // What to do in this case?
+      if (!change.forecast) {
         return;
       }
 
@@ -610,7 +633,7 @@ class TafCategory extends Component {
       }
       if (event.target.name.endsWith('removable')) {
         const nameParts = event.target.name.split('-');
-        if (nameParts.length > 1 && nameParts[1] > 0) {
+        if (nameParts.length > 1 && nameParts[1] >= 0) {
           this.removeRow(parseInt(nameParts[1]));
         }
         event.preventDefault();
@@ -806,6 +829,10 @@ class TafCategory extends Component {
     if (rowIndex !== null && typeof rowIndex === 'number') {
       const newTafState = cloneDeep(this.state.tafAsObject);
       newTafState.changegroups.splice(rowIndex, 1);
+      if (newTafState.changegroups.length === 0) {
+        // Prepend empty TAF row as to clear it rather than deleting
+        newTafState.changegroups.unshift(TAF_TEMPLATES.CHANGE_GROUP);
+      }
       this.validateTaf(newTafState);
       this.setState({
         tafAsObject: newTafState,
@@ -845,6 +872,24 @@ class TafCategory extends Component {
           nextP.taf.metadata.location = defaults.location;
         }
       }
+      const nullPointers = [];
+      getJsonPointers(nextP.taf, (field) => field === null, nullPointers);
+      // TODO: Should this be really necessary?
+      // Remove null's and empty fields -- BackEnd doesn't handle them nicely
+      const nullPointersLength = nullPointers.length;
+      for (let pointerIndex = 0; pointerIndex < nullPointersLength; pointerIndex++) {
+        const pathParts = nullPointers[pointerIndex].split('/');
+        pathParts.shift();
+        removeNestedProperty(nextP.taf, pathParts);
+        clearRecursive(nextP.taf, pathParts);
+      }
+      if (!getNestedProperty(nextP.taf, ['changegroups'])) {
+        setNestedProperty(nextP.taf, ['changegroups'], []);
+      }
+      if (getNestedProperty(nextP.taf, ['metadata', 'issueTime']) === 'not yet issued') {
+        setNestedProperty(nextP.taf, ['metadata', 'issueTime'], moment.utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z');
+      }
+
       this.validateTaf(nextP.taf);
       this.setState({ tafAsObject: nextP.taf });
     }

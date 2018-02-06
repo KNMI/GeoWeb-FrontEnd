@@ -124,8 +124,10 @@ class Panel extends PureComponent {
       </DropdownToggle>
       <DropdownMenu>
         {
-          ['ADAGUC', 'TIMESERIES', 'PROGTEMP'].map((type) =>
-            <DropdownItem style={{ textTransform: 'capitalize' }} onClick={(e) => { dispatch(panelsActions.setPanelType({ type, mapId })); }} >{type.toLowerCase()}</DropdownItem>)
+          ['ADAGUC', 'TIMESERIES', 'PROGTEMP'].map((type) => {
+            return (<DropdownItem key={`panelType-${type}`} style={{ textTransform: 'capitalize' }}
+              onClick={(e) => { dispatch(panelsActions.setPanelType({ type, mapId })); }} >{type.toLowerCase()}</DropdownItem>);
+          })
         }
       </DropdownMenu>
     </ButtonDropdown>);

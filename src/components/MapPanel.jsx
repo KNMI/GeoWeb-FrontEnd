@@ -146,7 +146,7 @@ class MapPanel extends PureComponent {
     switch (panelsProperties.panelLayout) {
       case 'dual':
         return (
-          <Row style={{ flex: 1 }}>
+          <Row tag='main'>
             <Col xs='6'>
               <SinglePanel mapId={0} {...this.props} referenceTime={this.state.referenceTime} progtempLocations={this.progtempLocations} model={this.state.model} />
             </Col>
@@ -157,7 +157,7 @@ class MapPanel extends PureComponent {
         );
       case 'quaduneven':
         return (
-          <Row style={{ flex: 1 }}>
+          <Row tag='main'>
             <Col xs='6'>
               <SinglePanel mapId={0} {...this.props} referenceTime={this.state.referenceTime} progtempLocations={this.progtempLocations} model={this.state.model} />
             </Col>
@@ -176,7 +176,7 @@ class MapPanel extends PureComponent {
         );
       case 'tripleuneven':
         return (
-          <Row style={{ flex: 1 }}>
+          <Row tag='main'>
             <Col xs='6'>
               <SinglePanel mapId={0} {...this.props} referenceTime={this.state.referenceTime} progtempLocations={this.progtempLocations} model={this.state.model} />
             </Col>
@@ -192,7 +192,7 @@ class MapPanel extends PureComponent {
         );
       case 'triplecolumn':
         return (
-          <Row style={{ flex: 1 }}>
+          <Row tag='main'>
             <Col xs='6'>
               <SinglePanel mapId={0} {...this.props} referenceTime={this.state.referenceTime} progtempLocations={this.progtempLocations} model={this.state.model} />
             </Col>
@@ -208,7 +208,7 @@ class MapPanel extends PureComponent {
         );
       case 'quad':
         return (
-          <Row style={{ flex: 1 }}>
+          <Row tag='main'>
             <Col xs='6' style={{ flexDirection: 'column' }}>
               <Row style={{ flex: 1 }}>
                 <SinglePanel mapId={0} {...this.props} referenceTime={this.state.referenceTime} progtempLocations={this.progtempLocations} model={this.state.model} />
@@ -229,7 +229,7 @@ class MapPanel extends PureComponent {
         );
 
       case 'quadcol':
-        return (<Row style={{ flex: 1 }}>
+        return (<Row tag='main'>
           <Col xs='6'>
             <Col xs='6'>
               <SinglePanel mapId={0} {...this.props} referenceTime={this.state.referenceTime} progtempLocations={this.progtempLocations} model={this.state.model} />
@@ -250,7 +250,7 @@ class MapPanel extends PureComponent {
       case 'single':
       default:
         return (
-          <Row style={{ flex: 1 }}>
+          <Row tag='main'>
             <Col xs='12'>
               <SinglePanel mapId={0} {...this.props} referenceTime={this.state.referenceTime} progtempLocations={this.progtempLocations} model={this.state.model} />
             </Col>

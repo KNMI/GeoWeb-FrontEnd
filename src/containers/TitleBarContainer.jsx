@@ -3,14 +3,13 @@ import { Icon } from 'react-fa';
 import GeoWebLogo from '../components/assets/icon.svg';
 import { CheckIfUserHasRole } from '../utils/user';
 import { SaveURLPreset } from '../utils/URLPresets';
-import PromiseWithTimout from '../utils/PromiseWithTimout';
 import { UserRoles } from '../constants/userroles';
 import { BOUNDING_BOXES } from '../constants/bounding_boxes';
 import { PROJECTIONS } from '../constants/projections';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import axios from 'axios';
 import uuidV4 from 'uuid/v4';
-import { Alert, Navbar, NavbarBrand, Row, Col, Nav, NavLink, Breadcrumb, BreadcrumbItem, Collapse, Popover, Form, FormGroup, Label, ListGroup, ListGroupItem, PopoverContent,
+import { Alert, Navbar, NavbarBrand, Row, Col, Nav, NavLink, Breadcrumb, BreadcrumbItem, Collapse, Popover, Label, ListGroup, ListGroupItem, PopoverContent,
   PopoverTitle, ButtonGroup, InputGroupButton, Modal, ModalHeader, ModalBody, ModalFooter, Button, InputGroup, Input, FormText } from 'reactstrap';
 import { AvForm, AvRadioGroup, AvRadio, AvField, AvGroup } from 'availity-reactstrap-validation';
 import { Link, hashHistory } from 'react-router';
@@ -403,7 +402,7 @@ class TitleBarContainer extends PureComponent {
       url: window.location.href,
       config: { ...require('config'), backend_url: urls.BACKEND_SERVER_URL },
       userAgent: navigator.userAgent,
-      descriptions: {...formValues},
+      descriptions: { ...formValues },
       latestLogs: myLogs.slice(Math.max(0, numLogs - 100)).reverse()
     };
     axios({
@@ -563,7 +562,6 @@ class TitleBarContainer extends PureComponent {
     };
     return dataToSend;
   }
-
 
   savePreset (presetName) {
     // Save all by default now
