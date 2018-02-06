@@ -26,6 +26,6 @@ describe('(Component) LayerManager', () => {
     const maplayers = _component.children().get(2).props.data;
     expect(overlays).to.have.lengthOf(1);
     expect(datalayers).to.have.lengthOf(1);
-    expect(maplayers).to.have.lengthOf(0);
+    expect(maplayers).to.have.lengthOf(1);
   });
 });
