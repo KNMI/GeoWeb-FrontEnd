@@ -150,7 +150,6 @@ export default class Layer extends PureComponent {
       case 'overlays':
         return <Col><ConcreteCell color={color}>{layer.title}</ConcreteCell></Col>
       case 'maplayers':
-        console.log(layer);
         return <Col><EditableCell color={color}>{layer.title}</EditableCell></Col>
     }
   }

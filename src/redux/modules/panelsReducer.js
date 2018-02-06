@@ -4,10 +4,9 @@ import cloneDeep from 'lodash.clonedeep';
 const ADD_LAYER = 'ADD_LAYER';
 const ADD_OVERLAY_LAYER = 'ADD_OVERLAY_LAYER';
 const DELETE_LAYER = 'DELETE_LAYER';
-const SET_PRESET = 'SET_PRESET';
+const SET_PRESET_LAYERS = 'SET_PRESET_LAYERS';
 const REPLACE_LAYER = 'REPLACE_LAYER';
 const MOVE_LAYER = 'MOVE_LAYER';
-const SET_WMJSLAYERS = 'SET_WMJSLAYERS';
 const SET_PANEL_TYPE = 'SET_PANEL_TYPE';
 const SET_ACTIVE_LAYER = 'SET_ACTIVE_LAYER';
 const SET_ACTIVE_PANEL = 'SET_ACTIVE_PANEL';
@@ -17,7 +16,7 @@ const addLayer = createAction(ADD_LAYER);
 const setActiveLayer = createAction(SET_ACTIVE_LAYER);
 const addOverlaysLayer = createAction(ADD_OVERLAY_LAYER);
 const deleteLayer = createAction(DELETE_LAYER);
-const setPreset = createAction(SET_PRESET);
+const setPresetLayers = createAction(SET_PRESET_LAYERS);
 const replaceLayer = createAction(REPLACE_LAYER);
 const moveLayer = createAction(MOVE_LAYER);
 const setPanelType = createAction(SET_PANEL_TYPE);
@@ -72,7 +71,7 @@ export const actions = {
   replaceLayer,
   moveLayer,
   setActiveLayer,
-  setPreset,
+  setPresetLayers,
   setPanelType,
   setActivePanel,
   setPanelLayout
@@ -175,36 +174,24 @@ export default handleActions({
     }
     return stateCpy;
   },
-  [SET_PRESET]: (state, { payload }) => {
-    const panels = [
-      {
-        overlays: [],
-        panelsProperties: [],
-        type: 'ADAGUC'
-      },
-      {
-        overlays: [],
-        panelsProperties: [],
-        type: 'PROGTEMP'
-      },
-      {
-        overlays: [],
-        panelsProperties: [],
-        type: 'TIMESERIES'
-      },
-      {
-        overlays: [],
-        panelsProperties: [],
-        type: 'ADAGUC'
+  [SET_PRESET_LAYERS]: (state, { payload }) => {
+    const stateCpy = cloneDeep(state);
+
+    payload.map((panel, i) => {
+      stateCpy.panels[i].layers = [];
+      if (panel) {
+        stateCpy.panels[i].layers = panel.layers.filter((layer) => layer);
+        stateCpy.panels[i].baselayers = [MAP_STYLES[1]].concat(panel.baselayers);
       }
-    ];
-
-    payload.forEach((panel, i) => {
-      panels[i].panelsProperties = panel.filter(layer => layer.overlay === false);
-      panels[i].overlays = panel.filter(layer => layer.overlay === true);
     });
-
-    return { ...state, panels };
+    stateCpy.panels.map((panel) => {
+      if (panel.layers.length > 0) {
+        if (panel.layers.filter((layer) => layer.active).length !== 1) {
+          panel.layers.map((layer, i) => { layer.active = (i === 0); });
+        }
+      }
+    });
+    return stateCpy;
   },
   [SET_ACTIVE_PANEL]: (state, { payload }) => {
     const numPanels = getNumPanels(state.panelLayout);

@@ -740,18 +740,42 @@ class LayoutDropDown extends PureComponent {
       if (thePreset.crs || thePreset.area.crs) {
         dispatch(mapActions.setCut({
           name: 'Custom',
-          bbox: [thePreset.area.left, thePreset.area.bottom, thePreset.area.right, thePreset.area.top],
+          bbox: [thePreset.area.left || 570875, thePreset.area.bottom, thePreset.area.right || 570875, thePreset.area.top],
           projection: { code: thePreset.crs || thePreset.area.crs || 'EPSG:3857', name: 'Mercator' }
         }));
       } else {
-        dispatch(mapActions.setCut({ name: 'Custom', bbox: [thePreset.area.left, thePreset.area.bottom, thePreset.area.right, thePreset.area.top] }));
+        // Default to the netherlands
+        dispatch(mapActions.setCut({ name: 'Custom', bbox: [thePreset.area.left || 570875, thePreset.area.bottom, thePreset.area.right || 570875, thePreset.area.top] }));
       }
     }
     if (thePreset.display) {
-      dispatch(mapActions.setLayout(thePreset.display.type));
+      dispatch(panelsActions.setPanelLayout(thePreset.display.type));
     }
-    if (thePreset.panelsProperties) {
-      dispatch(panelsActions.setPreset(thePreset.panelsProperties));
+    if (thePreset.layers) {
+      const newPanels = [null, null, null, null];
+      const promises = [];
+      thePreset.layers.map((panel, panelIdx) => {
+        newPanels[panelIdx] = { 'layers': new Array(panel.length), 'baselayers': [] };
+        panel.map((layer, i) => {
+          promises.push(new Promise((resolve, reject) => {
+            const wmjsLayer = new WMJSLayer(layer);
+            wmjsLayer.parseLayer((newLayer) => resolve({ layer: newLayer, panelIdx: panelIdx, index: i }));
+          }));
+        });
+      });
+      Promise.all(promises).then((layers) => {
+        layers.map((layerDescription) => {
+          const { layer, panelIdx, index } = layerDescription;
+          // TODO: Better way to figure out apriori if it's and overlay
+          if (layer.WMJSService.title.toLowerCase() === 'overlay') {
+            layer.keepOnTop = true;
+            newPanels[panelIdx].baselayers.push(layer);
+          } else {
+            newPanels[panelIdx].layers[index] = layer;
+          }
+        });
+        dispatch(panelsActions.setPresetLayers(newPanels));
+      });
     }
   }
 
@@ -770,8 +794,6 @@ class LayoutDropDown extends PureComponent {
       }
     });
   }
-
-
 
   makePresetObj (presetName, saveLayers, savePanelLayout, saveBoundingBox, role) {
     const { mapProperties } = this.props;
