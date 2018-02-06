@@ -120,13 +120,15 @@ class MapActionContainer extends PureComponent {
         title: 'Show time series',
         action: 'timeseries',
         icon: 'line-chart',
-        onClick: 'timeseries'
+        onClick: 'timeseries',
+        disabled: !this.props.user || !this.props.user.isLoggedIn
       },
       {
         title: 'Show progtemp',
         action: 'progtemp',
         icon: 'bullseye',
-        onClick: 'progtemp'
+        onClick: 'progtemp',
+        disabled: !this.props.user || !this.props.user.isLoggedIn
       }
     ];
 
