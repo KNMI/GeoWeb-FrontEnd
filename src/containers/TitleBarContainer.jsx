@@ -773,7 +773,7 @@ class LayoutDropDown extends PureComponent {
         layers.map((layerDescription) => {
           const { layer, panelIdx, index } = layerDescription;
           // TODO: Better way to figure out apriori if it's and overlay
-          if (layer.WMJSService.title.toLowerCase() === 'overlay') {
+          if (layer.WMJSService.title ? layer.WMJSService.title.toLowerCase() === 'overlay' : false) {
             layer.keepOnTop = true;
             newPanels[panelIdx].baselayers.push(layer);
           } else {

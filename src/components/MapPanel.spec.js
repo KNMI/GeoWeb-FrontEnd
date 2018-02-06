@@ -3,7 +3,13 @@ import { default as MapPanel } from './MapPanel';
 import { shallow, mount } from 'enzyme';
 import sinon from 'sinon';
 import { Row } from 'reactstrap';
-
+const baselayer = {
+  service: 'http://geoservices.knmi.nl/cgi-bin/bgmaps.cgi?',
+  name: 'streetmap',
+  title: 'OpenStreetMap',
+  format: 'image/gif',
+  enabled: true
+};
 const state = {
   adagucActions: {
     setTimeDimension: () => null
@@ -19,8 +25,6 @@ const state = {
   },
   mapProperties: {
     mapCreated: false,
-    activeMapId: 0,
-    layout: 'single',
     mapMode: 'pan',
     projection: {
       name: 'Mercator',
@@ -61,36 +65,30 @@ const state = {
   },
 
   panelsProperties: {
-    wmjsLayers: [],
-    baselayer: {
-      service: 'http://geoservices.knmi.nl/cgi-bin/bgmaps.cgi?',
-      name: 'streetmap',
-      title: 'OpenStreetMap',
-      format: 'image/gif',
-      enabled: true
-    },
     panels: [
       {
-        overlays: [],
-        panelsProperties: [],
+        baselayers: [baselayer],
+        layers: [],
         type: 'ADAGUC'
       },
       {
-        overlays: [],
-        panelsProperties: [],
+        baselayers: [baselayer],
+        layers: [],
         type: 'PROGTEMP'
       },
       {
-        overlays: [],
-        panelsProperties: [],
+        baselayers: [baselayer],
+        layers: [],
         type: 'TIMESERIES'
       },
       {
-        overlays: [],
-        panelsProperties: [],
+        baselayers: [baselayer],
+        layers: [],
         type: 'ADAGUC'
       }
-    ]
+    ],
+    activePanelId: 0,
+    panelLayout: 'single'
   }
 };
 

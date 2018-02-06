@@ -370,17 +370,24 @@ export default class TimeComponent extends PureComponent {
     this.setNewDate(date);
   }
 
-  // shouldComponentUpdate (nextProps) {
-  //   const currentNumlayers = this.props.wmjslayers.baselayers && this.props.wmjslayers.panelsProperties ? this.props.wmjslayers.baselayers.length + this.props.wmjslayers.panelsProperties.length + 1 : 2;
-  //   const nextNumlayers = nextProps.wmjslayers.baselayers && nextProps.wmjslayers.panelsProperties ? nextProps.wmjslayers.baselayers.length + nextProps.wmjslayers.panelsProperties.length + 1 : 2;
-  //   return this.props.timedim !== nextProps.timedim ||
-  //          this.props.width !== nextProps.width ||
-  //          this.props.height !== nextProps.height ||
-  //          this.props.panel !== nextProps.panel ||
-  //          this.props.wmjslayers !== nextProps.wmjslayers ||
-  //          currentNumlayers !== nextNumlayers ||
-  //          this.props.activeMapId !== nextProps.activeMapId;
-  // }
+  shouldComponentUpdate (nextProps) {
+    const { panel } = this.props;
+    const { layers, baselayers } = panel;
+    const overlays = baselayers.filter((layer) => layer.keepOnTop === true);
+    const currentNumLayers = Math.max(layers.length + overlays.length + 1, 2);
+
+    const nextPanel = nextProps.panel;
+    const nextLayers = nextPanel.layers;
+    const nextOverlays = nextPanel.baselayers.filter((layer) => layer.keepOnTop === true);
+    const nextNumLayers = Math.max(nextLayers.length + nextOverlays.length + 1, 2);
+
+    return this.props.timedim !== nextProps.timedim ||
+           this.props.width !== nextProps.width ||
+           this.props.height !== nextProps.height ||
+           this.props.panel !== nextProps.panel ||
+           currentNumLayers !== nextNumLayers ||
+           this.props.activeMapId !== nextProps.activeMapId;
+  }
 
   /* istanbul ignore next */
   render () {
@@ -393,7 +400,6 @@ export default class TimeComponent extends PureComponent {
 }
 TimeComponent.propTypes = {
   timedim: PropTypes.string,
-  wmjslayers: PropTypes.object,
   dispatch: PropTypes.func,
   actions: PropTypes.object,
   width: PropTypes.number,
@@ -403,5 +409,6 @@ TimeComponent.propTypes = {
   panel: PropTypes.shape({
     panelsProperties: PropTypes.array
   }),
-  panelsActions: PropTypes.object
+  panelsActions: PropTypes.object,
+  activePanelId: PropTypes.number
 };

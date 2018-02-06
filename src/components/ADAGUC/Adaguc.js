@@ -92,9 +92,8 @@ export default class Adaguc extends PureComponent {
   }
 
   initAdaguc (adagucMapRef) {
-    const { mapProperties, adagucProperties, panelsActions, panelsProperties, adagucActions, dispatch, mapId, urls } = this.props;
+    const { mapProperties, panelsProperties, adagucActions, dispatch, mapId, urls } = this.props;
     const { panels } = panelsProperties;
-    const { animationSettings } = adagucProperties;
     const { BACKEND_SERVER_XML2JSON } = urls;
     // Map already created, abort
     if (mapProperties.mapCreated) {
@@ -116,6 +115,7 @@ export default class Adaguc extends PureComponent {
     this.webMapJS.addListener('aftersetbbox', this.updateBBOX, true);
     this.webMapJS.addListener('mouseclicked', e => this.findClosestCursorLoc(e), true);
 
+    // eslint-disable-next-line no-undef
     this.webMapJS.setBaseLayers(panels[mapId].baselayers.map((layer) => new WMJSLayer(layer)));
     // Set the baselayer and possible overlays
     const defaultPersonalURLs = JSON.stringify({ personal_urls: [] });
@@ -367,9 +367,9 @@ export default class Adaguc extends PureComponent {
   }
 
   componentWillUpdate (nextProps) {
-    const { adagucProperties, panelsActions, panelsProperties, active, mapId, dispatch } = this.props;
+    const { adagucProperties, panelsProperties, active, mapId } = this.props;
     const { animationSettings } = adagucProperties;
-    const { panels, activePanelId, panelLayout } = panelsProperties;
+    const { panels, activePanelId } = panelsProperties;
     const activePanel = panels[mapId];
 
     const nextActivePanel = nextProps.panelsProperties.panels[mapId];

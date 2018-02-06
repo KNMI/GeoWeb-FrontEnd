@@ -3,10 +3,13 @@ import Layers from './Layers'
 import { Col, Row } from 'reactstrap';
 export default class LayerManager extends PureComponent {
   render() {
-    const { dispatch, panelsActions, activePanelId } = this.props;
-    const baseLayers = this.props.panel.baselayers.filter((layer) => layer.keepOnTop === false);
-    const overLayers = this.props.panel.baselayers.filter((layer) => layer.keepOnTop === true);
-    const dataLayers = this.props.panel.layers;
+    const { dispatch, panelsActions, activePanelId, panel } = this.props;
+    if (!panel) {
+    	return <Col />
+    }
+    const baseLayers = panel.baselayers.filter((layer) => layer.keepOnTop === false);
+    const overLayers = panel.baselayers.filter((layer) => layer.keepOnTop === true);
+    const dataLayers = panel.layers;
     return (
       <Col xs='auto' className={'LayerManager'} style={{ minWidth: '42rem', flexDirection: 'column' }}>
         <Layers activePanelId={activePanelId} dispatch={dispatch} panelsActions={panelsActions} role='overlays' data={overLayers} color='danger' />

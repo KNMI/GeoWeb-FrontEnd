@@ -128,7 +128,10 @@ export default class Layer extends PureComponent {
     const styles = layer && layer.styles ? layer.styles.map((styleObj) => styleObj.name) : [];
     switch (this.props.role) {
       case 'datalayers':
-        const refTime = layer.getDimension('reference_time');
+      	let refTime = null;
+      	if (typeof layer.getDimension === 'function') {
+        	refTime = layer.getDimension('reference_time');
+        }
         const id = 'datalayer' + index;
         return (<Col>
           {this.renderLayerChanger()}
