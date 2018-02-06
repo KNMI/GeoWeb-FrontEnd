@@ -752,17 +752,25 @@ class LayoutDropDown extends PureComponent {
       dispatch(panelsActions.setPanelLayout(thePreset.display.type));
     }
     if (thePreset.layers) {
+      // This is tricky because all layers need to be restored in the correct order
+      // So first create all panels as null....
       const newPanels = [null, null, null, null];
       const promises = [];
       thePreset.layers.map((panel, panelIdx) => {
+        // Then for each panel initialize it to this object where layers is an empty array with the
+        // length of the layers in the panel, as it needs to be inserted in a certain order. For the baselayers
+        // this is irrelevant because the order of overlays is not relevant
         newPanels[panelIdx] = { 'layers': new Array(panel.length), 'baselayers': [] };
         panel.map((layer, i) => {
+          // Create a Promise for parsing all WMJSlayers because we can only do something when ALL layers have been parsed
           promises.push(new Promise((resolve, reject) => {
             const wmjsLayer = new WMJSLayer(layer);
             wmjsLayer.parseLayer((newLayer) => resolve({ layer: newLayer, panelIdx: panelIdx, index: i }));
           }));
         });
       });
+
+      // Once that happens, insert the layer in the appropriate place in the appropriate panel
       Promise.all(promises).then((layers) => {
         layers.map((layerDescription) => {
           const { layer, panelIdx, index } = layerDescription;
@@ -774,6 +782,8 @@ class LayoutDropDown extends PureComponent {
             newPanels[panelIdx].layers[index] = layer;
           }
         });
+        // Beware: a layer can still contain null values because a layer might have been a null value
+        // also, panels may have had no layers in them
         dispatch(panelsActions.setPresetLayers(newPanels));
       });
     }

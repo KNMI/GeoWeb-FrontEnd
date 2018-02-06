@@ -170,6 +170,7 @@ export default class Adaguc extends PureComponent {
       this.webMapJS.destroy();
     }
     clearInterval(this.interval);
+    this.webMapJS.stopAnimating();
   }
 
   orderChanged (currLayers, prevLayers) {
@@ -291,17 +292,15 @@ export default class Adaguc extends PureComponent {
       const nextActiveLayers = nextDataLayers.filter(layer => layer.active);
       const currActiveLayers = currDataLayers.filter(layer => layer.active);
 
+      let nextActiveLayer, nextActiveWMJSLayer, nextHasRefTime;
       // Encode length of arrays as state as to switch on it.
       const layerState = [nextActiveLayers.length, currActiveLayers.length].join('');
-      let nextActiveLayer, currActiveLayer, nextActiveWMJSLayer, currActiveWMJSLayer, nextHasRefTime, currHasRefTime;
       switch (layerState) {
         // 11 means active layer has possibly switched within this panel, so find the new one
         case '11':
           nextActiveLayer = nextActiveLayers[0];
-          currActiveLayer = currActiveLayers[0];
 
           nextHasRefTime = nextActiveLayer.getDimension('reference_time');
-          currHasRefTime = currActiveLayer.getDimension('reference_time');
 
           // set the respective animation length
           if (nextHasRefTime) {
@@ -369,10 +368,12 @@ export default class Adaguc extends PureComponent {
     const { panels, activePanelId, panelLayout } = panelsProperties;
     const activePanel = panels[mapId];
 
-
     const nextActivePanel = nextProps.panelsProperties.panels[mapId];
     const nextBaseLayers = nextProps.panelsProperties.panels[mapId].baselayers;
     const baseLayers = activePanel.baselayers;
+
+    const currActiveLayers = activePanel.layers.filter((layer) => layer.active);
+    const nextActiveLayers = nextActivePanel.layers.filter((layer) => layer.active);
 
     if (activePanelId !== nextProps.panelsProperties.activePanelId) {
       this.updateAnimationActiveLayerChange(activePanel.layers, nextActivePanel.layers, nextProps.active);
@@ -380,7 +381,9 @@ export default class Adaguc extends PureComponent {
     const layersChanged = this.updateLayers(activePanel.layers, nextActivePanel.layers, nextProps.active);
     const baseChanged = this.updateBaselayers(baseLayers, nextBaseLayers);
     // Update animation -- animate iff animate is set and the panel is active.
-    if (nextProps.adagucProperties.animationSettings !== animationSettings) {
+    if (nextProps.adagucProperties.animationSettings !== animationSettings ||
+        activePanelId !== nextProps.panelsProperties.activePanelId ||
+        (currActiveLayers.length === 1 && nextActiveLayers.length === 1 && currActiveLayers[0] !== nextActiveLayers[0])) {
       this.onChangeAnimation(nextProps.adagucProperties.animationSettings, nextProps.active);
     }
 
@@ -415,21 +418,23 @@ export default class Adaguc extends PureComponent {
   onChangeAnimation (animationSettings, active) {
     const { dispatch, adagucActions } = this.props;
     const shouldAnimate = animationSettings.animate && active;
-    const dispatchTime = (layer) => {
-      dispatch(adagucActions.setTimeDimension(layer.getDimension('time').currentValue));
+    const dispatchTime = (map) => {
+      dispatch(adagucActions.setTimeDimension(map.getDimension('time').currentValue));
     };
     this.webMapJS.stopAnimating();
-    if (shouldAnimate) {
-      if (!this.state.layersChangedListenerInitialized) {
-        this.webMapJS.addListener('onnextanimationstep', dispatchTime, true);
-        this.setState({ layersChangedListenerInitialized: true });
+    if (active) {
+      if (shouldAnimate) {
+        if (!this.state.layersChangedListenerInitialized) {
+          this.webMapJS.addListener('onnextanimationstep', dispatchTime, true);
+          this.setState({ layersChangedListenerInitialized: true });
+        }
+        this.webMapJS.drawLastTimes(animationSettings.duration, 'hours');
+      } else {
+        this.webMapJS.removeListener('onnextanimationstep', dispatchTime);
+        this.setState({ layersChangedListenerInitialized: false });
       }
-      this.webMapJS.drawLastTimes(animationSettings.duration, 'hours');
-    } else {
-      this.webMapJS.removeListener('onnextanimationstep', dispatchTime);
-      this.setState({ layersChangedListenerInitialized: false });
+      this.webMapJS.draw('385');
     }
-    this.webMapJS.draw('385');
   }
   toggleView () {
     this.setState({
