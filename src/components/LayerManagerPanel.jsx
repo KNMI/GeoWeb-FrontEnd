@@ -20,6 +20,7 @@ class LayerManagerPanel extends Component {
     this.renderLayerChooser = this.renderLayerChooser.bind(this);
     this.toggleLayerChooser = this.toggleLayerChooser.bind(this);
     this.handleAddLayer = this.handleAddLayer.bind(this);
+    this.resetLayers = this.resetLayers.bind(this);
     this.handleButtonClickNextPrev = this.handleButtonClickNextPrev.bind(this);
     this.handleDurationUpdate = this.handleDurationUpdate.bind(this);
     this.goToNow = this.goToNow.bind(this);
@@ -98,6 +99,7 @@ class LayerManagerPanel extends Component {
   handleAddLayer (addItem) {
     const { dispatch, panelsActions, panelsProperties } = this.props;
     if (this.state.activeSource.goal !== 'OVERLAY') {
+      // eslint-disable-next-line no-undef
       new WMJSLayer({
         service: this.state.activeSource.service,
         title: this.state.activeSource.title,
@@ -113,6 +115,7 @@ class LayerManagerPanel extends Component {
         }));
       });
     } else {
+      // eslint-disable-next-line no-undef
       new WMJSLayer({
         service: this.state.activeSource.service,
         title: this.state.activeSource.title,
@@ -329,10 +332,36 @@ class LayerManagerPanel extends Component {
     }
   }
 
+  resetLayers () {
+    const { dispatch, panelsActions, adagucProperties, panelsProperties } = this.props;
+    const { sources } = adagucProperties;
+    const { activePanelId } = panelsProperties;
+    // This call removes all data layers and all baselayers
+    // except the default map
+    dispatch(panelsActions.resetLayers());
+
+    // Re-add the countries overlay
+    const source = GetServiceByName(sources, 'OVL');
+    // eslint-disable-next-line no-undef
+    new WMJSLayer({
+      service: source,
+      title: 'OVL_EXT',
+      name: 'countries',
+      label: 'Countries',
+      keepOnTop: true
+    }).parseLayer((layerObj) => {
+      dispatch(panelsActions.addOverlaysLayer({
+        panelId: activePanelId,
+        layer: layerObj
+      }));
+    });
+  }
+
   render () {
     const { title, dispatch, adagucProperties, panelsProperties, mapProperties, adagucActions } = this.props;
     const { sources, animationSettings } = adagucProperties;
     const { panels, activePanelId } = panelsProperties;
+    const currentPanel = panels[activePanelId];
     const isFullScreen = hashHistory.getCurrentLocation().pathname === '/full_screen';
     return (
       <Panel title={title} className='LayerManagerPanel'>
@@ -389,12 +418,18 @@ class LayerManagerPanel extends Component {
           </Col>
           <Col xs='auto' style={{ flexDirection: 'column-reverse', marginLeft: '.66rem' }}>
             {this.state.showControls
-              ? <Row>
+              ? <Row style={{ flexDirection: 'inherit' }}>
                 <Col />
                 <Col xs='auto'>
                   <Button disabled={Array.isArray(sources) || Object.keys(sources).length === 0} onClick={this.toggleLayerChooser}
                     color='primary' title='Add layers'>
                     <Icon name='plus' />
+                  </Button>
+                </Col>
+                <Col xs='auto' style={{ marginBottom: '0.33rem' }}>
+                  <Button disabled={!currentPanel || currentPanel.baselayers.length < 2 || currentPanel.layers.length === 0} onClick={this.resetLayers}
+                    color='primary' title='Remove all layers'>
+                    <Icon name='trash' />
                   </Button>
                 </Col>
               </Row>

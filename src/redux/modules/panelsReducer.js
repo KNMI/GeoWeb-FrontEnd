@@ -11,6 +11,7 @@ const SET_PANEL_TYPE = 'SET_PANEL_TYPE';
 const SET_ACTIVE_LAYER = 'SET_ACTIVE_LAYER';
 const SET_ACTIVE_PANEL = 'SET_ACTIVE_PANEL';
 const SET_PANEL_LAYOUT = 'SET_PANEL_LAYOUT';
+const RESET_LAYERS = 'RESET_LAYERS';
 
 const addLayer = createAction(ADD_LAYER);
 const setActiveLayer = createAction(SET_ACTIVE_LAYER);
@@ -22,6 +23,7 @@ const moveLayer = createAction(MOVE_LAYER);
 const setPanelType = createAction(SET_PANEL_TYPE);
 const setActivePanel = createAction(SET_ACTIVE_PANEL);
 const setPanelLayout = createAction(SET_PANEL_LAYOUT);
+const resetLayers = createAction(RESET_LAYERS);
 
 const getNumPanels = (name) => {
   let numPanels = 0;
@@ -74,10 +76,20 @@ export const actions = {
   setPresetLayers,
   setPanelType,
   setActivePanel,
-  setPanelLayout
+  setPanelLayout,
+  resetLayers
 };
 
 export default handleActions({
+  [RESET_LAYERS]: (state) => {
+    const stateCpy = cloneDeep(state);
+    stateCpy.panels[state.activePanelId] = {
+      baselayers: [MAP_STYLES[1]],
+      layers: [],
+      type: 'ADAGUC'
+    };
+    return stateCpy;
+  },
   [SET_ACTIVE_LAYER]: (state, { payload }) => {
     const stateCpy = cloneDeep(state);
     stateCpy.panels[payload.activePanelId].layers.map((layer, i) => {
