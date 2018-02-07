@@ -128,9 +128,9 @@ export default class Layer extends PureComponent {
     const styles = layer && layer.styles ? layer.styles.map((styleObj) => styleObj.name) : [];
     switch (this.props.role) {
       case 'datalayers':
-      	let refTime = null;
-      	if (typeof layer.getDimension === 'function') {
-        	refTime = layer.getDimension('reference_time');
+        let refTime = null;
+        if (typeof layer.getDimension === 'function') {
+          refTime = layer.getDimension('reference_time');
         }
         const id = 'datalayer' + index;
         return (<Col>
@@ -139,27 +139,27 @@ export default class Layer extends PureComponent {
           {this.renderOpacityChanger()}
           <ConcreteCell active={layer.active} color={color}>{layer.WMJSService.title}</ConcreteCell>
           <EditableCell id={'layer'+id} onClick={(e) => {
-          	e.preventDefault();
-          	e.stopPropagation();
+            e.preventDefault();
+            e.stopPropagation();
             layer.WMJSService.getLayerObjectsFlat((layers) => {
               this.setState({ layerChangerOpen: true, target: 'layer'+id, serviceLayers: layers });
             });
           }} active={layer.active} color={color}>{layer.title}</EditableCell>
           <EditableCell id={'style'+id} onClick={(e) => {
-          	e.preventDefault();
-          	e.stopPropagation();
+            e.preventDefault();
+            e.stopPropagation();
             this.setState({ styleChangerOpen: true, target: 'style'+id, serviceStyles: styles });
           }} active={layer.active} color={color}>{layer.currentStyle}</EditableCell>
           <EditableCell id={'opacity'+id} onClick={(e) => {
-          	e.preventDefault();
-          	e.stopPropagation();
+            e.preventDefault();
+            e.stopPropagation();
             this.setState({ opacityChangerOpen: true, target: 'opacity'+id });
           }} active={layer.active} color={color}>{parseInt(layer.opacity * 100) + '%'}</EditableCell>
           <ConcreteCell active={layer.active} color={color}>{refTime ? refTime.currentValue : null}</ConcreteCell></Col>);
       case 'overlays':
-        return <Col><ConcreteCell color={color}>{layer.title}</ConcreteCell></Col>
+        return <Col><ConcreteCell color={color}>{layer.title}</ConcreteCell></Col>;
       case 'maplayers':
-        return <Col><EditableCell color={color}>{layer.title}</EditableCell></Col>
+        return <Col><EditableCell color={color}>{layer.title}</EditableCell></Col>;
     }
   }
 }
@@ -171,6 +171,8 @@ export const SortableLayer = SortableElement(({ role, color, layer, layerIndex, 
       <Layer dispatch={dispatch} panelsActions={panelsActions} activePanelId={activePanelId}
         role={role} color={color} layer={layer} index={layerIndex} />
       <DragHandle />
-      <LayerModifier activePanelId={activePanelId} dispatch={dispatch} role={role} panelsActions={panelsActions} layer={layer} index={layerIndex} />
+      { role !== 'maplayers'
+        ? <LayerModifier activePanelId={activePanelId} dispatch={dispatch} role={role} panelsActions={panelsActions} layer={layer} index={layerIndex} />
+        : <Col xs='auto' style={{ marginRight: '2.125rem' }} />}
     </Row>);
 });

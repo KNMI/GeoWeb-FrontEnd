@@ -1,7 +1,8 @@
 import createStore from './createStore';
 import { MAP_STYLES } from '../constants/map_styles';
 import { BOUNDING_BOXES } from '../constants/bounding_boxes';
-import { WEBSERVER_URL } from '../static/urls.json';
+import { BACKEND_SERVER_URL } from '../static/urls.json';
+import { GetServiceByNamePromise } from '../utils/getServiceByName';
 var fetchMock = require('fetch-mock');
 
 describe('(Store) createStore', () => {
@@ -11,7 +12,7 @@ describe('(Store) createStore', () => {
       sources: null,
       source: {
         name: 'Harmonie36',
-        service: `${WEBSERVER_URL}/cgi-bin/geoweb/adaguc.Harmonie36.cgi?`,
+        service: `${BACKEND_SERVER_URL}/cgi-bin/geoweb/adaguc.Harmonie36.cgi?`,
         title: 'Harmonie36'
       },
       layer: 'precipitation_flux',
@@ -61,8 +62,12 @@ describe('(Store) createStore', () => {
       title: 'hello RightSideBar'
     }
   };
+
   before(() => {
     fetchMock.get('*', { BACKEND_SERVER_URL: 'http://localhost:8080' });
+    GetServiceByNamePromise(BACKEND_SERVER_URL, 'Harmonie36').then((service) => {
+      initialState.adagucProperties.source.service = service;
+    });
   });
   after(() => {
     fetchMock.restore();

@@ -9,17 +9,17 @@ export default class LayerModifier extends PureComponent {
     this.deleteLayer = this.deleteLayer.bind(this);
   }
   toggleEnabled (e) {
-  	e.preventDefault();
-  	e.stopPropagation();
+    e.preventDefault();
+    e.stopPropagation();
     const { layer, dispatch, panelsActions, index, activePanelId } = this.props;
     const layerCpy = cloneDeep(layer);
     layerCpy.enabled = !layer.enabled;
     dispatch(panelsActions.replaceLayer({ mapId: activePanelId, index: index, layer: layerCpy  }));
   }
   deleteLayer (e) {
-  	e.preventDefault();
-  	e.stopPropagation();
-    const { layer, dispatch, panelsActions, index, role } = this.props;
+    e.preventDefault();
+    e.stopPropagation();
+    const { role, dispatch, panelsActions, index } = this.props;
     if (role === 'datalayers') {
       dispatch(panelsActions.deleteLayer({ idx: index, type: 'data' }));
     } else {

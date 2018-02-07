@@ -55,7 +55,8 @@ const mapDispatchToHeaderProps = function (dispatch) {
 };
 const mapStateToSidebarProps = state => ({
   recentTriggers: state.recentTriggers,
-  urls: state.urls
+  urls: state.urls,
+  user: state.userProperties
 });
 
 const mapStateToRightSideBarProps = state => ({
@@ -111,9 +112,16 @@ const mapStateToLayerManagerProps = state => ({
   adagucProperties: state.adagucProperties,
   panelsProperties: state.panelsProperties,
   mapProperties: state.mapProperties,
-  drawProperties: state.drawProperties
+  drawProperties: state.drawProperties,
+  urls: state.urls
 });
-
+const mapStateToProductsContainerProps = state => ({
+  adagucProperties: state.adagucProperties,
+  panelsProperties: state.panelsProperties,
+  mapProperties: state.mapProperties,
+  drawProperties: state.drawProperties,
+  user: state.userProperties
+});
 // TODO: research this; http://henleyedition.com/implicit-code-splitting-with-react-router-and-webpack/
 export const createRoutes = (store) => {
   const header = React.createElement(connect(mapStateToHeaderProps, mapDispatchToHeaderProps)(TitleBarContainer));
@@ -121,7 +129,7 @@ export const createRoutes = (store) => {
   const rightSidebar = React.createElement(connect(mapStateToRightSideBarProps, mapDispatchToRightSidebarProps)(MapActionsContainer));
   const map = connect(mapStateToMapProps, mapDispatchToMainViewportProps)(MapPanel);
   const layerManager = React.createElement(connect(mapStateToLayerManagerProps, mapDispatchToLayerManagerProps)(LayerManagerPanel));
-  const products = React.createElement(connect(mapStateToLayerManagerProps, mapDispatchToLayerManagerProps)(ProductsContainer));
+  const products = React.createElement(connect(mapStateToProductsContainerProps, mapDispatchToLayerManagerProps)(ProductsContainer));
   const sigmet = React.createElement(connect((state) => ({
     drawProperties: state.drawProperties, urls: state.urls, sources: state.adagucProperties.sources
   }), mapDispatchToSigmetProps)(SigmetsContainer));
