@@ -140,7 +140,7 @@ export default handleActions({
 
       case 'overlay':
         const { baselayers } = stateCpy.panels[mapId || state.activePanelId];
-        const base = baselayers.filter((layer) => layer.keepOnTop === false);
+        const base = baselayers.filter((layer) => !layer.keepOnTop);
         const overlay = baselayers.filter((layer) => layer.keepOnTop === true);
         overlay.splice(idx, 1);
         stateCpy.panels[mapId || state.activePanelId].baselayers = base.concat(overlay);

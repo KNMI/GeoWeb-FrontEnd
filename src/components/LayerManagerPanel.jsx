@@ -363,6 +363,7 @@ class LayerManagerPanel extends Component {
     const { panels, activePanelId } = panelsProperties;
     const currentPanel = panels[activePanelId];
     const isFullScreen = hashHistory.getCurrentLocation().pathname === '/full_screen';
+
     return (
       <Panel title={title} className='LayerManagerPanel'>
         <Row style={{ flex: 1 }}>
@@ -427,8 +428,8 @@ class LayerManagerPanel extends Component {
                   </Button>
                 </Col>
                 <Col xs='auto' style={{ marginBottom: '0.33rem' }}>
-                  <Button disabled={!currentPanel || currentPanel.baselayers.length < 2 || currentPanel.layers.length === 0} onClick={this.resetLayers}
-                    color='primary' title='Remove all layers'>
+                  <Button disabled={!(currentPanel && ((currentPanel.baselayers.length > 2) || (currentPanel.layers.length > 0)))}
+                    onClick={this.resetLayers} color='primary' title='Remove all layers'>
                     <Icon name='trash' />
                   </Button>
                 </Col>
