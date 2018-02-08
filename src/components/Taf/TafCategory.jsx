@@ -515,23 +515,23 @@ class TafCategory extends Component {
 
           // Correct overlappings
           if (changeType === CHANGE_TYPES.FM || changeType === CHANGE_TYPES.BECMG) {
-            const concurrentTypes = [type];
+            const exclusiveTypes = [type];
             if (type === PHENOMENON_TYPES.CAVOK) {
-              concurrentTypes.push(
+              exclusiveTypes.push(
                 PHENOMENON_TYPES.VISIBILITY,
                 PHENOMENON_TYPES.VERTICAL_VISIBILITY,
                 PHENOMENON_TYPES.CLOUDS
               );
             } else if (type === PHENOMENON_TYPES.VISIBILITY || type === PHENOMENON_TYPES.VERTICAL_VISIBILITY || type === PHENOMENON_TYPES.CLOUDS) {
-              concurrentTypes.push(
+              exclusiveTypes.push(
                 PHENOMENON_TYPES.CAVOK
               );
             }
 
-            concurrentTypes.forEach((type) => {
-              const concSeriesIndex = scheduleSeries.findIndex(serie => serie.label === getPhenomenonLabel(type));
-              if (concSeriesIndex !== -1) {
-                scheduleSeries[concSeriesIndex].ranges.map(range => {
+            exclusiveTypes.forEach((exclusiveType) => {
+              const exclusiveSeriesIndex = scheduleSeries.findIndex(serie => serie.label === getPhenomenonLabel(exclusiveType));
+              if (exclusiveSeriesIndex !== -1) {
+                scheduleSeries[exclusiveSeriesIndex].ranges.map(range => {
                   if (start.isSameOrBefore(range.end) && end.isSameOrAfter(range.start)) {
                     // it does overlap!
                     if (start.isSameOrBefore(range.start)) {
@@ -543,7 +543,8 @@ class TafCategory extends Component {
                         range.end = range.start;
                       }
                       if (changeType === CHANGE_TYPES.BECMG && start.isSame(range.start)) {
-                        value = `${range.value}\u2026 ${this.serializePhenomenonValue(entry[0], entry[1])}`; // \u2026 horizontal ellipsis
+                        const prevValue = type === PHENOMENON_TYPES.CAVOK ? '-' : range.value;
+                        value = `${prevValue}\u2026 ${this.serializePhenomenonValue(entry[0], entry[1])}`; // \u2026 horizontal ellipsis
                       }
                     } else {
                       // there's a remainder at the start
