@@ -762,6 +762,7 @@ class LayoutDropDown extends PureComponent {
         panel.map((layer, i) => {
           // Create a Promise for parsing all WMJSlayers because we can only do something when ALL layers have been parsed
           promises.push(new Promise((resolve, reject) => {
+            // eslint-disable-next-line no-undef
             const wmjsLayer = new WMJSLayer(layer);
             wmjsLayer.parseLayer((newLayer) => resolve({ layer: newLayer, panelIdx: panelIdx, index: i }));
           }));
@@ -834,7 +835,7 @@ class LayoutDropDown extends PureComponent {
         return;
       }
       let panelArr = [];
-      panel.panelsProperties.forEach((layer) => {
+      panel.layers.forEach((layer) => {
         panelArr.push({
           active: true,
           dimensions: {},
@@ -844,14 +845,15 @@ class LayoutDropDown extends PureComponent {
           overlay: false
         });
       });
-      panel.overlays.forEach((layer) => {
+      panel.baselayers.filter((layer) => layer.keepOnTop === true).forEach((layer) => {
         panelArr.push({
           active: true,
           dimensions: {},
           service: layer.service,
           name: layer.name,
           opacity: 1,
-          overlay: true
+          overlay: true,
+          keepOnTop: layer.keepOnTop
         });
       });
       layerConfig.push(panelArr);
@@ -860,7 +862,7 @@ class LayoutDropDown extends PureComponent {
     const dataToSend = {
       area: saveBoundingBox ? bbox : null,
       display: savePanelLayout ? displayObj : null,
-      panelsProperties: saveLayers ? layerConfig : null,
+      layers: saveLayers ? layerConfig : null,
       name: presetName,
       keywords: []
     };
@@ -900,7 +902,7 @@ class LayoutDropDown extends PureComponent {
       {this.renderSharePresetModal(this.state.sharePresetModal, () => { this.setState({ sharePresetModal: !this.state.sharePresetModal }); }, this.state.sharePresetName)}
       <Modal isOpen={this.state.popoverOpen} toggle={togglePreset} style={{ width: '40rem', minWidth: '40rem' }}>
         <ModalHeader>Presets</ModalHeader>
-        <ModalBody>
+        <ModalBody id='layoutmodal'>
           <Row>
             <Col>
               <Row>
@@ -908,25 +910,25 @@ class LayoutDropDown extends PureComponent {
               </Row>
               <Row>
                 <ButtonGroup>
-                  <Button onClick={() => this.postLayout('single')} active={isActive('single')} size='sm' color='primary'>
+                  <Button id='singleLayoutButton' onClick={() => this.postLayout('single')} active={isActive('single')} size='sm' color='primary'>
                     <img className={'panelSelectionImage'} src={require('../static/icons/single.svg')} />
                   </Button>
-                  <Button onClick={() => this.postLayout('dual')} active={isActive('dual')} size='sm' color='primary'>
+                  <Button id='dualLayoutButton' onClick={() => this.postLayout('dual')} active={isActive('dual')} size='sm' color='primary'>
                     <img className={'panelSelectionImage'} src={require('../static/icons/dual_column.svg')} />
                   </Button>
-                  <Button onClick={() => this.postLayout('triplecolumn')} active={isActive('triplecolumn')} size='sm' color='primary'>
+                  <Button id='tripleColumnLayoutButton' onClick={() => this.postLayout('triplecolumn')} active={isActive('triplecolumn')} size='sm' color='primary'>
                     <img className={'panelSelectionImage'} src={require('../static/icons/three_columns.svg')} />
                   </Button>
-                  <Button onClick={() => this.postLayout('tripleuneven')} active={isActive('tripleuneven')} size='sm' color='primary'>
+                  <Button id='tripleUnevenLayoutButton' onClick={() => this.postLayout('tripleuneven')} active={isActive('tripleuneven')} size='sm' color='primary'>
                     <img className={'panelSelectionImage'} src={require('../static/icons/uneven_triple.svg')} />
                   </Button>
-                  <Button onClick={() => this.postLayout('quaduneven')} active={isActive('quaduneven')} size='sm' color='primary'>
+                  <Button id='quadUnevenLayoutButton' onClick={() => this.postLayout('quaduneven')} active={isActive('quaduneven')} size='sm' color='primary'>
                     <img className={'panelSelectionImage'} src={require('../static/icons/uneven_quad.svg')} />
                   </Button>
-                  <Button onClick={() => this.postLayout('quadcol')} active={isActive('quadcol')} size='sm' color='primary'>
+                  <Button id='quadColLayoutButton' onClick={() => this.postLayout('quadcol')} active={isActive('quadcol')} size='sm' color='primary'>
                     <img className={'panelSelectionImage'} src={require('../static/icons/four_columns.svg')} />
                   </Button>
-                  <Button onClick={() => this.postLayout('quad')} active={isActive('quad')} size='sm' color='primary'>
+                  <Button id='quadLayoutButton' onClick={() => this.postLayout('quad')} active={isActive('quad')} size='sm' color='primary'>
                     <img className={'panelSelectionImage'} src={require('../static/icons/square.svg')} />
                   </Button>
                 </ButtonGroup>
