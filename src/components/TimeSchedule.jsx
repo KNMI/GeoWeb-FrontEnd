@@ -130,13 +130,16 @@ class TimeSchedule extends PureComponent {
               let offsetPerc = this.getOffset(marginMajorBasis, startMoment, range.start, minorTickInterval, intervalMinorBasis);
               let durationPerc = this.getDuration(range.start, range.end, minorTickInterval, intervalMinorBasis);
               let arrowClasses = [];
+              let outOfScopeMsg = '';
               if (range.start.isSameOrAfter(range.end)) {
                 arrowClasses.push('bothArrow');
+                outOfScopeMsg = 'Start time is not before End time';
                 durationPerc = intervalMinorBasis;
               }
               // Left out of scope
               if (index > 0 && offsetPerc < marginMajorBasis) {
                 arrowClasses.push('leftArrow');
+                outOfScopeMsg = 'Start time is before Timeline';
                 const newOffsetPerc = marginMajorBasis - intervalMinorBasis;
                 const diffPerc = newOffsetPerc - offsetPerc;
                 offsetPerc = newOffsetPerc;
@@ -149,11 +152,13 @@ class TimeSchedule extends PureComponent {
               const durationLimit = 100 - marginMajorBasis;
               if (offsetPerc > (durationLimit - intervalMinorBasis)) {
                 arrowClasses.push('rightArrow');
+                outOfScopeMsg = 'End time is after Timeline';
                 offsetPerc = durationLimit;
                 durationPerc = intervalMinorBasis;
               }
               if ((offsetPerc + durationPerc) > (durationLimit + intervalMinorBasis)) {
                 arrowClasses.push('rightArrow');
+                outOfScopeMsg = 'End time is after Timeline';
                 durationPerc = durationLimit + intervalMinorBasis - offsetPerc;
               }
               offsetPerc -= cumOffset;
@@ -167,9 +172,10 @@ class TimeSchedule extends PureComponent {
                 classes += ' ' + 'showPrefix';
               }
               const value = (range.hasOwnProperty(STYLES) && range[STYLES].includes('scheduleLabel') && !serie.isLabelVisible) ? '' : range.value;
+              const title = (typeof range.prefix === 'string' ? `${range.prefix}: ${value}` : value) + (outOfScopeMsg.length > 0 ? ` (${outOfScopeMsg})` : '');
               return <Col className={classes} data-prefix={range.prefix}
                 key={serie.label + index} style={{ marginLeft: offsetPerc, flexBasis: durationPerc, maxWidth: durationPerc }}
-                title={typeof range.prefix === 'string' ? `${range.prefix}: ${value}` : value}>
+                title={title}>
                 {value}
               </Col>;
             })}

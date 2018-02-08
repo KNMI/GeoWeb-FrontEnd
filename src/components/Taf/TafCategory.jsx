@@ -3,7 +3,8 @@ import { arrayMove } from 'react-sortable-hoc';
 import PropTypes from 'prop-types';
 import Enum from 'es6-enum';
 import TimeSchedule from '../TimeSchedule';
-import { TAF_TEMPLATES, TAF_TYPES, CHANGE_TYPES, CHANGE_TYPES_ORDER, CHANGE_TYPES_SHORTHAND, getChangeType, PHENOMENON_TYPES, PHENOMENON_TYPES_ORDER, getPhenomenonType } from './TafTemplates';
+import { TAF_TEMPLATES, TAF_TYPES, CHANGE_TYPES, CHANGE_TYPES_ORDER, CHANGE_TYPES_SHORTHAND, getChangeType,
+  PHENOMENON_TYPES, PHENOMENON_TYPES_ORDER, getPhenomenonType, getPhenomenonLabel } from './TafTemplates';
 import cloneDeep from 'lodash.clonedeep';
 import setNestedProperty from 'lodash.set';
 import getNestedProperty from 'lodash.get';
@@ -59,18 +60,18 @@ const clearRecursive = (objectToClear, pathParts) => {
         pathParts.pop();
       }
     }
-  } else if (typeof parent === 'object') {
+  } else if (parent && typeof parent === 'object') {
     Object.entries(parent).forEach(([key, value]) => {
-      if (!value ||
+      if ((!value && value !== 0) ||
           (Array.isArray(value) && value.length === 0) ||
-          (typeof value === 'object' && Object.keys(value).length === 0)) {
+          (value && typeof value === 'object' && Object.keys(value).length === 0)) {
         pathParts.push(key);
         removeNestedProperty(objectToClear, pathParts);
         pathParts.pop();
       }
     });
   }
-  if ((Array.isArray(parent) && parent.length === 0) || (typeof parent === 'object' && Object.keys(parent).length === 0)) {
+  if ((Array.isArray(parent) && parent.length === 0) || (parent && typeof parent === 'object' && Object.keys(parent).length === 0)) {
     removeNestedProperty(objectToClear, pathParts);
     clearRecursive(objectToClear, pathParts);
   };
@@ -92,7 +93,7 @@ const getJsonPointers = (collection, predicate, accumulator, parentName = '') =>
     for (let arrIndex = 0; arrIndex < length; arrIndex++) {
       propertyList.push(arrIndex);
     }
-  } else if (typeof collection === 'object') {
+  } else if (collection && typeof collection === 'object') {
     for (let property in collection) {
       propertyList.push(property);
     }
@@ -266,37 +267,43 @@ class TafCategory extends Component {
       }
     ).catch(error => {
       console.error(error);
-      const aggregateReport = Object.assign(inputParsingReport, { subheading: 'Could not get validation information from the server, thus only local validation results are shown.' });
+      const aggregateReport = {
+        message: 'TAF input is not valid',
+        subheading: '(Couldn\'t retrieve all validation details.)',
+        succeeded: false,
+        errors: inputParsingReport.errors
+      };
       this.setState({
         validationReport: aggregateReport
       });
     });
   }
 
-  saveTaf (tafDATAJSON) {
-        const nullPointers = [];
-    getJsonPointers(tafDATAJSON, (field) => field === null, nullPointers);
+  saveTaf (tafAsObject) {
+    const taf = cloneDeep(tafAsObject);
+    const nullPointers = [];
+    getJsonPointers(taf, (field) => field === null, nullPointers);
     // TODO: Should this be really necessary?
     // Remove null's and empty fields -- BackEnd doesn't handle them nicely
     const nullPointersLength = nullPointers.length;
     for (let pointerIndex = 0; pointerIndex < nullPointersLength; pointerIndex++) {
       const pathParts = nullPointers[pointerIndex].split('/');
       pathParts.shift();
-      removeNestedProperty(tafDATAJSON, pathParts);
-      clearRecursive(tafDATAJSON, pathParts);
+      removeNestedProperty(taf, pathParts);
+      clearRecursive(taf, pathParts);
     }
-    if (!getNestedProperty(tafDATAJSON, ['changegroups'])) {
-      setNestedProperty(tafDATAJSON, ['changegroups'], []);
+    if (!getNestedProperty(taf, ['changegroups'])) {
+      setNestedProperty(taf, ['changegroups'], []);
     }
-    if (getNestedProperty(tafDATAJSON, ['metadata', 'issueTime']) === 'not yet issued') {
-      setNestedProperty(tafDATAJSON, ['metadata', 'issueTime'], moment.utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z');
+    if (getNestedProperty(taf, ['metadata', 'issueTime']) === 'not yet issued') {
+      setNestedProperty(taf, ['metadata', 'issueTime'], moment.utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z');
     }
 
     axios({
       method: 'post',
       url: this.props.urls.BACKEND_SERVER_URL + '/tafs',
       withCredentials: true,
-      data: JSON.stringify(tafDATAJSON),
+      data: JSON.stringify(taf),
       headers: { 'Content-Type': 'application/json' }
     }).then(src => {
       this.setState({ validationReport:src.data });
@@ -366,7 +373,7 @@ class TafCategory extends Component {
    * @return {string} A readable presentation of the phenomenon value
    */
   serializeWindObjectValue (value) {
-    if (typeof value === 'object' && value.hasOwnProperty('direction') &&
+    if (value && typeof value === 'object' && value.hasOwnProperty('direction') &&
         (typeof value.direction === 'number' || (typeof value.direction === 'string' && value.direction === 'VRB')) &&
         value.hasOwnProperty('speed') && typeof value.speed === 'number') {
       return jsonToTacForWind(value);
@@ -381,7 +388,7 @@ class TafCategory extends Component {
    * @return {string} A readable presentation of the phenomenon value
    */
   serializeCloudsArray (value) {
-    if (Array.isArray(value) && value.length > 0 && typeof value[0] === 'object' && value[0].hasOwnProperty('amount') && typeof value[0].amount === 'string') {
+    if (Array.isArray(value) && value.length > 0 && value[0] && typeof value[0] === 'object' && value[0].hasOwnProperty('amount') && typeof value[0].amount === 'string') {
       return value.map((cloud, index) => {
         return jsonToTacForClouds(cloud);
       }).join(', ');
@@ -396,7 +403,7 @@ class TafCategory extends Component {
    * @return {string} A readable presentation of the phenomenon value
    */
   serializeWeatherArray (value) {
-    if (Array.isArray(value) && value.length > 0 && typeof value[0] === 'object' &&
+    if (Array.isArray(value) && value.length > 0 && value[0] && typeof value[0] === 'object' &&
         value[0].hasOwnProperty('phenomena') && Array.isArray(value[0].phenomena) && value[0].phenomena.length > 0) {
       return value.map((weather, index) => {
         return jsonToTacForWeather(weather);
@@ -415,7 +422,7 @@ class TafCategory extends Component {
   serializePhenomenonValue (phenomenonType, phenomenonValueObject) {
     switch (getPhenomenonType(phenomenonType)) {
       case PHENOMENON_TYPES.WIND:
-        if (typeof phenomenonValueObject === 'object') {
+        if (phenomenonValueObject && typeof phenomenonValueObject === 'object') {
           return this.serializeWindObjectValue(phenomenonValueObject);
         }
         return null;
@@ -425,7 +432,7 @@ class TafCategory extends Component {
         }
         return null;
       case PHENOMENON_TYPES.VISIBILITY:
-        if (typeof phenomenonValueObject === 'object' && phenomenonValueObject.hasOwnProperty('value') &&
+        if (phenomenonValueObject && typeof phenomenonValueObject === 'object' && phenomenonValueObject.hasOwnProperty('value') &&
           typeof phenomenonValueObject.value === 'number' &&
           !isNaN(phenomenonValueObject.value)) {
           return phenomenonValueObject.value.toString().padStart(4, '0');
@@ -507,33 +514,56 @@ class TafCategory extends Component {
       Object.entries(change.forecast).map((entry) => {
         let value = this.serializePhenomenonValue(entry[0], entry[1]);
         if (value !== null) {
+          const type = getPhenomenonType(entry[0]);
           const labelSuffix = (changeType !== CHANGE_TYPES.FM && changeType !== CHANGE_TYPES.BECMG) ? TMP : '';
-          const label = entry[0] + labelSuffix;
-          let seriesIndex = scheduleSeries.findIndex(serie => serie.label === label);
-          if (seriesIndex !== -1) {
-            // for persisting changes, correct overlapping
-            if (changeType === CHANGE_TYPES.FM || changeType === CHANGE_TYPES.BECMG) {
-              scheduleSeries[seriesIndex].ranges.forEach(range => {
-                if (start.isSameOrBefore(range.end) && end.isSameOrAfter(range.start)) {
-                  // it does overlap!
-                  if (start.isSameOrBefore(range.start)) {
-                    if (end.isSameOrAfter(range.end)) {
-                      // fully includes / overrides previous range => set duration to 0
-                      range.end = range.start;
-                    } else {
-                      // there's a remainder at the end, but FM and BECMG changes are persistent => set duration to 0
-                      range.end = range.start;
-                    }
-                    if (changeType === CHANGE_TYPES.BECMG && start.isSame(range.start)) {
-                      value = `${range.value}\u2026 ${this.serializePhenomenonValue(entry[0], entry[1])}`; // \u2026 horizontal ellipsis
-                    }
-                  } else {
-                    // there's a remainder at the start
-                    range.end = moment.max(start, range.start);
-                  }
-                }
-              });
+          const label = getPhenomenonLabel(type) + labelSuffix;
+
+          // Correct overlappings
+          if (changeType === CHANGE_TYPES.FM || changeType === CHANGE_TYPES.BECMG) {
+            const exclusiveTypes = [type];
+            if (type === PHENOMENON_TYPES.CAVOK) {
+              exclusiveTypes.push(
+                PHENOMENON_TYPES.VISIBILITY,
+                PHENOMENON_TYPES.VERTICAL_VISIBILITY,
+                PHENOMENON_TYPES.CLOUDS
+              );
+            } else if (type === PHENOMENON_TYPES.VISIBILITY || type === PHENOMENON_TYPES.VERTICAL_VISIBILITY || type === PHENOMENON_TYPES.CLOUDS) {
+              exclusiveTypes.push(
+                PHENOMENON_TYPES.CAVOK
+              );
             }
+
+            exclusiveTypes.forEach((exclusiveType) => {
+              const exclusiveSeriesIndex = scheduleSeries.findIndex(serie => serie.label === getPhenomenonLabel(exclusiveType));
+              if (exclusiveSeriesIndex !== -1) {
+                scheduleSeries[exclusiveSeriesIndex].ranges.map(range => {
+                  if (start.isSameOrBefore(range.end) && end.isSameOrAfter(range.start)) {
+                    // it does overlap!
+                    if (start.isSameOrBefore(range.start)) {
+                      if (end.isSameOrAfter(range.end)) {
+                        // fully includes / overrides previous range => set duration to 0
+                        range.end = range.start;
+                      } else {
+                        // there's a remainder at the end, but FM and BECMG changes are persistent => set duration to 0
+                        range.end = range.start;
+                      }
+                      if (changeType === CHANGE_TYPES.BECMG && start.isSame(range.start)) {
+                        const prevValue = type === PHENOMENON_TYPES.CAVOK ? '-' : range.value;
+                        value = `${prevValue}\u2026 ${this.serializePhenomenonValue(entry[0], entry[1])}`; // \u2026 horizontal ellipsis
+                      }
+                    } else {
+                      // there's a remainder at the start
+                      range.end = moment.max(start, range.start);
+                    }
+                  }
+                });
+              }
+            });
+          }
+
+          let seriesIndex = scheduleSeries.findIndex(serie => serie.label === label);
+          // Append to the series
+          if (seriesIndex !== -1) {
             scheduleSeries[seriesIndex].ranges.push({
               start: start,
               end: end,
@@ -541,7 +571,7 @@ class TafCategory extends Component {
               prefix: CHANGE_TYPES_SHORTHAND[changeType],
               styles: [ changeType === CHANGE_TYPES.BECMG ? 'striped' : (changeType === CHANGE_TYPES.PROB30 || changeType === CHANGE_TYPES.PROB40) ? 'split' : null ]
             });
-          } else {
+          } else { // Create a new series
             seriesIndex = scheduleSeries.push({
               label: label,
               isLabelVisible: labelSuffix.length === 0 || scheduleSeries.findIndex(serie => serie.label === entry[0]) === -1,
@@ -554,6 +584,7 @@ class TafCategory extends Component {
               } ]
             }) - 1; // push returns the length, but the last index is needed
           }
+          // For BECMG after the changing period, the value is persistent
           if (changeType === CHANGE_TYPES.BECMG) {
             scheduleSeries[seriesIndex].ranges.push({
               start: end,
@@ -872,24 +903,6 @@ class TafCategory extends Component {
           nextP.taf.metadata.location = defaults.location;
         }
       }
-      const nullPointers = [];
-      getJsonPointers(nextP.taf, (field) => field === null, nullPointers);
-      // TODO: Should this be really necessary?
-      // Remove null's and empty fields -- BackEnd doesn't handle them nicely
-      const nullPointersLength = nullPointers.length;
-      for (let pointerIndex = 0; pointerIndex < nullPointersLength; pointerIndex++) {
-        const pathParts = nullPointers[pointerIndex].split('/');
-        pathParts.shift();
-        removeNestedProperty(nextP.taf, pathParts);
-        clearRecursive(nextP.taf, pathParts);
-      }
-      if (!getNestedProperty(nextP.taf, ['changegroups'])) {
-        setNestedProperty(nextP.taf, ['changegroups'], []);
-      }
-      if (getNestedProperty(nextP.taf, ['metadata', 'issueTime']) === 'not yet issued') {
-        setNestedProperty(nextP.taf, ['metadata', 'issueTime'], moment.utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z');
-      }
-
       this.validateTaf(nextP.taf);
       this.setState({ tafAsObject: nextP.taf });
     }

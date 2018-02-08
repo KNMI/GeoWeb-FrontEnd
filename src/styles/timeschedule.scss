@@ -81,6 +81,7 @@ div.TimeSchedule > div.col > div.row > div.col{
   background-color: #e7e8ea;
   border: 0.05rem solid #bdbfc2;
   border-radius: 0.3rem;
+  white-space: nowrap;
   padding: 0.3rem;
   font-size: 90%;
   text-overflow: ellipsis;
@@ -220,26 +221,22 @@ div.TimeSchedule > div.col > div.row > div.col{
   justify-content: left;
 }
 
-.TimeSchedule .scheduleHighlight.leftArrow::before {
+.TimeSchedule .scheduleHighlight.leftArrow::before, .TimeSchedule .scheduleHighlight.rightArrow::after, .TimeSchedule .scheduleHighlight.bothArrow::before {
   font-family: FontAwesome;
   font-size: 80%;
   padding-top: 0.2rem;
   padding-right: 0.5rem;
+}
+
+.TimeSchedule .scheduleHighlight.leftArrow::before {
   content: "\f053";
 }
 
 .TimeSchedule .scheduleHighlight.rightArrow::after {
-  font-family: FontAwesome;
-  font-size: 80%;
-  padding-top: 0.2rem;
-  padding-left: 0.5rem;
   content: "\f054";
+
 }
 
 .TimeSchedule .scheduleHighlight.bothArrow::before {
-  font-family: FontAwesome;
-  font-size: 80%;
-  padding-top: 0.2rem;
-  padding-right: 0.5rem;
   content: "\f054\f053";
 }

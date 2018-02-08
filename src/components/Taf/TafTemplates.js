@@ -229,8 +229,8 @@ const PHENOMENON_TYPES = Enum(
 
 const PHENOMENON_TYPES_ORDER = [
   PHENOMENON_TYPES.WIND,
-  PHENOMENON_TYPES.VISIBILITY,
   PHENOMENON_TYPES.CAVOK,
+  PHENOMENON_TYPES.VISIBILITY,
   PHENOMENON_TYPES.WEATHER,
   PHENOMENON_TYPES.CLOUDS,
   PHENOMENON_TYPES.VERTICAL_VISIBILITY
@@ -239,11 +239,31 @@ const PHENOMENON_TYPES_ORDER = [
 /**
  * Gets the phenomenon type by typeName
  * @param {string} typeName The name of the type
- * @return {symbol} The phenomenon type
+ * @return {symbol} The phenomenon type symbol
  */
 const getPhenomenonType = (typeName) => {
   if (typeof typeName === 'string' && typeName.toUpperCase() in PHENOMENON_TYPES) {
     return PHENOMENON_TYPES[typeName.toUpperCase()];
+  } else {
+    return null;
+  }
+};
+
+/**
+ * Gets the phenomenon label by typeSymbol
+ * @param {symbol} typeSymbol The phenomenon type symbol
+ * @return {string} The phenomenon type label
+ */
+const getPhenomenonLabel = (typeSymbol) => {
+  if (typeof typeSymbol === 'symbol') {
+    switch (typeSymbol) {
+      case PHENOMENON_TYPES.WIND: return 'wind';
+      case PHENOMENON_TYPES.VISIBILITY: return 'visibility';
+      case PHENOMENON_TYPES.CAVOK: return 'caVOK';
+      case PHENOMENON_TYPES.WEATHER: return 'weather';
+      case PHENOMENON_TYPES.CLOUDS: return 'clouds';
+      case PHENOMENON_TYPES.VERTICAL_VISIBILITY: return 'vertical_visibility';
+    }
   } else {
     return null;
   }
@@ -258,5 +278,6 @@ module.exports = {
   getChangeType: getChangeType,
   PHENOMENON_TYPES: PHENOMENON_TYPES,
   PHENOMENON_TYPES_ORDER: PHENOMENON_TYPES_ORDER,
-  getPhenomenonType: getPhenomenonType
+  getPhenomenonType: getPhenomenonType,
+  getPhenomenonLabel: getPhenomenonLabel
 };
