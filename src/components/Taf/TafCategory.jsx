@@ -267,7 +267,12 @@ class TafCategory extends Component {
       }
     ).catch(error => {
       console.error(error);
-      const aggregateReport = Object.assign(inputParsingReport, { subheading: 'Could not get validation information from the server, thus only local validation results are shown.' });
+      const aggregateReport = {
+        message: 'TAF input is not valid',
+        subheading: '(Couldn\'t retrieve all validation details.)',
+        succeeded: false,
+        errors: inputParsingReport.errors
+      };
       this.setState({
         validationReport: aggregateReport
       });
