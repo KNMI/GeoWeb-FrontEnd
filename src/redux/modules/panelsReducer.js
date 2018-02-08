@@ -179,7 +179,7 @@ export default handleActions({
     if (type === 'data') {
       move(stateCpy.panels[state.activePanelId].layers, oldIndex, newIndex);
     } else {
-      const base = stateCpy.panels[state.activePanelId].baselayers.filter((layer) => layer.keepOnTop === false);
+      const base = stateCpy.panels[state.activePanelId].baselayers.filter((layer) => !layer.keepOnTop);
       const overlays = stateCpy.panels[state.activePanelId].baselayers.filter((layer) => layer.keepOnTop === true);
       move(overlays, oldIndex, newIndex);
       stateCpy.panels[state.activePanelId].baselayers = base.concat(overlays);

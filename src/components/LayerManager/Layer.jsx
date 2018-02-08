@@ -7,6 +7,7 @@ import { Col, Row, Popover, PopoverTitle, PopoverContent } from 'reactstrap';
 import { SortableElement } from 'react-sortable-hoc';
 import Slider from 'rc-slider';
 require('rc-slider/assets/index.css');
+import { Icon } from 'react-fa';
 
 export default class Layer extends PureComponent {
   constructor () {
@@ -161,6 +162,24 @@ export default class Layer extends PureComponent {
       case 'maplayers':
         return <Col><EditableCell color={color}>{layer.title}</EditableCell></Col>;
     }
+  }
+}
+
+export class UnsortableLayer extends PureComponent {
+  render () {
+    const { role, color, layer, layerIndex, dispatch, panelsActions, activePanelId, onLayerClick } = this.props;
+    const backgroundColor = role === 'datalayers' && layer.active ? 'rgba(217, 237, 247, 0.6)' : null;
+    return (
+      <Row onClick={() => onLayerClick ? onLayerClick(layerIndex) : null} className='Layer' style={{ backgroundColor: backgroundColor }}>
+        <Layer dispatch={dispatch} panelsActions={panelsActions} activePanelId={activePanelId}
+          role={role} color={color} layer={layer} index={layerIndex} />
+        <Col xs='auto' style={{ margin: '0 0.33rem' }}>
+          <Icon disabled className={'modifier disabled'} name='bars' />
+        </Col>
+        {role !== 'maplayers'
+          ? <LayerModifier activePanelId={activePanelId} dispatch={dispatch} role={role} panelsActions={panelsActions} layer={layer} index={layerIndex} />
+          : <Col xs='auto' style={{ marginRight: '2.125rem' }} />}
+      </Row>);
   }
 }
 

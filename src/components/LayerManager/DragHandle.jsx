@@ -9,6 +9,6 @@ const Handle = SortableHandle(() => (
 
 export default class DragHandle extends PureComponent {
   render () {
-    return <Handle />
+    return <Handle />;
   }
 }

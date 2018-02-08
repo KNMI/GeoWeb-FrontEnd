@@ -20,7 +20,9 @@
 .LayerManager span.fa.modifier {
   color: #015f8c;
 }
-
+.LayerManager span.fa.modifier.disabled {
+  color: #bebebe;
+}
 .LayerManager span.fa {
   padding-top: 0;
 }
