@@ -8,7 +8,7 @@ import FooteredLayout from '../layouts/FooteredLayout';
 import { actions as userActions } from '../redux/modules/userReducer';
 import { actions as mapActions } from '../redux/modules/mapReducer';
 import { actions as adagucActions } from '../redux/modules/adagucReducer';
-import { actions as layerActions } from '../redux/modules/layerReducer';
+import { actions as panelsActions } from '../redux/modules/panelsReducer';
 import { actions as drawActions } from '../redux/modules/drawReducer';
 import { Route, IndexRoute } from 'react-router';
 import { connect } from 'react-redux';
@@ -39,7 +39,7 @@ const mapStateToHeaderProps = state => ({
   title: 'header',
   user: state.userProperties,
   mapProperties: state.mapProperties,
-  layers: state.layers,
+  panelsProperties: state.panelsProperties,
   fullState: state,
   urls: state.urls,
   adagucProperties: state.adagucProperties
@@ -50,18 +50,19 @@ const mapDispatchToHeaderProps = function (dispatch) {
     mapActions,
     adagucActions,
     userActions,
-    layerActions
+    panelsActions
   });
 };
 const mapStateToSidebarProps = state => ({
   recentTriggers: state.recentTriggers,
-  urls: state.urls
+  urls: state.urls,
+  user: state.userProperties
 });
 
 const mapStateToRightSideBarProps = state => ({
   adagucProperties: state.adagucProperties,
   mapProperties: state.mapProperties,
-  layers: state.layers,
+  panelsProperties: state.panelsProperties,
   user: state.userProperties,
   urls: state.urls
 });
@@ -70,7 +71,7 @@ const mapDispatchToMainViewportProps = function (dispatch) {
     dispatch,
     mapActions,
     adagucActions,
-    layerActions,
+    panelsActions,
     drawActions
   });
 };
@@ -78,14 +79,14 @@ const mapDispatchToRightSidebarProps = function (dispatch) {
   return ({
     dispatch,
     mapActions,
-    layerActions,
+    panelsActions,
     adagucActions
   });
 };
 const mapDispatchToLayerManagerProps = function (dispatch) {
   return ({
     dispatch,
-    layerActions,
+    panelsActions,
     adagucActions
   });
 };
@@ -95,25 +96,32 @@ const mapDispatchToSigmetProps = function (dispatch) {
     drawActions,
     mapActions,
 
-    layerActions
+    panelsActions
   });
 };
 const mapStateToMapProps = state => ({
   drawProperties: { ...state.drawProperties },
   mapProperties: { ...state.mapProperties },
   adagucProperties: state.adagucProperties,
-  layers: { ...state.layers },
-  urls: state.urls
+  panelsProperties: { ...state.panelsProperties },
+  urls: state.urls,
+  user: state.userProperties
 });
 
 const mapStateToLayerManagerProps = state => ({
   adagucProperties: state.adagucProperties,
-  layers: state.layers,
+  panelsProperties: state.panelsProperties,
   mapProperties: state.mapProperties,
   drawProperties: state.drawProperties,
   urls: state.urls
 });
-
+const mapStateToProductsContainerProps = state => ({
+  adagucProperties: state.adagucProperties,
+  panelsProperties: state.panelsProperties,
+  mapProperties: state.mapProperties,
+  drawProperties: state.drawProperties,
+  user: state.userProperties
+});
 // TODO: research this; http://henleyedition.com/implicit-code-splitting-with-react-router-and-webpack/
 export const createRoutes = (store) => {
   const header = React.createElement(connect(mapStateToHeaderProps, mapDispatchToHeaderProps)(TitleBarContainer));
@@ -121,7 +129,7 @@ export const createRoutes = (store) => {
   const rightSidebar = React.createElement(connect(mapStateToRightSideBarProps, mapDispatchToRightSidebarProps)(MapActionsContainer));
   const map = connect(mapStateToMapProps, mapDispatchToMainViewportProps)(MapPanel);
   const layerManager = React.createElement(connect(mapStateToLayerManagerProps, mapDispatchToLayerManagerProps)(LayerManagerPanel));
-  const products = React.createElement(connect(mapStateToLayerManagerProps, mapDispatchToLayerManagerProps)(ProductsContainer));
+  const products = React.createElement(connect(mapStateToProductsContainerProps, mapDispatchToLayerManagerProps)(ProductsContainer));
   const sigmet = React.createElement(connect((state) => ({
     drawProperties: state.drawProperties, urls: state.urls, sources: state.adagucProperties.sources
   }), mapDispatchToSigmetProps)(SigmetsContainer));

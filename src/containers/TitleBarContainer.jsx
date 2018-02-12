@@ -525,12 +525,12 @@ class TitleBarContainer extends PureComponent {
       crs: this.props.mapProperties.projection.code
     };
     let layerConfig = [];
-    this.props.layers.panels.forEach((panel, i) => {
+    this.props.panelsProperties.panels.forEach((panel, i) => {
       if (i >= numPanels) {
         return;
       }
       let panelArr = [];
-      panel.layers.forEach((layer) => {
+      panel.panelsProperties.forEach((layer) => {
         panelArr.push({
           active: true,
           dimensions: {},
@@ -556,7 +556,7 @@ class TitleBarContainer extends PureComponent {
     const dataToSend = {
       area: saveBoundingBox ? bbox : null,
       display: savePanelLayout ? displayObj : null,
-      layers: saveLayers ? layerConfig : null,
+      panelsProperties: saveLayers ? layerConfig : null,
       name: presetName,
       keywords: []
     };
@@ -638,8 +638,8 @@ class TitleBarContainer extends PureComponent {
               <NavLink className='active' onClick={this.toggleLoginModal} ><Icon name='user' id='loginIcon' />{isLoggedIn ? ' ' + username : ' Sign in'}</NavLink>
               {hasRoleADMIN ? <Link to='manage' className='active nav-link'><Icon name='cog' /></Link> : '' }
               <NavLink className='active' onClick={this.toggleFeedbackModal}><Icon name='exclamation-triangle' /> Report problem</NavLink>
-              <LayoutDropDown layers={this.props.layers} savePreset={this.savePreset} mapActions={this.props.mapActions} presets={this.state.presets} onChangeServices={this.getServices}
-                urls={this.props.urls} layerActions={this.props.layerActions} mapProperties={this.props.mapProperties} dispatch={this.props.dispatch} />
+              <LayoutDropDown panelsProperties={this.props.panelsProperties} savePreset={this.savePreset} mapActions={this.props.mapActions} presets={this.state.presets} onChangeServices={this.getServices}
+                urls={this.props.urls} panelsActions={this.props.panelsActions} mapProperties={this.props.mapProperties} dispatch={this.props.dispatch} />
               <NavLink className='active' onClick={this.toggleFullscreen} ><Icon name='expand' /></NavLink>
               {isLoggedIn
                 ? this.renderLoggedInPopover(this.state.loginModal, this.toggleLoginModal, username)
@@ -683,7 +683,7 @@ class LayoutDropDown extends PureComponent {
     this.props.onChangeServices();
   }
   postLayout (layout) {
-    this.props.dispatch(this.props.mapActions.setLayout(layout));
+    this.props.dispatch(this.props.panelsActions.setPanelLayout(layout));
   }
   handleAddSource (e) {
     var url = document.querySelector('#sourceurlinput').value;
@@ -732,24 +732,59 @@ class LayoutDropDown extends PureComponent {
   }
 
   setPreset (preset) {
-    const { dispatch, layerActions, mapActions } = this.props;
+    const { dispatch, panelsActions, mapActions } = this.props;
     const thePreset = preset[0];
     if (thePreset.area) {
       if (thePreset.crs || thePreset.area.crs) {
         dispatch(mapActions.setCut({
           name: 'Custom',
-          bbox: [thePreset.area.left, thePreset.area.bottom, thePreset.area.right, thePreset.area.top],
+          bbox: [thePreset.area.left || 570875, thePreset.area.bottom, thePreset.area.right || 570875, thePreset.area.top],
           projection: { code: thePreset.crs || thePreset.area.crs || 'EPSG:3857', name: 'Mercator' }
         }));
       } else {
-        dispatch(mapActions.setCut({ name: 'Custom', bbox: [thePreset.area.left, thePreset.area.bottom, thePreset.area.right, thePreset.area.top] }));
+        // Default to the netherlands
+        dispatch(mapActions.setCut({ name: 'Custom', bbox: [thePreset.area.left || 570875, thePreset.area.bottom, thePreset.area.right || 570875, thePreset.area.top] }));
       }
     }
     if (thePreset.display) {
-      dispatch(mapActions.setLayout(thePreset.display.type));
+      dispatch(panelsActions.setPanelLayout(thePreset.display.type));
     }
     if (thePreset.layers) {
-      dispatch(layerActions.setPreset(thePreset.layers));
+      // This is tricky because all layers need to be restored in the correct order
+      // So first create all panels as null....
+      const newPanels = [null, null, null, null];
+      const promises = [];
+      thePreset.layers.map((panel, panelIdx) => {
+        // Then for each panel initialize it to this object where layers is an empty array with the
+        // length of the layers in the panel, as it needs to be inserted in a certain order. For the baselayers
+        // this is irrelevant because the order of overlays is not relevant
+        newPanels[panelIdx] = { 'layers': new Array(panel.length), 'baselayers': [] };
+        panel.map((layer, i) => {
+          // Create a Promise for parsing all WMJSlayers because we can only do something when ALL layers have been parsed
+          promises.push(new Promise((resolve, reject) => {
+            // eslint-disable-next-line no-undef
+            const wmjsLayer = new WMJSLayer(layer);
+            wmjsLayer.parseLayer((newLayer) => resolve({ layer: newLayer, panelIdx: panelIdx, index: i }));
+          }));
+        });
+      });
+
+      // Once that happens, insert the layer in the appropriate place in the appropriate panel
+      Promise.all(promises).then((layers) => {
+        layers.map((layerDescription) => {
+          const { layer, panelIdx, index } = layerDescription;
+          // TODO: Better way to figure out apriori if it's and overlay
+          if (layer.WMJSService.title ? layer.WMJSService.title.toLowerCase() === 'overlay' : false) {
+            layer.keepOnTop = true;
+            newPanels[panelIdx].baselayers.push(layer);
+          } else {
+            newPanels[panelIdx].layers[index] = layer;
+          }
+        });
+        // Beware: a layer can still contain null values because a layer might have been a null value
+        // also, panels may have had no layers in them
+        dispatch(panelsActions.setPresetLayers(newPanels));
+      });
     }
   }
 
@@ -795,7 +830,7 @@ class LayoutDropDown extends PureComponent {
       crs: this.props.mapProperties.projection.code
     };
     let layerConfig = [];
-    this.props.layers.panels.forEach((panel, i) => {
+    this.props.panelsProperties.panels.forEach((panel, i) => {
       if (i >= numPanels) {
         return;
       }
@@ -810,14 +845,15 @@ class LayoutDropDown extends PureComponent {
           overlay: false
         });
       });
-      panel.overlays.forEach((layer) => {
+      panel.baselayers.filter((layer) => layer.keepOnTop === true).forEach((layer) => {
         panelArr.push({
           active: true,
           dimensions: {},
           service: layer.service,
           name: layer.name,
           opacity: 1,
-          overlay: true
+          overlay: true,
+          keepOnTop: layer.keepOnTop
         });
       });
       layerConfig.push(panelArr);
@@ -854,8 +890,8 @@ class LayoutDropDown extends PureComponent {
 
   render () {
     const togglePreset = () => this.setState({ popoverOpen: !this.state.popoverOpen });
-    const { mapProperties } = this.props;
-    const isActive = (layout) => mapProperties && mapProperties.layout === layout;
+    const { panelsProperties, mapProperties } = this.props;
+    const isActive = (layout) => panelsProperties && panelsProperties.panelLayout === layout;
     const stored = JSON.parse(localStorage.getItem('geoweb'));
     if (!stored) {
       localStorage.setItem('geoweb', JSON.stringify({ personal_urls: [] }));
@@ -866,7 +902,7 @@ class LayoutDropDown extends PureComponent {
       {this.renderSharePresetModal(this.state.sharePresetModal, () => { this.setState({ sharePresetModal: !this.state.sharePresetModal }); }, this.state.sharePresetName)}
       <Modal isOpen={this.state.popoverOpen} toggle={togglePreset} style={{ width: '40rem', minWidth: '40rem' }}>
         <ModalHeader>Presets</ModalHeader>
-        <ModalBody>
+        <ModalBody id='layoutmodal'>
           <Row>
             <Col>
               <Row>
@@ -874,25 +910,25 @@ class LayoutDropDown extends PureComponent {
               </Row>
               <Row>
                 <ButtonGroup>
-                  <Button onClick={() => this.postLayout('single')} active={isActive('single')} size='sm' color='primary'>
+                  <Button id='singleLayoutButton' onClick={() => this.postLayout('single')} active={isActive('single')} size='sm' color='primary'>
                     <img className={'panelSelectionImage'} src={require('../static/icons/single.svg')} />
                   </Button>
-                  <Button onClick={() => this.postLayout('dual')} active={isActive('dual')} size='sm' color='primary'>
+                  <Button id='dualLayoutButton' onClick={() => this.postLayout('dual')} active={isActive('dual')} size='sm' color='primary'>
                     <img className={'panelSelectionImage'} src={require('../static/icons/dual_column.svg')} />
                   </Button>
-                  <Button onClick={() => this.postLayout('triplecolumn')} active={isActive('triplecolumn')} size='sm' color='primary'>
+                  <Button id='tripleColumnLayoutButton' onClick={() => this.postLayout('triplecolumn')} active={isActive('triplecolumn')} size='sm' color='primary'>
                     <img className={'panelSelectionImage'} src={require('../static/icons/three_columns.svg')} />
                   </Button>
-                  <Button onClick={() => this.postLayout('tripleuneven')} active={isActive('tripleuneven')} size='sm' color='primary'>
+                  <Button id='tripleUnevenLayoutButton' onClick={() => this.postLayout('tripleuneven')} active={isActive('tripleuneven')} size='sm' color='primary'>
                     <img className={'panelSelectionImage'} src={require('../static/icons/uneven_triple.svg')} />
                   </Button>
-                  <Button onClick={() => this.postLayout('quaduneven')} active={isActive('quaduneven')} size='sm' color='primary'>
+                  <Button id='quadUnevenLayoutButton' onClick={() => this.postLayout('quaduneven')} active={isActive('quaduneven')} size='sm' color='primary'>
                     <img className={'panelSelectionImage'} src={require('../static/icons/uneven_quad.svg')} />
                   </Button>
-                  <Button onClick={() => this.postLayout('quadcol')} active={isActive('quadcol')} size='sm' color='primary'>
+                  <Button id='quadColLayoutButton' onClick={() => this.postLayout('quadcol')} active={isActive('quadcol')} size='sm' color='primary'>
                     <img className={'panelSelectionImage'} src={require('../static/icons/four_columns.svg')} />
                   </Button>
-                  <Button onClick={() => this.postLayout('quad')} active={isActive('quad')} size='sm' color='primary'>
+                  <Button id='quadLayoutButton' onClick={() => this.postLayout('quad')} active={isActive('quad')} size='sm' color='primary'>
                     <img className={'panelSelectionImage'} src={require('../static/icons/square.svg')} />
                   </Button>
                 </ButtonGroup>
@@ -1015,7 +1051,7 @@ LayoutDropDown.propTypes = {
   onChangeServices: PropTypes.func,
   savePreset: PropTypes.func,
   presets: PropTypes.array,
-  layerActions: PropTypes.object
+  panelsActions: PropTypes.object
 };
 
 TitleBarContainer.propTypes = {
@@ -1026,12 +1062,12 @@ TitleBarContainer.propTypes = {
   routes: PropTypes.array,
   dispatch: PropTypes.func,
   actions: PropTypes.object,
-  layers: PropTypes.object,
+  panelsProperties: PropTypes.object,
   user: PropTypes.object,
   userActions: PropTypes.object,
   mapProperties: PropTypes.object,
   mapActions: PropTypes.object,
-  layerActions: PropTypes.object,
+  panelsActions: PropTypes.object,
   adagucActions: PropTypes.object,
   bbox: PropTypes.array,
   fullState: PropTypes.object,

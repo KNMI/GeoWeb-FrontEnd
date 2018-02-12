@@ -157,7 +157,7 @@ class SigmetsContainer extends Component {
               {ITEMS.map((item, index) =>
                 <SigmetCategory phenomenonMapping={this.state.phenomena || []} adagucProperties={this.props.adagucProperties}
                   key={index} title={item.title} parentCollapsed={!this.state.isOpen} drawProperties={this.props.drawProperties}
-                  mapActions={this.props.mapActions} layerActions={this.props.layerActions}
+                  mapActions={this.props.mapActions} panelsActions={this.props.panelsActions}
                   icon={item.icon} source={item.source} editable={item.editable} latestUpdateTime={this.state.latestUpdateTime}
                   isOpen={this.state.isOpen && this.state.isOpenCategory[item.ref]}
                   selectedIndex={typeof this.state.selectedItem.index !== 'undefined' && this.state.selectedItem.category === item.ref ? this.state.selectedItem.index : -1}
@@ -179,7 +179,7 @@ SigmetsContainer.propTypes = {
   drawActions: PropTypes.object,
   drawProperties: PropTypes.object,
   mapActions: PropTypes.object,
-  layerActions: PropTypes.object,
+  panelsActions: PropTypes.object,
   dispatch: PropTypes.func,
   actions: PropTypes.object,
   urls: PropTypes.shape({

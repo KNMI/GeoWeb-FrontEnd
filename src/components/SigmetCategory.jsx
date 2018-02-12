@@ -18,7 +18,7 @@ import PropTypes from 'prop-types';
 import { BOUNDING_BOXES } from '../constants/bounding_boxes';
 import { GetServiceByName } from '../utils/getServiceByName';
 
-import { WEBSERVER_URL } from '../static/urls.json';
+import { BACKEND_SERVER_URL } from '../static/urls.json';
 const createSliderWithTooltip = Slider.createSliderWithTooltip;
 const Range = createSliderWithTooltip(Slider.Range);
 const Handle = Slider.Handle;
@@ -292,7 +292,7 @@ class SigmetCategory extends Component {
               npanels: 4,
               type: 'quaduneven'
             },
-            layers: [
+            panelsProperties: [
               [
                 {
                   service: HARMONIE_URL,
@@ -384,7 +384,7 @@ class SigmetCategory extends Component {
               npanels: 4,
               type: 'quaduneven'
             },
-            layers: [
+            panelsProperties: [
               [
                 {
                   service: OVERLAY_URL,
@@ -408,7 +408,7 @@ class SigmetCategory extends Component {
               ], [], [],
               [
                 {
-                  service: `${WEBSERVER_URL}/cgi-bin/geoweb/adaguc.OBS.cgi?`,
+                  service: OBSERVATIONS_URL,
                   title: 'OBS',
                   name: '10M/derived/windforce',
                   label: 'Wind force',
@@ -419,7 +419,7 @@ class SigmetCategory extends Component {
                   overlay: false
                 },
                 {
-                  service: `${WEBSERVER_URL}/cgi-bin/geoweb/adaguc.OVL.cgi?`,
+                  service: OVERLAY_URL,
                   title: 'OVL',
                   name: 'FIR_DEC_2013_EU',
                   label: 'FIR areas',
@@ -441,10 +441,10 @@ class SigmetCategory extends Component {
               npanels: 4,
               type: 'quaduneven'
             },
-            layers: [
+            panelsProperties: [
               [
                 {
-                  service: `${WEBSERVER_URL}/cgi-bin/geoweb/adaguc.SAT.cgi?`,
+                  service: SATELLITE_URL,
                   title: 'SAT',
                   name: 'HRVIS',
                   label: 'HRVIS',
@@ -453,7 +453,7 @@ class SigmetCategory extends Component {
                   overlay: false
                 },
                 {
-                  service: `${WEBSERVER_URL}/cgi-bin/geoweb/adaguc.RADAR.cgi?`,
+                  service: RADAR_URL,
                   title: 'RADAR',
                   name: 'precipitation_eur',
                   label: 'Neerslag EUR',
@@ -501,7 +501,7 @@ class SigmetCategory extends Component {
               npanels: 4,
               type: 'quaduneven'
             },
-            layers: [
+            panelsProperties: [
               [
                 {
                   service: HARMONIE_URL,
@@ -602,7 +602,7 @@ class SigmetCategory extends Component {
     this.setState({ list: listCpy });
     const preset = this.sigmetLayers(onlyObj.layerpreset);
     this.props.dispatch(this.props.mapActions.setLayout(preset.display.type));
-    this.props.dispatch(this.props.layerActions.setPreset(preset.layers));
+    this.props.dispatch(this.props.panelsActions.setPreset(preset.panelsProperties));
     this.props.dispatch(this.props.mapActions.setCut({ name: 'Custom', bbox: [preset.area.left || 570875, preset.area.bottom, preset.area.right || 570875, preset.area.top] }));
   }
 
@@ -1177,7 +1177,7 @@ SigmetCategory.propTypes = {
   actions: PropTypes.object,
   updateParent: PropTypes.func,
   mapActions: PropTypes.object,
-  layerActions: PropTypes.object,
+  panelsActions: PropTypes.object,
   drawProperties: PropTypes.shape({
     geojson: PropTypes.object
   }),

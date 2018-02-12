@@ -54,19 +54,16 @@ export default class TimeComponent extends PureComponent {
   /* istanbul ignore next */
   drawLayerBlocks (ctx, canvasWidth, sliderStopIndex, sliderMapIndex, scaleWidth) {
     // TODO: if only time changes just redraw that part?
-    const layers = this.props.wmjslayers.layers;
-    const overlayers = this.props.wmjslayers.baselayers.filter(layer => layer.keepOnTop === true);
+    const { panel } = this.props;
+    const { layers, baselayers } = panel;
+    const overlayers = baselayers.filter(layer => layer.keepOnTop === true);
     const layerHeight = 20;
     const blockHeight = 16;
     ctx.lineWidth = 1;
     for (let j = 0; j < layers.length; j++) {
       const y = j * layerHeight + 1 + overlayers.length * layerHeight;
       const layer = layers[j];
-      const panelLayer = this.props.panel.layers[j];
-      if (!panelLayer) {
-        continue;
-      }
-      const activeLayer = panelLayer.active;
+      const activeLayer = layer.active;
       const dim = layer.getDimension('time');
       if (!dim) {
         continue;
@@ -119,7 +116,7 @@ export default class TimeComponent extends PureComponent {
 
   /* istanbul ignore next */
   drawCanvas () {
-    const { timedim, wmjslayers } = this.props;
+    const { timedim, panel } = this.props;
     if (!timedim) {
       return;
     }
@@ -134,7 +131,8 @@ export default class TimeComponent extends PureComponent {
     // eslint-disable-next-line no-undef
     const canvasWidth = ctx.canvas.width;
     // eslint-disable-next-line no-undef
-    const numlayers = wmjslayers.baselayers && wmjslayers.layers ? wmjslayers.baselayers.length + wmjslayers.layers.length + 1 : 2;
+    const numlayers = Math.max(2, panel.layers.length + 1);
+    // const numlayers = wmjslayers.baselayers && wmjslayers.panelsProperties ? wmjslayers.baselayers.length + wmjslayers.panelsProperties.length + 1 : 2;
     const canvasHeight = Math.max(20 * (numlayers - 2), this.props.height);
     this.canvasHeight = canvasHeight;
     this.timedim = timedim;
@@ -334,9 +332,9 @@ export default class TimeComponent extends PureComponent {
   }
   /* istanbul ignore next */
   onCanvasClick (x, y) {
-    const { panel, dispatch, layerActions, activeMapId } = this.props;
-    const { overlays, layers } = panel;
-
+    const { panel, dispatch, panelsActions, activePanelId } = this.props;
+    const { layers, baselayers } = panel;
+    const overlays = baselayers.filter((layer) => layer.keepOnTop === true);
     const t = x / this.ctx.canvas.clientWidth;
 
     // TODO: Replace with "global" height variable
@@ -344,7 +342,7 @@ export default class TimeComponent extends PureComponent {
     const overlaysHeight = overlays.length * layerHeight;
     const layerClicked = Math.floor((y - overlaysHeight) / layerHeight);
     if (layerClicked >= 0 && layerClicked < layers.length) {
-      dispatch(layerActions.setActiveLayer({ activeMapId, layerClicked }));
+      dispatch(panelsActions.setActiveLayer({ activePanelId, layerClicked }));
     }
     const s = this.canvasDateInterval.getTimeSteps() - 1;
     const newTimeStep = parseInt(t * s);
@@ -373,14 +371,21 @@ export default class TimeComponent extends PureComponent {
   }
 
   shouldComponentUpdate (nextProps) {
-    const currentNumlayers = this.props.wmjslayers.baselayers && this.props.wmjslayers.layers ? this.props.wmjslayers.baselayers.length + this.props.wmjslayers.layers.length + 1 : 2;
-    const nextNumlayers = nextProps.wmjslayers.baselayers && nextProps.wmjslayers.layers ? nextProps.wmjslayers.baselayers.length + nextProps.wmjslayers.layers.length + 1 : 2;
+    const { panel } = this.props;
+    const { layers, baselayers } = panel;
+    const overlays = baselayers.filter((layer) => layer.keepOnTop === true);
+    const currentNumLayers = Math.max(layers.length + overlays.length + 1, 2);
+
+    const nextPanel = nextProps.panel;
+    const nextLayers = nextPanel.layers;
+    const nextOverlays = nextPanel.baselayers.filter((layer) => layer.keepOnTop === true);
+    const nextNumLayers = Math.max(nextLayers.length + nextOverlays.length + 1, 2);
+
     return this.props.timedim !== nextProps.timedim ||
            this.props.width !== nextProps.width ||
            this.props.height !== nextProps.height ||
            this.props.panel !== nextProps.panel ||
-           this.props.wmjslayers !== nextProps.wmjslayers ||
-           currentNumlayers !== nextNumlayers ||
+           currentNumLayers !== nextNumLayers ||
            this.props.activeMapId !== nextProps.activeMapId;
   }
 
@@ -395,7 +400,6 @@ export default class TimeComponent extends PureComponent {
 }
 TimeComponent.propTypes = {
   timedim: PropTypes.string,
-  wmjslayers: PropTypes.object,
   dispatch: PropTypes.func,
   actions: PropTypes.object,
   width: PropTypes.number,
@@ -403,7 +407,8 @@ TimeComponent.propTypes = {
   adagucActions: PropTypes.object,
   activeMapId: PropTypes.number,
   panel: PropTypes.shape({
-    layers: PropTypes.array
+    panelsProperties: PropTypes.array
   }),
-  layerActions: PropTypes.object
+  panelsActions: PropTypes.object,
+  activePanelId: PropTypes.number
 };

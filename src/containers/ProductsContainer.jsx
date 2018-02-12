@@ -5,6 +5,8 @@ import CollapseOmni from '../components/CollapseOmni';
 import ProductCategory from '../components/ProductCategory';
 import Panel from '../components/Panel';
 import PropTypes from 'prop-types';
+import { CheckIfUserHasRole } from '../utils/user';
+import { hashHistory } from 'react-router';
 
 const ITEMS = [
   {
@@ -59,6 +61,10 @@ class ProductsContainer extends Component {
   }
 
   render () {
+    const { user } = this.props;
+    if (user && (!user.isLoggedIn || !CheckIfUserHasRole(user, 'MET'))) {
+      hashHistory.push('/');
+    }
     let title = <Row>
       <Button color='primary' onClick={this.toggle} title={this.state.isOpen ? 'Collapse panel' : 'Expand panel'}>
         <Icon name={this.state.isOpen ? 'angle-double-left' : 'angle-double-right'} />
@@ -82,7 +88,7 @@ class ProductsContainer extends Component {
 }
 
 ProductsContainer.propTypes = {
-  title: PropTypes.string
+  user: PropTypes.object
 };
 
 export default ProductsContainer;

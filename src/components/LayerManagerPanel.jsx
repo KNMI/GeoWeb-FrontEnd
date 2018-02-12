@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
+import LayerManager from './LayerManager';
 import { hashHistory } from 'react-router';
-import { default as LayerManager } from './ADAGUC/LayerManager';
 import { default as TimeComponent } from './ADAGUC/TimeComponent';
 import { default as Panel } from './Panel';
 import { Row, Col, Button, Modal, ModalBody, Input, Label, ListGroup, ListGroupItem, ModalFooter } from 'reactstrap';
@@ -20,6 +20,7 @@ class LayerManagerPanel extends Component {
     this.renderLayerChooser = this.renderLayerChooser.bind(this);
     this.toggleLayerChooser = this.toggleLayerChooser.bind(this);
     this.handleAddLayer = this.handleAddLayer.bind(this);
+    this.resetLayers = this.resetLayers.bind(this);
     this.handleButtonClickNextPrev = this.handleButtonClickNextPrev.bind(this);
     this.handleDurationUpdate = this.handleDurationUpdate.bind(this);
     this.goToNow = this.goToNow.bind(this);
@@ -35,7 +36,7 @@ class LayerManagerPanel extends Component {
   }
 
   componentDidUpdate (prevProps) {
-    const { dispatch, layerActions, layers, adagucProperties } = this.props;
+    const { dispatch, panelsActions, panelsProperties, adagucProperties } = this.props;
     const { sources } = adagucProperties;
     const prevSources = prevProps.adagucProperties.sources;
 
@@ -49,16 +50,20 @@ class LayerManagerPanel extends Component {
     }
     const source = GetServiceByName(sources, 'OVL');
     if (source) {
-      [...Array(layers.panels.length).keys()].map((id) => {
-        dispatch(layerActions.addOverlaysLayer({
-          activeMapId: id,
-          layer: {
-            service: source,
-            title: 'OVL_EXT',
-            name: 'countries',
-            label: 'Countries'
-          }
-        }));
+      [...Array(panelsProperties.panels.length).keys()].map((id) => {
+        new WMJSLayer({
+          service: source,
+          title: 'OVL_EXT',
+          name: 'countries',
+          label: 'Countries',
+          keepOnTop: true
+        }).parseLayer((layerObj) => {
+          dispatch(panelsActions.addOverlaysLayer({
+            panelId: id,
+            layer: layerObj
+          }));
+
+        });
       });
     }
   }
@@ -92,35 +97,44 @@ class LayerManagerPanel extends Component {
     this.setState({ layerChooserOpen: !this.state.layerChooserOpen, filter: '' });
   }
   handleAddLayer (addItem) {
-    const { dispatch, layerActions, mapProperties } = this.props;
+    const { dispatch, panelsActions, panelsProperties } = this.props;
     if (this.state.activeSource.goal !== 'OVERLAY') {
-      dispatch(layerActions.addLayer({
-        activeMapId: mapProperties.activeMapId,
-        layer: {
-          service: this.state.activeSource.service,
-          title: this.state.activeSource.title,
-          name: addItem.name,
-          label: addItem.text,
-          opacity: 0.8,
-          active: false
-        }
-      }));
+      // eslint-disable-next-line no-undef
+      new WMJSLayer({
+        service: this.state.activeSource.service,
+        title: this.state.activeSource.title,
+        name: addItem.name,
+        label: addItem.text,
+        keepOnTop: false,
+        opacity: 0.8,
+        active: false
+      }).parseLayer((layerObj) => {
+        dispatch(panelsActions.addLayer({
+          panelId: panelsProperties.activePanelId,
+          layer: layerObj
+        }));
+      });
     } else {
-      dispatch(layerActions.addOverlaysLayer({
-        activeMapId: mapProperties.activeMapId,
-        layer: {
-          service: this.state.activeSource.service,
-          title: this.state.activeSource.title,
-          name: addItem.name,
-          label: addItem.text }
-      }));
+      // eslint-disable-next-line no-undef
+      new WMJSLayer({
+        service: this.state.activeSource.service,
+        title: this.state.activeSource.title,
+        name: addItem.name,
+        label: addItem.text,
+        keepOnTop: true
+      }).parseLayer((layerObj) => {
+        dispatch(panelsActions.addOverlaysLayer({
+          panelId: panelsProperties.activePanelId,
+          layer: layerObj
+        }));
+      });
     }
     this.setState({
       layerChooserOpen: false,
       activeTab: '1',
       activeSource: null,
       action: null,
-      layers: null,
+      panelsProperties: null,
       filter: ''
     });
   }
@@ -200,7 +214,7 @@ class LayerManagerPanel extends Component {
   }
 
   renderLayerChooser (data) {
-    // Filter the layers and sources by a string filter
+    // Filter the panelsProperties and sources by a string filter
     const filteredData = this.filterSourcesAndLayers(cloneDeep(data), this.state.filter);
 
     let activeSourceVisible = this.state.activeSource && Object.keys(filteredData).includes(this.state.activeSource.name);
@@ -258,7 +272,7 @@ class LayerManagerPanel extends Component {
                       <ListGroupItem key={`layer-add-layer-${index}`} style={{ maxHeight: '2.5em' }} tag='a' href='#'
                         onClick={(evt) => { evt.stopPropagation(); evt.preventDefault(); this.handleAddLayer({ ...layer, service: this.state.activeSource.service }); }}>{layer.text}</ListGroupItem>)}
                   </ListGroup>
-                  : <div style={{ fontStyle: 'italic' }}>Select a source from the left to view its layers</div>
+                  : <div style={{ fontStyle: 'italic' }}>Select a source from the left to view its panelsProperties</div>
               }
             </Col>
           </Row>
@@ -270,8 +284,9 @@ class LayerManagerPanel extends Component {
   }
 
   handleButtonClickNextPrev (direction) {
-    const { layers, mapProperties, adagucProperties, adagucActions, dispatch } = this.props;
-    const panel = layers.panels[mapProperties.activeMapId];
+    const { panelsProperties, mapProperties, adagucProperties, adagucActions, dispatch } = this.props;
+    const { panels, activePanelId } = panelsProperties;
+    const panel = panels[activePanelId];
     let i = 0;
     if (panel.layers.length === 0) {
       // move one hour?
@@ -282,7 +297,7 @@ class LayerManagerPanel extends Component {
         break;
       }
     }
-    const activeWMJSLayer = layers.wmjsLayers.layers[i];
+    const activeWMJSLayer = panel.layers[i];
     if (!activeWMJSLayer) {
       // move one hour?
       return;
@@ -317,10 +332,38 @@ class LayerManagerPanel extends Component {
     }
   }
 
+  resetLayers () {
+    const { dispatch, panelsActions, adagucProperties, panelsProperties } = this.props;
+    const { sources } = adagucProperties;
+    const { activePanelId } = panelsProperties;
+    // This call removes all data layers and all baselayers
+    // except the default map
+    dispatch(panelsActions.resetLayers());
+
+    // Re-add the countries overlay
+    const source = GetServiceByName(sources, 'OVL');
+    // eslint-disable-next-line no-undef
+    new WMJSLayer({
+      service: source,
+      title: 'OVL_EXT',
+      name: 'countries',
+      label: 'Countries',
+      keepOnTop: true
+    }).parseLayer((layerObj) => {
+      dispatch(panelsActions.addOverlaysLayer({
+        panelId: activePanelId,
+        layer: layerObj
+      }));
+    });
+  }
+
   render () {
-    const { title, dispatch, adagucProperties, layers, mapProperties, adagucActions } = this.props;
+    const { title, dispatch, adagucProperties, panelsProperties, mapProperties, adagucActions } = this.props;
     const { sources, animationSettings } = adagucProperties;
+    const { panels, activePanelId } = panelsProperties;
+    const currentPanel = panels[activePanelId];
     const isFullScreen = hashHistory.getCurrentLocation().pathname === '/full_screen';
+
     return (
       <Panel title={title} className='LayerManagerPanel'>
         <Row style={{ flex: 1 }}>
@@ -366,23 +409,28 @@ class LayerManagerPanel extends Component {
           </Col>
           <Col style={{ flex: 1, flexDirection: 'column-reverse' }}>
             <Row style={{ flex: 1 }}>
-              <TimeComponent activeMapId={mapProperties.activeMapId} width={this.state.width} panel={layers.panels[mapProperties.activeMapId]}
+              <TimeComponent activePanelId={activePanelId} width={this.state.width} panel={panels[activePanelId]}
                 height={this.state.height} timedim={adagucProperties.timeDimension}
-                wmjslayers={layers.wmjsLayers} layerActions={this.props.layerActions}
-                dispatch={dispatch} adagucActions={adagucActions} ref={(panel) => this.setResizeListener(ReactDOM.findDOMNode(panel))} />
-              <LayerManager wmjslayers={layers.wmjsLayers} dispatch={dispatch} layerActions={this.props.layerActions}
-                adagucActions={adagucActions} baselayer={layers.baselayer} panel={layers.panels[mapProperties.activeMapId]} activeMapId={mapProperties.activeMapId} />
+                panelsActions={this.props.panelsActions} dispatch={dispatch} adagucActions={adagucActions} ref={(panel) => this.setResizeListener(ReactDOM.findDOMNode(panel))} />
+              <LayerManager panel={panels[activePanelId]} dispatch={dispatch} panelsActions={this.props.panelsActions}
+                adagucActions={adagucActions} activePanelId={activePanelId} />
             </Row>
             <Row />
           </Col>
           <Col xs='auto' style={{ flexDirection: 'column-reverse', marginLeft: '.66rem' }}>
             {this.state.showControls
-              ? <Row>
+              ? <Row style={{ flexDirection: 'inherit' }}>
                 <Col />
                 <Col xs='auto'>
                   <Button disabled={Array.isArray(sources) || Object.keys(sources).length === 0} onClick={this.toggleLayerChooser}
                     color='primary' title='Add layers'>
                     <Icon name='plus' />
+                  </Button>
+                </Col>
+                <Col xs='auto' style={{ marginBottom: '0.33rem' }}>
+                  <Button disabled={!(currentPanel && ((currentPanel.baselayers.length > 2) || (currentPanel.layers.length > 0)))}
+                    onClick={this.resetLayers} color='primary' title='Remove all layers'>
+                    <Icon name='trash' />
                   </Button>
                 </Col>
               </Row>
@@ -412,11 +460,11 @@ class LayerManagerPanel extends Component {
 LayerManagerPanel.propTypes = {
   title: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
   dispatch: PropTypes.func.isRequired,
-  layers: PropTypes.object.isRequired,
+  panelsProperties: PropTypes.object.isRequired,
   adagucProperties: PropTypes.object,
   mapProperties: PropTypes.object,
   adagucActions: PropTypes.object,
-  layerActions: PropTypes.object
+  panelsActions: PropTypes.object
 };
 
 export default LayerManagerPanel;

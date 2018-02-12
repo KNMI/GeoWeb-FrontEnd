@@ -36,10 +36,52 @@ export const _loadPreset = (props, presetName, failure) => {
   }).then((src) => {
     const obj = JSON.parse(src.data.payload);
     if (obj.display) {
-      props.dispatch(props.mapActions.setLayout(obj.display.type));
+      props.dispatch(props.panelsActions.setPanelLayout(obj.display.type));
     }
     if (obj.layers) {
-      props.dispatch(props.layerActions.setPreset(obj.layers));
+      // This is tricky because all layers need to be restored in the correct order
+      // So first create all panels as null....
+      const newPanels = [null, null, null, null];
+      const promises = [];
+      obj.layers.map((panel, panelIdx) => {
+        // Then for each panel initialize it to this object where layers is an empty array with the
+        // length of the layers in the panel, as it needs to be inserted in a certain order. For the baselayers
+        // this is irrelevant because the order of overlays is not relevant
+        newPanels[panelIdx] = { 'layers': new Array(panel.length), 'baselayers': [] };
+        panel.map((layer, i) => {
+          // Create a Promise for parsing all WMJSlayers because we can only do something when ALL layers have been parsed
+          promises.push(new Promise((resolve, reject) => {
+            // eslint-disable-next-line no-undef
+            const wmjsLayer = new WMJSLayer(layer);
+            wmjsLayer.parseLayer((newLayer) => {
+              if (layer.overlay || layer.keepOnTop) {
+                newLayer.overlay = true;
+                newLayer.keepOnTop = true;
+              }
+              resolve({ layer: newLayer, panelIdx: panelIdx, index: i });
+            });
+          }));
+        });
+      });
+      // Once that happens, insert the layer in the appropriate place in the appropriate panel
+      Promise.all(promises).then((layers) => {
+        layers.map((layerDescription) => {
+          const { layer, panelIdx, index } = layerDescription;
+          // TODO: Better way to figure out apriori if it's and overlay
+          if (layer.overlay || (layer.WMJSService.title ? layer.WMJSService.title.toLowerCase() === 'overlay' : false)) {
+            if (!layer.keepOnTop && layer.keepOnTop !== false) {
+              layer.keepOnTop = true;
+            }
+            newPanels[panelIdx].baselayers.push(layer);
+          } else {
+            newPanels[panelIdx].layers[index] = layer;
+          }
+        });
+
+        // Beware: a layer can still contain null values because a layer might have been a null value
+        // also, panels may have had no layers in them
+        props.dispatch(props.panelsActions.setPresetLayers(newPanels));
+      });
     }
     if (obj.area) {
       props.dispatch(props.mapActions.setCut({ name: 'Custom', bbox: [obj.area.left, obj.area.bottom, obj.area.right, obj.area.top] }));

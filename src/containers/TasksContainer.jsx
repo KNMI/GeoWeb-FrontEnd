@@ -6,7 +6,7 @@ import cloneDeep from 'lodash.clonedeep';
 import CollapseOmni from '../components/CollapseOmni';
 import Panel from '../components/Panel';
 import PropTypes from 'prop-types';
-
+import { CheckIfUserHasRole } from '../utils/user';
 const items = [
   {
     title: 'Checklist shift',
@@ -151,6 +151,11 @@ class TasksContainer extends Component {
   }
 
   render () {
+    const { user } = this.props;
+    if (user && (!user.isLoggedIn || !CheckIfUserHasRole(user, 'MET'))) {
+      return null;
+    }
+
     const triggers = this.props.recentTriggers || [];
     let title = <Row>
       <Button color='primary' onClick={this.toggle} title={this.state.isOpen ? 'Collapse panel' : 'Expand '}>
@@ -195,7 +200,8 @@ class TasksContainer extends Component {
 }
 
 TasksContainer.propTypes = {
-  recentTriggers: PropTypes.array
+  recentTriggers: PropTypes.array,
+  user: PropTypes.object
 };
 
 class TaskCategory extends Component {
@@ -217,6 +223,7 @@ class TaskCategory extends Component {
 
   render () {
     const { title, notifications, tasks, icon, link, parentCollapsed } = this.props;
+
     return (
       <Card className='row accordion'>
         {parentCollapsed ? <Link to={link}><CardHeader title={title}>
