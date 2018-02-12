@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Button, ButtonGroup, Col, Row, Badge, Card, CardHeader, CardBlock, Alert } from 'reactstrap';
+import { Button, ButtonGroup, Col, Row, Badge, Card, CardHeader, CardBlock, Alert, Input, InputGroupAddon, InputGroup } from 'reactstrap';
 import Moment from 'react-moment';
 import moment from 'moment';
 import Icon from 'react-fa';
@@ -101,6 +101,12 @@ class SigmetCategory extends Component {
     this.savedSigmetCallback = this.savedSigmetCallback.bind(this);
     this.getExistingSigmets = this.getExistingSigmets.bind(this);
     this.gotExistingSigmetsCallback = this.gotExistingSigmetsCallback.bind(this);
+    this.getDirections = this.getDirections.bind(this);
+    this.getChanges = this.getChanges.bind(this);
+    this.setSelectedMovement = this.setSelectedMovement.bind(this);
+    this.setSelectedDirection = this.setSelectedDirection.bind(this);
+    this.setSpeed = this.setSpeed.bind(this);
+    this.setChange = this.setChange.bind(this);
     this.setTops = this.setTops.bind(this);
     this.state = {
       isOpen: props.isOpen,
@@ -224,6 +230,39 @@ class SigmetCategory extends Component {
       parameters = FALLBACK_PARAMS;
     }
     return parameters;
+  }
+
+  /**
+   * Gets Cardinal, intercardinal and named points for directions of wind
+   */
+  getDirections () {
+    return [
+      { shortName: 'N', longName: 'North' },
+      { shortName: 'NNE', longName: 'North-Northeast' },
+      { shortName: 'NE', longName: 'Northeast' },
+      { shortName: 'ENE', longName: 'East-NorthEast' },
+      { shortName: 'E', longName: 'East' },
+      { shortName: 'ESE', longName: 'East-Southeast' },
+      { shortName: 'SE', longName: 'Southeast' },
+      { shortName: 'SSE', longName: 'South-Southeast' },
+      { shortName: 'S', longName: 'South' },
+      { shortName: 'SSW', longName: 'South-Southwest' },
+      { shortName: 'SW', longName: 'Southwest' },
+      { shortName: 'WSW', longName: 'West-Southwest' },
+      { shortName: 'W', longName: 'West' },
+      { shortName: 'WNW', longName: 'West-Northwest' }
+    ];
+  }
+
+  /**
+   * Gets change types
+   */
+  getChanges () {
+    return [
+      { shortName: 'WKN', longName: 'Weakening' },
+      { shortName: 'NC', longName: 'No change' },
+      { shortName: 'INTSF', longName: 'Intensifying' }
+    ];
   }
 
   hasTagName (element, tagName) {
@@ -633,6 +672,40 @@ class SigmetCategory extends Component {
     let listCpy = cloneDeep(this.state.list);
     listCpy[0].validdate_end = validUntil.utc().format();
     this.setState({ list: listCpy });
+  }
+
+  setSelectedMovement (evt) {
+    const isStationary = !evt.target.checked;
+    let listCpy = cloneDeep(this.state.list);
+    listCpy[0].movement.stationary = isStationary;
+    this.setState({ list: listCpy });
+  }
+
+  setSelectedDirection (dir) {
+    if (Array.isArray(dir) && dir.length === 1) {
+      const direction = dir[0].shortName;
+      let listCpy = cloneDeep(this.state.list);
+      listCpy[0].movement.dir = direction;
+      this.setState({ list: listCpy });
+    }
+  }
+
+  setSpeed (evt) {
+    if (!isNaN(evt.target.value)) {
+      const speed = evt.target.value;
+      let listCpy = cloneDeep(this.state.list);
+      listCpy[0].movement.speed = speed;
+      this.setState({ list: listCpy });
+    }
+  }
+
+  setChange (chg) {
+    if (Array.isArray(chg) && chg.length === 1) {
+      const change = chg[0].shortName;
+      let listCpy = cloneDeep(this.state.list);
+      listCpy[0].change = change;
+      this.setState({ list: listCpy });
+    }
   }
 
   getExistingSigmets () {
@@ -1091,12 +1164,58 @@ class SigmetCategory extends Component {
                         <Badge color='success'>Progress</Badge>
                       </Col>
                       <Col xs='9'>
-                        {item.movement.stationary ? 'Stationary' : 'Move'}
+                        {/* dir: {N,NNE,NE,ENE,E,ESE,SE,SSE,S,SSW,SW,WSW,W,WNW} */}
+                        {/* speed: int */}
+                        {editable
+                          ? <SwitchButton id='movementswitch' name='movementswitch'
+                            labelRight='Move' labelLeft='Stationary' isChecked={!item.movement.stationary} action={this.setSelectedMovement} />
+                          : <span>{item.movement.stationary ? 'Stationary' : 'Move'}</span>
+                        }
+
                       </Col>
                     </Row>
-                    <Row>
-                      <Col xs={{ size: 9, offset: 3 }}>
-                        {item.change === 'NC' ? 'No change' : ''}
+                    {!item.movement.stationary
+                      ? <Row style={editable ? { marginTop: '0.19rem', minHeight: '2rem' } : null}>
+                        <Col xs={{ size: 2, offset: 1 }}>
+                          <Badge title='Direction'>Direction</Badge>
+                        </Col>
+                        <Col xs='9'>
+                          {editable
+                            ? <Typeahead style={{ width: '100%' }} filterBy={['shortName', 'longName']} labelKey='longName'
+                              options={this.getDirections()} onChange={(dir) => this.setSelectedDirection(dir)} defaultValue={this.getDirections()[0]} />
+                            : <span>{item.movement.dir}</span>
+                          }
+                        </Col>
+                      </Row>
+                      : null
+                    }
+                    {!item.movement.stationary
+                      ? <Row style={editable ? { marginTop: '0.19rem', minHeight: '2rem' } : null}>
+                        <Col xs={{ size: 2, offset: 1 }}>
+                          <Badge>Speed</Badge>
+                        </Col>
+                        <Col xs='9'>
+                          {editable
+                            ? <InputGroup>
+                              <Input onChange={this.setSpeed} defaultValue='0' type='number' step='1' />
+                              <InputGroupAddon>KT</InputGroupAddon>
+                            </InputGroup>
+                            : <span>{item.movement.speed} KT</span>
+                          }
+                        </Col>
+                      </Row>
+                      : null
+                    }
+                    <Row className='section' style={editable ? { marginTop: '0.19rem', minHeight: '2.5rem' } : null}>
+                      <Col xs='3'>
+                        <Badge color='success'>Change</Badge>
+                      </Col>
+                      <Col xs='9'>
+                        {editable
+                          ? <Typeahead style={{ width: '100%' }} filterBy={['shortName', 'longName']} labelKey='longName'
+                            options={this.getChanges()} onChange={(chg) => this.setChange(chg)} defaultValue={this.getChanges()[0]} />
+                          : <span>{this.getChanges().filter((li) => li.shortName === item.change)[0].longName}</span>
+                        }
                       </Col>
                     </Row>
                     <Row>
