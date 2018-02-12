@@ -53,7 +53,7 @@ export const GetServiceByNamePromise = (backendurl, name) => {
   });
 };
 
-/* Promise which resolves all layers and services */
+/* Promise which resolves all panelsProperties and services */
 export const GetServices = (BACKEND_SERVER_URL) => {
   return new Promise((resolve, reject) => {
     const defaultURLs = ['getServices', 'getOverlayServices'].map((url) => BACKEND_SERVER_URL + '/' + url);

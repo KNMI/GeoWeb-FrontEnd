@@ -1,0 +1,32 @@
+.LayerManager span.badge {
+  height: 1rem;
+  padding-top: 0.075rem;
+}
+
+.LayerManager span.badge.alert-danger {
+  border: 1px solid #ebcccc;
+}
+
+.LayerManager span.badge.badge-info {
+  background-color: #017daf;
+
+}
+
+.LayerManager span.badge.alert-info, .LayerManager span.badge.badge-info{
+  border: 1px solid #bcdff1;
+
+}
+
+.LayerManager span.fa.modifier {
+  color: #015f8c;
+}
+.LayerManager span.fa.modifier.disabled {
+  color: #bebebe;
+}
+.LayerManager span.fa {
+  padding-top: 0;
+}
+
+.LayerManager .Layer {
+  margin: 0.125rem;
+}

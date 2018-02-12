@@ -52,7 +52,7 @@ const state = {
     }
   },
 
-  layers: {
+  panelsProperties: {
     wmjsLayers: [],
     baselayer: {
       service: 'http://geoservices.knmi.nl/cgi-bin/bgmaps.cgi?',
@@ -64,19 +64,19 @@ const state = {
     panels: [
       {
         overlays: [],
-        layers: []
+        panelsProperties: []
       },
       {
         overlays: [],
-        layers: []
+        panelsProperties: []
       },
       {
         overlays: [],
-        layers: []
+        panelsProperties: []
       },
       {
         overlays: [],
-        layers: []
+        panelsProperties: []
       }
     ]
   }
@@ -160,13 +160,13 @@ describe('(Container) MapActionsContainer', () => {
   });
   it('Allows for creating a progtemp config', () => {
     const newAdaguc = {
-      layers: {
+      panelsProperties: {
         datalayers: [
           { title: 'Harmonie36', getDimension: () => '2017-03-24T06:00:00' }
         ]
       },
       wmjslayers: {
-        layers: [{ title: 'Harmonie36', service: 'Harmonie36', getDimension: () => '2017-03-24T06:00:00' }],
+        panelsProperties: [{ title: 'Harmonie36', service: 'Harmonie36', getDimension: () => '2017-03-24T06:00:00' }],
         baselayers: [],
         overlays: []
       },

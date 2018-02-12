@@ -19,12 +19,12 @@ describe('(URLPresets)', () => {
   });
   it('can load a preset', () => {
     const failureFunction = sinon.spy();
-    LoadURLPreset({ layerActions: { setPreset: () => null }, dispatch: () => null }, failureFunction);
+    LoadURLPreset({ panelsActions: { setPreset: () => null }, dispatch: () => null }, failureFunction);
     failureFunction.should.not.have.been.called();
   });
   it('Rejects invalid UUID', () => {
     const failureFunction = sinon.spy();
-    _loadPreset({ layerActions: { setPreset: () => null }, dispatch: () => null }, 'adadad', failureFunction);
+    _loadPreset({ panelsActions: { setPreset: () => null }, dispatch: () => null }, 'adadad', failureFunction);
     failureFunction.should.have.been.calledOnce();
   });
   it('Accepts valid UUID', (done) => {
@@ -35,7 +35,7 @@ describe('(URLPresets)', () => {
       responseText: { payload: '{"payload":""}' }
     });
     _loadPreset({ urls: { BACKEND_SERVER_URL: 'http://localhost:8080' },
-      layerActions: { setPreset: () => {
+      panelsActions: { setPreset: () => {
         dispatchSetPreset();
       } },
       dispatch: () => {} }, '0169891a-d31e-423c-8936-1618af774472');

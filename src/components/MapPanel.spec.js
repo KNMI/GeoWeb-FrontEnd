@@ -3,12 +3,18 @@ import { default as MapPanel } from './MapPanel';
 import { shallow, mount } from 'enzyme';
 import sinon from 'sinon';
 import { Row } from 'reactstrap';
-
+const baselayer = {
+  service: 'http://geoservices.knmi.nl/cgi-bin/bgmaps.cgi?',
+  name: 'streetmap',
+  title: 'OpenStreetMap',
+  format: 'image/gif',
+  enabled: true
+};
 const state = {
   adagucActions: {
     setTimeDimension: () => null
   },
-  layerActions: {
+  panelsActions: {
     setWMJSLayers: () => null
   },
   adagucProperties: {
@@ -19,8 +25,6 @@ const state = {
   },
   mapProperties: {
     mapCreated: false,
-    activeMapId: 0,
-    layout: 'single',
     mapMode: 'pan',
     projection: {
       name: 'Mercator',
@@ -60,37 +64,31 @@ const state = {
     }
   },
 
-  layers: {
-    wmjsLayers: [],
-    baselayer: {
-      service: 'http://geoservices.knmi.nl/cgi-bin/bgmaps.cgi?',
-      name: 'streetmap',
-      title: 'OpenStreetMap',
-      format: 'image/gif',
-      enabled: true
-    },
+  panelsProperties: {
     panels: [
       {
-        overlays: [],
+        baselayers: [baselayer],
         layers: [],
         type: 'ADAGUC'
       },
       {
-        overlays: [],
+        baselayers: [baselayer],
         layers: [],
         type: 'PROGTEMP'
       },
       {
-        overlays: [],
+        baselayers: [baselayer],
         layers: [],
         type: 'TIMESERIES'
       },
       {
-        overlays: [],
+        baselayers: [baselayer],
         layers: [],
         type: 'ADAGUC'
       }
-    ]
+    ],
+    activePanelId: 0,
+    panelLayout: 'single'
   }
 };
 
@@ -168,7 +166,7 @@ describe('(Component) MapPanel', () => {
       adagucProperties={state.adagucProperties}
       drawProperties={state.drawProperties}
       mapProperties={state.mapProperties}
-      layers={state.layers}
+      panelsProperties={state.panelsProperties}
       dispatch={emptyDispatch}
       actions={emptyActions} />);
     expect(_component.type()).to.eql(Row);
@@ -181,8 +179,8 @@ describe('(Component) MapPanel', () => {
       adagucProperties={state.adagucProperties}
       drawProperties={state.drawProperties}
       mapProperties={state.mapProperties}
-      layers={state.layers}
-      layerActions={state.layerActions}
+      panelsProperties={state.panelsProperties}
+      panelsActions={state.panelsActions}
       dispatch={emptyDispatch}
       actions={emptyActions} />);
     expect(_component.type()).to.eql(MapPanel);
