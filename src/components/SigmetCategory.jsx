@@ -951,8 +951,17 @@ class SigmetCategory extends Component {
   }
 
   render () {
-    const { title, icon, parentCollapsed, editable, selectedIndex, toggleMethod } = this.props;
+    const { title, icon, parentCollapsed, editable, selectedIndex, toggleMethod, drawProperties } = this.props;
     const notifications = !editable ? this.state.list.length : 0;
+    console.log('Features', this.state.list, drawProperties);
+    // Show a warning in case there is no drawing yet, so both the this.state.list and the this.props.drawProperties are empty
+    const showDrawWarning = !this.state.list.length > 0 || !this.state.list[0].hasOwnProperty('geojson') || !this.state.list[0].geojson.hasOwnProperty('features') ||
+      !this.state.list[0].geojson.features.length > 0 || !this.state.list[0].geojson.features[0].hasOwnProperty('geometry') ||
+      !this.state.list[0].geojson.features[0].geometry.hasOwnProperty('coordinates') || !this.state.list[0].geojson.features[0].geometry.coordinates.length > 0 ||
+      !drawProperties || !drawProperties.hasOwnProperty('geojson') || !drawProperties.geojson.hasOwnProperty('features') ||
+      !drawProperties.geojson.features.length > 0 || !drawProperties.geojson.features[0].hasOwnProperty('geometry') ||
+      !drawProperties.geojson.features[0].geometry.hasOwnProperty('coordinates') || !drawProperties.geojson.features[0].geometry.coordinates.length > 0;
+    console.log('Show', showDrawWarning);
     let maxSize = this.state.list ? 500 * this.state.list.length : 0;
     if (editable) {
       maxSize = 900;
@@ -1124,7 +1133,7 @@ class SigmetCategory extends Component {
                         </Col>
                       </Row>
                     }
-                    {editable && isEqual(this.state.list[0].geojson, EMPTY_GEO_JSON)
+                    {editable && showDrawWarning
                       ? <Row style={{ flex: 'none', padding: '0.5rem 0 0.5rem 0.12rem', maxWidth: '22.5rem' }}>
                         <Col>
                           <Alert color='danger' style={{ display: 'block', margin: '0', whiteSpace: 'normal', padding: '0.75rem' }}>
