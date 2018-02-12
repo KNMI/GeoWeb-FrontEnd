@@ -1133,7 +1133,7 @@ class SigmetCategory extends Component {
                         </Col>
                       </Row>
                     }
-                    {editable && showDrawWarning
+                    {selectedIndex && editable && showDrawWarning
                       ? <Row style={{ flex: 'none', padding: '0.5rem 0 0.5rem 0.12rem', maxWidth: '22.5rem' }}>
                         <Col>
                           <Alert color='danger' style={{ display: 'block', margin: '0', whiteSpace: 'normal', padding: '0.75rem' }}>
