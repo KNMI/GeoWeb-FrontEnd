@@ -10,7 +10,6 @@ describe('(Container) SigmetCategory', () => {
     expect(_component.type()).to.eql(SigmetCategory);
   });
   it('Maps SIGMET phenomenon codes to Human Readable Text', () => {
-    moxios.install();
     const phenomena = [
       { phenomenon: { name: 'Thunderstorm', code: 'TS', layerpreset: 'sigmet_layer_TS' },
         variants: [{ name: 'Obscured', code: 'OBSC' }, { name: 'Embedded', code: 'EMBD' }, { name: 'Frequent', code: 'FRQ' }, { name: 'Squall line', code: 'SQL' }],
@@ -20,15 +19,15 @@ describe('(Container) SigmetCategory', () => {
         variants: [],
         additions: []
       },
-      { phenomenon: { name: 'Severe Icing', code: 'SEV_ICE', layerpreset: 'sigmet_layer_SEV_ICE' },
+      { phenomenon: { name: 'Severe icing', code: 'SEV_ICE', layerpreset: 'sigmet_layer_SEV_ICE' },
         variants: [],
         additions: [{ name: 'due to freezing rain', code: 'FRZA' }]
       },
-      { phenomenon: { name: 'Duststorm', code: 'DS', layerpreset: 'sigmet_layer_DS' },
+      { phenomenon: { name: 'Duststorm', code: 'HVY_DS', layerpreset: 'sigmet_layer_HVY_DS' },
         variants: [],
         additions: []
       },
-      { phenomenon: { name: 'Sandstorm', code: 'SS', layerpreset: 'sigmet_layer_SS' },
+      { phenomenon: { name: 'Sandstorm', code: 'HVY_SS', layerpreset: 'sigmet_layer_HVY_SS' },
         variants: [],
         additions: []
       },
@@ -37,57 +36,46 @@ describe('(Container) SigmetCategory', () => {
         additions: []
       }
     ];
-    moxios.wait(() => {
-      const request = moxios.requests.mostRecent();
-      request.respondWith({
-        status: 200,
-        response: phenomena
-      }).then(() => {
-        const _component = mount(<SigmetCategory title={'test'} icon='star' />);
-        const _instance = _component.instance();
-        let phenomenon = _instance.getHRT4code();
-        expect(phenomenon).to.eql('Unknown');
-        phenomenon = _instance.getHRT4code(undefined);
-        expect(phenomenon).to.eql('Unknown');
-        phenomenon = _instance.getHRT4code('Test');
-        expect(phenomenon).to.eql('Unknown');
-        phenomenon = _instance.getHRT4code('OBSC_TS');
-        expect(phenomenon).to.eql('Obscured thunderstorm');
-        phenomenon = _instance.getHRT4code('EMBD_TS');
-        expect(phenomenon).to.eql('Embedded thunderstorm');
-        phenomenon = _instance.getHRT4code('FRQ_TS');
-        expect(phenomenon).to.eql('Frequent thunderstorm');
-        phenomenon = _instance.getHRT4code('SQL_TS');
-        expect(phenomenon).to.eql('Squall line thunderstorm');
-        phenomenon = _instance.getHRT4code('OBSC_TSGR');
-        expect(phenomenon).to.eql('Obscured thunderstorm with hail');
-        phenomenon = _instance.getHRT4code('EMBD_TSGR');
-        expect(phenomenon).to.eql('Embedded thunderstorm with hail');
-        phenomenon = _instance.getHRT4code('FRQ_TSGR');
-        expect(phenomenon).to.eql('Frequent thunderstorm with hail');
-        phenomenon = _instance.getHRT4code('SQL_TSGR');
-        expect(phenomenon).to.eql('Squall line thunderstorm with hail');
-        phenomenon = _instance.getHRT4code('SEV_TURB');
-        expect(phenomenon).to.eql('Severe turbulence');
-        phenomenon = _instance.getHRT4code('SEV_ICE');
-        expect(phenomenon).to.eql('Severe icing');
-        phenomenon = _instance.getHRT4code('SEV_ICE_(FZRA)');
-        expect(phenomenon).to.eql('Severe icing due to freezing rain');
-        phenomenon = _instance.getHRT4code('HVY_DS');
-        expect(phenomenon).to.eql('Heavy duststorm');
-        phenomenon = _instance.getHRT4code('HVY_SS');
-        expect(phenomenon).to.eql('Heavy sandstorm');
-        phenomenon = _instance.getHRT4code('RDOACT_CLD');
-        expect(phenomenon).to.eql('Radioactive cloud');
-        moxios.done();
-        moxios.uninstall();
-      }).catch((error) => {
-        console.error('This test gave an error: ', error);
-        expect(false).to.equal(true);
-        moxios.done();
-        moxios.uninstall();
-      });
-    });
+    const _component = mount(<SigmetCategory title={'test'} icon='star' phenomenonMapping={phenomena} />);
+    const _instance = _component.instance();
+    let phenomenon = _instance.getHRT4code();
+    expect(phenomenon).to.eql('Unknown');
+    phenomenon = _instance.getHRT4code(void 0);
+    expect(phenomenon).to.eql('Unknown');
+    phenomenon = _instance.getHRT4code('Test');
+    expect(phenomenon).to.eql('Unknown');
+    phenomenon = _instance.getHRT4code('OBSC_TS');
+    expect(phenomenon).to.eql('Obscured thunderstorm');
+    phenomenon = _instance.getHRT4code('EMBD_TS');
+    expect(phenomenon).to.eql('Embedded thunderstorm');
+    phenomenon = _instance.getHRT4code('FRQ_TS');
+    expect(phenomenon).to.eql('Frequent thunderstorm');
+    phenomenon = _instance.getHRT4code('SQL_TS');
+    expect(phenomenon).to.eql('Squall line thunderstorm');
+    phenomenon = _instance.getHRT4code('OBSC_TSGR');
+    expect(phenomenon).to.eql('Obscured thunderstorm with hail');
+    phenomenon = _instance.getHRT4code('EMBD_TSGR');
+    expect(phenomenon).to.eql('Embedded thunderstorm with hail');
+    phenomenon = _instance.getHRT4code('FRQ_TSGR');
+    expect(phenomenon).to.eql('Frequent thunderstorm with hail');
+    phenomenon = _instance.getHRT4code('SQL_TSGR');
+    expect(phenomenon).to.eql('Squall line thunderstorm with hail');
+    phenomenon = _instance.getHRT4code('SEV_TURB');
+    expect(phenomenon).to.eql('Turbulence');
+    phenomenon = _instance.getHRT4code('SEV_ICE');
+    expect(phenomenon).to.eql('Severe icing');
+    phenomenon = _instance.getHRT4code('SEV_ICE_(FRZA)');
+    expect(phenomenon).to.eql('Severe icing due to freezing rain');
+    phenomenon = _instance.getHRT4code('HVY_DS');
+    expect(phenomenon).to.eql('Duststorm');
+    phenomenon = _instance.getHRT4code('HVY_SS');
+    expect(phenomenon).to.eql('Sandstorm');
+    phenomenon = _instance.getHRT4code('RDOACT_CLD');
+    expect(phenomenon).to.eql('Radioactive cloud');
+    const _component2 = mount(<SigmetCategory title={'test'} icon='star' />);
+    const _instance2 = _component2.instance();
+    phenomenon = _instance2.getHRT4code();
+    expect(phenomenon).to.eql('Unknown');
   });
   it('Handles triggering of showLevels', () => {
     const _component = mount(<SigmetCategory title={'test'} icon='star' />);

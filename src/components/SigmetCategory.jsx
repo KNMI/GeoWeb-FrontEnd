@@ -133,8 +133,13 @@ class SigmetCategory extends Component {
     let result = '';
     let variantIndex;
     let additionIndex;
-    let effectiveMapping = cloneDeep(phenomenonMapping).filter((item) => item.phenomenon.code === code);
-    if (effectiveMapping.length !== 1) {
+    let effectiveMapping = cloneDeep(phenomenonMapping).filter((item) => code.startsWith(item.phenomenon.code));
+    if (effectiveMapping.length === 1) {
+      if (effectiveMapping[0].phenomenon.code === code) {
+        effectiveMapping[0].variants = [];
+        effectiveMapping[0].additions = [];
+      }
+    } else {
       effectiveMapping = cloneDeep(phenomenonMapping).map((item) => {
         if (item.variants.length > 0) {
           variantIndex = item.variants.findIndex((variant) => codeFragments[0].startsWith(variant.code));
@@ -240,7 +245,7 @@ class SigmetCategory extends Component {
       { shortName: 'N', longName: 'North' },
       { shortName: 'NNE', longName: 'North-Northeast' },
       { shortName: 'NE', longName: 'Northeast' },
-      { shortName: 'ENE', longName: 'East-NorthEast' },
+      { shortName: 'ENE', longName: 'East-Northeast' },
       { shortName: 'E', longName: 'East' },
       { shortName: 'ESE', longName: 'East-Southeast' },
       { shortName: 'SE', longName: 'Southeast' },
