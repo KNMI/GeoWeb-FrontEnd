@@ -143,7 +143,7 @@ export default class Adaguc extends PureComponent {
       layer.parseLayer((newLayer) => {
         if (newLayer.active) {
           this.webMapJS.setActiveLayer(newLayer);
-          this.onChangeAnimation(animationSettings, this.props.active, true);
+          this.onChangeAnimation(animationSettings, this.props.active);
         }
         dispatch(panelsActions.replaceLayer({ mapId, index: i, layer: newLayer }));
       }, true);
