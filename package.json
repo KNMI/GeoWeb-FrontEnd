@@ -63,6 +63,13 @@
         "DEBUG": "app:*"
       }
     },
+    "deploy:prod-quick": {
+      "command": "npm run clean && npm run compile",
+      "env": {
+        "NODE_ENV": "production",
+        "DEBUG": "app:*"
+      }
+    },
     "start": {
       "command": "node bin/dev-server",
       "env": {
