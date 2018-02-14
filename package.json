@@ -20,6 +20,7 @@
     "deploy": "better-npm-run deploy",
     "deploy:dev": "better-npm-run deploy:dev",
     "deploy:prod": "better-npm-run deploy:prod",
+    "deploy:prod-quick": "better-npm-run deploy:prod-quick",
     "validate": "npm ls"
   },
   "betterScripts": {
