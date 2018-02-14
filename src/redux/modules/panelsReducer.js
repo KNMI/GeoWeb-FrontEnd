@@ -153,12 +153,19 @@ export default handleActions({
     const { index, layer, mapId } = payload;
     const stateCpy = cloneDeep(state);
 
-    stateCpy.panels[mapId].layers[index] = layer;
+    if (layer.keepOnTop === true) {
+      const baseLayers = stateCpy.panels[mapId].baselayers.filter((layer) => !layer.keepOnTop);
+      const overlays = stateCpy.panels[mapId].baselayers.filter((layer) => layer.keepOnTop === true);
+      overlays[index] = layer;
+      stateCpy.panels[mapId].baselayers = baseLayers.concat(overlays);
+    } else {
+      stateCpy.panels[mapId].layers[index] = layer;
+    }
 
     const numActiveLayers = stateCpy.panels[mapId].layers.filter((layer) => layer.active === true).length;
 
     // If there are no active layers left, set it active
-    if (numActiveLayers === 0) {
+    if (stateCpy.panels[mapId].layers.length > 0 && numActiveLayers === 0) {
       stateCpy.panels[mapId].layers[index].active = true;
     }
 

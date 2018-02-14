@@ -262,14 +262,14 @@ export default class Adaguc extends PureComponent {
   /* istanbul ignore next */
   updateBaselayers (baselayers, nextBaselayers) {
     if (Array.isArray(baselayers) && diff(baselayers, nextBaselayers)) {
-      const nextBaseLayers = nextBaselayers.filter((layer) => layer.keepOnTop === false);
+      const nextBaseLayers = nextBaselayers.filter((layer) => !layer.keepOnTop);
       const nextOverlays = nextBaselayers.filter((layer) => layer.keepOnTop === true);
 
       const currentBaseLayers = this.webMapJS.getBaseLayers();
       const potentialNextBaseLayers = nextBaseLayers.concat(nextOverlays);
       currentBaseLayers.map((baselayer) => {
         if (!potentialNextBaseLayers.includes(baselayer)) {
-          if (baselayer.keepOnTop === false) {
+          if (!baselayer.keepOnTop) {
             potentialNextBaseLayers.unshift(baselayer);
           } else {
             if (nextBaselayers.includes(baselayer)) {
@@ -384,8 +384,10 @@ export default class Adaguc extends PureComponent {
     if (activePanelId !== nextProps.panelsProperties.activePanelId) {
       this.updateAnimationActiveLayerChange(activePanel.layers, nextActivePanel.layers, nextProps.active);
     }
+
     const layersChanged = this.updateLayers(activePanel.layers, nextActivePanel.layers, nextProps.active);
     const baseChanged = this.updateBaselayers(baseLayers, nextBaseLayers);
+
     // Update animation -- animate iff animate is set and the panel is active.
     if (nextProps.adagucProperties.animationSettings !== animationSettings ||
         activePanelId !== nextProps.panelsProperties.activePanelId ||
