@@ -385,7 +385,6 @@ export default class Adaguc extends PureComponent {
       this.updateAnimationActiveLayerChange(activePanel.layers, nextActivePanel.layers, nextProps.active);
     }
 
-    const activeLayerChanged = currActiveLayers.length > 0 && nextActiveLayers.length > 0 && currActiveLayers[0].service !== nextActiveLayers[0].service && currActiveLayers[0].name !== nextActiveLayers[0].name;
     const layersChanged = this.updateLayers(activePanel.layers, nextActivePanel.layers, nextProps.active);
     const baseChanged = this.updateBaselayers(baseLayers, nextBaseLayers);
 
