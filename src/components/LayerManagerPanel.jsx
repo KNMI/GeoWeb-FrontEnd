@@ -419,15 +419,15 @@ class LayerManagerPanel extends Component {
           </Col>
           <Col xs='auto' style={{ flexDirection: 'column-reverse', marginLeft: '.66rem' }}>
             {this.state.showControls
-              ? <Row style={{ flexDirection: 'inherit' }}>
-                <Col />
-                <Col xs='auto'>
+              ? <Row style={{ flexDirection: isFullScreen ? 'row-reverse' : 'inherit' }}>
+                <Col style={{ marginRight: 0 }} />
+                <Col xs='auto' style={{ marginRight: 0 }}>
                   <Button disabled={Array.isArray(sources) || Object.keys(sources).length === 0} onClick={this.toggleLayerChooser}
                     color='primary' title='Add layers'>
                     <Icon name='plus' />
                   </Button>
                 </Col>
-                <Col xs='auto' style={{ marginBottom: '0.33rem' }}>
+                <Col xs='auto' style={{ marginBottom: isFullScreen ? 0 : '0.33rem', marginRight: isFullScreen ? '0.33rem' : 0 }}>
                   <Button disabled={!(currentPanel && ((currentPanel.baselayers.length > 2) || (currentPanel.layers.length > 0)))}
                     onClick={this.resetLayers} color='primary' title='Remove all layers'>
                     <Icon name='trash' />
