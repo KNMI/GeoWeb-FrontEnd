@@ -436,7 +436,7 @@ class LayerManagerPanel extends Component {
               </Row>
               : null }
             {isFullScreen
-              ? <Row style={{ marginBottom: '.33rem' }}>
+              ? <Row style={{ marginBottom: this.state.showControls ? '.33rem' : 0 }}>
                 <Col xs='auto'>
                   <Button onClick={this.toggleControls} color='primary' title={this.state.showControls ? 'Hide controls' : 'Show controls'}>
                     <Icon name={this.state.showControls ? 'eye-slash' : 'eye'} />
