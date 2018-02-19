@@ -10,7 +10,7 @@ import { jsonToTacForPeriod, jsonToTacForWind, jsonToTacForCavok, jsonToTacForVe
 */
 class BaseForecast extends Component {
   render () {
-    const { tafMetadata, tafForecast, focusedFieldName, inputRef, editable, invalidFields } = this.props;
+    const { tafMetadata, tafForecast, focusedFieldName, locationOptions, inputRef, editable, invalidFields } = this.props;
 
     const columns = [
       {
@@ -22,8 +22,10 @@ class BaseForecast extends Component {
       {
         name: 'metadata-location',
         value: tafMetadata.hasOwnProperty('location') ? tafMetadata.location || '' : '',
-        disabled: true,
-        classes: [ 'TACnotEditable' ]
+        disabled: !editable,
+        isTypeAhead: true,
+        options: locationOptions,
+        classes: []
       },
       {
         name: 'metadata-issueTime',
@@ -101,7 +103,8 @@ class BaseForecast extends Component {
 
     return <tr>
       {columns.map((col) =>
-        <TafCell classes={col.classes} key={col.name} name={col.name} inputRef={inputRef} value={col.value} disabled={col.disabled} autoFocus={col.autoFocus} />
+        <TafCell classes={col.classes} key={col.name} name={col.name} inputRef={inputRef} value={col.value} disabled={col.disabled} autoFocus={col.autoFocus}
+          isTypeAhead={col.isTypeAhead} typeAheadOptions={col.options} />
       )}
     </tr>;
   }
@@ -111,6 +114,7 @@ BaseForecast.defaultProps = {
   tafMetadata: cloneDeep(TAF_TEMPLATES.METADATA),
   tafForecast: cloneDeep(TAF_TEMPLATES.FORECAST),
   focusedFieldName: null,
+  locationOptions: [],
   inputRef: () => {},
   editable: false,
   invalidFields: []
@@ -120,6 +124,7 @@ BaseForecast.propTypes = {
   tafMetadata: TAF_TYPES.METADATA.isRequired,
   tafForecast: TAF_TYPES.FORECAST.isRequired,
   focusedFieldName: PropTypes.string,
+  locationOptions: PropTypes.arrayOf(PropTypes.string),
   inputRef: PropTypes.func,
   editable : PropTypes.bool,
   invalidFields: PropTypes.array

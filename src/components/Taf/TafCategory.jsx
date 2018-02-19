@@ -15,7 +15,10 @@ import { jsonToTacForWind, jsonToTacForWeather, jsonToTacForClouds } from './Taf
 import TafTable from './TafTable';
 import axios from 'axios';
 import { debounce } from '../../utils/debounce';
+import { ReadLocations } from '../../utils/admin';
+
 const TMP = '◷';
+const TAF = 'taf';
 
 const MOVE_DIRECTION = Enum(
   'UP',
@@ -152,6 +155,7 @@ class TafCategory extends Component {
       tafAsObject: props.taf,
       focusedFieldName: 'forecast-wind',
       hasEdits: false,
+      locationOptions: [],
       preset: {
         forPhenomenon: null,
         inWindow: null
@@ -885,6 +889,27 @@ class TafCategory extends Component {
     });
   };
 
+  componentWillMount () {
+    if (!this.props.hasOwnProperty('urls') || !this.props.urls ||
+        !this.props.urls.hasOwnProperty('BACKEND_SERVER_URL') || typeof this.props.urls.BACKEND_SERVER_URL !== 'string') {
+      return;
+    }
+    ReadLocations(`${this.props.urls.BACKEND_SERVER_URL}/admin/read`, (tafLocationsData) => {
+      if (tafLocationsData && typeof tafLocationsData === 'object') {
+        const locationNames = [];
+        tafLocationsData.forEach((location) => {
+          if (location.hasOwnProperty('name') && typeof location.name === 'string' &&
+              location.hasOwnProperty('availability') && Array.isArray(location.availability) && location.availability.includes(TAF)) {
+            locationNames.push(location.name);
+          }
+        });
+        this.setState({ locationOptions: locationNames });
+      } else {
+        console.error('Couldn\'t retrieve locations');
+      }
+    });
+  };
+
   componentWillReceiveProps (nextProps) {
     if (!this.state.hasEdits) {
       const nextP = cloneDeep(nextProps);
@@ -938,6 +963,7 @@ class TafCategory extends Component {
               <TafTable
                 validationReport={this.state.validationReport}
                 taf={this.state.tafAsObject}
+                locationOptions={this.state.locationOptions}
                 focusedFieldName={this.state.focusedFieldName}
                 inputRef={this.registerElement}
                 onSortEnd={this.onSortEnd}
