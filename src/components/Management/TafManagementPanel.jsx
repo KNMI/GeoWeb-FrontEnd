@@ -7,6 +7,11 @@ export default class TafManagementPanel extends React.Component {
     const linkBase = 'manage/products/taf/';
     const items = [
       {
+        title: 'Configure TAF locations',
+        text: 'Configuration of the locations at which a TAF can be issued',
+        link: linkBase + 'locations'
+      },
+      {
         title: 'Validation rules',
         text: 'Configuration of the validation rules',
         link: linkBase + 'validation'
