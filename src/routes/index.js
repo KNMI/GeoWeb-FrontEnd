@@ -245,7 +245,9 @@ export const createRoutes = (store) => {
                   </Route>
                 </Route>
                 <Route path='locations' title='TAF locations'>
-                  <IndexRoute component={tafLocmanPanel} />
+                  <Route>
+                    <IndexRoute component={tafLocmanPanel} />
+                  </Route>
                 </Route>
                 <Route path='validation' title='Validation'>
                   <Route>
