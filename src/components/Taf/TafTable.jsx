@@ -223,9 +223,9 @@ class TafTable extends Component {
     }
   }
 
-  getBaseForecastLine (tafJSON, focusedFieldName, locationOptions, inputRef, editable, invalidFields) {
+  getBaseForecastLine (tafJSON, focusedFieldName, inputRef, editable, invalidFields) {
     return <tbody>
-      <BaseForecast tafMetadata={tafJSON.metadata} tafForecast={tafJSON.forecast} locationOptions={locationOptions}
+      <BaseForecast tafMetadata={tafJSON.metadata} tafForecast={tafJSON.forecast}
         focusedFieldName={focusedFieldName} inputRef={inputRef} editable={editable} invalidFields={invalidFields} />
     </tbody>;
   }
@@ -258,12 +258,12 @@ class TafTable extends Component {
   }
 
   render () {
-    const { taf, focusedFieldName, locationOptions, inputRef, editable, onKeyUp, onKeyDown, onClick, onFocus, onSortEnd, validationReport } = this.props;
+    const { taf, focusedFieldName, inputRef, editable, onKeyUp, onKeyDown, onClick, onFocus, onSortEnd, validationReport } = this.props;
     const invalidFields = this.processValidation(validationReport);
     return (
       <table className='TafStyle TafStyleTable' onChange={this.onChange} onKeyUp={onKeyUp} onKeyDown={onKeyDown} onClick={onClick} onFocus={onFocus}>
         <BaseHeaders />
-        {this.getBaseForecastLine(taf, focusedFieldName, locationOptions, inputRef, editable, invalidFields.base)}
+        {this.getBaseForecastLine(taf, focusedFieldName, inputRef, editable, invalidFields.base)}
         <ChangeGroupHeaders />
 
         {editable
@@ -289,7 +289,6 @@ TafTable.defaultProps = {
   editable: false,
   inputRef: () => {},
   focusedFieldName: null,
-  locationOptions: [],
   setTafValues: () => {},
   onKeyUp: () => {},
   onKeyDown: () => {},
@@ -305,7 +304,6 @@ TafTable.defaultProps = {
 TafTable.propTypes = {
   taf: TAF_TYPES.TAF,
   focusedFieldName: PropTypes.string,
-  locationOptions: PropTypes.arrayOf(PropTypes.string),
   editable : PropTypes.bool,
   inputRef: PropTypes.func,
   setTafValues: PropTypes.func,
