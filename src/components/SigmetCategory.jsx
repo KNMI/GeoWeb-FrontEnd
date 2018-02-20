@@ -1179,38 +1179,32 @@ class SigmetCategory extends Component {
 
                       </Col>
                     </Row>
-                    {!item.movement.stationary
-                      ? <Row style={editable ? { marginTop: '0.19rem', minHeight: '2rem' } : null}>
-                        <Col xs={{ size: 2, offset: 1 }}>
-                          <Badge title='Direction'>Direction</Badge>
-                        </Col>
-                        <Col xs='9'>
-                          {editable
-                            ? <Typeahead style={{ width: '100%' }} filterBy={['shortName', 'longName']} labelKey='longName'
-                              options={this.getDirections()} onChange={(dir) => this.setSelectedDirection(dir)} defaultValue={this.getDirections()[0]} />
-                            : <span>{item.movement.dir}</span>
-                          }
-                        </Col>
-                      </Row>
-                      : null
-                    }
-                    {!item.movement.stationary
-                      ? <Row style={editable ? { marginTop: '0.19rem', minHeight: '2rem' } : null}>
-                        <Col xs={{ size: 2, offset: 1 }}>
-                          <Badge>Speed</Badge>
-                        </Col>
-                        <Col xs='9'>
-                          {editable
-                            ? <InputGroup>
-                              <Input onChange={this.setSpeed} defaultValue='0' type='number' step='1' />
-                              <InputGroupAddon>KT</InputGroupAddon>
-                            </InputGroup>
-                            : <span>{item.movement.speed} KT</span>
-                          }
-                        </Col>
-                      </Row>
-                      : null
-                    }
+                    <Row style={editable ? { marginTop: '0.19rem', minHeight: '2rem' } : null}>
+                      <Col xs={{ size: 2, offset: 1 }}>
+                        <Badge title='Direction'>Direction</Badge>
+                      </Col>
+                      <Col xs='9'>
+                        {editable
+                          ? <Typeahead style={{ width: '100%' }} filterBy={['shortName', 'longName']} labelKey='longName' disabled={item.movement.stationary}
+                            options={this.getDirections()} onChange={(dir) => this.setSelectedDirection(dir)} defaultValue={this.getDirections()[0]} />
+                          : <span>{item.movement.dir}</span>
+                        }
+                      </Col>
+                    </Row>
+                    <Row style={editable ? { marginTop: '0.19rem', minHeight: '2rem' } : null}>
+                      <Col xs={{ size: 2, offset: 1 }}>
+                        <Badge>Speed</Badge>
+                      </Col>
+                      <Col xs='9'>
+                        {editable
+                          ? <InputGroup>
+                            <Input onChange={this.setSpeed} defaultValue='0' type='number' step='1' disabled={item.movement.stationary} />
+                            <InputGroupAddon>KT</InputGroupAddon>
+                          </InputGroup>
+                          : <span>{item.movement.speed} KT</span>
+                        }
+                      </Col>
+                    </Row>
                     <Row className='section' style={editable ? { marginTop: '0.19rem', minHeight: '2.5rem' } : null}>
                       <Col xs='3'>
                         <Badge color='success'>Change</Badge>

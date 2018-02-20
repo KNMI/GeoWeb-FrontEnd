@@ -15,10 +15,8 @@ import { jsonToTacForWind, jsonToTacForWeather, jsonToTacForClouds } from './Taf
 import TafTable from './TafTable';
 import axios from 'axios';
 import { debounce } from '../../utils/debounce';
-import { ReadLocations } from '../../utils/admin';
 
 const TMP = '◷';
-const TAF = 'taf';
 
 const MOVE_DIRECTION = Enum(
   'UP',
@@ -38,8 +36,7 @@ const generateDefaultValues = () => {
   return {
     start: now.hour(TAFStartHour).minutes(0).seconds(0).format('YYYY-MM-DDTHH:mm:ss') + 'Z',
     end: now.hour(TAFStartHour).minutes(0).seconds(0).add(30, 'hour').format('YYYY-MM-DDTHH:mm:ss') + 'Z',
-    issue: 'not yet issued',
-    location: 'EHAM'
+    issue: 'not yet issued'
   };
 };
 
@@ -155,7 +152,6 @@ class TafCategory extends Component {
       tafAsObject: props.taf,
       focusedFieldName: 'forecast-wind',
       hasEdits: false,
-      locationOptions: [],
       preset: {
         forPhenomenon: null,
         inWindow: null
@@ -174,7 +170,7 @@ class TafCategory extends Component {
       initialState.tafAsObject.metadata.issueTime = defaults.issue;
     }
     if (!props.taf.metadata.location) {
-      initialState.tafAsObject.metadata.location = defaults.location;
+      initialState.tafAsObject.metadata.location = props.location;
     }
 
     this.state = initialState;
@@ -889,31 +885,10 @@ class TafCategory extends Component {
     });
   };
 
-  componentWillMount () {
-    if (!this.props.hasOwnProperty('urls') || !this.props.urls ||
-        !this.props.urls.hasOwnProperty('BACKEND_SERVER_URL') || typeof this.props.urls.BACKEND_SERVER_URL !== 'string') {
-      return;
-    }
-    ReadLocations(`${this.props.urls.BACKEND_SERVER_URL}/admin/read`, (tafLocationsData) => {
-      if (tafLocationsData && typeof tafLocationsData === 'object') {
-        const locationNames = [];
-        tafLocationsData.forEach((location) => {
-          if (location.hasOwnProperty('name') && typeof location.name === 'string' &&
-              location.hasOwnProperty('availability') && Array.isArray(location.availability) && location.availability.includes(TAF)) {
-            locationNames.push(location.name);
-          }
-        });
-        this.setState({ locationOptions: locationNames });
-      } else {
-        console.error('Couldn\'t retrieve locations');
-      }
-    });
-  };
-
   componentWillReceiveProps (nextProps) {
     if (!this.state.hasEdits) {
-      const nextP = cloneDeep(nextProps);
-      if ('taf' in nextProps && nextProps.taf) {
+      let nextP = cloneDeep(nextProps);
+      if ('taf' in nextP && nextP.taf) {
         const defaults = generateDefaultValues();
         if (!nextP.taf.metadata.validityStart) {
           nextP.taf.metadata.validityStart = defaults.start;
@@ -925,8 +900,12 @@ class TafCategory extends Component {
           nextP.taf.metadata.issueTime = defaults.issue;
         }
         if (!nextP.taf.metadata.location) {
-          nextP.taf.metadata.location = defaults.location;
+          nextP.taf.metadata.location = nextP.location;
         }
+      } else if ('location' in nextP && nextP.location) {
+        const loc = nextP.location;
+        nextP = { taf: cloneDeep(this.state.tafAsObject) };
+        nextP.taf.metadata.location = loc;
       }
       this.validateTaf(nextP.taf);
       this.setState({ tafAsObject: nextP.taf });
@@ -963,7 +942,6 @@ class TafCategory extends Component {
               <TafTable
                 validationReport={this.state.validationReport}
                 taf={this.state.tafAsObject}
-                locationOptions={this.state.locationOptions}
                 focusedFieldName={this.state.focusedFieldName}
                 inputRef={this.registerElement}
                 onSortEnd={this.onSortEnd}
@@ -1020,7 +998,8 @@ class TafCategory extends Component {
 
 TafCategory.defaultProps = {
   taf: cloneDeep(TAF_TEMPLATES.TAF),
-  editable: false
+  editable: false,
+  location: 'EHAM'
 };
 
 TafCategory.propTypes = {
@@ -1028,7 +1007,8 @@ TafCategory.propTypes = {
   editable: PropTypes.bool,
   urls: PropTypes.shape({
     BACKEND_SERVER_URL: PropTypes.string
-  })
+  }),
+  location: PropTypes.string
 };
 
 export default TafCategory;

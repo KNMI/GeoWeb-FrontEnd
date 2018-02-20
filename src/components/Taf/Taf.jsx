@@ -1,12 +1,17 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { Col, Row, Card, CardTitle, CardText, Button, ButtonGroup } from 'reactstrap';
+import { Icon } from 'react-fa';
+import { Col, Row, Card, CardTitle, CardText, Button, ButtonGroup, InputGroupAddon } from 'reactstrap';
 import CollapseOmni from '../CollapseOmni';
 import moment from 'moment';
 import axios from 'axios';
 import { TAF_TEMPLATES } from './TafTemplates';
 import cloneDeep from 'lodash.clonedeep';
 import TafCategory from './TafCategory';
+import { ReadLocations } from '../../utils/admin';
+
+const TAF = 'taf';
+
 /*
   Renders multiple TafCategories, provides additional functions for loading and saving, and has functions for filtering on type and status.
 */
@@ -15,17 +20,22 @@ export default class Taf extends Component {
     super();
     this.deleteTAF = this.deleteTAF.bind(this);
     this.fetchTAFs = this.fetchTAFs.bind(this);
-    this.onCheckboxBtnClick = this.onCheckboxBtnClick.bind(this);
+    this.selectLocation = this.selectLocation.bind(this);
+    this.setStatusFilter = this.setStatusFilter.bind(this);
     this.state = {
       tafs: [],
       expandedTAF: null,
       expandedTAC: null,
       expandedJSON: null,
-      tafTypeSelections: []
+      tafTypeSelections: [],
+      tafLocations: [],
+      tafSelectedLocation: null
     };
   }
+
   componentWillMount () {
     this.fetchTAFs();
+    this.fetchLocations();
   }
 
   componentWillReceiveProps (nextprops, nextstate) {
@@ -50,6 +60,40 @@ export default class Taf extends Component {
     }).catch(error => {
       console.error(error);
     });
+  }
+
+  fetchLocations () {
+    if (!this.props.hasOwnProperty('urls') || !this.props.urls ||
+      !this.props.urls.hasOwnProperty('BACKEND_SERVER_URL') || typeof this.props.urls.BACKEND_SERVER_URL !== 'string') {
+      return;
+    }
+    ReadLocations(`${this.props.urls.BACKEND_SERVER_URL}/admin/read`, (tafLocationsData) => {
+      if (tafLocationsData && typeof tafLocationsData === 'object') {
+        const locationNames = [];
+        tafLocationsData.forEach((location) => {
+          if (location.hasOwnProperty('name') && typeof location.name === 'string' &&
+            location.hasOwnProperty('availability') && Array.isArray(location.availability) && location.availability.includes(TAF)) {
+            locationNames.push(location.name);
+          }
+        });
+        let selectedLocation = this.state.tafSelectedLocation;
+        if (!locationNames.includes(selectedLocation)) {
+          selectedLocation = locationNames[0];
+        }
+        this.setState({ tafLocations: locationNames, tafSelectedLocation: selectedLocation });
+      } else {
+        console.error('Couldn\'t retrieve locations');
+      }
+    });
+  }
+
+  selectLocation (clickEvent) {
+    if (clickEvent.hasOwnProperty('target') && clickEvent.target.getAttribute('data-location')) {
+      const clickedLocation = clickEvent.target.getAttribute('data-location');
+      if (typeof clickedLocation === 'string' && clickedLocation !== this.state.tafSelectedLocation) {
+        this.setState({ tafSelectedLocation: clickedLocation });
+      }
+    }
   }
 
   deleteTAF (uuid) {
@@ -92,34 +136,52 @@ export default class Taf extends Component {
     }
   }
 
-  onCheckboxBtnClick (selected) {
-    const index = this.state.tafTypeSelections.indexOf(selected);
-    if (index < 0) {
-      this.state.tafTypeSelections.push(selected);
-    } else {
-      this.state.tafTypeSelections.splice(index, 1);
+  setStatusFilter (clickEvent) {
+    if (clickEvent.hasOwnProperty('target') && clickEvent.target.getAttribute('data-status')) {
+      const clickedStatus = clickEvent.target.getAttribute('data-status');
+      if (typeof clickedStatus === 'string') {
+        const selectionsCopy = cloneDeep(this.state.tafTypeSelections);
+        const index = selectionsCopy.indexOf(clickedStatus);
+        if (index === -1) {
+          selectionsCopy.push(clickedStatus);
+        } else {
+          selectionsCopy.splice(index, 1);
+        }
+        this.setState({ tafTypeSelections: selectionsCopy });
+      }
     }
-    this.setState({ tafTypeSelections: [...this.state.tafTypeSelections] });
   }
+
   render () {
+    const tafLocation = this.state.tafSelectedLocation || (this.state.tafLocations.length > 0 ? this.state.tafLocations[0] : null);
     if (this.state.tafs) {
+      const tafStates = [
+        { state: 'NORMAL', name: 'ORG' },
+        { state: 'AMENDMENT', name: 'AMD' },
+        { state: 'CORRECTION', name: 'COR' },
+        { state: 'RETARDED', name: 'RTD' },
+        { state: 'CANCEL', name: 'CNL' },
+        { state: 'MISSING', name: 'NIL' }
+      ];
+
       return <Col style={{ flexDirection: 'column' }}>
         { !this.props.editable
-          ? <ButtonGroup style={{ marginTop: '.1rem' }}>
-            <Button className='col btn btn-info' color='info' onClick={() => this.onCheckboxBtnClick('NORMAL')}
-              active={this.state.tafTypeSelections.includes('NORMAL')}>ORG</Button>
-            <Button className='col btn btn-info' color='info' onClick={() => this.onCheckboxBtnClick('AMENDMENT')}
-              active={this.state.tafTypeSelections.includes('AMENDMENT')}>AMD</Button>
-            <Button className='col btn btn-info' color='info' onClick={() => this.onCheckboxBtnClick('CORRECTION')}
-              active={this.state.tafTypeSelections.includes('CORRECTION')}>COR</Button>
-            <Button className='col btn btn-info' color='info' onClick={() => this.onCheckboxBtnClick('RETARDED')}
-              active={this.state.tafTypeSelections.includes('RETARDED')}>RTD</Button>
-            <Button className='col btn btn-info' color='info' onClick={() => this.onCheckboxBtnClick('CANCEL')}
-              active={this.state.tafTypeSelections.includes('CANCEL')}>CNL</Button>
-            <Button className='col btn btn-info' color='info' onClick={() => this.onCheckboxBtnClick('MISSING')}
-              active={this.state.tafTypeSelections.includes('MISSING')}>NIL</Button>
+          ? <ButtonGroup style={{ marginTop: '.167rem', marginBottom: '0.33rem' }}>
+            <InputGroupAddon style={{ padding: '0.2rem 0.3rem', fontSize: '80%' }}><Icon name='filter' /></InputGroupAddon>
+            {tafStates.map((status, index) => {
+              return <Button key={`filterByStatus-${index}`} className='col-1 btn btn-info' color='info' data-status={status.state} onClick={this.setStatusFilter}
+                active={this.state.tafTypeSelections.includes(status.state)}>{status.name}</Button>;
+            })}
           </ButtonGroup>
-          : null }
+          : this.state.tafLocations.length > 0
+            ? <ButtonGroup style={{ marginTop: '.167rem', marginBottom: '0.33rem' }}>
+              <InputGroupAddon style={{ padding: '0.2rem 0.3rem', fontSize: '70%' }}><Icon name='circle' /></InputGroupAddon>
+              {this.state.tafLocations.map((locationName, index) => {
+                return <Button key={`filterByLocation-${index}`} className='col-1 btn btn-info' color='info' data-location={locationName} onClick={this.selectLocation}
+                  active={tafLocation === locationName}>{locationName}</Button>;
+              })}
+            </ButtonGroup>
+            : null }
         {
           this.props.editable
             ? <Card block>
@@ -130,6 +192,7 @@ export default class Taf extends Component {
                     taf={this.state.inputValueJSON || cloneDeep(TAF_TEMPLATES.TAF)}
                     update editable={this.props.tafEditable}
                     fixedLayout={this.props.fixedLayout}
+                    location={tafLocation}
                   />
                 </Col>
               </Row>
