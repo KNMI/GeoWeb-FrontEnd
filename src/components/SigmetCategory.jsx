@@ -1268,8 +1268,11 @@ class SigmetCategory extends Component {
                     }
                     {editable
                       ? <Row style={{ minHeight: '2.5rem' }}>
-                        <Col xs={{ size: 3, offset: 9 }}>
+                        <Col xs={{ size: 3, offset: 5 }}>
                           <Button color='primary' disabled={selectedIndex === -1} onClick={this.saveSigmet} >Save</Button>
+                        </Col>
+                        <Col xs='4'>
+                          <Button color='primary' disabled={selectedIndex === -1} onClick={this.deleteDrawing} >Delete drawing</Button>
                         </Col>
                       </Row>
                       : ''
