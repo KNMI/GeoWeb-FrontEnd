@@ -2,9 +2,6 @@ import React from 'react';
 import TafCategory from './TafCategory';
 import { mount } from 'enzyme';
 import { TestTafJSON } from './TestTafJSON.js';
-// import { TAF_TEMPLATES } from './TafTemplates';
-
-// const taf = TAF_TEMPLATES.TAF;
 
 describe('(Container) Taf/TafCategory.jsx', () => {
   before(() => { sinon.spy(TafCategory.prototype, 'validateTaf'); });

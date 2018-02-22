@@ -1,0 +1,33 @@
+.TafLocationManagementPanel {
+  flex: 1;
+}
+
+.TafLocationManagementPanel .content > .row:first-child {
+  width: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.TafLocationManagementPanel .content {
+  flex-wrap: nowrap;
+
+  .row.grid > .col, .row.grid > .col-auto, .row.grid > .col-1, .row.grid > .col-2, .row.grid > .col-3,
+  .row.grid > .col-4, .row.grid > .col-6, .row.grid > .col-7, .row.grid > .col-8, .col-9, .col-10, .col-12 {
+    padding: 0.33rem;
+  }
+
+  .card {
+    flex: 1;
+    padding: 0.33rem;
+
+    .row:not(:last-child) {
+      font-size: 0.85rem;
+    }
+
+    .row:last-child {
+      flex: 1;
+      border-top: 0.06rem solid rgba(0, 0, 0, 0.125);
+      padding-top: 0.33rem;
+    }
+  }
+}

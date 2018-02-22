@@ -30,6 +30,7 @@ import ManagementPanel from '../components/Management/ManagementPanel';
 import TafManagementPanel from '../components/Management/TafManagementPanel';
 import TafValidationManagementPanel from '../components/Management/TafValidationManagementPanel';
 import TafExampleTafManagementPanel from '../components/Management/TafExampleTafManagementPanel';
+import TafLocationsManagementPanel from '../components/Management/TafLocationsManagementPanel';
 import SigmetManagementPanel from '../components/Management/SigmetManagementPanel';
 import SigmetParameterManagementPanel from '../components/Management/SigmetParameterManagementPanel';
 import LocationManagementPanel from '../components/Management/LocationManagementPanel';
@@ -140,6 +141,7 @@ export const createRoutes = (store) => {
   const prodmanPanel = ProductsManagementPanel;
   const progmanPanel = connect((state) => ({ urls: state.urls }))(ProgtempManagementPanel);
   const tafmanPanel = TafManagementPanel;
+  const tafLocmanPanel = connect((state) => ({ urls: state.urls }))(TafLocationsManagementPanel);
   const tafValidmanPanel = connect((state) => ({ urls: state.urls }))(TafValidationManagementPanel);
   const tafexTafmanPanel = connect((state) => ({ urls: state.urls }))(TafExampleTafManagementPanel);
   const sigmanPanel = SigmetManagementPanel;
@@ -240,6 +242,11 @@ export const createRoutes = (store) => {
                 <Route>
                   <Route component={FooteredLayout} >
                     <IndexRoute component={tafmanPanel} />
+                  </Route>
+                </Route>
+                <Route path='locations' title='TAF locations'>
+                  <Route>
+                    <IndexRoute component={tafLocmanPanel} />
                   </Route>
                 </Route>
                 <Route path='validation' title='Validation'>
