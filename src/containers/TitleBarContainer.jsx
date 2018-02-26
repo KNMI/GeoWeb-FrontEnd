@@ -431,7 +431,7 @@ class TitleBarContainer extends PureComponent {
       url: urls.BACKEND_SERVER_URL + '/admin/receiveFeedback',
       data: feedbackObj
     }).then((res) => { this.setState({ feedbackModalOpen: false }); })
-      .catch((error) => { console.log('Send feedback failed: ', error); });
+      .catch((error) => { console.error('Send feedback failed: ', error); });
   }
 
   renderFeedbackModal (feedbackModalOpen, toggle) {
