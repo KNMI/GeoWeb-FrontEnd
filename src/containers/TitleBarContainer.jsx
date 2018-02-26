@@ -15,6 +15,7 @@ import { AvForm, AvRadioGroup, AvRadio, AvField, AvGroup } from 'availity-reacts
 import { Link, hashHistory } from 'react-router';
 import PropTypes from 'prop-types';
 import moment from 'moment';
+import cloneDeep from 'lodash.clonedeep';
 import { addNotification } from 'reapop';
 import { Typeahead } from 'react-bootstrap-typeahead';
 import { GetServices } from '../utils/getServiceByName';
@@ -394,11 +395,31 @@ class TitleBarContainer extends PureComponent {
   }
 
   sendFeedback (e, formValues) {
+    const flattenLayers = (state) => {
+      const stateCpy = cloneDeep(state);
+      stateCpy.panelsProperties.panels.map((panel) => {
+        panel.baselayers.map((layer) => {
+          Object.keys(layer).forEach((k) => {
+            if (!['service', 'name'].includes(k)) {
+              delete layer[k];
+            }
+          });
+        });
+        panel.layers.map((layer) => {
+          Object.keys(layer).forEach((k) => {
+            if (!['service', 'name'].includes(k)) {
+              delete layer[k];
+            }
+          });
+        });
+      });
+      return stateCpy;
+    };
     const numLogs = myLogs.length;
     const { urls } = this.props;
 
     const feedbackObj = {
-      state: this.props.fullState,
+      state: flattenLayers(this.props.fullState),
       url: window.location.href,
       config: { ...require('config'), backend_url: urls.BACKEND_SERVER_URL },
       userAgent: navigator.userAgent,
@@ -409,7 +430,8 @@ class TitleBarContainer extends PureComponent {
       method: 'post',
       url: urls.BACKEND_SERVER_URL + '/admin/receiveFeedback',
       data: feedbackObj
-    }).then((res) => { this.setState({ feedbackModalOpen: false }); });
+    }).then((res) => { this.setState({ feedbackModalOpen: false }); })
+      .catch((error) => { console.error('Send feedback failed: ', error); });
   }
 
   renderFeedbackModal (feedbackModalOpen, toggle) {
