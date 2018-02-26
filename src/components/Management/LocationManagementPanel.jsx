@@ -28,7 +28,7 @@ export default class LocationManagementPanel extends React.Component {
   }
   render () {
     return (
-      <LocationMapper locations={this.progtempLocations} />
+      <LocationMapper urls={this.props.urls} locations={this.progtempLocations} />
     );
   }
 }
