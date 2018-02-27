@@ -552,7 +552,7 @@ class TitleBarContainer extends PureComponent {
         return;
       }
       let panelArr = [];
-      panel.panelsProperties.forEach((layer) => {
+      panel.layers.forEach((layer) => {
         panelArr.push({
           active: true,
           dimensions: {},
@@ -562,14 +562,14 @@ class TitleBarContainer extends PureComponent {
           overlay: false
         });
       });
-      panel.overlays.forEach((layer) => {
+      panel.baselayers.forEach((layer) => {
         panelArr.push({
           active: true,
           dimensions: {},
           service: layer.service,
           name: layer.name,
           opacity: 1,
-          overlay: true
+          overlay: (layer.keepOnTop === true)
         });
       });
       layerConfig.push(panelArr);

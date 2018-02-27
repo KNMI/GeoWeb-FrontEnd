@@ -6,14 +6,16 @@ import { Icon } from 'react-fa';
 import PropTypes from 'prop-types';
 import { DefaultLocations } from '../../constants/defaultlocations';
 import { ReadLocations, SaveLocations } from '../../utils/admin';
-
+import cloneDeep from 'lodash.clonedeep';
 export default class LocationManagementPanel extends React.Component {
   constructor (props) {
     super(props);
-    this.progtempLocations = DefaultLocations;
+    this.state = {
+      locations: DefaultLocations
+    }
     ReadLocations(`${this.props.urls.BACKEND_SERVER_URL}/admin/read`, (data) => {
       if (data) {
-        this.progtempLocations = data;
+        this.setState({ locations: data });
       }
     });
   }
@@ -28,7 +30,7 @@ export default class LocationManagementPanel extends React.Component {
   }
   render () {
     return (
-      <LocationMapper urls={this.props.urls} locations={this.progtempLocations} />
+      <LocationMapper urls={this.props.urls} locations={this.state.locations} />
     );
   }
 }
@@ -42,6 +44,9 @@ export class LocationMapper extends React.Component {
     this.setEditMode = this.setEditMode.bind(this);
     this.saveLocations = this.saveLocations.bind(this);
     this.loadLocations = this.loadLocations.bind(this);
+    this.state = {
+      locations: []
+    }
   }
   /* istanbul ignore next */
   deleteLocation (i) {
@@ -54,7 +59,7 @@ export class LocationMapper extends React.Component {
     const newName = document.querySelector('#nameinput' + i).value;
     const newLat = parseFloat(document.querySelector('#latinput' + i).value);
     const newLon = parseFloat(document.querySelector('#loninput' + i).value);
-    let arrayCpy = this.state.locations.map((a) => Object.assign(a));
+    let arrayCpy = cloneDeep(this.state.locations);
     if (isNaN(newLat) || isNaN(newLon)) {
       alert('Please enter location numbers');
       return;
@@ -62,31 +67,34 @@ export class LocationMapper extends React.Component {
     arrayCpy[i].name = newName;
     arrayCpy[i].x = parseFloat(newLon);
     arrayCpy[i].y = parseFloat(newLat);
-    arrayCpy[i].edit = false;
+    delete arrayCpy[i].edit;
+    if (!arrayCpy[i].hasOwnProperty('availability')) {
+      arrayCpy[i].availability = [];
+    }
     this.setState({ locations: arrayCpy });
   }
   setEditMode (i) {
-    let arrayCpy = this.state.locations.map((a) => Object.assign(a));
+    let arrayCpy = cloneDeep(this.state.locations);
     arrayCpy[i].edit = true;
     this.setState({ locations: arrayCpy });
   }
   /* istanbul ignore next */
   addCard () {
-    let arrayCpy = this.state.locations.map((a) => Object.assign(a));
+    let arrayCpy = cloneDeep(this.state.locations);
     arrayCpy.unshift({ edit: true });
     this.setState({ locations: arrayCpy });
   }
-  componentWillMount () {
+
+  componentDidMount () {
     this.setState({ locations: this.props.locations });
   }
-  /* istanbul ignore next */
-  componentWillReceiveProps (nextprops) {
-    this.setState({ locations: nextprops.locations });
+
+  componentWillReceiveProps (nextProps) {
+    this.setState({ locations: nextProps.locations });
   }
 
   /* istanbul ignore next */
   loadLocations () {
-    this.progtempLocations = DefaultLocations;
     this.setState({ locations: [] });
     ReadLocations(`${this.props.urls.BACKEND_SERVER_URL}/admin/read`, (data) => {
       if (data) {
@@ -99,6 +107,7 @@ export class LocationMapper extends React.Component {
     SaveLocations(`${this.props.urls.BACKEND_SERVER_URL}/admin/create`, this.state.locations);
   }
   render () {
+    console.log(this.state.locations);
     return (
       <Panel style={{}}>
         <Row style={{ flex: 1, overflowX: 'hidden', overflowY: 'auto' }}>
@@ -129,8 +138,8 @@ class LocationCard extends React.Component {
   render () {
     const { edit, name, x, y, i, doneEditing, setEditMode, deleteLocation } = this.props;
     return (edit
-    ? <Col><EditCard i={i} name={name} x={x} y={y} doneEditing={doneEditing} /></Col>
-    : <Col><StaticCard i={i} name={name} x={x} y={y} setEditMode={setEditMode} deleteLocation={deleteLocation} /></Col>);
+      ? <Col><EditCard i={i} name={name} x={x} y={y} doneEditing={doneEditing} /></Col>
+      : <Col><StaticCard i={i} name={name} x={x} y={y} setEditMode={setEditMode} deleteLocation={deleteLocation} /></Col>);
   }
 }
 LocationCard.propTypes = {
