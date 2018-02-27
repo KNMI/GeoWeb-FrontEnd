@@ -40,6 +40,7 @@ class TitleBarContainer extends PureComponent {
     this.triggerService = this.triggerService.bind(this);
     this.retrieveTriggers = this.retrieveTriggers.bind(this);
     this.gotTriggersCallback = this.gotTriggersCallback.bind(this);
+    this.fetchPresets = this.fetchPresets.bind(this);
     this.errorTriggersCallback = this.errorTriggersCallback.bind(this);
     this.toggleLoginModal = this.toggleLoginModal.bind(this);
     this.toggleFeedbackModal = this.toggleFeedbackModal.bind(this);
@@ -517,13 +518,16 @@ class TitleBarContainer extends PureComponent {
 
     );
   }
+  fetchPresets () {
+    axios.get(this.props.urls.BACKEND_SERVER_URL + '/preset/getpresets', { withCredentials: true }).then((res) => {
+      this.setState({ presets: res.data });
+    }).catch((error) => {
+      console.error(error);
+    });
+  }
   componentWillUpdate(nextprops) {
     if (!this.state.presets || this.props.user.username !== nextprops.user.username) {
-      axios.get(this.props.urls.BACKEND_SERVER_URL + '/preset/getpresets', { withCredentials: true }).then((res) => {
-        this.setState({ presets: res.data });
-      }).catch((error) => {
-        console.error(error);
-      });
+      this.fetchPresets();
     }
   }
 
@@ -666,7 +670,7 @@ class TitleBarContainer extends PureComponent {
               <NavLink className='active' onClick={this.toggleLoginModal} ><Icon name='user' id='loginIcon' />{isLoggedIn ? ' ' + username : ' Sign in'}</NavLink>
               {hasRoleADMIN ? <Link to='manage' className='active nav-link'><Icon name='cog' /></Link> : ''}
               <NavLink className='active' onClick={this.toggleFeedbackModal}><Icon name='exclamation-triangle' /> Report problem</NavLink>
-              <LayoutDropDown panelsProperties={this.props.panelsProperties} savePreset={this.savePreset} mapActions={this.props.mapActions} presets={this.state.presets} onChangeServices={this.getServices}
+              <LayoutDropDown panelsProperties={this.props.panelsProperties} savePreset={this.savePreset} fetchNewPresets={this.fetchPresets} mapActions={this.props.mapActions} presets={this.state.presets} onChangeServices={this.getServices}
                 urls={this.props.urls} panelsActions={this.props.panelsActions} mapProperties={this.props.mapProperties} dispatch={this.props.dispatch} />
               <NavLink className='active' onClick={this.toggleFullscreen} ><Icon name='expand' /></NavLink>
               {isLoggedIn
@@ -1048,7 +1052,7 @@ class LayoutDropDown extends PureComponent {
                   <InputGroupButton>
                     <Button style={{ minWidth: '9.25rem' }} onClick={() => {
                       this.props.savePreset(this.presetNameInput.value)
-                        .then(() => { this.presetNameInput.value = 'Saved preset'; })
+                        .then(() => { this.presetNameInput.value = 'Saved preset'; this.props.fetchNewPresets(); })
                         .catch(() => { this.presetNameInput.value = 'Error saving preset'; });
                     }} color='primary'><Icon name='star' /> Save preset</Button>
                   </InputGroupButton>
@@ -1079,6 +1083,7 @@ LayoutDropDown.propTypes = {
   mapProperties: PropTypes.object,
   onChangeServices: PropTypes.func,
   savePreset: PropTypes.func,
+  fetchNewPresets: PropTypes.func,
   presets: PropTypes.array,
   panelsActions: PropTypes.object
 };
