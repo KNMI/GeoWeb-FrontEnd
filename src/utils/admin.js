@@ -13,7 +13,9 @@ export const ReadLocations = (url, callback, failure) => {
     withCredentials: true,
     responseType: 'json'
   }).then((src) => {
-    callback(JSON.parse(src.data.payload));
+    if (src.data.message === 'ok') {
+      callback(src.data.payload);
+    }
   }).catch((error) => {
     if (failure) {
       failure(`Loading default list, because: ${error.response.data.error}`);
