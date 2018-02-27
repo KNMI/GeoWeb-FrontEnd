@@ -69,7 +69,6 @@ class TafLocationsManagementPanel extends React.Component {
   componentWillMount () {
     ReadLocations(`${this.props.urls.BACKEND_SERVER_URL}/admin/read`, (data) => {
       if (data) {
-        console.log(data);
         this.setState({ locations: data });
       } else {
         console.error('Couldn\'t retrieve locations');
