@@ -192,7 +192,7 @@ export default class Taf extends Component {
                     taf={this.state.inputValueJSON || cloneDeep(TAF_TEMPLATES.TAF)}
                     update editable={this.props.tafEditable}
                     fixedLayout={this.props.fixedLayout}
-                    location={tafLocation}
+                    location={tafLocation} browserLocation={this.props.browserLocation}
                   />
                 </Col>
               </Row>

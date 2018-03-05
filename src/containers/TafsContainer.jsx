@@ -69,7 +69,6 @@ export default class TafsContainer extends Component {
       maxSize -= 2 * document.getElementsByClassName('RightSideBar')[0].clientWidth;
       maxSize += 10;
     }
-
     return (
       <Col className='TafsContainer'>
         <Panel className='Panel'>
@@ -106,7 +105,7 @@ export default class TafsContainer extends Component {
                 }
                 { this.state.isOpenCategory[item.ref]
                   ? <CollapseOmni className='CollapseOmni' isOpen={this.state.isOpen} minSize={0} maxSize={maxSize}>
-                    <Taf urls={this.props.urls} {...item} latestUpdateTime={moment.utc()} updateParent={() => this.forceUpdate()} fixedLayout={this.state.isFixed} />
+                    <Taf browserLocation={this.props.location} urls={this.props.urls} {...item} latestUpdateTime={moment.utc()} updateParent={() => this.forceUpdate()} fixedLayout={this.state.isFixed} />
                   </CollapseOmni> : ''
                 }
               </Card>;

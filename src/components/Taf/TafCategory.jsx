@@ -697,22 +697,19 @@ class TafCategory extends Component {
         // TODO: This should be done in a better way
         return window.location.origin + window.location.pathname + '?presetid=06c0a5b4-1e98-4d19-8e8e-39a66fc4e10b&location=EHAM#/';
       };
-
       if (phenomenonName !== this.state.preset.forPhenomenon) {
         if (!this.state.preset.inWindow || this.state.preset.inWindow.closed) {
-          this.setState({
-            preset: {
-              forPhenomenon: phenomenonName,
-              inWindow: window.open(getPhenomenonPresetUrl(phenomenonName), 'TafPresetWindow')
-            }
-          });
-        } else {
-          this.setState({
-            preset: {
-              forPhenomenon: phenomenonName,
-              inWindow: this.state.preset.inWindow.open(getPhenomenonPresetUrl(phenomenonName), 'TafPresetWindow')
-            }
-          });
+          // Only do this if it isnt already opened
+          if (!this.props.browserLocation.query.opened) {
+            const newWindow = window.open(window.location.href + '?opened=true', 'TafPresetWindow', 'width=1000,height=500', '_blank');
+            window.open(getPhenomenonPresetUrl(phenomenonName), '_self');
+            this.setState({
+              preset: {
+                forPhenomenon: phenomenonName,
+                inWindow: newWindow
+              }
+            });
+          }
         }
       }
     }
