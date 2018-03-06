@@ -147,6 +147,7 @@ class TafCategory extends Component {
     this.byStartAndChangeType = this.byStartAndChangeType.bind(this);
     this.validateTaf = debounce(this.validateTaf.bind(this), 1250, false);
     this.saveTaf = this.saveTaf.bind(this);
+    this.publishTaf = this.publishTaf.bind(this);
 
     const initialState = {
       tafAsObject: props.taf,
@@ -279,6 +280,69 @@ class TafCategory extends Component {
     });
   }
 
+
+  deleteTAF (uuid) {
+    axios({
+      method: 'delete',
+      url: this.props.urls.BACKEND_SERVER_URL + '/tafs/' + uuid,
+      responseType: 'json'
+    }).then(src => {
+      this.fetchTAFs();
+    }).catch(error => {
+      console.error(error);
+    });
+  }
+
+
+   publishTaf (tafAsObject) {
+    const taf = cloneDeep(tafAsObject);
+    const nullPointers = [];
+    getJsonPointers(taf, (field) => field === null, nullPointers);
+    // TODO: Should this be really necessary?
+    // Remove null's and empty fields -- BackEnd doesn't handle them nicely
+    const nullPointersLength = nullPointers.length;
+    for (let pointerIndex = 0; pointerIndex < nullPointersLength; pointerIndex++) {
+      const pathParts = nullPointers[pointerIndex].split('/');
+      pathParts.shift();
+      removeNestedProperty(taf, pathParts);
+      clearRecursive(taf, pathParts);
+    }
+    if (!getNestedProperty(taf, ['changegroups'])) {
+      setNestedProperty(taf, ['changegroups'], []);
+    }
+    if (getNestedProperty(taf, ['metadata', 'issueTime']) === 'not yet issued') {
+      setNestedProperty(taf, ['metadata', 'issueTime'], moment.utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z');
+    }
+
+    setNestedProperty(taf, ['metadata', 'status'], 'published');
+
+
+    axios({
+      method: 'post',
+      url: this.props.urls.BACKEND_SERVER_URL + '/tafs',
+      withCredentials: true,
+      data: JSON.stringify(taf),
+      headers: { 'Content-Type': 'application/json' }
+    }).then(src => {
+
+      this.setState({ validationReport:src.data });
+      this.props.updateParent();
+      this.setState({ tafAsObject:taf });
+    }).catch(error => {
+      this.setState({ validationReport:{ message: 'Unable to save: error occured while saving TAF.' } });
+      try {
+        console.error('Error occured', error);
+        if (error.response.data.message) {
+          this.setState({ validationReport:{ message: error.response.data.message } });
+        }
+      } catch (e) {
+        console.error(e);
+        this.setState({ validationReport:{ message: JSON.stringify(error.response) } });
+      }
+    });
+  }
+
+
   saveTaf (tafAsObject) {
     const taf = cloneDeep(tafAsObject);
     const nullPointers = [];
@@ -307,7 +371,7 @@ class TafCategory extends Component {
       headers: { 'Content-Type': 'application/json' }
     }).then(src => {
       this.setState({ validationReport:src.data });
-      // this.props.updateParent();
+      this.props.updateParent();
     }).catch(error => {
       this.setState({ validationReport:{ message: 'Unable to save: error occured while saving TAF.' } });
       try {
@@ -925,6 +989,7 @@ class TafCategory extends Component {
     }
 
     const series = this.extractScheduleInformation(cloneDeep(this.state.tafAsObject));
+
     return (
       <Row className='TafCategory' style={{ flex: 1 }}>
         <Col style={{ flexDirection: 'column' }}>
@@ -979,7 +1044,11 @@ class TafCategory extends Component {
               <Button style={{ marginRight: '0.33rem' }} color='primary' onClick={() => {
                 this.saveTaf(this.state.tafAsObject);
               }} >Save</Button>
-              <Button disabled={!validationSucceeded} onClick={() => { alert('Sending a TAF out is not yet implemented'); }} color='primary'>Send</Button>
+              {this.state.tafAsObject.metadata.status!=='published' ?
+                <Button disabled={!validationSucceeded} onClick={() => {
+                  this.publishTaf(this.state.tafAsObject);
+                }} color='primary'>Publish</Button> : null
+              }
             </Col>
           </Row>
           <Row style={{ flex: 'auto' }}>

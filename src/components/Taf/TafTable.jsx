@@ -31,6 +31,7 @@ class BaseHeaders extends PureComponent {
     return <thead>
       <tr>
         <th>&nbsp;</th>
+        <th>Status</th>
         <th>Location</th>
         <th>Issue time</th>
         <th>Valid period</th>
@@ -53,6 +54,7 @@ class ChangeGroupHeaders extends PureComponent {
   render () {
     return <thead>
       <tr>
+        <th>&nbsp;</th>
         <th>&nbsp;</th>
         <th>Prob</th>
         <th>Change</th>
@@ -77,7 +79,7 @@ class AddChangeGroupLine extends PureComponent {
     const { editable } = this.props;
     return editable
       ? <tr>
-        <td colSpan={13}>&nbsp;</td>
+        <td colSpan={14}>&nbsp;</td>
         <td className='noselect'>
           <Button size='sm' color='secondary' name={'addible'}>{'\uf067' /* plus icon */}</Button>
         </td>
@@ -277,7 +279,7 @@ class TafTable extends Component {
           </tbody>
         }
         <tbody>
-          <AddChangeGroupLine editable />
+          <AddChangeGroupLine editable={editable} />
         </tbody>
       </table>
     );

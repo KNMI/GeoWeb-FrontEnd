@@ -19,7 +19,7 @@ describe('(Container) Taf/Taf.jsx', () => {
   });
 
   it('Handles triggering selectLocation', () => {
-    const _component = mount(<Taf editable />);
+    const _component = mount(<Taf editable tafStatus={'new'} />);
     _component.setState({ tafLocations: ['A', 'B', 'C'], tafSelectedLocation: 'A' });
     const buttons = _component.find('button[data-location]');
     expect(buttons).to.have.length(3);
@@ -34,7 +34,7 @@ describe('(Container) Taf/Taf.jsx', () => {
   });
 
   it('Handles triggering setStatusFilter', () => {
-    const _component = mount(<Taf />);
+    const _component = mount(<Taf tafStatus={'concept'} />);
     _component.setState({ tafTypeSelections: ['NORMAL'] });
     const buttons = _component.find('button[data-status]');
     expect(buttons).to.have.length(6);

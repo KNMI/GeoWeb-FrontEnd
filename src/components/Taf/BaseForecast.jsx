@@ -4,38 +4,52 @@ import { TAF_TEMPLATES, TAF_TYPES } from './TafTemplates';
 import TafCell from './TafCell';
 import cloneDeep from 'lodash.clonedeep';
 import { jsonToTacForPeriod, jsonToTacForWind, jsonToTacForCavok, jsonToTacForVerticalVisibility, jsonToTacForVisibility, jsonToTacForWeather, jsonToTacForClouds } from './TafFieldsConverter';
-
+import moment from 'moment';
 /*
   BaseForecast of TAF editor, it is the top row visible in the UI.
 */
 class BaseForecast extends Component {
   render () {
     const { tafMetadata, tafForecast, focusedFieldName, inputRef, editable, invalidFields } = this.props;
-
+    let issueTime = 'Not yet issued';
+    if (tafMetadata.hasOwnProperty('issueTime')) {
+      if (tafMetadata.issueTime !== 'not yet issued') {
+        const momentIssueTime = moment.utc(tafMetadata.issueTime);
+        if (momentIssueTime.isValid()) {
+          issueTime = momentIssueTime.format('DD/MM HH:mm [UTC]');
+        }
+      }
+    }
     const columns = [
       {
         name: 'sortable',
         value: '',
         disabled: true,
-        classes: [ 'noselect' ]
+        classes: ['noselect']
+      },
+      {
+        name: 'metadata-status',
+        value: tafMetadata.hasOwnProperty('status') ? tafMetadata.status || 'concept' : 'concept',
+        disabled: true,
+        classes: ['TACnotEditable']
       },
       {
         name: 'metadata-location',
         value: tafMetadata.hasOwnProperty('location') ? tafMetadata.location || '' : '',
         disabled: true,
-        classes: [ 'TACnotEditable' ]
+        classes: ['TACnotEditable']
       },
       {
         name: 'metadata-issueTime',
-        value: tafMetadata.hasOwnProperty('issueTime') ? tafMetadata.issueTime || '' : '',
+        value: issueTime,
         disabled: true,
-        classes: [ 'TACnotEditable' ]
+        classes: ['TACnotEditable']
       },
       {
         name: 'metadata-validity',
         value: tafMetadata.hasOwnProperty('validityStart') && tafMetadata.hasOwnProperty('validityEnd') ? jsonToTacForPeriod(tafMetadata.validityStart, tafMetadata.validityEnd) || '' : '',
         disabled: true,
-        classes: [ 'TACnotEditable' ]
+        classes: ['TACnotEditable']
       },
       {
         name: 'forecast-wind',
@@ -71,15 +85,15 @@ class BaseForecast extends Component {
         name: 'forecast-clouds-' + cloudsIndex,
         value: tafForecast.hasOwnProperty('vertical_visibility') || tafForecast.hasOwnProperty('clouds')
           ? jsonToTacForVerticalVisibility(tafForecast.vertical_visibility) ||
-            (Array.isArray(tafForecast.clouds) && tafForecast.clouds.length > cloudsIndex
-              ? jsonToTacForClouds(tafForecast.clouds[cloudsIndex], true) || ''
-              : cloudsIndex === 0
-                ? jsonToTacForClouds(tafForecast.clouds, true) || '' // NSC
-                : '')
+          (Array.isArray(tafForecast.clouds) && tafForecast.clouds.length > cloudsIndex
+            ? jsonToTacForClouds(tafForecast.clouds[cloudsIndex], true) || ''
+            : cloudsIndex === 0
+              ? jsonToTacForClouds(tafForecast.clouds, true) || '' // NSC
+              : '')
           : '',
         disabled: !editable || (jsonToTacForClouds(tafForecast.clouds) && cloudsIndex !== 0) ||
           (jsonToTacForVerticalVisibility(tafForecast.vertical_visibility) && cloudsIndex !== 0),
-        classes: [ (jsonToTacForVerticalVisibility(tafForecast.vertical_visibility) && cloudsIndex !== 0) ? 'hideValue' : null ]
+        classes: [(jsonToTacForVerticalVisibility(tafForecast.vertical_visibility) && cloudsIndex !== 0) ? 'hideValue' : null]
       });
     }
     columns.push(
@@ -87,7 +101,7 @@ class BaseForecast extends Component {
         name: 'removable',
         value: '',
         disabled: true,
-        classes: [ 'noselect' ]
+        classes: ['noselect']
       }
     );
     columns.forEach((column) => {
@@ -111,7 +125,7 @@ BaseForecast.defaultProps = {
   tafMetadata: cloneDeep(TAF_TEMPLATES.METADATA),
   tafForecast: cloneDeep(TAF_TEMPLATES.FORECAST),
   focusedFieldName: null,
-  inputRef: () => {},
+  inputRef: () => { },
   editable: false,
   invalidFields: []
 };
@@ -121,7 +135,7 @@ BaseForecast.propTypes = {
   tafForecast: TAF_TYPES.FORECAST.isRequired,
   focusedFieldName: PropTypes.string,
   inputRef: PropTypes.func,
-  editable : PropTypes.bool,
+  editable: PropTypes.bool,
   invalidFields: PropTypes.array
 };
 

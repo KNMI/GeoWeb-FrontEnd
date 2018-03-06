@@ -21,6 +21,12 @@ class ChangeGroup extends Component {
         classes: [ 'noselect' ]
       },
       {
+        name: 'changegroups-' + index + '-status',
+        value: '',
+        disabled: true,
+        classes: ['noselect']
+      },
+      {
         name: 'changegroups-' + index + '-probability',
         value: tafChangeGroup.hasOwnProperty('changeType') ? jsonToTacForProbability(tafChangeGroup.changeType, true) || '' : '',
         disabled: false,

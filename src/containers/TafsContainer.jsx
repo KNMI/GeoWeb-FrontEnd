@@ -19,7 +19,8 @@ export default class TafsContainer extends Component {
         source: this.props.urls.BACKEND_SERVER_URL + '/tafs?active=true',
         editable: false,
         tafEditable: false,
-        isOpenCategory: false
+        isOpenCategory: false,
+        tafStatus: 'published' // Used to render proper filters
       }, {
         title: 'Open concept TAFs',
         ref:   'concept-tafs',
@@ -27,14 +28,16 @@ export default class TafsContainer extends Component {
         source: this.props.urls.BACKEND_SERVER_URL + '/tafs?active=false&status=concept',
         editable: false,
         tafEditable: true,
-        isOpenCategory: false
+        isOpenCategory: false,
+        tafStatus: 'concept'
       }, {
         title: 'Create new TAF',
         ref:   'add-taf',
         icon: 'star-o',
         editable: true,
         tafEditable: true,
-        isOpenCategory: true
+        isOpenCategory: true,
+        tafStatus: 'new'
       }
     ];
 
@@ -49,6 +52,7 @@ export default class TafsContainer extends Component {
     };
     this.toggle = this.toggle.bind(this);
     this.toggleCategory = this.toggleCategory.bind(this);
+    this.myForceUpdate = this.myForceUpdate.bind(this);
   }
 
   toggle () {
@@ -60,6 +64,17 @@ export default class TafsContainer extends Component {
     let isOpenCategory = Object.assign({}, this.state.isOpenCategory);
     isOpenCategory[category] = !this.state.isOpenCategory[category];
     this.setState({ isOpenCategory: isOpenCategory });
+  }
+
+  myForceUpdate () {
+    console.log('forceUpdate');
+    /* TODO find a good way to refresh the list of tafs properly */
+    // this.setState(this.state);
+    // this.forceUpdate();
+    this.toggleCategory('concept-tafs');
+    this.toggleCategory('concept-tafs');
+    this.toggleCategory('active-tafs');
+    this.toggleCategory('active-tafs');
   }
 
   render () {
@@ -105,7 +120,7 @@ export default class TafsContainer extends Component {
                 }
                 { this.state.isOpenCategory[item.ref]
                   ? <CollapseOmni className='CollapseOmni' isOpen={this.state.isOpen} minSize={0} maxSize={maxSize}>
-                    <Taf browserLocation={this.props.location} urls={this.props.urls} {...item} latestUpdateTime={moment.utc()} updateParent={() => this.forceUpdate()} fixedLayout={this.state.isFixed} />
+                    <Taf browserLocation={this.props.location} urls={this.props.urls} {...item} latestUpdateTime={moment.utc()} fixedLayout={this.state.isFixed} updateParent={this.myForceUpdate} fixedLayout={this.state.isFixed} />
                   </CollapseOmni> : ''
                 }
               </Card>;
