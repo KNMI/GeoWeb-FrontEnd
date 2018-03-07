@@ -41,13 +41,13 @@ export default class Taf extends Component {
     this.fetchLocations();
   }
 
-  componentWillReceiveProps (nextprops, nextstate) {
-    if (this.props.latestUpdateTime !== nextprops.latestUpdateTime) {
-      if (this.props.title === 'Open concept TAFs') {
-        this.fetchTAFs();
-      }
-    }
-  }
+  // componentWillReceiveProps (nextprops, nextstate) {
+  //   if (this.props.latestUpdateTime !== nextprops.latestUpdateTime) {
+  //     if (this.props.title === 'Open concept TAFs') {
+  //       this.fetchTAFs();
+  //     }
+  //   }
+  // }
 
   // Sort by location
   sortTAFs (tafs) {
@@ -63,9 +63,9 @@ export default class Taf extends Component {
       // If the location is the same
       if (aLocation === bLocation) {
         // Place the taf with the latest start time first
-        if (moment.utc(aStart).isAfter(moment.utc(bStart))) {
+        if (aStart.isAfter(bStart)) {
           return -1;
-        } else if (moment.utc(aStart).isBefore(moment.utc(bStart))) {
+        } else if (aStart.isBefore(bStart)) {
           return 1;
         } else {
           return 0;
@@ -94,22 +94,25 @@ export default class Taf extends Component {
   }
 
   fetchTAFs (url) {
-    if (!(url || this.props.source)) return;
-    axios({
-      method: 'get',
-      url: url || this.props.source,
-      withCredentials: true,
-      responseType: 'json'
-    }).then(src => {
-      if (src.data && src.data.tafs) {
-        let tafs = src.data.tafs;
-        if (this.props.predicate) {
-          tafs = tafs.filter(this.props.predicate);
+    if (!url && !this.props.source) return;
+    let fetchUrl = url;
+    if (!fetchUrl) {
+      fetchUrl = this.props.source;
+    }
+    return new Promise((resolve, reject) => {
+      axios({
+        method: 'get',
+        url: fetchUrl,
+        withCredentials: true,
+        responseType: 'json'
+      }).then(src => {
+        if (src.data && src.data.tafs) {
+          this.setState({ tafs: src.data.tafs });
         }
-        this.setState({ tafs: this.sortTAFs(tafs) });
-      }
-    }).catch(error => {
-      console.error(error);
+        resolve('Fetched tafs');
+      }).catch(error => {
+        reject(error);
+      });
     });
   }
 
@@ -285,7 +288,7 @@ export default class Taf extends Component {
             ).map((taf, index) => {
               return <Card key={index} block>
                 <CardTitle onClick={() => this.setExpandedTAF(taf.metadata.uuid)} style={{ cursor: 'pointer' }}>
-                  {taf.metadata ? taf.metadata.location : 'EWat?'} - {moment.utc(taf.metadata.validityStart).format('YYYY-MM-DDTHH:mm') + ' UTC'}
+                  {taf.metadata ? taf.metadata.location : 'EWat?'} - {moment.utc(taf.metadata.validityStart).format('YYYY-MM-DDTHH:mm') + ' UTC'} - {taf.metadata.uuid}
                 </CardTitle>
                 <CollapseOmni className='CollapseOmni' style={{ flexDirection: 'column' }} isOpen={this.state.expandedTAF === taf.metadata.uuid} minSize={0} maxSize={800}>
                   <Row>
@@ -309,6 +312,7 @@ export default class Taf extends Component {
                   <Row>
                     <Col>
                       <TafCategory
+                        editTaf={this.props.editTaf}
                         urls={this.props.urls}
                         taf={this.state.expandedJSON || cloneDeep(TAF_TEMPLATES.TAF)}
                         editable={this.props.tafEditable}

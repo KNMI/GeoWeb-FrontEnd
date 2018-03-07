@@ -21,7 +21,7 @@ class ChangeGroup extends Component {
         classes: [ 'noselect' ]
       },
       {
-        name: 'changegroups-' + index + '-status',
+        name: 'changegroups-' + index + '-type',
         value: '',
         disabled: true,
         classes: ['noselect']
@@ -29,19 +29,19 @@ class ChangeGroup extends Component {
       {
         name: 'changegroups-' + index + '-probability',
         value: tafChangeGroup.hasOwnProperty('changeType') ? jsonToTacForProbability(tafChangeGroup.changeType, true) || '' : '',
-        disabled: false,
+        disabled: !editable,
         classes: []
       },
       {
         name: 'changegroups-' + index + '-change',
         value: tafChangeGroup.hasOwnProperty('changeType') ? jsonToTacForChangeType(tafChangeGroup.changeType, true) || '' : '',
-        disabled: false,
+        disabled: !editable,
         classes: []
       },
       {
         name: 'changegroups-' + index + '-validity',
         value: tafChangeGroup.hasOwnProperty('changeStart') && tafChangeGroup.hasOwnProperty('changeEnd') ? jsonToTacForPeriod(tafChangeGroup.changeStart, tafChangeGroup.changeEnd, true) || '' : '',
-        disabled: false,
+        disabled: !editable,
         classes: []
       },
       {

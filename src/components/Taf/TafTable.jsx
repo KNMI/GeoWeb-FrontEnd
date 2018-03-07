@@ -31,7 +31,7 @@ class BaseHeaders extends PureComponent {
     return <thead>
       <tr>
         <th>&nbsp;</th>
-        <th>Status</th>
+        <th>Type</th>
         <th>Location</th>
         <th>Issue time</th>
         <th>Valid period</th>

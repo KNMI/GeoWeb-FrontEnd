@@ -28,8 +28,8 @@ class BaseForecast extends Component {
         classes: ['noselect']
       },
       {
-        name: 'metadata-status',
-        value: tafMetadata.hasOwnProperty('status') ? tafMetadata.status || 'concept' : 'concept',
+        name: 'metadata-type',
+        value: tafMetadata.hasOwnProperty('type') ? tafMetadata.type || '' : '',
         disabled: true,
         classes: ['TACnotEditable']
       },

@@ -16,6 +16,7 @@ import TafTable from './TafTable';
 import axios from 'axios';
 import { debounce } from '../../utils/debounce';
 
+const uuidv4 = require('uuid/v4');
 const TMP = '◷';
 
 const MOVE_DIRECTION = Enum(
@@ -315,8 +316,6 @@ class TafCategory extends Component {
     }
 
     setNestedProperty(taf, ['metadata', 'status'], 'published');
-
-
     axios({
       method: 'post',
       url: this.props.urls.BACKEND_SERVER_URL + '/tafs',
@@ -363,26 +362,30 @@ class TafCategory extends Component {
       setNestedProperty(taf, ['metadata', 'issueTime'], moment.utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z');
     }
 
-    axios({
-      method: 'post',
-      url: this.props.urls.BACKEND_SERVER_URL + '/tafs',
-      withCredentials: true,
-      data: JSON.stringify(taf),
-      headers: { 'Content-Type': 'application/json' }
-    }).then(src => {
-      this.setState({ validationReport:src.data });
-      this.props.updateParent();
-    }).catch(error => {
-      this.setState({ validationReport:{ message: 'Unable to save: error occured while saving TAF.' } });
-      try {
-        console.error('Error occured', error);
-        if (error.response.data.message) {
-          this.setState({ validationReport:{ message: error.response.data.message } });
+    return new Promise((resolve, reject) => {
+      axios({
+        method: 'post',
+        url: this.props.urls.BACKEND_SERVER_URL + '/tafs',
+        withCredentials: true,
+        data: JSON.stringify(taf),
+        headers: { 'Content-Type': 'application/json' }
+      }).then(src => {
+        this.setState({ validationReport:src.data });
+        this.props.updateParent();
+        return resolve('Saved');
+      }).catch(error => {
+        this.setState({ validationReport:{ message: 'Unable to save: error occured while saving TAF.' } });
+        try {
+          console.error('Error occured', error);
+          if (error.response.data.message) {
+            this.setState({ validationReport:{ message: error.response.data.message } });
+          }
+        } catch (e) {
+          console.error(e);
+          this.setState({ validationReport:{ message: JSON.stringify(error.response) } });
         }
-      } catch (e) {
-        console.error(e);
-        this.setState({ validationReport:{ message: JSON.stringify(error.response) } });
-      }
+        return reject('Error saving taf');
+      });
     });
   }
 
@@ -765,12 +768,13 @@ class TafCategory extends Component {
         if (!this.state.preset.inWindow || this.state.preset.inWindow.closed) {
           // Only do this if it isnt already opened
           if (!this.props.browserLocation.query.opened) {
-            const newWindow = window.open(window.location.href + '?opened=true', 'TafPresetWindow', 'width=1000,height=500', '_blank');
-            window.open(getPhenomenonPresetUrl(phenomenonName), '_self');
+            const newWindow = window.open(window.location.href + '?opened=true', 'TafPresetWindow', 'width=1250,height=750', '_blank');
+            const origWindow = window.open(getPhenomenonPresetUrl(phenomenonName), '_self');
             this.setState({
               preset: {
                 forPhenomenon: phenomenonName,
-                inWindow: newWindow
+                inWindow: newWindow,
+                origWindow: origWindow
               }
             });
           }
@@ -973,6 +977,39 @@ class TafCategory extends Component {
     }
   }
 
+  correctTaf () {
+    const taf = cloneDeep(this.state.tafAsObject);
+    const newUuid = uuidv4();
+    taf.metadata.previousUuid = taf.metadata.uuid;
+    taf.metadata.uuid = newUuid;
+    taf.metadata.status = 'concept';
+    taf.metadata.type = 'correction';
+    this.saveTaf(taf).then(() => {
+      this.props.editTaf(newUuid);
+    });
+  }
+
+  amendTaf () {
+    const taf = cloneDeep(this.state.tafAsObject);
+    const newUuid = uuidv4();
+    taf.metadata.previousUuid = taf.metadata.uuid;
+    taf.metadata.uuid = newUuid;
+    taf.metadata.status = 'concept';
+    taf.metadata.type = 'amendment';
+    this.saveTaf(taf).then(() => {
+      this.props.editTaf(newUuid);
+    });
+  }
+
+  cancelTaf () {
+    const taf = cloneDeep(this.state.tafAsObject);
+    const newUuid = uuidv4();
+    taf.metadata.previousUuid = taf.metadata.uuid;
+    taf.metadata.uuid = newUuid;
+    taf.metadata.type = 'canceled';
+    this.saveTaf(taf);
+  }
+
   render () {
     const flatten = list => list.reduce(
       (a, b) => a.concat(Array.isArray(b) ? flatten(b) : b), []
@@ -1016,7 +1053,7 @@ class TafCategory extends Component {
                 onKeyUp={this.onKeyUp}
                 onKeyDown={this.onKeyDown}
                 onFocus={this.onFocus}
-                editable={this.props.editable} />
+                editable={this.props.editable || this.state.correctOrAmend} />
             </Col>
           </Row>
           { this.state.validationReport
@@ -1045,22 +1082,27 @@ class TafCategory extends Component {
           <Row style={{ padding:'0 0.5rem 0.5rem 0.5rem', flex: 'none' }}>
             <Col />
             <Col xs='auto'>
-              {this.state.tafAsObject.metadata.status === 'published'
+              {this.state.tafAsObject.metadata.status === 'published' && !this.state.correctOrAmend
                 ? <div>
                   <Button disabled={!currentlyInValidityTime} style={{ marginRight: '0.33rem' }} color='primary' onClick={() => {
                     this.amendTaf(this.state.tafAsObject);
                   }} >Amend</Button>
                   <Button style={{ marginRight: '0.33rem' }} color='primary' onClick={() => {
                     this.correctTaf(this.state.tafAsObject);
-                  }} >Correct</Button></div>
+                  }} >Correct</Button>
+                  <Button style={{ marginRight: '0.33rem' }} color='primary' onClick={() => {
+                    this.cancelTaf(this.state.tafAsObject);
+                  }} >Cancel</Button></div>
                 : null}
-              <Button style={{ marginRight: '0.33rem' }} color='primary' onClick={() => {
-                this.saveTaf(this.state.tafAsObject);
-              }} >Save</Button>
               {this.state.tafAsObject.metadata.status!=='published' ?
-                <Button disabled={!validationSucceeded} onClick={() => {
-                  this.publishTaf(this.state.tafAsObject);
-                }} color='primary'>Publish</Button> : null
+                <div>
+                  <Button style={{ marginRight: '0.33rem' }} color='primary' onClick={() => {
+                    this.saveTaf(this.state.tafAsObject);
+                  }} >Save</Button>
+                  <Button disabled={!validationSucceeded} onClick={() => {
+                    this.publishTaf(this.state.tafAsObject);
+                  }} color='primary'>Publish</Button>
+                </div> : null
               }
             </Col>
           </Row>
