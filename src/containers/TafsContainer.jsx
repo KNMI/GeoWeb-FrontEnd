@@ -20,6 +20,29 @@ export default class TafsContainer extends Component {
         editable: false,
         tafEditable: false,
         isOpenCategory: false,
+        predicate: (taf, idx, arr) => {
+          // if it is not valid anymore, don't display it
+          if (moment.utc(taf.metadata.validityEnd).isBefore(moment.utc())) {
+            return false;
+          }
+          // Get all tafs for this location
+          const otherTafs = arr.filter((otherTaf) => !Object.is(otherTaf, taf) && otherTaf.metadata.location === taf.metadata.location);
+
+          // If there is no taf for this location, we're done
+          if (otherTafs.length === 0) {
+            return true;
+          }
+
+          const newerTafs = otherTafs.filter((otherTaf) => moment.utc(otherTaf.metadata.validityStart).isAfter(moment.utc(taf.metadata.validityStart)));
+
+          // if there exists some newer TAF for this location...
+          if (newerTafs.length > 0) {
+            // then delete it if there is another taf in its validity
+            return !newerTafs.some((otherTaf) => moment.utc(otherTaf.metadata.validityStart).isAfter(moment.utc()));
+          }
+
+          return true;
+        },
         tafStatus: 'published' // Used to render proper filters
       }, {
         title: 'Open concept TAFs',

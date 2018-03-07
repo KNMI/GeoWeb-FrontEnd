@@ -989,7 +989,11 @@ class TafCategory extends Component {
     }
 
     const series = this.extractScheduleInformation(cloneDeep(this.state.tafAsObject));
+    const starttime = moment.utc(this.state.tafAsObject.metadata.validityStart);
+    const endtime = moment.utc(this.state.tafAsObject.metadata.validityEnd);
 
+    // TODO: evaluate this every minute?
+    const currentlyInValidityTime = starttime.isBefore(moment.utc()) && endtime.isAfter(moment.utc());
     return (
       <Row className='TafCategory' style={{ flex: 1 }}>
         <Col style={{ flexDirection: 'column' }}>
@@ -1041,6 +1045,15 @@ class TafCategory extends Component {
           <Row style={{ padding:'0 0.5rem 0.5rem 0.5rem', flex: 'none' }}>
             <Col />
             <Col xs='auto'>
+              {this.state.tafAsObject.metadata.status === 'published'
+                ? <div>
+                  <Button disabled={!currentlyInValidityTime} style={{ marginRight: '0.33rem' }} color='primary' onClick={() => {
+                    this.amendTaf(this.state.tafAsObject);
+                  }} >Amend</Button>
+                  <Button style={{ marginRight: '0.33rem' }} color='primary' onClick={() => {
+                    this.correctTaf(this.state.tafAsObject);
+                  }} >Correct</Button></div>
+                : null}
               <Button style={{ marginRight: '0.33rem' }} color='primary' onClick={() => {
                 this.saveTaf(this.state.tafAsObject);
               }} >Save</Button>

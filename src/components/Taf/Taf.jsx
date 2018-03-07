@@ -49,6 +49,50 @@ export default class Taf extends Component {
     }
   }
 
+  // Sort by location
+  sortTAFs (tafs) {
+    const order = ['EHAM', 'EHRD', 'EHGG', 'EHBK', 'EHLE'];
+    const tafsCpy = cloneDeep(tafs);
+    tafsCpy.sort((a, b) => {
+      const aLocation = a.metadata.location;
+      const bLocation = b.metadata.location;
+
+      const aStart = moment.utc(a.metadata.validityStart);
+      const bStart = moment.utc(b.metadata.validityStart);
+
+      // If the location is the same
+      if (aLocation === bLocation) {
+        // Place the taf with the latest start time first
+        if (moment.utc(aStart).isAfter(moment.utc(bStart))) {
+          return -1;
+        } else if (moment.utc(aStart).isBefore(moment.utc(bStart))) {
+          return 1;
+        } else {
+          return 0;
+        }
+      } else {
+        // Check whether the location is in the order array
+        if (order.includes(aLocation)) {
+          if (order.includes(bLocation)) {
+            // If they both are, compare them according to the order in the array
+            return order.indexOf(aLocation) < order.indexOf(bLocation) ? -1 : 1;
+          }
+          // The first location is in the array, and the second isn't, so a comes first
+          return -1;
+        } else {
+          // only the second is in the array so the first comes later
+          if (order.includes(bLocation)) {
+            return 1;
+          }
+        }
+
+        // Both not in the array, so sort according to lexicographical order.
+        return aLocation < bLocation ? -1 : 1;
+      }
+    });
+    return tafsCpy;
+  }
+
   fetchTAFs (url) {
     if (!(url || this.props.source)) return;
     axios({
@@ -58,7 +102,11 @@ export default class Taf extends Component {
       responseType: 'json'
     }).then(src => {
       if (src.data && src.data.tafs) {
-        this.setState({ tafs: src.data.tafs });
+        let tafs = src.data.tafs;
+        if (this.props.predicate) {
+          tafs = tafs.filter(this.props.predicate);
+        }
+        this.setState({ tafs: this.sortTAFs(tafs) });
       }
     }).catch(error => {
       console.error(error);
