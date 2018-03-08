@@ -19,7 +19,8 @@ export default class TafsContainer extends Component {
         source: this.props.urls.BACKEND_SERVER_URL + '/tafs?active=true',
         editable: false,
         tafEditable: false,
-        isOpenCategory: false
+        isOpenCategory: false,
+        tafStatus: 'published' // Used to render proper filters
       }, {
         title: 'Open concept TAFs',
         ref:   'concept-tafs',
@@ -27,14 +28,16 @@ export default class TafsContainer extends Component {
         source: this.props.urls.BACKEND_SERVER_URL + '/tafs?active=false&status=concept',
         editable: false,
         tafEditable: true,
-        isOpenCategory: false
+        isOpenCategory: false,
+        tafStatus: 'concept'
       }, {
         title: 'Create new TAF',
         ref:   'add-taf',
         icon: 'star-o',
         editable: true,
         tafEditable: true,
-        isOpenCategory: true
+        isOpenCategory: true,
+        tafStatus: 'new'
       }
     ];
 
@@ -49,6 +52,9 @@ export default class TafsContainer extends Component {
     };
     this.toggle = this.toggle.bind(this);
     this.toggleCategory = this.toggleCategory.bind(this);
+    this.myForceUpdate = this.myForceUpdate.bind(this);
+    this.openField = this.openField.bind(this);
+    this.editTaf = this.editTaf.bind(this);
   }
 
   toggle () {
@@ -62,6 +68,31 @@ export default class TafsContainer extends Component {
     this.setState({ isOpenCategory: isOpenCategory });
   }
 
+  openField (field) {
+    let isOpenCategory = Object.assign({}, this.state.isOpenCategory);
+    ITEMS.forEach((item, index) => {
+      isOpenCategory[item.ref] = false;
+    });
+    isOpenCategory[field] = true;
+    this.setState({ isOpenCategory: isOpenCategory });
+  }
+
+  myForceUpdate () {
+    /* TODO find a good way to refresh the list of tafs properly */
+    // this.setState(this.state);
+    // this.forceUpdate();
+    this.toggleCategory('concept-tafs');
+    this.toggleCategory('concept-tafs');
+    this.toggleCategory('active-tafs');
+    this.toggleCategory('active-tafs');
+  }
+
+  editTaf (uuid) {
+    this.openField('concept-tafs');
+    // ????
+    this.refs['concept-tafs'].setExpandedTAF(uuid);
+  }
+
   render () {
     // TODO FIX this in a better way
     let maxSize = parseInt(screen.width);
@@ -69,7 +100,6 @@ export default class TafsContainer extends Component {
       maxSize -= 2 * document.getElementsByClassName('RightSideBar')[0].clientWidth;
       maxSize += 10;
     }
-
     return (
       <Col className='TafsContainer'>
         <Panel className='Panel'>
@@ -106,7 +136,7 @@ export default class TafsContainer extends Component {
                 }
                 { this.state.isOpenCategory[item.ref]
                   ? <CollapseOmni className='CollapseOmni' isOpen={this.state.isOpen} minSize={0} maxSize={maxSize}>
-                    <Taf urls={this.props.urls} {...item} latestUpdateTime={moment.utc()} updateParent={() => this.forceUpdate()} fixedLayout={this.state.isFixed} />
+                    <Taf ref={(ref) => { this.refByName[item.ref] = ref; }} editTaf={this.editTaf} browserLocation={this.props.location} urls={this.props.urls} {...item} latestUpdateTime={moment.utc()} fixedLayout={this.state.isFixed} updateParent={this.myForceUpdate} fixedLayout={this.state.isFixed} />
                   </CollapseOmni> : ''
                 }
               </Card>;
