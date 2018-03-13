@@ -254,7 +254,7 @@ class TafCategory extends Component {
             }
           }
           const aggregateReport = {
-            message: inputParsingReport.succeeded && responseJson.succeeded ? 'TAF input is verified' : 'TAF input is not valid',
+            message: responseJson.message ? responseJson.message : (inputParsingReport.succeeded && responseJson.succeeded ? 'TAF input is verified' : 'TAF input is not valid'),
             succeeded: inputParsingReport.succeeded && responseJson.succeeded,
             errors: Object.assign({}, inputParsingReport.errors, responseJson.errors)
           };
