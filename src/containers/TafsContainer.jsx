@@ -54,7 +54,7 @@ export default class TafsContainer extends Component {
     this.toggleCategory = this.toggleCategory.bind(this);
     this.myForceUpdate = this.myForceUpdate.bind(this);
     this.openField = this.openField.bind(this);
-    this.editTaf = this.editTaf.bind(this);
+    this.focusTaf = this.focusTaf.bind(this);
   }
 
   toggle () {
@@ -78,6 +78,7 @@ export default class TafsContainer extends Component {
   }
 
   myForceUpdate () {
+    console.log('myForceUpdate');
     /* TODO find a good way to refresh the list of tafs properly */
     // this.setState(this.state);
     // this.forceUpdate();
@@ -87,10 +88,15 @@ export default class TafsContainer extends Component {
     this.toggleCategory('active-tafs');
   }
 
-  editTaf (uuid) {
-    this.openField('concept-tafs');
-    // ????
-    this.refs['concept-tafs'].setExpandedTAF(uuid);
+  focusTaf (taf) {
+    console.log('TafsContainer::focusTaf', taf);
+    if (taf.metadata.status === 'published') {
+      this.openField('active-tafs');
+      this.refs['active-tafs'].setExpandedTAF(taf.metadata.uuid, false);
+    } else {
+      this.openField('concept-tafs');
+      this.refs['concept-tafs'].setExpandedTAF(taf.metadata.uuid, false);
+    }
   }
 
   render () {
@@ -136,7 +142,7 @@ export default class TafsContainer extends Component {
                 }
                 { this.state.isOpenCategory[item.ref]
                   ? <CollapseOmni className='CollapseOmni' isOpen={this.state.isOpen} minSize={0} maxSize={maxSize}>
-                    <Taf ref={(ref) => { this.refByName[item.ref] = ref; }} editTaf={this.editTaf} browserLocation={this.props.location} urls={this.props.urls} {...item} latestUpdateTime={moment.utc()} fixedLayout={this.state.isFixed} updateParent={this.myForceUpdate} fixedLayout={this.state.isFixed} />
+                    <Taf ref={(ref) => { this.refByName[item.ref] = ref; }} focusTaf={this.focusTaf} browserLocation={this.props.location} urls={this.props.urls} {...item} latestUpdateTime={moment.utc()} fixedLayout={this.state.isFixed} updateParent={this.myForceUpdate} fixedLayout={this.state.isFixed} />
                   </CollapseOmni> : ''
                 }
               </Card>;
