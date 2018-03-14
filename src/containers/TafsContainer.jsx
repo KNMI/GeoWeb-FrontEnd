@@ -142,7 +142,7 @@ export default class TafsContainer extends Component {
                 }
                 { this.state.isOpenCategory[item.ref]
                   ? <CollapseOmni className='CollapseOmni' isOpen={this.state.isOpen} minSize={0} maxSize={maxSize}>
-                    <Taf ref={(ref) => { this.refByName[item.ref] = ref; }} focusTaf={this.focusTaf} browserLocation={this.props.location} urls={this.props.urls} {...item} latestUpdateTime={moment.utc()} fixedLayout={this.state.isFixed} updateParent={this.myForceUpdate} fixedLayout={this.state.isFixed} />
+                    <Taf ref={(ref) => { this.refByName[item.ref] = ref; }} user={this.props.user} focusTaf={this.focusTaf} browserLocation={this.props.location} urls={this.props.urls} {...item} latestUpdateTime={moment.utc()} fixedLayout={this.state.isFixed} updateParent={this.myForceUpdate} fixedLayout={this.state.isFixed} />
                   </CollapseOmni> : ''
                 }
               </Card>;

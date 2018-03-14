@@ -313,6 +313,9 @@ class TafCategory extends Component {
     if(publishTaf === true){
       console.log('Setting taf status to published');
       setNestedProperty(taf, ['metadata', 'status'], 'published');
+      setNestedProperty(taf, ['metadata', 'author'], this.props.username);
+      setNestedProperty(taf, ['metadata', 'lastModified'], moment.utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z');
+
     }
 
     console.log('start saveTaf',taf);

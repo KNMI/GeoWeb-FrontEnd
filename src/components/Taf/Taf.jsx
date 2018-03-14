@@ -288,6 +288,7 @@ export default class Taf extends Component {
                     updateParent={this.updateTafs}
                     tafLocations={this.state.tafLocations}
                     location={tafLocation}
+                    user={this.props.user}
                   />
                 </Col>
               </Row>
@@ -334,6 +335,7 @@ export default class Taf extends Component {
                         updateParent={this.updateTafs}
                         tafLocations={this.state.tafLocations}
                         location={tafLocation}
+                        user={this.props.user}
                       />
                     </Col>
                   </Row>
