@@ -133,7 +133,7 @@ const jsonToTacForPeriod = (startTimestampAsJson, endTimestampAsJson, useFallbac
 };
 
 const jsonToTacForLocation = (locationAsJson, useFallback = false) => {
-  if(!locationAsJson) return null;
+  if (!locationAsJson) return null;
   return locationAsJson.toUpperCase();
 };
 
