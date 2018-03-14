@@ -18,21 +18,6 @@ describe('(Container) Taf/Taf.jsx', () => {
     expect(_component.type()).to.eql(Taf);
   });
 
-  it('Handles triggering selectLocation', () => {
-    const _component = mount(<Taf editable tafStatus={'new'} />);
-    _component.setState({ tafLocations: ['A', 'B', 'C'], tafSelectedLocation: 'A' });
-    const buttons = _component.find('button[data-location]');
-    expect(buttons).to.have.length(3);
-    const buttonA = buttons.first();
-    expect(buttonA.hasClass('active')).to.eql(true);
-    const buttonB = buttons.at(1);
-    expect(buttonB.hasClass('active')).to.eql(false);
-    expect(buttonB.prop('data-location')).to.eql('B');
-    buttonB.simulate('click');
-    expect(buttonA.hasClass('active')).to.eql(false);
-    expect(buttonB.hasClass('active')).to.eql(true);
-  });
-
   it('Handles triggering setStatusFilter', () => {
     const _component = mount(<Taf tafStatus={'concept'} />);
     _component.setState({ tafTypeSelections: ['NORMAL'] });
