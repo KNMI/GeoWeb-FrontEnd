@@ -294,7 +294,6 @@ class TafCategory extends Component {
     });
   }
 
-
    publishTaf (tafAsObject) {
     const taf = cloneDeep(tafAsObject);
     const nullPointers = [];
@@ -361,6 +360,9 @@ class TafCategory extends Component {
     if (getNestedProperty(taf, ['metadata', 'issueTime']) === 'not yet issued') {
       setNestedProperty(taf, ['metadata', 'issueTime'], moment.utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z');
     }
+
+    setNestedProperty(taf, ['metadata', 'author'], this.props.username);
+    setNestedProperty(taf, ['metadata', 'lastModified'], moment.utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z');
 
     return new Promise((resolve, reject) => {
       axios({
