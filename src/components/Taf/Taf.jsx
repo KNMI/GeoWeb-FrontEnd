@@ -276,6 +276,7 @@ export default class Taf extends Component {
                     location={tafLocation}
                     browserLocation={this.props.browserLocation}
                     updateParent={this.updateTafs}
+                    user={this.props.user}
                   />
                 </Col>
               </Row>
@@ -318,6 +319,7 @@ export default class Taf extends Component {
                         editable={this.props.tafEditable}
                         fixedLayout={this.props.fixedLayout}
                         updateParent={this.updateTafs}
+                        user={this.props.user}
                       />
                     </Col>
                   </Row>
