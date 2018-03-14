@@ -36,8 +36,7 @@ const generateDefaultValues = () => {
   TAFStartHour = TAFStartHour - TAFStartHour % 6 + 6;
   return {
     start: now.hour(TAFStartHour).minutes(0).seconds(0).format('YYYY-MM-DDTHH:mm:ss') + 'Z',
-    end: now.hour(TAFStartHour).minutes(0).seconds(0).add(30, 'hour').format('YYYY-MM-DDTHH:mm:ss') + 'Z',
-    issue: 'not yet issued'
+    end: now.hour(TAFStartHour).minutes(0).seconds(0).add(30, 'hour').format('YYYY-MM-DDTHH:mm:ss') + 'Z'
   };
 };
 
@@ -168,9 +167,9 @@ class TafCategory extends Component {
     if (!props.taf.metadata.validityEnd) {
       initialState.tafAsObject.metadata.validityEnd = defaults.end;
     }
-    if (!props.taf.metadata.issueTime) {
-      initialState.tafAsObject.metadata.issueTime = defaults.issue;
-    }
+    // if (!props.taf.metadata.issueTime) {
+    //   initialState.tafAsObject.metadata.issueTime = defaults.issue;
+    // }
     if (!props.taf.metadata.location) {
       initialState.tafAsObject.metadata.location = props.location;
     }
@@ -232,9 +231,9 @@ class TafCategory extends Component {
     if (!getNestedProperty(taf, ['changegroups'])) {
       setNestedProperty(taf, ['changegroups'], []);
     }
-    if (getNestedProperty(taf, ['metadata', 'issueTime']) === 'not yet issued') {
-      setNestedProperty(taf, ['metadata', 'issueTime'], moment.utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z');
-    }
+    // if (getNestedProperty(taf, ['metadata', 'issueTime']) === 'not yet issued') {
+    //   setNestedProperty(taf, ['metadata', 'issueTime'], moment.utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z');
+    // }
 
     axios({
       method: 'post',
@@ -311,9 +310,9 @@ class TafCategory extends Component {
     if (!getNestedProperty(taf, ['changegroups'])) {
       setNestedProperty(taf, ['changegroups'], []);
     }
-    if (getNestedProperty(taf, ['metadata', 'issueTime']) === 'not yet issued') {
-      setNestedProperty(taf, ['metadata', 'issueTime'], moment.utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z');
-    }
+    // if (getNestedProperty(taf, ['metadata', 'issueTime']) === 'not yet issued') {
+    //   setNestedProperty(taf, ['metadata', 'issueTime'], moment.utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z');
+    // }
 
     setNestedProperty(taf, ['metadata', 'status'], 'published');
     axios({
@@ -358,9 +357,9 @@ class TafCategory extends Component {
     if (!getNestedProperty(taf, ['changegroups'])) {
       setNestedProperty(taf, ['changegroups'], []);
     }
-    if (getNestedProperty(taf, ['metadata', 'issueTime']) === 'not yet issued') {
-      setNestedProperty(taf, ['metadata', 'issueTime'], moment.utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z');
-    }
+    // if (getNestedProperty(taf, ['metadata', 'issueTime']) === 'not yet issued') {
+    //   setNestedProperty(taf, ['metadata', 'issueTime'], moment.utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z');
+    // }
 
     return new Promise((resolve, reject) => {
       axios({
@@ -961,9 +960,9 @@ class TafCategory extends Component {
         if (!nextP.taf.metadata.validityEnd) {
           nextP.taf.metadata.validityEnd = defaults.end;
         }
-        if (!nextP.taf.metadata.issueTime) {
-          nextP.taf.metadata.issueTime = defaults.issue;
-        }
+        // if (!nextP.taf.metadata.issueTime) {
+        //   nextP.taf.metadata.issueTime = defaults.issue;
+        // }
         if (!nextP.taf.metadata.location) {
           nextP.taf.metadata.location = nextP.location;
         }
@@ -1008,6 +1007,26 @@ class TafCategory extends Component {
     taf.metadata.uuid = newUuid;
     taf.metadata.type = 'canceled';
     this.saveTaf(taf);
+  }
+
+  editTafAsNew () {
+   const taf = cloneDeep(this.state.tafAsObject);
+    const newUuid = uuidv4();
+    taf.metadata.previousUuid = taf.metadata.uuid;
+    taf.metadata.uuid = newUuid;
+    delete taf.metadata.status ;
+    delete taf.metadata.previousUuid ;
+    delete taf.metadata.issueTime;
+    taf.metadata.type = 'normal';
+
+    const defaults = generateDefaultValues();
+    taf.metadata.validityStart = defaults.start;
+    taf.metadata.validityEnd = defaults.end;
+
+    taf.metadata.baseTime = null;
+    this.saveTaf(taf).then(() => {
+      this.props.editTaf(newUuid);
+    });
   }
 
   render () {
@@ -1082,6 +1101,9 @@ class TafCategory extends Component {
           <Row style={{ padding:'0 0.5rem 0.5rem 0.5rem', flex: 'none' }}>
             <Col />
             <Col xs='auto'>
+              {this.state.tafAsObject.metadata.status === 'published' ?  <Button style={{ marginRight: '0.33rem' }} color='primary' onClick={() => {
+                    this.editTafAsNew(this.state.tafAsObject);
+                }} >Edit as new</Button> : null}
               {this.state.tafAsObject.metadata.status === 'published' && !this.state.correctOrAmend
                 ? <div>
                   <Button disabled={!currentlyInValidityTime} style={{ marginRight: '0.33rem' }} color='primary' onClick={() => {
