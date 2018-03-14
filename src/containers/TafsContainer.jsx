@@ -90,13 +90,10 @@ export default class TafsContainer extends Component {
 
   focusTaf (taf) {
     console.log('TafsContainer::focusTaf', taf);
-    if (taf.metadata.status === 'published') {
-      this.openField('active-tafs');
-      this.refs['active-tafs'].setExpandedTAF(taf.metadata.uuid, false);
-    } else {
-      this.openField('concept-tafs');
-      this.refs['concept-tafs'].setExpandedTAF(taf.metadata.uuid, false);
-    }
+    let id = 'concept-tafs'
+    if (taf.metadata.status === 'published') id = 'active-tafs';
+    this.openField(id);
+    this.refs[id].setExpandedTAF(taf.metadata.uuid, false, true);
   }
 
   render () {

@@ -94,6 +94,7 @@ export default class Taf extends Component {
   }
 
   fetchTAFs (url) {
+    console.log('fetchTAFs');
     if (!url && !this.props.source) return;
     let fetchUrl = url;
     if (!fetchUrl) {
@@ -153,9 +154,29 @@ export default class Taf extends Component {
     });
   }
 
+  // Selecting a new or another TAF, loads its TAC and sets it to expanded
+  loadAndExpandTaf (uuid) {
+    axios({
+      method: 'get',
+      url: this.props.urls.BACKEND_SERVER_URL + '/tafs/' + uuid,
+      withCredentials: true,
+      responseType: 'text',
+      headers: { 'Accept': 'text/plain' }
+    }).then(src => this.setState({ expandedTAC: src.data }));
+    axios({
+      method: 'get',
+      url: this.props.urls.BACKEND_SERVER_URL + '/tafs/' + uuid,
+      withCredentials: true,
+      responseType: 'json',
+      headers: { 'Accept': 'application/json' }
+    }).then(src => {
+      console.log('setExpandedTAF', uuid);
+      this.setState({ expandedTAF: uuid, expandedJSON: src.data });
+    });
+  }
 
 
-  setExpandedTAF (uuid, expandAndCollapse = false) {
+  setExpandedTAF (uuid, expandAndCollapse = false, refreshTafList = false) {
     // Clicking the already expanded TAF collapses it
     if (this.state.expandedTAF === uuid && expandAndCollapse) {
       console.log('setExpandedTAF collapse');
@@ -164,28 +185,14 @@ export default class Taf extends Component {
       this.setState({ expandedTAF: 'edit', expandedTAC: null });
     } else {
       console.log('setExpandedTAF load');
-      // Selecting a new or another TAF, loads its TAC and sets it to expanded
       //TODO Only refresh list when needed
-      this.fetchTAFs ().then(() => {
-        axios({
-          method: 'get',
-          url: this.props.urls.BACKEND_SERVER_URL + '/tafs/' + uuid,
-          withCredentials: true,
-          responseType: 'text',
-          headers: { 'Accept': 'text/plain' }
-        }).then(src => this.setState({ expandedTAC: src.data }));
-        axios({
-          method: 'get',
-          url: this.props.urls.BACKEND_SERVER_URL + '/tafs/' + uuid,
-          withCredentials: true,
-          responseType: 'json',
-          headers: { 'Accept': 'application/json' }
-        }).then(src => {
-          console.log('setExpandedTAF', uuid);
-          this.setState({ expandedTAF: uuid, expandedJSON: src.data });
-        }
-        );
-      });
+      if(refreshTafList) {
+        this.fetchTAFs ().then(() => {
+          this.loadAndExpandTaf(uuid);
+        });
+      } else {
+        this.loadAndExpandTaf(uuid);
+      }
     }
   }
 
