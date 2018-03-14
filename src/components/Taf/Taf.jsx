@@ -109,6 +109,8 @@ export default class Taf extends Component {
       }).then(src => {
         if (src.data && src.data.tafs) {
           this.setState({ tafs: src.data.tafs });
+        } else if (src.data.ntafs === 0) {
+          this.setState({ tafs: [] });
         }
         resolve('Fetched tafs');
       }).catch(error => {
