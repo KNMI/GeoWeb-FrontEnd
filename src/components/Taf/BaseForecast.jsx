@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { TAF_TEMPLATES, TAF_TYPES } from './TafTemplates';
 import TafCell from './TafCell';
 import cloneDeep from 'lodash.clonedeep';
-import { jsonToTacForPeriod, jsonToTacForWind, jsonToTacForCavok, jsonToTacForVerticalVisibility, jsonToTacForVisibility, jsonToTacForWeather, jsonToTacForClouds } from './TafFieldsConverter';
+import { jsonToTacForPeriod, jsonToTacForLocation, jsonToTacForWind, jsonToTacForCavok, jsonToTacForVerticalVisibility, jsonToTacForVisibility, jsonToTacForWeather, jsonToTacForClouds } from './TafFieldsConverter';
 import moment from 'moment';
 /*
   BaseForecast of TAF editor, it is the top row visible in the UI.
@@ -35,9 +35,8 @@ class BaseForecast extends Component {
       },
       {
         name: 'metadata-location',
-        value: tafMetadata.hasOwnProperty('location') ? tafMetadata.location || '' : '',
-        disabled: true,
-        classes: ['TACnotEditable']
+        value: tafMetadata.hasOwnProperty('location') ? jsonToTacForLocation(tafMetadata.location, true) || '' : '',
+        disabled: !editable || (tafMetadata.type !== 'concept' && tafMetadata.type !== 'normal' && tafMetadata.type)
       },
       {
         name: 'metadata-issueTime',

@@ -153,31 +153,39 @@ export default class Taf extends Component {
     });
   }
 
-  setExpandedTAF (uuid) {
+
+
+  setExpandedTAF (uuid, expandAndCollapse = false) {
     // Clicking the already expanded TAF collapses it
-    if (this.state.expandedTAF === uuid) {
+    if (this.state.expandedTAF === uuid && expandAndCollapse) {
+      console.log('setExpandedTAF collapse');
       this.setState({ expandedTAF: null, expandedTAC: null });
     } else if (uuid === 'edit') {
       this.setState({ expandedTAF: 'edit', expandedTAC: null });
     } else {
+      console.log('setExpandedTAF load');
       // Selecting a new or another TAF, loads its TAC and sets it to expanded
-      axios({
-        method: 'get',
-        url: this.props.urls.BACKEND_SERVER_URL + '/tafs/' + uuid,
-        withCredentials: true,
-        responseType: 'text',
-        headers: { 'Accept': 'text/plain' }
-      }).then(src => this.setState({ expandedTAF: uuid, expandedTAC: src.data }));
-      axios({
-        method: 'get',
-        url: this.props.urls.BACKEND_SERVER_URL + '/tafs/' + uuid,
-        withCredentials: true,
-        responseType: 'json',
-        headers: { 'Accept': 'application/json' }
-      }).then(src => {
-        this.setState({ expandedTAF: uuid, expandedJSON: src.data });
-      }
-      );
+      //TODO Only refresh list when needed
+      this.fetchTAFs ().then(() => {
+        axios({
+          method: 'get',
+          url: this.props.urls.BACKEND_SERVER_URL + '/tafs/' + uuid,
+          withCredentials: true,
+          responseType: 'text',
+          headers: { 'Accept': 'text/plain' }
+        }).then(src => this.setState({ expandedTAC: src.data }));
+        axios({
+          method: 'get',
+          url: this.props.urls.BACKEND_SERVER_URL + '/tafs/' + uuid,
+          withCredentials: true,
+          responseType: 'json',
+          headers: { 'Accept': 'application/json' }
+        }).then(src => {
+          console.log('setExpandedTAF', uuid);
+          this.setState({ expandedTAF: uuid, expandedJSON: src.data });
+        }
+        );
+      });
     }
   }
 
@@ -243,7 +251,7 @@ export default class Taf extends Component {
           </ButtonGroup>
           : null
         }
-        { this.state.tafLocations.length > 0 && this.props.tafStatus === 'new'
+        { /* this.state.tafLocations.length > 0 && this.props.tafStatus === 'new'
           ? <ButtonGroup style={{ marginTop: '.167rem', marginBottom: '0.33rem' }}>
             <InputGroupAddon style={{ padding: '0.2rem 0.3rem', fontSize: '70%' }}><Icon name='circle' /></InputGroupAddon>
             {this.state.tafLocations.map((locationName, index) => {
@@ -251,7 +259,7 @@ export default class Taf extends Component {
                 active={tafLocation === locationName}>{locationName}</Button>;
             })}
           </ButtonGroup>
-          : null
+          : null */
         }
         { this.state.tafLocations.length > 0 && this.props.tafStatus !== 'new'
           ? <ButtonGroup style={{ marginTop: '.167rem', marginBottom: '0.33rem' }}>
@@ -269,13 +277,18 @@ export default class Taf extends Component {
               <Row>
                 <Col>
                   <TafCategory
+                    focusTaf={this.props.focusTaf}
                     urls={this.props.urls}
                     taf={this.state.inputValueJSON || cloneDeep(TAF_TEMPLATES.TAF)}
-                    update editable={this.props.tafEditable}
+                    update
+                    editable={this.props.tafEditable}
                     fixedLayout={this.props.fixedLayout}
                     location={tafLocation}
                     browserLocation={this.props.browserLocation}
                     updateParent={this.updateTafs}
+                    tafLocations={this.state.tafLocations}
+                    location={tafLocation}
+                    user={this.props.user}
                   />
                 </Col>
               </Row>
@@ -288,7 +301,7 @@ export default class Taf extends Component {
             ).map((taf, index) => {
               return <Card key={index} block>
                 <CardTitle onClick={() => this.setExpandedTAF(taf.metadata.uuid)} style={{ cursor: 'pointer' }}>
-                  {taf.metadata ? taf.metadata.location : 'EWat?'} - {moment.utc(taf.metadata.validityStart).format('YYYY-MM-DDTHH:mm') + ' UTC'} - {taf.metadata.uuid}
+                  {taf.metadata ? taf.metadata.location : 'EWat?'} - {moment.utc(taf.metadata.validityStart).format('YYYY-MM-DDTHH:mm') + ' UTC'} - {taf.metadata.type} - {taf.metadata.uuid}
                 </CardTitle>
                 <CollapseOmni className='CollapseOmni' style={{ flexDirection: 'column' }} isOpen={this.state.expandedTAF === taf.metadata.uuid} minSize={0} maxSize={800}>
                   <Row>
@@ -312,12 +325,17 @@ export default class Taf extends Component {
                   <Row>
                     <Col>
                       <TafCategory
-                        editTaf={this.props.editTaf}
+                        focusTaf={this.props.focusTaf}
                         urls={this.props.urls}
                         taf={this.state.expandedJSON || cloneDeep(TAF_TEMPLATES.TAF)}
+                        update
                         editable={this.props.tafEditable}
                         fixedLayout={this.props.fixedLayout}
+                        browserLocation={this.props.browserLocation}
                         updateParent={this.updateTafs}
+                        tafLocations={this.state.tafLocations}
+                        location={tafLocation}
+                        user={this.props.user}
                       />
                     </Col>
                   </Row>
