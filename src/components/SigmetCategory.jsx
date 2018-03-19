@@ -645,8 +645,8 @@ class SigmetCategory extends Component {
     listCpy[0].phenomenon = onlyObj.code;
     this.setState({ list: listCpy });
     const preset = this.sigmetLayers(onlyObj.layerpreset);
-    this.props.dispatch(this.props.mapActions.setLayout(preset.display.type));
-    this.props.dispatch(this.props.panelsActions.setPreset(preset.panelsProperties));
+    this.props.dispatch(this.props.panelsActions.setPanelLayout(preset.display.type));
+    this.props.dispatch(this.props.panelsActions.setPresetLayers(preset.panelsProperties));
     this.props.dispatch(this.props.mapActions.setCut({ name: 'Custom', bbox: [preset.area.left || 570875, preset.area.bottom, preset.area.right || 570875, preset.area.top] }));
   }
 
@@ -1250,7 +1250,7 @@ class SigmetCategory extends Component {
                       </Row>
                     }
                     {selectedIndex > -1 && editable && (showDrawWarningFromState && showDrawWarningFromProps)
-                      ? <Row style={{ flex: 'none', padding: '0.5rem 0 0.5rem 0.12rem', maxWidth: '22.5rem' }}>
+                      ? <Row style={{ flex: 'none', padding: '0.5rem 0 0.5rem 0.12rem', maxWidth: '28.7rem' }}>
                         <Col>
                           <Alert color='danger' style={{ display: 'block', margin: '0', whiteSpace: 'normal', padding: '0.75rem' }}>
                             Please draw a polygon (<i className='fa fa-pencil' />) to indicate where the phenomenon is
@@ -1262,11 +1262,11 @@ class SigmetCategory extends Component {
                     }
                     {editable
                       ? <Row style={{ minHeight: '2.5rem' }}>
-                        <Col xs={{ size: 3, offset: 5 }}>
-                          <Button color='primary' disabled={selectedIndex === -1} onClick={this.saveSigmet} >Save</Button>
+                        <Col xs={{ size: 4, offset: 5 }}>
+                          <Button color='primary' disabled={selectedIndex === -1} onClick={this.deleteDrawing} style={{ marginRight: '0.33rem' }}>Delete drawing</Button>
                         </Col>
-                        <Col xs='4'>
-                          <Button color='primary' disabled={selectedIndex === -1} onClick={this.deleteDrawing} >Delete drawing</Button>
+                        <Col xs='3'>
+                          <Button color='primary' disabled={selectedIndex === -1} onClick={this.saveSigmet} >Save</Button>
                         </Col>
                       </Row>
                       : ''
