@@ -23,9 +23,9 @@ const createSliderWithTooltip = Slider.createSliderWithTooltip;
 const Range = createSliderWithTooltip(Slider.Range);
 const Handle = Slider.Handle;
 
-const DATE_FORMAT = 'YYYY MMM DD - ';
+const DATE_FORMAT = 'DD MMM YYYY';
 const TIME_FORMAT = 'HH:mm UTC';
-const DATE_TIME_FORMAT = 'YYYY MMM DD - HH:mm UTC';
+const DATE_TIME_FORMAT = 'DD MMM YYYY HH:mm UTC';
 const SEPARATOR = '_';
 const TAG_NAMES = {
   DIV: 'div',
@@ -98,6 +98,7 @@ class SigmetCategory extends Component {
     this.onObsOrFcstClick = this.onObsOrFcstClick.bind(this);
     this.handleSigmetClick = this.handleSigmetClick.bind(this);
     this.saveSigmet = this.saveSigmet.bind(this);
+    this.deleteDrawing = this.deleteDrawing.bind(this);
     this.savedSigmetCallback = this.savedSigmetCallback.bind(this);
     this.getExistingSigmets = this.getExistingSigmets.bind(this);
     this.gotExistingSigmetsCallback = this.gotExistingSigmetsCallback.bind(this);
@@ -313,6 +314,12 @@ class SigmetCategory extends Component {
     }).catch(error => {
       this.couldntSaveSigmetCallback(error.response);
     });
+  }
+
+  deleteDrawing () {
+    const newList = cloneDeep(this.state.list);
+    newList[0].geojson = EMPTY_GEO_JSON;
+    this.setState({ list: newList });
   }
 
   sigmetLayers (p) {
@@ -1043,6 +1050,7 @@ class SigmetCategory extends Component {
       maxSize = 900;
     }
     const sourceless = Object.keys(this.props.sources || {}).length === 0;
+    const now = moment().utc();
     return (
       <Card className='row accordion'>
         {parentCollapsed
@@ -1069,212 +1077,222 @@ class SigmetCategory extends Component {
         }
         <CollapseOmni className='CollapseOmni' isOpen={this.state.isOpen} minSize={0} maxSize={maxSize}>
           <CardBlock>
-            <Row>
-              <Col className='btn-group-vertical'>
-                {this.state.list.map((item, index) =>
-                  <Button tag='div' className={'Sigmet row' + (selectedIndex === index ? ' active' : '')}
-                    key={index} onClick={(evt) => { this.handleSigmetClick(evt, index); }} title={item.phenomenonHRT} >
-                    <Row style={editable ? { minHeight: '2rem' } : null}>
-                      <Col xs='3'>
-                        <Badge color='success'>What</Badge>
-                      </Col>
-                      <Col xs='9' style={{ flexDirection: 'column' }}>
-                        {editable
-                          ? <Typeahead disabled={sourceless} filterBy={['name', 'code']} labelKey='name'
-                            options={this.getPhenomena()} placeholder={sourceless ? 'Loading phenomena ⏳' : 'Select phenomenon'}
-                            onChange={(phenomenonList) => this.setSelectedPhenomenon(phenomenonList)}
-                          />
-                          : <span style={{ fontWeight: 'bold' }}>{item.phenomenonHRT}</span>
-                        }
-                      </Col>
-                    </Row>
-                    <Row style={editable ? { marginTop: '0.19rem', minHeight: '2rem' } : null}>
-                      <Col xs={{ size: 9, offset: 3 }}>
-                        {editable
-                          ? <SwitchButton id='obsfcstswitch' name='obsfcstswitch'
-                            labelRight='Observed' labelLeft='Forecast' isChecked={item.obs_or_forecast.obs} action={(evt) => this.setSelectedObservedForecast(evt.target.checked)} />
-                          : <span>{item.obs_or_forecast.obs ? 'Observed' : 'Forecast'}</span>
-                        }
-                      </Col>
-                    </Row>
-                    <Row className='section'>
-                      <Col xs='3'>
-                        <Badge color='success'>When</Badge>
-                      </Col>
-                    </Row>
-                    <Row style={editable ? { paddingTop: '0.19rem', minHeight: '2rem' } : { paddingTop: '0.19rem' }}>
-                      <Col xs={{ size: 2, offset: 1 }}>
-                        <Badge>From</Badge>
-                      </Col>
-                      <Col xs='9'>
-                        {editable
-                          ? <DateTimePicker style={{ width: '100%' }} dateFormat={DATE_FORMAT} timeFormat={TIME_FORMAT} utc
-                            onChange={(validFrom) => this.setSelectedValidFromMoment(validFrom)}
-                            isValidDate={(curr, selected) => curr.isAfter(moment().utc().subtract(1, 'day')) &&
-                              curr.isBefore(moment().utc().add(this.getParameters().hoursbeforevalidity, 'hour'))}
-                            timeConstraints={{
-                              hours: {
-                                min: moment().utc().hour(),
-                                max: (moment().utc().hour() + this.getParameters().hoursbeforevalidity)
-                              }
-                            }} />
-                          : <Moment format={DATE_TIME_FORMAT} date={item.validdate} />
-                        }
-                      </Col>
-                    </Row>
-                    <Row style={editable ? { paddingTop: '0.19rem', minHeight: '2.5rem' } : { paddingTop: '0.19rem' }}>
-                      <Col xs={{ size: 2, offset: 1 }}>
-                        <Badge>Until</Badge>
-                      </Col>
-                      <Col xs='9'>
-                        {editable
-                          ? <DateTimePicker style={{ width: '100%' }} dateFormat={DATE_FORMAT} timeFormat={TIME_FORMAT} utc
-                            onChange={(validUntil) => this.setSelectedValidUntilMoment(validUntil)}
-                            isValidDate={(curr, selected) => curr.isAfter(moment(this.state.list[0].validdate).subtract(1, 'day')) &&
-                              curr.isBefore(moment(this.state.list[0].validdate).add(this.getParameters().maxhoursofvalidity, 'hour'))}
-                            timeConstraints={{
-                              hours: {
-                                min: moment(this.state.list[0].validdate).hour(),
-                                max: (moment(this.state.list[0].validdate).hour() + this.getParameters().maxhoursofvalidity)
-                              }
-                            }} />
-                          : <Moment format={DATE_TIME_FORMAT} date={item.validdate_end} />
-                        }
-                      </Col>
-                    </Row>
-                    <Row className='section' style={editable ? { minHeight: '2.5rem' } : null}>
-                      <Col xs='3'>
-                        <Badge color='success'>Where</Badge>
-                      </Col>
-                      <Col xs='9' style={{ flexDirection: 'column' }}>
-                        {editable
-                          ? <Typeahead style={{ width: '100%' }} filterBy={['firname', 'location_indicator_icao']} labelKey='firname'
-                            options={this.getParameters().firareas} onChange={(firList) => this.setSelectedFir(firList)} defaultValue={this.getParameters().firareas[0]} />
-                          : <span>{item.firname || '--'}</span>
-                        }
-                      </Col>
-                    </Row>
-                    <Row>
-                      <Col xs={{ size: 9, offset: 3 }}>
-                        {item.location_indicator_icao}
-                      </Col>
-                    </Row>
-                    <Row className='section' style={editable ? { minHeight: '14rem' } : null}>
-                      <Col xs={editable ? { size: 12 } : { size: 9, offset: 3 }}>
-                        {this.renderLevelSelection(editable, item)}
-                      </Col>
-                    </Row>
-                    <Row className='section'>
-                      <Col xs='3'>
-                        <Badge color='success'>Progress</Badge>
-                      </Col>
-                      <Col xs='9'>
-                        {/* dir: {N,NNE,NE,ENE,E,ESE,SE,SSE,S,SSW,SW,WSW,W,WNW} */}
-                        {/* speed: int */}
-                        {editable
-                          ? <SwitchButton id='movementswitch' name='movementswitch'
-                            labelRight='Move' labelLeft='Stationary' isChecked={!item.movement.stationary} action={this.setSelectedMovement} />
-                          : <span>{item.movement.stationary ? 'Stationary' : 'Move'}</span>
-                        }
-
-                      </Col>
-                    </Row>
-                    <Row style={editable ? { marginTop: '0.19rem', minHeight: '2rem' } : null}>
-                      <Col xs={{ size: 2, offset: 1 }}>
-                        <Badge title='Direction'>Direction</Badge>
-                      </Col>
-                      <Col xs='9'>
-                        {editable
-                          ? <Typeahead style={{ width: '100%' }} filterBy={['shortName', 'longName']} labelKey='longName' disabled={item.movement.stationary}
-                            options={this.getDirections()} onChange={(dir) => this.setSelectedDirection(dir)} defaultValue={this.getDirections()[0]} />
-                          : <span>{item.movement.dir}</span>
-                        }
-                      </Col>
-                    </Row>
-                    <Row style={editable ? { marginTop: '0.19rem', minHeight: '2rem' } : null}>
-                      <Col xs={{ size: 2, offset: 1 }}>
-                        <Badge>Speed</Badge>
-                      </Col>
-                      <Col xs='9'>
-                        {editable
-                          ? <InputGroup>
-                            <Input onChange={this.setSpeed} defaultValue='0' type='number' step='1' disabled={item.movement.stationary} />
-                            <InputGroupAddon>KT</InputGroupAddon>
-                          </InputGroup>
-                          : <span>{item.movement.speed} KT</span>
-                        }
-                      </Col>
-                    </Row>
-                    <Row className='section' style={editable ? { marginTop: '0.19rem', minHeight: '2.5rem' } : null}>
-                      <Col xs='3'>
-                        <Badge color='success'>Change</Badge>
-                      </Col>
-                      <Col xs='9'>
-                        {editable
-                          ? <Typeahead style={{ width: '100%' }} filterBy={['shortName', 'longName']} labelKey='longName'
-                            options={this.getChanges()} onChange={(chg) => this.setChange(chg)} defaultValue={this.getChanges()[0]} />
-                          : <span>{this.getChanges().filter((li) => li.shortName === item.change)[0].longName}</span>
-                        }
-                      </Col>
-                    </Row>
-                    <Row>
-                      <Col xs={{ size: 9, offset: 3 }}>
-                        {item.forecast_position}
-                      </Col>
-                    </Row>
-                    <Row className='section'>
-                      <Col xs='3'>
-                        <Badge color='success'>Issued at</Badge>
-                      </Col>
-                      <Col xs='9'>
-                        {editable
-                          ? '--'
-                          : <Moment format={DATE_TIME_FORMAT} date={item.issuedate} />
-                        }
-                      </Col>
-                    </Row>
-                    <Row>
-                      <Col xs={{ size: 9, offset: 3 }}>
-                        {item.location_indicator_mwo}
-                      </Col>
-                    </Row>
-                    {editable
-                      ? ''
-                      : <Row>
-                        <Col xs={{ size: 3, offset: 3 }}>
-                          <Badge>Sequence</Badge>
-                        </Col>
-                        <Col xs='6'>
-                          {item.sequence}
-                        </Col>
-                      </Row>
-                    }
-                    {selectedIndex > -1 && editable && (showDrawWarningFromState && showDrawWarningFromProps)
-                      ? <Row style={{ flex: 'none', padding: '0.5rem 0 0.5rem 0.12rem', maxWidth: '28.7rem' }}>
-                        <Col>
-                          <Alert color='danger' style={{ display: 'block', margin: '0', whiteSpace: 'normal', padding: '0.75rem' }}>
-                            Please draw a polygon (<i className='fa fa-pencil' />) to indicate where the phenomenon is
-                            {item.obs_or_forecast.obs ? ' observed.' : ' expected to occur.'}
-                          </Alert>
-                        </Col>
-                      </Row>
-                      : ''
-                    }
-                    {editable
-                      ? <Row style={{ minHeight: '2.5rem' }}>
-                        <Col xs={{ size: 4, offset: 5 }}>
-                          <Button color='primary' disabled={selectedIndex === -1} onClick={this.deleteDrawing} style={{ marginRight: '0.33rem' }}>Delete drawing</Button>
-                        </Col>
+            {this.state.isOpen
+              ? <Row>
+                <Col className='btn-group-vertical'>
+                  {this.state.list.map((item, index) =>
+                    <Button tag='div' className={'Sigmet row' + (selectedIndex === index ? ' active' : '')}
+                      key={index} onClick={(evt) => { this.handleSigmetClick(evt, index); }} title={item.phenomenonHRT} >
+                      <Row style={editable ? { minHeight: '2rem' } : null}>
                         <Col xs='3'>
-                          <Button color='primary' disabled={selectedIndex === -1} onClick={this.saveSigmet} >Save</Button>
+                          <Badge color='success'>What</Badge>
+                        </Col>
+                        <Col xs='9' style={{ flexDirection: 'column' }}>
+                          {editable
+                            ? <Typeahead disabled={sourceless} filterBy={['name', 'code']} labelKey='name'
+                              options={this.getPhenomena()} placeholder={sourceless ? 'Loading phenomena ⏳' : 'Select phenomenon'}
+                              onChange={(phenomenonList) => this.setSelectedPhenomenon(phenomenonList)}
+                            />
+                            : <span style={{ fontWeight: 'bold' }}>{item.phenomenonHRT}</span>
+                          }
                         </Col>
                       </Row>
-                      : ''
-                    }
-                  </Button>
-                )}
-              </Col>
-            </Row>
+                      <Row style={editable ? { marginTop: '0.19rem', minHeight: '2rem' } : null}>
+                        <Col xs={{ size: 9, offset: 3 }}>
+                          {editable
+                            ? <SwitchButton id='obsfcstswitch' name='obsfcstswitch'
+                              labelRight='Observed' labelLeft='Forecast' isChecked={item.obs_or_forecast.obs} action={(evt) => this.setSelectedObservedForecast(evt.target.checked)} />
+                            : <span>{item.obs_or_forecast.obs ? 'Observed' : 'Forecast'}</span>
+                          }
+                        </Col>
+                      </Row>
+                      <Row className='section'>
+                        <Col xs='3'>
+                          <Badge color='success'>When</Badge>
+                        </Col>
+                      </Row>
+                      <Row style={editable ? { paddingTop: '0.19rem', minHeight: '2rem' } : { paddingTop: '0.19rem' }}>
+                        <Col xs={{ size: 2, offset: 1 }}>
+                          <Badge>From</Badge>
+                        </Col>
+                        <Col xs='9'>
+                          {editable
+                            ? <DateTimePicker style={{ width: '100%' }} dateFormat={DATE_FORMAT} timeFormat={TIME_FORMAT} utc
+                              onChange={(validFrom) => this.setSelectedValidFromMoment(validFrom)}
+                              isValidDate={(curr, selected) => curr.isAfter(now.subtract(1, 'day')) &&
+                                curr.isBefore(now.add(this.getParameters().hoursbeforevalidity, 'hour'))}
+                              timeConstraints={{
+                                hours: {
+                                  min: now.hour(),
+                                  max: (now.hour() + this.getParameters().hoursbeforevalidity)
+                                }
+                              }}
+                              viewMode='time'
+                              value={moment.utc(item.validdate) || now}
+                            />
+                            : <Moment format={DATE_TIME_FORMAT} date={item.validdate} />
+                          }
+                        </Col>
+                      </Row>
+                      <Row style={editable ? { paddingTop: '0.19rem', minHeight: '2.5rem' } : { paddingTop: '0.19rem' }}>
+                        <Col xs={{ size: 2, offset: 1 }}>
+                          <Badge>Until</Badge>
+                        </Col>
+                        <Col xs='9'>
+                          {editable
+                            ? <DateTimePicker style={{ width: '100%' }} dateFormat={DATE_FORMAT} timeFormat={TIME_FORMAT} utc
+                              onChange={(validUntil) => this.setSelectedValidUntilMoment(validUntil)}
+                              isValidDate={(curr, selected) => curr.isAfter(moment.utc(item.validdate).subtract(1, 'day')) &&
+                                curr.isBefore(moment.utc(item.validdate).add(this.getParameters().maxhoursofvalidity, 'hour'))}
+                              timeConstraints={{
+                                hours: {
+                                  min: moment.utc(item.validdate).hour(),
+                                  max: (moment.utc(item.validdate).hour() + this.getParameters().maxhoursofvalidity)
+                                }
+                              }}
+                              viewMode='time'
+                              value={moment.utc(item.validdate_end) || moment.utc(item.validdate).add(this.getParameters().maxhoursofvalidity, 'hour')} />
+                            : <Moment format={DATE_TIME_FORMAT} date={item.validdate_end} />
+                          }
+                        </Col>
+                      </Row>
+                      <Row className='section' style={editable ? { minHeight: '2.5rem' } : null}>
+                        <Col xs='3'>
+                          <Badge color='success'>Where</Badge>
+                        </Col>
+                        <Col xs='9' style={{ flexDirection: 'column' }}>
+                          {editable
+                            ? <Typeahead style={{ width: '100%' }} filterBy={['firname', 'location_indicator_icao']} labelKey='firname'
+                              options={this.getParameters().firareas} onChange={(firList) => this.setSelectedFir(firList)}
+                              selected={item.firname ? [item.firname] : [this.getParameters().firareas[0]]} />
+                            : <span>{item.firname || 'no firname provided yet'}</span>
+                          }
+                        </Col>
+                      </Row>
+                      <Row>
+                        <Col xs={{ size: 9, offset: 3 }}>
+                          {item.location_indicator_icao}
+                        </Col>
+                      </Row>
+                      <Row className='section' style={editable ? { minHeight: '14rem' } : null}>
+                        <Col xs={editable ? { size: 12 } : { size: 9, offset: 3 }}>
+                          {this.renderLevelSelection(editable, item)}
+                        </Col>
+                      </Row>
+                      <Row className='section'>
+                        <Col xs='3'>
+                          <Badge color='success'>Progress</Badge>
+                        </Col>
+                        <Col xs='9'>
+                          {/* dir: {N,NNE,NE,ENE,E,ESE,SE,SSE,S,SSW,SW,WSW,W,WNW} */}
+                          {/* speed: int */}
+                          {editable
+                            ? <SwitchButton id='movementswitch' name='movementswitch'
+                              labelRight='Move' labelLeft='Stationary' isChecked={!item.movement.stationary} action={this.setSelectedMovement} />
+                            : <span>{item.movement.stationary ? 'Stationary' : 'Move'}</span>
+                          }
+
+                        </Col>
+                      </Row>
+                      <Row style={editable ? { marginTop: '0.19rem', minHeight: '2rem' } : null}>
+                        <Col xs={{ size: 2, offset: 1 }}>
+                          <Badge title='Direction'>Direction</Badge>
+                        </Col>
+                        <Col xs='9'>
+                          {editable
+                            ? <Typeahead style={{ width: '100%' }} filterBy={['shortName', 'longName']} labelKey='longName' disabled={item.movement.stationary}
+                              options={this.getDirections()} onChange={(dir) => this.setSelectedDirection(dir)}
+                              selected={item.movement.dir ? [item.movement.dir] : []} />
+                            : <span>{item.movement.dir}</span>
+                          }
+                        </Col>
+                      </Row>
+                      <Row style={editable ? { marginTop: '0.19rem', minHeight: '2rem' } : null}>
+                        <Col xs={{ size: 2, offset: 1 }}>
+                          <Badge>Speed</Badge>
+                        </Col>
+                        <Col xs='9'>
+                          {editable
+                            ? <InputGroup>
+                              <Input onChange={this.setSpeed} defaultValue='0' type='number' step='1' disabled={item.movement.stationary} />
+                              <InputGroupAddon>KT</InputGroupAddon>
+                            </InputGroup>
+                            : <span>{item.movement.speed} KT</span>
+                          }
+                        </Col>
+                      </Row>
+                      <Row className='section' style={editable ? { marginTop: '0.19rem', minHeight: '2.5rem' } : null}>
+                        <Col xs='3'>
+                          <Badge color='success'>Change</Badge>
+                        </Col>
+                        <Col xs='9'>
+                          {editable
+                            ? <Typeahead style={{ width: '100%' }} filterBy={['shortName', 'longName']} labelKey='longName'
+                              options={this.getChanges()} onChange={(chg) => this.setChange(chg)}
+                              selected={item.change ? [this.getChanges().filter((li) => li.shortName === item.change)[0]] : [this.getChanges()[0]]} />
+                            : <span>{this.getChanges().filter((li) => li.shortName === item.change)[0].longName}</span>
+                          }
+                        </Col>
+                      </Row>
+                      <Row>
+                        <Col xs={{ size: 9, offset: 3 }}>
+                          {item.forecast_position}
+                        </Col>
+                      </Row>
+                      <Row className='section'>
+                        <Col xs='3'>
+                          <Badge color='success'>Issued at</Badge>
+                        </Col>
+                        <Col xs='9'>
+                          {editable
+                            ? '--'
+                            : <Moment format={DATE_TIME_FORMAT} date={item.issuedate} />
+                          }
+                        </Col>
+                      </Row>
+                      <Row>
+                        <Col xs={{ size: 9, offset: 3 }}>
+                          {item.location_indicator_mwo}
+                        </Col>
+                      </Row>
+                      {editable
+                        ? ''
+                        : <Row>
+                          <Col xs={{ size: 3, offset: 3 }}>
+                            <Badge>Sequence</Badge>
+                          </Col>
+                          <Col xs='6'>
+                            {item.sequence}
+                          </Col>
+                        </Row>
+                      }
+                      {selectedIndex > -1 && editable && (showDrawWarningFromState && showDrawWarningFromProps)
+                        ? <Row style={{ flex: 'none', padding: '0.5rem 0 0.5rem 0.12rem', maxWidth: '28.7rem' }}>
+                          <Col>
+                            <Alert color='danger' style={{ display: 'block', margin: '0', whiteSpace: 'normal', padding: '0.75rem' }}>
+                              Please draw a polygon (<i className='fa fa-pencil' />) to indicate where the phenomenon is
+                              {item.obs_or_forecast.obs ? ' observed.' : ' expected to occur.'}
+                            </Alert>
+                          </Col>
+                        </Row>
+                        : ''
+                      }
+                      {editable
+                        ? <Row style={{ minHeight: '2.5rem' }}>
+                          <Col xs={{ size: 4, offset: 5 }}>
+                            <Button color='primary' disabled={selectedIndex === -1} onClick={this.deleteDrawing} style={{ marginRight: '0.33rem' }}>Delete drawing</Button>
+                          </Col>
+                          <Col xs='3'>
+                            <Button color='primary' disabled={selectedIndex === -1} onClick={this.saveSigmet} >Save</Button>
+                          </Col>
+                        </Row>
+                        : ''
+                      }
+                    </Button>
+                  )}
+                </Col>
+              </Row>
+              : null}
           </CardBlock>
         </CollapseOmni>
       </Card>);

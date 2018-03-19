@@ -232,7 +232,7 @@ button.btn.btn-sm, button.btn.btn-group-sm > .btn {
   border-color: $ux-interactive-color-checked;
 }
 
-.form-control:disabled, .rbt.form-control[disabled] {
+.form-control:disabled, .rbt.form-control[disabled], .rbt-input.form-control[disabled] {
   cursor: not-allowed;
   background-color: #e8eaec;
 }
