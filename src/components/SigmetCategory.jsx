@@ -7,6 +7,7 @@ import axios from 'axios';
 import cloneDeep from 'lodash.clonedeep';
 import isEmpty from 'lodash.isempty';
 import isEqual from 'lodash.isequal';
+import update from 'immutability-helper';
 import CollapseOmni from '../components/CollapseOmni';
 import SwitchButton from 'lyef-switch-button';
 import 'lyef-switch-button/css/main.css';
@@ -778,6 +779,19 @@ class SigmetCategory extends Component {
       const newList = cloneDeep(this.state.list);
       newList[0].geojson = this.props.drawProperties.geojson;
       this.setState({ list: newList });
+    }
+    if (this.props.editable && Array.isArray(this.state.list) && this.state.list.length > 0 &&
+        this.state.list[0].validdate) {
+      const curVal = moment(this.state.list[0].validdate).utc();
+      const nowVal = moment().utc();
+      if (curVal.isBefore(nowVal, 'minute')) {
+        const newList = update(this.state.list, {
+          0: {
+            validdate: { $set: nowVal.format() }
+          }
+        });
+        this.setState({ list: newList });
+      }
     }
   }
 
