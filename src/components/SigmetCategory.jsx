@@ -98,6 +98,7 @@ class SigmetCategory extends Component {
     this.onObsOrFcstClick = this.onObsOrFcstClick.bind(this);
     this.handleSigmetClick = this.handleSigmetClick.bind(this);
     this.saveSigmet = this.saveSigmet.bind(this);
+    this.publishSigmet = this.publishSigmet.bind(this);
     this.savedSigmetCallback = this.savedSigmetCallback.bind(this);
     this.getExistingSigmets = this.getExistingSigmets.bind(this);
     this.gotExistingSigmetsCallback = this.gotExistingSigmetsCallback.bind(this);
@@ -313,6 +314,16 @@ class SigmetCategory extends Component {
     }).catch(error => {
       this.couldntSaveSigmetCallback(error.response);
     });
+  }
+
+  publishSigmet (uuid) {
+    axios({
+      method: 'post',
+      url: BACKEND_SERVER_URL + '/sigmet/publishsigmet?uuid=' + uuid,
+      withCredentials: true
+    }).then((src) => {
+      this.props.updateAllComponents();
+    })
   }
 
   sigmetLayers (p) {
@@ -743,6 +754,7 @@ class SigmetCategory extends Component {
     if (this.props.selectedIndex === 0) {
       this.props.selectMethod(0);
     }
+    this.props.updateAllComponents();
   }
 
   couldntSaveSigmetCallback (message) {
@@ -771,6 +783,12 @@ class SigmetCategory extends Component {
       const newList = cloneDeep(this.state.list);
       newList[0].geojson = this.props.drawProperties.geojson;
       this.setState({ list: newList });
+    }
+  }
+
+  componentWillUpdate (nextProps) {
+    if (this.props.latestUpdateTime !== nextProps.latestUpdateTime) && this.props.isGetType === true) {
+      this.getExistingSigmets(this.props.source);
     }
   }
 
@@ -1269,7 +1287,11 @@ class SigmetCategory extends Component {
                           <Button color='primary' disabled={selectedIndex === -1} onClick={this.deleteDrawing} >Delete drawing</Button>
                         </Col>
                       </Row>
-                      : ''
+                      : <Row style={{ minHeight: '2.5rem' }}>
+                        <Col xs={{ size: 3, offset: 9 }}>
+                          <Button color='primary' onClick={() => this.publishSigmet(item.uuid)}>Publish</Button>
+                        </Col>
+                      </Row>
                     }
                   </Button>
                 )}
