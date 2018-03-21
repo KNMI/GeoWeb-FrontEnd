@@ -787,7 +787,7 @@ class SigmetCategory extends Component {
   }
 
   componentWillUpdate (nextProps) {
-    if (this.props.latestUpdateTime !== nextProps.latestUpdateTime) && this.props.isGetType === true) {
+    if (this.props.latestUpdateTime !== nextProps.latestUpdateTime && this.props.isGetType === true) {
       this.getExistingSigmets(this.props.source);
     }
   }
@@ -1287,11 +1287,14 @@ class SigmetCategory extends Component {
                           <Button color='primary' disabled={selectedIndex === -1} onClick={this.deleteDrawing} >Delete drawing</Button>
                         </Col>
                       </Row>
-                      : <Row style={{ minHeight: '2.5rem' }}>
-                        <Col xs={{ size: 3, offset: 9 }}>
-                          <Button color='primary' onClick={() => this.publishSigmet(item.uuid)}>Publish</Button>
-                        </Col>
-                      </Row>
+                      : (
+                        item.status !== 'PUBLISHED'
+                          ? <Row style={{ minHeight: '2.5rem' }}>
+                            <Col xs={{ size: 3, offset: 9 }}>
+                              <Button color='primary' onClick={() => this.publishSigmet(item.uuid)}>Publish</Button>
+                            </Col>
+                          </Row>
+                          : null)
                     }
                   </Button>
                 )}
