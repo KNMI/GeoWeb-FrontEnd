@@ -73,8 +73,8 @@ const EMPTY_SIGMET = {
   issuedate: '',
   validdate: moment().utc().format(),
   validdate_end: moment().utc().add(4, 'hour').format(),
-  firname: '',
-  location_indicator_icao: '',
+  firname: 'AMSTERDAM FIR',
+  location_indicator_icao: 'EHAA',
   location_indicator_mwo: 'EHDB',
   uuid: '00000000-0000-0000-0000-000000000000',
   status: 'PRODUCTION'
@@ -652,17 +652,19 @@ class SigmetCategory extends Component {
     let listCpy = cloneDeep(this.state.list);
     listCpy[0].phenomenon = onlyObj.code;
     this.setState({ list: listCpy });
-    const preset = this.sigmetLayers(onlyObj.layerpreset);
+    /* const preset = this.sigmetLayers(onlyObj.layerpreset);
     this.props.dispatch(this.props.panelsActions.setPanelLayout(preset.display.type));
     this.props.dispatch(this.props.panelsActions.setPresetLayers(preset.panelsProperties));
-    this.props.dispatch(this.props.mapActions.setCut({ name: 'Custom', bbox: [preset.area.left || 570875, preset.area.bottom, preset.area.right || 570875, preset.area.top] }));
+    this.props.dispatch(this.props.mapActions.setCut({ name: 'Custom', bbox: [preset.area.left || 570875, preset.area.bottom, preset.area.right || 570875, preset.area.top] })); */
   }
 
   setSelectedFir (firList) {
+    let firObj;
     if (firList.length === 0) {
-      return;
+      firObj = { firname: null, location_indicator_icao: null };
+    } else {
+      firObj = firList[0];
     }
-    const firObj = firList[0];
     let listCpy = cloneDeep(this.state.list);
     listCpy[0].firname = firObj.firname;
     listCpy[0].location_indicator_icao = firObj.location_indicator_icao;
@@ -1065,6 +1067,11 @@ class SigmetCategory extends Component {
     }
     const sourceless = Object.keys(this.props.sources || {}).length === 0;
     const now = moment().utc();
+    const availablePhenomena = this.getPhenomena();
+    const availableFirs = this.getParameters().firareas;
+    const availableChanges = this.getChanges();
+    const availableDirections = this.getDirections();
+
     return (
       <Card className='row accordion'>
         {parentCollapsed
@@ -1094,19 +1101,24 @@ class SigmetCategory extends Component {
             {this.state.isOpen
               ? <Row>
                 <Col className='btn-group-vertical'>
-                  {this.state.list.map((item, index) =>
-                    <Button tag='div' className={'Sigmet row' + (selectedIndex === index ? ' active' : '')}
+                  {this.state.list.map((item, index) => {
+                    const selectedPhenomenon = availablePhenomena.filter((ph) => ph.code === item.phenomenon).shift();
+                    const selectedFir = availableFirs.filter((fr) => fr.firname === item.firname).shift();
+                    const selectedDirection = availableDirections.filter((dr) => dr.shortName === item.movement.dir).shift();
+                    const selectedChange = availableChanges.filter((ch) => ch.shortName === item.change).shift();
+                    return <Button tag='div' className={'Sigmet row' + (selectedIndex === index ? ' active' : '')}
                       key={index} onClick={(evt) => { this.handleSigmetClick(evt, index); }} title={item.phenomenonHRT} >
                       <Row style={editable ? { minHeight: '2rem' } : null}>
                         <Col xs='3'>
                           <Badge color='success'>What</Badge>
                         </Col>
-                        <Col xs='9' style={{ flexDirection: 'column' }}>
+                        <Col xs='9'>
                           {editable
                             ? <Typeahead disabled={sourceless} filterBy={['name', 'code']} labelKey='name'
-                              options={this.getPhenomena()} placeholder={sourceless ? 'Loading phenomena ⏳' : 'Select phenomenon'}
+                              options={availablePhenomena} placeholder={sourceless ? 'Loading phenomena ⏳' : 'Select phenomenon'}
                               onChange={(phenomenonList) => this.setSelectedPhenomenon(phenomenonList)}
-                            />
+                              selected={selectedPhenomenon ? [selectedPhenomenon] : []}
+                              clearButton />
                             : <span style={{ fontWeight: 'bold' }}>{item.phenomenonHRT}</span>
                           }
                         </Col>
@@ -1120,7 +1132,7 @@ class SigmetCategory extends Component {
                           }
                         </Col>
                       </Row>
-                      <Row className='section'>
+                      <Row className='section' style={{ minHeight: '1.75rem' }}>
                         <Col xs='3'>
                           <Badge color='success'>When</Badge>
                         </Col>
@@ -1174,16 +1186,17 @@ class SigmetCategory extends Component {
                         <Col xs='3'>
                           <Badge color='success'>Where</Badge>
                         </Col>
-                        <Col xs='9' style={{ flexDirection: 'column' }}>
+                        <Col xs='9'>
                           {editable
                             ? <Typeahead style={{ width: '100%' }} filterBy={['firname', 'location_indicator_icao']} labelKey='firname'
-                              options={this.getParameters().firareas} onChange={(firList) => this.setSelectedFir(firList)}
-                              selected={item.firname ? [item.firname] : [this.getParameters().firareas[0]]} />
+                              options={availableFirs} onChange={(firList) => this.setSelectedFir(firList)}
+                              selected={selectedFir ? [selectedFir] : []} placeholder={'Select FIR'}
+                              clearButton />
                             : <span>{item.firname || 'no firname provided yet'}</span>
                           }
                         </Col>
                       </Row>
-                      <Row>
+                      <Row style={editable ? { minHeight: '2.5rem' } : null}>
                         <Col xs={{ size: 9, offset: 3 }}>
                           {item.location_indicator_icao}
                         </Col>
@@ -1193,7 +1206,7 @@ class SigmetCategory extends Component {
                           {this.renderLevelSelection(editable, item)}
                         </Col>
                       </Row>
-                      <Row className='section'>
+                      <Row className='section' style={{ minHeight: '2.5rem' }}>
                         <Col xs='3'>
                           <Badge color='success'>Progress</Badge>
                         </Col>
@@ -1215,9 +1228,11 @@ class SigmetCategory extends Component {
                         <Col xs='9'>
                           {editable
                             ? <Typeahead style={{ width: '100%' }} filterBy={['shortName', 'longName']} labelKey='longName' disabled={item.movement.stationary}
-                              options={this.getDirections()} onChange={(dir) => this.setSelectedDirection(dir)}
-                              selected={item.movement.dir ? [item.movement.dir] : []} />
-                            : <span>{item.movement.dir}</span>
+                              options={availableDirections} placeholder={item.movement.stationary ? null : 'Select direction'}
+                              onChange={(dir) => this.setSelectedDirection(dir)}
+                              selected={selectedDirection ? [selectedDirection] : []}
+                              clearButton />
+                            : <span>{selectedDirection ? selectedDirection.longName : (!item.movement.stationary ? 'No direction selected' : null)}</span>
                           }
                         </Col>
                       </Row>
@@ -1231,7 +1246,7 @@ class SigmetCategory extends Component {
                               <Input onChange={this.setSpeed} defaultValue='0' type='number' step='1' disabled={item.movement.stationary} />
                               <InputGroupAddon>KT</InputGroupAddon>
                             </InputGroup>
-                            : <span>{item.movement.speed} KT</span>
+                            : <span>{item.movement.speed ? `${item.movement.speed} KT` : null }</span>
                           }
                         </Col>
                       </Row>
@@ -1242,9 +1257,11 @@ class SigmetCategory extends Component {
                         <Col xs='9'>
                           {editable
                             ? <Typeahead style={{ width: '100%' }} filterBy={['shortName', 'longName']} labelKey='longName'
-                              options={this.getChanges()} onChange={(chg) => this.setChange(chg)}
-                              selected={item.change ? [this.getChanges().filter((li) => li.shortName === item.change)[0]] : [this.getChanges()[0]]} />
-                            : <span>{this.getChanges().filter((li) => li.shortName === item.change)[0].longName}</span>
+                              options={availableChanges} placeholder={'Select change'}
+                              onChange={(chg) => this.setChange(chg)}
+                              selected={selectedChange ? [selectedChange] : []}
+                              clearButton />
+                            : <span>{selectedChange ? selectedChange.longName : 'No change selected'}</span>
                           }
                         </Col>
                       </Row>
@@ -1253,7 +1270,7 @@ class SigmetCategory extends Component {
                           {item.forecast_position}
                         </Col>
                       </Row>
-                      <Row className='section'>
+                      <Row className='section' style={{ minHeight: '2.5rem' }}>
                         <Col xs='3'>
                           <Badge color='success'>Issued at</Badge>
                         </Col>
@@ -1269,16 +1286,16 @@ class SigmetCategory extends Component {
                           {item.location_indicator_mwo}
                         </Col>
                       </Row>
-                      {editable
-                        ? ''
-                        : <Row>
-                          <Col xs={{ size: 3, offset: 3 }}>
+                      {!editable
+                        ? <Row>
+                          <Col xs={{ size: 2, offset: 1 }}>
                             <Badge>Sequence</Badge>
                           </Col>
                           <Col xs='6'>
                             {item.sequence}
                           </Col>
                         </Row>
+                        : null
                       }
                       {selectedIndex > -1 && editable && (showDrawWarningFromState && showDrawWarningFromProps)
                         ? <Row style={{ flex: 'none', padding: '0.5rem 0 0.5rem 0.12rem', maxWidth: '28.7rem' }}>
@@ -1302,8 +1319,8 @@ class SigmetCategory extends Component {
                         </Row>
                         : ''
                       }
-                    </Button>
-                  )}
+                    </Button>;
+                  })}
                 </Col>
               </Row>
               : null}
