@@ -468,6 +468,8 @@ a.breadcrumb-active:hover, a.nav-link.active:hover {
 
 .col.sidebarredLayout > .row {
   flex: 1;
+  min-height: 0;
+  flex-wrap: nowrap;
 }
 
 .col.sidebarredContent {
