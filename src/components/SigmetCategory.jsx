@@ -13,6 +13,7 @@ import SwitchButton from 'lyef-switch-button';
 import 'lyef-switch-button/css/main.css';
 import { Typeahead } from 'react-bootstrap-typeahead';
 import DateTimePicker from 'react-datetime';
+
 import Slider from 'rc-slider';
 import Tooltip from 'rc-tooltip';
 import PropTypes from 'prop-types';
@@ -195,39 +196,41 @@ class SigmetCategory extends Component {
   getPhenomena () {
     const { phenomenonMapping } = this.props;
     let result = [];
-    phenomenonMapping.forEach((item) => {
-      if (item.variants.length === 0) {
-        const res = {
-          name: item.phenomenon.name,
-          code: item.phenomenon.code,
-          layerpreset: item.phenomenon.layerpreset
-        };
-        item.additions.forEach((addition) => {
-          result.push({
-            name: res.name + ' ' + addition.name,
-            code: res.code + SEPARATOR + addition.code,
-            layerpreset: item.phenomenon.layerpreset
-          });
-        });
-        result.push(res);
-      } else {
-        item.variants.forEach((variant) => {
+    if (Array.isArray(phenomenonMapping)) {
+      phenomenonMapping.forEach((item) => {
+        if (item.variants.length === 0) {
           const res = {
-            name: variant.name + ' ' + item.phenomenon.name.toLowerCase(),
-            code: variant.code + SEPARATOR + item.phenomenon.code,
+            name: item.phenomenon.name,
+            code: item.phenomenon.code,
             layerpreset: item.phenomenon.layerpreset
           };
           item.additions.forEach((addition) => {
             result.push({
               name: res.name + ' ' + addition.name,
-              code: res.code + addition.code,
+              code: res.code + SEPARATOR + addition.code,
               layerpreset: item.phenomenon.layerpreset
             });
           });
           result.push(res);
-        });
-      }
-    });
+        } else {
+          item.variants.forEach((variant) => {
+            const res = {
+              name: variant.name + ' ' + item.phenomenon.name.toLowerCase(),
+              code: variant.code + SEPARATOR + item.phenomenon.code,
+              layerpreset: item.phenomenon.layerpreset
+            };
+            item.additions.forEach((addition) => {
+              result.push({
+                name: res.name + ' ' + addition.name,
+                code: res.code + addition.code,
+                layerpreset: item.phenomenon.layerpreset
+              });
+            });
+            result.push(res);
+          });
+        }
+      });
+    }
     return result;
   }
 
@@ -1329,6 +1332,18 @@ class SigmetCategory extends Component {
       </Card>);
   }
 }
+
+SigmetCategory.defaultProps = {
+  isOpen: false,
+  editable: false,
+  selectedIndex: 0,
+  selectMethod: () => {},
+  toggleMethod: () => {},
+  parentCollapsed: false,
+  phenomenonMapping: [],
+  dispatch: () => {},
+  updateParent: () => {}
+};
 
 SigmetCategory.propTypes = {
   isOpen: PropTypes.bool,
