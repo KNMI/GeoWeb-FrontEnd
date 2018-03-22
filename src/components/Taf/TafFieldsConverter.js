@@ -132,6 +132,15 @@ const jsonToTacForPeriod = (startTimestampAsJson, endTimestampAsJson, useFallbac
   return result;
 };
 
+const jsonToTacForLocation = (locationAsJson, useFallback = false) => {
+  if (!locationAsJson) return null;
+  return locationAsJson.toUpperCase();
+};
+
+const tacToJsonForLocation = (locationAsTac) => {
+  return locationAsTac;
+};
+
 const jsonToTacForWind = (windAsJson, useFallback = false) => {
   let result = null;
   if (!windAsJson) {
@@ -637,6 +646,7 @@ module.exports = {
   jsonToTacForChangeType: jsonToTacForChangeType,
   jsonToTacForTimestamp: jsonToTacForTimestamp,
   jsonToTacForPeriod: jsonToTacForPeriod,
+  jsonToTacForLocation: jsonToTacForLocation,
   jsonToTacForWind: jsonToTacForWind,
   jsonToTacForVisibility: jsonToTacForVisibility,
   jsonToTacForCavok: jsonToTacForCavok,
@@ -648,6 +658,7 @@ module.exports = {
   tacToJsonForChangeType: tacToJsonForChangeType,
   tacToJsonForTimestamp: tacToJsonForTimestamp,
   tacToJsonForPeriod: tacToJsonForPeriod,
+  tacToJsonForLocation: tacToJsonForLocation,
   tacToJsonForWind: tacToJsonForWind,
   tacToJsonForVisibility: tacToJsonForVisibility,
   tacToJsonForCavok: tacToJsonForCavok,

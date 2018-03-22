@@ -36,8 +36,7 @@ const generateDefaultValues = () => {
   TAFStartHour = TAFStartHour - TAFStartHour % 6 + 6;
   return {
     start: now.hour(TAFStartHour).minutes(0).seconds(0).format('YYYY-MM-DDTHH:mm:ss') + 'Z',
-    end: now.hour(TAFStartHour).minutes(0).seconds(0).add(30, 'hour').format('YYYY-MM-DDTHH:mm:ss') + 'Z',
-    issue: 'not yet issued'
+    end: now.hour(TAFStartHour).minutes(0).seconds(0).add(30, 'hour').format('YYYY-MM-DDTHH:mm:ss') + 'Z'
   };
 };
 
@@ -148,7 +147,7 @@ class TafCategory extends Component {
     this.byStartAndChangeType = this.byStartAndChangeType.bind(this);
     this.validateTaf = debounce(this.validateTaf.bind(this), 1250, false);
     this.saveTaf = this.saveTaf.bind(this);
-    this.publishTaf = this.publishTaf.bind(this);
+
 
     const initialState = {
       tafAsObject: props.taf,
@@ -168,9 +167,9 @@ class TafCategory extends Component {
     if (!props.taf.metadata.validityEnd) {
       initialState.tafAsObject.metadata.validityEnd = defaults.end;
     }
-    if (!props.taf.metadata.issueTime) {
-      initialState.tafAsObject.metadata.issueTime = defaults.issue;
-    }
+    // if (!props.taf.metadata.issueTime) {
+    //   initialState.tafAsObject.metadata.issueTime = defaults.issue;
+    // }
     if (!props.taf.metadata.location) {
       initialState.tafAsObject.metadata.location = props.location;
     }
@@ -232,9 +231,9 @@ class TafCategory extends Component {
     if (!getNestedProperty(taf, ['changegroups'])) {
       setNestedProperty(taf, ['changegroups'], []);
     }
-    if (getNestedProperty(taf, ['metadata', 'issueTime']) === 'not yet issued') {
-      setNestedProperty(taf, ['metadata', 'issueTime'], moment.utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z');
-    }
+    // if (getNestedProperty(taf, ['metadata', 'issueTime']) === 'not yet issued') {
+    //   setNestedProperty(taf, ['metadata', 'issueTime'], moment.utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z');
+    // }
 
     axios({
       method: 'post',
@@ -294,7 +293,7 @@ class TafCategory extends Component {
     });
   }
 
-   publishTaf (tafAsObject) {
+  saveTaf (tafAsObject, focusTaf = false, publishTaf = false) {
     const taf = cloneDeep(tafAsObject);
     const nullPointers = [];
     getJsonPointers(taf, (field) => field === null, nullPointers);
@@ -310,59 +309,12 @@ class TafCategory extends Component {
     if (!getNestedProperty(taf, ['changegroups'])) {
       setNestedProperty(taf, ['changegroups'], []);
     }
-    if (getNestedProperty(taf, ['metadata', 'issueTime']) === 'not yet issued') {
-      setNestedProperty(taf, ['metadata', 'issueTime'], moment.utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z');
+
+    if (publishTaf === true) {
+      setNestedProperty(taf, ['metadata', 'status'], 'published');
+      setNestedProperty(taf, ['metadata', 'extraInfo', 'author'], this.props.user.username);
+      setNestedProperty(taf, ['metadata', 'extraInfo', 'lastModified'], moment.utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z');
     }
-
-    setNestedProperty(taf, ['metadata', 'status'], 'published');
-    axios({
-      method: 'post',
-      url: this.props.urls.BACKEND_SERVER_URL + '/tafs',
-      withCredentials: true,
-      data: JSON.stringify(taf),
-      headers: { 'Content-Type': 'application/json' }
-    }).then(src => {
-
-      this.setState({ validationReport:src.data });
-      this.props.updateParent();
-      this.setState({ tafAsObject:taf });
-    }).catch(error => {
-      this.setState({ validationReport:{ message: 'Unable to save: error occured while saving TAF.' } });
-      try {
-        console.error('Error occured', error);
-        if (error.response.data.message) {
-          this.setState({ validationReport:{ message: error.response.data.message } });
-        }
-      } catch (e) {
-        console.error(e);
-        this.setState({ validationReport:{ message: JSON.stringify(error.response) } });
-      }
-    });
-  }
-
-
-  saveTaf (tafAsObject) {
-    const taf = cloneDeep(tafAsObject);
-    const nullPointers = [];
-    getJsonPointers(taf, (field) => field === null, nullPointers);
-    // TODO: Should this be really necessary?
-    // Remove null's and empty fields -- BackEnd doesn't handle them nicely
-    const nullPointersLength = nullPointers.length;
-    for (let pointerIndex = 0; pointerIndex < nullPointersLength; pointerIndex++) {
-      const pathParts = nullPointers[pointerIndex].split('/');
-      pathParts.shift();
-      removeNestedProperty(taf, pathParts);
-      clearRecursive(taf, pathParts);
-    }
-    if (!getNestedProperty(taf, ['changegroups'])) {
-      setNestedProperty(taf, ['changegroups'], []);
-    }
-    if (getNestedProperty(taf, ['metadata', 'issueTime']) === 'not yet issued') {
-      setNestedProperty(taf, ['metadata', 'issueTime'], moment.utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z');
-    }
-
-    setNestedProperty(taf, ['metadata', 'author'], this.props.username);
-    setNestedProperty(taf, ['metadata', 'lastModified'], moment.utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z');
 
     return new Promise((resolve, reject) => {
       axios({
@@ -373,8 +325,28 @@ class TafCategory extends Component {
         headers: { 'Content-Type': 'application/json' }
       }).then(src => {
         this.setState({ validationReport:src.data });
-        this.props.updateParent();
-        return resolve('Saved');
+        console.log('done saveTaf ',src);
+
+        try {
+          if (focusTaf === true) {
+            console.log('force focus taf');
+            this.props.focusTaf(src.data.tafjson);
+          } else {
+            if (!(taf.metadata && src.data && (taf.metadata.uuid === src.data.uuid))) {
+              console.log('taf has new uuid, open and focus on it');
+              this.props.focusTaf(src.data.tafjson);
+            } else {
+              console.log('taf has new uuid, open and focus on it');
+              if (src.data.tafjson.metadata.status !== taf.metadata.status) {
+                this.props.focusTaf(src.data.tafjson);
+              }
+            }
+          }
+        } catch (e) {
+          console.error('Unable to focusTaf', e);
+        }
+
+        return resolve(src.data.uuid);
       }).catch(error => {
         this.setState({ validationReport:{ message: 'Unable to save: error occured while saving TAF.' } });
         try {
@@ -769,7 +741,7 @@ class TafCategory extends Component {
       if (phenomenonName !== this.state.preset.forPhenomenon) {
         if (!this.state.preset.inWindow || this.state.preset.inWindow.closed) {
           // Only do this if it isnt already opened
-          if (!this.props.browserLocation.query.opened) {
+          if ((this.props.browserLocation && !this.props.browserLocation.query.opened)) {
             const newWindow = window.open(window.location.href + '?opened=true', 'TafPresetWindow', 'width=1250,height=750', '_blank');
             const origWindow = window.open(getPhenomenonPresetUrl(phenomenonName), '_self');
             this.setState({
@@ -963,9 +935,9 @@ class TafCategory extends Component {
         if (!nextP.taf.metadata.validityEnd) {
           nextP.taf.metadata.validityEnd = defaults.end;
         }
-        if (!nextP.taf.metadata.issueTime) {
-          nextP.taf.metadata.issueTime = defaults.issue;
-        }
+        // if (!nextP.taf.metadata.issueTime) {
+        //   nextP.taf.metadata.issueTime = defaults.issue;
+        // }
         if (!nextP.taf.metadata.location) {
           nextP.taf.metadata.location = nextP.location;
         }
@@ -986,9 +958,7 @@ class TafCategory extends Component {
     taf.metadata.uuid = newUuid;
     taf.metadata.status = 'concept';
     taf.metadata.type = 'correction';
-    this.saveTaf(taf).then(() => {
-      this.props.editTaf(newUuid);
-    });
+    this.saveTaf(taf, true)
   }
 
   amendTaf () {
@@ -998,9 +968,7 @@ class TafCategory extends Component {
     taf.metadata.uuid = newUuid;
     taf.metadata.status = 'concept';
     taf.metadata.type = 'amendment';
-    this.saveTaf(taf).then(() => {
-      this.props.editTaf(newUuid);
-    });
+    this.saveTaf(taf, true);
   }
 
   cancelTaf () {
@@ -1009,7 +977,26 @@ class TafCategory extends Component {
     taf.metadata.previousUuid = taf.metadata.uuid;
     taf.metadata.uuid = newUuid;
     taf.metadata.type = 'canceled';
-    this.saveTaf(taf);
+    console.log('cancelTaf', taf);
+    this.saveTaf(taf, true);
+  }
+
+  editTafAsNew () {
+   const taf = cloneDeep(this.state.tafAsObject);
+    const newUuid = uuidv4();
+    taf.metadata.previousUuid = taf.metadata.uuid;
+    taf.metadata.uuid = newUuid;
+    delete taf.metadata.status ;
+    delete taf.metadata.previousUuid ;
+    delete taf.metadata.issueTime;
+    taf.metadata.type = 'normal';
+
+    const defaults = generateDefaultValues();
+    taf.metadata.validityStart = defaults.start;
+    taf.metadata.validityEnd = defaults.end;
+
+    taf.metadata.baseTime = null;
+    this.saveTaf(taf, true);
   }
 
   render () {
@@ -1036,12 +1023,36 @@ class TafCategory extends Component {
     return (
       <Row className='TafCategory' style={{ flex: 1 }}>
         <Col style={{ flexDirection: 'column' }}>
-          {this.state.tafAsObject.metadata.uuid
-            ? <Row style={{ margin: '0', padding:'0.5rem', flex: 'auto' }}>
-              <Col style={{ fontSize: '0.9rem' }}>{'id: ' + this.state.tafAsObject.metadata.uuid}</Col>
-            </Row>
-            : null
-          }
+          <Row style={{ padding:'0 0.5rem 0.5rem 0.5rem', flex: 'none' }}>
+            <Col />
+            <Col xs='auto'>
+                <Button style={{ marginRight: '0.33rem' }} color='primary' onClick={() => {
+                    this.editTafAsNew(this.state.tafAsObject);
+                }} >Edit as new</Button>
+              {this.state.tafAsObject.metadata.status === 'published' && !this.state.correctOrAmend
+                ? <div>
+                  <Button disabled={!currentlyInValidityTime || this.state.tafAsObject.metadata.type==='canceled'} style={{ marginRight: '0.33rem' }} color='primary' onClick={() => {
+                    this.amendTaf(this.state.tafAsObject);
+                  }} >Amend</Button>
+                  <Button disabled={this.state.tafAsObject.metadata.type==='canceled'} style={{ marginRight: '0.33rem' }} color='primary' onClick={() => {
+                    this.correctTaf(this.state.tafAsObject);
+                  }} >Correct</Button>
+                  <Button disabled={this.state.tafAsObject.metadata.type==='canceled'} style={{ marginRight: '0.33rem' }} color='primary' onClick={() => {
+                    this.cancelTaf(this.state.tafAsObject);
+                  }} >Cancel</Button></div>
+                : null}
+              {this.state.tafAsObject.metadata.status!=='published' ?
+                <div>
+                  <Button style={{ marginRight: '0.33rem' }} color='primary' onClick={() => {
+                    this.saveTaf(this.state.tafAsObject);
+                  }} >Save</Button>
+                  <Button disabled={!validationSucceeded } onClick={() => {
+                    this.saveTaf(this.state.tafAsObject, true, true);
+                  }} color='primary'>Publish</Button>
+                </div> : null
+              }
+            </Col>
+          </Row>
           <Row style={{ margin: '0', padding:'4px', backgroundColor:'#EEE', flex: 'none' }}>
             <Col>
               <TafTable
@@ -1081,33 +1092,7 @@ class TafCategory extends Component {
             </Row>
             : null
           }
-          <Row style={{ padding:'0 0.5rem 0.5rem 0.5rem', flex: 'none' }}>
-            <Col />
-            <Col xs='auto'>
-              {this.state.tafAsObject.metadata.status === 'published' && !this.state.correctOrAmend
-                ? <div>
-                  <Button disabled={!currentlyInValidityTime} style={{ marginRight: '0.33rem' }} color='primary' onClick={() => {
-                    this.amendTaf(this.state.tafAsObject);
-                  }} >Amend</Button>
-                  <Button style={{ marginRight: '0.33rem' }} color='primary' onClick={() => {
-                    this.correctTaf(this.state.tafAsObject);
-                  }} >Correct</Button>
-                  <Button style={{ marginRight: '0.33rem' }} color='primary' onClick={() => {
-                    this.cancelTaf(this.state.tafAsObject);
-                  }} >Cancel</Button></div>
-                : null}
-              {this.state.tafAsObject.metadata.status!=='published' ?
-                <div>
-                  <Button style={{ marginRight: '0.33rem' }} color='primary' onClick={() => {
-                    this.saveTaf(this.state.tafAsObject);
-                  }} >Save</Button>
-                  <Button disabled={!validationSucceeded} onClick={() => {
-                    this.publishTaf(this.state.tafAsObject);
-                  }} color='primary'>Publish</Button>
-                </div> : null
-              }
-            </Col>
-          </Row>
+
           <Row style={{ flex: 'auto' }}>
             <Col>
               <TimeSchedule startMoment={moment.utc(this.state.tafAsObject.metadata.validityStart)} endMoment={moment.utc(this.state.tafAsObject.metadata.validityEnd)} series={series} />
