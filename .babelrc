@@ -1,17 +1,18 @@
 {
-  'presets': [
+  "presets": [
     ["env", {
      "targets": {
        "browsers": "last 2 versions"
      }
    }],
-    'react-es2015',
-    'stage-3'
+    "react-es2015",
+    "stage-3",
+    "stage-0"
   ],
-  'env': {
-    'test': {
-      'plugins': [
-        'istanbul'
+  "env": {
+    "test": {
+      "plugins": [
+        "istanbul"
         ]
     }
   }
