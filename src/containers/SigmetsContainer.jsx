@@ -126,6 +126,7 @@ class SigmetsContainer extends Component {
   }
 
   select (category, index, geo) {
+    console.log('Select', category, index, geo);
     if (this.state.selectedItem.category === category && this.state.selectedItem.index === index) {
       this.drawSIGMET(EMPTY_GEO_JSON);
       this.setState({ selectedItem: {} });
@@ -161,7 +162,7 @@ class SigmetsContainer extends Component {
                   icon={item.icon} source={item.source} editable={item.editable} latestUpdateTime={this.state.latestUpdateTime}
                   isOpen={this.state.isOpen && this.state.isOpenCategory[item.ref]}
                   selectedIndex={typeof this.state.selectedItem.index !== 'undefined' && this.state.selectedItem.category === item.ref ? this.state.selectedItem.index : -1}
-                  selectMethod={(index, geo) => this.select(item.ref, index, geo)} toggleMethod={() => this.toggleCategory(item.ref)}
+                  selectMethod={(index, geo, cat = item.ref) => this.select(cat, index, geo)} toggleMethod={(evt, cat = item.ref) => this.toggleCategory(cat)}
                   dispatch={this.props.dispatch} actions={this.props.actions}
                   parameters={this.state.parameters || {}}
                   sources={this.props.sources} />

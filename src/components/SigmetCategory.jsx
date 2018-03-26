@@ -752,6 +752,9 @@ class SigmetCategory extends Component {
   }
 
   savedSigmetCallback (message) {
+    this.props.toggleMethod(null, 'concept-sigmets');
+    this.props.selectMethod('concept-sigmets', 0, this.state.list[0].geojson);
+
     this.setState({ isOpen: false, list: [EMPTY_SIGMET] });
     if (this.props.selectedIndex === 0) {
       this.props.selectMethod(0);
