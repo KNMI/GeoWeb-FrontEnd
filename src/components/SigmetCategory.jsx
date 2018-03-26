@@ -303,6 +303,7 @@ class SigmetCategory extends Component {
     const newList = cloneDeep(this.state.list);
     newList[0].geojson = this.props.drawProperties.geojson;
     this.setState({ list: newList });
+    console.log(newList[0]);
     axios({
       method: 'post',
       url: this.props.source,
@@ -1287,14 +1288,11 @@ class SigmetCategory extends Component {
                           <Button color='primary' disabled={selectedIndex === -1} onClick={this.deleteDrawing} >Delete drawing</Button>
                         </Col>
                       </Row>
-                      : (
-                        item.status !== 'PUBLISHED'
-                          ? <Row style={{ minHeight: '2.5rem' }}>
-                            <Col xs={{ size: 3, offset: 9 }}>
-                              <Button color='primary' onClick={() => this.publishSigmet(item.uuid)}>Publish</Button>
-                            </Col>
-                          </Row>
-                          : null)
+                      : <Row style={{ minHeight: '2.5rem' }}>
+                        <Col xs={{ size: 3, offset: 9 }}>
+                          <Button disabled={item.status === 'PUBLISHED'} color='primary' onClick={() => this.publishSigmet(item.uuid)}>Publish</Button>
+                        </Col>
+                      </Row>
                     }
                   </Button>
                 )}
