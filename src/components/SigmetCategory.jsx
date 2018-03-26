@@ -101,6 +101,7 @@ class SigmetCategory extends Component {
     this.handleSigmetClick = this.handleSigmetClick.bind(this);
     this.saveSigmet = this.saveSigmet.bind(this);
     this.deleteDrawing = this.deleteDrawing.bind(this);
+    this.publishSigmet = this.publishSigmet.bind(this);
     this.savedSigmetCallback = this.savedSigmetCallback.bind(this);
     this.getExistingSigmets = this.getExistingSigmets.bind(this);
     this.gotExistingSigmetsCallback = this.gotExistingSigmetsCallback.bind(this);
@@ -324,6 +325,16 @@ class SigmetCategory extends Component {
     const newList = cloneDeep(this.state.list);
     newList[0].geojson = EMPTY_GEO_JSON;
     this.setState({ list: newList });
+  }
+
+  publishSigmet (uuid) {
+    axios({
+      method: 'post',
+      url: BACKEND_SERVER_URL + '/sigmet/publishsigmet?uuid=' + uuid,
+      withCredentials: true
+    }).then((src) => {
+      this.props.updateAllComponents();
+    });
   }
 
   sigmetLayers (p) {
@@ -759,6 +770,7 @@ class SigmetCategory extends Component {
     if (this.props.selectedIndex === 0) {
       this.props.selectMethod(0);
     }
+    this.props.updateAllComponents();
   }
 
   couldntSaveSigmetCallback (message) {
@@ -800,6 +812,12 @@ class SigmetCategory extends Component {
         });
         this.setState({ list: newList });
       }
+    }
+  }
+
+  componentWillUpdate (nextProps) {
+    if (this.props.latestUpdateTime !== nextProps.latestUpdateTime && this.props.isGetType === true) {
+      this.getExistingSigmets(this.props.source);
     }
   }
 
@@ -1325,6 +1343,11 @@ class SigmetCategory extends Component {
                         </Row>
                         : ''
                       }
+                      <Row style={{ minHeight: '2.5rem' }}>
+                        <Col xs={{ size: 3, offset: 9 }}>
+                          <Button disabled={item.status === 'PUBLISHED'} color='primary' onClick={() => this.publishSigmet(item.uuid)}>Publish</Button>
+                        </Col>
+                      </Row>
                     </Button>;
                   })}
                 </Col>
@@ -1369,7 +1392,10 @@ SigmetCategory.propTypes = {
   drawProperties: PropTypes.shape({
     geojson: PropTypes.object
   }),
-  sources: PropTypes.object
+  sources: PropTypes.object,
+  latestUpdateTime: PropTypes.string,
+  updateAllComponents: PropTypes.func,
+  isGetType: PropTypes.bool
 };
 
 export default SigmetCategory;

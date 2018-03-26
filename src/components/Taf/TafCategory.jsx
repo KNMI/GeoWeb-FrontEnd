@@ -310,15 +310,11 @@ class TafCategory extends Component {
       setNestedProperty(taf, ['changegroups'], []);
     }
 
-    if(publishTaf === true){
-      console.log('Setting taf status to published');
+    if (publishTaf === true) {
       setNestedProperty(taf, ['metadata', 'status'], 'published');
-      // setNestedProperty(taf, ['metadata', 'author'], this.props.username);
-      // setNestedProperty(taf, ['metadata', 'lastModified'], moment.utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z');
-
+      setNestedProperty(taf, ['metadata', 'extraInfo', 'author'], this.props.user.username);
+      setNestedProperty(taf, ['metadata', 'extraInfo', 'lastModified'], moment.utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z');
     }
-
-    console.log('start saveTaf',taf);
 
     return new Promise((resolve, reject) => {
       axios({
@@ -329,25 +325,20 @@ class TafCategory extends Component {
         headers: { 'Content-Type': 'application/json' }
       }).then(src => {
         this.setState({ validationReport:src.data });
-        console.log('done saveTaf ',src);
-
         try {
           if (focusTaf === true) {
-            console.log('force focus taf');
             this.props.focusTaf(src.data.tafjson);
           } else {
             if (!(taf.metadata && src.data && (taf.metadata.uuid === src.data.uuid))) {
-              console.log('taf has new uuid, open and focus on it');
               this.props.focusTaf(src.data.tafjson);
             } else {
-              console.log('taf has new uuid, open and focus on it');
-              if(src.data.tafjson.metadata.status != taf.metadata.status){
+              if (src.data.tafjson.metadata.status !== taf.metadata.status) {
                 this.props.focusTaf(src.data.tafjson);
               }
             }
           }
-        }catch(e){
-          console.log('Unable to focusTaf', e);
+        } catch (e) {
+          console.error('Unable to focusTaf', e);
         }
 
         return resolve(src.data.uuid);
@@ -981,12 +972,11 @@ class TafCategory extends Component {
     taf.metadata.previousUuid = taf.metadata.uuid;
     taf.metadata.uuid = newUuid;
     taf.metadata.type = 'canceled';
-    console.log('cancelTaf', taf);
     this.saveTaf(taf, true);
   }
 
   editTafAsNew () {
-   const taf = cloneDeep(this.state.tafAsObject);
+    const taf = cloneDeep(this.state.tafAsObject);
     const newUuid = uuidv4();
     taf.metadata.previousUuid = taf.metadata.uuid;
     taf.metadata.uuid = newUuid;

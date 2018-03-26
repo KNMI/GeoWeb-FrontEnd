@@ -8,7 +8,7 @@ import cloneDeep from 'lodash.clonedeep';
 import axios from 'axios';
 import PropTypes from 'prop-types';
 import { hashHistory } from 'react-router';
-
+import moment from 'moment';
 const ITEMS = [
   {
     title: 'Open issued SIGMETs',
@@ -67,6 +67,7 @@ class SigmetsContainer extends Component {
 
     this.toggle = this.toggle.bind(this);
     this.select = this.select.bind(this);
+    this.updateAllComponents = this.updateAllComponents.bind(this);
     let isOpenCategory = {};
     ITEMS.map((item, index) => {
       isOpenCategory[item.ref] = false;
@@ -142,6 +143,10 @@ class SigmetsContainer extends Component {
     this.props.dispatch(this.props.drawActions.setGeoJSON(geojson));
   }
 
+  updateAllComponents () {
+    this.setState({ latestUpdateTime: moment.utc().format() });
+  }
+
   render () {
     const maxSize = 500;
     let title = <Row>
@@ -164,8 +169,8 @@ class SigmetsContainer extends Component {
                   selectedIndex={typeof this.state.selectedItem.index !== 'undefined' && this.state.selectedItem.category === item.ref ? this.state.selectedItem.index : -1}
                   selectMethod={(index, geo, cat = item.ref) => this.select(cat, index, geo)} toggleMethod={(evt, cat = item.ref) => this.toggleCategory(cat)}
                   dispatch={this.props.dispatch} actions={this.props.actions}
-                  parameters={this.state.parameters || {}}
-                  sources={this.props.sources} />
+                  parameters={this.state.parameters || {}} updateAllComponents={this.updateAllComponents}
+                  sources={this.props.sources} isGetType={item.isGetType} />
               )}
             </Col>
           </Panel>

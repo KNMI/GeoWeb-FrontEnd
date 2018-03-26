@@ -13,7 +13,7 @@ export default class ProgtempManagementPanel extends React.Component {
         this.progtempLocations = data;
         this.setState({ locations: data });
       } else {
-        console.log('get progtemlocations failed');
+        console.error('get progtemlocations failed');
       }
     });
   }
