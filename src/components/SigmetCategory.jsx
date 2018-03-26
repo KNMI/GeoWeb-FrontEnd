@@ -44,10 +44,7 @@ const EMPTY_GEO_JSON = {
         coordinates: []
       },
       properties: {
-        prop0: 'value0',
-        prop1: {
-          this: 'that'
-        }
+        time: moment().utc().format()
       }
     }
   ]
