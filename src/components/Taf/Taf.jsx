@@ -41,27 +41,81 @@ export default class Taf extends Component {
     this.fetchLocations();
   }
 
-  componentWillReceiveProps (nextprops, nextstate) {
-    if (this.props.latestUpdateTime !== nextprops.latestUpdateTime) {
-      if (this.props.title === 'Open concept TAFs') {
-        this.fetchTAFs();
+  // componentWillReceiveProps (nextprops, nextstate) {
+  //   if (this.props.latestUpdateTime !== nextprops.latestUpdateTime) {
+  //     if (this.props.title === 'Open concept TAFs') {
+  //       this.fetchTAFs();
+  //     }
+  //   }
+  // }
+
+  // Sort by location
+  sortTAFs (tafs) {
+    const order = ['EHAM', 'EHRD', 'EHGG', 'EHBK', 'EHLE'];
+    const tafsCpy = cloneDeep(tafs);
+    tafsCpy.sort((a, b) => {
+      const aLocation = a.metadata.location;
+      const bLocation = b.metadata.location;
+
+      const aStart = moment.utc(a.metadata.validityStart);
+      const bStart = moment.utc(b.metadata.validityStart);
+
+      // If the location is the same
+      if (aLocation === bLocation) {
+        // Place the taf with the latest start time first
+        if (aStart.isAfter(bStart)) {
+          return -1;
+        } else if (aStart.isBefore(bStart)) {
+          return 1;
+        } else {
+          return 0;
+        }
+      } else {
+        // Check whether the location is in the order array
+        if (order.includes(aLocation)) {
+          if (order.includes(bLocation)) {
+            // If they both are, compare them according to the order in the array
+            return order.indexOf(aLocation) < order.indexOf(bLocation) ? -1 : 1;
+          }
+          // The first location is in the array, and the second isn't, so a comes first
+          return -1;
+        } else {
+          // only the second is in the array so the first comes later
+          if (order.includes(bLocation)) {
+            return 1;
+          }
+        }
+
+        // Both not in the array, so sort according to lexicographical order.
+        return aLocation < bLocation ? -1 : 1;
       }
-    }
+    });
+    return tafsCpy;
   }
 
   fetchTAFs (url) {
-    if (!(url || this.props.source)) return;
-    axios({
-      method: 'get',
-      url: url || this.props.source,
-      withCredentials: true,
-      responseType: 'json'
-    }).then(src => {
-      if (src.data && src.data.tafs) {
-        this.setState({ tafs: src.data.tafs });
-      }
-    }).catch(error => {
-      console.error(error);
+    console.log('fetchTAFs');
+    if (!url && !this.props.source) return;
+    let fetchUrl = url;
+    if (!fetchUrl) {
+      fetchUrl = this.props.source;
+    }
+    return new Promise((resolve, reject) => {
+      axios({
+        method: 'get',
+        url: fetchUrl,
+        withCredentials: true,
+        responseType: 'json'
+      }).then(src => {
+        if (src.data && src.data.tafs) {
+          this.setState({ tafs: src.data.tafs });
+        } else if (src.data.ntafs === 0) {
+          this.setState({ tafs: [] });
+        }
+        resolve('Fetched tafs');
+      }).catch(error => {
+        reject(error);
+      });
     });
   }
 
@@ -102,31 +156,45 @@ export default class Taf extends Component {
     });
   }
 
-  setExpandedTAF (uuid) {
+  // Selecting a new or another TAF, loads its TAC and sets it to expanded
+  loadAndExpandTaf (uuid) {
+    axios({
+      method: 'get',
+      url: this.props.urls.BACKEND_SERVER_URL + '/tafs/' + uuid,
+      withCredentials: true,
+      responseType: 'text',
+      headers: { 'Accept': 'text/plain' }
+    }).then(src => this.setState({ expandedTAC: src.data }));
+    axios({
+      method: 'get',
+      url: this.props.urls.BACKEND_SERVER_URL + '/tafs/' + uuid,
+      withCredentials: true,
+      responseType: 'json',
+      headers: { 'Accept': 'application/json' }
+    }).then(src => {
+      console.log('setExpandedTAF', uuid);
+      this.setState({ expandedTAF: uuid, expandedJSON: src.data });
+    });
+  }
+
+
+  setExpandedTAF (uuid, expandAndCollapse = false, refreshTafList = false) {
     // Clicking the already expanded TAF collapses it
-    if (this.state.expandedTAF === uuid) {
+    if (this.state.expandedTAF === uuid && expandAndCollapse) {
+      console.log('setExpandedTAF collapse');
       this.setState({ expandedTAF: null, expandedTAC: null });
     } else if (uuid === 'edit') {
       this.setState({ expandedTAF: 'edit', expandedTAC: null });
     } else {
-      // Selecting a new or another TAF, loads its TAC and sets it to expanded
-      axios({
-        method: 'get',
-        url: this.props.urls.BACKEND_SERVER_URL + '/tafs/' + uuid,
-        withCredentials: true,
-        responseType: 'text',
-        headers: { 'Accept': 'text/plain' }
-      }).then(src => this.setState({ expandedTAF: uuid, expandedTAC: src.data }));
-      axios({
-        method: 'get',
-        url: this.props.urls.BACKEND_SERVER_URL + '/tafs/' + uuid,
-        withCredentials: true,
-        responseType: 'json',
-        headers: { 'Accept': 'application/json' }
-      }).then(src => {
-        this.setState({ expandedTAF: uuid, expandedJSON: src.data });
+      console.log('setExpandedTAF load');
+      //TODO Only refresh list when needed
+      if(refreshTafList) {
+        this.fetchTAFs ().then(() => {
+          this.loadAndExpandTaf(uuid);
+        });
+      } else {
+        this.loadAndExpandTaf(uuid);
       }
-      );
     }
   }
 
@@ -166,8 +234,6 @@ export default class Taf extends Component {
   }
 
   updateTafs () {
-    console.log('updateTafs');
-    //this.fetchTAFs();
     this.props.updateParent();
   }
 
@@ -194,25 +260,25 @@ export default class Taf extends Component {
           </ButtonGroup>
           : null
         }
-        { this.state.tafLocations.length > 0 && this.props.tafStatus === 'new'
-            ? <ButtonGroup style={{ marginTop: '.167rem', marginBottom: '0.33rem' }}>
-              <InputGroupAddon style={{ padding: '0.2rem 0.3rem', fontSize: '70%' }}><Icon name='circle' /></InputGroupAddon>
-              {this.state.tafLocations.map((locationName, index) => {
-                return <Button key={`filterByLocation-${index}`} className='col-1 btn btn-info' color='info' data-location={locationName} onClick={this.selectLocation}
-                  active={tafLocation === locationName}>{locationName}</Button>;
-              })}
-            </ButtonGroup>
-            : null
+        { /* this.state.tafLocations.length > 0 && this.props.tafStatus === 'new'
+          ? <ButtonGroup style={{ marginTop: '.167rem', marginBottom: '0.33rem' }}>
+            <InputGroupAddon style={{ padding: '0.2rem 0.3rem', fontSize: '70%' }}><Icon name='circle' /></InputGroupAddon>
+            {this.state.tafLocations.map((locationName, index) => {
+              return <Button key={`filterByLocation-${index}`} className='col-1 btn btn-info' color='info' data-location={locationName} onClick={this.selectLocation}
+                active={tafLocation === locationName}>{locationName}</Button>;
+            })}
+          </ButtonGroup>
+          : null */
         }
-         { this.state.tafLocations.length > 0 && this.props.tafStatus !== 'new'
-            ? <ButtonGroup style={{ marginTop: '.167rem', marginBottom: '0.33rem' }}>
-              <InputGroupAddon style={{ padding: '0.2rem 0.3rem', fontSize: '70%' }}><Icon name='filter' /></InputGroupAddon>
-              {this.state.tafLocations.map((locationName, index) => {
-                return <Button key={`filterByLocation-${index}`} className='col-1 btn btn-info' color='info' data-location={locationName} onClick={this.selectLocation}
-                  active={this.state.tafLocationSelections.includes(locationName)}>{locationName}</Button>;
-              })}
-            </ButtonGroup>
-            : null
+        { this.state.tafLocations.length > 0 && this.props.tafStatus !== 'new'
+          ? <ButtonGroup style={{ marginTop: '.167rem', marginBottom: '0.33rem' }}>
+            <InputGroupAddon style={{ padding: '0.2rem 0.3rem', fontSize: '70%' }}><Icon name='filter' /></InputGroupAddon>
+            {this.state.tafLocations.map((locationName, index) => {
+              return <Button key={`filterByLocation-${index}`} className='col-1 btn btn-info' color='info' data-location={locationName} onClick={this.selectLocation}
+                active={this.state.tafLocationSelections.includes(locationName)}>{locationName}</Button>;
+            })}
+          </ButtonGroup>
+          : null
         }
         {
           this.props.editable
@@ -220,25 +286,31 @@ export default class Taf extends Component {
               <Row>
                 <Col>
                   <TafCategory
+                    focusTaf={this.props.focusTaf}
                     urls={this.props.urls}
                     taf={this.state.inputValueJSON || cloneDeep(TAF_TEMPLATES.TAF)}
-                    update editable={this.props.tafEditable}
+                    update
+                    editable={this.props.tafEditable}
                     fixedLayout={this.props.fixedLayout}
                     location={tafLocation}
+                    browserLocation={this.props.browserLocation}
                     updateParent={this.updateTafs}
+                    tafLocations={this.state.tafLocations}
+                    location={tafLocation}
+                    user={this.props.user}
                   />
                 </Col>
               </Row>
             </Card>
             : this.state.tafs.filter(
-                (taf) => {
-                  return ((this.state.tafTypeSelections.includes(taf.metadata.type.toUpperCase() ) || this.state.tafTypeSelections.length === 0) &&
-                  (this.state.tafLocationSelections.includes(taf.metadata.location.toUpperCase() ) || this.state.tafLocationSelections.length === 0));
-                }
-              ).map((taf, index) => {
+              (taf) => {
+                return ((this.state.tafTypeSelections.includes(taf.metadata.type.toUpperCase() ) || this.state.tafTypeSelections.length === 0) &&
+                (this.state.tafLocationSelections.includes(taf.metadata.location.toUpperCase() ) || this.state.tafLocationSelections.length === 0));
+              }
+            ).map((taf, index) => {
               return <Card key={index} block>
                 <CardTitle onClick={() => this.setExpandedTAF(taf.metadata.uuid)} style={{ cursor: 'pointer' }}>
-                  {taf.metadata ? taf.metadata.location : 'EWat?'} - {moment.utc(taf.metadata.validityStart).format('YYYY-MM-DDTHH:mm') + ' UTC'}
+                  {taf.metadata ? taf.metadata.location : 'EWat?'} - {moment.utc(taf.metadata.validityStart).format('YYYY-MM-DDTHH:mm') + ' UTC'} - {taf.metadata.type} - {taf.metadata.uuid}
                 </CardTitle>
                 <CollapseOmni className='CollapseOmni' style={{ flexDirection: 'column' }} isOpen={this.state.expandedTAF === taf.metadata.uuid} minSize={0} maxSize={800}>
                   <Row>
@@ -262,11 +334,17 @@ export default class Taf extends Component {
                   <Row>
                     <Col>
                       <TafCategory
+                        focusTaf={this.props.focusTaf}
                         urls={this.props.urls}
                         taf={this.state.expandedJSON || cloneDeep(TAF_TEMPLATES.TAF)}
+                        update
                         editable={this.props.tafEditable}
                         fixedLayout={this.props.fixedLayout}
+                        browserLocation={this.props.browserLocation}
                         updateParent={this.updateTafs}
+                        tafLocations={this.state.tafLocations}
+                        location={tafLocation}
+                        user={this.props.user}
                       />
                     </Col>
                   </Row>

@@ -53,6 +53,8 @@ export default class TafsContainer extends Component {
     this.toggle = this.toggle.bind(this);
     this.toggleCategory = this.toggleCategory.bind(this);
     this.myForceUpdate = this.myForceUpdate.bind(this);
+    this.openField = this.openField.bind(this);
+    this.focusTaf = this.focusTaf.bind(this);
   }
 
   toggle () {
@@ -66,8 +68,17 @@ export default class TafsContainer extends Component {
     this.setState({ isOpenCategory: isOpenCategory });
   }
 
+  openField (field) {
+    let isOpenCategory = Object.assign({}, this.state.isOpenCategory);
+    ITEMS.forEach((item, index) => {
+      isOpenCategory[item.ref] = false;
+    });
+    isOpenCategory[field] = true;
+    this.setState({ isOpenCategory: isOpenCategory });
+  }
+
   myForceUpdate () {
-    console.log('forceUpdate');
+    console.log('myForceUpdate');
     /* TODO find a good way to refresh the list of tafs properly */
     // this.setState(this.state);
     // this.forceUpdate();
@@ -77,6 +88,14 @@ export default class TafsContainer extends Component {
     this.toggleCategory('active-tafs');
   }
 
+  focusTaf (taf) {
+    console.log('TafsContainer::focusTaf', taf);
+    let id = 'concept-tafs'
+    if (taf.metadata.status === 'published') id = 'active-tafs';
+    this.openField(id);
+    this.refs[id].setExpandedTAF(taf.metadata.uuid, false, true);
+  }
+
   render () {
     // TODO FIX this in a better way
     let maxSize = parseInt(screen.width);
@@ -84,7 +103,6 @@ export default class TafsContainer extends Component {
       maxSize -= 2 * document.getElementsByClassName('RightSideBar')[0].clientWidth;
       maxSize += 10;
     }
-
     return (
       <Col className='TafsContainer'>
         <Panel className='Panel'>
@@ -121,7 +139,7 @@ export default class TafsContainer extends Component {
                 }
                 { this.state.isOpenCategory[item.ref]
                   ? <CollapseOmni className='CollapseOmni' isOpen={this.state.isOpen} minSize={0} maxSize={maxSize}>
-                    <Taf urls={this.props.urls} {...item} latestUpdateTime={moment.utc()} updateParent={() => this.myForceUpdate()} fixedLayout={this.state.isFixed} />
+                    <Taf ref={(ref) => { this.refByName[item.ref] = ref; }} user={this.props.user} focusTaf={this.focusTaf} browserLocation={this.props.location} urls={this.props.urls} {...item} latestUpdateTime={moment.utc()} fixedLayout={this.state.isFixed} updateParent={this.myForceUpdate} fixedLayout={this.state.isFixed} />
                   </CollapseOmni> : ''
                 }
               </Card>;

@@ -8,7 +8,7 @@ import SortableChangeGroup from './SortableChangeGroup';
 import { TAF_TEMPLATES, TAF_TYPES, PHENOMENON_TYPES, getPhenomenonType } from './TafTemplates';
 import getNestedProperty from 'lodash.get';
 import cloneDeep from 'lodash.clonedeep';
-import { tacToJsonForWind, tacToJsonForCavok, tacToJsonForVisibility, tacToJsonForWeather, tacToJsonForVerticalVisibility, tacToJsonForClouds,
+import { tacToJsonForWind, tacToJsonForLocation, jsonToTacForLocation, tacToJsonForCavok, tacToJsonForVisibility, tacToJsonForWeather, tacToJsonForVerticalVisibility, tacToJsonForClouds,
   jsonToTacForChangeType, tacToJsonForProbabilityAndChangeType, jsonToTacForProbability, tacToJsonForTimestamp, tacToJsonForPeriod } from './TafFieldsConverter';
 
 const SortableTBody = SortableContainer(({ tafChangeGroups, inputRef, focusedFieldName, invalidFields }) => {
@@ -31,6 +31,7 @@ class BaseHeaders extends PureComponent {
     return <thead>
       <tr>
         <th>&nbsp;</th>
+        <th>Type</th>
         <th>Location</th>
         <th>Issue time</th>
         <th>Valid period</th>
@@ -53,6 +54,7 @@ class ChangeGroupHeaders extends PureComponent {
   render () {
     return <thead>
       <tr>
+        <th>&nbsp;</th>
         <th>&nbsp;</th>
         <th>Prob</th>
         <th>Change</th>
@@ -77,7 +79,7 @@ class AddChangeGroupLine extends PureComponent {
     const { editable } = this.props;
     return editable
       ? <tr>
-        <td colSpan={13}>&nbsp;</td>
+        <td colSpan={14}>&nbsp;</td>
         <td className='noselect'>
           <Button size='sm' color='secondary' name={'addible'}>{'\uf067' /* plus icon */}</Button>
         </td>
@@ -122,6 +124,7 @@ class TafTable extends Component {
    * @param  {HTMLElement} element The (input-)element to update the value from
    */
   updateValue (element) {
+
     let name = element ? (element.name || element.props.name) : null;
     // Empty in this case means that val is an object which has keys, but for every key its value is null
     const isObjInArrayEmpty = (val, lastPathElem) => {
@@ -184,6 +187,12 @@ class TafTable extends Component {
       }
       if (!propertiesToUpdate[0].propertyValue) {
         switch (propertyTypeName) {
+          case 'location':
+            propertiesToUpdate[0].propertyPath.pop();
+            propertiesToUpdate[0].propertyPath.push('location');
+            const location = jsonToTacForLocation(getNestedProperty(this.props.taf, propertiesToUpdate[0].propertyPath), true);
+            propertiesToUpdate[0].propertyValue = tacToJsonForLocation(element.value, location, true);
+            break;
           case 'probability':
             propertiesToUpdate[0].propertyPath.pop();
             propertiesToUpdate[0].propertyPath.push('changeType');
@@ -277,7 +286,7 @@ class TafTable extends Component {
           </tbody>
         }
         <tbody>
-          <AddChangeGroupLine editable />
+          <AddChangeGroupLine editable={editable} />
         </tbody>
       </table>
     );

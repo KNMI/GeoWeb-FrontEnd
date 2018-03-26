@@ -107,7 +107,6 @@ export class LocationMapper extends React.Component {
     SaveLocations(`${this.props.urls.BACKEND_SERVER_URL}/admin/create`, this.state.locations);
   }
   render () {
-    console.log(this.state.locations);
     return (
       <Panel style={{}}>
         <Row style={{ flex: 1, overflowX: 'hidden', overflowY: 'auto' }}>

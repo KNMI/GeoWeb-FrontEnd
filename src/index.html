@@ -33,45 +33,45 @@ if (typeof Object.assign !== 'function') {
     configurable: true
   });
 }
-var myLogs = [];
-(function () {
-  var log = console.log;
-  var error = console.error;
-  var info = console.info;
-  var trace = console.trace;
-  var warn = console.warn;
-  console.info = function () {
-    var args = Array.prototype.slice.call(arguments);
-    info.apply(this, args);
-    myLogs.push('Info: ' + args.reduce((acc, v) => acc + ', ' + v));
-  };
-  console.warn = function () {
-    var args = Array.prototype.slice.call(arguments);
-    warn.apply(this, args);
-    myLogs.push('Warning: ' + args.reduce((acc, v) => acc + ', ' + v));
-  };
-  console.trace = function () {
-    var args = Array.prototype.slice.call(arguments);
-    trace.apply(this, args);
-    myLogs.push('Trace: ' + args.reduce((acc, v) => acc + ', ' + v));
-  };
-  console.log = function () {
-    var args = Array.prototype.slice.call(arguments);
-    log.apply(this, args);
-    myLogs.push('Log: ' + args.reduce((acc, v) => acc + ', ' + v));
-  };
-  console.error = function () {
-    var args = Array.prototype.slice.call(arguments);
-    error.apply(this, args);
-    myLogs.push('Error: ' + args.reduce((acc, v) => acc + ', ' + v));
-  };
-  window.onerror = function (msg, url, line, col, error) {
-    myLogs.push('Error: ' + msg);
-  };
-  window.addEventListener('error', function (e) {
-    myLogs.push('Error: ' + e.error.message);
-  });
-}());
+// var myLogs = [];
+// (function () {
+//   var log = console.log;
+//   var error = console.error;
+//   var info = console.info;
+//   var trace = console.trace;
+//   var warn = console.warn;
+//   console.info = function () {
+//     var args = Array.prototype.slice.call(arguments);
+//     info.apply(this, args);
+//     myLogs.push('Info: ' + args.reduce((acc, v) => acc + ', ' + v));
+//   };
+//   console.warn = function () {
+//     var args = Array.prototype.slice.call(arguments);
+//     warn.apply(this, args);
+//     myLogs.push('Warning: ' + args.reduce((acc, v) => acc + ', ' + v));
+//   };
+//   console.trace = function () {
+//     var args = Array.prototype.slice.call(arguments);
+//     trace.apply(this, args);
+//     myLogs.push('Trace: ' + args.reduce((acc, v) => acc + ', ' + v));
+//   };
+//   console.log = function () {
+//     var args = Array.prototype.slice.call(arguments);
+//     log.apply(this, args);
+//     myLogs.push('Log: ' + args.reduce((acc, v) => acc + ', ' + v));
+//   };
+//   console.error = function () {
+//     var args = Array.prototype.slice.call(arguments);
+//     error.apply(this, args);
+//     myLogs.push('Error: ' + args.reduce((acc, v) => acc + ', ' + v));
+//   };
+//   window.onerror = function (msg, url, line, col, error) {
+//     myLogs.push('Error: ' + msg);
+//   };
+//   window.addEventListener('error', function (e) {
+//     myLogs.push('Error: ' + e.error.message);
+//   });
+// }());
     </script>
   <title>GeoWeb FrontEnd</title>
   <meta charset="utf-8">

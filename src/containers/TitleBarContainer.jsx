@@ -689,7 +689,7 @@ class TitleBarContainer extends PureComponent {
 }
 
 class LayoutDropDown extends PureComponent {
-  constructor() {
+  constructor () {
     super();
     this.makePresetObj = this.makePresetObj.bind(this);
     this.postLayout = this.postLayout.bind(this);
@@ -705,7 +705,7 @@ class LayoutDropDown extends PureComponent {
     };
   }
 
-  removeCustomSource(sourceIdx) {
+  removeCustomSource (sourceIdx) {
     const urls = JSON.parse(localStorage.getItem('geoweb')).personal_urls;
     urls.splice(sourceIdx, 1);
     const newItem = { personal_urls: urls };
@@ -714,10 +714,10 @@ class LayoutDropDown extends PureComponent {
     this.setState({ urls: urls });
     this.props.onChangeServices();
   }
-  postLayout(layout) {
+  postLayout (layout) {
     this.props.dispatch(this.props.panelsActions.setPanelLayout(layout));
   }
-  handleAddSource(e) {
+  handleAddSource (e) {
     var url = document.querySelector('#sourceurlinput').value;
     let items = JSON.parse(localStorage.getItem('geoweb'));
     // eslint-disable-next-line no-undef
