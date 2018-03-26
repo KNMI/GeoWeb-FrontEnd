@@ -303,7 +303,6 @@ class SigmetCategory extends Component {
     const newList = cloneDeep(this.state.list);
     newList[0].geojson = this.props.drawProperties.geojson;
     this.setState({ list: newList });
-    console.log(newList[0]);
     axios({
       method: 'post',
       url: this.props.source,
