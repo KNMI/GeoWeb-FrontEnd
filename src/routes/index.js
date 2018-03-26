@@ -116,6 +116,15 @@ const mapStateToLayerManagerProps = state => ({
   drawProperties: state.drawProperties,
   urls: state.urls
 });
+
+const mapStateToTafsContainerProps = (state) => ({
+  adagucProperties: state.adagucProperties,
+  panelsProperties: state.panelsProperties,
+  mapProperties: state.mapProperties,
+  drawProperties: state.drawProperties,
+  urls: state.urls,
+  user: state.userProperties
+});
 const mapStateToProductsContainerProps = state => ({
   adagucProperties: state.adagucProperties,
   panelsProperties: state.panelsProperties,
@@ -134,7 +143,7 @@ export const createRoutes = (store) => {
   const sigmet = React.createElement(connect((state) => ({
     drawProperties: state.drawProperties, urls: state.urls, sources: state.adagucProperties.sources
   }), mapDispatchToSigmetProps)(SigmetsContainer));
-  const taf = connect(mapStateToLayerManagerProps, mapDispatchToLayerManagerProps)(TafsContainer);
+  const taf = connect(mapStateToTafsContainerProps, mapDispatchToLayerManagerProps)(TafsContainer);
   const trigger = React.createElement(connect(mapStateToLayerManagerProps, mapDispatchToLayerManagerProps)(TriggersContainer));
   const manageLeft = React.createElement(SidebarContainer);
   const appmanPanel = AppManagementPanel;

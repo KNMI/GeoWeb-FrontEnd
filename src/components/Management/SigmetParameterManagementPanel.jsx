@@ -12,7 +12,7 @@ export default class SigmetParameterManagementPanel extends React.Component {
     axios.get(this.props.urls.BACKEND_SERVER_URL + '/sigmet/getsigmetparameters').then((res) => {
       this.sigmetParameters = res.data;
       this.setState({ sigmetParameters: this.sigmetParameters });
-    }).catch((e) => console.log('Fetching parameters failed: ', e));
+    }).catch((e) => console.error('Fetching parameters failed: ', e));
   }
   /* istanbul ignore next */
   render () {

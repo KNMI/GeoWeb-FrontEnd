@@ -35,7 +35,6 @@ export default class TimeseriesComponent extends PureComponent {
     }
   }
   setModelData (model, location, referenceTime) {
-    console.log('TimeseriesComponent setModelData');
     if (!(model && location && referenceTime)) return;
     const refTimeStr = referenceTime.format('YYYY-MM-DDTHH:mm:ss') + 'Z';
 
@@ -46,7 +45,6 @@ export default class TimeseriesComponent extends PureComponent {
             'QUERY_LAYERS=air_pressure_at_sea_level,wind__at_10m,dew_point_temperature__at_2m,air_temperature__at_2m,precipitation_flux,wind_speed_of_gust__at_10m&' +
             'CRS=EPSG%3A4326&INFO_FORMAT=application/json&time=*&DIM_reference_time=' + refTimeStr + '&x=' + location.x + '&y=' + location.y;
           return axios.get(url).then((d) => {
-            console.log('TimeseriesComponent SUCCESS setModelData', d.data);
             this.setState({ timeData: this.modifyData(d.data), origData: d.data });
           });
         } catch (e) {
