@@ -2,7 +2,6 @@ import { createAction, handleActions } from 'redux-actions';
 
 const ADAGUCMAPDRAW_UPDATEFEATURE = 'ADAGUCMAPDRAW_UPDATEFEATURE';
 const ADAGUCMEASUREDISTANCE_UPDATE = 'ADAGUCMEASUREDISTANCE_UPDATE';
-const ADAGUCMAPDRAW_MODEBOX = 'ADAGUCMAPDRAW_MODEBOX';
 const SET_GEOJSON = 'SET_GEOJSON';
 
 const updateFeature = createAction(ADAGUCMAPDRAW_UPDATEFEATURE);
@@ -16,29 +15,9 @@ const INITIAL_STATE = {
       { type: 'Feature',
         geometry: {
           type: 'Polygon',
-          coordinates: [
-            [
-              [
-                6.640180966285795,
-                52.884890921343334
-              ],
-              [
-                6.640180966285795,
-                51.751964068177436
-              ],
-              [
-                4.556764571282035,
-                51.751964068177436
-              ],
-              [
-                4.556764571282035,
-                52.884890921343334
-              ]
-            ]
-          ]
+          coordinates: []
         },
         properties: {
-          'time': moment().utc().format(),
           'stroke': '#a734d7',
           'stroke-width': 5,
           'stroke-opacity': 1,
@@ -49,29 +28,9 @@ const INITIAL_STATE = {
       { type: 'Feature',
         geometry: {
           type: 'Polygon',
-          coordinates: [
-            [
-              [
-                8.640180966285795,
-                52.884890921343334
-              ],
-              [
-                8.640180966285795,
-                51.751964068177436
-              ],
-              [
-                7.556764571282035,
-                51.751964068177436
-              ],
-              [
-                7.556764571282035,
-                52.884890921343334
-              ]
-            ]
-          ]
+          coordinates: []
         },
         properties: {
-          'time': moment().utc().format(),
           'stroke': '#000000',
           'stroke-width': 2,
           'stroke-opacity': 1,
@@ -81,7 +40,7 @@ const INITIAL_STATE = {
       }
     ]
   },
-  // drawMode: ADAGUCMAPDRAW_MODEBOX,
+  drawMode: 'POLYGON',
   measureDistance: {
     isInEditMode: false
   }

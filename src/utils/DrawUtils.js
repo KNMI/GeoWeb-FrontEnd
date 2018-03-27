@@ -1,5 +1,6 @@
-export const drawVertice = (ctx, coord, selected, middle, isInEditMode) => {
+export const drawVertice = (ctx, _coord, selected, middle, isInEditMode) => {
   let w = 7;
+  let coord = { x: parseInt(_coord.x), y: parseInt(_coord.y) };
   if (isInEditMode === false) {
     /* Standard style, no editing, just display location of vertices */
     ctx.strokeStyle = '#000';
@@ -28,5 +29,7 @@ export const drawVertice = (ctx, coord, selected, middle, isInEditMode) => {
   ctx.globalAlpha = 1.0;
   ctx.fillRect(coord.x - w / 2, coord.y - w / 2, w, w);
   ctx.strokeRect(coord.x - w / 2, coord.y - w / 2, w, w);
-  ctx.strokeRect(coord.x - 0.5, coord.y - 0.5, 1, 1);
+  if (isInEditMode) {
+    ctx.strokeRect(coord.x - 0.5, coord.y - 0.5, 1, 1);
+  }
 };
