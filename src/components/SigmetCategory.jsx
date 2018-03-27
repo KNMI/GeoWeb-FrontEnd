@@ -1113,7 +1113,7 @@ class SigmetCategory extends Component {
       !drawProperties.geojson.features[0].geometry.hasOwnProperty('coordinates') || !drawProperties.geojson.features[0].geometry.coordinates.length > 0;
     let maxSize = this.state.list ? 550 * this.state.list.slice(0, 5).length : 0;
     if (editable) {
-      maxSize = 920;
+      maxSize = 1020;
     }
     const sourceless = Object.keys(this.props.sources || {}).length === 0;
     const now = moment().utc();
