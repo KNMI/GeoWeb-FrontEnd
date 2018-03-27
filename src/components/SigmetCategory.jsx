@@ -37,14 +37,32 @@ const UNIT_FT = 'ft';
 const EMPTY_GEO_JSON = {
   type: 'FeatureCollection',
   features: [
-    {
-      type: 'Feature',
+    { type: 'Feature',
       geometry: {
         type: 'Polygon',
         coordinates: []
       },
       properties: {
-        time: moment().utc().format()
+        'sigmettype':'start',
+        'stroke': '#a734d7',
+        'stroke-width': 5,
+        'stroke-opacity': 1,
+        'fill': '#33cc00',
+        'fill-opacity': 0.5
+      }
+    },
+    { type: 'Feature',
+      geometry: {
+        type: 'Polygon',
+        coordinates: []
+      },
+      properties: {
+        'sigmettype':'end',
+        'stroke': '#000000',
+        'stroke-width': 2,
+        'stroke-opacity': 1,
+        'fill': '#FF8888',
+        'fill-opacity': 1.0
       }
     }
   ]
