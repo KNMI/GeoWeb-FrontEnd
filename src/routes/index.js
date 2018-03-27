@@ -1,5 +1,6 @@
 // We only need to import the modules necessary for initial render
 import React from 'react';
+import Async from 'react-code-splitting';
 import BaseLayout from '../layouts/BaseLayout';
 import HeaderedLayout from '../layouts/HeaderedLayout';
 import SidebarredLayout from '../layouts/SidebarredLayout';
@@ -13,28 +14,28 @@ import { actions as drawActions } from '../redux/modules/drawReducer';
 import { Route, IndexRoute } from 'react-router';
 import { connect } from 'react-redux';
 
-import TitleBarContainer from '../containers/TitleBarContainer';
-import MapActionsContainer from '../containers/MapActionsContainer';
 import TasksContainer from '../containers/TasksContainer';
 import ProductsContainer from '../containers/ProductsContainer';
-import SigmetsContainer from '../containers/SigmetsContainer';
-import TafsContainer from '../containers/TafsContainer';
 import TriggersContainer from '../containers/TriggersContainer';
-import MapPanel from '../components/MapPanel';
-import LayerManagerPanel from '../components/LayerManagerPanel';
 
 import AppManagementPanel from '../components/Management/AppManagementPanel';
 import ProductsManagementPanel from '../components/Management/ProductsManagementPanel';
 import ProgtempManagementPanel from '../components/Management/ProgtempManagementPanel';
-import ManagementPanel from '../components/Management/ManagementPanel';
 import TafManagementPanel from '../components/Management/TafManagementPanel';
 import TafValidationManagementPanel from '../components/Management/TafValidationManagementPanel';
 import TafExampleTafManagementPanel from '../components/Management/TafExampleTafManagementPanel';
 import TafLocationsManagementPanel from '../components/Management/TafLocationsManagementPanel';
-import SigmetManagementPanel from '../components/Management/SigmetManagementPanel';
 import SigmetParameterManagementPanel from '../components/Management/SigmetParameterManagementPanel';
 import LocationManagementPanel from '../components/Management/LocationManagementPanel';
-import SidebarContainer from '../containers/Management/SidebarContainer';
+const SigmetManagementPanel = (props) => <Async load={import('../components/Management/SigmetManagementPanel')} componentProps={props} />;
+const TitleBarContainer = (props) => <Async load={import('../containers/TitleBarContainer')} componentProps={props} />;
+const MapActionsContainer = (props) => <Async load={import('../containers/MapActionsContainer')} componentProps={props} />;
+const LayerManagerPanel = (props) => <Async load={import('../components/LayerManagerPanel')} componentProps={props} />;
+const MapPanel = (props) => <Async load={import('../components/MapPanel')} componentProps={props} />;
+const SidebarContainer = (props) => <Async load={import('../containers/Management/SidebarContainer')} componentProps={props} />;
+const ManagementPanel = (props) => <Async load={import('../components/Management/ManagementPanel')} componentProps={props} />;
+const SigmetsContainer = (props) => <Async load={import('../containers/SigmetsContainer')} componentProps={props} />;
+const TafsContainer = (props) => <Async load={import('../containers/TafsContainer')} componentProps={props} />;
 
 const mapStateToHeaderProps = state => ({
   title: 'header',
