@@ -140,12 +140,11 @@ class SigmetsContainer extends Component {
 
   renderMoreItems (evt) {
     const nodelist = evt.target.querySelectorAll('.Sigmet');
-    // for (let sigmet of nodelist) {
-    //   console.log('Sigmet top', sigmet.getBoundingClientRect().top);
-    // }
     const lastItem = nodelist.item(nodelist.length - 1);
-    console.log('LastItem top', lastItem, lastItem.getBoundingClientRect().top);
-    console.log('Parent bottom', evt.target, evt.target.getBoundingClientRect().bottom);
+
+    if (lastItem.getBoundingClientRect().top < evt.target.getBoundingClientRect().bottom) {
+      console.log('Should render more items');
+    }
   }
 
   select (category, index, geo) {

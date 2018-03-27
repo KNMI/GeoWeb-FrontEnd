@@ -99,6 +99,7 @@ class SigmetCategory extends Component {
     super(props);
     this.onObsOrFcstClick = this.onObsOrFcstClick.bind(this);
     this.handleSigmetClick = this.handleSigmetClick.bind(this);
+    this.handleActionClick = this.handleActionClick.bind(this);
     this.saveSigmet = this.saveSigmet.bind(this);
     this.deleteDrawing = this.deleteDrawing.bind(this);
     this.publishSigmet = this.publishSigmet.bind(this);
@@ -298,6 +299,23 @@ class SigmetCategory extends Component {
     }
   }
 
+  handleActionClick (action, sigmetPart) {
+    console.log(`Selection method for SIGMET part ${sigmetPart} is called`);
+    switch (action) {
+      case 'select-point':
+      case 'select-region':
+      case 'select-shape':
+      case 'select-fir':
+        console.log(`Selection method ${action} not yet implemented`);
+        break;
+      case 'delete-selection':
+        this.deleteDrawing();
+        break;
+      default:
+        console.log(`Selection method ${action} unknown and not implemented`);
+    }
+  }
+
   onObsOrFcstClick (obsSelected) {
     const newList = cloneDeep(this.state.list);
     newList[0].obs_or_forecast.obs = obsSelected;
@@ -326,6 +344,7 @@ class SigmetCategory extends Component {
     const newList = cloneDeep(this.state.list);
     newList[0].geojson = EMPTY_GEO_JSON;
     this.setState({ list: newList });
+    // TODO: call reducer to update redux state
   }
 
   publishSigmet (uuid) {
@@ -689,6 +708,12 @@ class SigmetCategory extends Component {
   setSelectedObservedForecast (isObserved) {
     let listCpy = cloneDeep(this.state.list);
     listCpy[0].obs_or_forecast = { obs: isObserved };
+    this.setState({ list: listCpy });
+  }
+
+  setSelectedForecastPosition (forecastPosition) {
+    let listCpy = cloneDeep(this.state.list);
+    listCpy[0].forecast_position = forecastPosition.utc().format();
     this.setState({ list: listCpy });
   }
 
@@ -1088,7 +1113,7 @@ class SigmetCategory extends Component {
       !drawProperties.geojson.features[0].geometry.hasOwnProperty('coordinates') || !drawProperties.geojson.features[0].geometry.coordinates.length > 0;
     let maxSize = this.state.list ? 550 * this.state.list.slice(0, 5).length : 0;
     if (editable) {
-      maxSize = 900;
+      maxSize = 920;
     }
     const sourceless = Object.keys(this.props.sources || {}).length === 0;
     const now = moment().utc();
@@ -1096,6 +1121,33 @@ class SigmetCategory extends Component {
     const availableFirs = this.getParameters().firareas;
     const availableChanges = this.getChanges();
     const availableDirections = this.getDirections();
+    const drawActions = [
+      {
+        title: 'Select point',
+        action: 'select-point',
+        icon: 'circle'
+      },
+      {
+        title: 'Select region',
+        action: 'select-region',
+        icon: 'retweet'
+      },
+      {
+        title: 'Select shape',
+        action: 'select-shape',
+        icon: 'pencil'
+      },
+      {
+        title: 'Select entire FIR',
+        action: 'select-fir',
+        icon: 'globe'
+      },
+      {
+        title: 'Delete selection',
+        action: 'delete-selection',
+        icon: 'trash'
+      }
+    ];
 
     return (
       <Card className='row accordion' style={{ flex: (this.state.isOpen || this.state.isClosing) ? 'auto' : null, minWidth: 0, flexWrap: 'nowrap' }}>
@@ -1158,9 +1210,33 @@ class SigmetCategory extends Component {
                             }
                           </Col>
                         </Row>
+                        <Row style={editable ? { paddingTop: '0.19rem', minHeight: '2rem' } : { paddingTop: '0.19rem' }}>
+                          <Col xs={{ size: 2, offset: 1 }}>
+                            <Badge>At</Badge>
+                          </Col>
+                          <Col xs='9'>
+                            {editable
+                              ? <DateTimePicker style={{ width: '100%' }} dateFormat={DATE_FORMAT} timeFormat={TIME_FORMAT} utc
+                                onChange={(at) => this.setSelectedForecastPosition(at)}
+                                inputProps={item.obs_or_forecast.obs ? { disabled: true } : null}
+                                isValidDate={(curr, selected) => curr.isAfter(now.subtract(1, 'day')) &&
+                                  curr.isBefore(now.add(this.getParameters().hoursbeforevalidity, 'hour'))}
+                                timeConstraints={{
+                                  hours: {
+                                    min: now.hour(),
+                                    max: (now.hour() + this.getParameters().hoursbeforevalidity)
+                                  }
+                                }}
+                                viewMode='time'
+                                value={item.forecast_position ? moment.utc(item.forecast_position) : now}
+                              />
+                              : <Moment format={DATE_TIME_FORMAT} date={item.forecast_position} />
+                            }
+                          </Col>
+                        </Row>
                         <Row className='section' style={{ minHeight: '1.75rem' }}>
                           <Col xs='3'>
-                            <Badge color='success'>When</Badge>
+                            <Badge color='success'>Valid</Badge>
                           </Col>
                         </Row>
                         <Row style={editable ? { paddingTop: '0.19rem', minHeight: '2rem' } : { paddingTop: '0.19rem' }}>
@@ -1227,6 +1303,30 @@ class SigmetCategory extends Component {
                             {item.location_indicator_icao}
                           </Col>
                         </Row>
+                        {editable
+                          ? <Row className='section' style={{ minHeight: '3.685rem', marginBottom: '0.33rem' }}>
+                            {drawActions.map((actionItem, index) =>
+                              <Col xs={{ size: 'auto', offset: index === 0 ? 3 : null }} key={index} style={{ padding: '0 0.167rem' }}>
+                                <Button color='primary' active={actionItem.action === 'mapProperties.mapMode'} disabled={actionItem.disabled || null}
+                                  id={actionItem.action + '_button'} title={actionItem.title} onClick={() => this.handleActionClick(actionItem.action, 'where')} style={{ width: '3rem' }}>
+                                  <Icon name={actionItem.icon} />
+                                </Button>
+                              </Col>)
+                            }
+                          </Row>
+                          : ''
+                        }
+                        {selectedIndex > -1 && editable && (showDrawWarningFromState && showDrawWarningFromProps)
+                          ? <Row style={{ flex: 'none', padding: '0.5rem 0 0.5rem 0.12rem', maxWidth: '28.7rem' }}>
+                            <Col>
+                              <Alert color='danger' style={{ display: 'block', margin: '0', whiteSpace: 'normal', padding: '0.75rem' }}>
+                                Please use one of the selection tools above to indicate on the map where the phenomenon is
+                                {item.obs_or_forecast.obs ? ' observed.' : ' expected to occur.'}
+                              </Alert>
+                            </Col>
+                          </Row>
+                          : ''
+                        }
                         <Row className='section' style={editable ? { minHeight: '14rem' } : null}>
                           <Col xs={editable ? { size: 12 } : { size: 9, offset: 3 }}>
                             {this.renderLevelSelection(editable, item)}
@@ -1276,6 +1376,19 @@ class SigmetCategory extends Component {
                             }
                           </Col>
                         </Row>
+                        {editable
+                          ? <Row className='section' style={{ minHeight: '3.685rem', marginBottom: '0.33rem' }}>
+                            {drawActions.map((actionItem, index) =>
+                              <Col xs={{ size: 'auto', offset: index === 0 ? 3 : null }} key={index} style={{ padding: '0 0.167rem' }}>
+                                <Button color='primary' active={actionItem.action === 'mapProperties.mapMode'} disabled={actionItem.disabled || null}
+                                  id={actionItem.action + '_button'} title={actionItem.title} onClick={() => this.handleActionClick(actionItem.action, 'progress')} style={{ width: '3rem' }}>
+                                  <Icon name={actionItem.icon} />
+                                </Button>
+                              </Col>)
+                            }
+                          </Row>
+                          : ''
+                        }
                         <Row className='section' style={editable ? { marginTop: '0.19rem', minHeight: '2.5rem' } : null}>
                           <Col xs='3'>
                             <Badge color='success'>Change</Badge>
@@ -1323,23 +1436,9 @@ class SigmetCategory extends Component {
                           </Row>
                           : null
                         }
-                        {selectedIndex > -1 && editable && (showDrawWarningFromState && showDrawWarningFromProps)
-                          ? <Row style={{ flex: 'none', padding: '0.5rem 0 0.5rem 0.12rem', maxWidth: '28.7rem' }}>
-                            <Col>
-                              <Alert color='danger' style={{ display: 'block', margin: '0', whiteSpace: 'normal', padding: '0.75rem' }}>
-                                Please draw a polygon (<i className='fa fa-pencil' />) to indicate where the phenomenon is
-                                {item.obs_or_forecast.obs ? ' observed.' : ' expected to occur.'}
-                              </Alert>
-                            </Col>
-                          </Row>
-                          : ''
-                        }
                         {editable
                           ? <Row className='section' style={{ minHeight: '3.185rem' }}>
-                            <Col xs={{ size: 4, offset: 5 }}>
-                              <Button color='primary' disabled={selectedIndex === -1} onClick={this.deleteDrawing} style={{ marginRight: '0.33rem' }}>Delete drawing</Button>
-                            </Col>
-                            <Col xs='3'>
+                            <Col xs={{ size: 3, offset: 9 }}>
                               <Button color='primary' disabled={selectedIndex === -1} onClick={this.saveSigmet} >Create</Button>
                             </Col>
                           </Row>
