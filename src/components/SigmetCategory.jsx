@@ -1140,12 +1140,12 @@ class SigmetCategory extends Component {
                           </Col>
                           <Col xs='9'>
                             {editable
-                              ? <Typeahead disabled={sourceless} filterBy={['name', 'code']} labelKey='name'
+                              ? <Typeahead disabled={sourceless} filterBy={['name', 'code']} labelKey='code'
                                 options={availablePhenomena} placeholder={sourceless ? 'Loading phenomena ⏳' : 'Select phenomenon'}
                                 onChange={(phenomenonList) => this.setSelectedPhenomenon(phenomenonList)}
                                 selected={selectedPhenomenon ? [selectedPhenomenon] : []}
                                 clearButton />
-                              : <span style={{ fontWeight: 'bold' }}>{item.phenomenonHRT}</span>
+                              : <span style={{ fontWeight: 'bold' }}>{item.phenomenon}</span>
                             }
                           </Col>
                         </Row>
