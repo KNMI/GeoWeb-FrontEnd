@@ -7,6 +7,7 @@ import axios from 'axios';
 import cloneDeep from 'lodash.clonedeep';
 import isEmpty from 'lodash.isempty';
 import isEqual from 'lodash.isequal';
+import range from 'lodash.range';
 import CollapseOmni from '../components/CollapseOmni';
 import SwitchButton from 'lyef-switch-button';
 import 'lyef-switch-button/css/main.css';
@@ -93,7 +94,7 @@ const FALLBACK_PARAMS = {
 };
 
 class SigmetCategory extends Component {
-  constructor (props) {
+  constructor(props) {
     super(props);
     this.onObsOrFcstClick = this.onObsOrFcstClick.bind(this);
     this.handleSigmetClick = this.handleSigmetClick.bind(this);
@@ -118,7 +119,7 @@ class SigmetCategory extends Component {
   }
 
   // get Human Readable Text for Code
-  getHRT4code (code) {
+  getHRT4code(code) {
     const { phenomenonMapping } = this.props;
     const UNKNOWN = 'Unknown';
     if (!phenomenonMapping) {
@@ -191,7 +192,7 @@ class SigmetCategory extends Component {
     return UNKNOWN;
   }
 
-  getPhenomena () {
+  getPhenomena() {
     const { phenomenonMapping } = this.props;
     let result = [];
     phenomenonMapping.forEach((item) => {
@@ -230,7 +231,7 @@ class SigmetCategory extends Component {
     return result;
   }
 
-  getParameters () {
+  getParameters() {
     let { parameters } = this.props;
     if (isEmpty(parameters)) {
       parameters = FALLBACK_PARAMS;
@@ -241,7 +242,7 @@ class SigmetCategory extends Component {
   /**
    * Gets Cardinal, intercardinal and named points for directions of wind
    */
-  getDirections () {
+  getDirections() {
     return [
       { shortName: 'N', longName: 'North' },
       { shortName: 'NNE', longName: 'North-Northeast' },
@@ -263,7 +264,7 @@ class SigmetCategory extends Component {
   /**
    * Gets change types
    */
-  getChanges () {
+  getChanges() {
     return [
       { shortName: 'WKN', longName: 'Weakening' },
       { shortName: 'NC', longName: 'No change' },
@@ -271,11 +272,11 @@ class SigmetCategory extends Component {
     ];
   }
 
-  hasTagName (element, tagName) {
+  hasTagName(element, tagName) {
     return element.tagName.toLowerCase() === tagName;
   }
 
-  handleSigmetClick (evt, index) {
+  handleSigmetClick(evt, index) {
     let shouldContinue = false;
     if (!this.props.editable) {
       shouldContinue = true;
@@ -292,13 +293,13 @@ class SigmetCategory extends Component {
     }
   }
 
-  onObsOrFcstClick (obsSelected) {
+  onObsOrFcstClick(obsSelected) {
     const newList = cloneDeep(this.state.list);
     newList[0].obs_or_forecast.obs = obsSelected;
     this.setState({ list: newList });
   }
 
-  saveSigmet (evt) {
+  saveSigmet(evt) {
     evt.preventDefault();
     const newList = cloneDeep(this.state.list);
     newList[0].geojson = this.props.drawProperties.geojson;
@@ -316,7 +317,7 @@ class SigmetCategory extends Component {
     });
   }
 
-  publishSigmet (uuid) {
+  publishSigmet(uuid) {
     axios({
       method: 'post',
       url: BACKEND_SERVER_URL + '/sigmet/publishsigmet?uuid=' + uuid,
@@ -326,7 +327,7 @@ class SigmetCategory extends Component {
     })
   }
 
-  sigmetLayers (p) {
+  sigmetLayers(p) {
     const HARMONIE_URL = GetServiceByName(this.props.sources, 'Harmonie36');
     const OVERLAY_URL = GetServiceByName(this.props.sources, 'OVL');
     const OBSERVATIONS_URL = GetServiceByName(this.props.sources, 'OBS');
@@ -647,7 +648,7 @@ class SigmetCategory extends Component {
     }
   };
 
-  setSelectedPhenomenon (phenomenonList) {
+  setSelectedPhenomenon(phenomenonList) {
     if (phenomenonList.length === 0) {
       return;
     }
@@ -661,7 +662,7 @@ class SigmetCategory extends Component {
     this.props.dispatch(this.props.mapActions.setCut({ name: 'Custom', bbox: [preset.area.left || 570875, preset.area.bottom, preset.area.right || 570875, preset.area.top] }));
   }
 
-  setSelectedFir (firList) {
+  setSelectedFir(firList) {
     if (firList.length === 0) {
       return;
     }
@@ -672,32 +673,32 @@ class SigmetCategory extends Component {
     this.setState({ list: listCpy });
   }
 
-  setSelectedObservedForecast (isObserved) {
+  setSelectedObservedForecast(isObserved) {
     let listCpy = cloneDeep(this.state.list);
     listCpy[0].obs_or_forecast = { obs: isObserved };
     this.setState({ list: listCpy });
   }
 
-  setSelectedValidFromMoment (validFrom) {
+  setSelectedValidFromMoment(validFrom) {
     let listCpy = cloneDeep(this.state.list);
     listCpy[0].validdate = validFrom.utc().format();
     this.setState({ list: listCpy });
   }
 
-  setSelectedValidUntilMoment (validUntil) {
+  setSelectedValidUntilMoment(validUntil) {
     let listCpy = cloneDeep(this.state.list);
     listCpy[0].validdate_end = validUntil.utc().format();
     this.setState({ list: listCpy });
   }
 
-  setSelectedMovement (evt) {
+  setSelectedMovement(evt) {
     const isStationary = !evt.target.checked;
     let listCpy = cloneDeep(this.state.list);
     listCpy[0].movement.stationary = isStationary;
     this.setState({ list: listCpy });
   }
 
-  setSelectedDirection (dir) {
+  setSelectedDirection(dir) {
     if (Array.isArray(dir) && dir.length === 1) {
       const direction = dir[0].shortName;
       let listCpy = cloneDeep(this.state.list);
@@ -706,7 +707,7 @@ class SigmetCategory extends Component {
     }
   }
 
-  setSpeed (evt) {
+  setSpeed(evt) {
     if (!isNaN(evt.target.value)) {
       const speed = evt.target.value;
       let listCpy = cloneDeep(this.state.list);
@@ -715,7 +716,7 @@ class SigmetCategory extends Component {
     }
   }
 
-  setChange (chg) {
+  setChange(chg) {
     if (Array.isArray(chg) && chg.length === 1) {
       const change = chg[0].shortName;
       let listCpy = cloneDeep(this.state.list);
@@ -724,7 +725,7 @@ class SigmetCategory extends Component {
     }
   }
 
-  getExistingSigmets () {
+  getExistingSigmets() {
     axios({
       method: 'get',
       url: this.props.source,
@@ -737,11 +738,11 @@ class SigmetCategory extends Component {
     });
   }
 
-  setEmptySigmet () {
+  setEmptySigmet() {
     this.setState({ list: [EMPTY_SIGMET] });
   }
 
-  gotExistingSigmetsCallback (message) {
+  gotExistingSigmetsCallback(message) {
     let sigmetsList = message && message.data && message.data.sigmets ? message.data.sigmets : [];
     sigmetsList.forEach((sigmet) => {
       sigmet.phenomenonHRT = this.getHRT4code(sigmet.phenomenon);
@@ -749,7 +750,7 @@ class SigmetCategory extends Component {
     this.setState({ list: sigmetsList });
   }
 
-  savedSigmetCallback (message) {
+  savedSigmetCallback(message) {
     this.setState({ isOpen: false, list: [EMPTY_SIGMET] });
     if (this.props.selectedIndex === 0) {
       this.props.selectMethod(0);
@@ -757,14 +758,14 @@ class SigmetCategory extends Component {
     this.props.updateAllComponents();
   }
 
-  couldntSaveSigmetCallback (message) {
+  couldntSaveSigmetCallback(message) {
     console.error('Error while trying to save SIGMET', message);
     if (this.props.selectedIndex === 0) {
       this.props.selectMethod(0);
     }
   }
 
-  componentWillMount () {
+  componentWillMount() {
     if (this.props.editable) {
       this.setEmptySigmet();
     } else {
@@ -772,68 +773,69 @@ class SigmetCategory extends Component {
     }
   }
 
-  componentWillReceiveProps (nextProps) {
+  componentWillReceiveProps(nextProps) {
     if (typeof nextProps.isOpen !== 'undefined') {
       this.setState({ isOpen: nextProps.isOpen });
     }
     if (nextProps.hasOwnProperty('drawProperties') && typeof nextProps.drawProperties === 'object' &&
-        nextProps.drawProperties.hasOwnProperty('geojson') && nextProps.drawProperties.geojson &&
-        !isEqual(nextProps.drawProperties.geojson, EMPTY_GEO_JSON) &&
-        Array.isArray(this.state.list) && this.state.list.length > 0) {
+      nextProps.drawProperties.hasOwnProperty('geojson') && nextProps.drawProperties.geojson &&
+      !isEqual(nextProps.drawProperties.geojson, EMPTY_GEO_JSON) &&
+      Array.isArray(this.state.list) && this.state.list.length > 0) {
       const newList = cloneDeep(this.state.list);
       newList[0].geojson = this.props.drawProperties.geojson;
       this.setState({ list: newList });
     }
   }
 
-  componentWillUpdate (nextProps) {
+  componentWillUpdate(nextProps) {
     if (this.props.latestUpdateTime !== nextProps.latestUpdateTime && this.props.isGetType === true) {
       this.getExistingSigmets(this.props.source);
     }
   }
 
-  marks (flightLevelValues, unit) {
-    let retObj = {
-      0: 'Surface',
-      400: 'Above'
-    };
+  marks(values) {
+    const retObj = {};
+    values.map((val) => {
+      if (val < 50) {
+        if (this.state.lowerUnit === UNIT_FT) {
+          retObj[val] = parseInt(val * 100) + ' ' + UNIT_FT;
+        } else {
+          retObj[val] = parseInt(Math.round(val * 30.48)) + ' ' + UNIT_M;
+        }
+      } else {
+        // 50 = a * 50 + b   \
+        //                    -> y = 7 * x - 300
+        // 400 = a * 100 + b /
+        retObj[val] = UNIT_FL + Math.round(7 * val - 300);
+      }
+    });
 
-    switch (unit) {
-      case UNIT_M:
-        const prettyNumbers = flightLevelValues.map((val) => Math.round((val * 30.48) / 500) * 500);
-        prettyNumbers.map((val) => { retObj[Math.round(val / 30.48)] = val + ' ' + UNIT_M; });
-        break;
-      case UNIT_FT:
-        flightLevelValues.map((val) => { retObj[val] = val * 100 + ' ' + UNIT_FT; });
-        break;
-      case UNIT_FL:
-      default:
-        flightLevelValues.map((val) => { retObj[val] = UNIT_FL + ' ' + val; });
-        break;
-    }
+    retObj[0] = 'Surface';
+    retObj[100] = 'Above';
+
     return retObj;
   };
 
-  tooltip (flightLevel, unit) {
-    if (flightLevel === 400) {
+  tooltip(height) {
+    if (height === 100) {
       return 'Above';
     }
-    if (flightLevel === 0) {
+    if (height === 0) {
       return 'Surface';
     }
-    switch (unit) {
-      case UNIT_M:
-        return Math.round((flightLevel * 30.48) / 100) * 100 + ' ' + UNIT_M;
-      case UNIT_FT:
-        return flightLevel * 100 + ' ' + UNIT_FT;
-      case UNIT_FL:
-        return UNIT_FL + ' ' + flightLevel;
-      default:
-        break;
+
+    if (height < 50) {
+      if (this.state.lowerUnit === UNIT_FT) {
+        return parseInt(height * 100) + ' ' + UNIT_FT;
+      } else {
+        return parseInt(Math.round(height * 30.48)) + ' ' + UNIT_M;
+      }
+    } else {
+      return UNIT_FL + Math.round(7 * height - 300);
     }
   };
 
-  showLevels (level) {
+  showLevels(level) {
     if (!level.lev1) {
       return '';
     }
@@ -879,7 +881,7 @@ class SigmetCategory extends Component {
     }
   }
 
-  setTops (evt) {
+  setTops(evt) {
     let newPartialState = { tops: evt.target.checked };
     if (newPartialState.tops) {
       newPartialState['lowerUnit'] = UNIT_FL;
@@ -887,7 +889,7 @@ class SigmetCategory extends Component {
     this.setState(newPartialState);
   }
 
-  setSigmetLevel (value) {
+  setSigmetLevel(value) {
     let listCpy = cloneDeep(this.state.list);
     if (value.length === 0) {
       return;
@@ -977,8 +979,11 @@ class SigmetCategory extends Component {
     this.setState({ list: listCpy });
   }
 
-  renderLevelSelection (editable, item) {
-    const markValues = this.marks([50, 100, 150, 200, 250, 300, 350], this.state.lowerUnit);
+  renderLevelSelection(editable, item) {
+    const feetNumbers = range(0, 50, 10);
+    const flNumbers = range(50, 100, 7.142857);
+    const markValues = this.marks([...feetNumbers, ...flNumbers]);
+    console.log(markValues);
     const handle = (params) => {
       const { value, dragging, index, ...restProps } = params;
       return (
@@ -1022,20 +1027,20 @@ class SigmetCategory extends Component {
             </Col>
             <Col xs={{ size: 6, offset: 1 }} style={{ justifyContent: 'center' }}>
               <ButtonGroup>
-                <Button color='primary' onClick={() => this.setState({ lowerUnit: UNIT_FT })} active={this.state.lowerUnit === UNIT_FT} disabled={this.state.tops}>{UNIT_FT}</Button>
-                <Button color='primary' onClick={() => this.setState({ lowerUnit: UNIT_M })} active={this.state.lowerUnit === UNIT_M} disabled={this.state.tops}>{UNIT_M}</Button>
-                <Button color='primary' onClick={() => this.setState({ lowerUnit: UNIT_FL })} active={this.state.lowerUnit === UNIT_FL} disabled={this.state.tops}>{UNIT_FL}</Button>
+                <Button color='primary' onClick={() => this.setState({ lowerUnit: UNIT_FT })} active={this.state.lowerUnit === UNIT_FT} disabled={this.state.tops}>{`${UNIT_FT}/${UNIT_FL}`}</Button>
+                <Button color='primary' onClick={() => this.setState({ lowerUnit: UNIT_M })} active={this.state.lowerUnit === UNIT_M} disabled={this.state.tops}>{`${UNIT_M}/${UNIT_FL}`}</Button>
               </ButtonGroup>
             </Col>
           </Row>
+
           <Row />
         </Col>
         <Col xs='3'>
           <Row style={{ padding: '1rem 0' }}>
             {this.state.renderRange
-              ? <Range step={10} allowCross={false} min={0} max={400} marks={markValues} vertical
+              ? <Range step={0.5} allowCross={false} min={0} max={100} marks={markValues} vertical
                 onChange={(v) => this.setSigmetLevel(v)} tipFormatter={value => this.tooltip(value, this.state.lowerUnit)} />
-              : <Slider step={10} allowCross={false} min={0} max={400} marks={markValues} vertical onChange={(v) => this.setSigmetLevel([v])} handle={handle} />
+              : <Slider step={0.5} allowCross={false} min={0} max={100} marks={markValues} vertical onChange={(v) => this.setSigmetLevel([v])} handle={handle} />
             }
           </Row>
         </Col>
@@ -1046,7 +1051,7 @@ class SigmetCategory extends Component {
     </Col>);
   }
 
-  render () {
+  render() {
     const { title, icon, parentCollapsed, editable, selectedIndex, toggleMethod, drawProperties } = this.props;
     const notifications = !editable ? this.state.list.length : 0;
     // Show a warning in case there is no drawing yet, so both the this.state.list and the this.props.drawProperties are empty
