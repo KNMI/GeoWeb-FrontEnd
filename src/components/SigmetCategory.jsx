@@ -82,7 +82,8 @@ const EMPTY_SIGMET = {
     }
   },
   movement: {
-    stationary: true
+    stationary: true,
+    movementtype: true
   },
   change: 'NC',
   forecast_position: '',
@@ -1427,12 +1428,26 @@ class SigmetCategory extends Component {
                             {/* speed: int */}
                             {editable
                               ? <SwitchButton id='movementtypeswitch' name='movementtypeswitch'
-                                labelLeft='By area' labelRight='By speed and direction' isChecked={!item.movement.movementtype} action={this.setSetMovementType} />
-                              : <span>{item.movement.movementtype ? 'Movement defined by area' : 'Movement defined with speed and direction'}</span>
+                                labelLeft='By area' labelRight='By speed and direction' isChecked={item.movement.movementtype === false} action={this.setSetMovementType} />
+                              : <span>{!item.movement.movementtype ? 'Movement defined by area' : 'Movement defined with speed and direction'}</span>
                             }
 
                           </Col>
                         </Row>
+                        {editable
+                          ? <Row className='section' style={{ minHeight: '3.685rem', marginBottom: '0.33rem' }}>
+                            {drawActions.map((actionItem, index) =>
+                              <Col xs={{ size: 'auto', offset: index === 0 ? 3 : null }} key={index} style={{ padding: '0 0.167rem' }}>
+                                <Button color='primary' active={actionItem.action === 'mapProperties.mapMode'}
+                                  disabled={!item.movement.movementtype || item.movement.stationary || actionItem.disabled || null}
+                                  id={actionItem.action + '_button'} title={actionItem.title} onClick={() => this.handleActionClick(actionItem.action, 'progress')} style={{ width: '3rem' }}>
+                                  <Icon name={actionItem.icon} />
+                                </Button>
+                              </Col>)
+                            }
+                          </Row>
+                          : ''
+                        }
                         <Row style={editable ? { marginTop: '0.19rem', minHeight: '2rem' } : null}>
                           <Col xs={{ size: 2, offset: 1 }}>
                             <Badge title='Direction'>Direction</Badge>
@@ -1463,19 +1478,6 @@ class SigmetCategory extends Component {
                             }
                           </Col>
                         </Row>
-                        {editable
-                          ? <Row className='section' style={{ minHeight: '3.685rem', marginBottom: '0.33rem' }}>
-                            {drawActions.map((actionItem, index) =>
-                              <Col xs={{ size: 'auto', offset: index === 0 ? 3 : null }} key={index} style={{ padding: '0 0.167rem' }}>
-                                <Button color='primary' active={actionItem.action === 'mapProperties.mapMode'} disabled={!item.movement.movementtype|| item.movement.stationary || actionItem.disabled || null}
-                                  id={actionItem.action + '_button'} title={actionItem.title} onClick={() => this.handleActionClick(actionItem.action, 'progress')} style={{ width: '3rem' }}>
-                                  <Icon name={actionItem.icon} />
-                                </Button>
-                              </Col>)
-                            }
-                          </Row>
-                          : ''
-                        }
                         <Row className='section' style={editable ? { marginTop: '0.19rem', minHeight: '2.5rem' } : null}>
                           <Col xs='3'>
                             <Badge color='success'>Change</Badge>
