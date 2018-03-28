@@ -97,7 +97,6 @@ const mapDispatchToSigmetProps = function (dispatch) {
     dispatch,
     drawActions,
     mapActions,
-
     panelsActions
   });
 };
