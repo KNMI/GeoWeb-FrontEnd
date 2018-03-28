@@ -39,32 +39,32 @@ const UNIT_FT = 'ft';
 const EMPTY_GEO_JSON = {
   type: 'FeatureCollection',
   features: [
-    { type: 'Feature',
+    {
+      type: 'Feature',
       geometry: {
         type: 'Polygon',
         coordinates: []
       },
       properties: {
-        'sigmettype':'start',
-        'stroke': '#a734d7',
-        'stroke-width': 5,
+        'stroke': '#000',
+        'stroke-width': 2,
         'stroke-opacity': 1,
-        'fill': '#33cc00',
-        'fill-opacity': 0.5
+        'fill': '#F00',
+        'fill-opacity': 0.3
       }
     },
-    { type: 'Feature',
+    {
+      type: 'Feature',
       geometry: {
         type: 'Polygon',
         coordinates: []
       },
       properties: {
-        'sigmettype':'end',
         'stroke': '#000000',
         'stroke-width': 2,
         'stroke-opacity': 1,
-        'fill': '#FF8888',
-        'fill-opacity': 1.0
+        'fill': '#00F',
+        'fill-opacity': 0.3
       }
     }
   ]
@@ -82,7 +82,8 @@ const EMPTY_SIGMET = {
     }
   },
   movement: {
-    stationary: true
+    stationary: true,
+    movementtype: true
   },
   change: 'NC',
   forecast_position: '',
@@ -124,10 +125,13 @@ class SigmetCategory extends Component {
     this.getDirections = this.getDirections.bind(this);
     this.getChanges = this.getChanges.bind(this);
     this.setSelectedMovement = this.setSelectedMovement.bind(this);
+    this.setSetMovementType = this.setSetMovementType.bind(this);
     this.setSelectedDirection = this.setSelectedDirection.bind(this);
     this.setSpeed = this.setSpeed.bind(this);
     this.setChange = this.setChange.bind(this);
     this.setTops = this.setTops.bind(this);
+    this.selectFir = this.selectFir.bind(this);
+
     this.state = {
       isOpen: props.isOpen,
       isClosing: props.isClosing,
@@ -314,21 +318,73 @@ class SigmetCategory extends Component {
     }
   }
 
+  selectFir (destinationFeatureNr) {
+    const { dispatch, drawActions } = this.props;
+    return new Promise((resolve, reject) => {
+      axios({
+        method: 'get',
+        url: 'geojson/AMSTERDAM_FIR.geojson',
+        withCredentials: true,
+        responseType: 'json'
+      }).then(src => {
+        if (src.data) {
+          this.setState({ fir: src.data });
+        }
+        let newGeoJson = cloneDeep(this.props.drawProperties.adagucMapDraw.geojson);
+        newGeoJson.features[destinationFeatureNr].geometry = cloneDeep(src.data.features[0].geometry);
+        dispatch(drawActions.setGeoJSON(newGeoJson));
+        resolve('Fetched FIR');
+      }).catch(error => {
+        reject(error);
+      });
+    });
+  }
+
+  deleteDrawing (destinationFeatureNr) {
+    const { dispatch, drawActions } = this.props;
+    const newList = cloneDeep(this.state.list); /* TODO: What is state.list? */
+
+    let newGeoJson = cloneDeep(this.props.drawProperties.adagucMapDraw.geojson);
+    newGeoJson.features[destinationFeatureNr].geometry = cloneDeep(EMPTY_GEO_JSON.features[destinationFeatureNr].geometry);
+    dispatch(drawActions.setGeoJSON(newGeoJson));
+    newList[0].geojson = newGeoJson;
+
+    this.setState({ list: newList });
+    // TODO: call reducer to update redux state
+  }
+
   handleActionClick (action, sigmetPart) {
-    console.log(`Selection method for SIGMET part ${sigmetPart} is called`);
+    const { dispatch, mapActions, drawActions } = this.props;
+
     switch (action) {
       case 'select-point':
+        dispatch(mapActions.setMapMode('draw'));
+        dispatch(drawActions.setFeatureEditPoint());
+        break;
       case 'select-region':
+        dispatch(mapActions.setMapMode('draw'));
+        dispatch(drawActions.setFeatureEditBox());
+        break;
       case 'select-shape':
+        dispatch(mapActions.setMapMode('draw'));
+        dispatch(drawActions.setFeatureEditPolygon());
+        break;
       case 'select-fir':
-        console.log(`Selection method ${action} not yet implemented`);
+        this.selectFir(sigmetPart === 'where' ? 0 : 1).then(() => {
+          dispatch(mapActions.setMapMode('pan'));
+          dispatch(drawActions.setFeatureEditPolygon());
+        });
         break;
       case 'delete-selection':
-        this.deleteDrawing();
+        dispatch(mapActions.setMapMode('delete'));
+        this.deleteDrawing(sigmetPart === 'where' ? 0 : 1);
         break;
       default:
         console.log(`Selection method ${action} unknown and not implemented`);
     }
+
+    if (sigmetPart === 'where') dispatch(drawActions.setFeatureNr(0));
+    if (sigmetPart === 'progress') dispatch(drawActions.setFeatureNr(1));
   }
 
   onObsOrFcstClick (obsSelected) {
@@ -340,7 +396,7 @@ class SigmetCategory extends Component {
   saveSigmet (evt) {
     evt.preventDefault();
     const newList = cloneDeep(this.state.list);
-    newList[0].geojson = this.props.drawProperties.geojson;
+    newList[0].geojson = this.props.drawProperties.adagucMapDraw.geojson;
     this.setState({ list: newList });
     axios({
       method: 'post',
@@ -353,13 +409,6 @@ class SigmetCategory extends Component {
     }).catch(error => {
       this.couldntSaveSigmetCallback(error.response);
     });
-  }
-
-  deleteDrawing () {
-    const newList = cloneDeep(this.state.list);
-    newList[0].geojson = EMPTY_GEO_JSON;
-    this.setState({ list: newList });
-    // TODO: call reducer to update redux state
   }
 
   publishSigmet (uuid) {
@@ -751,6 +800,13 @@ class SigmetCategory extends Component {
     this.setState({ list: listCpy });
   }
 
+  setSetMovementType (evt) {
+    const isDefinedByArea = !evt.target.checked;
+    let listCpy = cloneDeep(this.state.list);
+    listCpy[0].movement.movementtype = isDefinedByArea;
+    this.setState({ list: listCpy });
+  }
+
   setSelectedDirection (dir) {
     if (Array.isArray(dir) && dir.length === 1) {
       const direction = dir[0].shortName;
@@ -834,11 +890,12 @@ class SigmetCategory extends Component {
       this.setState({ isClosing: nextProps.isClosing });
     }
     if (nextProps.hasOwnProperty('drawProperties') && typeof nextProps.drawProperties === 'object' &&
-        nextProps.drawProperties.hasOwnProperty('geojson') && nextProps.drawProperties.geojson &&
-        !isEqual(nextProps.drawProperties.geojson, EMPTY_GEO_JSON) &&
+        nextProps.drawProperties.hasOwnProperty('adagucMapDraw') &&
+        nextProps.drawProperties.adagucMapDraw.hasOwnProperty('geojson') && nextProps.drawProperties.adagucMapDraw.geojson &&
+        !isEqual(nextProps.drawProperties.adagucMapDraw.geojson, EMPTY_GEO_JSON) &&
         Array.isArray(this.state.list) && this.state.list.length > 0) {
       const newList = cloneDeep(this.state.list);
-      newList[0].geojson = this.props.drawProperties.geojson;
+      newList[0].geojson = this.props.drawProperties.adagucMapDraw.geojson;
       this.setState({ list: newList });
     }
     if (this.props.editable && Array.isArray(this.state.list) && this.state.list.length > 0 &&
@@ -1123,9 +1180,9 @@ class SigmetCategory extends Component {
     const showDrawWarningFromState = !this.state.list.length > 0 || !this.state.list[0].hasOwnProperty('geojson') || !this.state.list[0].geojson.hasOwnProperty('features') ||
       !this.state.list[0].geojson.features.length > 0 || !this.state.list[0].geojson.features[0].hasOwnProperty('geometry') ||
       !this.state.list[0].geojson.features[0].geometry.hasOwnProperty('coordinates') || !this.state.list[0].geojson.features[0].geometry.coordinates.length > 0;
-    const showDrawWarningFromProps = !drawProperties || !drawProperties.hasOwnProperty('geojson') || !drawProperties.geojson.hasOwnProperty('features') ||
-      !drawProperties.geojson.features.length > 0 || !drawProperties.geojson.features[0].hasOwnProperty('geometry') ||
-      !drawProperties.geojson.features[0].geometry.hasOwnProperty('coordinates') || !drawProperties.geojson.features[0].geometry.coordinates.length > 0;
+    const showDrawWarningFromProps = !drawProperties || !drawProperties.hasOwnProperty('geojson') || !drawProperties.adagucMapDraw.geojson.hasOwnProperty('features') ||
+      !drawProperties.adagucMapDraw.geojson.features.length > 0 || !drawProperties.adagucMapDraw.geojson.features[0].hasOwnProperty('geometry') ||
+      !drawProperties.adagucMapDraw.geojson.features[0].geometry.hasOwnProperty('coordinates') || !drawProperties.adagucMapDraw.geojson.features[0].geometry.coordinates.length > 0;
     let maxSize = this.state.list ? 550 * this.state.list.slice(0, 5).length : 0;
     if (editable) {
       maxSize = 1020;
@@ -1137,11 +1194,11 @@ class SigmetCategory extends Component {
     const availableChanges = this.getChanges();
     const availableDirections = this.getDirections();
     const drawActions = [
-      {
+      /*{
         title: 'Select point',
         action: 'select-point',
         icon: 'circle'
-      },
+      },*/
       {
         title: 'Select region',
         action: 'select-region',
@@ -1351,7 +1408,7 @@ class SigmetCategory extends Component {
                           <Col xs='3'>
                             <Badge color='success'>Progress</Badge>
                           </Col>
-                          <Col xs='9'>
+                          <Col xs='8' style={{ justifyContent: 'center' }}>
                             {/* dir: {N,NNE,NE,ENE,E,ESE,SE,SSE,S,SSW,SW,WSW,W,WNW} */}
                             {/* speed: int */}
                             {editable
@@ -1362,13 +1419,43 @@ class SigmetCategory extends Component {
 
                           </Col>
                         </Row>
+                        <Row className='section' style={{ minHeight: '2.5rem' }}>
+                          <Col xs='3'>
+                            <Badge color='success'>Type</Badge>
+                          </Col>
+                          <Col xs='8' style={{ justifyContent: 'center' }}>
+                            {/* dir: {N,NNE,NE,ENE,E,ESE,SE,SSE,S,SSW,SW,WSW,W,WNW} */}
+                            {/* speed: int */}
+                            {editable
+                              ? <SwitchButton id='movementtypeswitch' name='movementtypeswitch'
+                                labelLeft='By area' labelRight='By speed and direction' isChecked={item.movement.movementtype === false} action={this.setSetMovementType} />
+                              : <span>{!item.movement.movementtype ? 'Movement defined by area' : 'Movement defined with speed and direction'}</span>
+                            }
+
+                          </Col>
+                        </Row>
+                        {editable
+                          ? <Row className='section' style={{ minHeight: '3.685rem', marginBottom: '0.33rem' }}>
+                            {drawActions.map((actionItem, index) =>
+                              <Col xs={{ size: 'auto', offset: index === 0 ? 3 : null }} key={index} style={{ padding: '0 0.167rem' }}>
+                                <Button color='primary' active={actionItem.action === 'mapProperties.mapMode'}
+                                  disabled={!item.movement.movementtype || item.movement.stationary || actionItem.disabled || null}
+                                  id={actionItem.action + '_button'} title={actionItem.title} onClick={() => this.handleActionClick(actionItem.action, 'progress')} style={{ width: '3rem' }}>
+                                  <Icon name={actionItem.icon} />
+                                </Button>
+                              </Col>)
+                            }
+                          </Row>
+                          : ''
+                        }
                         <Row style={editable ? { marginTop: '0.19rem', minHeight: '2rem' } : null}>
                           <Col xs={{ size: 2, offset: 1 }}>
                             <Badge title='Direction'>Direction</Badge>
                           </Col>
                           <Col xs='9'>
                             {editable
-                              ? <Typeahead style={{ width: '100%' }} filterBy={['shortName', 'longName']} labelKey='longName' disabled={item.movement.stationary}
+                              ? <Typeahead style={{ width: '100%' }} filterBy={['shortName', 'longName']} labelKey='longName'
+                                disabled={item.movement.stationary || item.movement.movementtype}
                                 options={availableDirections} placeholder={item.movement.stationary ? null : 'Select direction'}
                                 onChange={(dir) => this.setSelectedDirection(dir)}
                                 selected={selectedDirection ? [selectedDirection] : []}
@@ -1384,26 +1471,13 @@ class SigmetCategory extends Component {
                           <Col xs='9'>
                             {editable
                               ? <InputGroup>
-                                <Input onChange={this.setSpeed} defaultValue='0' type='number' step='1' disabled={item.movement.stationary} />
+                                <Input onChange={this.setSpeed} defaultValue='0' type='number' step='1' disabled={item.movement.stationary || item.movement.movementtype} />
                                 <InputGroupAddon>KT</InputGroupAddon>
                               </InputGroup>
                               : <span>{item.movement.speed ? `${item.movement.speed} KT` : null }</span>
                             }
                           </Col>
                         </Row>
-                        {editable
-                          ? <Row className='section' style={{ minHeight: '3.685rem', marginBottom: '0.33rem' }}>
-                            {drawActions.map((actionItem, index) =>
-                              <Col xs={{ size: 'auto', offset: index === 0 ? 3 : null }} key={index} style={{ padding: '0 0.167rem' }}>
-                                <Button color='primary' active={actionItem.action === 'mapProperties.mapMode'} disabled={actionItem.disabled || null}
-                                  id={actionItem.action + '_button'} title={actionItem.title} onClick={() => this.handleActionClick(actionItem.action, 'progress')} style={{ width: '3rem' }}>
-                                  <Icon name={actionItem.icon} />
-                                </Button>
-                              </Col>)
-                            }
-                          </Row>
-                          : ''
-                        }
                         <Row className='section' style={editable ? { marginTop: '0.19rem', minHeight: '2.5rem' } : null}>
                           <Col xs='3'>
                             <Badge color='success'>Change</Badge>
@@ -1511,9 +1585,12 @@ SigmetCategory.propTypes = {
   actions: PropTypes.object,
   updateParent: PropTypes.func,
   mapActions: PropTypes.object,
+  drawActions: PropTypes.object,
   panelsActions: PropTypes.object,
   drawProperties: PropTypes.shape({
-    geojson: PropTypes.object
+    adagucMapDraw: {
+      geojson: PropTypes.object
+    }
   }),
   sources: PropTypes.object,
   latestUpdateTime: PropTypes.string,
