@@ -59,16 +59,7 @@ webpackConfig.externals['basemaps'] = JSON.stringify(require('./basemaps.json'))
 // ------------------------------------
 webpackConfig.plugins = [
   new webpack.DefinePlugin(project.globals),
-  new HtmlWebpackPlugin({
-    template: project.paths.client('index.html'),
-    hash: false,
-    favicon: project.paths.client('components/assets/icon.ico'),
-    filename: 'index.html',
-    inject: 'body',
-    minify: {
-      collapseWhitespace: true
-    }
-  }),
+
   new CopyWebpackPlugin([
     { from: 'src/static' }
   ]),
@@ -81,12 +72,32 @@ webpackConfig.plugins = [
 if (__DEV__) {
   debug('Enabling plugins for live development (HMR, NoErrors).');
   webpackConfig.plugins.push(
+    new HtmlWebpackPlugin({
+      template: project.paths.client('index.html'),
+      hash: false,
+      favicon: project.paths.client('components/assets/icon.ico'),
+      filename: 'index.html',
+      inject: 'body',
+      minify: {
+        collapseWhitespace: true
+      }
+    }),
     new webpack.HotModuleReplacementPlugin(),
     new webpack.NoEmitOnErrorsPlugin()
   );
 } else if (__PROD__) {
   debug('Enabling plugins for production (OccurenceOrder, Dedupe & UglifyJS).');
   webpackConfig.plugins.push(
+    new HtmlWebpackPlugin({
+      template: project.paths.client('index.prod.html'),
+      hash: false,
+      favicon: project.paths.client('components/assets/icon.ico'),
+      filename: 'index.html',
+      inject: 'body',
+      minify: {
+        collapseWhitespace: true
+      }
+    }),
     new webpack.optimize.OccurrenceOrderPlugin(),
     new webpack.optimize.UglifyJsPlugin({
       parallel: true,
