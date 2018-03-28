@@ -7,6 +7,7 @@ import axios from 'axios';
 import cloneDeep from 'lodash.clonedeep';
 import isEmpty from 'lodash.isempty';
 import isEqual from 'lodash.isequal';
+import range from 'lodash.range';
 import update from 'immutability-helper';
 import CollapseOmni from '../components/CollapseOmni';
 import SwitchButton from 'lyef-switch-button';
@@ -411,6 +412,16 @@ class SigmetCategory extends Component {
     });
   }
 
+  cancelSigmet (uuid) {
+    axios({
+      method: 'post',
+      url: BACKEND_SERVER_URL + '/sigmet/cancelsigmet?uuid=' + uuid,
+      withCredentials: true
+    }).then((src) => {
+      this.props.updateAllComponents();
+    });
+  }
+  
   publishSigmet (uuid) {
     axios({
       method: 'post',
@@ -919,44 +930,45 @@ class SigmetCategory extends Component {
     }
   }
 
-  marks (flightLevelValues, unit) {
-    let retObj = {
-      0: 'Surface',
-      400: 'Above'
-    };
+  marks (values) {
+    const retObj = {};
+    values.map((val) => {
+      if (val < 50) {
+        if (this.state.lowerUnit === UNIT_FT) {
+          retObj[val] = parseInt(val * 100) + ' ' + UNIT_FT;
+        } else {
+          retObj[val] = parseInt(Math.round(val * 30.48)) + ' ' + UNIT_M;
+        }
+      } else {
+        // 50 = a * 50 + b   \
+        //                    -> y = 7 * x - 300
+        // 400 = a * 100 + b /
+        retObj[val] = UNIT_FL + Math.round(7 * val - 300);
+      }
+    });
 
-    switch (unit) {
-      case UNIT_M:
-        const prettyNumbers = flightLevelValues.map((val) => Math.round((val * 30.48) / 500) * 500);
-        prettyNumbers.map((val) => { retObj[Math.round(val / 30.48)] = val + ' ' + UNIT_M; });
-        break;
-      case UNIT_FT:
-        flightLevelValues.map((val) => { retObj[val] = val * 100 + ' ' + UNIT_FT; });
-        break;
-      case UNIT_FL:
-      default:
-        flightLevelValues.map((val) => { retObj[val] = UNIT_FL + ' ' + val; });
-        break;
-    }
+    retObj[0] = 'Surface';
+    retObj[100] = 'Above';
+
     return retObj;
   };
 
-  tooltip (flightLevel, unit) {
-    if (flightLevel === 400) {
+  tooltip (height) {
+    if (height === 100) {
       return 'Above';
     }
-    if (flightLevel === 0) {
+    if (height === 0) {
       return 'Surface';
     }
-    switch (unit) {
-      case UNIT_M:
-        return Math.round((flightLevel * 30.48) / 100) * 100 + ' ' + UNIT_M;
-      case UNIT_FT:
-        return flightLevel * 100 + ' ' + UNIT_FT;
-      case UNIT_FL:
-        return UNIT_FL + ' ' + flightLevel;
-      default:
-        break;
+
+    if (height < 50) {
+      if (this.state.lowerUnit === UNIT_FT) {
+        return parseInt(height * 100) + ' ' + UNIT_FT;
+      } else {
+        return parseInt(Math.round(height * 30.48)) + ' ' + UNIT_M;
+      }
+    } else {
+      return UNIT_FL + Math.round(7 * height - 300);
     }
   };
 
@@ -1105,7 +1117,9 @@ class SigmetCategory extends Component {
   }
 
   renderLevelSelection (editable, item) {
-    const markValues = this.marks([50, 100, 150, 200, 250, 300, 350], this.state.lowerUnit);
+    const feetNumbers = range(0, 50, 10);
+    const flNumbers = range(50, 100, 7.142857);
+    const markValues = this.marks([...feetNumbers, ...flNumbers]);
     const handle = (params) => {
       const { value, dragging, index, ...restProps } = params;
       return (
@@ -1149,20 +1163,20 @@ class SigmetCategory extends Component {
             </Col>
             <Col xs={{ size: 6, offset: 1 }} style={{ justifyContent: 'center' }}>
               <ButtonGroup>
-                <Button color='primary' onClick={() => this.setState({ lowerUnit: UNIT_FT })} active={this.state.lowerUnit === UNIT_FT} disabled={this.state.tops}>{UNIT_FT}</Button>
-                <Button color='primary' onClick={() => this.setState({ lowerUnit: UNIT_M })} active={this.state.lowerUnit === UNIT_M} disabled={this.state.tops}>{UNIT_M}</Button>
-                <Button color='primary' onClick={() => this.setState({ lowerUnit: UNIT_FL })} active={this.state.lowerUnit === UNIT_FL} disabled={this.state.tops}>{UNIT_FL}</Button>
+                <Button color='primary' onClick={() => this.setState({ lowerUnit: UNIT_FT })} active={this.state.lowerUnit === UNIT_FT} disabled={this.state.tops}>{`${UNIT_FT}/${UNIT_FL}`}</Button>
+                <Button color='primary' onClick={() => this.setState({ lowerUnit: UNIT_M })} active={this.state.lowerUnit === UNIT_M} disabled={this.state.tops}>{`${UNIT_M}/${UNIT_FL}`}</Button>
               </ButtonGroup>
             </Col>
           </Row>
+
           <Row />
         </Col>
         <Col xs='3'>
           <Row style={{ padding: '1rem 0' }}>
             {this.state.renderRange
-              ? <Range step={10} allowCross={false} min={0} max={400} marks={markValues} vertical
+              ? <Range step={0.5} allowCross={false} min={0} max={100} marks={markValues} vertical
                 onChange={(v) => this.setSigmetLevel(v)} tipFormatter={value => this.tooltip(value, this.state.lowerUnit)} />
-              : <Slider step={10} allowCross={false} min={0} max={400} marks={markValues} vertical onChange={(v) => this.setSigmetLevel([v])} handle={handle} />
+              : <Slider step={0.5} allowCross={false} min={0} max={100} marks={markValues} vertical onChange={(v) => this.setSigmetLevel([v])} handle={handle} />
             }
           </Row>
         </Col>
@@ -1256,6 +1270,77 @@ class SigmetCategory extends Component {
                       const selectedFir = availableFirs.filter((fr) => fr.firname === item.firname).shift();
                       const selectedDirection = availableDirections.filter((dr) => dr.shortName === item.movement.dir).shift();
                       const selectedChange = availableChanges.filter((ch) => ch.shortName === item.change).shift();
+                      const pad2 = (number) => ('00' + number).slice(-2);
+                      const { issuedate, validdate, validdate_end } = item;
+                      const issueDate = issuedate.year + '-' + pad2(issuedate.monthValue) + '-' + pad2(issuedate.dayOfMonth) + 'T' + pad2(issuedate.hour) + ':' + pad2(issuedate.minute) + ':' + pad2(issuedate.second) + 'Z'
+                      const validDate = validdate.year + '-' + pad2(validdate.monthValue) + '-' + pad2(validdate.dayOfMonth) + 'T' + pad2(validdate.hour) + ':' + pad2(validdate.minute) + ':' + pad2(validdate.second) + 'Z'
+                      const endValidDate = validdate_end.year + '-' + pad2(validdate_end.monthValue) + '-' + pad2(validdate_end.dayOfMonth) + 'T' + pad2(validdate_end.hour) + ':' + pad2(validdate_end.minute) + ':' + pad2(validdate_end.second) + 'Z'
+                      if (item.cancels) {
+                        console.log(issueDate);
+                        return <Button tag='div' className={'Sigmet row' + (selectedIndex === index ? ' active' : '')}
+                          key={index} onClick={(evt) => { this.handleSigmetClick(evt, index); }} title={item.phenomenonHRT} >
+                          <Row>
+                            <Col xs='3'>
+                              <Badge color='success'>What</Badge>
+                            </Col>
+                            <Col xs='9'>
+                              Cancellation of SIGMET {item.cancels}
+                            </Col>
+                          </Row>
+                          <Row style={{ paddingTop: '0.19rem' }}>
+                            <Col xs={{ size: 2, offset: 1 }}>
+                              <Badge>At</Badge>
+                            </Col>
+                            <Col xs='9'>
+                              <Moment format={DATE_TIME_FORMAT} date={issueDate} />
+                            </Col>
+                          </Row>
+
+                          <Row className='section' style={{ minHeight: '1.75rem' }}>
+                            <Col xs='3'>
+                              <Badge color='success'>Valid</Badge>
+                            </Col>
+                          </Row>
+                          <Row style={{ paddingTop: '0.19rem' }}>
+                            <Col xs={{ size: 2, offset: 1 }}>
+                              <Badge>From</Badge>
+                            </Col>
+                            <Col xs='9'>
+                              <Moment format={DATE_TIME_FORMAT} date={validDate} />
+                            </Col>
+                          </Row>
+                          <Row style={{ paddingTop: '0.19rem' }}>
+                            <Col xs={{ size: 2, offset: 1 }}>
+                              <Badge>Until</Badge>
+                            </Col>
+                            <Col xs='9'>
+                              <Moment format={DATE_TIME_FORMAT} date={endValidDate} />
+                            </Col>
+                          </Row>
+                          <Row className='section' style={editable ? { minHeight: '2.5rem' } : null}>
+                            <Col xs='3'>
+                              <Badge color='success'>Where</Badge>
+                            </Col>
+                            <Col xs='9'>
+                              <span>{item.firname || 'no firname provided yet'}</span>
+                            </Col>
+                          </Row>
+                          <Row style={editable ? { minHeight: '2.5rem' } : null}>
+                            <Col xs={{ size: 9, offset: 3 }}>
+                              {item.location_indicator_icao}
+                            </Col>
+                          </Row>
+                          <Row>
+                            <Col xs={{ size: 2, offset: 1 }}>
+                              <Badge>Sequence</Badge>
+                            </Col>
+                            <Col xs='6'>
+                              {(!isNaN(item.sequence) && item.sequence !== -1) ? item.sequence : '(not yet published)'}
+                            </Col>
+                          </Row>
+                          <Row />
+                        </Button>;
+                      }
                       return <Button tag='div' className={'Sigmet row' + (selectedIndex === index ? ' active' : '')}
                         key={index} onClick={(evt) => { this.handleSigmetClick(evt, index); }} title={item.phenomenonHRT} >
                         <Row style={editable ? { minHeight: '2rem' } : null}>
@@ -1302,7 +1387,7 @@ class SigmetCategory extends Component {
                                 viewMode='time'
                                 value={item.forecast_position ? moment.utc(item.forecast_position) : now}
                               />
-                              : <Moment format={DATE_TIME_FORMAT} date={item.forecast_position} />
+                              : <Moment format={DATE_TIME_FORMAT} date={issueDate} />
                             }
                           </Col>
                         </Row>
@@ -1330,7 +1415,7 @@ class SigmetCategory extends Component {
                                 viewMode='time'
                                 value={moment.utc(item.validdate) || now}
                               />
-                              : <Moment format={DATE_TIME_FORMAT} date={item.validdate} />
+                              : <Moment format={DATE_TIME_FORMAT} date={validDate} />
                             }
                           </Col>
                         </Row>
@@ -1352,7 +1437,7 @@ class SigmetCategory extends Component {
                                 }}
                                 viewMode='time'
                                 value={moment.utc(item.validdate_end) || moment.utc(item.validdate).add(this.getParameters().maxhoursofvalidity, 'hour')} />
-                              : <Moment format={DATE_TIME_FORMAT} date={item.validdate_end} />
+                              : <Moment format={DATE_TIME_FORMAT} date={endValidDate} />
                             }
                           </Col>
                         </Row>
@@ -1535,7 +1620,8 @@ class SigmetCategory extends Component {
                         }
                         {!editable
                           ? <Row className='section' style={{ minHeight: '3.185rem' }}>
-                            <Col xs={{ size: 3, offset: 9 }}>
+                            <Col xs={{ size: 6, offset: 6 }}>
+                              <Button style={{ marginRight: '0.33rem' }} disabled={item.status !== 'PUBLISHED'} color='primary' onClick={() => this.cancelSigmet(item.uuid)}>Cancel</Button>
                               <Button disabled={item.status === 'PUBLISHED'} color='primary' onClick={() => this.publishSigmet(item.uuid)}>Publish</Button>
                             </Col>
                           </Row>
