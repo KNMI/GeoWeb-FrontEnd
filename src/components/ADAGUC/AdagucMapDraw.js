@@ -327,7 +327,11 @@ export default class AdagucMapDraw extends PureComponent {
       return false;
     }
 
-    webmapjs.setCursor();
+    if (this.props.isInEditMode) {
+      webmapjs.setCursor('crosshair');
+    } else {
+      webmapjs.setCursor();
+    }
 
     /* Check if the mouse hovers an edge of a polygon */
     this.selectedEdge = this.EDGE.NONE;

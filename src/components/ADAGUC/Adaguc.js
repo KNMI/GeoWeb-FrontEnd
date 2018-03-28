@@ -459,12 +459,12 @@ export default class Adaguc extends PureComponent {
         </div>
         <div style={{ display: 'none' }}>
           <AdagucMapDraw
-            geojson={drawProperties.geojson}
+            geojson={drawProperties && drawProperties.adagucMapDraw && drawProperties.adagucMapDraw.geojson}
             dispatch={dispatch}
             isInEditMode={mapProperties.mapMode === 'draw' || mapProperties.mapMode === 'delete'}
             isInDeleteMode={mapProperties.mapMode === 'delete'}
-            drawMode={drawProperties.drawMode}
-            featureNrToEdit={0}
+            drawMode={drawProperties && drawProperties.adagucMapDraw && drawProperties.adagucMapDraw.drawMode}
+            featureNrToEdit={drawProperties && drawProperties.adagucMapDraw && drawProperties.adagucMapDraw.featureNrToEdit}
             webmapjs={this.webMapJS}
             actions={drawActions}
             deletePolygonCallback={() => dispatch(this.props.mapActions.setMapMode('draw'))}
