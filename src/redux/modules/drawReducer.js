@@ -18,13 +18,29 @@ const INITIAL_STATE = {
           coordinates: []
         },
         properties: {
-          prop0: 'value0',
-          prop1: { this: 'that' }
+          'stroke': '#a734d7',
+          'stroke-width': 5,
+          'stroke-opacity': 1,
+          'fill': '#33cc00',
+          'fill-opacity': 0.5
+        }
+      },
+      { type: 'Feature',
+        geometry: {
+          type: 'Polygon',
+          coordinates: []
+        },
+        properties: {
+          'stroke': '#000000',
+          'stroke-width': 2,
+          'stroke-opacity': 1,
+          'fill': '#FF8888',
+          'fill-opacity': 1.0
         }
       }
     ]
   },
-
+  drawMode: 'POLYGON',
   measureDistance: {
     isInEditMode: false
   }
