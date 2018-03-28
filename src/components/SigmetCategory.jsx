@@ -421,7 +421,7 @@ class SigmetCategory extends Component {
       this.props.updateAllComponents();
     });
   }
-  
+
   publishSigmet (uuid) {
     axios({
       method: 'post',
@@ -1272,7 +1272,10 @@ class SigmetCategory extends Component {
                       const selectedChange = availableChanges.filter((ch) => ch.shortName === item.change).shift();
                       const pad2 = (number) => ('00' + number).slice(-2);
                       const { issuedate, validdate, validdate_end } = item;
-                      const issueDate = issuedate.year + '-' + pad2(issuedate.monthValue) + '-' + pad2(issuedate.dayOfMonth) + 'T' + pad2(issuedate.hour) + ':' + pad2(issuedate.minute) + ':' + pad2(issuedate.second) + 'Z'
+                      let issueDate = 'Not yet issued';
+                      if (issuedate) {
+                        issueDate = issuedate.year + '-' + pad2(issuedate.monthValue) + '-' + pad2(issuedate.dayOfMonth) + 'T' + pad2(issuedate.hour) + ':' + pad2(issuedate.minute) + ':' + pad2(issuedate.second) + 'Z'
+                      }
                       const validDate = validdate.year + '-' + pad2(validdate.monthValue) + '-' + pad2(validdate.dayOfMonth) + 'T' + pad2(validdate.hour) + ':' + pad2(validdate.minute) + ':' + pad2(validdate.second) + 'Z'
                       const endValidDate = validdate_end.year + '-' + pad2(validdate_end.monthValue) + '-' + pad2(validdate_end.dayOfMonth) + 'T' + pad2(validdate_end.hour) + ':' + pad2(validdate_end.minute) + ':' + pad2(validdate_end.second) + 'Z'
                       if (item.cancels) {
@@ -1292,7 +1295,11 @@ class SigmetCategory extends Component {
                               <Badge>At</Badge>
                             </Col>
                             <Col xs='9'>
-                              <Moment format={DATE_TIME_FORMAT} date={issueDate} />
+                              {
+                                issueDate === 'Not yet issued'
+                                  ? <span>{issueDate}</span>
+                                  : <Moment format={DATE_TIME_FORMAT} date={issueDate} />
+                              }
                             </Col>
                           </Row>
 
@@ -1387,7 +1394,9 @@ class SigmetCategory extends Component {
                                 viewMode='time'
                                 value={item.forecast_position ? moment.utc(item.forecast_position) : now}
                               />
-                              : <Moment format={DATE_TIME_FORMAT} date={issueDate} />
+                              : (issueDate === 'Not yet issued'
+                                ? <span>{issueDate}</span>
+                                : <Moment format={DATE_TIME_FORMAT} date={issueDate} />)
                             }
                           </Col>
                         </Row>
