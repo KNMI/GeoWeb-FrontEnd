@@ -103,30 +103,30 @@ describe('(Container) SigmetCategory', () => {
     phenomenon = _instance.showLevels({ lev1: { unit: 'SFC' }, lev2: { unit: 'm' } });
     expect(phenomenon).to.eql('Between surface and ft');
   });
-  it('Handles triggering of tooltip', () => {
-    const _component = mount(<SigmetCategory title={'test'} icon='star' />);
-    const _instance = _component.instance();
-    let phenomenon = _instance.tooltip(400, null);
-    expect(phenomenon).to.eql('Above');
-    phenomenon = _instance.tooltip(0, null);
-    expect(phenomenon).to.eql('Surface');
-    phenomenon = _instance.tooltip(100, 'm');
-    expect(phenomenon).to.eql('3000 m');
-    phenomenon = _instance.tooltip(100, 'ft');
-    expect(phenomenon).to.eql('10000 ft');
-    phenomenon = _instance.tooltip(100, 'FL');
-    expect(phenomenon).to.eql('FL 100');
-  });
-  it('Handles triggering of marks', () => {
-    const _component = mount(<SigmetCategory title={'test'} icon='star' />);
-    const _instance = _component.instance();
-    let phenomenon = _instance.marks([0, 100, 200], 'ft');
-    expect(phenomenon).to.eql({ 0: '0 ft', 100: '10000 ft', 200: '20000 ft', 400: 'Above' });
-    phenomenon = _instance.marks([0, 100, 200], 'FL');
-    expect(phenomenon).to.eql({ 0: 'FL 0', 100: 'FL 100', 200: 'FL 200', 400: 'Above' });
-    phenomenon = _instance.marks([100, 200, 300], 'FL');
-    expect(phenomenon).to.eql({ 0: 'Surface', 100: 'FL 100', 200: 'FL 200', 300: 'FL 300', 400: 'Above' });
-  });
+  // it('Handles triggering of tooltip', () => {
+  //   const _component = mount(<SigmetCategory title={'test'} icon='star' />);
+  //   const _instance = _component.instance();
+  //   let phenomenon = _instance.tooltip(400, null);
+  //   expect(phenomenon).to.eql('Above');
+  //   phenomenon = _instance.tooltip(0, null);
+  //   expect(phenomenon).to.eql('Surface');
+  //   phenomenon = _instance.tooltip(100, 'm');
+  //   expect(phenomenon).to.eql('3000 m');
+  //   phenomenon = _instance.tooltip(100, 'ft');
+  //   expect(phenomenon).to.eql('10000 ft');
+  //   phenomenon = _instance.tooltip(100, 'FL');
+  //   expect(phenomenon).to.eql('FL 100');
+  // });
+  // it('Handles triggering of marks', () => {
+  //   const _component = mount(<SigmetCategory title={'test'} icon='star' />);
+  //   const _instance = _component.instance();
+  //   let phenomenon = _instance.marks([0, 100, 200], 'ft');
+  //   expect(phenomenon).to.eql({ 0: '0 ft', 100: '10000 ft', 200: '20000 ft', 400: 'Above' });
+  //   phenomenon = _instance.marks([0, 100, 200], 'FL');
+  //   expect(phenomenon).to.eql({ 0: 'FL 0', 100: 'FL 100', 200: 'FL 200', 400: 'Above' });
+  //   phenomenon = _instance.marks([100, 200, 300], 'FL');
+  //   expect(phenomenon).to.eql({ 0: 'Surface', 100: 'FL 100', 200: 'FL 200', 300: 'FL 300', 400: 'Above' });
+  // });
   it('Handles triggering of setSigmetLevel', () => {
     const _component = mount(<SigmetCategory title={'test'} icon='star' />);
     const _instance = _component.instance();
