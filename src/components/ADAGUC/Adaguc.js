@@ -463,6 +463,8 @@ export default class Adaguc extends PureComponent {
             dispatch={dispatch}
             isInEditMode={mapProperties.mapMode === 'draw' || mapProperties.mapMode === 'delete'}
             isInDeleteMode={mapProperties.mapMode === 'delete'}
+            drawMode={drawProperties.drawMode}
+            featureNrToEdit={0}
             webmapjs={this.webMapJS}
             actions={drawActions}
             deletePolygonCallback={() => dispatch(this.props.mapActions.setMapMode('draw'))}

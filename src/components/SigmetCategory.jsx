@@ -7,11 +7,13 @@ import axios from 'axios';
 import cloneDeep from 'lodash.clonedeep';
 import isEmpty from 'lodash.isempty';
 import isEqual from 'lodash.isequal';
+import update from 'immutability-helper';
 import CollapseOmni from '../components/CollapseOmni';
 import SwitchButton from 'lyef-switch-button';
 import 'lyef-switch-button/css/main.css';
 import { Typeahead } from 'react-bootstrap-typeahead';
 import DateTimePicker from 'react-datetime';
+
 import Slider from 'rc-slider';
 import Tooltip from 'rc-tooltip';
 import PropTypes from 'prop-types';
@@ -23,9 +25,9 @@ const createSliderWithTooltip = Slider.createSliderWithTooltip;
 const Range = createSliderWithTooltip(Slider.Range);
 const Handle = Slider.Handle;
 
-const DATE_FORMAT = 'YYYY MMM DD - ';
+const DATE_FORMAT = 'DD MMM YYYY';
 const TIME_FORMAT = 'HH:mm UTC';
-const DATE_TIME_FORMAT = 'YYYY MMM DD - HH:mm UTC';
+const DATE_TIME_FORMAT = 'DD MMM YYYY HH:mm UTC';
 const SEPARATOR = '_';
 const TAG_NAMES = {
   DIV: 'div',
@@ -37,17 +39,32 @@ const UNIT_FT = 'ft';
 const EMPTY_GEO_JSON = {
   type: 'FeatureCollection',
   features: [
-    {
-      type: 'Feature',
+    { type: 'Feature',
       geometry: {
         type: 'Polygon',
         coordinates: []
       },
       properties: {
-        prop0: 'value0',
-        prop1: {
-          this: 'that'
-        }
+        'sigmettype':'start',
+        'stroke': '#a734d7',
+        'stroke-width': 5,
+        'stroke-opacity': 1,
+        'fill': '#33cc00',
+        'fill-opacity': 0.5
+      }
+    },
+    { type: 'Feature',
+      geometry: {
+        type: 'Polygon',
+        coordinates: []
+      },
+      properties: {
+        'sigmettype':'end',
+        'stroke': '#000000',
+        'stroke-width': 2,
+        'stroke-opacity': 1,
+        'fill': '#FF8888',
+        'fill-opacity': 1.0
       }
     }
   ]
@@ -72,8 +89,8 @@ const EMPTY_SIGMET = {
   issuedate: '',
   validdate: moment().utc().format(),
   validdate_end: moment().utc().add(4, 'hour').format(),
-  firname: '',
-  location_indicator_icao: '',
+  firname: 'AMSTERDAM FIR',
+  location_indicator_icao: 'EHAA',
   location_indicator_mwo: 'EHDB',
   uuid: '00000000-0000-0000-0000-000000000000',
   status: 'PRODUCTION'
@@ -97,7 +114,9 @@ class SigmetCategory extends Component {
     super(props);
     this.onObsOrFcstClick = this.onObsOrFcstClick.bind(this);
     this.handleSigmetClick = this.handleSigmetClick.bind(this);
+    this.handleActionClick = this.handleActionClick.bind(this);
     this.saveSigmet = this.saveSigmet.bind(this);
+    this.deleteDrawing = this.deleteDrawing.bind(this);
     this.publishSigmet = this.publishSigmet.bind(this);
     this.savedSigmetCallback = this.savedSigmetCallback.bind(this);
     this.getExistingSigmets = this.getExistingSigmets.bind(this);
@@ -111,6 +130,7 @@ class SigmetCategory extends Component {
     this.setTops = this.setTops.bind(this);
     this.state = {
       isOpen: props.isOpen,
+      isClosing: props.isClosing,
       list: [EMPTY_SIGMET],
       renderRange: false,
       lowerUnit: UNIT_FL
@@ -194,39 +214,41 @@ class SigmetCategory extends Component {
   getPhenomena () {
     const { phenomenonMapping } = this.props;
     let result = [];
-    phenomenonMapping.forEach((item) => {
-      if (item.variants.length === 0) {
-        const res = {
-          name: item.phenomenon.name,
-          code: item.phenomenon.code,
-          layerpreset: item.phenomenon.layerpreset
-        };
-        item.additions.forEach((addition) => {
-          result.push({
-            name: res.name + ' ' + addition.name,
-            code: res.code + SEPARATOR + addition.code,
-            layerpreset: item.phenomenon.layerpreset
-          });
-        });
-        result.push(res);
-      } else {
-        item.variants.forEach((variant) => {
+    if (Array.isArray(phenomenonMapping)) {
+      phenomenonMapping.forEach((item) => {
+        if (item.variants.length === 0) {
           const res = {
-            name: variant.name + ' ' + item.phenomenon.name.toLowerCase(),
-            code: variant.code + SEPARATOR + item.phenomenon.code,
+            name: item.phenomenon.name,
+            code: item.phenomenon.code,
             layerpreset: item.phenomenon.layerpreset
           };
           item.additions.forEach((addition) => {
             result.push({
               name: res.name + ' ' + addition.name,
-              code: res.code + addition.code,
+              code: res.code + SEPARATOR + addition.code,
               layerpreset: item.phenomenon.layerpreset
             });
           });
           result.push(res);
-        });
-      }
-    });
+        } else {
+          item.variants.forEach((variant) => {
+            const res = {
+              name: variant.name + ' ' + item.phenomenon.name.toLowerCase(),
+              code: variant.code + SEPARATOR + item.phenomenon.code,
+              layerpreset: item.phenomenon.layerpreset
+            };
+            item.additions.forEach((addition) => {
+              result.push({
+                name: res.name + ' ' + addition.name,
+                code: res.code + addition.code,
+                layerpreset: item.phenomenon.layerpreset
+              });
+            });
+            result.push(res);
+          });
+        }
+      });
+    }
     return result;
   }
 
@@ -292,6 +314,23 @@ class SigmetCategory extends Component {
     }
   }
 
+  handleActionClick (action, sigmetPart) {
+    console.log(`Selection method for SIGMET part ${sigmetPart} is called`);
+    switch (action) {
+      case 'select-point':
+      case 'select-region':
+      case 'select-shape':
+      case 'select-fir':
+        console.log(`Selection method ${action} not yet implemented`);
+        break;
+      case 'delete-selection':
+        this.deleteDrawing();
+        break;
+      default:
+        console.log(`Selection method ${action} unknown and not implemented`);
+    }
+  }
+
   onObsOrFcstClick (obsSelected) {
     const newList = cloneDeep(this.state.list);
     newList[0].obs_or_forecast.obs = obsSelected;
@@ -316,6 +355,13 @@ class SigmetCategory extends Component {
     });
   }
 
+  deleteDrawing () {
+    const newList = cloneDeep(this.state.list);
+    newList[0].geojson = EMPTY_GEO_JSON;
+    this.setState({ list: newList });
+    // TODO: call reducer to update redux state
+  }
+
   publishSigmet (uuid) {
     axios({
       method: 'post',
@@ -323,7 +369,7 @@ class SigmetCategory extends Component {
       withCredentials: true
     }).then((src) => {
       this.props.updateAllComponents();
-    })
+    });
   }
 
   sigmetLayers (p) {
@@ -655,17 +701,19 @@ class SigmetCategory extends Component {
     let listCpy = cloneDeep(this.state.list);
     listCpy[0].phenomenon = onlyObj.code;
     this.setState({ list: listCpy });
-    const preset = this.sigmetLayers(onlyObj.layerpreset);
-    this.props.dispatch(this.props.mapActions.setLayout(preset.display.type));
-    this.props.dispatch(this.props.panelsActions.setPreset(preset.panelsProperties));
-    this.props.dispatch(this.props.mapActions.setCut({ name: 'Custom', bbox: [preset.area.left || 570875, preset.area.bottom, preset.area.right || 570875, preset.area.top] }));
+    /* const preset = this.sigmetLayers(onlyObj.layerpreset);
+    this.props.dispatch(this.props.panelsActions.setPanelLayout(preset.display.type));
+    this.props.dispatch(this.props.panelsActions.setPresetLayers(preset.panelsProperties));
+    this.props.dispatch(this.props.mapActions.setCut({ name: 'Custom', bbox: [preset.area.left || 570875, preset.area.bottom, preset.area.right || 570875, preset.area.top] })); */
   }
 
   setSelectedFir (firList) {
+    let firObj;
     if (firList.length === 0) {
-      return;
+      firObj = { firname: null, location_indicator_icao: null };
+    } else {
+      firObj = firList[0];
     }
-    const firObj = firList[0];
     let listCpy = cloneDeep(this.state.list);
     listCpy[0].firname = firObj.firname;
     listCpy[0].location_indicator_icao = firObj.location_indicator_icao;
@@ -675,6 +723,12 @@ class SigmetCategory extends Component {
   setSelectedObservedForecast (isObserved) {
     let listCpy = cloneDeep(this.state.list);
     listCpy[0].obs_or_forecast = { obs: isObserved };
+    this.setState({ list: listCpy });
+  }
+
+  setSelectedForecastPosition (forecastPosition) {
+    let listCpy = cloneDeep(this.state.list);
+    listCpy[0].forecast_position = forecastPosition.utc().format();
     this.setState({ list: listCpy });
   }
 
@@ -750,10 +804,10 @@ class SigmetCategory extends Component {
   }
 
   savedSigmetCallback (message) {
+    this.props.toggleMethod(null, 'concept-sigmets');
+    this.props.selectMethod(0, this.state.list[0].geojson, 'concept-sigmets');
+
     this.setState({ isOpen: false, list: [EMPTY_SIGMET] });
-    if (this.props.selectedIndex === 0) {
-      this.props.selectMethod(0);
-    }
     this.props.updateAllComponents();
   }
 
@@ -776,6 +830,9 @@ class SigmetCategory extends Component {
     if (typeof nextProps.isOpen !== 'undefined') {
       this.setState({ isOpen: nextProps.isOpen });
     }
+    if (typeof nextProps.isClosing !== 'undefined') {
+      this.setState({ isClosing: nextProps.isClosing });
+    }
     if (nextProps.hasOwnProperty('drawProperties') && typeof nextProps.drawProperties === 'object' &&
         nextProps.drawProperties.hasOwnProperty('geojson') && nextProps.drawProperties.geojson &&
         !isEqual(nextProps.drawProperties.geojson, EMPTY_GEO_JSON) &&
@@ -783,6 +840,19 @@ class SigmetCategory extends Component {
       const newList = cloneDeep(this.state.list);
       newList[0].geojson = this.props.drawProperties.geojson;
       this.setState({ list: newList });
+    }
+    if (this.props.editable && Array.isArray(this.state.list) && this.state.list.length > 0 &&
+        this.state.list[0].validdate) {
+      const curVal = moment(this.state.list[0].validdate).utc();
+      const nowVal = moment().utc();
+      if (curVal.isBefore(nowVal, 'minute')) {
+        const newList = update(this.state.list, {
+          0: {
+            validdate: { $set: nowVal.format() }
+          }
+        });
+        this.setState({ list: newList });
+      }
     }
   }
 
@@ -1047,7 +1117,7 @@ class SigmetCategory extends Component {
   }
 
   render () {
-    const { title, icon, parentCollapsed, editable, selectedIndex, toggleMethod, drawProperties } = this.props;
+    const { title, icon, parentCollapsed, editable, selectedIndex, toggleMethod, scrollAction, drawProperties } = this.props;
     const notifications = !editable ? this.state.list.length : 0;
     // Show a warning in case there is no drawing yet, so both the this.state.list and the this.props.drawProperties are empty
     const showDrawWarningFromState = !this.state.list.length > 0 || !this.state.list[0].hasOwnProperty('geojson') || !this.state.list[0].geojson.hasOwnProperty('features') ||
@@ -1056,15 +1126,48 @@ class SigmetCategory extends Component {
     const showDrawWarningFromProps = !drawProperties || !drawProperties.hasOwnProperty('geojson') || !drawProperties.geojson.hasOwnProperty('features') ||
       !drawProperties.geojson.features.length > 0 || !drawProperties.geojson.features[0].hasOwnProperty('geometry') ||
       !drawProperties.geojson.features[0].geometry.hasOwnProperty('coordinates') || !drawProperties.geojson.features[0].geometry.coordinates.length > 0;
-    let maxSize = this.state.list ? 500 * this.state.list.length : 0;
+    let maxSize = this.state.list ? 550 * this.state.list.slice(0, 5).length : 0;
     if (editable) {
-      maxSize = 900;
+      maxSize = 1020;
     }
     const sourceless = Object.keys(this.props.sources || {}).length === 0;
+    const now = moment().utc();
+    const availablePhenomena = this.getPhenomena();
+    const availableFirs = this.getParameters().firareas;
+    const availableChanges = this.getChanges();
+    const availableDirections = this.getDirections();
+    const drawActions = [
+      {
+        title: 'Select point',
+        action: 'select-point',
+        icon: 'circle'
+      },
+      {
+        title: 'Select region',
+        action: 'select-region',
+        icon: 'retweet'
+      },
+      {
+        title: 'Select shape',
+        action: 'select-shape',
+        icon: 'pencil'
+      },
+      {
+        title: 'Select entire FIR',
+        action: 'select-fir',
+        icon: 'globe'
+      },
+      {
+        title: 'Delete selection',
+        action: 'delete-selection',
+        icon: 'trash'
+      }
+    ];
+
     return (
-      <Card className='row accordion'>
+      <Card className='row accordion' style={{ flex: (this.state.isOpen || this.state.isClosing) ? 'auto' : null, minWidth: 0, flexWrap: 'nowrap' }}>
         {parentCollapsed
-          ? <CardHeader>
+          ? <CardHeader className='row' style={{ minHeight: '2.5rem' }}>
             <Col xs='auto'>
               <Icon name={icon} />
             </Col>
@@ -1073,7 +1176,7 @@ class SigmetCategory extends Component {
               {notifications > 0 ? <Badge color='danger' pill className='collapsed'>{notifications}</Badge> : null}
             </Col>
           </CardHeader>
-          : <CardHeader onClick={maxSize > 0 ? toggleMethod : null} className={maxSize > 0 ? null : 'disabled'} title={title}>
+          : <CardHeader onClick={maxSize > 0 ? toggleMethod : null} className={maxSize > 0 ? 'row' : 'row disabled'} title={title} style={{ minHeight: '2.5rem' }}>
             <Col xs='auto'>
               <Icon name={icon} />
             </Col>
@@ -1085,226 +1188,314 @@ class SigmetCategory extends Component {
             </Col>
           </CardHeader>
         }
-        <CollapseOmni className='CollapseOmni' isOpen={this.state.isOpen} minSize={0} maxSize={maxSize}>
-          <CardBlock>
-            <Row>
-              <Col className='btn-group-vertical'>
-                {this.state.list.map((item, index) =>
-                  <Button tag='div' className={'Sigmet row' + (selectedIndex === index ? ' active' : '')}
-                    key={index} onClick={(evt) => { this.handleSigmetClick(evt, index); }} title={item.phenomenonHRT} >
-                    <Row style={editable ? { minHeight: '2rem' } : null}>
-                      <Col xs='3'>
-                        <Badge color='success'>What</Badge>
-                      </Col>
-                      <Col xs='9' style={{ flexDirection: 'column' }}>
+        <Row style={{ flex: 'auto', overflowY: 'auto' }} onScroll={scrollAction}>
+          <CollapseOmni className='CollapseOmni col' isOpen={this.state.isOpen} minSize={0} maxSize={maxSize}>
+            <CardBlock>
+              {(this.state.isOpen || this.state.isClosing)
+                ? <Row>
+                  <Col className='btn-group-vertical' style={{ minWidth: 0, flexGrow: 1, minHeight: maxSize }}>
+                    {this.state.list.slice(0, 5).map((item, index) => {
+                      const selectedPhenomenon = availablePhenomena.filter((ph) => ph.code === item.phenomenon).shift();
+                      const selectedFir = availableFirs.filter((fr) => fr.firname === item.firname).shift();
+                      const selectedDirection = availableDirections.filter((dr) => dr.shortName === item.movement.dir).shift();
+                      const selectedChange = availableChanges.filter((ch) => ch.shortName === item.change).shift();
+                      return <Button tag='div' className={'Sigmet row' + (selectedIndex === index ? ' active' : '')}
+                        key={index} onClick={(evt) => { this.handleSigmetClick(evt, index); }} title={item.phenomenonHRT} >
+                        <Row style={editable ? { minHeight: '2rem' } : null}>
+                          <Col xs='3'>
+                            <Badge color='success'>What</Badge>
+                          </Col>
+                          <Col xs='9'>
+                            {editable
+                              ? <Typeahead disabled={sourceless} filterBy={['name', 'code']} labelKey='code'
+                                options={availablePhenomena} placeholder={sourceless ? 'Loading phenomena ⏳' : 'Select phenomenon'}
+                                onChange={(phenomenonList) => this.setSelectedPhenomenon(phenomenonList)}
+                                selected={selectedPhenomenon ? [selectedPhenomenon] : []}
+                                clearButton />
+                              : <span style={{ fontWeight: 'bold' }}>{item.phenomenon}</span>
+                            }
+                          </Col>
+                        </Row>
+                        <Row style={editable ? { marginTop: '0.19rem', minHeight: '2rem' } : null}>
+                          <Col xs={{ size: 9, offset: 3 }}>
+                            {editable
+                              ? <SwitchButton id='obsfcstswitch' name='obsfcstswitch'
+                                labelRight='Observed' labelLeft='Forecast' isChecked={item.obs_or_forecast.obs} action={(evt) => this.setSelectedObservedForecast(evt.target.checked)} />
+                              : <span>{item.obs_or_forecast.obs ? 'Observed' : 'Forecast'}</span>
+                            }
+                          </Col>
+                        </Row>
+                        <Row style={editable ? { paddingTop: '0.19rem', minHeight: '2rem' } : { paddingTop: '0.19rem' }}>
+                          <Col xs={{ size: 2, offset: 1 }}>
+                            <Badge>At</Badge>
+                          </Col>
+                          <Col xs='9'>
+                            {editable
+                              ? <DateTimePicker style={{ width: '100%' }} dateFormat={DATE_FORMAT} timeFormat={TIME_FORMAT} utc
+                                onChange={(at) => this.setSelectedForecastPosition(at)}
+                                inputProps={item.obs_or_forecast.obs ? { disabled: true } : null}
+                                isValidDate={(curr, selected) => curr.isAfter(now.subtract(1, 'day')) &&
+                                  curr.isBefore(now.add(this.getParameters().hoursbeforevalidity, 'hour'))}
+                                timeConstraints={{
+                                  hours: {
+                                    min: now.hour(),
+                                    max: (now.hour() + this.getParameters().hoursbeforevalidity)
+                                  }
+                                }}
+                                viewMode='time'
+                                value={item.forecast_position ? moment.utc(item.forecast_position) : now}
+                              />
+                              : <Moment format={DATE_TIME_FORMAT} date={item.forecast_position} />
+                            }
+                          </Col>
+                        </Row>
+                        <Row className='section' style={{ minHeight: '1.75rem' }}>
+                          <Col xs='3'>
+                            <Badge color='success'>Valid</Badge>
+                          </Col>
+                        </Row>
+                        <Row style={editable ? { paddingTop: '0.19rem', minHeight: '2rem' } : { paddingTop: '0.19rem' }}>
+                          <Col xs={{ size: 2, offset: 1 }}>
+                            <Badge>From</Badge>
+                          </Col>
+                          <Col xs='9'>
+                            {editable
+                              ? <DateTimePicker style={{ width: '100%' }} dateFormat={DATE_FORMAT} timeFormat={TIME_FORMAT} utc
+                                onChange={(validFrom) => this.setSelectedValidFromMoment(validFrom)}
+                                isValidDate={(curr, selected) => curr.isAfter(now.subtract(1, 'day')) &&
+                                  curr.isBefore(now.add(this.getParameters().hoursbeforevalidity, 'hour'))}
+                                timeConstraints={{
+                                  hours: {
+                                    min: now.hour(),
+                                    max: (now.hour() + this.getParameters().hoursbeforevalidity)
+                                  }
+                                }}
+                                viewMode='time'
+                                value={moment.utc(item.validdate) || now}
+                              />
+                              : <Moment format={DATE_TIME_FORMAT} date={item.validdate} />
+                            }
+                          </Col>
+                        </Row>
+                        <Row style={editable ? { paddingTop: '0.19rem', minHeight: '2.5rem' } : { paddingTop: '0.19rem' }}>
+                          <Col xs={{ size: 2, offset: 1 }}>
+                            <Badge>Until</Badge>
+                          </Col>
+                          <Col xs='9'>
+                            {editable
+                              ? <DateTimePicker style={{ width: '100%' }} dateFormat={DATE_FORMAT} timeFormat={TIME_FORMAT} utc
+                                onChange={(validUntil) => this.setSelectedValidUntilMoment(validUntil)}
+                                isValidDate={(curr, selected) => curr.isAfter(moment.utc(item.validdate).subtract(1, 'day')) &&
+                                  curr.isBefore(moment.utc(item.validdate).add(this.getParameters().maxhoursofvalidity, 'hour'))}
+                                timeConstraints={{
+                                  hours: {
+                                    min: moment.utc(item.validdate).hour(),
+                                    max: (moment.utc(item.validdate).hour() + this.getParameters().maxhoursofvalidity)
+                                  }
+                                }}
+                                viewMode='time'
+                                value={moment.utc(item.validdate_end) || moment.utc(item.validdate).add(this.getParameters().maxhoursofvalidity, 'hour')} />
+                              : <Moment format={DATE_TIME_FORMAT} date={item.validdate_end} />
+                            }
+                          </Col>
+                        </Row>
+                        <Row className='section' style={editable ? { minHeight: '2.5rem' } : null}>
+                          <Col xs='3'>
+                            <Badge color='success'>Where</Badge>
+                          </Col>
+                          <Col xs='9'>
+                            {editable
+                              ? <Typeahead style={{ width: '100%' }} filterBy={['firname', 'location_indicator_icao']} labelKey='firname'
+                                options={availableFirs} onChange={(firList) => this.setSelectedFir(firList)}
+                                selected={selectedFir ? [selectedFir] : []} placeholder={'Select FIR'}
+                                clearButton />
+                              : <span>{item.firname || 'no firname provided yet'}</span>
+                            }
+                          </Col>
+                        </Row>
+                        <Row style={editable ? { minHeight: '2.5rem' } : null}>
+                          <Col xs={{ size: 9, offset: 3 }}>
+                            {item.location_indicator_icao}
+                          </Col>
+                        </Row>
                         {editable
-                          ? <Typeahead disabled={sourceless} filterBy={['name', 'code']} labelKey='name'
-                            options={this.getPhenomena()} placeholder={sourceless ? 'Loading phenomena ⏳' : 'Select phenomenon'}
-                            onChange={(phenomenonList) => this.setSelectedPhenomenon(phenomenonList)}
-                          />
-                          : <span style={{ fontWeight: 'bold' }}>{item.phenomenonHRT}</span>
+                          ? <Row className='section' style={{ minHeight: '3.685rem', marginBottom: '0.33rem' }}>
+                            {drawActions.map((actionItem, index) =>
+                              <Col xs={{ size: 'auto', offset: index === 0 ? 3 : null }} key={index} style={{ padding: '0 0.167rem' }}>
+                                <Button color='primary' active={actionItem.action === 'mapProperties.mapMode'} disabled={actionItem.disabled || null}
+                                  id={actionItem.action + '_button'} title={actionItem.title} onClick={() => this.handleActionClick(actionItem.action, 'where')} style={{ width: '3rem' }}>
+                                  <Icon name={actionItem.icon} />
+                                </Button>
+                              </Col>)
+                            }
+                          </Row>
+                          : ''
                         }
-                      </Col>
-                    </Row>
-                    <Row style={editable ? { marginTop: '0.19rem', minHeight: '2rem' } : null}>
-                      <Col xs={{ size: 9, offset: 3 }}>
-                        {editable
-                          ? <SwitchButton id='obsfcstswitch' name='obsfcstswitch'
-                            labelRight='Observed' labelLeft='Forecast' isChecked={item.obs_or_forecast.obs} action={(evt) => this.setSelectedObservedForecast(evt.target.checked)} />
-                          : <span>{item.obs_or_forecast.obs ? 'Observed' : 'Forecast'}</span>
+                        {selectedIndex > -1 && editable && (showDrawWarningFromState && showDrawWarningFromProps)
+                          ? <Row style={{ flex: 'none', padding: '0.5rem 0 0.5rem 0.12rem', maxWidth: '28.7rem' }}>
+                            <Col>
+                              <Alert color='danger' style={{ display: 'block', margin: '0', whiteSpace: 'normal', padding: '0.75rem' }}>
+                                Please use one of the selection tools above to indicate on the map where the phenomenon is
+                                {item.obs_or_forecast.obs ? ' observed.' : ' expected to occur.'}
+                              </Alert>
+                            </Col>
+                          </Row>
+                          : ''
                         }
-                      </Col>
-                    </Row>
-                    <Row className='section'>
-                      <Col xs='3'>
-                        <Badge color='success'>When</Badge>
-                      </Col>
-                    </Row>
-                    <Row style={editable ? { paddingTop: '0.19rem', minHeight: '2rem' } : { paddingTop: '0.19rem' }}>
-                      <Col xs={{ size: 2, offset: 1 }}>
-                        <Badge>From</Badge>
-                      </Col>
-                      <Col xs='9'>
-                        {editable
-                          ? <DateTimePicker style={{ width: '100%' }} dateFormat={DATE_FORMAT} timeFormat={TIME_FORMAT} utc
-                            onChange={(validFrom) => this.setSelectedValidFromMoment(validFrom)}
-                            isValidDate={(curr, selected) => curr.isAfter(moment().utc().subtract(1, 'day')) &&
-                              curr.isBefore(moment().utc().add(this.getParameters().hoursbeforevalidity, 'hour'))}
-                            timeConstraints={{
-                              hours: {
-                                min: moment().utc().hour(),
-                                max: (moment().utc().hour() + this.getParameters().hoursbeforevalidity)
-                              }
-                            }} />
-                          : <Moment format={DATE_TIME_FORMAT} date={item.validdate} />
-                        }
-                      </Col>
-                    </Row>
-                    <Row style={editable ? { paddingTop: '0.19rem', minHeight: '2.5rem' } : { paddingTop: '0.19rem' }}>
-                      <Col xs={{ size: 2, offset: 1 }}>
-                        <Badge>Until</Badge>
-                      </Col>
-                      <Col xs='9'>
-                        {editable
-                          ? <DateTimePicker style={{ width: '100%' }} dateFormat={DATE_FORMAT} timeFormat={TIME_FORMAT} utc
-                            onChange={(validUntil) => this.setSelectedValidUntilMoment(validUntil)}
-                            isValidDate={(curr, selected) => curr.isAfter(moment(this.state.list[0].validdate).subtract(1, 'day')) &&
-                              curr.isBefore(moment(this.state.list[0].validdate).add(this.getParameters().maxhoursofvalidity, 'hour'))}
-                            timeConstraints={{
-                              hours: {
-                                min: moment(this.state.list[0].validdate).hour(),
-                                max: (moment(this.state.list[0].validdate).hour() + this.getParameters().maxhoursofvalidity)
-                              }
-                            }} />
-                          : <Moment format={DATE_TIME_FORMAT} date={item.validdate_end} />
-                        }
-                      </Col>
-                    </Row>
-                    <Row className='section' style={editable ? { minHeight: '2.5rem' } : null}>
-                      <Col xs='3'>
-                        <Badge color='success'>Where</Badge>
-                      </Col>
-                      <Col xs='9' style={{ flexDirection: 'column' }}>
-                        {editable
-                          ? <Typeahead style={{ width: '100%' }} filterBy={['firname', 'location_indicator_icao']} labelKey='firname'
-                            options={this.getParameters().firareas} onChange={(firList) => this.setSelectedFir(firList)} defaultValue={this.getParameters().firareas[0]} />
-                          : <span>{item.firname || '--'}</span>
-                        }
-                      </Col>
-                    </Row>
-                    <Row>
-                      <Col xs={{ size: 9, offset: 3 }}>
-                        {item.location_indicator_icao}
-                      </Col>
-                    </Row>
-                    <Row className='section' style={editable ? { minHeight: '14rem' } : null}>
-                      <Col xs={editable ? { size: 12 } : { size: 9, offset: 3 }}>
-                        {this.renderLevelSelection(editable, item)}
-                      </Col>
-                    </Row>
-                    <Row className='section'>
-                      <Col xs='3'>
-                        <Badge color='success'>Progress</Badge>
-                      </Col>
-                      <Col xs='9'>
-                        {/* dir: {N,NNE,NE,ENE,E,ESE,SE,SSE,S,SSW,SW,WSW,W,WNW} */}
-                        {/* speed: int */}
-                        {editable
-                          ? <SwitchButton id='movementswitch' name='movementswitch'
-                            labelRight='Move' labelLeft='Stationary' isChecked={!item.movement.stationary} action={this.setSelectedMovement} />
-                          : <span>{item.movement.stationary ? 'Stationary' : 'Move'}</span>
-                        }
+                        <Row className='section' style={editable ? { minHeight: '14rem' } : null}>
+                          <Col xs={editable ? { size: 12 } : { size: 9, offset: 3 }}>
+                            {this.renderLevelSelection(editable, item)}
+                          </Col>
+                        </Row>
+                        <Row className='section' style={{ minHeight: '2.5rem' }}>
+                          <Col xs='3'>
+                            <Badge color='success'>Progress</Badge>
+                          </Col>
+                          <Col xs='9'>
+                            {/* dir: {N,NNE,NE,ENE,E,ESE,SE,SSE,S,SSW,SW,WSW,W,WNW} */}
+                            {/* speed: int */}
+                            {editable
+                              ? <SwitchButton id='movementswitch' name='movementswitch'
+                                labelRight='Move' labelLeft='Stationary' isChecked={!item.movement.stationary} action={this.setSelectedMovement} />
+                              : <span>{item.movement.stationary ? 'Stationary' : 'Move'}</span>
+                            }
 
-                      </Col>
-                    </Row>
-                    <Row style={editable ? { marginTop: '0.19rem', minHeight: '2rem' } : null}>
-                      <Col xs={{ size: 2, offset: 1 }}>
-                        <Badge title='Direction'>Direction</Badge>
-                      </Col>
-                      <Col xs='9'>
+                          </Col>
+                        </Row>
+                        <Row style={editable ? { marginTop: '0.19rem', minHeight: '2rem' } : null}>
+                          <Col xs={{ size: 2, offset: 1 }}>
+                            <Badge title='Direction'>Direction</Badge>
+                          </Col>
+                          <Col xs='9'>
+                            {editable
+                              ? <Typeahead style={{ width: '100%' }} filterBy={['shortName', 'longName']} labelKey='longName' disabled={item.movement.stationary}
+                                options={availableDirections} placeholder={item.movement.stationary ? null : 'Select direction'}
+                                onChange={(dir) => this.setSelectedDirection(dir)}
+                                selected={selectedDirection ? [selectedDirection] : []}
+                                clearButton />
+                              : <span>{selectedDirection ? selectedDirection.longName : (!item.movement.stationary ? 'No direction selected' : null)}</span>
+                            }
+                          </Col>
+                        </Row>
+                        <Row style={editable ? { marginTop: '0.19rem', minHeight: '2rem' } : null}>
+                          <Col xs={{ size: 2, offset: 1 }}>
+                            <Badge>Speed</Badge>
+                          </Col>
+                          <Col xs='9'>
+                            {editable
+                              ? <InputGroup>
+                                <Input onChange={this.setSpeed} defaultValue='0' type='number' step='1' disabled={item.movement.stationary} />
+                                <InputGroupAddon>KT</InputGroupAddon>
+                              </InputGroup>
+                              : <span>{item.movement.speed ? `${item.movement.speed} KT` : null }</span>
+                            }
+                          </Col>
+                        </Row>
                         {editable
-                          ? <Typeahead style={{ width: '100%' }} filterBy={['shortName', 'longName']} labelKey='longName' disabled={item.movement.stationary}
-                            options={this.getDirections()} onChange={(dir) => this.setSelectedDirection(dir)} defaultValue={this.getDirections()[0]} />
-                          : <span>{item.movement.dir}</span>
+                          ? <Row className='section' style={{ minHeight: '3.685rem', marginBottom: '0.33rem' }}>
+                            {drawActions.map((actionItem, index) =>
+                              <Col xs={{ size: 'auto', offset: index === 0 ? 3 : null }} key={index} style={{ padding: '0 0.167rem' }}>
+                                <Button color='primary' active={actionItem.action === 'mapProperties.mapMode'} disabled={actionItem.disabled || null}
+                                  id={actionItem.action + '_button'} title={actionItem.title} onClick={() => this.handleActionClick(actionItem.action, 'progress')} style={{ width: '3rem' }}>
+                                  <Icon name={actionItem.icon} />
+                                </Button>
+                              </Col>)
+                            }
+                          </Row>
+                          : ''
                         }
-                      </Col>
-                    </Row>
-                    <Row style={editable ? { marginTop: '0.19rem', minHeight: '2rem' } : null}>
-                      <Col xs={{ size: 2, offset: 1 }}>
-                        <Badge>Speed</Badge>
-                      </Col>
-                      <Col xs='9'>
+                        <Row className='section' style={editable ? { marginTop: '0.19rem', minHeight: '2.5rem' } : null}>
+                          <Col xs='3'>
+                            <Badge color='success'>Change</Badge>
+                          </Col>
+                          <Col xs='9'>
+                            {editable
+                              ? <Typeahead style={{ width: '100%' }} filterBy={['shortName', 'longName']} labelKey='longName'
+                                options={availableChanges} placeholder={'Select change'}
+                                onChange={(chg) => this.setChange(chg)}
+                                selected={selectedChange ? [selectedChange] : []}
+                                clearButton />
+                              : <span>{selectedChange ? selectedChange.longName : 'No change selected'}</span>
+                            }
+                          </Col>
+                        </Row>
+                        <Row>
+                          <Col xs={{ size: 9, offset: 3 }}>
+                            {item.forecast_position}
+                          </Col>
+                        </Row>
+                        <Row className='section' style={{ minHeight: '2.5rem' }}>
+                          <Col xs='3'>
+                            <Badge color='success'>Issued at</Badge>
+                          </Col>
+                          <Col xs='9'>
+                            {editable
+                              ? '(not yet published)'
+                              : <Moment format={DATE_TIME_FORMAT} date={item.issuedate} />
+                            }
+                          </Col>
+                        </Row>
+                        <Row style={{ minHeight: '2.5rem' }}>
+                          <Col xs={{ size: 9, offset: 3 }}>
+                            {item.location_indicator_mwo}
+                          </Col>
+                        </Row>
+                        {!editable
+                          ? <Row>
+                            <Col xs={{ size: 2, offset: 1 }}>
+                              <Badge>Sequence</Badge>
+                            </Col>
+                            <Col xs='6'>
+                              {(!isNaN(item.sequence) && item.sequence !== -1) ? item.sequence : '(not yet published)'}
+                            </Col>
+                          </Row>
+                          : null
+                        }
                         {editable
-                          ? <InputGroup>
-                            <Input onChange={this.setSpeed} defaultValue='0' type='number' step='1' disabled={item.movement.stationary} />
-                            <InputGroupAddon>KT</InputGroupAddon>
-                          </InputGroup>
-                          : <span>{item.movement.speed} KT</span>
+                          ? <Row className='section' style={{ minHeight: '3.185rem' }}>
+                            <Col xs={{ size: 3, offset: 9 }}>
+                              <Button color='primary' disabled={selectedIndex === -1} onClick={this.saveSigmet} >Create</Button>
+                            </Col>
+                          </Row>
+                          : ''
                         }
-                      </Col>
-                    </Row>
-                    <Row className='section' style={editable ? { marginTop: '0.19rem', minHeight: '2.5rem' } : null}>
-                      <Col xs='3'>
-                        <Badge color='success'>Change</Badge>
-                      </Col>
-                      <Col xs='9'>
-                        {editable
-                          ? <Typeahead style={{ width: '100%' }} filterBy={['shortName', 'longName']} labelKey='longName'
-                            options={this.getChanges()} onChange={(chg) => this.setChange(chg)} defaultValue={this.getChanges()[0]} />
-                          : <span>{this.getChanges().filter((li) => li.shortName === item.change)[0].longName}</span>
+                        {!editable
+                          ? <Row className='section' style={{ minHeight: '3.185rem' }}>
+                            <Col xs={{ size: 3, offset: 9 }}>
+                              <Button disabled={item.status === 'PUBLISHED'} color='primary' onClick={() => this.publishSigmet(item.uuid)}>Publish</Button>
+                            </Col>
+                          </Row>
+                          : ''
                         }
-                      </Col>
-                    </Row>
-                    <Row>
-                      <Col xs={{ size: 9, offset: 3 }}>
-                        {item.forecast_position}
-                      </Col>
-                    </Row>
-                    <Row className='section'>
-                      <Col xs='3'>
-                        <Badge color='success'>Issued at</Badge>
-                      </Col>
-                      <Col xs='9'>
-                        {editable
-                          ? '--'
-                          : <Moment format={DATE_TIME_FORMAT} date={item.issuedate} />
-                        }
-                      </Col>
-                    </Row>
-                    <Row>
-                      <Col xs={{ size: 9, offset: 3 }}>
-                        {item.location_indicator_mwo}
-                      </Col>
-                    </Row>
-                    {editable
-                      ? ''
-                      : <Row>
-                        <Col xs={{ size: 3, offset: 3 }}>
-                          <Badge>Sequence</Badge>
-                        </Col>
-                        <Col xs='6'>
-                          {item.sequence}
-                        </Col>
-                      </Row>
-                    }
-                    {selectedIndex > -1 && editable && (showDrawWarningFromState && showDrawWarningFromProps)
-                      ? <Row style={{ flex: 'none', padding: '0.5rem 0 0.5rem 0.12rem', maxWidth: '22.5rem' }}>
-                        <Col>
-                          <Alert color='danger' style={{ display: 'block', margin: '0', whiteSpace: 'normal', padding: '0.75rem' }}>
-                            Please draw a polygon (<i className='fa fa-pencil' />) to indicate where the phenomenon is
-                            {item.obs_or_forecast.obs ? ' observed.' : ' expected to occur.'}
-                          </Alert>
-                        </Col>
-                      </Row>
-                      : ''
-                    }
-                    {editable
-                      ? <Row style={{ minHeight: '2.5rem' }}>
-                        <Col xs={{ size: 3, offset: 5 }}>
-                          <Button color='primary' disabled={selectedIndex === -1} onClick={this.saveSigmet} >Save</Button>
-                        </Col>
-                        <Col xs='4'>
-                          <Button color='primary' disabled={selectedIndex === -1} onClick={this.deleteDrawing} >Delete drawing</Button>
-                        </Col>
-                      </Row>
-                      : <Row style={{ minHeight: '2.5rem' }}>
-                        <Col xs={{ size: 3, offset: 9 }}>
-                          <Button disabled={item.status === 'PUBLISHED'} color='primary' onClick={() => this.publishSigmet(item.uuid)}>Publish</Button>
-                        </Col>
-                      </Row>
-                    }
-                  </Button>
-                )}
-              </Col>
-            </Row>
-          </CardBlock>
-        </CollapseOmni>
+                      </Button>;
+                    })}
+                  </Col>
+                </Row>
+                : null}
+            </CardBlock>
+          </CollapseOmni>
+        </Row>
       </Card>);
   }
 }
 
+SigmetCategory.defaultProps = {
+  isOpen: false,
+  isClosing: false,
+  editable: false,
+  selectedIndex: 0,
+  selectMethod: () => {},
+  toggleMethod: () => {},
+  parentCollapsed: false,
+  phenomenonMapping: [],
+  dispatch: () => {},
+  updateParent: () => {},
+  scrollAction: () => {}
+};
+
 SigmetCategory.propTypes = {
   isOpen: PropTypes.bool,
+  isClosing: PropTypes.bool,
   title: PropTypes.string.isRequired,
   icon: PropTypes.string,
   source: PropTypes.string,
@@ -1324,7 +1515,11 @@ SigmetCategory.propTypes = {
   drawProperties: PropTypes.shape({
     geojson: PropTypes.object
   }),
-  sources: PropTypes.object
+  sources: PropTypes.object,
+  latestUpdateTime: PropTypes.string,
+  updateAllComponents: PropTypes.func,
+  isGetType: PropTypes.bool,
+  scrollAction: PropTypes.func
 };
 
 export default SigmetCategory;

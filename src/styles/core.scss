@@ -232,9 +232,21 @@ button.btn.btn-sm, button.btn.btn-group-sm > .btn {
   border-color: $ux-interactive-color-checked;
 }
 
-.form-control:disabled, .rbt.form-control[disabled] {
+.form-control:disabled, .rbt.form-control[disabled], .rbt-input.form-control[disabled] {
   cursor: not-allowed;
   background-color: #e8eaec;
+}
+
+.form-control.rbt-input {
+  padding: 0.2rem 0.75rem;
+}
+
+.rbt.open {
+  width: 100%;
+}
+
+.form-control .rbt-input-wrapper, .form-control .rbt-input-wrapper div {
+  width: 100%;
 }
 
 .navbar img.logo {
@@ -456,6 +468,8 @@ a.breadcrumb-active:hover, a.nav-link.active:hover {
 
 .col.sidebarredLayout > .row {
   flex: 1;
+  min-height: 0;
+  flex-wrap: nowrap;
 }
 
 .col.sidebarredContent {
