@@ -67,13 +67,14 @@ class SigmetsContainer extends Component {
 
     this.toggle = this.toggle.bind(this);
     this.select = this.select.bind(this);
+    this.renderMoreItems = this.renderMoreItems.bind(this);
     this.updateAllComponents = this.updateAllComponents.bind(this);
     let isOpenCategory = {};
     ITEMS.map((item, index) => {
       isOpenCategory[item.ref] = false;
       item.source = (item.isGetType ? GET_SIGMETS_URL : SET_SIGMET_URL) + item.source;
     });
-    this.state = { isOpen: true, selectedItem: {}, isOpenCategory: isOpenCategory };
+    this.state = { isOpen: true, selectedItem: {}, isOpenCategory: isOpenCategory, closingCategory: [] };
     axios.get(this.props.urls.BACKEND_SERVER_URL + '/sigmet/getsigmetphenomena').then((result) => {
       this.setState({ phenomena: result.data });
     }).catch((error) => {
@@ -122,8 +123,28 @@ class SigmetsContainer extends Component {
 
   toggleCategory (category) {
     const newIsOpenCategory = cloneDeep(this.state.isOpenCategory);
-    newIsOpenCategory[category] = !newIsOpenCategory[category];
-    this.setState({ isOpenCategory: newIsOpenCategory });
+    const newClosingCategory = cloneDeep(this.state.closingCategory);
+    for (let catKey in newIsOpenCategory) {
+      if (catKey === category && !newIsOpenCategory[catKey]) {
+        newIsOpenCategory[catKey] = true;
+      } else {
+        newIsOpenCategory[catKey] = false;
+        if (this.state.isOpenCategory[catKey]) {
+          newClosingCategory.push(catKey);
+        }
+      }
+    }
+    this.setState({ isOpenCategory: newIsOpenCategory, closingCategory: newClosingCategory });
+    setTimeout(() => this.setState({ closingCategory: [] }), 350);
+  }
+
+  renderMoreItems (evt) {
+    const nodelist = evt.target.querySelectorAll('.Sigmet');
+    const lastItem = nodelist.item(nodelist.length - 1);
+
+    if (lastItem.getBoundingClientRect().top < evt.target.getBoundingClientRect().bottom) {
+      console.log('Should render more items');
+    }
   }
 
   select (category, index, geo) {
@@ -147,7 +168,7 @@ class SigmetsContainer extends Component {
   }
 
   render () {
-    const maxSize = 400;
+    const maxSize = 520;
     let title = <Row>
       <Button color='primary' onClick={this.toggle} title={this.state.isOpen ? 'Collapse panel' : 'Expand panel'}>
         <Icon name={this.state.isOpen ? 'angle-double-left' : 'angle-double-right'} />
@@ -158,15 +179,17 @@ class SigmetsContainer extends Component {
       <Col className='SigmetsContainer'>
         <CollapseOmni className='CollapseOmni' isOpen={this.state.isOpen} isHorizontal minSize={64} maxSize={maxSize}>
           <Panel className='Panel' title={title}>
-            <Col xs='auto' className='accordionsWrapper' style={{ minWidth: this.state.isOpen ? maxSize - 32 : 'unset' }}>
+            <Col xs='auto' className='accordionsWrapper' style={{ minWidth: this.state.isOpen ? maxSize - 32 : 'unset', maxHeight: '100%' }}>
               {ITEMS.map((item, index) =>
                 <SigmetCategory phenomenonMapping={this.state.phenomena || []} adagucProperties={this.props.adagucProperties}
                   key={index} title={item.title} parentCollapsed={!this.state.isOpen} drawProperties={this.props.drawProperties}
                   mapActions={this.props.mapActions} panelsActions={this.props.panelsActions}
                   icon={item.icon} source={item.source} editable={item.editable} latestUpdateTime={this.state.latestUpdateTime}
                   isOpen={this.state.isOpen && this.state.isOpenCategory[item.ref]}
+                  isClosing={this.state.closingCategory.includes(item.ref)}
+                  scrollAction={this.renderMoreItems}
                   selectedIndex={typeof this.state.selectedItem.index !== 'undefined' && this.state.selectedItem.category === item.ref ? this.state.selectedItem.index : -1}
-                  selectMethod={(index, geo) => this.select(item.ref, index, geo)} toggleMethod={() => this.toggleCategory(item.ref)}
+                  selectMethod={(index, geo, cat = item.ref) => this.select(cat, index, geo)} toggleMethod={(evt, cat = item.ref) => this.toggleCategory(cat)}
                   dispatch={this.props.dispatch} actions={this.props.actions}
                   parameters={this.state.parameters || {}} updateAllComponents={this.updateAllComponents}
                   sources={this.props.sources} isGetType={item.isGetType} />
