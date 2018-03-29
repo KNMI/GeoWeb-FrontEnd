@@ -187,7 +187,7 @@ class SigmetsContainer extends Component {
                   icon={item.icon} source={item.source} editable={item.editable} latestUpdateTime={this.state.latestUpdateTime}
                   isOpen={this.state.isOpen && this.state.isOpenCategory[item.ref]}
                   isClosing={this.state.closingCategory.includes(item.ref)}
-                  scrollAction={this.renderMoreItems}
+                  scrollAction={this.renderMoreItems} urls={this.props.urls}
                   selectedIndex={typeof this.state.selectedItem.index !== 'undefined' && this.state.selectedItem.category === item.ref ? this.state.selectedItem.index : -1}
                   selectMethod={(index, geo, cat = item.ref) => this.select(cat, index, geo)} toggleMethod={(evt, cat = item.ref) => this.toggleCategory(cat)}
                   dispatch={this.props.dispatch} actions={this.props.actions}
