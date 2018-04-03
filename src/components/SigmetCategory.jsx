@@ -1208,11 +1208,11 @@ class SigmetCategory extends Component {
     const availableChanges = this.getChanges();
     const availableDirections = this.getDirections();
     const drawActions = [
-      /*{
+      /* {
         title: 'Select point',
         action: 'select-point',
         icon: 'circle'
-      },*/
+      }, */
       {
         title: 'Select region',
         action: 'select-region',
@@ -1502,7 +1502,7 @@ class SigmetCategory extends Component {
                           <Col xs='3'>
                             <Badge color='success'>Progress</Badge>
                           </Col>
-                          <Col xs='8' style={{ justifyContent: 'center' }}>
+                          <Col xs='9' style={{ justifyContent: 'center' }}>
                             {/* dir: {N,NNE,NE,ENE,E,ESE,SE,SSE,S,SSW,SW,WSW,W,WNW} */}
                             {/* speed: int */}
                             {editable
@@ -1517,7 +1517,7 @@ class SigmetCategory extends Component {
                           <Col xs='3'>
                             <Badge color='success'>Type</Badge>
                           </Col>
-                          <Col xs='8' style={{ justifyContent: 'center' }}>
+                          <Col xs='9' style={{ justifyContent: 'center' }}>
                             {/* dir: {N,NNE,NE,ENE,E,ESE,SE,SSE,S,SSW,SW,WSW,W,WNW} */}
                             {/* speed: int */}
                             {editable
