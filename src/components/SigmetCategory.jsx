@@ -21,7 +21,6 @@ import PropTypes from 'prop-types';
 import { BOUNDING_BOXES } from '../constants/bounding_boxes';
 import { GetServiceByName } from '../utils/getServiceByName';
 
-import { BACKEND_SERVER_URL } from '../static/urls.json';
 const createSliderWithTooltip = Slider.createSliderWithTooltip;
 const Range = createSliderWithTooltip(Slider.Range);
 const Handle = Slider.Handle;
@@ -413,9 +412,10 @@ class SigmetCategory extends Component {
   }
 
   cancelSigmet (uuid) {
+    const { urls } = this.props;
     axios({
       method: 'post',
-      url: BACKEND_SERVER_URL + '/sigmet/cancelsigmet?uuid=' + uuid,
+      url: urls.BACKEND_SERVER_URL + '/sigmet/cancelsigmet?uuid=' + uuid,
       withCredentials: true
     }).then((src) => {
       this.props.updateAllComponents();
@@ -423,9 +423,11 @@ class SigmetCategory extends Component {
   }
 
   publishSigmet (uuid) {
+    const { urls } = this.props;
+
     axios({
       method: 'post',
-      url: BACKEND_SERVER_URL + '/sigmet/publishsigmet?uuid=' + uuid,
+      url: urls.BACKEND_SERVER_URL + '/sigmet/publishsigmet?uuid=' + uuid,
       withCredentials: true
     }).then((src) => {
       this.props.updateAllComponents();
