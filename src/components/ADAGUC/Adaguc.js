@@ -136,17 +136,25 @@ export default class Adaguc extends PureComponent {
   }
 
   reparseLayers () {
-    const { mapId, panelsProperties, dispatch, panelsActions, adagucProperties } = this.props;
+    const { mapId, panelsProperties, active, dispatch, panelsActions } = this.props;
     const panel = panelsProperties.panels[mapId];
-    const { animationSettings } = adagucProperties;
+
+    const promises = []
     panel.layers.map((layer, i) => {
-      layer.parseLayer((newLayer) => {
-        if (newLayer.active) {
-          this.webMapJS.setActiveLayer(newLayer);
+      promises.push(new Promise((resolve, reject) => {
+        layer.parseLayer((newLayer) => {
+          return resolve(newLayer);
+        }, true);
+      }));
+    });
+    Promise.all(promises).then((newLayers) => {
+      newLayers.map((layer, i) => {
+        dispatch(panelsActions.replaceLayer({ index: i, layer: layer, mapId: mapId }));
+        if (layer.active) {
+          dispatch(panelsActions.setActiveLayer({ activePanelId: mapId, layerClicked: i }));
         }
-        this.onChangeAnimation(animationSettings, this.props.active);
-        dispatch(panelsActions.replaceLayer({ mapId, index: i, layer: newLayer }));
-      }, true);
+      })
+      this.updateLayers(panel.layers, newLayers, active);
     });
   }
 
@@ -348,7 +356,7 @@ export default class Adaguc extends PureComponent {
       this.webMapJS.removeAllLayers();
       if (nextDataLayers && nextDataLayers.length > 0) {
         const layersCpy = cloneDeep(nextDataLayers).reverse();
-        layersCpy.map((layer) => {
+        layersCpy.map((layer, i) => {
           this.webMapJS.addLayer(layer);
           if (layer.active) {
             this.webMapJS.setActiveLayer(layer);
