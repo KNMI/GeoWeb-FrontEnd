@@ -27,6 +27,7 @@ import TafExampleTafManagementPanel from '../components/Management/TafExampleTaf
 import TafLocationsManagementPanel from '../components/Management/TafLocationsManagementPanel';
 import SigmetParameterManagementPanel from '../components/Management/SigmetParameterManagementPanel';
 import LocationManagementPanel from '../components/Management/LocationManagementPanel';
+import TafsContainer from '../containers/TafsContainer';
 const SigmetManagementPanel = (props) => <Async load={import('../components/Management/SigmetManagementPanel')} componentProps={props} />;
 const TitleBarContainer = (props) => <Async load={import('../containers/TitleBarContainer')} componentProps={props} />;
 const MapActionsContainer = (props) => <Async load={import('../containers/MapActionsContainer')} componentProps={props} />;
@@ -35,8 +36,6 @@ const MapPanel = (props) => <Async load={import('../components/MapPanel')} compo
 const SidebarContainer = (props) => <Async load={import('../containers/Management/SidebarContainer')} componentProps={props} />;
 const ManagementPanel = (props) => <Async load={import('../components/Management/ManagementPanel')} componentProps={props} />;
 const SigmetsContainer = (props) => <Async load={import('../containers/SigmetsContainer')} componentProps={props} />;
-const TafsContainer = (props) => <Async load={import('../containers/TafsContainer')} componentProps={props} />;
-
 const mapStateToHeaderProps = state => ({
   title: 'header',
   user: state.userProperties,
