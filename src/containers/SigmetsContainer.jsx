@@ -143,7 +143,7 @@ class SigmetsContainer extends Component {
     const lastItem = nodelist.item(nodelist.length - 1);
 
     if (lastItem.getBoundingClientRect().top < evt.target.getBoundingClientRect().bottom) {
-      console.log('Should render more items');
+      console.error('Should render more items');
     }
   }
 
