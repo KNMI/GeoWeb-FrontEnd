@@ -14,7 +14,7 @@ export default class LayerModifier extends PureComponent {
     const { layer, dispatch, panelsActions, index, activePanelId } = this.props;
     const layerCpy = cloneDeep(layer);
     layerCpy.enabled = !layer.enabled;
-    dispatch(panelsActions.replaceLayer({ mapId: activePanelId, index: index, layer: layerCpy  }));
+    dispatch(panelsActions.replaceLayer({ mapId: activePanelId, index: index, layer: layerCpy }));
   }
   deleteLayer (e) {
     e.preventDefault();

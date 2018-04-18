@@ -380,7 +380,7 @@ class SigmetCategory extends Component {
         this.deleteDrawing(sigmetPart === 'where' ? 0 : 1);
         break;
       default:
-        console.log(`Selection method ${action} unknown and not implemented`);
+        console.error(`Selection method ${action} unknown and not implemented`);
     }
 
     if (sigmetPart === 'where') dispatch(drawActions.setFeatureNr(0));
@@ -1281,7 +1281,6 @@ class SigmetCategory extends Component {
                       const validDate = validdate.year + '-' + pad2(validdate.monthValue) + '-' + pad2(validdate.dayOfMonth) + 'T' + pad2(validdate.hour) + ':' + pad2(validdate.minute) + ':' + pad2(validdate.second) + 'Z'
                       const endValidDate = validdate_end.year + '-' + pad2(validdate_end.monthValue) + '-' + pad2(validdate_end.dayOfMonth) + 'T' + pad2(validdate_end.hour) + ':' + pad2(validdate_end.minute) + ':' + pad2(validdate_end.second) + 'Z'
                       if (item.cancels) {
-                        console.log(issueDate);
                         return <Button tag='div' className={'Sigmet row' + (selectedIndex === index ? ' active' : '')}
                           key={index} onClick={(evt) => { this.handleSigmetClick(evt, index); }} title={item.phenomenonHRT} >
                           <Row>

@@ -12,6 +12,7 @@ const SET_ACTIVE_LAYER = 'SET_ACTIVE_LAYER';
 const SET_ACTIVE_PANEL = 'SET_ACTIVE_PANEL';
 const SET_PANEL_LAYOUT = 'SET_PANEL_LAYOUT';
 const RESET_LAYERS = 'RESET_LAYERS';
+const SET_DIMENSION_VALUE = 'SET_DIMENSION_VALUE';
 
 const addLayer = createAction(ADD_LAYER);
 const setActiveLayer = createAction(SET_ACTIVE_LAYER);
@@ -24,6 +25,7 @@ const setPanelType = createAction(SET_PANEL_TYPE);
 const setActivePanel = createAction(SET_ACTIVE_PANEL);
 const setPanelLayout = createAction(SET_PANEL_LAYOUT);
 const resetLayers = createAction(RESET_LAYERS);
+const setDimensionValue = createAction(SET_DIMENSION_VALUE);
 
 const getNumPanels = (name) => {
   let numPanels = 0;
@@ -77,7 +79,8 @@ export const actions = {
   setPanelType,
   setActivePanel,
   setPanelLayout,
-  resetLayers
+  resetLayers,
+  setDimensionValue
 };
 
 export default handleActions({
@@ -159,7 +162,7 @@ export default handleActions({
       overlays[index] = layer;
       stateCpy.panels[mapId].baselayers = baseLayers.concat(overlays);
     } else {
-      stateCpy.panels[mapId].layers[index] = layer;
+      stateCpy.panels[mapId].layers[index] = cloneDeep(layer);
     }
 
     const numActiveLayers = stateCpy.panels[mapId].layers.filter((layer) => layer.active === true).length;
@@ -222,5 +225,17 @@ export default handleActions({
     const panelLayout = numPanels === 1 ? 'single' : payload;
     const activePanelId = state.activePanelId < numPanels ? state.activePanelId : 0;
     return { ...state, panelLayout, activePanelId };
+  },
+  [SET_DIMENSION_VALUE]: (state, { payload }) => {
+    const { mapId, layerIndex, dimensionName, value } = payload;
+
+    const stateCpy = cloneDeep(state);
+    const layer = stateCpy.panels[mapId].layers[layerIndex];
+    const layerDim = layer.dimensions.filter((dim) => dim.name === dimensionName);
+    if (layerDim.length !== 1) {
+      return state;
+    }
+    layerDim[0].currentValue = value;
+    return stateCpy;
   }
 }, INITIAL_STATE);
