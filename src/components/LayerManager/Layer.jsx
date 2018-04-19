@@ -6,8 +6,9 @@ import DragHandle from './DragHandle';
 import { Col, Row, Popover, PopoverTitle, PopoverContent } from 'reactstrap';
 import { SortableElement } from 'react-sortable-hoc';
 import Slider from 'rc-slider';
-require('rc-slider/assets/index.css');
 import { Icon } from 'react-fa';
+import cloneDeep from 'lodash.clonedeep';
+require('rc-slider/assets/index.css');
 
 export default class Layer extends PureComponent {
   constructor () {
@@ -16,6 +17,7 @@ export default class Layer extends PureComponent {
     this.alterLayer = this.alterLayer.bind(this);
     this.alterStyle = this.alterStyle.bind(this);
     this.alterOpacity = this.alterOpacity.bind(this);
+    this.renderRemainingDimensions = this.renderRemainingDimensions.bind(this);
     this.state = {
       layerChangerOpen: false,
       styleChangerOpen: false,
@@ -52,14 +54,14 @@ export default class Layer extends PureComponent {
   renderLayerChanger () {
     const { layerChangerOpen, serviceLayers, target } = this.state;
     return (
-      <Popover placement={'top'} width={'auto'} target={target} isOpen={layerChangerOpen}
+      <Popover placement={'top'} width={'auto'} target={target} isOpen={layerChangerOpen} style={{ overflowY: 'hidden' }}
         toggle={() => this.setState({
           layerChangerOpen: !layerChangerOpen,
           serviceLayers: [],
           target: ''
         })}>
         <PopoverTitle>Select layer</PopoverTitle>
-        <PopoverContent>
+        <PopoverContent style={{ overflowY: 'scroll', maxHeight: '50rem', overflowX: 'hidden' }}>
           {serviceLayers.map((layer, q) =>
             <li onClick={(e) => {
               e.stopPropagation();
@@ -124,6 +126,39 @@ export default class Layer extends PureComponent {
     );
   }
 
+  renderRemainingDimensions (layer, id) {
+    const { dispatch, panelsActions, index, activePanelId } = this.props;
+
+    const dimensions = layer.dimensions;
+    if (!dimensions || !Array.isArray(dimensions)) return;
+
+    const remainingDimensions = dimensions.filter((dim) => dim.name !== 'time' && dim.name !== 'reference_time');
+    if (remainingDimensions.length === 0) return;
+
+    return remainingDimensions.map((dim, i) => {
+      const name = dim.name + id;
+      return (
+        <div key={name}>
+          <Popover placement={'top'} width={'auto'} target={name} isOpen={this.state.extraDimOpen === name}
+            toggle={() => this.setState({
+              extraDimOpen: ''
+            })}>
+            <PopoverTitle>{dim.name} ({dim.units})</PopoverTitle>
+            <PopoverContent style={{ overflowY: 'scroll', maxHeight: '50rem', overflowX: 'hidden' }}>
+              {dim.generateAllValues().map((val, q) =>
+                <li onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  dispatch(panelsActions.setDimensionValue({ mapId: activePanelId, layerIndex: index, dimensionName: dim.name, value: val }));
+                }} key={q}>{val}</li>)}
+            </PopoverContent>
+          </Popover>
+
+          <EditableCell id={name} active={layer.active} color={this.props.color} onClick={() => { this.setState({ extraDimOpen: name }); }}>{dim.currentValue}</EditableCell>
+        </div>);
+    })
+  }
+
   render () {
     const { layer, color, index } = this.props;
     const styles = layer && layer.styles ? layer.styles.map((styleObj) => styleObj.name) : [];
@@ -138,6 +173,7 @@ export default class Layer extends PureComponent {
           {this.renderLayerChanger()}
           {this.renderStyleChanger()}
           {this.renderOpacityChanger()}
+
           <ConcreteCell active={layer.active} color={color}>{layer.WMJSService.title}</ConcreteCell>
           <EditableCell id={'layer'+id} onClick={(e) => {
             e.preventDefault();
@@ -156,7 +192,8 @@ export default class Layer extends PureComponent {
             e.stopPropagation();
             this.setState({ opacityChangerOpen: true, target: 'opacity'+id });
           }} active={layer.active} color={color}>{parseInt(layer.opacity * 100) + '%'}</EditableCell>
-          <ConcreteCell active={layer.active} color={color}>{refTime ? refTime.currentValue : null}</ConcreteCell></Col>);
+          <ConcreteCell active={layer.active} color={color}>{refTime ? refTime.currentValue : null}</ConcreteCell>
+          {this.renderRemainingDimensions(layer, id)}</Col>);
       case 'overlays':
         return <Col><ConcreteCell color={color}>{layer.title}</ConcreteCell></Col>;
       case 'maplayers':

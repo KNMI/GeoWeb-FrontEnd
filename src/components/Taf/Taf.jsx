@@ -94,7 +94,6 @@ export default class Taf extends Component {
   }
 
   fetchTAFs (url) {
-    console.log('fetchTAFs');
     if (!url && !this.props.source) return;
     let fetchUrl = url;
     if (!fetchUrl) {
@@ -172,7 +171,6 @@ export default class Taf extends Component {
       responseType: 'json',
       headers: { 'Accept': 'application/json' }
     }).then(src => {
-      console.log('setExpandedTAF', uuid);
       this.setState({ expandedTAF: uuid, expandedJSON: src.data });
     });
   }
@@ -181,12 +179,10 @@ export default class Taf extends Component {
   setExpandedTAF (uuid, expandAndCollapse = false, refreshTafList = false) {
     // Clicking the already expanded TAF collapses it
     if (this.state.expandedTAF === uuid && expandAndCollapse) {
-      console.log('setExpandedTAF collapse');
       this.setState({ expandedTAF: null, expandedTAC: null });
     } else if (uuid === 'edit') {
       this.setState({ expandedTAF: 'edit', expandedTAC: null });
     } else {
-      console.log('setExpandedTAF load');
       //TODO Only refresh list when needed
       if(refreshTafList) {
         this.fetchTAFs ().then(() => {
@@ -312,7 +308,7 @@ export default class Taf extends Component {
                 <CardTitle onClick={() => this.setExpandedTAF(taf.metadata.uuid)} style={{ cursor: 'pointer' }}>
                   {taf.metadata ? taf.metadata.location : 'EWat?'} - {moment.utc(taf.metadata.validityStart).format('YYYY-MM-DDTHH:mm') + ' UTC'} - {taf.metadata.type} - {taf.metadata.uuid}
                 </CardTitle>
-                <CollapseOmni className='CollapseOmni' style={{ flexDirection: 'column' }} isOpen={this.state.expandedTAF === taf.metadata.uuid} minSize={0} maxSize={800}>
+                <CollapseOmni className='CollapseOmni' style={{ flexDirection: 'column' }} isOpen={this.state.expandedTAF === taf.metadata.uuid} minSize={0} maxSize={1000}>
                   <Row>
                     <Col>
                       <CardText onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>{this.state.expandedTAC}</CardText>
