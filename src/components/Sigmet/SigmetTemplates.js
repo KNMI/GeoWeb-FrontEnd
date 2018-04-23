@@ -111,7 +111,7 @@ const TYPES = {
   SEQUENCE: PropTypes.number,
   STATUS: PropTypes.string,
   LOCATION_INDICATOR_ICAO: PropTypes.string,
-  LOCATION_INDICATOR_WMO: PropTypes.string
+  LOCATION_INDICATOR_MWO: PropTypes.string
 };
 TYPES.GEOJSON = PropTypes.shape({
   type: PropTypes.string,

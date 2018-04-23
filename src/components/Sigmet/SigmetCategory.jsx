@@ -19,6 +19,7 @@ import Slider from 'rc-slider';
 import Tooltip from 'rc-tooltip';
 import PropTypes from 'prop-types';
 import { SIGMET_TEMPLATES, CHANGES, DIRECTIONS, UNITS_ALT } from './SigmetTemplates';
+import { clearNullPointersAndAncestors } from '../../utils/json';
 
 const createSliderWithTooltip = Slider.createSliderWithTooltip;
 const Range = createSliderWithTooltip(Slider.Range);
@@ -34,9 +35,6 @@ const TAG_NAMES = {
 };
 const EMPTY_GEO_JSON = cloneDeep(SIGMET_TEMPLATES.GEOJSON);
 const EMPTY_SIGMET = cloneDeep(SIGMET_TEMPLATES.SIGMET);
-EMPTY_SIGMET.validdate = moment().utc().format();
-EMPTY_SIGMET.validdate_end = moment().utc().add(4, 'hour').format();
-
 const FALLBACK_PARAMS = {
   maxhoursofvalidity: 4,
   hoursbeforevalidity: 4,
@@ -47,8 +45,24 @@ const FALLBACK_PARAMS = {
       areapreset: 'NL_FIR'
     }
   ],
-  location_indicator_wmo: 'EHDB'
+  location_indicator_mwo: 'EHDB',
+  change: 'NC'
 };
+
+/**
+ * Generate a 'next-half-hour-rounded now Moment object
+ * @return {moment} Moment-object with the current now in UTC rounded to the next half hour
+ */
+const getRoundedNow = () => {
+  return moment().utc().minutes() < 30 ? moment().utc().startOf('hour').minutes(30) : moment().utc().startOf('hour').add(1, 'hour');
+};
+
+EMPTY_SIGMET.validdate = getRoundedNow().format();
+EMPTY_SIGMET.validdate_end = getRoundedNow().add(4, 'hour').format();
+EMPTY_SIGMET.location_indicator_mwo = FALLBACK_PARAMS.location_indicator_mwo;
+EMPTY_SIGMET.location_indicator_icao = FALLBACK_PARAMS.firareas[0].location_indicator_icao;
+EMPTY_SIGMET.firname = FALLBACK_PARAMS.firareas[0].firname;
+EMPTY_SIGMET.change = FALLBACK_PARAMS.change;
 
 class SigmetCategory extends Component {
   constructor (props) {
@@ -302,6 +316,7 @@ class SigmetCategory extends Component {
     const newList = cloneDeep(this.state.list);
     newList[0].geojson = this.props.drawProperties.adagucMapDraw.geojson;
     this.setState({ list: newList });
+    clearNullPointersAndAncestors(newList);
     axios({
       method: 'post',
       url: this.props.source,
@@ -372,9 +387,9 @@ class SigmetCategory extends Component {
     this.setState({ list: listCpy });
   }
 
-  setSelectedForecastPosition (forecastPosition) {
+  setSelectedObservedOrForecastAt (obsOrFcAt) {
     let listCpy = cloneDeep(this.state.list);
-    listCpy[0].forecast_position = forecastPosition.utc().format();
+    listCpy[0].obs_or_forecast.obsFcTime = obsOrFcAt.utc().format();
     this.setState({ list: listCpy });
   }
 
@@ -498,7 +513,7 @@ class SigmetCategory extends Component {
     if (this.props.editable && Array.isArray(this.state.list) && this.state.list.length > 0 &&
         this.state.list[0].validdate) {
       const curVal = moment(this.state.list[0].validdate).utc();
-      const nowVal = moment().utc();
+      const nowVal = getRoundedNow();
       if (curVal.isBefore(nowVal, 'minute')) {
         const newList = update(this.state.list, {
           0: {
@@ -789,10 +804,10 @@ class SigmetCategory extends Component {
       !drawProperties.adagucMapDraw.geojson.features[0].geometry.hasOwnProperty('coordinates') || !drawProperties.adagucMapDraw.geojson.features[0].geometry.coordinates.length > 0;
     let maxSize = this.state.list ? 550 * this.state.list.slice(0, itemLimit).length : 0;
     if (editable) {
-      maxSize = 1020;
+      maxSize = 1070;
     }
     const sourceless = Object.keys(this.props.sources || {}).length === 0;
-    const now = moment().utc();
+    const now = getRoundedNow();
     const availablePhenomena = this.getPhenomena();
     const availableFirs = this.getParameters().firareas;
     const drawActions = [
@@ -858,8 +873,6 @@ class SigmetCategory extends Component {
                       const selectedFir = availableFirs.filter((fr) => fr.firname === item.firname).shift();
                       const selectedDirection = DIRECTIONS.filter((dr) => dr.shortName === item.movement.dir).shift();
                       const selectedChange = CHANGES.filter((ch) => ch.shortName === item.change).shift();
-                      let { issuedate } = item;
-                      issuedate = issuedate || 'Not yet issued';
                       if (item.cancels) {
                         return <Button tag='div' className={'Sigmet row' + (selectedIndex === index ? ' active' : '')}
                           key={index} onClick={(evt) => { this.handleSigmetClick(evt, index); }} title={item.phenomenonHRT} >
@@ -871,19 +884,6 @@ class SigmetCategory extends Component {
                               Cancellation of SIGMET {item.cancels}
                             </Col>
                           </Row>
-                          <Row style={{ paddingTop: '0.19rem' }}>
-                            <Col xs={{ size: 2, offset: 1 }}>
-                              <Badge>At</Badge>
-                            </Col>
-                            <Col xs='9'>
-                              {
-                                issuedate === 'Not yet issued'
-                                  ? <span>{issuedate}</span>
-                                  : <Moment format={DATE_TIME_FORMAT} date={issuedate} />
-                              }
-                            </Col>
-                          </Row>
-
                           <Row className='section' style={{ minHeight: '1.75rem' }}>
                             <Col xs='3'>
                               <Badge color='success'>Valid</Badge>
@@ -910,7 +910,7 @@ class SigmetCategory extends Component {
                               <Badge color='success'>Where</Badge>
                             </Col>
                             <Col xs='9'>
-                              <span>{item.firname || 'no firname provided yet'}</span>
+                              <span>{item.firname || '(no firname provided yet)'}</span>
                             </Col>
                           </Row>
                           <Row style={editable ? { minHeight: '2.5rem' } : null}>
@@ -962,22 +962,21 @@ class SigmetCategory extends Component {
                           <Col xs='9'>
                             {editable
                               ? <DateTimePicker style={{ width: '100%' }} dateFormat={DATE_FORMAT} timeFormat={TIME_FORMAT} utc
-                                onChange={(at) => this.setSelectedForecastPosition(at)}
-                                inputProps={item.obs_or_forecast.obs ? { disabled: true } : null}
+                                onChange={(at) => this.setSelectedObservedOrForecastAt(at)}
                                 isValidDate={(curr, selected) => curr.isAfter(now.subtract(1, 'day')) &&
                                   curr.isBefore(now.add(this.getParameters().hoursbeforevalidity, 'hour'))}
                                 timeConstraints={{
                                   hours: {
-                                    min: now.hour(),
+                                    min: (now.hour() - this.getParameters().hoursbeforevalidity),
                                     max: (now.hour() + this.getParameters().hoursbeforevalidity)
                                   }
                                 }}
                                 viewMode='time'
-                                value={item.forecast_position ? moment.utc(item.forecast_position) : now}
+                                value={(item.obs_or_forecast && item.obs_or_forecast.obsFcTime) ? moment.utc(item.obs_or_forecast.obsFcTime) : now}
                               />
-                              : (issuedate === 'Not yet issued'
-                                ? <span>{issuedate}</span>
-                                : <Moment format={DATE_TIME_FORMAT} date={issuedate} />)
+                              : (item.obs_or_forecast && item.obs_or_forecast.obsFcTime)
+                                ? <Moment format={DATE_TIME_FORMAT} date={item.obs_or_forecast.obsFcTime} />
+                                : <span>{item.obs_or_forecast.obs ? '(no observation time provided)' : '(no forecasted time provided)'}</span>
                             }
                           </Col>
                         </Row>
@@ -1083,7 +1082,7 @@ class SigmetCategory extends Component {
                           <Col xs='3'>
                             <Badge color='success'>Progress</Badge>
                           </Col>
-                          <Col xs='9' style={{ justifyContent: 'center' }}>
+                          <Col xs='9'>
                             {/* dir: {N,NNE,NE,ENE,E,ESE,SE,SSE,S,SSW,SW,WSW,W,WNW} */}
                             {/* speed: int */}
                             {editable
@@ -1098,7 +1097,7 @@ class SigmetCategory extends Component {
                           <Col xs='3'>
                             <Badge color='success'>Type</Badge>
                           </Col>
-                          <Col xs='9' style={{ justifyContent: 'center' }}>
+                          <Col xs='9'>
                             {/* dir: {N,NNE,NE,ENE,E,ESE,SE,SSE,S,SSW,SW,WSW,W,WNW} */}
                             {/* speed: int */}
                             {editable
