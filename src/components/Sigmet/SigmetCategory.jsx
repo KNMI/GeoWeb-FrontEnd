@@ -260,7 +260,6 @@ class SigmetCategory extends Component {
 
   handleActionClick (action, sigmetPart) {
     const { dispatch, mapActions, drawActions } = this.props;
-
     switch (action) {
       case 'select-point':
         dispatch(mapActions.setMapMode('draw'));
@@ -778,6 +777,8 @@ class SigmetCategory extends Component {
 
   render () {
     const { title, icon, parentCollapsed, editable, selectedIndex, toggleMethod, scrollAction, drawProperties } = this.props;
+    let { itemLimit } = this.props;
+    itemLimit = itemLimit || 5;
     const notifications = !editable ? this.state.list.length : 0;
     // Show a warning in case there is no drawing yet, so both the this.state.list and the this.props.drawProperties are empty
     const showDrawWarningFromState = !this.state.list.length > 0 || !this.state.list[0].hasOwnProperty('geojson') || !this.state.list[0].geojson.hasOwnProperty('features') ||
@@ -786,7 +787,7 @@ class SigmetCategory extends Component {
     const showDrawWarningFromProps = !drawProperties || !drawProperties.hasOwnProperty('geojson') || !drawProperties.adagucMapDraw.geojson.hasOwnProperty('features') ||
       !drawProperties.adagucMapDraw.geojson.features.length > 0 || !drawProperties.adagucMapDraw.geojson.features[0].hasOwnProperty('geometry') ||
       !drawProperties.adagucMapDraw.geojson.features[0].geometry.hasOwnProperty('coordinates') || !drawProperties.adagucMapDraw.geojson.features[0].geometry.coordinates.length > 0;
-    let maxSize = this.state.list ? 550 * this.state.list.slice(0, 5).length : 0;
+    let maxSize = this.state.list ? 550 * this.state.list.slice(0, itemLimit).length : 0;
     if (editable) {
       maxSize = 1020;
     }
@@ -852,7 +853,7 @@ class SigmetCategory extends Component {
               {(this.state.isOpen || this.state.isClosing)
                 ? <Row>
                   <Col className='btn-group-vertical' style={{ minWidth: 0, flexGrow: 1, minHeight: maxSize }}>
-                    {this.state.list.slice(0, 5).map((item, index) => {
+                    {this.state.list.slice(0, itemLimit).map((item, index) => {
                       const selectedPhenomenon = availablePhenomena.filter((ph) => ph.code === item.phenomenon).shift();
                       const selectedFir = availableFirs.filter((fr) => fr.firname === item.firname).shift();
                       const selectedDirection = DIRECTIONS.filter((dr) => dr.shortName === item.movement.dir).shift();
@@ -1263,16 +1264,19 @@ SigmetCategory.propTypes = {
   drawActions: PropTypes.object,
   panelsActions: PropTypes.object,
   drawProperties: PropTypes.shape({
-    adagucMapDraw: {
+    adagucMapDraw: PropTypes.shape({
       geojson: PropTypes.object
-    }
+    })
   }),
   sources: PropTypes.object,
   latestUpdateTime: PropTypes.string,
   updateAllComponents: PropTypes.func,
   isGetType: PropTypes.bool,
   scrollAction: PropTypes.func,
-  urls: PropTypes.arrayOf(PropTypes.string)
+  urls: PropTypes.shape({
+    BACKEND_SERVER_URL: PropTypes.string
+  }),
+  itemLimit: PropTypes.number
 };
 
 export default SigmetCategory;
