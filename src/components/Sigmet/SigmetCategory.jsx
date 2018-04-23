@@ -9,7 +9,7 @@ import isEmpty from 'lodash.isempty';
 import isEqual from 'lodash.isequal';
 import range from 'lodash.range';
 import update from 'immutability-helper';
-import CollapseOmni from '../components/CollapseOmni';
+import CollapseOmni from '../CollapseOmni';
 import SwitchButton from 'lyef-switch-button';
 import 'lyef-switch-button/css/main.css';
 import { Typeahead } from 'react-bootstrap-typeahead';
@@ -18,8 +18,7 @@ import DateTimePicker from 'react-datetime';
 import Slider from 'rc-slider';
 import Tooltip from 'rc-tooltip';
 import PropTypes from 'prop-types';
-import { BOUNDING_BOXES } from '../constants/bounding_boxes';
-import { GetServiceByName } from '../utils/getServiceByName';
+import { SIGMET_TEMPLATES, CHANGES, DIRECTIONS, UNITS_ALT } from './SigmetTemplates';
 
 const createSliderWithTooltip = Slider.createSliderWithTooltip;
 const Range = createSliderWithTooltip(Slider.Range);
@@ -33,69 +32,10 @@ const TAG_NAMES = {
   DIV: 'div',
   SPAN: 'span'
 };
-const UNIT_M = 'm';
-const UNIT_FL = 'FL';
-const UNIT_FT = 'ft';
-const EMPTY_GEO_JSON = {
-  type: 'FeatureCollection',
-  features: [
-    {
-      type: 'Feature',
-      geometry: {
-        type: 'Polygon',
-        coordinates: []
-      },
-      properties: {
-        'stroke': '#000',
-        'stroke-width': 2,
-        'stroke-opacity': 1,
-        'fill': '#F00',
-        'fill-opacity': 0.3
-      }
-    },
-    {
-      type: 'Feature',
-      geometry: {
-        type: 'Polygon',
-        coordinates: []
-      },
-      properties: {
-        'stroke': '#000000',
-        'stroke-width': 2,
-        'stroke-opacity': 1,
-        'fill': '#00F',
-        'fill-opacity': 0.3
-      }
-    }
-  ]
-};
-const EMPTY_SIGMET = {
-  geojson: EMPTY_GEO_JSON,
-  phenomenon: '',
-  obs_or_forecast: {
-    obs: true
-  },
-  level: {
-    lev1: {
-      value: 100.0,
-      unit: 'FL'
-    }
-  },
-  movement: {
-    stationary: true,
-    movementtype: true
-  },
-  change: 'NC',
-  forecast_position: '',
-  issuedate: '',
-  validdate: moment().utc().format(),
-  validdate_end: moment().utc().add(4, 'hour').format(),
-  firname: 'AMSTERDAM FIR',
-  location_indicator_icao: 'EHAA',
-  location_indicator_mwo: 'EHDB',
-  uuid: '00000000-0000-0000-0000-000000000000',
-  status: 'PRODUCTION'
-};
+const EMPTY_GEO_JSON = cloneDeep(SIGMET_TEMPLATES.GEOJSON);
+const EMPTY_SIGMET = cloneDeep(SIGMET_TEMPLATES.SIGMET);
+EMPTY_SIGMET.validdate = moment().utc().format();
+EMPTY_SIGMET.validdate_end = moment().utc().add(4, 'hour').format();
 
 const FALLBACK_PARAMS = {
   maxhoursofvalidity: 4,
@@ -122,8 +62,6 @@ class SigmetCategory extends Component {
     this.savedSigmetCallback = this.savedSigmetCallback.bind(this);
     this.getExistingSigmets = this.getExistingSigmets.bind(this);
     this.gotExistingSigmetsCallback = this.gotExistingSigmetsCallback.bind(this);
-    this.getDirections = this.getDirections.bind(this);
-    this.getChanges = this.getChanges.bind(this);
     this.setSelectedMovement = this.setSelectedMovement.bind(this);
     this.setSetMovementType = this.setSetMovementType.bind(this);
     this.setSelectedDirection = this.setSelectedDirection.bind(this);
@@ -137,7 +75,7 @@ class SigmetCategory extends Component {
       isClosing: props.isClosing,
       list: [EMPTY_SIGMET],
       renderRange: false,
-      lowerUnit: UNIT_FL
+      lowerUnit: UNITS_ALT.FL
     };
   }
 
@@ -262,39 +200,6 @@ class SigmetCategory extends Component {
       parameters = FALLBACK_PARAMS;
     }
     return parameters;
-  }
-
-  /**
-   * Gets Cardinal, intercardinal and named points for directions of wind
-   */
-  getDirections () {
-    return [
-      { shortName: 'N', longName: 'North' },
-      { shortName: 'NNE', longName: 'North-Northeast' },
-      { shortName: 'NE', longName: 'Northeast' },
-      { shortName: 'ENE', longName: 'East-Northeast' },
-      { shortName: 'E', longName: 'East' },
-      { shortName: 'ESE', longName: 'East-Southeast' },
-      { shortName: 'SE', longName: 'Southeast' },
-      { shortName: 'SSE', longName: 'South-Southeast' },
-      { shortName: 'S', longName: 'South' },
-      { shortName: 'SSW', longName: 'South-Southwest' },
-      { shortName: 'SW', longName: 'Southwest' },
-      { shortName: 'WSW', longName: 'West-Southwest' },
-      { shortName: 'W', longName: 'West' },
-      { shortName: 'WNW', longName: 'West-Northwest' }
-    ];
-  }
-
-  /**
-   * Gets change types
-   */
-  getChanges () {
-    return [
-      { shortName: 'WKN', longName: 'Weakening' },
-      { shortName: 'NC', longName: 'No change' },
-      { shortName: 'INTSF', longName: 'Intensifying' }
-    ];
   }
 
   hasTagName (element, tagName) {
@@ -433,328 +338,6 @@ class SigmetCategory extends Component {
       this.props.updateAllComponents();
     });
   }
-
-  sigmetLayers (p) {
-    const HARMONIE_URL = GetServiceByName(this.props.sources, 'Harmonie36');
-    const OVERLAY_URL = GetServiceByName(this.props.sources, 'OVL');
-    const OBSERVATIONS_URL = GetServiceByName(this.props.sources, 'OBS');
-    const RADAR_URL = GetServiceByName(this.props.sources, 'RADAR');
-    const LIGHTNING_URL = GetServiceByName(this.props.sources, 'LGT');
-    const SATELLITE_URL = GetServiceByName(this.props.sources, 'SAT');
-    const HARMONIE_ML_URL = GetServiceByName(this.props.sources, 'Harmonie36');
-    switch (p) {
-      case 'sigmet_layer_TS':
-        return (
-          {
-            area: {
-              bottom: BOUNDING_BOXES[1].bbox[1],
-              top: BOUNDING_BOXES[1].bbox[3],
-              crs: 'EPSG:3857'
-            },
-            display: {
-              npanels: 4,
-              type: 'quaduneven'
-            },
-            panelsProperties: [
-              [
-                {
-                  service: HARMONIE_URL,
-                  title: 'Harmonie36',
-                  name: 'precipitation_flux',
-                  label: 'Prec: Precipitation rate',
-                  opacity: 1,
-                  enabled: true,
-                  overlay: false
-                },
-                {
-                  service: OVERLAY_URL,
-                  title: 'OVL',
-                  name: 'FIR_DEC_2013_EU',
-                  label: 'FIR areas',
-                  enabled: true,
-                  overlay: true
-                }
-              ],
-              [
-                {
-                  service: OBSERVATIONS_URL,
-                  title: 'OBS',
-                  name: '10M/ww',
-                  label: 'wawa Weather Code (ww)',
-                  enabled: true,
-                  opacity: 1,
-                  overlay: false
-                },
-                {
-                  service: OVERLAY_URL,
-                  title: 'OVL',
-                  name: 'FIR_DEC_2013_EU',
-                  label: 'FIR areas',
-                  enabled: true,
-                  overlay: true
-                }
-              ],
-              [
-                {
-                  service: RADAR_URL,
-                  title: 'RADAR',
-                  name: 'precipitation',
-                  label: 'Neerslag',
-                  opacity: 1,
-                  enabled: true,
-                  overlay: false
-                }, {
-                  service: LIGHTNING_URL,
-                  title: 'LGT',
-                  name: 'LGT_NL25_LAM_05M',
-                  label: 'LGT_NL25_LAM_05M',
-                  enabled: true,
-                  opacity: 1,
-                  overlay: false
-                },
-                {
-                  service: OVERLAY_URL,
-                  title: 'OVL',
-                  name: 'FIR_DEC_2013_EU',
-                  label: 'FIR areas',
-                  enabled: true,
-                  overlay: true
-                }
-              ],
-              [
-                {
-                  service: OVERLAY_URL,
-                  title: 'OVL',
-                  name: 'FIR_DEC_2013_EU',
-                  label: 'FIR areas',
-                  enabled: true,
-                  overlay: true
-                }
-              ]
-            ]
-          }
-        );
-
-      case 'sigmet_layer_SEV_TURB':
-        return (
-          {
-            area: {
-              bottom: BOUNDING_BOXES[1].bbox[1],
-              top: BOUNDING_BOXES[1].bbox[3],
-              crs: 'EPSG:3857'
-            },
-            display: {
-              npanels: 4,
-              type: 'quaduneven'
-            },
-            panelsProperties: [
-              [
-                {
-                  service: OVERLAY_URL,
-                  title: 'OVL',
-                  name: 'FIR_DEC_2013_EU',
-                  label: 'FIR areas',
-                  overlay: true
-                },
-                {
-                  service: HARMONIE_ML_URL,
-                  title: 'ADAGUC WMS Service for Geoweb',
-                  name: 'wind__at_ml',
-                  label: 'Wind flags (ML)',
-                  opacity: 1,
-                  enabled: true,
-                  modellevel: 17,
-                  style: 'Windbarbs_mps/barbshaded',
-                  styleTitle: 'Wind barbs+sh',
-                  overlay: false
-                }
-              ], [], [],
-              [
-                {
-                  service: OBSERVATIONS_URL,
-                  title: 'OBS',
-                  name: '10M/derived/windforce',
-                  label: 'Wind force',
-                  opacity: 1,
-                  enabled: true,
-                  style: 'bftalldiscvec/barb',
-                  styleTitle: 'bftalldiscvec/barb',
-                  overlay: false
-                },
-                {
-                  service: OVERLAY_URL,
-                  title: 'OVL',
-                  name: 'FIR_DEC_2013_EU',
-                  label: 'FIR areas',
-                  overlay: true
-                }
-              ]
-            ]
-          }
-        );
-      case 'sigmet_layer_SEV_ICE':
-        return (
-          {
-            area: {
-              bottom: BOUNDING_BOXES[1].bbox[1],
-              top: BOUNDING_BOXES[1].bbox[3],
-              crs: 'EPSG:3857'
-            },
-            display: {
-              npanels: 4,
-              type: 'quaduneven'
-            },
-            panelsProperties: [
-              [
-                {
-                  service: SATELLITE_URL,
-                  title: 'SAT',
-                  name: 'HRVIS',
-                  label: 'HRVIS',
-                  opacity: 1,
-                  enabled: true,
-                  overlay: false
-                },
-                {
-                  service: RADAR_URL,
-                  title: 'RADAR',
-                  name: 'precipitation_eur',
-                  label: 'Neerslag EUR',
-                  opacity: 1,
-                  overlay: false
-                }
-              ], [], [],
-              [
-                {
-                  service: OBSERVATIONS_URL,
-                  title: 'OBS',
-                  name: '10M/td',
-                  label: 'Dew Point Temperature 1.5m 1 Min Average (td)',
-                  opacity: 1,
-                  enabled: true,
-                  style: 'auto/nearest',
-                  styleTitle: 'auto/nearest',
-                  overlay: false
-                },
-                {
-                  service: OBSERVATIONS_URL,
-                  title: 'OBS',
-                  name: '10M/ta',
-                  label: 'Air Temperature 1 Min Average (ta)',
-                  opacity: 1,
-                  enabled: true,
-                  style: 'temperaturedisc/point',
-                  styleTitle: 'temperaturedisc/point',
-                  overlay: false
-                }
-              ]
-            ]
-          }
-        );
-
-      default:
-        return (
-          {
-            area: {
-              bottom: BOUNDING_BOXES[1].bbox[1],
-              top: BOUNDING_BOXES[1].bbox[3],
-              crs: 'EPSG:3857'
-            },
-            display: {
-              npanels: 4,
-              type: 'quaduneven'
-            },
-            panelsProperties: [
-              [
-                {
-                  service: HARMONIE_URL,
-                  title: 'Harmonie36',
-                  name: 'precipitation_flux',
-                  label: 'Prec: Precipitation rate',
-                  opacity: 1,
-                  enabled: true,
-                  overlay: false
-                },
-                {
-                  service: OVERLAY_URL,
-                  title: 'OVL',
-                  name: 'FIR_DEC_2013_EU',
-                  label: 'FIR areas',
-                  enabled: true,
-                  overlay: true
-                }
-              ],
-              [
-                {
-                  service: OBSERVATIONS_URL,
-                  title: 'OBS',
-                  name: '10M/ww',
-                  label: 'wawa Weather Code (ww)',
-                  enabled: true,
-                  opacity: 1,
-                  overlay: false
-                },
-                {
-                  service: OVERLAY_URL,
-                  title: 'OVL',
-                  name: 'FIR_DEC_2013_EU',
-                  label: 'FIR areas',
-                  enabled: true,
-                  overlay: true
-                }
-              ],
-              [
-                {
-                  service: RADAR_URL,
-                  title: 'RADAR',
-                  name: 'precipitation',
-                  label: 'Neerslag',
-                  opacity: 1,
-                  enabled: true,
-                  overlay: false
-                }, {
-                  service: LIGHTNING_URL,
-                  title: 'LGT',
-                  name: 'LGT_NL25_LAM_05M',
-                  label: 'LGT_NL25_LAM_05M',
-                  enabled: true,
-                  opacity: 1,
-                  overlay: false
-                },
-                {
-                  service: OVERLAY_URL,
-                  title: 'OVL',
-                  name: 'FIR_DEC_2013_EU',
-                  label: 'FIR areas',
-                  enabled: true,
-                  overlay: true
-                }
-              ],
-              [
-                {
-                  service: SATELLITE_URL,
-                  title: 'SAT',
-                  name: 'HRV-COMB',
-                  label: 'RGB-HRV-COMB',
-                  enabled: true,
-                  opacity: 1,
-                  overlay: false
-                },
-                {
-                  service: OVERLAY_URL,
-                  title: 'OVL',
-                  name: 'FIR_DEC_2013_EU',
-                  label: 'FIR areas',
-                  enabled: true,
-                  overlay: true
-                }
-              ]
-            ]
-          }
-        );
-    }
-  };
-
   setSelectedPhenomenon (phenomenonList) {
     if (phenomenonList.length === 0) {
       return;
@@ -763,10 +346,12 @@ class SigmetCategory extends Component {
     let listCpy = cloneDeep(this.state.list);
     listCpy[0].phenomenon = onlyObj.code;
     this.setState({ list: listCpy });
-    /* const preset = this.sigmetLayers(onlyObj.layerpreset);
-    this.props.dispatch(this.props.panelsActions.setPanelLayout(preset.display.type));
-    this.props.dispatch(this.props.panelsActions.setPresetLayers(preset.panelsProperties));
-    this.props.dispatch(this.props.mapActions.setCut({ name: 'Custom', bbox: [preset.area.left || 570875, preset.area.bottom, preset.area.right || 570875, preset.area.top] })); */
+    /* TODO
+      const preset = this.sigmetLayers(onlyObj.layerpreset);
+      this.props.dispatch(this.props.panelsActions.setPanelLayout(preset.display.type));
+      this.props.dispatch(this.props.panelsActions.setPresetLayers(preset.panelsProperties));
+      this.props.dispatch(this.props.mapActions.setCut({ name: 'Custom', bbox: [preset.area.left || 570875, preset.area.bottom, preset.area.right || 570875, preset.area.top] }));
+    */
   }
 
   setSelectedFir (firList) {
@@ -936,16 +521,16 @@ class SigmetCategory extends Component {
     const retObj = {};
     values.map((val) => {
       if (val < 50) {
-        if (this.state.lowerUnit === UNIT_FT) {
-          retObj[val] = parseInt(val * 100) + ' ' + UNIT_FT;
+        if (this.state.lowerUnit === UNITS_ALT.FT) {
+          retObj[val] = parseInt(val * 100) + ' ' + UNITS_ALT.FT;
         } else {
-          retObj[val] = parseInt(Math.round(val * 30.48)) + ' ' + UNIT_M;
+          retObj[val] = parseInt(Math.round(val * 30.48)) + ' ' + UNITS_ALT.M;
         }
       } else {
         // 50 = a * 50 + b   \
         //                    -> y = 7 * x - 300
         // 400 = a * 100 + b /
-        retObj[val] = UNIT_FL + Math.round(7 * val - 300);
+        retObj[val] = UNITS_ALT.FL + Math.round(7 * val - 300);
       }
     });
 
@@ -964,13 +549,13 @@ class SigmetCategory extends Component {
     }
 
     if (height < 50) {
-      if (this.state.lowerUnit === UNIT_FT) {
-        return parseInt(height * 100) + ' ' + UNIT_FT;
+      if (this.state.lowerUnit === UNITS_ALT.FT) {
+        return parseInt(height * 100) + ' ' + UNITS_ALT.FT;
       } else {
-        return parseInt(Math.round(height * 30.48)) + ' ' + UNIT_M;
+        return parseInt(Math.round(height * 30.48)) + ' ' + UNITS_ALT.M;
       }
     } else {
-      return UNIT_FL + Math.round(7 * height - 300);
+      return UNITS_ALT.FL + Math.round(7 * height - 300);
     }
   };
 
@@ -985,10 +570,10 @@ class SigmetCategory extends Component {
           return '';
         }
         result = 'Between surface and ';
-        if (level.lev2.unit === UNIT_FL) {
-          result += UNIT_FL + level.lev2.value;
+        if (level.lev2.unit === UNITS_ALT.FL) {
+          result += UNITS_ALT.FL + level.lev2.value;
         } else {
-          result += level.lev2.value + level.lev2.unit === UNIT_M ? 'm' : 'ft';
+          result += level.lev2.value + level.lev2.unit === UNITS_ALT.M ? 'm' : 'ft';
         }
         return result;
       case 'TOP':
@@ -1001,17 +586,17 @@ class SigmetCategory extends Component {
 
     if (!level.lev2) {
       let result = 'At ';
-      if (level.lev1.unit === UNIT_FL) {
+      if (level.lev1.unit === UNITS_ALT.FL) {
         result += 'FL' + level.lev1.value;
       } else {
-        result += level.lev1.value + level.lev1.unit === UNIT_M ? 'm' : 'ft';
+        result += level.lev1.value + level.lev1.unit === UNITS_ALT.M ? 'm' : 'ft';
       }
       return result;
     } else {
       let result = 'Between ';
-      if (level.lev1.unit === UNIT_FL) {
+      if (level.lev1.unit === UNITS_ALT.FL) {
         result += 'FL' + level.lev1.value + ' and FL' + level.lev2.value;
-      } else if (level.lev1.unit === UNIT_M) {
+      } else if (level.lev1.unit === UNITS_ALT.M) {
         result += level.lev1.value + 'm and ' + level.lev2.value + 'm';
       } else {
         result += level.lev1.value + 'ft and ' + level.lev2.value + 'ft';
@@ -1023,7 +608,7 @@ class SigmetCategory extends Component {
   setTops (evt) {
     let newPartialState = { tops: evt.target.checked };
     if (newPartialState.tops) {
-      newPartialState['lowerUnit'] = UNIT_FL;
+      newPartialState['lowerUnit'] = UNITS_ALT.FL;
     }
     this.setState(newPartialState);
   }
@@ -1041,15 +626,15 @@ class SigmetCategory extends Component {
         listCpy[0].level.lev1 = { unit: 'TOP', value: val };
       } else {
         switch (this.state.lowerUnit) {
-          case UNIT_M:
+          case UNITS_ALT.M:
             const meterVal = Math.round((val * 30.48) / 100) * 100;
             listCpy[0].level.lev1 = { unit: 'M', value: meterVal };
             break;
-          case UNIT_FT:
+          case UNITS_ALT.FT:
             const feetVal = val * 100;
             listCpy[0].level.lev1 = { unit: 'FT', value: feetVal };
             break;
-          case UNIT_FL:
+          case UNITS_ALT.FL:
           default:
             listCpy[0].level.lev1 = { unit: 'FL', value: val };
             break;
@@ -1066,15 +651,15 @@ class SigmetCategory extends Component {
         // SFC
         listCpy[0].level.lev1 = { unit: 'SFC', value: 0 };
         switch (this.state.lowerUnit) {
-          case UNIT_M:
+          case UNITS_ALT.M:
             const meterVal = Math.round((lowerVal * 30.48) / 100) * 100;
             listCpy[0].level.lev2 = { unit: 'M', value: meterVal };
             break;
-          case UNIT_FT:
+          case UNITS_ALT.FT:
             const feetVal = lowerVal * 100;
             listCpy[0].level.lev2 = { unit: 'FT', value: feetVal };
             break;
-          case UNIT_FL:
+          case UNITS_ALT.FL:
           default:
             listCpy[0].level.lev2 = { unit: 'FL', value: lowerVal };
             break;
@@ -1083,11 +668,11 @@ class SigmetCategory extends Component {
         // Above
         listCpy[0].level.lev1 = { unit: this.state.tops ? 'TOP_ABV' : 'ABV', value: 0 };
         switch (this.state.lowerUnit) {
-          case UNIT_M:
+          case UNITS_ALT.M:
             break;
-          case UNIT_FT:
+          case UNITS_ALT.FT:
             break;
-          case UNIT_FL:
+          case UNITS_ALT.FL:
           default:
             listCpy[0].level.lev2 = { unit: 'FL', value: lowerVal };
             break;
@@ -1095,19 +680,19 @@ class SigmetCategory extends Component {
       } else {
         // Between
         switch (this.state.lowerUnit) {
-          case UNIT_M:
+          case UNITS_ALT.M:
             const lowerMeterVal = Math.round((lowerVal * 30.48) / 100) * 100;
             const upperMeterVal = Math.round((upperVal * 30.48) / 100) * 100;
             listCpy[0].level.lev1 = { unit: 'M', value: lowerMeterVal };
             listCpy[0].level.lev2 = { unit: 'M', value: upperMeterVal };
             break;
-          case UNIT_FT:
+          case UNITS_ALT.FT:
             const lowerFeetVal = lowerVal * 100;
             const upperFeetVal = upperVal * 100;
             listCpy[0].level.lev1 = { unit: 'FT', value: lowerFeetVal };
             listCpy[0].level.lev2 = { unit: 'FT', value: upperFeetVal };
             break;
-          case UNIT_FL:
+          case UNITS_ALT.FL:
           default:
             listCpy[0].level.lev1 = { unit: 'FL', value: lowerVal };
             listCpy[0].level.lev2 = { unit: 'FL', value: upperVal };
@@ -1165,8 +750,10 @@ class SigmetCategory extends Component {
             </Col>
             <Col xs={{ size: 6, offset: 1 }} style={{ justifyContent: 'center' }}>
               <ButtonGroup>
-                <Button color='primary' onClick={() => this.setState({ lowerUnit: UNIT_FT })} active={this.state.lowerUnit === UNIT_FT} disabled={this.state.tops}>{`${UNIT_FT}/${UNIT_FL}`}</Button>
-                <Button color='primary' onClick={() => this.setState({ lowerUnit: UNIT_M })} active={this.state.lowerUnit === UNIT_M} disabled={this.state.tops}>{`${UNIT_M}/${UNIT_FL}`}</Button>
+                <Button color='primary' onClick={() => this.setState({ lowerUnit: UNITS_ALT.FT })} active={this.state.lowerUnit === UNITS_ALT.FT}
+                  disabled={this.state.tops}>{`${UNITS_ALT.FT}/${UNITS_ALT.FL}`}</Button>
+                <Button color='primary' onClick={() => this.setState({ lowerUnit: UNITS_ALT.M })} active={this.state.lowerUnit === UNITS_ALT.M}
+                  disabled={this.state.tops}>{`${UNITS_ALT.M}/${UNITS_ALT.FL}`}</Button>
               </ButtonGroup>
             </Col>
           </Row>
@@ -1207,14 +794,12 @@ class SigmetCategory extends Component {
     const now = moment().utc();
     const availablePhenomena = this.getPhenomena();
     const availableFirs = this.getParameters().firareas;
-    const availableChanges = this.getChanges();
-    const availableDirections = this.getDirections();
     const drawActions = [
-      /*{
+      /* {
         title: 'Select point',
         action: 'select-point',
         icon: 'circle'
-      },*/
+      }, */
       {
         title: 'Select region',
         action: 'select-region',
@@ -1270,16 +855,10 @@ class SigmetCategory extends Component {
                     {this.state.list.slice(0, 5).map((item, index) => {
                       const selectedPhenomenon = availablePhenomena.filter((ph) => ph.code === item.phenomenon).shift();
                       const selectedFir = availableFirs.filter((fr) => fr.firname === item.firname).shift();
-                      const selectedDirection = availableDirections.filter((dr) => dr.shortName === item.movement.dir).shift();
-                      const selectedChange = availableChanges.filter((ch) => ch.shortName === item.change).shift();
-                      const pad2 = (number) => ('00' + number).slice(-2);
-                      const { issuedate, validdate, validdate_end } = item;
-                      let issueDate = 'Not yet issued';
-                      if (issuedate) {
-                        issueDate = issuedate.year + '-' + pad2(issuedate.monthValue) + '-' + pad2(issuedate.dayOfMonth) + 'T' + pad2(issuedate.hour) + ':' + pad2(issuedate.minute) + ':' + pad2(issuedate.second) + 'Z'
-                      }
-                      const validDate = validdate.year + '-' + pad2(validdate.monthValue) + '-' + pad2(validdate.dayOfMonth) + 'T' + pad2(validdate.hour) + ':' + pad2(validdate.minute) + ':' + pad2(validdate.second) + 'Z'
-                      const endValidDate = validdate_end.year + '-' + pad2(validdate_end.monthValue) + '-' + pad2(validdate_end.dayOfMonth) + 'T' + pad2(validdate_end.hour) + ':' + pad2(validdate_end.minute) + ':' + pad2(validdate_end.second) + 'Z'
+                      const selectedDirection = DIRECTIONS.filter((dr) => dr.shortName === item.movement.dir).shift();
+                      const selectedChange = CHANGES.filter((ch) => ch.shortName === item.change).shift();
+                      let { issuedate } = item;
+                      issuedate = issuedate || 'Not yet issued';
                       if (item.cancels) {
                         return <Button tag='div' className={'Sigmet row' + (selectedIndex === index ? ' active' : '')}
                           key={index} onClick={(evt) => { this.handleSigmetClick(evt, index); }} title={item.phenomenonHRT} >
@@ -1297,9 +876,9 @@ class SigmetCategory extends Component {
                             </Col>
                             <Col xs='9'>
                               {
-                                issueDate === 'Not yet issued'
-                                  ? <span>{issueDate}</span>
-                                  : <Moment format={DATE_TIME_FORMAT} date={issueDate} />
+                                issuedate === 'Not yet issued'
+                                  ? <span>{issuedate}</span>
+                                  : <Moment format={DATE_TIME_FORMAT} date={issuedate} />
                               }
                             </Col>
                           </Row>
@@ -1314,7 +893,7 @@ class SigmetCategory extends Component {
                               <Badge>From</Badge>
                             </Col>
                             <Col xs='9'>
-                              <Moment format={DATE_TIME_FORMAT} date={validDate} />
+                              <Moment format={DATE_TIME_FORMAT} date={item.validdate} />
                             </Col>
                           </Row>
                           <Row style={{ paddingTop: '0.19rem' }}>
@@ -1322,7 +901,7 @@ class SigmetCategory extends Component {
                               <Badge>Until</Badge>
                             </Col>
                             <Col xs='9'>
-                              <Moment format={DATE_TIME_FORMAT} date={endValidDate} />
+                              <Moment format={DATE_TIME_FORMAT} date={item.validdate_end} />
                             </Col>
                           </Row>
                           <Row className='section' style={editable ? { minHeight: '2.5rem' } : null}>
@@ -1395,9 +974,9 @@ class SigmetCategory extends Component {
                                 viewMode='time'
                                 value={item.forecast_position ? moment.utc(item.forecast_position) : now}
                               />
-                              : (issueDate === 'Not yet issued'
-                                ? <span>{issueDate}</span>
-                                : <Moment format={DATE_TIME_FORMAT} date={issueDate} />)
+                              : (issuedate === 'Not yet issued'
+                                ? <span>{issuedate}</span>
+                                : <Moment format={DATE_TIME_FORMAT} date={issuedate} />)
                             }
                           </Col>
                         </Row>
@@ -1425,7 +1004,7 @@ class SigmetCategory extends Component {
                                 viewMode='time'
                                 value={moment.utc(item.validdate) || now}
                               />
-                              : <Moment format={DATE_TIME_FORMAT} date={validDate} />
+                              : <Moment format={DATE_TIME_FORMAT} date={item.validdate} />
                             }
                           </Col>
                         </Row>
@@ -1447,7 +1026,7 @@ class SigmetCategory extends Component {
                                 }}
                                 viewMode='time'
                                 value={moment.utc(item.validdate_end) || moment.utc(item.validdate).add(this.getParameters().maxhoursofvalidity, 'hour')} />
-                              : <Moment format={DATE_TIME_FORMAT} date={endValidDate} />
+                              : <Moment format={DATE_TIME_FORMAT} date={item.validdate_end} />
                             }
                           </Col>
                         </Row>
@@ -1503,7 +1082,7 @@ class SigmetCategory extends Component {
                           <Col xs='3'>
                             <Badge color='success'>Progress</Badge>
                           </Col>
-                          <Col xs='8' style={{ justifyContent: 'center' }}>
+                          <Col xs='9' style={{ justifyContent: 'center' }}>
                             {/* dir: {N,NNE,NE,ENE,E,ESE,SE,SSE,S,SSW,SW,WSW,W,WNW} */}
                             {/* speed: int */}
                             {editable
@@ -1518,7 +1097,7 @@ class SigmetCategory extends Component {
                           <Col xs='3'>
                             <Badge color='success'>Type</Badge>
                           </Col>
-                          <Col xs='8' style={{ justifyContent: 'center' }}>
+                          <Col xs='9' style={{ justifyContent: 'center' }}>
                             {/* dir: {N,NNE,NE,ENE,E,ESE,SE,SSE,S,SSW,SW,WSW,W,WNW} */}
                             {/* speed: int */}
                             {editable
@@ -1551,7 +1130,7 @@ class SigmetCategory extends Component {
                             {editable
                               ? <Typeahead style={{ width: '100%' }} filterBy={['shortName', 'longName']} labelKey='longName'
                                 disabled={item.movement.stationary || item.movement.movementtype}
-                                options={availableDirections} placeholder={item.movement.stationary ? null : 'Select direction'}
+                                options={DIRECTIONS} placeholder={item.movement.stationary ? null : 'Select direction'}
                                 onChange={(dir) => this.setSelectedDirection(dir)}
                                 selected={selectedDirection ? [selectedDirection] : []}
                                 clearButton />
@@ -1580,7 +1159,7 @@ class SigmetCategory extends Component {
                           <Col xs='9'>
                             {editable
                               ? <Typeahead style={{ width: '100%' }} filterBy={['shortName', 'longName']} labelKey='longName'
-                                options={availableChanges} placeholder={'Select change'}
+                                options={CHANGES} placeholder={'Select change'}
                                 onChange={(chg) => this.setChange(chg)}
                                 selected={selectedChange ? [selectedChange] : []}
                                 clearButton />
@@ -1692,7 +1271,8 @@ SigmetCategory.propTypes = {
   latestUpdateTime: PropTypes.string,
   updateAllComponents: PropTypes.func,
   isGetType: PropTypes.bool,
-  scrollAction: PropTypes.func
+  scrollAction: PropTypes.func,
+  urls: PropTypes.arrayOf(PropTypes.string)
 };
 
 export default SigmetCategory;

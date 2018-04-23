@@ -148,7 +148,6 @@ class TafCategory extends Component {
     this.validateTaf = debounce(this.validateTaf.bind(this), 1250, false);
     this.saveTaf = this.saveTaf.bind(this);
 
-
     const initialState = {
       tafAsObject: props.taf,
       focusedFieldName: 'forecast-wind',
@@ -279,7 +278,6 @@ class TafCategory extends Component {
       });
     });
   }
-
 
   deleteTAF (uuid) {
     axios({
@@ -980,8 +978,8 @@ class TafCategory extends Component {
     const newUuid = uuidv4();
     taf.metadata.previousUuid = taf.metadata.uuid;
     taf.metadata.uuid = newUuid;
-    delete taf.metadata.status ;
-    delete taf.metadata.previousUuid ;
+    delete taf.metadata.status;
+    delete taf.metadata.previousUuid;
     delete taf.metadata.issueTime;
     taf.metadata.type = 'normal';
 
@@ -1020,30 +1018,34 @@ class TafCategory extends Component {
           <Row style={{ padding:'0 0.5rem 0.5rem 0.5rem', flex: 'none' }}>
             <Col />
             <Col xs='auto'>
-                <Button style={{ marginRight: '0.33rem' }} color='primary' onClick={() => {
-                    this.editTafAsNew(this.state.tafAsObject);
-                }} >Edit as new</Button>
+              <Button style={{ marginRight: '0.33rem' }} color='primary'
+                onClick={() => {
+                  this.editTafAsNew(this.state.tafAsObject);
+                }}>
+                Edit as new
+              </Button>
               {this.state.tafAsObject.metadata.status === 'published' && !this.state.correctOrAmend
                 ? <div>
-                  <Button disabled={!currentlyInValidityTime || this.state.tafAsObject.metadata.type==='canceled'} style={{ marginRight: '0.33rem' }} color='primary' onClick={() => {
+                  <Button disabled={!currentlyInValidityTime || this.state.tafAsObject.metadata.type === 'canceled'} style={{ marginRight: '0.33rem' }} color='primary' onClick={() => {
                     this.amendTaf(this.state.tafAsObject);
                   }} >Amend</Button>
-                  <Button disabled={this.state.tafAsObject.metadata.type==='canceled'} style={{ marginRight: '0.33rem' }} color='primary' onClick={() => {
+                  <Button disabled={this.state.tafAsObject.metadata.type === 'canceled'} style={{ marginRight: '0.33rem' }} color='primary' onClick={() => {
                     this.correctTaf(this.state.tafAsObject);
                   }} >Correct</Button>
-                  <Button disabled={this.state.tafAsObject.metadata.type==='canceled'} style={{ marginRight: '0.33rem' }} color='primary' onClick={() => {
+                  <Button disabled={this.state.tafAsObject.metadata.type === 'canceled'} style={{ marginRight: '0.33rem' }} color='primary' onClick={() => {
                     this.cancelTaf(this.state.tafAsObject);
                   }} >Cancel</Button></div>
                 : null}
-              {this.state.tafAsObject.metadata.status!=='published' ?
-                <div>
+              {this.state.tafAsObject.metadata.status !== 'published'
+                ? <div>
                   <Button style={{ marginRight: '0.33rem' }} color='primary' onClick={() => {
                     this.saveTaf(this.state.tafAsObject);
                   }} >Save</Button>
-                  <Button disabled={!validationSucceeded } onClick={() => {
+                  <Button disabled={!validationSucceeded} onClick={() => {
                     this.saveTaf(this.state.tafAsObject, true, true);
                   }} color='primary'>Publish</Button>
-                </div> : null
+                </div>
+                : null
               }
             </Col>
           </Row>

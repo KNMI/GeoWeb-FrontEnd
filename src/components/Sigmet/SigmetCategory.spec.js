@@ -2,7 +2,7 @@ import React from 'react';
 import { default as SigmetCategory } from './SigmetCategory';
 import { mount } from 'enzyme';
 import moxios from 'moxios';
-import { BACKEND_SERVER_URL } from '../static/urls.json';
+import { BACKEND_SERVER_URL } from '../../static/urls.json';
 
 describe('(Container) SigmetCategory', () => {
   it('Renders a SigmetCategory', () => {
