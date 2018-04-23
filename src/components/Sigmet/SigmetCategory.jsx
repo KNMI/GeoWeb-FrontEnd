@@ -285,7 +285,7 @@ class SigmetCategory extends Component {
         this.deleteDrawing(sigmetPart === 'where' ? 0 : 1);
         break;
       default:
-        console.log(`Selection method ${action} unknown and not implemented`);
+        console.error(`Selection method ${action} unknown and not implemented`);
     }
 
     if (sigmetPart === 'where') dispatch(drawActions.setFeatureNr(0));

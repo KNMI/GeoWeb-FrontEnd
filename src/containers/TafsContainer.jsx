@@ -78,7 +78,6 @@ export default class TafsContainer extends Component {
   }
 
   myForceUpdate () {
-    console.log('myForceUpdate');
     /* TODO find a good way to refresh the list of tafs properly */
     // this.setState(this.state);
     // this.forceUpdate();
@@ -89,7 +88,6 @@ export default class TafsContainer extends Component {
   }
 
   focusTaf (taf) {
-    console.log('TafsContainer::focusTaf', taf);
     let id = 'concept-tafs'
     if (taf.metadata.status === 'published') id = 'active-tafs';
     this.openField(id);

@@ -354,9 +354,9 @@ export default class Adaguc extends PureComponent {
     const change = diff(currDataLayers, nextDataLayers);
     if (change && nextDataLayers && Array.isArray(nextDataLayers)) {
       this.webMapJS.removeAllLayers();
-      if (nextDataLayers && nextDataLayers.length > 0) {
-        const layersCpy = cloneDeep(nextDataLayers).reverse();
-        layersCpy.map((layer, i) => {
+      const layersCpy = cloneDeep(nextDataLayers);
+      if (layersCpy && layersCpy.length > 0) {
+        layersCpy.reverse().map((layer) => {
           this.webMapJS.addLayer(layer);
           if (layer.active) {
             this.webMapJS.setActiveLayer(layer);
@@ -371,7 +371,7 @@ export default class Adaguc extends PureComponent {
         this.updateAnimationActiveLayerChange(currDataLayers, nextDataLayers, active);
       }
     }
-    return change;
+    return Array.isArray(change) && change.length > 0;
   }
 
   componentWillUpdate (nextProps) {
@@ -460,6 +460,7 @@ export default class Adaguc extends PureComponent {
   }
   render () {
     const { mapProperties, drawProperties, drawActions, dispatch } = this.props;
+
     return (
       <div ref='adaguccontainer' style={{ border: 'none', width: 'inherit', height: 'inherit', overflow: 'hidden' }}>
         <div style={{ overflow: 'visible', width:0, height:0 }} >
