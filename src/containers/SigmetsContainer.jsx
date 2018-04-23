@@ -2,7 +2,8 @@ import React, { Component } from 'react';
 import { Button, Col, Row } from 'reactstrap';
 import Icon from 'react-fa';
 import CollapseOmni from '../components/CollapseOmni';
-import SigmetCategory from '../components/SigmetCategory';
+import SigmetCategory from '../components/Sigmet/SigmetCategory';
+import { SIGMET_TEMPLATES } from '../components/Sigmet/SigmetTemplates';
 import Panel from '../components/Panel';
 import cloneDeep from 'lodash.clonedeep';
 import axios from 'axios';
@@ -43,21 +44,7 @@ const ITEMS = [
     editable: true
   }
 ];
-const EMPTY_GEO_JSON = {
-  type: 'FeatureCollection',
-  features: [
-    {
-      type: 'Feature',
-      geometry: {
-        type: 'Polygon',
-        coordinates: []
-      },
-      properties: {
-        prop0: 'value0'
-      }
-    }
-  ]
-};
+const EMPTY_GEO_JSON = cloneDeep(SIGMET_TEMPLATES.GEOJSON);
 
 class SigmetsContainer extends Component {
   constructor (props) {

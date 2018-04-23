@@ -1,6 +1,5 @@
 import PropTypes from 'prop-types';
 import cloneDeep from 'lodash.clonedeep';
-import Enum from 'es6-enum';
 
 /**
  * TEMPLATES
@@ -72,17 +71,6 @@ TEMPLATES.SIGMET = {
 /**
  * TYPES
  */
-const TYPE_FALLBACK = PropTypes.shape({
-  fallback: PropTypes.shape({
-    value: PropTypes.string,
-    message: PropTypes.oneOfType([
-      PropTypes.string,
-      PropTypes.arrayOf(
-        PropTypes.string
-      )
-    ])
-  })
-});
 const TYPES = {
   PHENOMENON: PropTypes.string,
   OBS_OR_FORECAST: PropTypes.shape({
@@ -107,151 +95,72 @@ const TYPES = {
   LEVEL: PropTypes.shape({
     value: PropTypes.number,
     unit: PropTypes.string
-  })
-
+  }),
+  FIR_NAME: PropTypes.string,
+  VALID_DATE: PropTypes.string,
+  VALID_DATE_END: PropTypes.string,
+  CHANGE: PropTypes.string,
+  MOVEMENT: PropTypes.shape({
+    stationary: PropTypes.bool,
+    dir: PropTypes.string,
+    speed: PropTypes.number
+  }),
+  FORECAST_POSITION_TIME: PropTypes.string,
+  ISSUE_DATE: PropTypes.string,
+  UUID: PropTypes.string,
+  SEQUENCE: PropTypes.number,
+  STATUS: PropTypes.string,
+  LOCATION_INDICATOR_ICAO: PropTypes.string,
+  LOCATION_INDICATOR_WMO: PropTypes.string
 };
 TYPES.GEOJSON = PropTypes.shape({
   type: PropTypes.string,
   features: PropTypes.arrayOf(TYPES.FEATURE)
 });
-TYPES.LEVELS = PropTypes.arrayOf(TYPES.LEVEL);
-
-TYPES.CHANGE_GROUP = PropTypes.shape({
-  changeStart: PropTypes.oneOfType([
-    PropTypes.string,
-    TYPE_FALLBACK
-  ]),
-  changeEnd: PropTypes.oneOfType([
-    PropTypes.string,
-    TYPE_FALLBACK
-  ]),
-  changeType: PropTypes.oneOfType([
-    PropTypes.string,
-    PropTypes.shape({
-      fallback: PropTypes.shape({
-        probability: PropTypes.string,
-        change: PropTypes.string
-      })
-    })
-  ]),
-  forecast: TYPES.FORECAST
-});
-TYPES.TAF = PropTypes.shape({
-  forecast: TYPES.FORECAST,
-  metadata: TYPES.METADATA,
-  changegroups: PropTypes.arrayOf(TYPES.CHANGE_GROUP)
+TYPES.LEVELS = PropTypes.shape({
+  lev1: TYPES.LEVEL,
+  lev2: TYPES.LEVEL
 });
 
 /**
  * MISC
  */
-/* const CHANGE_TYPES = Enum(
-  'FM', // from - instant, persisting change
-  'BECMG', // becoming - gradual / fluctuating change, after which the change is persistent
-  'PROB30', // probability of 30% for a temporary steady change
-  'PROB40', // probability of 40% for a temporary steady change
-  'TEMPO', // temporary fluctuating change
-  'PROB30_TEMPO', // probability of 30% for a temporary fluctating change
-  'PROB40_TEMPO' // probability of 40% for a temporary fluctating change
-);
-
-const CHANGE_TYPES_ORDER = [
-  CHANGE_TYPES.FM,
-  CHANGE_TYPES.BECMG,
-  CHANGE_TYPES.PROB30,
-  CHANGE_TYPES.PROB40,
-  CHANGE_TYPES.TEMPO,
-  CHANGE_TYPES.PROB30_TEMPO,
-  CHANGE_TYPES.PROB40_TEMPO
+// Cardinal, intercardinal and named points for directions of wind
+const DIRECTIONS = [
+  { shortName: 'N', longName: 'North' },
+  { shortName: 'NNE', longName: 'North-Northeast' },
+  { shortName: 'NE', longName: 'Northeast' },
+  { shortName: 'ENE', longName: 'East-Northeast' },
+  { shortName: 'E', longName: 'East' },
+  { shortName: 'ESE', longName: 'East-Southeast' },
+  { shortName: 'SE', longName: 'Southeast' },
+  { shortName: 'SSE', longName: 'South-Southeast' },
+  { shortName: 'S', longName: 'South' },
+  { shortName: 'SSW', longName: 'South-Southwest' },
+  { shortName: 'SW', longName: 'Southwest' },
+  { shortName: 'WSW', longName: 'West-Southwest' },
+  { shortName: 'W', longName: 'West' },
+  { shortName: 'WNW', longName: 'West-Northwest' }
 ];
 
-const CHANGE_TYPES_SHORTHAND = {};
-CHANGE_TYPES_SHORTHAND[CHANGE_TYPES.FM] = 'F';
-CHANGE_TYPES_SHORTHAND[CHANGE_TYPES.BECMG] = 'B';
-CHANGE_TYPES_SHORTHAND[CHANGE_TYPES.PROB30] = 'P30';
-CHANGE_TYPES_SHORTHAND[CHANGE_TYPES.PROB40] = 'P40';
-CHANGE_TYPES_SHORTHAND[CHANGE_TYPES.TEMPO] = 'T';
-CHANGE_TYPES_SHORTHAND[CHANGE_TYPES.PROB30_TEMPO] = 'P30T';
-CHANGE_TYPES_SHORTHAND[CHANGE_TYPES.PROB40_TEMPO] = 'P40T'; */
+// Change types
+const CHANGES = [
+  { shortName: 'WKN', longName: 'Weakening' },
+  { shortName: 'NC', longName: 'No change' },
+  { shortName: 'INTSF', longName: 'Intensifying' }
+];
 
-/**
- * Gets the change type by typeName
- * @param {string} typeName The name of the type
- * @return {symbol} The change type
- */
-/* const getChangeType = (typeName) => {
-  if (typeof typeName === 'string') {
-    const normalizedTypeName = typeName.toUpperCase().replace(/\s/g, '_');
-    if (normalizedTypeName in CHANGE_TYPES) {
-      return CHANGE_TYPES[normalizedTypeName];
-    } else {
-      return null;
-    }
-  } else {
-    return null;
-  }
-}; */
-
-/* const PHENOMENON_TYPES = Enum(
-  'WIND',
-  'VISIBILITY',
-  'WEATHER',
-  'CLOUDS',
-  'CAVOK',
-  'VERTICAL_VISIBILITY'
-); */
-
-/* const PHENOMENON_TYPES_ORDER = [
-  PHENOMENON_TYPES.WIND,
-  PHENOMENON_TYPES.CAVOK,
-  PHENOMENON_TYPES.VISIBILITY,
-  PHENOMENON_TYPES.WEATHER,
-  PHENOMENON_TYPES.CLOUDS,
-  PHENOMENON_TYPES.VERTICAL_VISIBILITY
-]; */
-
-/**
- * Gets the phenomenon type by typeName
- * @param {string} typeName The name of the type
- * @return {symbol} The phenomenon type symbol
- */
-/* const getPhenomenonType = (typeName) => {
-  if (typeof typeName === 'string' && typeName.toUpperCase() in PHENOMENON_TYPES) {
-    return PHENOMENON_TYPES[typeName.toUpperCase()];
-  } else {
-    return null;
-  }
-}; */
-
-/**
- * Gets the phenomenon label by typeSymbol
- * @param {symbol} typeSymbol The phenomenon type symbol
- * @return {string} The phenomenon type label
- */
-/* const getPhenomenonLabel = (typeSymbol) => {
-  if (typeof typeSymbol === 'symbol') {
-    switch (typeSymbol) {
-      case PHENOMENON_TYPES.WIND: return 'wind';
-      case PHENOMENON_TYPES.VISIBILITY: return 'visibility';
-      case PHENOMENON_TYPES.CAVOK: return 'caVOK';
-      case PHENOMENON_TYPES.WEATHER: return 'weather';
-      case PHENOMENON_TYPES.CLOUDS: return 'clouds';
-      case PHENOMENON_TYPES.VERTICAL_VISIBILITY: return 'vertical_visibility';
-    }
-  } else {
-    return null;
-  }
-}; */
+// Units for altitude
+const UNITS_ALT = {
+  M: 'm',
+  FL: 'FL',
+  FT: 'ft'
+};
 
 module.exports = {
   SIGMET_TEMPLATES: TEMPLATES,
-  SIGMET_TYPES: TYPES // ,
-/*   CHANGE_TYPES: CHANGE_TYPES,
-  CHANGE_TYPES_ORDER: CHANGE_TYPES_ORDER,
-  CHANGE_TYPES_SHORTHAND: CHANGE_TYPES_SHORTHAND,
-  getChangeType: getChangeType,
-  PHENOMENON_TYPES: PHENOMENON_TYPES,
-  PHENOMENON_TYPES_ORDER: PHENOMENON_TYPES_ORDER,
-  getPhenomenonType: getPhenomenonType,
-  getPhenomenonLabel: getPhenomenonLabel */
+  SIGMET_TYPES: TYPES,
+  DIRECTIONS: DIRECTIONS,
+  CHANGES: CHANGES,
+  UNITS_ALT: UNITS_ALT
 };
