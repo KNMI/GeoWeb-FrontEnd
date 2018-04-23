@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import AdagucMapDraw from './AdagucMapDraw.js';
+import AdagucMapDraw from '../../utils/AdagucMapDraw.js';
 import AdagucMeasureDistance from './AdagucMeasureDistance.js';
 import ModelTime from './ModelTime';
 import diff from 'deep-diff';
@@ -139,7 +139,7 @@ export default class Adaguc extends PureComponent {
     const { mapId, panelsProperties, active, dispatch, panelsActions } = this.props;
     const panel = panelsProperties.panels[mapId];
 
-    const promises = []
+    const promises = [];
     panel.layers.map((layer, i) => {
       promises.push(new Promise((resolve, reject) => {
         layer.parseLayer((newLayer) => {
@@ -153,7 +153,7 @@ export default class Adaguc extends PureComponent {
         if (layer.active) {
           dispatch(panelsActions.setActiveLayer({ activePanelId: mapId, layerClicked: i }));
         }
-      })
+      });
       this.updateLayers(panel.layers, newLayers, active);
     });
   }
@@ -460,7 +460,6 @@ export default class Adaguc extends PureComponent {
   }
   render () {
     const { mapProperties, drawProperties, drawActions, dispatch } = this.props;
-
     return (
       <div ref='adaguccontainer' style={{ border: 'none', width: 'inherit', height: 'inherit', overflow: 'hidden' }}>
         <div style={{ overflow: 'visible', width:0, height:0 }} >
