@@ -1,14 +1,52 @@
-import { BOUNDING_BOXES } from '../constants/bounding_boxes';
-import { GetServiceByName } from '../utils/getServiceByName';
+import { BOUNDING_BOXES } from '../../constants/bounding_boxes';
+import { GetServiceByName } from '../../utils/getServiceByName';
 
-const sigmetLayers = (p) => {
-  const HARMONIE_URL = GetServiceByName(this.props.sources, 'Harmonie36');
-  const OVERLAY_URL = GetServiceByName(this.props.sources, 'OVL');
-  const OBSERVATIONS_URL = GetServiceByName(this.props.sources, 'OBS');
-  const RADAR_URL = GetServiceByName(this.props.sources, 'RADAR');
-  const LIGHTNING_URL = GetServiceByName(this.props.sources, 'LGT');
-  const SATELLITE_URL = GetServiceByName(this.props.sources, 'SAT');
-  const HARMONIE_ML_URL = GetServiceByName(this.props.sources, 'Harmonie36');
+export const getPresetForPhenomenon = (p, sources) => {
+  const HARMONIE_URL = GetServiceByName(sources, 'Harmonie36');
+  const OVERLAY_URL = GetServiceByName(sources, 'OVL');
+  const OBSERVATIONS_URL = GetServiceByName(sources, 'OBS');
+  const RADAR_URL = GetServiceByName(sources, 'RADAR');
+  const LIGHTNING_URL = GetServiceByName(sources, 'LGT');
+  const SATELLITE_URL = GetServiceByName(sources, 'SAT');
+  const HARMONIE_ML_URL = GetServiceByName(sources, 'Harmonie36');
+
+  const defaultOverlays = [
+    {
+      service: OVERLAY_URL,
+      title: 'FIR',
+      name: 'FIR_DEC_2013_EU',
+      label: 'FIR',
+      overlay: true
+    },
+    {
+      service: OVERLAY_URL,
+      title: 'Airfields (5/10 km)',
+      name: 'Aviation/airfield_rings_5_10',
+      label: 'Airfields (5/10 km)',
+      overlay: true
+    },
+    {
+      service: OVERLAY_URL,
+      title: 'Airfields (15km)',
+      name: 'Aviation/airfield_rings_15',
+      label: 'Airfields (15km)',
+      overlay: true
+    },
+    {
+      service: OVERLAY_URL,
+      title: 'ATSroute',
+      name: 'Aviation/atsroute',
+      label: 'ATSroute',
+      overlay: true
+    },
+    {
+      service: OVERLAY_URL,
+      title: 'Countries',
+      name: 'countries',
+      label: 'Countries',
+      overlay: true
+    }
+  ];
   switch (p) {
     case 'sigmet_layer_TS':
       return (
@@ -22,80 +60,76 @@ const sigmetLayers = (p) => {
             npanels: 4,
             type: 'quaduneven'
           },
-          panelsProperties: [
-            [
-              {
-                service: HARMONIE_URL,
-                title: 'Harmonie36',
-                name: 'precipitation_flux',
-                label: 'Prec: Precipitation rate',
-                opacity: 1,
-                enabled: true,
-                overlay: false
-              },
-              {
-                service: OVERLAY_URL,
-                title: 'OVL',
-                name: 'FIR_DEC_2013_EU',
-                label: 'FIR areas',
-                enabled: true,
-                overlay: true
-              }
-            ],
-            [
-              {
-                service: OBSERVATIONS_URL,
-                title: 'OBS',
-                name: '10M/ww',
-                label: 'wawa Weather Code (ww)',
-                enabled: true,
-                opacity: 1,
-                overlay: false
-              },
-              {
-                service: OVERLAY_URL,
-                title: 'OVL',
-                name: 'FIR_DEC_2013_EU',
-                label: 'FIR areas',
-                enabled: true,
-                overlay: true
-              }
-            ],
+          layers: [
             [
               {
                 service: RADAR_URL,
                 title: 'RADAR',
                 name: 'precipitation',
                 label: 'Neerslag',
-                opacity: 1,
+                opacity: 0.8,
                 enabled: true,
-                overlay: false
-              }, {
-                service: LIGHTNING_URL,
-                title: 'LGT',
-                name: 'LGT_NL25_LAM_05M',
-                label: 'LGT_NL25_LAM_05M',
-                enabled: true,
-                opacity: 1,
                 overlay: false
               },
               {
-                service: OVERLAY_URL,
-                title: 'OVL',
-                name: 'FIR_DEC_2013_EU',
-                label: 'FIR areas',
+                service: RADAR_URL,
+                title: 'RADAR',
+                name: 'preflits_cri',
+                label: 'Preflits CRI',
+                opacity: 0.8,
                 enabled: true,
-                overlay: true
+                overlay: false
+              },
+              {
+                service: LIGHTNING_URL,
+                title: 'LGT',
+                name: 'LGT_NL25_LAM_05M',
+                label: 'Lightning NL',
+                opacity: 0.8,
+                enabled: true,
+                overlay: false
+              },
+              ...defaultOverlays
+            ],
+            [
+              {
+                service: SATELLITE_URL,
+                title: 'SAT',
+                name: 'HRV-COMB',
+                label: 'RGB-HRV-COMB',
+                enabled: true,
+                opacity: 0.8,
+                overlay: false
+              },
+              ...defaultOverlays
+            ],
+            [
+              {
+                type: 'progtemp',
+                location: 'EHAM'
               }
             ],
             [
               {
-                service: OVERLAY_URL,
-                title: 'OVL',
-                name: 'FIR_DEC_2013_EU',
-                label: 'FIR areas',
+                service: HARMONIE_URL,
+                title: 'Harmonie36',
+                name: 'precipitation_flux',
+                label: 'Prec: Precipitation rate',
                 enabled: true,
-                overlay: true
+                opacity: 0.8,
+                overlay: false
+              },
+              {
+                service: HARMONIE_URL,
+                title: 'Harmonie36',
+                name: 'wind__at_pl',
+                label: 'Wind vectors (PL)',
+                dimensions: {
+                  elevation: 700
+                },
+                enabled: true,
+                opacity: 0.8,
+                overlay: false
               }
             ]
           ]
@@ -114,7 +148,7 @@ const sigmetLayers = (p) => {
             npanels: 4,
             type: 'quaduneven'
           },
-          panelsProperties: [
+          layers: [
             [
               {
                 service: OVERLAY_URL,
@@ -231,7 +265,7 @@ const sigmetLayers = (p) => {
             npanels: 4,
             type: 'quaduneven'
           },
-          panelsProperties: [
+          layers: [
             [
               {
                 service: HARMONIE_URL,
@@ -320,8 +354,4 @@ const sigmetLayers = (p) => {
         }
       );
   }
-};
-
-module.exports = {
-  sigmetLayers: sigmetLayers
 };
