@@ -346,6 +346,12 @@ class SigmetCategory extends Component {
     let listCpy = cloneDeep(this.state.list);
     listCpy[0].phenomenon = onlyObj.code;
     this.setState({ list: listCpy });
+    /* TODO
+      const preset = this.sigmetLayers(onlyObj.layerpreset);
+      this.props.dispatch(this.props.panelsActions.setPanelLayout(preset.display.type));
+      this.props.dispatch(this.props.panelsActions.setPresetLayers(preset.panelsProperties));
+      this.props.dispatch(this.props.mapActions.setCut({ name: 'Custom', bbox: [preset.area.left || 570875, preset.area.bottom, preset.area.right || 570875, preset.area.top] }));
+    */
   }
 
   setSelectedFir (firList) {
