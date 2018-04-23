@@ -139,7 +139,7 @@ export default class Adaguc extends PureComponent {
     const { mapId, panelsProperties, active, dispatch, panelsActions } = this.props;
     const panel = panelsProperties.panels[mapId];
 
-    const promises = []
+    const promises = [];
     panel.layers.map((layer, i) => {
       promises.push(new Promise((resolve, reject) => {
         layer.parseLayer((newLayer) => {
@@ -153,7 +153,7 @@ export default class Adaguc extends PureComponent {
         if (layer.active) {
           dispatch(panelsActions.setActiveLayer({ activePanelId: mapId, layerClicked: i }));
         }
-      })
+      });
       this.updateLayers(panel.layers, newLayers, active);
     });
   }

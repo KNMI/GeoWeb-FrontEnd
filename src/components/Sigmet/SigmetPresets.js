@@ -8,7 +8,6 @@ export const getPresetForPhenomenon = (p, sources) => {
   const RADAR_URL = GetServiceByName(sources, 'RADAR');
   const LIGHTNING_URL = GetServiceByName(sources, 'LGT');
   const SATELLITE_URL = GetServiceByName(sources, 'SAT');
-  const HARMONIE_ML_URL = GetServiceByName(sources, 'Harmonie36');
 
   const defaultOverlays = [
     {
@@ -151,44 +150,48 @@ export const getPresetForPhenomenon = (p, sources) => {
           layers: [
             [
               {
-                service: OVERLAY_URL,
-                title: 'OVL',
-                name: 'FIR_DEC_2013_EU',
-                label: 'FIR areas',
-                overlay: true
-              },
-              {
-                service: HARMONIE_ML_URL,
-                title: 'ADAGUC WMS Service for Geoweb',
-                name: 'wind__at_ml',
-                label: 'Wind flags (ML)',
-                opacity: 1,
+                service: SATELLITE_URL,
+                title: 'SAT',
+                name: 'IR108',
+                label: 'IR108',
                 enabled: true,
-                modellevel: 17,
-                style: 'Windbarbs_mps/barbshaded',
-                styleTitle: 'Wind barbs+sh',
+                opacity: 0.8,
                 overlay: false
-              }
-            ], [], [],
+              },
+              ...defaultOverlays
+            ],
             [
               {
-                service: OBSERVATIONS_URL,
-                title: 'OBS',
-                name: '10M/derived/windforce',
-                label: 'Wind force',
-                opacity: 1,
+                type: 'progtemp',
+                location: 'EHAM'
+              }
+            ],
+            [
+              {
+                service: HARMONIE_URL,
+                title: 'Harmonie36',
+                name: 'wind_speed_of_gust__at_10m',
+                label: 'Wind 10m gust',
                 enabled: true,
-                style: 'bftalldiscvec/barb',
-                styleTitle: 'bftalldiscvec/barb',
+                opacity: 0.8,
                 overlay: false
               },
+              ...defaultOverlays
+            ],
+            [
               {
-                service: OVERLAY_URL,
-                title: 'OVL',
-                name: 'FIR_DEC_2013_EU',
-                label: 'FIR areas',
-                overlay: true
-              }
+                service: HARMONIE_URL,
+                title: 'Harmonie36',
+                name: 'wind__at_pl',
+                label: 'Wind vectors (PL)',
+                dimensions: {
+                  elevation: 250
+                },
+                enabled: true,
+                opacity: 0.8,
+                overlay: false
+              },
+              ...defaultOverlays
             ]
           ]
         }
@@ -205,50 +208,168 @@ export const getPresetForPhenomenon = (p, sources) => {
             npanels: 4,
             type: 'quaduneven'
           },
-          panelsProperties: [
+          layers: [
             [
               {
                 service: SATELLITE_URL,
                 title: 'SAT',
-                name: 'HRVIS',
-                label: 'HRVIS',
-                opacity: 1,
+                name: 'HRV-COMB',
+                label: 'RGB-HRV-COMB',
                 enabled: true,
+                opacity: 0.8,
                 overlay: false
               },
-              {
-                service: RADAR_URL,
-                title: 'RADAR',
-                name: 'precipitation_eur',
-                label: 'Neerslag EUR',
-                opacity: 1,
-                overlay: false
-              }
-            ], [], [],
+              ...defaultOverlays
+            ],
             [
               {
-                service: OBSERVATIONS_URL,
-                title: 'OBS',
-                name: '10M/td',
-                label: 'Dew Point Temperature 1.5m 1 Min Average (td)',
-                opacity: 1,
+                service: SATELLITE_URL,
+                title: 'SAT',
+                name: 'IR108',
+                label: 'IR108',
                 enabled: true,
-                style: 'auto/nearest',
-                styleTitle: 'auto/nearest',
+                opacity: 0.8,
                 overlay: false
               },
+              ...defaultOverlays
+            ],
+            // TODO: Unlinked progtemps
+            [
               {
-                service: OBSERVATIONS_URL,
-                title: 'OBS',
-                name: '10M/ta',
-                label: 'Air Temperature 1 Min Average (ta)',
-                opacity: 1,
-                enabled: true,
-                style: 'temperaturedisc/point',
-                styleTitle: 'temperaturedisc/point',
-                overlay: false
+                type: 'progtemp',
+                location: 'EHAM'
+              }
+            ],
+            [
+              {
+                type: 'progtemp',
+                location: 'EHTW'
               }
             ]
+          ]
+        }
+      );
+    case 'sigmet_layer_HVY_DS':
+      // explicit fallthrough
+    case 'sigmet_layer_HVY_SS':
+      return (
+        {
+          area: {
+            bottom: BOUNDING_BOXES[1].bbox[1],
+            top: BOUNDING_BOXES[1].bbox[3],
+            crs: 'EPSG:3857'
+          },
+          display: {
+            npanels: 4,
+            type: 'quaduneven'
+          },
+          layers: [
+            [
+              {
+                service: SATELLITE_URL,
+                title: 'SAT',
+                name: 'HRV-COMB',
+                label: 'RGB-HRV-COMB',
+                enabled: true,
+                opacity: 0.8,
+                overlay: false
+              },
+              ...defaultOverlays
+            ],
+            [
+              {
+                type: 'progtemp',
+                location: 'EHAM'
+              }
+            ],
+            [
+              {
+                service: HARMONIE_URL,
+                title: 'Harmonie36',
+                name: 'wind__at_10m',
+                label: 'Wind 10m flags',
+                enabled: true,
+                opacity: 0.8,
+                overlay: false
+              },
+              ...defaultOverlays
+            ],
+            [
+              {
+                service: HARMONIE_URL,
+                title: 'Harmonie36',
+                name: 'wind_speed_of_gust__at_10m',
+                label: 'Wind 10m gust',
+                enabled: true,
+                opacity: 0.8,
+                overlay: false
+              },
+              ...defaultOverlays
+            ]
+
+          ]
+        }
+      );
+
+    case 'sigmet_layer_RDOACT_CLD':
+      return (
+        {
+          area: {
+            bottom: BOUNDING_BOXES[1].bbox[1],
+            top: BOUNDING_BOXES[1].bbox[3],
+            crs: 'EPSG:3857'
+          },
+          display: {
+            npanels: 4,
+            type: 'quaduneven'
+          },
+          layers: [
+            [
+              {
+                service: SATELLITE_URL,
+                title: 'SAT',
+                name: 'HRV-COMB',
+                label: 'RGB-HRV-COMB',
+                enabled: true,
+                opacity: 0.8,
+                overlay: false
+              },
+              ...defaultOverlays
+            ],
+            [
+              {
+                type: 'progtemp',
+                location: 'EHAM'
+              }
+            ],
+            [
+              {
+                service: HARMONIE_URL,
+                title: 'Harmonie36',
+                name: 'precipitation_flux',
+                label: 'Prec: Precipitation rate',
+                enabled: true,
+                opacity: 0.8,
+                overlay: false
+              },
+              ...defaultOverlays
+            ],
+            [
+              {
+                service: HARMONIE_URL,
+                title: 'Harmonie36',
+                name: 'wind__at_pl',
+                label: 'Wind vectors (PL)',
+                dimensions: {
+                  elevation: 925
+                },
+                enabled: true,
+                opacity: 0.8,
+                overlay: false
+              },
+              ...defaultOverlays
+            ]
+
           ]
         }
       );
