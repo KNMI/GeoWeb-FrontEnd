@@ -593,7 +593,8 @@ class SigmetCategory extends Component {
 
   marks (values) {
     const retObj = {};
-    values.map((val) => {
+    const flValues = range(50, 655, 5);
+    values.map((val, i) => {
       if (val < 50) {
         if (this.state.lowerUnit === UNITS_ALT.FT) {
           retObj[val] = parseInt(val * 100) + ' ' + UNITS_ALT.FT;
@@ -604,33 +605,18 @@ class SigmetCategory extends Component {
         // 50 = a * 50 + b   \
         //                    -> y = 7 * x - 300
         // 400 = a * 100 + b /
-        retObj[val] = UNITS_ALT.FL + Math.round(7 * val - 300);
+        retObj[val] = UNITS_ALT.FL + flValues[i - values.filter((f) => f < 50).length];
       }
     });
 
     retObj[0] = 'Surface';
-    retObj[100] = 'Above';
+    retObj[171] = 'Above';
 
     return retObj;
   };
 
-  tooltip (height) {
-    if (height === 100) {
-      return 'Above';
-    }
-    if (height === 0) {
-      return 'Surface';
-    }
-
-    if (height < 50) {
-      if (this.state.lowerUnit === UNITS_ALT.FT) {
-        return parseInt(height * 100) + ' ' + UNITS_ALT.FT;
-      } else {
-        return parseInt(Math.round(height * 30.48)) + ' ' + UNITS_ALT.M;
-      }
-    } else {
-      return UNITS_ALT.FL + Math.round(7 * height - 300);
-    }
+  tooltip (height, marks) {
+    return marks[height];
   };
 
   showLevels (level) {
@@ -738,7 +724,7 @@ class SigmetCategory extends Component {
             listCpy[0].level.lev2 = { unit: 'FL', value: lowerVal };
             break;
         }
-      } else if (upperVal === 400) {
+      } else if (upperVal === 650) {
         // Above
         listCpy[0].level.lev1 = { unit: this.state.tops ? 'TOP_ABV' : 'ABV', value: 0 };
         switch (this.state.lowerUnit) {
@@ -778,15 +764,32 @@ class SigmetCategory extends Component {
   }
 
   renderLevelSelection (editable, item) {
-    const feetNumbers = range(0, 50, 10);
-    const flNumbers = range(50, 100, 7.142857);
+    const feetNumbers = range(0, 50, 5);
+    const flNumbers = range(50, 171, 1);
     const markValues = this.marks([...feetNumbers, ...flNumbers]);
+    const renderMarks = { ...markValues };
+    Object.keys(renderMarks).map((key) => {
+      if (key !== 0 && key !== 171) {
+        if (key < 50) {
+          if (key % 10 !== 0) {
+            renderMarks[key] = '';
+          }
+        } else {
+          if (key % 10 !== 0 || key > 160) {
+            renderMarks[key] = '';
+          }
+        }
+      }
+      renderMarks[171] = 'Above';
+    });
+
+    console.log(markValues);
     const handle = (params) => {
       const { value, dragging, index, ...restProps } = params;
       return (
         <Tooltip
           prefixCls='rc-slider-tooltip'
-          overlay={this.tooltip(value, this.state.lowerUnit)}
+          overlay={this.tooltip(value, markValues)}
           visible={dragging}
           placement='top'
           key={index}
@@ -837,9 +840,9 @@ class SigmetCategory extends Component {
         <Col xs='3'>
           <Row style={{ padding: '1rem 0' }}>
             {this.state.renderRange
-              ? <Range step={0.5} allowCross={false} min={0} max={100} marks={markValues} vertical
-                onChange={(v) => this.setSigmetLevel(v)} tipFormatter={value => this.tooltip(value, this.state.lowerUnit)} />
-              : <Slider step={0.5} allowCross={false} min={0} max={100} marks={markValues} vertical onChange={(v) => this.setSigmetLevel([v])} handle={handle} />
+              ? <Range step={null} allowCross={false} min={0} max={171} marks={renderMarks} vertical
+                onChange={(v) => this.setSigmetLevel(v)} tipFormatter={value => this.tooltip(value, markValues)} />
+              : <Slider step={null} allowCross={false} min={0} max={171} marks={renderMarks} vertical onChange={(v) => this.setSigmetLevel([v])} handle={handle} />
             }
           </Row>
         </Col>
