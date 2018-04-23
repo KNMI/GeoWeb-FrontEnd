@@ -423,11 +423,6 @@ class SigmetCategory extends Component {
         dispatch(panelsActions.setPresetLayers(newPanels));
       });
     }
-
-    /* TODO
-      const preset = this.sigmetLayers(onlyObj.layerpreset);
-      this.props.dispatch(this.props.panelsActions.setPresetLayers(preset.panelsProperties));
-    */
   }
 
   setSelectedFir (firList) {
