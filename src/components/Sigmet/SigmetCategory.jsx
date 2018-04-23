@@ -288,6 +288,7 @@ class SigmetCategory extends Component {
         console.error(`Selection method ${action} unknown and not implemented`);
     }
 
+    /* TODO based on property featureFunction, get the array index based on start or end */
     if (sigmetPart === 'where') dispatch(drawActions.setFeatureNr(0));
     if (sigmetPart === 'progress') dispatch(drawActions.setFeatureNr(1));
   }

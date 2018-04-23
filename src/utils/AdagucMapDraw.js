@@ -697,8 +697,8 @@ export default class AdagucMapDraw extends PureComponent {
       return false;
     }
 
-    console.log('this.editMode ', this.editMode);
-    console.log('this.snappedPolygonIndex ', this.snappedPolygonIndex);
+    // console.log('this.editMode ', this.editMode);
+    // console.log('this.snappedPolygonIndex ', this.snappedPolygonIndex);
     /* This is triggered when new points are added during the addmultipoint mode. One point is added per time */
 
     if (this.drawMode === this.DRAWMODE.MULTIPOINT) {
