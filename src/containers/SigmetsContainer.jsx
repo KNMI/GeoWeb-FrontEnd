@@ -180,7 +180,7 @@ class SigmetsContainer extends Component {
               {ITEMS.map((item, index) =>
                 <SigmetCategory phenomenonMapping={this.state.phenomena || []} adagucProperties={this.props.adagucProperties}
                   key={index} title={item.title} parentCollapsed={!this.state.isOpen} drawProperties={this.props.drawProperties}
-                  mapActions={this.props.mapActions} drawActions={this.props.drawActions} panelsActions={this.props.panelsActions}
+                  adagucActions={this.props.adagucActions} mapActions={this.props.mapActions} drawActions={this.props.drawActions} panelsActions={this.props.panelsActions}
                   icon={item.icon} source={item.source} editable={item.editable} latestUpdateTime={this.state.latestUpdateTime}
                   isOpen={this.state.isOpen && this.state.isOpenCategory[item.ref]}
                   isClosing={this.state.closingCategory.includes(item.ref)}

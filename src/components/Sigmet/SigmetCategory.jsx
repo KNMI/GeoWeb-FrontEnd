@@ -14,6 +14,7 @@ import SwitchButton from 'lyef-switch-button';
 import 'lyef-switch-button/css/main.css';
 import { Typeahead } from 'react-bootstrap-typeahead';
 import DateTimePicker from 'react-datetime';
+import { ReadLocations } from '../../utils/admin';
 
 import Slider from 'rc-slider';
 import Tooltip from 'rc-tooltip';
@@ -21,6 +22,7 @@ import PropTypes from 'prop-types';
 import { SIGMET_TEMPLATES, CHANGES, DIRECTIONS, UNITS_ALT } from './SigmetTemplates';
 import { clearNullPointersAndAncestors } from '../../utils/json';
 
+import { getPresetForPhenomenon } from './SigmetPresets';
 const createSliderWithTooltip = Slider.createSliderWithTooltip;
 const Range = createSliderWithTooltip(Slider.Range);
 const Handle = Slider.Handle;
@@ -354,6 +356,7 @@ class SigmetCategory extends Component {
     });
   }
   setSelectedPhenomenon (phenomenonList) {
+    const { dispatch, panelsActions, adagucActions, mapActions } = this.props;
     if (phenomenonList.length === 0) {
       return;
     }
@@ -361,12 +364,80 @@ class SigmetCategory extends Component {
     let listCpy = cloneDeep(this.state.list);
     listCpy[0].phenomenon = onlyObj.code;
     this.setState({ list: listCpy });
-    /* TODO
-      const preset = this.sigmetLayers(onlyObj.layerpreset);
-      this.props.dispatch(this.props.panelsActions.setPanelLayout(preset.display.type));
-      this.props.dispatch(this.props.panelsActions.setPresetLayers(preset.panelsProperties));
-      this.props.dispatch(this.props.mapActions.setCut({ name: 'Custom', bbox: [preset.area.left || 570875, preset.area.bottom, preset.area.right || 570875, preset.area.top] }));
-    */
+
+    if (!onlyObj.layerpreset) {
+      return;
+    }
+    const preset = getPresetForPhenomenon(onlyObj.layerpreset, this.props.sources);
+    if (!preset) {
+      return;
+    }
+    if (preset.area) {
+      dispatch(panelsActions.setPanelLayout(preset.display.type));
+    }
+    if (preset.display) {
+      dispatch(mapActions.setCut({ name: 'Custom', bbox: [preset.area.left || 570875, preset.area.bottom, preset.area.right || 570875, preset.area.top] }));
+    }
+
+    if (preset.layers) {
+      // This is tricky because all layers need to be restored in the correct order
+      // So first create all panels as null....
+      const newPanels = [null, null, null, null];
+      const promises = [];
+      preset.layers.map((panel, panelIdx) => {
+        // Then for each panel initialize it to this object where layers is an empty array with the
+        // length of the layers in the panel, as it needs to be inserted in a certain order. For the baselayers
+        // this is irrelevant because the order of overlays is not relevant
+        if (panel.length === 1 && panel[0].type && panel[0].type.toLowerCase() !== 'adaguc') {
+          newPanels[panelIdx] = { 'layers': [], 'baselayers': [], type: panel[0].type.toUpperCase() };
+          if (panel[0].location) {
+            // Assume ICAO name
+            if (typeof panel[0].location === 'string') {
+              const possibleLocation = this.state.locations.filter((loc) => loc.name === panel[0].location);
+              if (possibleLocation.length === 1) {
+                dispatch(adagucActions.setCursorLocation(possibleLocation[0]));
+              } else {
+                dispatch(adagucActions.setCursorLocation(panel[0].location));
+              }
+            }
+          }
+        } else {
+          newPanels[panelIdx] = { 'layers': new Array(panel.length), 'baselayers': [] };
+          panel.map((layer, i) => {
+            // Create a Promise for parsing all WMJSlayers because we can only do something when ALL layers have been parsed
+            promises.push(new Promise((resolve, reject) => {
+              // eslint-disable-next-line no-undef
+              const wmjsLayer = new WMJSLayer(layer);
+              wmjsLayer.parseLayer((newLayer) => {
+                newLayer.keepOnTop = (layer.overlay || layer.keepOnTop);
+                if (layer.dimensions) {
+                  Object.keys(layer.dimensions).map((dim) => {
+                    newLayer.setDimension(dim, layer.dimensions[dim]);
+                  });
+                }
+                return resolve({ layer: newLayer, panelIdx: panelIdx, index: i })
+              });
+            }));
+          });
+        }
+      });
+
+      // Once that happens, insert the layer in the appropriate place in the appropriate panel
+      Promise.all(promises).then((layers) => {
+        layers.map((layerDescription) => {
+          const { layer, panelIdx, index } = layerDescription;
+          if (layer.keepOnTop === true) {
+            layer.keepOnTop = true;
+            newPanels[panelIdx].baselayers.push(layer);
+          } else {
+            newPanels[panelIdx].layers[index] = layer;
+          }
+        });
+        // Beware: a layer can still contain null values because a layer might have been a null value
+        // also, panels may have had no layers in them
+        dispatch(panelsActions.setPresetLayers(newPanels));
+      });
+    }
   }
 
   setSelectedFir (firList) {
@@ -490,6 +561,9 @@ class SigmetCategory extends Component {
     } else {
       this.getExistingSigmets(this.props.source);
     }
+    ReadLocations(`${this.props.urls.BACKEND_SERVER_URL}/admin/read`, (locations) => {
+      this.setState({ locations });
+    });
   }
 
   componentWillReceiveProps (nextProps) {
@@ -1316,6 +1390,7 @@ SigmetCategory.propTypes = {
   mapActions: PropTypes.object,
   drawActions: PropTypes.object,
   panelsActions: PropTypes.object,
+  adagucActions: PropTypes.object,
   drawProperties: PropTypes.shape({
     adagucMapDraw: PropTypes.shape({
       geojson: PropTypes.object
