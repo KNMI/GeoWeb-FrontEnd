@@ -1121,7 +1121,8 @@ class SigmetCategory extends Component {
                           : null
                         }
                         {(editable || !item.movement.stationary)
-                          ? <Row className={(editable && (item.movement.stationary || this.state.isProgressByEnd)) ? 'disabled' : null} style={editable ? { marginTop: '0.19rem', minHeight: '2rem' } : null}>
+                          ? <Row className={(editable && (item.movement.stationary || this.state.isProgressByEnd)) ? 'disabled' : null}
+                            style={editable ? { marginTop: '0.19rem', minHeight: '2rem' } : null}>
                             <Col xs={{ size: 2, offset: 1 }}>
                               <Badge title='Direction'>Direction</Badge>
                             </Col>
@@ -1142,7 +1143,8 @@ class SigmetCategory extends Component {
                           : null
                         }
                         {(editable || !item.movement.stationary)
-                          ? <Row className={(editable && (item.movement.stationary || this.state.isProgressByEnd)) ? 'disabled' : null} style={editable ? { marginTop: '0.19rem', minHeight: '2rem' } : null}>
+                          ? <Row className={(editable && (item.movement.stationary || this.state.isProgressByEnd)) ? 'disabled' : null}
+                            style={editable ? { marginTop: '0.19rem', minHeight: '2rem' } : null}>
                             <Col xs={{ size: 2, offset: 1 }}>
                               <Badge>Speed</Badge>
                             </Col>
