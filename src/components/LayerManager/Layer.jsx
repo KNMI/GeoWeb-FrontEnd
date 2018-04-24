@@ -61,7 +61,7 @@ export default class Layer extends PureComponent {
           target: ''
         })}>
         <PopoverTitle>Select layer</PopoverTitle>
-        <PopoverContent style={{ overflowY: 'scroll', maxHeight: '50rem', overflowX: 'hidden' }}>
+        <PopoverContent style={{ overflowY: 'auto', maxHeight: '50rem', overflowX: 'hidden' }}>
           {serviceLayers.map((layer, q) =>
             <li onClick={(e) => {
               e.stopPropagation();
@@ -144,7 +144,7 @@ export default class Layer extends PureComponent {
               extraDimOpen: ''
             })}>
             <PopoverTitle>{dim.name} ({dim.units})</PopoverTitle>
-            <PopoverContent style={{ overflowY: 'scroll', maxHeight: '50rem', overflowX: 'hidden' }}>
+            <PopoverContent style={{ overflowY: 'auto', maxHeight: '50rem', overflowX: 'hidden' }}>
               {dim.generateAllValues().map((val, q) =>
                 <li onClick={(e) => {
                   e.stopPropagation();

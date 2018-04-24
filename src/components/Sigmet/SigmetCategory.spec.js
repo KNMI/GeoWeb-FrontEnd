@@ -6,7 +6,7 @@ import { BACKEND_SERVER_URL } from '../../static/urls.json';
 
 describe('(Container) SigmetCategory', () => {
   it('Renders a SigmetCategory', () => {
-    const _component = mount(<SigmetCategory title={'test'} icon='star' />);
+    const _component = mount(<SigmetCategory title={'test'} icon='star' urls={{ BACKEND_SERVER_URL: 'http://localhost:8080' }} />);
     expect(_component.type()).to.eql(SigmetCategory);
   });
   it('Maps SIGMET phenomenon codes to Human Readable Text', () => {
@@ -36,7 +36,7 @@ describe('(Container) SigmetCategory', () => {
         additions: []
       }
     ];
-    const _component = mount(<SigmetCategory title={'test'} icon='star' phenomenonMapping={phenomena} />);
+    const _component = mount(<SigmetCategory title={'test'} icon='star' phenomenonMapping={phenomena} urls={{ BACKEND_SERVER_URL: 'http://localhost:8080' }} />);
     const _instance = _component.instance();
     let phenomenon = _instance.getHRT4code();
     expect(phenomenon).to.eql('Unknown');
@@ -72,13 +72,13 @@ describe('(Container) SigmetCategory', () => {
     expect(phenomenon).to.eql('Sandstorm');
     phenomenon = _instance.getHRT4code('RDOACT_CLD');
     expect(phenomenon).to.eql('Radioactive cloud');
-    const _component2 = mount(<SigmetCategory title={'test'} icon='star' />);
+    const _component2 = mount(<SigmetCategory title={'test'} icon='star' urls={{ BACKEND_SERVER_URL: 'http://localhost:8080' }} />);
     const _instance2 = _component2.instance();
     phenomenon = _instance2.getHRT4code();
     expect(phenomenon).to.eql('Unknown');
   });
   it('Handles triggering of showLevels', () => {
-    const _component = mount(<SigmetCategory title={'test'} icon='star' />);
+    const _component = mount(<SigmetCategory title={'test'} icon='star' urls={{ BACKEND_SERVER_URL: 'http://localhost:8080' }} />);
     const _instance = _component.instance();
     let phenomenon = _instance.showLevels({ });
     expect(phenomenon).to.eql('');
@@ -128,7 +128,7 @@ describe('(Container) SigmetCategory', () => {
   //   expect(phenomenon).to.eql({ 0: 'Surface', 100: 'FL 100', 200: 'FL 200', 300: 'FL 300', 400: 'Above' });
   // });
   it('Handles triggering of setSigmetLevel', () => {
-    const _component = mount(<SigmetCategory title={'test'} icon='star' />);
+    const _component = mount(<SigmetCategory title={'test'} icon='star' urls={{ BACKEND_SERVER_URL: 'http://localhost:8080' }} />);
     const _instance = _component.instance();
     _instance.setSigmetLevel([]);
     _instance.setSigmetLevel([50]);
@@ -186,7 +186,7 @@ describe('(Container) SigmetCategory', () => {
         status: 200,
         response: sigmets
       }).then(() => {
-        const _component = mount(<SigmetCategory title={'test'} icon='star' />);
+        const _component = mount(<SigmetCategory title={'test'} icon='star' urls={{ BACKEND_SERVER_URL: 'http://localhost:8080' }} />);
         expect(_component.find('.btn-group-vertical')).to.have.length(1);
         const _btnGroup = _component.find('.btn-group-vertical').get(0);
         expect(_btnGroup.find('.btn')).to.have.length(1);

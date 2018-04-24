@@ -185,8 +185,8 @@ class LayerManagerPanel extends Component {
       const vals = data[key].layers;
       if (vals) {
         // Delete all layers that do not match the filter
-        const filteredLayers = vals.filter((layer) => layer.name.toLowerCase().indexOf(filter) !== -1 ||
-                                                      layer.text.toLowerCase().indexOf(filter) !== -1);
+        const filteredLayers = vals.filter((layer) => (layer.name && layer.name.toLowerCase().indexOf(filter) !== -1) ||
+                                                      (layer.text && layer.text.toLowerCase().indexOf(filter) !== -1));
 
         // If the source itself is matched by the filter
         if (protectedKeys.includes(key)) {
@@ -215,7 +215,7 @@ class LayerManagerPanel extends Component {
 
   renderLayerChooser (data) {
     // Filter the panelsProperties and sources by a string filter
-    const filteredData = this.filterSourcesAndLayers(cloneDeep(data), this.state.filter);
+    const filteredData = this.filterSourcesAndLayers(cloneDeep(data), this.state.filter ? this.state.filter.toLowerCase() : '');
 
     let activeSourceVisible = this.state.activeSource && Object.keys(filteredData).includes(this.state.activeSource.name);
     // If the result is merely one filter, select it by default
