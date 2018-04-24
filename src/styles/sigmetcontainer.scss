@@ -33,3 +33,16 @@
   -o-transition: all 0.5s ease-in-out;
   transition: all 0.5s ease-in-out;
 }
+
+.Sigmet .required {
+  padding-left: 0.33rem;
+}
+
+.Sigmet .required:after {
+  content: '*';
+}
+
+.Sigmet .required.missing {
+  color: red;
+  font-weight: bold;
+}

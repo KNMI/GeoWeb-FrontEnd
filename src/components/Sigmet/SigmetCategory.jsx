@@ -767,14 +767,6 @@ class SigmetCategory extends Component {
                 action={(evt) => this.setState({ lowerUnit: evt.target.checked ? UNITS_ALT.M : UNITS_ALT.FT })}
                 align='center' />
             </Col>
-            {/* <Col xs={{ size: 6, offset: 1 }} style={{ justifyContent: 'center' }}>
-              <ButtonGroup>
-                <Button color='primary' onClick={() => this.setState({ lowerUnit: UNITS_ALT.FT })} active={this.state.lowerUnit === UNITS_ALT.FT}
-                  disabled={this.state.tops}>{`${UNITS_ALT.FT}/${UNITS_ALT.FL}`}</Button>
-                <Button color='primary' onClick={() => this.setState({ lowerUnit: UNITS_ALT.M })} active={this.state.lowerUnit === UNITS_ALT.M}
-                  disabled={this.state.tops}>{`${UNITS_ALT.M}/${UNITS_ALT.FL}`}</Button>
-              </ButtonGroup>
-            </Col> */}
           </Row>
 
           <Row />
@@ -936,7 +928,7 @@ class SigmetCategory extends Component {
                       }
                       return <Button tag='div' className={'Sigmet row' + (selectedIndex === index ? ' active' : '')}
                         key={index} onClick={(evt) => { this.handleSigmetClick(evt, index); }} title={item.phenomenonHRT} >
-                        <Row style={editable ? { minHeight: '2rem' } : null}>
+                        <Row style={editable ? { maxHeight: '1.8rem' } : null}>
                           <Col xs='3'>
                             <Badge color='success'>What</Badge>
                           </Col>
@@ -949,14 +941,22 @@ class SigmetCategory extends Component {
                                 clearButton />
                               : <span style={{ fontWeight: 'bold' }}>{item.phenomenon}</span>
                             }
+                            {editable
+                              ? <span className={item.phenomenon ? 'required' : 'required missing'} />
+                              : null
+                            }
                           </Col>
                         </Row>
-                        <Row style={editable ? { marginTop: '0.19rem', minHeight: '2rem' } : null}>
+                        <Row style={editable ? { marginTop: '0.33rem', minHeight: '2rem' } : null}>
                           <Col xs={{ size: 9, offset: 3 }}>
                             {editable
                               ? <SwitchButton id='obsfcstswitch' name='obsfcstswitch'
                                 labelRight='Observed' labelLeft='Forecast' isChecked={item.obs_or_forecast.obs} action={(evt) => this.setSelectedObservedForecast(evt.target.checked)} />
                               : <span>{item.obs_or_forecast.obs ? 'Observed' : 'Forecast'}</span>
+                            }
+                            {editable
+                              ? <span className='required' />
+                              : null
                             }
                           </Col>
                         </Row>
@@ -1011,6 +1011,10 @@ class SigmetCategory extends Component {
                               />
                               : <Moment format={DATE_TIME_FORMAT} date={item.validdate} />
                             }
+                            {editable
+                              ? <span className={item.validdate ? 'required' : 'required missing'} />
+                              : null
+                            }
                           </Col>
                         </Row>
                         <Row style={editable ? { paddingTop: '0.19rem', minHeight: '2.5rem' } : { paddingTop: '0.19rem' }}>
@@ -1033,9 +1037,13 @@ class SigmetCategory extends Component {
                                 value={moment.utc(item.validdate_end) || moment.utc(item.validdate).add(this.getParameters().maxhoursofvalidity, 'hour')} />
                               : <Moment format={DATE_TIME_FORMAT} date={item.validdate_end} />
                             }
+                            {editable
+                              ? <span className={item.validdate_end ? 'required' : 'required missing'} />
+                              : null
+                            }
                           </Col>
                         </Row>
-                        <Row className='section' style={editable ? { minHeight: '2.5rem' } : null}>
+                        <Row className='section' style={editable ? { minHeight: '2rem', maxHeight: '2.5rem' } : null}>
                           <Col xs='3'>
                             <Badge color='success'>Where</Badge>
                           </Col>
@@ -1046,6 +1054,10 @@ class SigmetCategory extends Component {
                                 selected={selectedFir ? [selectedFir] : []} placeholder={'Select FIR'}
                                 clearButton />
                               : <span>{item.firname || '(no firname provided yet)'}</span>
+                            }
+                            {editable
+                              ? <span className={item.firname ? 'required' : 'required missing'} />
+                              : null
                             }
                           </Col>
                         </Row>
@@ -1065,7 +1077,7 @@ class SigmetCategory extends Component {
                               </Col>)
                             }
                           </Row>
-                          : ''
+                          : null
                         }
                         {selectedIndex > -1 && editable && (showDrawWarningFromState && showDrawWarningFromProps)
                           ? <Row style={{ flex: 'none', padding: '0.5rem 0 0.5rem 0.12rem', maxWidth: '28.7rem' }}>
@@ -1076,7 +1088,7 @@ class SigmetCategory extends Component {
                               </Alert>
                             </Col>
                           </Row>
-                          : ''
+                          : null
                         }
                         <Row className='section' style={editable ? { minHeight: '14rem' } : null}>
                           <Col xs={editable ? { size: 12 } : { size: 9, offset: 3 }}>
@@ -1093,7 +1105,10 @@ class SigmetCategory extends Component {
                                 labelRight='Move' labelLeft='Stationary' isChecked={!item.movement.stationary} action={this.setSelectedMovement} />
                               : <span>{item.movement.stationary ? 'Stationary' : 'Move'}</span>
                             }
-
+                            {editable
+                              ? <span className='required' />
+                              : null
+                            }
                           </Col>
                         </Row>
                         {(editable || !item.movement.stationary)
@@ -1106,7 +1121,7 @@ class SigmetCategory extends Component {
                                 ? <SwitchButton id='moveswitch' name='moveswitch'
                                   labelLeft='End location' labelRight='Speed &amp; direction' isChecked={!this.state.isProgressByEnd}
                                   action={this.setProgressType} />
-                                : <span>{this.state.isProgressByEnd ? 'specified by end location:' : 'specified by speed &amp; direction:'}</span>
+                                : <span>{(!item.movement.dir && !item.movement.speed) ? 'specified by end location' : null}</span>
                               }
 
                             </Col>
@@ -1130,7 +1145,7 @@ class SigmetCategory extends Component {
                         }
                         {(editable || !item.movement.stationary)
                           ? <Row className={(editable && (item.movement.stationary || this.state.isProgressByEnd)) ? 'disabled' : null}
-                            style={editable ? { marginTop: '0.19rem', minHeight: '2rem' } : null}>
+                            style={editable ? { marginTop: '0.19rem', maxHeight: '2rem' } : null}>
                             <Col xs={{ size: 2, offset: 1 }}>
                               <Badge title='Direction'>Direction</Badge>
                             </Col>
@@ -1151,13 +1166,21 @@ class SigmetCategory extends Component {
                                     : null)}
                                 </span>
                               }
+                              {editable
+                                ? <span className={(item.movement.stationary || this.state.isProgressByEnd)
+                                  ? null
+                                  : item.movement.dir
+                                    ? 'required'
+                                    : 'required missing'} />
+                                : null
+                              }
                             </Col>
                           </Row>
                           : null
                         }
                         {(editable || !item.movement.stationary)
                           ? <Row className={(editable && (item.movement.stationary || this.state.isProgressByEnd)) ? 'disabled' : null}
-                            style={editable ? { marginTop: '0.19rem', minHeight: '2rem' } : null}>
+                            style={editable ? { marginTop: '0.19rem', maxHeight: '2rem' } : null}>
                             <Col xs={{ size: 2, offset: 1 }}>
                               <Badge>Speed</Badge>
                             </Col>
@@ -1172,11 +1195,19 @@ class SigmetCategory extends Component {
                                 </InputGroup>
                                 : <span>{item.movement.speed ? `${item.movement.speed} KT` : null}</span>
                               }
+                              {editable
+                                ? <span className={(item.movement.stationary || this.state.isProgressByEnd)
+                                  ? null
+                                  : item.movement.speed
+                                    ? 'required'
+                                    : 'required missing'} />
+                                : null
+                              }
                             </Col>
                           </Row>
                           : null
                         }
-                        <Row className='section' style={editable ? { marginTop: '0.19rem', minHeight: '2.5rem' } : null}>
+                        <Row className='section' style={editable ? { margin: '0.19rem 0', maxHeight: '2.5rem' } : null}>
                           <Col xs='3'>
                             <Badge color='success'>Change</Badge>
                           </Col>
@@ -1189,11 +1220,10 @@ class SigmetCategory extends Component {
                                 clearButton />
                               : <span>{selectedChange ? selectedChange.longName : 'No change selected'}</span>
                             }
-                          </Col>
-                        </Row>
-                        <Row>
-                          <Col xs={{ size: 9, offset: 3 }}>
-                            {item.forecast_position}
+                            {editable
+                              ? <span className={item.change ? 'required' : 'required missing'} />
+                              : null
+                            }
                           </Col>
                         </Row>
                         <Row className='section' style={{ minHeight: '2.5rem' }}>
@@ -1218,7 +1248,7 @@ class SigmetCategory extends Component {
                               <Badge>Sequence</Badge>
                             </Col>
                             <Col xs='6'>
-                              {(!isNaN(item.sequence) && item.sequence !== -1) ? item.sequence : '(not yet published)'}
+                              {(!isNaN(item.sequence) && item.sequence !== -1 && item.sequence !== 0) ? item.sequence : '(not yet published)'}
                             </Col>
                           </Row>
                           : null
