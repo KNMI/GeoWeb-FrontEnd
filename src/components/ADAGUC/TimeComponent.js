@@ -116,7 +116,6 @@ export default class TimeComponent extends PureComponent {
 
   /* istanbul ignore next */
   drawCanvas () {
-    const t0 = performance.now();
     const { timedim, panel } = this.props;
     if (!timedim) {
       return;
