@@ -77,7 +77,7 @@ class SigmetCategory extends Component {
     this.getExistingSigmets = this.getExistingSigmets.bind(this);
     this.gotExistingSigmetsCallback = this.gotExistingSigmetsCallback.bind(this);
     this.setSelectedMovement = this.setSelectedMovement.bind(this);
-    this.setSetMovementType = this.setSetMovementType.bind(this);
+    this.setProgressType = this.setProgressType.bind(this);
     this.setSelectedDirection = this.setSelectedDirection.bind(this);
     this.setSpeed = this.setSpeed.bind(this);
     this.setChange = this.setChange.bind(this);
@@ -89,7 +89,8 @@ class SigmetCategory extends Component {
       isClosing: props.isClosing,
       list: [EMPTY_SIGMET],
       renderRange: false,
-      lowerUnit: UNITS_ALT.FL
+      lowerUnit: UNITS_ALT.FL,
+      isProgressByEnd: true
     };
   }
 
@@ -412,11 +413,8 @@ class SigmetCategory extends Component {
     this.setState({ list: listCpy });
   }
 
-  setSetMovementType (evt) {
-    const isDefinedByArea = !evt.target.checked;
-    let listCpy = cloneDeep(this.state.list);
-    listCpy[0].movement.movementtype = isDefinedByArea;
-    this.setState({ list: listCpy });
+  setProgressType (evt) {
+    this.setState({ isProgressByEnd: !evt.target.checked });
   }
 
   setSelectedDirection (dir) {
@@ -804,7 +802,7 @@ class SigmetCategory extends Component {
       !drawProperties.adagucMapDraw.geojson.features[0].geometry.hasOwnProperty('coordinates') || !drawProperties.adagucMapDraw.geojson.features[0].geometry.coordinates.length > 0;
     let maxSize = this.state.list ? 550 * this.state.list.slice(0, itemLimit).length : 0;
     if (editable) {
-      maxSize = 1070;
+      maxSize = 1134; // (1070 + 4rem)
     }
     const sourceless = Object.keys(this.props.sources || {}).length === 0;
     const now = getRoundedNow();
@@ -1040,7 +1038,7 @@ class SigmetCategory extends Component {
                                 options={availableFirs} onChange={(firList) => this.setSelectedFir(firList)}
                                 selected={selectedFir ? [selectedFir] : []} placeholder={'Select FIR'}
                                 clearButton />
-                              : <span>{item.firname || 'no firname provided yet'}</span>
+                              : <span>{item.firname || '(no firname provided yet)'}</span>
                             }
                           </Col>
                         </Row>
@@ -1083,8 +1081,6 @@ class SigmetCategory extends Component {
                             <Badge color='success'>Progress</Badge>
                           </Col>
                           <Col xs='9'>
-                            {/* dir: {N,NNE,NE,ENE,E,ESE,SE,SSE,S,SSW,SW,WSW,W,WNW} */}
-                            {/* speed: int */}
                             {editable
                               ? <SwitchButton id='movementswitch' name='movementswitch'
                                 labelRight='Move' labelLeft='Stationary' isChecked={!item.movement.stationary} action={this.setSelectedMovement} />
@@ -1093,65 +1089,75 @@ class SigmetCategory extends Component {
 
                           </Col>
                         </Row>
-                        <Row className='section' style={{ minHeight: '2.5rem' }}>
-                          <Col xs='3'>
-                            <Badge color='success'>Type</Badge>
-                          </Col>
-                          <Col xs='9'>
-                            {/* dir: {N,NNE,NE,ENE,E,ESE,SE,SSE,S,SSW,SW,WSW,W,WNW} */}
-                            {/* speed: int */}
-                            {editable
-                              ? <SwitchButton id='movementtypeswitch' name='movementtypeswitch'
-                                labelLeft='By area' labelRight='By speed and direction' isChecked={item.movement.movementtype === false} action={this.setSetMovementType} />
-                              : <span>{!item.movement.movementtype ? 'Movement defined by area' : 'Movement defined with speed and direction'}</span>
-                            }
+                        {(editable || !item.movement.stationary)
+                          ? <Row className={(editable && item.movement.stationary) ? 'section disabled' : 'section'} style={{ minHeight: '2.6rem' }}>
+                            <Col xs='3'>
+                              <Badge color='success'>Move</Badge>
+                            </Col>
+                            <Col xs='9'>
+                              {editable
+                                ? <SwitchButton id='moveswitch' name='moveswitch'
+                                  labelLeft='End location' labelRight='Speed &amp; direction' isChecked={!this.state.isProgressByEnd}
+                                  action={this.setProgressType} />
+                                : <span>{this.state.isProgressByEnd ? 'specified by end location:' : 'specified by speed &amp; direction:'}</span>
+                              }
 
-                          </Col>
-                        </Row>
+                            </Col>
+                          </Row>
+                          : null
+                        }
                         {editable
-                          ? <Row className='section' style={{ minHeight: '3.685rem', marginBottom: '0.33rem' }}>
+                          ? <Row className={(item.movement.stationary || !this.state.isProgressByEnd) ? 'section disabled' : 'section'} style={{ minHeight: '3.685rem', marginBottom: '0.33rem' }}>
                             {drawActions.map((actionItem, index) =>
                               <Col xs={{ size: 'auto', offset: index === 0 ? 3 : null }} key={index} style={{ padding: '0 0.167rem' }}>
                                 <Button color='primary' active={actionItem.action === 'mapProperties.mapMode'}
-                                  disabled={!item.movement.movementtype || item.movement.stationary || actionItem.disabled || null}
+                                  disabled={(item.movement.stationary || !this.state.isProgressByEnd || actionItem.disabled)}
                                   id={actionItem.action + '_button'} title={actionItem.title} onClick={() => this.handleActionClick(actionItem.action, 'progress')} style={{ width: '3rem' }}>
                                   <Icon name={actionItem.icon} />
                                 </Button>
                               </Col>)
                             }
                           </Row>
-                          : ''
+                          : null
                         }
-                        <Row style={editable ? { marginTop: '0.19rem', minHeight: '2rem' } : null}>
-                          <Col xs={{ size: 2, offset: 1 }}>
-                            <Badge title='Direction'>Direction</Badge>
-                          </Col>
-                          <Col xs='9'>
-                            {editable
-                              ? <Typeahead style={{ width: '100%' }} filterBy={['shortName', 'longName']} labelKey='longName'
-                                disabled={item.movement.stationary || item.movement.movementtype}
-                                options={DIRECTIONS} placeholder={item.movement.stationary ? null : 'Select direction'}
-                                onChange={(dir) => this.setSelectedDirection(dir)}
-                                selected={selectedDirection ? [selectedDirection] : []}
-                                clearButton />
-                              : <span>{selectedDirection ? selectedDirection.longName : (!item.movement.stationary ? 'No direction selected' : null)}</span>
-                            }
-                          </Col>
-                        </Row>
-                        <Row style={editable ? { marginTop: '0.19rem', minHeight: '2rem' } : null}>
-                          <Col xs={{ size: 2, offset: 1 }}>
-                            <Badge>Speed</Badge>
-                          </Col>
-                          <Col xs='9'>
-                            {editable
-                              ? <InputGroup>
-                                <Input onChange={this.setSpeed} defaultValue='0' type='number' step='1' disabled={item.movement.stationary || item.movement.movementtype} />
-                                <InputGroupAddon>KT</InputGroupAddon>
-                              </InputGroup>
-                              : <span>{item.movement.speed ? `${item.movement.speed} KT` : null }</span>
-                            }
-                          </Col>
-                        </Row>
+                        {(editable || !item.movement.stationary)
+                          ? <Row className={(editable && (item.movement.stationary || this.state.isProgressByEnd)) ? 'disabled' : null} style={editable ? { marginTop: '0.19rem', minHeight: '2rem' } : null}>
+                            <Col xs={{ size: 2, offset: 1 }}>
+                              <Badge title='Direction'>Direction</Badge>
+                            </Col>
+                            <Col xs='9'>
+                              {/* dir: {N,NNE,NE,ENE,E,ESE,SE,SSE,S,SSW,SW,WSW,W,WNW} */}
+                              {/* speed: int */}
+                              {editable
+                                ? <Typeahead style={{ width: '100%' }} filterBy={['shortName', 'longName']} labelKey='longName'
+                                  disabled={(item.movement.stationary || this.state.isProgressByEnd)}
+                                  options={DIRECTIONS} placeholder={item.movement.stationary ? null : 'Select direction'}
+                                  onChange={(dir) => this.setSelectedDirection(dir)}
+                                  selected={selectedDirection ? [selectedDirection] : []}
+                                  clearButton />
+                                : <span>{selectedDirection ? selectedDirection.longName : (!item.movement.stationary ? '(no direction selected)' : null)}</span>
+                              }
+                            </Col>
+                          </Row>
+                          : null
+                        }
+                        {(editable || !item.movement.stationary)
+                          ? <Row className={(editable && (item.movement.stationary || this.state.isProgressByEnd)) ? 'disabled' : null} style={editable ? { marginTop: '0.19rem', minHeight: '2rem' } : null}>
+                            <Col xs={{ size: 2, offset: 1 }}>
+                              <Badge>Speed</Badge>
+                            </Col>
+                            <Col xs='9'>
+                              {editable
+                                ? <InputGroup>
+                                  <Input onChange={this.setSpeed} defaultValue='0' type='number' step='1' disabled={(item.movement.stationary || this.state.isProgressByEnd)} />
+                                  <InputGroupAddon>KT</InputGroupAddon>
+                                </InputGroup>
+                                : <span>{item.movement.speed ? `${item.movement.speed} KT` : null}</span>
+                              }
+                            </Col>
+                          </Row>
+                          : null
+                        }
                         <Row className='section' style={editable ? { marginTop: '0.19rem', minHeight: '2.5rem' } : null}>
                           <Col xs='3'>
                             <Badge color='success'>Change</Badge>

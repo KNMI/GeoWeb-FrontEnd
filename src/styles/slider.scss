@@ -53,6 +53,11 @@ div.rc-slider-rail {
   background-color: $ux-interactive-color!important;
 }
 
+.disabled .input + .toggle, .disabled .input + .toggle:after {
+  background-color: $font-inactive-color!important;
+  cursor: not-allowed;
+}
+
 .input + .toggle:before {
 
   border-radius: 3.75rem!important;
