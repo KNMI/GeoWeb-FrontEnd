@@ -4,140 +4,16 @@ import PropTypes from 'prop-types';
 import { Typeahead } from 'react-bootstrap-typeahead';
 
 class Panel extends PureComponent {
-  constructor () {
+  constructor() {
     super();
     this.state = {
       typeIsOpen: false,
       modelIsOpen: false
     };
-    this.locationSetter = this.locationSetter.bind(this);
-    this.setChosenLocation = this.setChosenLocation.bind(this);
-    this.renderMenu = this.renderMenu.bind(this);
-    this.modelChanger = this.modelChanger.bind(this);
-    this.toggleType = this.toggleType.bind(this);
-    this.clearTypeAhead = this.clearTypeAhead.bind(this);
-  }
-  setChosenLocation (loc) {
-    const { dispatch, adagucActions } = this.props;
-    if (loc.length > 0) {
-      dispatch(adagucActions.setCursorLocation(loc[0]));
-      this.setState({ location: loc[0] });
-    }
-  }
-  convertMinSec (loc) {
-    function padLeft (nr, n, str) {
-      return Array(n - String(nr).length + 1).join(str || '0') + nr;
-    }
-
-    const behindComma = (loc - Math.floor(loc));
-
-    const minutes = behindComma * 60;
-    const seconds = Math.floor((minutes - Math.floor(minutes)) * 60);
-
-    return Math.floor(loc) + ':' + padLeft(Math.floor(minutes), 2, '0') + ':' + padLeft(seconds, 2, '0');
-  }
-  clearTypeAhead () {
-    const { typeahead } = this.state;
-    if (typeahead === null || typeahead === undefined || typeahead.instanceRef === null) return;
-    const instance = typeahead.getInstance();
-    if (instance === null || instance === undefined) return;
-    this.state.typeahead.getInstance().clear();
-  }
-  componentDidUpdate (prevProps) {
-    if (this.props.type !== 'ADAGUC') {
-      return;
-    }
-    const { location } = this.props;
-
-    // Clear the Typeahead if previously a location was selected from the dropdown
-    // and now a location is selected by clicking on the map
-    const prevLoc = prevProps.location;
-
-    // If we clicked on the map...
-    if (location && !location.name && prevLoc && prevLoc.name) {
-      this.clearTypeAhead();
-    }
-    // Or in some other panel the location was changed
-    if (this.state.location !== location) {
-      this.clearTypeAhead();
-    }
-  }
-
-  getLocationAsString () {
-    const { location } = this.props;
-    const panelOpts = ['TIMESERIES', 'PROGTEMP'];
-    if (panelOpts.some((t) => t === this.props.type)) {
-      if (location) {
-        if (location.name) {
-          return <span style={{ lineHeight: '2rem', verticalAlign: 'middle' }}>Location: <strong>{location.name}</strong></span>;
-        } else if (location.x && location.y) {
-          return <span style={{ lineHeight: '2rem', verticalAlign: 'middle' }}>Location: <strong>{this.convertMinSec(location.x) + ', ' + this.convertMinSec(location.y)}</strong></span>;
-        } else {
-          return <span style={{ lineHeight: '2rem', verticalAlign: 'middle' }}>{location}</span>;
-        }
-      }
-    }
-  }
-
-  locationSetter () {
-    const panelOpts = ['TIMESERIES', 'PROGTEMP'];
-    if (panelOpts.some((t) => t === this.props.type)) {
-      return <div style={{ marginRight: '0.25rem', maxWidth: '13rem' }}>
-        <Typeahead onClick={this.clearTypeAhead} onFocus={this.clearTypeAhead} bsSize='sm' ref={(typeahead) => {
-          if (typeahead !== null && typeahead !== this.state.typeahead) {
-            this.setState({ typeahead: typeahead });
-          }
-        }}
-        onChange={this.setChosenLocation} options={this.props.locations || []} labelKey='name' placeholder='Select ICAO location&hellip;' submitFormOnEnter />
-      </div>;
-    }
-  }
-
-  // TODO: Implement this when more models are available
-  modelChanger () {
-    const panelOpts = ['TIMESERIES', 'PROGTEMP'];
-    if (panelOpts.some((t) => t === this.props.type)) {
-      return <ButtonDropdown size='sm' style={{ marginRight: '0.25rem' }} isOpen={this.state.modelIsOpen} toggle={() => {}}>
-        <DropdownToggle caret size='sm'>
-          {this.props.referenceTime
-            ? 'Harmonie36 - ' + this.props.referenceTime.format('ddd DD, HH:mm UTC')
-            : 'Harmonie36'}
-        </DropdownToggle>
-        <DropdownMenu>
-          <DropdownItem>Harmonie36</DropdownItem>
-        </DropdownMenu>
-      </ButtonDropdown>;
-    }
-  }
-
-  toggleType () {
-    this.setState({
-      typeIsOpen: !this.state.typeIsOpen
-    });
-  }
-
-  renderMenu () {
-    const { type, mapId, dispatch, panelsActions, isLoggedIn } = this.props;
-    if(!isLoggedIn) {
-    	return null;
-    }
-    return (<ButtonDropdown style={{ marginRight: '0.25rem' }} isOpen={this.state.typeIsOpen} toggle={() => {}}>
-      <DropdownToggle caret style={{ textTransform: 'capitalize' }} size='sm'>
-        {type.toLowerCase()}
-      </DropdownToggle>
-      <DropdownMenu>
-        {
-          ['ADAGUC', 'TIMESERIES', 'PROGTEMP'].map((type) => {
-            return (<DropdownItem key={`panelType-${type}`} style={{ textTransform: 'capitalize' }}
-              onClick={(e) => { dispatch(panelsActions.setPanelType({ type, mapId })); }} >{type.toLowerCase()}</DropdownItem>);
-          })
-        }
-      </DropdownMenu>
-    </ButtonDropdown>);
   }
 
   render () {
-    const { title, style, className, mapId, dispatch, type, panelsActions, mapMode } = this.props;
+    const { title, style, className, isLoggedIn, mapId, dispatch, type, panelsActions, mapMode } = this.props;
     const panelOpts = ['ADAGUC', 'TIMESERIES', 'PROGTEMP'];
     if (!title) {
       const onClick = type === 'ADAGUC' ? (e) => {
@@ -159,10 +35,8 @@ class Panel extends PureComponent {
           {(type && panelOpts.some((opt) => opt === type))
             ? <Row className='title notitle' style={{ ...style, overflow: 'visible' }}>
               <div style={{ marginTop: '0.33rem', flexWrap: 'wrap' }}>
-                {this.renderMenu()}
-                {this.modelChanger()}
-                {this.locationSetter()}
-                {this.getLocationAsString()}
+                <PanelTypeChanger mapId={mapId} type={type} dispatch={dispatch} panelsActions={panelsActions} isLoggedIn={isLoggedIn} />
+                <ModeLocationChanger location={this.props.location} dispatch={dispatch} adagucActions={this.props.adagucActions} locations={this.props.locations} type={type} referenceTime={this.props.referenceTime} />
               </div>
             </Row>
             : <Row className='title notitle' style={style} />
@@ -189,6 +63,154 @@ class Panel extends PureComponent {
         </div>
       );
     }
+  }
+}
+
+// TODO: Implement this when more models are available
+class ModeLocationChanger extends PureComponent {
+  constructor () {
+    super();
+    this.toggleModelOpen = this.toggleModelOpen.bind(this);
+    this.setChosenLocation = this.setChosenLocation.bind(this);
+    this.clearTypeAhead = this.clearTypeAhead.bind(this);
+    this.state = {
+      modelIsOpen: false
+    }
+  }
+
+  componentDidUpdate (prevProps) {
+    if (this.props.type !== 'ADAGUC') {
+      return;
+    }
+    const { location } = this.props;
+
+    // Clear the Typeahead if previously a location was selected from the dropdown
+    // and now a location is selected by clicking on the map
+    const prevLoc = prevProps.location;
+
+    // If we clicked on the map...
+    if (location && !location.name && prevLoc && prevLoc.name) {
+      this.clearTypeAhead();
+    }
+    // Or in some other panel the location was changed
+    if (this.state.location !== location) {
+      this.clearTypeAhead();
+    }
+  }
+
+  toggleModelOpen () {
+    this.setState({
+      modelIsOpen: !this.state.modelIsOpen
+    });
+  }
+
+  clearTypeAhead () {
+    const { typeahead } = this.state;
+    if (typeahead === null || typeahead === undefined || typeahead.instanceRef === null) return;
+    const instance = typeahead.getInstance();
+    if (instance === null || instance === undefined) return;
+    this.state.typeahead.getInstance().clear();
+  }
+
+  setChosenLocation (loc) {
+    const { dispatch, adagucActions } = this.props;
+    if (loc.length > 0) {
+      dispatch(adagucActions.setCursorLocation(loc[0]));
+      this.setState({ location: loc[0] });
+    }
+  }
+  convertMinSec (loc) {
+    function padLeft(nr, n, str) {
+      return Array(n - String(nr).length + 1).join(str || '0') + nr;
+    }
+
+    const behindComma = (loc - Math.floor(loc));
+
+    const minutes = behindComma * 60;
+    const seconds = Math.floor((minutes - Math.floor(minutes)) * 60);
+
+    return Math.floor(loc) + ':' + padLeft(Math.floor(minutes), 2, '0') + ':' + padLeft(seconds, 2, '0');
+  }
+
+  getLocationAsString () {
+    const { location } = this.props;
+    const panelOpts = ['TIMESERIES', 'PROGTEMP'];
+    if (panelOpts.some((t) => t === this.props.type)) {
+      if (location) {
+        if (location.name) {
+          return <span style={{ lineHeight: '2rem', verticalAlign: 'middle' }}>Location: <strong>{location.name}</strong></span>;
+        } else if (location.x && location.y) {
+          return <span style={{ lineHeight: '2rem', verticalAlign: 'middle' }}>Location: <strong>{this.convertMinSec(location.x) + ', ' + this.convertMinSec(location.y)}</strong></span>;
+        } else {
+          return <span style={{ lineHeight: '2rem', verticalAlign: 'middle' }}>{location}</span>;
+        }
+      }
+    }
+  }
+
+  render () {
+    const panelOpts = ['TIMESERIES', 'PROGTEMP'];
+    if (panelOpts.some((t) => t === this.props.type)) {
+      return (
+        <div>
+          <ButtonDropdown size='sm' style={{ marginRight: '0.25rem' }} isOpen={this.state.modelIsOpen} toggle={this.toggleModelOpen}>
+            <DropdownToggle caret size='sm'>
+              {this.props.referenceTime
+                ? 'Harmonie36 - ' + this.props.referenceTime.format('ddd DD, HH:mm UTC')
+                : 'Harmonie36'}
+            </DropdownToggle>
+            <DropdownMenu>
+              <DropdownItem>Harmonie36</DropdownItem>
+            </DropdownMenu>
+          </ButtonDropdown>
+          <div style={{ marginRight: '0.25rem', maxWidth: '13rem' }}>
+            <Typeahead onClick={this.clearTypeAhead} onFocus={this.clearTypeAhead} bsSize='sm' ref={(typeahead) => {
+              if (typeahead !== null && typeahead !== this.state.typeahead) {
+                this.setState({ typeahead: typeahead });
+              }
+            }} onChange={this.setChosenLocation} options={this.props.locations || []} labelKey='name' placeholder='Select ICAO location&hellip;' submitFormOnEnter />
+          </div>
+          <div>
+            {this.getLocationAsString()}
+          </div>
+        </div>
+      );
+    }
+    return null;
+  }
+}
+
+class PanelTypeChanger extends PureComponent {
+  constructor () {
+    super();
+    this.toggleType = this.toggleType.bind(this);
+    this.state = {
+      typeIsOpen: false
+    }
+  }
+  toggleType () {
+    this.setState({
+      typeIsOpen: !this.state.typeIsOpen
+    });
+  }
+  render () {
+    const { type, dispatch, mapId, panelsActions, isLoggedIn } = this.props;
+    if (!isLoggedIn) {
+      return null;
+    }
+    return (<ButtonDropdown style={{ marginRight: '0.25rem' }} isOpen={this.state.typeIsOpen} toggle={this.toggleType}>
+      <DropdownToggle caret style={{ textTransform: 'capitalize' }} size='sm'>
+        {type.toLowerCase()}
+      </DropdownToggle>
+      <DropdownMenu>
+        {
+          ['ADAGUC', 'TIMESERIES', 'PROGTEMP'].map((type) => {
+            return (<DropdownItem key={`panelType-${type}`} style={{ textTransform: 'capitalize' }}
+              onClick={(e) => { dispatch(panelsActions.setPanelType({ type, mapId })); }} >{type.toLowerCase()}</DropdownItem>);
+          })
+        }
+      </DropdownMenu>
+    </ButtonDropdown>);
   }
 }
 

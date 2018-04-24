@@ -76,7 +76,7 @@ class SigmetCategory extends Component {
       isClosing: props.isClosing,
       list: [EMPTY_SIGMET],
       renderRange: false,
-      lowerUnit: UNITS_ALT.FL
+      lowerUnit: UNITS_ALT.FT
     };
   }
 
@@ -783,7 +783,6 @@ class SigmetCategory extends Component {
       renderMarks[171] = 'Above';
     });
 
-    console.log(markValues);
     const handle = (params) => {
       const { value, dragging, index, ...restProps } = params;
       return (
@@ -1150,7 +1149,7 @@ class SigmetCategory extends Component {
                           </Row>
                           : ''
                         }
-                        <Row className='section' style={editable ? { minHeight: '14rem' } : null}>
+                        <Row className='section' style={editable ? { minHeight: '18rem' } : null}>
                           <Col xs={editable ? { size: 12 } : { size: 9, offset: 3 }}>
                             {this.renderLevelSelection(editable, item)}
                           </Col>

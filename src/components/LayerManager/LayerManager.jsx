@@ -10,7 +10,32 @@ export default class LayerManager extends PureComponent {
     const { dispatch, panelsActions, activePanelId, panel } = this.props;
     dispatch(panelsActions.setActiveLayer({ layerClicked: index, activePanelId }));
   }
-  render() {
+
+  shouldComponentUpdate (nextProps, nextState) {
+    if (this.props.activePanelId !== nextProps.activePanelId ||
+        this.props.panel.baselayers.length !== nextProps.panel.baselayers.length ||
+        this.props.panel.layers.length !== nextProps.panel.layers.length
+    ) {
+      return true;
+    }
+    this.props.panel.layers.map((layer, i) => {
+      const nextLayer = nextProps.panel.layers[i];
+      if (!layer || !nextLayer) {
+        return true;
+      }
+      if (layer.service !== nextLayer.service ||
+        layer.name !== nextLayer.name ||
+        layer.opacity !== nextLayer.opacity ||
+        layer.currentStyle !== nextLayer.currentStyle ||
+        layer.active !== nextLayer.active ||
+        (layer.dimensions && layer.dimensions.filter((dim) => !dim.name.includes('time')) !== nextLayer.dimensions.filter((dim) => !dim.name.includes('time')))
+      ) {
+        return true;
+      }
+    });
+    return false;
+  }
+  render () {
     const { dispatch, panelsActions, activePanelId, panel } = this.props;
     if (!panel) {
       return <Col />;

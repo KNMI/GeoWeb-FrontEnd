@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import AdagucMapDraw from './AdagucMapDraw.js';
 import AdagucMeasureDistance from './AdagucMeasureDistance.js';
 import ModelTime from './ModelTime';
-import diff from 'deep-diff';
 import moment from 'moment';
 import cloneDeep from 'lodash.clonedeep';
 import { DefaultLocations } from '../../constants/defaultlocations';
@@ -269,28 +268,24 @@ export default class Adaguc extends PureComponent {
   // Returns true when the panelsProperties are actually different w.r.t. next panelsProperties, otherwise false
   /* istanbul ignore next */
   updateBaselayers (baselayers, nextBaselayers) {
-    if (Array.isArray(baselayers) && diff(baselayers, nextBaselayers)) {
-      const nextBaseLayers = nextBaselayers.filter((layer) => !layer.keepOnTop);
-      const nextOverlays = nextBaselayers.filter((layer) => layer.keepOnTop === true);
-
-      const currentBaseLayers = this.webMapJS.getBaseLayers();
-      const potentialNextBaseLayers = nextBaseLayers.concat(nextOverlays);
-      currentBaseLayers.map((baselayer) => {
-        if (!potentialNextBaseLayers.includes(baselayer)) {
-          if (!baselayer.keepOnTop) {
-            potentialNextBaseLayers.unshift(baselayer);
-          } else {
-            if (nextBaselayers.includes(baselayer)) {
-              potentialNextBaseLayers.push(baselayer);
-            }
-          }
+    let change = false;
+    if (baselayers.length !== nextBaselayers.length) {
+      change = true;
+    } else {
+      for (let i = 0; i < baselayers.length; ++i) {
+        if (baselayers[i].service !== nextBaselayers[i].service ||
+            baselayers[i].name !== nextBaselayers[i].name) {
+          change = true;
+          break;
         }
-      });
-      this.webMapJS.setBaseLayers(potentialNextBaseLayers);
-
-      return true;
+      }
     }
-    return false;
+
+    if (change) {
+      const currentBaseLayer = this.webMapJS.getBaseLayers().filter((layer) => !layer.keepOnTop);
+      this.webMapJS.setBaseLayers([...currentBaseLayer, ...nextBaselayers.filter((layer) => layer.keepOnTop === true)]);
+    }
+    return change;
   }
 
   updateAnimationActiveLayerChange (currDataLayers, nextDataLayers, active) {
@@ -351,7 +346,37 @@ export default class Adaguc extends PureComponent {
   // Returns true when the panelsProperties are actually different w.r.t. next panelsProperties, otherwise false
   /* istanbul ignore next */
   updateLayers (currDataLayers, nextDataLayers, active) {
-    const change = diff(currDataLayers, nextDataLayers);
+    function isDefined (variable) {
+      if (typeof variable === 'undefined') {
+        return false;
+      }
+      return true;
+    };
+
+    // const change = diff(currDataLayers, nextDataLayers);
+    let change = false;
+    if (currDataLayers.length !== nextDataLayers.length) {
+      change = true;
+    } else {
+      for (let i = 0; i < currDataLayers.length; ++i) {
+        if (currDataLayers[i].service !== nextDataLayers[i].service ||
+          currDataLayers[i].name !== nextDataLayers[i].name) {
+          change = true;
+          break;
+        }
+
+        if (isDefined(currDataLayers[i].getDimension('time')) === isDefined(nextDataLayers[i].getDimension('time'))) {
+          if (isDefined(currDataLayers[i].getDimension('time')) && currDataLayers[i].getDimension('time').currentValue !== nextDataLayers[i].getDimension('time').currentValue) {
+            change = true;
+            break;
+          }
+        } else {
+          change = true;
+          break;
+        }
+      }
+    }
+
     if (change && nextDataLayers && Array.isArray(nextDataLayers)) {
       this.webMapJS.removeAllLayers();
       const layersCpy = cloneDeep(nextDataLayers);
@@ -371,7 +396,7 @@ export default class Adaguc extends PureComponent {
         this.updateAnimationActiveLayerChange(currDataLayers, nextDataLayers, active);
       }
     }
-    return Array.isArray(change) && change.length > 0;
+    return change;
   }
 
   componentWillUpdate (nextProps) {
@@ -398,8 +423,8 @@ export default class Adaguc extends PureComponent {
 
     // Update animation -- animate iff animate is set and the panel is active.
     if (nextProps.adagucProperties.animationSettings !== animationSettings ||
-        activePanelId !== nextProps.panelsProperties.activePanelId ||
-        (currActiveLayers.length === 1 && nextActiveLayers.length === 1 && currActiveLayers[0] !== nextActiveLayers[0])) {
+      activePanelId !== nextProps.panelsProperties.activePanelId ||
+      (currActiveLayers.length === 1 && nextActiveLayers.length === 1 && currActiveLayers[0] !== nextActiveLayers[0])) {
       this.onChangeAnimation(nextProps.adagucProperties.animationSettings, nextProps.active);
     }
 

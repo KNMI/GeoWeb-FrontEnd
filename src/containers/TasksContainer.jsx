@@ -150,6 +150,11 @@ class TasksContainer extends Component {
     return newItems;
   }
 
+  shouldComponentUpdate (nextProps, nextState) {
+    return this.state !== nextState ||
+           this.props.user !== nextProps.user;
+  }
+
   render () {
     const { user } = this.props;
     if (user && (!user.isLoggedIn || !CheckIfUserHasRole(user, 'MET'))) {

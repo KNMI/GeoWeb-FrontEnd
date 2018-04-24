@@ -55,12 +55,17 @@ class ProductsContainer extends Component {
     this.state = { isOpen: true };
   }
 
+  shouldComponentUpdate (nextProps, nextState) {
+    return this.state !== nextState;
+  }
+
   toggle (evt) {
     this.setState({ isOpen: !this.state.isOpen });
     evt.preventDefault();
   }
 
   render () {
+    console.log('render productscontainer');
     const { user } = this.props;
     if (user && (!user.isLoggedIn || !CheckIfUserHasRole(user, 'MET'))) {
       hashHistory.push('/');

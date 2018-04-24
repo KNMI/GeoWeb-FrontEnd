@@ -124,27 +124,27 @@ class TitleBarContainer extends PureComponent {
     if (result.data.length > 0) {
       result.data.filter((notification) => !this.seen(notification)).filter((trigger) =>
         !this.props.notifications.some((not) => not.id === trigger.uuid)).sort((a, b) => this.diffWrtNow(a.triggerdate, b.triggerdate)).slice(0, 3).forEach((trigger, i) => {
-          this.props.dispatch(addNotification({
-            title: this.getTriggerTitle(trigger),
-            message: this.getTriggerMessage(trigger),
-            position: 'bl',
-            id: trigger.uuid,
-            raw: trigger,
-            status: 'error',
-            buttons: [
-              {
-                name: 'Discard',
-                primary: true
-              }, {
-                name: 'Where',
-                onClick: (e) => { e.stopPropagation(); this.handleTriggerClick(trigger.locations); }
-              }
-            ],
-            dismissible: false,
-            dismissAfter: 0,
-            allowHTML: true
-          }));
-        });
+        this.props.dispatch(addNotification({
+          title: this.getTriggerTitle(trigger),
+          message: this.getTriggerMessage(trigger),
+          position: 'bl',
+          id: trigger.uuid,
+          raw: trigger,
+          status: 'error',
+          buttons: [
+            {
+              name: 'Discard',
+              primary: true
+            }, {
+              name: 'Where',
+              onClick: (e) => { e.stopPropagation(); this.handleTriggerClick(trigger.locations); }
+            }
+          ],
+          dismissible: false,
+          dismissAfter: 0,
+          allowHTML: true
+        }));
+      });
     }
   }
 
@@ -179,6 +179,12 @@ class TitleBarContainer extends PureComponent {
   setTime() {
     const time = moment().utc().format(timeFormat).toString();
     this.setState({ currentTime: time });
+  }
+
+  // TODO: Enough?
+  shouldComponentUpdate (nextProps, nextState) {
+    return this.state !== nextState ||
+           this.props.panelsProperties.panelLayout !== nextProps.panelsProperties.panelLayout;
   }
 
   componentWillUnmount() {
@@ -922,6 +928,7 @@ class LayoutDropDown extends PureComponent {
   };
 
   render() {
+
     const togglePreset = () => this.setState({ popoverOpen: !this.state.popoverOpen });
     const { panelsProperties, mapProperties } = this.props;
     const isActive = (layout) => panelsProperties && panelsProperties.panelLayout === layout;

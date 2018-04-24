@@ -50,6 +50,31 @@ export class SinglePanel extends PureComponent {
     }
   }
 
+  shouldComponentUpdate (nextProps, nextState) {
+    const mapId = this.props.mapId;
+    const { type } = nextProps.panelsProperties.panels[mapId];
+    let specificChangesHappening = false;
+    switch (type.toUpperCase()) {
+      case 'TIMESERIES':
+      case 'PROGTEMP':
+        specificChangesHappening = this.props.model !== nextProps.model ||
+                                   this.props.referenceTime !== nextProps.referenceTime ||
+                                   this.props.adagucProperties.cursor !== nextProps.adagucProperties.cursor;
+        break;
+      case 'ADAGUC':
+        specificChangesHappening = (this.props.adagucProperties.animationSettings !== nextProps.adagucProperties.animationSettings) ||
+                                   (this.props.panelsProperties.activePanelId !== nextProps.panelsProperties.activePanelId) ||
+                                   (this.props.panelsProperties.panels[mapId].layers !== nextProps.panelsProperties.panels[mapId].layers) ||
+                                   (this.props.panelsProperties.panels[mapId].baselayers !== nextProps.panelsProperties.panels[mapId].baselayers);
+        break;
+    }
+    return this.state !== nextState ||
+           this.props.isLoggedIn !== nextProps.isLoggedIn ||
+           this.props.panelsProperties.panelLayout !== nextProps.panelsProperties.panelLayout ||
+           this.props.panelsProperties.panels[mapId].type !== nextProps.panelsProperties.panels[mapId].type ||
+           this.props.adagucProperties.timeDimension !== nextProps.adagucProperties.timeDimension || specificChangesHappening;
+  }
+
   render () {
     const { title, mapProperties, dispatch, mapActions, mapId, panelsProperties, panelsActions, adagucActions } = this.props;
     const { activePanelId, panels, panelLayout } = panelsProperties;

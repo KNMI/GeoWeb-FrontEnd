@@ -9,8 +9,8 @@ export default class TimeComponent extends PureComponent {
   constructor () {
     super();
     this.onRenderCanvas = this.onRenderCanvas.bind(this);
-    this.eventOnDimChange = this.eventOnDimChange.bind(this);
-    this.eventOnMapDimUpdate = this.eventOnMapDimUpdate.bind(this);
+    // this.eventOnDimChange = this.eventOnDimChange.bind(this);
+    // this.eventOnMapDimUpdate = this.eventOnMapDimUpdate.bind(this);
     this.drawCanvas = this.drawCanvas.bind(this);
     this.onCanvasClick = this.onCanvasClick.bind(this);
     this.handleButtonClickPrevPage = this.handleButtonClickPrevPage.bind(this);
@@ -24,13 +24,13 @@ export default class TimeComponent extends PureComponent {
     this.debouncedForceUpdate = debounce(this.forceUpdate, 100, false);
   }
   /* istanbul ignore next */
-  eventOnMapDimUpdate () {
-    this.eventOnDimChange();
-  }
-  /* istanbul ignore next */
-  eventOnDimChange () {
-    window.requestAnimationFrame(this.drawCanvas);
-  }
+  // eventOnMapDimUpdate () {
+  //   this.eventOnDimChange();
+  // }
+  // /* istanbul ignore next */
+  // eventOnDimChange () {
+  //   window.requestAnimationFrame(this.drawCanvas);
+  // }
 
   /* istanbul ignore next */
   drawTimeIndicationBlocks (ctx, timeBlockStartIndex, timeBlockStopIndex, canvasDateIntervalHour, sliderStopIndex, scaleWidth, canvasHeight) {
@@ -116,6 +116,7 @@ export default class TimeComponent extends PureComponent {
 
   /* istanbul ignore next */
   drawCanvas () {
+    const t0 = performance.now();
     const { timedim, panel } = this.props;
     if (!timedim) {
       return;
@@ -193,7 +194,7 @@ export default class TimeComponent extends PureComponent {
 
     /* Draw time indication blocks */
     this.drawTimeIndicationBlocks(ctx, timeBlockStartIndex, timeBlockStopIndex, canvasDateIntervalHour, sliderStopIndex, scaleWidth, canvasHeight);
-    /* Draw blocks for layer */
+    /* Draw blocks for layer -- this function takes the longest */
     this.drawLayerBlocks(ctx, canvasWidth, sliderStopIndex, sliderMapIndex, scaleWidth);
 
     /* Draw current system time */
@@ -261,7 +262,7 @@ export default class TimeComponent extends PureComponent {
     this.props.dispatch(
       this.props.adagucActions.setTimeDimension(date.toISO8601())
     );
-    this.eventOnDimChange();
+    // this.eventOnDimChange();
   }
   /* istanbul ignore next */
   decomposeDateString (value) {
@@ -310,22 +311,22 @@ export default class TimeComponent extends PureComponent {
     this.setNewDate(date);
   }
   /* istanbul ignore next */
-  componentDidMount () {
-    if (this.timer) {
-      clearInterval(this.timer);
-    }
-    this.timer = setInterval(window.requestAnimationFrame(this.drawCanvas), 60000);
-  }
+  // componentDidMount () {
+  //   if (this.timer) {
+  //     clearInterval(this.timer);
+  //   }
+  //   this.timer = setInterval(window.requestAnimationFrame(this.drawCanvas), 60000);
+  // }
   /* istanbul ignore next */
   componentDidUpdate () {
     window.requestAnimationFrame(this.drawCanvas);
   }
   /* istanbul ignore next */
-  componentWillUnmount () {
-    if (this.timer) {
-      clearInterval(this.timer);
-    }
-  }
+  // componentWillUnmount () {
+  //   if (this.timer) {
+  //     clearInterval(this.timer);
+  //   }
+  // }
   /* istanbul ignore next */
   onRenderCanvas (ctx) {
     this.ctx = ctx;
@@ -355,7 +356,7 @@ export default class TimeComponent extends PureComponent {
     // eslint-disable-next-line no-undef
     const currentDate = getCurrentDateIso8601();
     this.props.dispatch(this.props.actions.setTimeDimension(currentDate.toISO8601()));
-    this.eventOnDimChange();
+    // this.eventOnDimChange();
   }
   /* istanbul ignore next */
   handleButtonClickPrevPage () {
