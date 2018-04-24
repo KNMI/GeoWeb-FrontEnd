@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Button, ButtonGroup, Col, Row, Badge, Card, CardHeader, CardBlock, Alert, Input, InputGroupAddon, InputGroup } from 'reactstrap';
+import { Button, Col, Row, Badge, Card, CardHeader, CardBlock, Alert, Input, InputGroupAddon, InputGroup } from 'reactstrap';
 import Moment from 'react-moment';
 import moment from 'moment';
 import Icon from 'react-fa';
@@ -89,7 +89,7 @@ class SigmetCategory extends Component {
       isClosing: props.isClosing,
       list: [EMPTY_SIGMET],
       renderRange: false,
-      lowerUnit: UNITS_ALT.FL,
+      lowerUnit: UNITS_ALT.FT,
       isProgressByEnd: true
     };
   }
@@ -572,7 +572,7 @@ class SigmetCategory extends Component {
   };
 
   showLevels (level) {
-    if (!level.lev1) {
+    if (!level || !level.lev1) {
       return '';
     }
     let result = '';
@@ -756,18 +756,25 @@ class SigmetCategory extends Component {
                 isChecked={this.state.renderRange} action={(evt) => this.setState({ renderRange: evt.target.checked })} align='center' />
             </Col>
           </Row>
-          <Row style={{ flex: 'none', padding: '0.5rem 0' }}>
+          <Row>
             <Col xs={{ size: 3, offset: 1 }}>
               <Badge>Units</Badge>
             </Col>
-            <Col xs={{ size: 6, offset: 1 }} style={{ justifyContent: 'center' }}>
+            <Col xs='8' style={{ justifyContent: 'center' }} className={this.state.tops ? 'disabled' : null}>
+              <SwitchButton id='unitswitch' name='unitswitch'
+                labelLeft={`${UNITS_ALT.FT} / ${UNITS_ALT.FL}`} labelRight={`${UNITS_ALT.M} / ${UNITS_ALT.FL}`}
+                isChecked={this.state.lowerUnit === UNITS_ALT.M}
+                action={(evt) => this.setState({ lowerUnit: evt.target.checked ? UNITS_ALT.M : UNITS_ALT.FT })}
+                align='center' />
+            </Col>
+            {/* <Col xs={{ size: 6, offset: 1 }} style={{ justifyContent: 'center' }}>
               <ButtonGroup>
                 <Button color='primary' onClick={() => this.setState({ lowerUnit: UNITS_ALT.FT })} active={this.state.lowerUnit === UNITS_ALT.FT}
                   disabled={this.state.tops}>{`${UNITS_ALT.FT}/${UNITS_ALT.FL}`}</Button>
                 <Button color='primary' onClick={() => this.setState({ lowerUnit: UNITS_ALT.M })} active={this.state.lowerUnit === UNITS_ALT.M}
                   disabled={this.state.tops}>{`${UNITS_ALT.M}/${UNITS_ALT.FL}`}</Button>
               </ButtonGroup>
-            </Col>
+            </Col> */}
           </Row>
 
           <Row />
@@ -1048,7 +1055,7 @@ class SigmetCategory extends Component {
                           </Col>
                         </Row>
                         {editable
-                          ? <Row className='section' style={{ minHeight: '3.685rem', marginBottom: '0.33rem' }}>
+                          ? <Row className='section' style={{ minHeight: '3.685rem', paddingBottom: '0.33rem' }}>
                             {drawActions.map((actionItem, index) =>
                               <Col xs={{ size: 'auto', offset: index === 0 ? 3 : null }} key={index} style={{ padding: '0 0.167rem' }}>
                                 <Button color='primary' active={actionItem.action === 'mapProperties.mapMode'} disabled={actionItem.disabled || null}
@@ -1080,7 +1087,7 @@ class SigmetCategory extends Component {
                           <Col xs='3'>
                             <Badge color='success'>Progress</Badge>
                           </Col>
-                          <Col xs='9'>
+                          <Col xs='9' className='shiftRight'>
                             {editable
                               ? <SwitchButton id='movementswitch' name='movementswitch'
                                 labelRight='Move' labelLeft='Stationary' isChecked={!item.movement.stationary} action={this.setSelectedMovement} />
@@ -1107,7 +1114,8 @@ class SigmetCategory extends Component {
                           : null
                         }
                         {editable
-                          ? <Row className={(item.movement.stationary || !this.state.isProgressByEnd) ? 'section disabled' : 'section'} style={{ minHeight: '3.685rem', marginBottom: '0.33rem' }}>
+                          ? <Row className={(item.movement.stationary || !this.state.isProgressByEnd) ? 'section disabled' : 'section'}
+                            style={{ minHeight: '4.015rem', paddingBottom: '0.66rem' }}>
                             {drawActions.map((actionItem, index) =>
                               <Col xs={{ size: 'auto', offset: index === 0 ? 3 : null }} key={index} style={{ padding: '0 0.167rem' }}>
                                 <Button color='primary' active={actionItem.action === 'mapProperties.mapMode'}
@@ -1132,11 +1140,16 @@ class SigmetCategory extends Component {
                               {editable
                                 ? <Typeahead style={{ width: '100%' }} filterBy={['shortName', 'longName']} labelKey='longName'
                                   disabled={(item.movement.stationary || this.state.isProgressByEnd)}
-                                  options={DIRECTIONS} placeholder={item.movement.stationary ? null : 'Select direction'}
+                                  options={DIRECTIONS} placeholder={(item.movement.stationary || this.state.isProgressByEnd) ? null : 'Select direction'}
                                   onChange={(dir) => this.setSelectedDirection(dir)}
                                   selected={selectedDirection ? [selectedDirection] : []}
                                   clearButton />
-                                : <span>{selectedDirection ? selectedDirection.longName : (!item.movement.stationary ? '(no direction selected)' : null)}</span>
+                                : <span>{selectedDirection
+                                  ? selectedDirection.longName
+                                  : ((!item.movement.stationary && !this.state.isProgressByEnd)
+                                    ? '(no direction selected)'
+                                    : null)}
+                                </span>
                               }
                             </Col>
                           </Row>
@@ -1151,8 +1164,11 @@ class SigmetCategory extends Component {
                             <Col xs='9'>
                               {editable
                                 ? <InputGroup>
-                                  <Input onChange={this.setSpeed} defaultValue='0' type='number' step='1' disabled={(item.movement.stationary || this.state.isProgressByEnd)} />
-                                  <InputGroupAddon>KT</InputGroupAddon>
+                                  <Input onChange={this.setSpeed}
+                                    defaultValue='0'
+                                    type='number'
+                                    step='1' disabled={(item.movement.stationary || this.state.isProgressByEnd)} />
+                                  <InputGroupAddon>{(item.movement.stationary || this.state.isProgressByEnd) ? null : 'KT'}</InputGroupAddon>
                                 </InputGroup>
                                 : <span>{item.movement.speed ? `${item.movement.speed} KT` : null}</span>
                               }
