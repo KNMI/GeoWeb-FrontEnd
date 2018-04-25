@@ -65,7 +65,8 @@ export class SinglePanel extends PureComponent {
         specificChangesHappening = (this.props.adagucProperties.animationSettings !== nextProps.adagucProperties.animationSettings) ||
                                    (this.props.panelsProperties.activePanelId !== nextProps.panelsProperties.activePanelId) ||
                                    (this.props.panelsProperties.panels[mapId].layers !== nextProps.panelsProperties.panels[mapId].layers) ||
-                                   (this.props.panelsProperties.panels[mapId].baselayers !== nextProps.panelsProperties.panels[mapId].baselayers);
+                                   (this.props.panelsProperties.panels[mapId].baselayers !== nextProps.panelsProperties.panels[mapId].baselayers) ||
+                                   (this.props.drawProperties !== nextProps.drawProperties);
         break;
     }
     return this.state !== nextState ||
