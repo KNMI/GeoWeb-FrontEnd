@@ -155,7 +155,7 @@ export default class Adaguc extends PureComponent {
         }
       });
       this.updateLayers(origPanel.layers, newLayers, active);
-      this.onChangeAnimation(animationSettings, active)
+      this.onChangeAnimation(animationSettings, active);
     });
   }
 

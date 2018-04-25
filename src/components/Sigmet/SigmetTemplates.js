@@ -11,7 +11,7 @@ const TEMPLATES = {
   },
   FEATURE: {
     type: 'Feature',
-    id: null, // string
+    id: 'null', // string
     properties: {
       type: null, // string
       selectionType: null, // string
@@ -24,8 +24,8 @@ const TEMPLATES = {
       'fill-opacity': null // number
     },
     geometry: {
-      type: null, // string
-      coordinates: [[[]]] // number values
+      type: 'Polygon', // string
+      coordinates: [[]] // number values
     }
   },
   LEVEL: {
@@ -41,7 +41,7 @@ const TEMPLATES = {
 
 TEMPLATES.GEOJSON = {
   type: 'FeatureCollection', // string
-  features: [cloneDeep(TEMPLATES.FEATURE)]
+  features: [cloneDeep(TEMPLATES.FEATURE), cloneDeep(TEMPLATES.FEATURE)]
 };
 TEMPLATES.LEVELS = {
   lev1: cloneDeep(TEMPLATES.LEVEL),

@@ -23,6 +23,9 @@ import { SIGMET_TEMPLATES, CHANGES, DIRECTIONS, UNITS_ALT } from './SigmetTempla
 import { clearNullPointersAndAncestors } from '../../utils/json';
 
 import { getPresetForPhenomenon } from './SigmetPresets';
+
+const uuidv4 = require('uuid/v4');
+
 const createSliderWithTooltip = Slider.createSliderWithTooltip;
 const Range = createSliderWithTooltip(Slider.Range);
 const Handle = Slider.Handle;
@@ -43,7 +46,7 @@ const FALLBACK_PARAMS = {
   firareas: [
     {
       location_indicator_icao: 'EHAA',
-      firname: 'AMSTERDAM FIR',
+      firname: 'FIR AMSTERDAM', // TODO should be FIR AMSTERDAM
       areapreset: 'NL_FIR'
     }
   ],
@@ -224,7 +227,6 @@ class SigmetCategory extends Component {
   }
 
   handleSigmetClick (evt, index) {
-    console.log('handleSigmetClick');
     let shouldContinue = false;
     if (!this.props.editable) {
       shouldContinue = true;
@@ -236,7 +238,6 @@ class SigmetCategory extends Component {
       shouldContinue = true;
     }
 
-    console.log('shouldContinue', shouldContinue,  index, this.state)
     if (shouldContinue) {
       this.props.selectMethod(index, this.state.list[index].geojson);
     }
@@ -421,7 +422,7 @@ class SigmetCategory extends Component {
                     newLayer.setDimension(dim, layer.dimensions[dim]);
                   });
                 }
-                return resolve({ layer: newLayer, panelIdx: panelIdx, index: i })
+                return resolve({ layer: newLayer, panelIdx: panelIdx, index: i });
               });
             }));
           });
@@ -587,7 +588,7 @@ class SigmetCategory extends Component {
         !isEqual(nextProps.drawProperties.adagucMapDraw.geojson, EMPTY_GEO_JSON) &&
         Array.isArray(this.state.list) && this.state.list.length > 0) {
       const newList = cloneDeep(this.state.list);
-      // newList[0].geojson = this.props.drawProperties.adagucMapDraw.geojson; //TODO, when this is enabled the fist concept sigmet will never show its geojson
+      // newList[0].geojson = this.props.drawProperties.adagucMapDraw.geojson; // TODO, when this is enabled the fist concept sigmet will never show its geojson
       this.setState({ list: newList });
     }
 
@@ -607,27 +608,50 @@ class SigmetCategory extends Component {
   }
 
   intersectGeoJSON (geojson) {
-    const { urls } = this.props;
-    console.log(JSON.stringify(geojson, null, 2));
-    const newList = cloneDeep(this.state.list);
-    newList[0].geojson = geojson;
-    this.setState({ list: newList });
-    clearNullPointersAndAncestors(newList);
-    axios({
-      method: 'post',
-      url: urls.BACKEND_SERVER_URL + '/sigmet/sigmetintersections',
-      withCredentials: true,
-      responseType: 'json',
-      data: newList[0]
-    }).then((src) => {
-      console.log(src);
-    }).catch(error => {
-      console.log('error', error);
-    });
+  //   console.log('intersectGeoJSON');
+  //   const { urls, dispatch, drawActions } = this.props;
+
+  //   const newList = cloneDeep(this.state.list);
+  //   if (!newList.length || newList.length === 0) {
+  //     console.log('No sigmet');
+  //     return;
+  //   }
+
+  //   if (geojson.newFeature && geojson.newFeature === true) {
+  //     console.log('intersecting');
+  //     delete geojson.newFeature;
+  //   } else {
+  //     return;
+  //   }
+
+  //   for (let j = 0; j < geojson.features.length; j++) {
+  //     if (!geojson.features[j].id || geojson.features[j].id === 'null' || geojson.features[j].id === null) {
+  //       geojson.features[j].id = uuidv4();
+  //     }
+  //   }
+
+  //   geojson.features[0].properties.featureFunction = 'start'; // TODO this should be based on where and progress.
+  //   newList[0].geojson = geojson;
+
+  //   // newList[0].firname = 'FIR AMSTERDAM'; // TODO CHECK "AMSTERDAM FIR" IS COMING BACK
+  //   // this.setState({ list: newList });
+  //   clearNullPointersAndAncestors(newList);
+  //   console.log(JSON.stringify(newList[0], null, 2));
+  //   axios({
+  //     method: 'post',
+  //     url: urls.BACKEND_SERVER_URL + '/sigmet/sigmetintersections',
+  //     withCredentials: true,
+  //     responseType: 'json',
+  //     data: newList[0]
+  //   }).then((src) => {
+  //     console.log(src.data.sigmet);
+  //     dispatch(drawActions.setGeoJSON(src.data.sigmet.geojson));
+  //   }).catch(error => {
+  //     console.log('error while posting to intersect service', error);
+  //   });
   }
 
   componentWillUpdate (nextProps) {
-
     if (this.props.latestUpdateTime !== nextProps.latestUpdateTime && this.props.isGetType === true) {
       this.getExistingSigmets(this.props.source);
     }
@@ -636,16 +660,13 @@ class SigmetCategory extends Component {
     if (nextProps.hasOwnProperty('drawProperties') && typeof nextProps.drawProperties === 'object' && nextProps.drawProperties.hasOwnProperty('adagucMapDraw') &&
       nextProps.drawProperties.adagucMapDraw.hasOwnProperty('geojson') && nextProps.drawProperties.adagucMapDraw.geojson &&
         this.props.hasOwnProperty('drawProperties') && typeof this.props.drawProperties === 'object' && this.props.drawProperties.hasOwnProperty('adagucMapDraw') &&
-        this.props.drawProperties.adagucMapDraw.hasOwnProperty('geojson') && this.props.drawProperties.adagucMapDraw.geojson ) {
+        this.props.drawProperties.adagucMapDraw.hasOwnProperty('geojson') && this.props.drawProperties.adagucMapDraw.geojson) {
       let geojsonHasChanged = !isEqual(nextProps.drawProperties.adagucMapDraw.geojson, this.props.drawProperties.adagucMapDraw.geojson);
       if (geojsonHasChanged) {
-        // console.log('geojson has changed', this.props.drawProperties.adagucMapDraw.geojson);
         this.intersectGeoJSON(nextProps.drawProperties.adagucMapDraw.geojson);
       }
     }
   }
-
-
 
   marks (values) {
     const retObj = {};

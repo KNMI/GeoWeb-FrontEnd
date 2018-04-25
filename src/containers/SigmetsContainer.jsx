@@ -110,7 +110,6 @@ class SigmetsContainer extends Component {
   }
 
   toggleCategory (category) {
-    console.log('toggleCategory', category);
     const newIsOpenCategory = cloneDeep(this.state.isOpenCategory);
     const newClosingCategory = cloneDeep(this.state.closingCategory);
     for (let catKey in newIsOpenCategory) {
