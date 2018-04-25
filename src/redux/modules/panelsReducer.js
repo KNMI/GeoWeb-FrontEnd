@@ -204,6 +204,7 @@ export default handleActions({
       if (panel) {
         stateCpy.panels[i].layers = panel.layers.filter((layer) => layer);
         stateCpy.panels[i].baselayers = [MAP_STYLES[1]].concat(panel.baselayers);
+        stateCpy.panels[i].type = panel.type || 'ADAGUC';
       }
     });
     stateCpy.panels.map((panel) => {
