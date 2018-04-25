@@ -366,10 +366,12 @@ class SigmetCategory extends Component {
     listCpy[0].phenomenon = onlyObj.code;
     this.setState({ list: listCpy });
 
+    console.log(onlyObj);
     if (!onlyObj.layerpreset) {
       return;
     }
     const preset = getPresetForPhenomenon(onlyObj.layerpreset, this.props.sources);
+    console.log(preset);
     if (!preset) {
       return;
     }
@@ -391,7 +393,7 @@ class SigmetCategory extends Component {
         // this is irrelevant because the order of overlays is not relevant
         if (panel.length === 1 && panel[0].type && panel[0].type.toLowerCase() !== 'adaguc') {
           newPanels[panelIdx] = { 'layers': [], 'baselayers': [], type: panel[0].type.toUpperCase() };
-          if (panel[0].location) {
+          if (this.state.locations && panel[0].location) {
             // Assume ICAO name
             if (typeof panel[0].location === 'string') {
               const possibleLocation = this.state.locations.filter((loc) => loc.name === panel[0].location);
@@ -410,6 +412,9 @@ class SigmetCategory extends Component {
               // eslint-disable-next-line no-undef
               const wmjsLayer = new WMJSLayer(layer);
               wmjsLayer.parseLayer((newLayer) => {
+                if (!newLayer.service) {
+                  return resolve(null);
+                }
                 newLayer.keepOnTop = (layer.overlay || layer.keepOnTop);
                 if (layer.dimensions) {
                   Object.keys(layer.dimensions).map((dim) => {
@@ -426,12 +431,14 @@ class SigmetCategory extends Component {
       // Once that happens, insert the layer in the appropriate place in the appropriate panel
       Promise.all(promises).then((layers) => {
         layers.map((layerDescription) => {
-          const { layer, panelIdx, index } = layerDescription;
-          if (layer.keepOnTop === true) {
-            layer.keepOnTop = true;
-            newPanels[panelIdx].baselayers.push(layer);
-          } else {
-            newPanels[panelIdx].layers[index] = layer;
+          if (layerDescription) {
+            const { layer, panelIdx, index } = layerDescription;
+            if (layer.keepOnTop === true) {
+              layer.keepOnTop = true;
+              newPanels[panelIdx].baselayers.push(layer);
+            } else {
+              newPanels[panelIdx].layers[index] = layer;
+            }
           }
         });
         // Beware: a layer can still contain null values because a layer might have been a null value
