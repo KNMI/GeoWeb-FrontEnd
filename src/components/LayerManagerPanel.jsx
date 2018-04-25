@@ -9,7 +9,6 @@ import { Icon } from 'react-fa';
 import PropTypes from 'prop-types';
 import cloneDeep from 'lodash.clonedeep';
 import { GetServiceByName } from '../utils/getServiceByName';
-import Perf from 'react-addons-perf';
 var elementResizeEvent = require('element-resize-event');
 
 class LayerManagerPanel extends PureComponent {
@@ -493,13 +492,6 @@ class TimeControls extends Component {
           <Row>
             <Col xs='auto'>
               <Button onClick={() => {
-                if (!this.props.animationSettings.animate) {
-                  Perf.start();
-                } else {
-                  Perf.stop();
-                  const measurements = Perf.getLastMeasurements();
-                  Perf.printWasted(measurements)
-                }
                 this.props.dispatch(this.props.adagucActions.toggleAnimation());
               }} color='primary' title='Play animation'>
                 <Icon name={this.props.animationSettings.animate ? 'pause' : 'play'} />
