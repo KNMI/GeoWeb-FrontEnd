@@ -85,7 +85,7 @@ class SigmetCategory extends Component {
     this.setChange = this.setChange.bind(this);
     this.setTops = this.setTops.bind(this);
     this.selectFir = this.selectFir.bind(this);
-
+    this.intersectGeoJSON = this.intersectGeoJSON.bind(this);
     this.state = {
       isOpen: props.isOpen,
       isClosing: props.isClosing,
@@ -224,6 +224,7 @@ class SigmetCategory extends Component {
   }
 
   handleSigmetClick (evt, index) {
+    console.log('handleSigmetClick');
     let shouldContinue = false;
     if (!this.props.editable) {
       shouldContinue = true;
@@ -235,6 +236,7 @@ class SigmetCategory extends Component {
       shouldContinue = true;
     }
 
+    console.log('shouldContinue', shouldContinue,  index, this.state)
     if (shouldContinue) {
       this.props.selectMethod(index, this.state.list[index].geojson);
     }
@@ -580,13 +582,14 @@ class SigmetCategory extends Component {
         !isEqual(nextProps.drawProperties.adagucMapDraw.geojson, EMPTY_GEO_JSON) &&
         Array.isArray(this.state.list) && this.state.list.length > 0) {
       const newList = cloneDeep(this.state.list);
-      newList[0].geojson = this.props.drawProperties.adagucMapDraw.geojson;
+      // newList[0].geojson = this.props.drawProperties.adagucMapDraw.geojson; //TODO, when this is enabled the fist concept sigmet will never show its geojson
       this.setState({ list: newList });
     }
+
     if (this.props.editable && Array.isArray(this.state.list) && this.state.list.length > 0 &&
         this.state.list[0].validdate) {
       const curVal = moment(this.state.list[0].validdate).utc();
-      const nowVal = getRoundedNow();
+      const nowVal = getRoundedNow(); // TODO: Is this overwriting the date with now?
       if (curVal.isBefore(nowVal, 'minute')) {
         const newList = update(this.state.list, {
           0: {
@@ -598,11 +601,46 @@ class SigmetCategory extends Component {
     }
   }
 
+  intersectGeoJSON (geojson) {
+    const { urls } = this.props;
+    console.log(JSON.stringify(geojson, null, 2));
+    const newList = cloneDeep(this.state.list);
+    newList[0].geojson = geojson;
+    this.setState({ list: newList });
+    clearNullPointersAndAncestors(newList);
+    axios({
+      method: 'post',
+      url: urls.BACKEND_SERVER_URL + '/sigmet/sigmetintersections',
+      withCredentials: true,
+      responseType: 'json',
+      data: newList[0]
+    }).then((src) => {
+      console.log(src);
+    }).catch(error => {
+      console.log('error', error);
+    });
+  }
+
   componentWillUpdate (nextProps) {
+
     if (this.props.latestUpdateTime !== nextProps.latestUpdateTime && this.props.isGetType === true) {
       this.getExistingSigmets(this.props.source);
     }
+
+    /* Detect changes in geojson */
+    if (nextProps.hasOwnProperty('drawProperties') && typeof nextProps.drawProperties === 'object' && nextProps.drawProperties.hasOwnProperty('adagucMapDraw') &&
+      nextProps.drawProperties.adagucMapDraw.hasOwnProperty('geojson') && nextProps.drawProperties.adagucMapDraw.geojson &&
+        this.props.hasOwnProperty('drawProperties') && typeof this.props.drawProperties === 'object' && this.props.drawProperties.hasOwnProperty('adagucMapDraw') &&
+        this.props.drawProperties.adagucMapDraw.hasOwnProperty('geojson') && this.props.drawProperties.adagucMapDraw.geojson ) {
+      let geojsonHasChanged = !isEqual(nextProps.drawProperties.adagucMapDraw.geojson, this.props.drawProperties.adagucMapDraw.geojson);
+      if (geojsonHasChanged) {
+        // console.log('geojson has changed', this.props.drawProperties.adagucMapDraw.geojson);
+        this.intersectGeoJSON(nextProps.drawProperties.adagucMapDraw.geojson);
+      }
+    }
   }
+
+
 
   marks (values) {
     const retObj = {};

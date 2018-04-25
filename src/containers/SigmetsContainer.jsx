@@ -102,6 +102,7 @@ class SigmetsContainer extends Component {
   }
 
   toggle (evt) {
+    console.log('toggle');
     const geo = this.state.isOpen ? EMPTY_GEO_JSON : (this.state.selectedItem.geojson || EMPTY_GEO_JSON);
     this.setState({ isOpen: !this.state.isOpen });
     this.drawSIGMET(geo);
@@ -109,6 +110,7 @@ class SigmetsContainer extends Component {
   }
 
   toggleCategory (category) {
+    console.log('toggleCategory', category);
     const newIsOpenCategory = cloneDeep(this.state.isOpenCategory);
     const newClosingCategory = cloneDeep(this.state.closingCategory);
     for (let catKey in newIsOpenCategory) {
@@ -145,6 +147,7 @@ class SigmetsContainer extends Component {
   }
 
   select (category, index, geo) {
+    console.log('select', category, index, geo);
     if (this.state.selectedItem.category === category && this.state.selectedItem.index === index) {
       this.drawSIGMET(EMPTY_GEO_JSON);
       this.setState({ selectedItem: {} });
@@ -157,6 +160,7 @@ class SigmetsContainer extends Component {
   }
 
   drawSIGMET (geojson) {
+    console.log('drawSIGMET', geojson);
     this.props.dispatch(this.props.drawActions.setGeoJSON(geojson));
   }
 
