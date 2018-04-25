@@ -18,23 +18,20 @@ export default class LayerManager extends PureComponent {
     ) {
       return true;
     }
-    this.props.panel.layers.map((layer, i) => {
-      const nextLayer = nextProps.panel.layers[i];
-      if (!layer || !nextLayer) {
+
+    for (let i = 0; i < this.props.panel.layers.length; ++i) {
+      if (this.props.panel.layers[i].service !== nextProps.panel.layers[i].service ||
+        this.props.panel.layers[i].name !== nextProps.panel.layers[i].name ||
+        this.props.panel.layers[i].currentStyle !== nextProps.panel.layers[i].currentStyle ||
+        this.props.panel.layers[i].opacity !== nextProps.panel.layers[i].opacity ||
+        this.props.panel.layers[i].active !== nextProps.panel.layers[i].active ||
+        this.props.panel.layers[i].enabled !== nextProps.panel.layers[i].enabled) {
         return true;
       }
-      if (layer.service !== nextLayer.service ||
-        layer.name !== nextLayer.name ||
-        layer.opacity !== nextLayer.opacity ||
-        layer.currentStyle !== nextLayer.currentStyle ||
-        layer.active !== nextLayer.active ||
-        (layer.dimensions && layer.dimensions.filter((dim) => !dim.name.includes('time')) !== nextLayer.dimensions.filter((dim) => !dim.name.includes('time')))
-      ) {
-        return true;
-      }
-    });
+    }
     return false;
   }
+
   render () {
     const { dispatch, panelsActions, activePanelId, panel } = this.props;
     if (!panel) {

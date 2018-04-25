@@ -25,30 +25,6 @@ export default class Layers extends PureComponent {
     }
   };
 
-  shouldComponentUpdate (nextProps, nextState) {
-    let result = false;
-    if (this.props.data.length !== nextProps.data.length ||
-        this.props.activePanelId !== nextProps.activePanelId) {
-      result = true;
-    }
-    this.props.data.map((layer, i) => {
-      const nextLayer = nextProps.data[i];
-      if (!layer || !nextLayer) {
-        return true;
-      }
-      if (layer.service !== nextLayer.service ||
-          layer.name !== nextLayer.name ||
-          layer.opacity !== nextLayer.opacity ||
-          layer.currentStyle !== nextLayer.currentStyle ||
-          layer.active !== nextLayer.active ||
-          (layer.dimensions && layer.dimensions.filter((dim) => !dim.name.includes('time')) !== nextLayer.dimensions.filter((dim) => !dim.name.includes('time')))
-      ) {
-        result = true;
-      }
-    });
-    return result;
-  }
-
   render () {
     const { color, role, data, dispatch, panelsActions, activePanelId, onLayerClick } = this.props;
     if (data.length > 1) {

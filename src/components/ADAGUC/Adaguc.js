@@ -135,9 +135,10 @@ export default class Adaguc extends PureComponent {
   }
 
   reparseLayers () {
-    const { mapId, panelsProperties, active, dispatch, panelsActions } = this.props;
+    const { mapId, panelsProperties, active, dispatch, panelsActions, adagucProperties } = this.props;
     const panel = panelsProperties.panels[mapId];
-
+    const { animationSettings } = adagucProperties;
+    const origPanel = cloneDeep(panel);
     const promises = [];
     panel.layers.map((layer, i) => {
       promises.push(new Promise((resolve, reject) => {
@@ -153,7 +154,8 @@ export default class Adaguc extends PureComponent {
           dispatch(panelsActions.setActiveLayer({ activePanelId: mapId, layerClicked: i }));
         }
       });
-      this.updateLayers(panel.layers, newLayers, active);
+      this.updateLayers(origPanel.layers, newLayers, active);
+      this.onChangeAnimation(animationSettings, active)
     });
   }
 
@@ -274,7 +276,7 @@ export default class Adaguc extends PureComponent {
     } else {
       for (let i = 0; i < baselayers.length; ++i) {
         if (baselayers[i].service !== nextBaselayers[i].service ||
-            baselayers[i].name !== nextBaselayers[i].name) {
+          baselayers[i].name !== nextBaselayers[i].name || baselayers[i].enabled !== nextBaselayers[i].enabled) {
           change = true;
           break;
         }
@@ -353,20 +355,22 @@ export default class Adaguc extends PureComponent {
       return true;
     };
 
-    // const change = diff(currDataLayers, nextDataLayers);
     let change = false;
     if (currDataLayers.length !== nextDataLayers.length) {
       change = true;
     } else {
       for (let i = 0; i < currDataLayers.length; ++i) {
         if (currDataLayers[i].service !== nextDataLayers[i].service ||
-          currDataLayers[i].name !== nextDataLayers[i].name) {
+            currDataLayers[i].name !== nextDataLayers[i].name ||
+            currDataLayers[i].currentStyle !== nextDataLayers[i].currentStyle ||
+            currDataLayers[i].opacity !== nextDataLayers[i].opacity ||
+            currDataLayers[i].active !== nextDataLayers[i].active ||
+            currDataLayers[i].enabled !== nextDataLayers[i].enabled) {
           change = true;
           break;
         }
-
         if (isDefined(currDataLayers[i].getDimension('time')) === isDefined(nextDataLayers[i].getDimension('time'))) {
-          if (isDefined(currDataLayers[i].getDimension('time')) && currDataLayers[i].getDimension('time').currentValue !== nextDataLayers[i].getDimension('time').currentValue) {
+          if (isDefined(currDataLayers[i].getDimension('time')) && currDataLayers[i].getDimension('time').defaultValue !== nextDataLayers[i].getDimension('time').defaultValue) {
             change = true;
             break;
           }
@@ -376,7 +380,6 @@ export default class Adaguc extends PureComponent {
         }
       }
     }
-
     if (change && nextDataLayers && Array.isArray(nextDataLayers)) {
       this.webMapJS.removeAllLayers();
       const layersCpy = cloneDeep(nextDataLayers);

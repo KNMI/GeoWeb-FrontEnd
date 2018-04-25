@@ -136,15 +136,15 @@ class LayerManagerPanel extends PureComponent {
     }
   }
 
-  shouldComponentUpdate (nextProps, nextState) {
-    const { activePanelId } = this.props.panelsProperties;
-    return this.state !== nextState ||
-           this.props.adagucProperties.animationSettings !== nextProps.adagucProperties.animationSettings ||
-           this.props.adagucProperties.timeDimension !== nextProps.adagucProperties.timeDimension ||
-           this.props.adagucProperties.sources !== nextProps.adagucProperties.sources ||
-           this.props.panelsProperties.activePanelId !== nextProps.panelsProperties.activePanelId ||
-           this.props.panelsProperties.panels[activePanelId] !== nextProps.panelsProperties.panels[activePanelId];
-  }
+  // shouldComponentUpdate (nextProps, nextState) {
+  //   const { activePanelId } = this.props.panelsProperties;
+  //   return this.state !== nextState ||
+  //          this.props.adagucProperties.animationSettings !== nextProps.adagucProperties.animationSettings ||
+  //          this.props.adagucProperties.timeDimension !== nextProps.adagucProperties.timeDimension ||
+  //          this.props.adagucProperties.sources !== nextProps.adagucProperties.sources ||
+  //          this.props.panelsProperties.activePanelId !== nextProps.panelsProperties.activePanelId ||
+  //          this.props.panelsProperties.panels[activePanelId] !== nextProps.panelsProperties.panels[activePanelId];
+  // }
 
   render () {
     const { title, dispatch, panelsActions, adagucProperties, panelsProperties, mapProperties, adagucActions } = this.props;
@@ -264,11 +264,11 @@ class LayerChooser extends PureComponent {
     };
   }
 
-  shouldComponentUpdate (nextProps, nextState) {
-    return this.state !== nextState ||
-           this.props.open !== nextProps.open ||
-           this.props.data !== nextProps.data;
-  }
+  // shouldComponentUpdate (nextProps, nextState) {
+  //   return this.state !== nextState ||
+  //          this.props.open !== nextProps.open ||
+  //          this.props.data !== nextProps.data;
+  // }
 
   handleAddLayer(addItem) {
     const { dispatch, panelsActions, panelsProperties } = this.props;
@@ -475,9 +475,9 @@ class TimeControls extends Component {
     }
   }
 
-  shouldComponentUpdate (nextProps) {
-    return this.props.animationSettings !== nextProps.animationSettings;
-  }
+  // shouldComponentUpdate (nextProps) {
+  //   return this.props.animationSettings !== nextProps.animationSettings;
+  // }
   handleButtonClickNextPrev (direction) {
     const { panel, currentTime, dispatch, adagucActions } = this.props;
     let i = 0;
