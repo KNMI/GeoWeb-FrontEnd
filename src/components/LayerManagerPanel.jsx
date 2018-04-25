@@ -160,9 +160,7 @@ class LayerManagerPanel extends PureComponent {
             </Row>
             <Row />
           </Col>
-          <Col xs='auto'>
-            <LayerMutations toggleFullscreen={this.toggleFullscreen} toggleControls={this.toggleControls} dispatch={dispatch} panelsActions={panelsActions} activePanelId={activePanelId} sources={sources} toggleLayerChooser={this.toggleLayerChooser} showControls={this.state.showControls} isFullScreen={isFullScreen} removeAllLayersEnabled={currentPanel && ((currentPanel.baselayers.length > 2) || (currentPanel.layers.length > 0))}/>
-          </Col>
+          <LayerMutations toggleFullscreen={this.toggleFullscreen} toggleControls={this.toggleControls} dispatch={dispatch} panelsActions={panelsActions} activePanelId={activePanelId} sources={sources} toggleLayerChooser={this.toggleLayerChooser} showControls={this.state.showControls} isFullScreen={isFullScreen} removeAllLayersEnabled={currentPanel && ((currentPanel.baselayers.length > 2) || (currentPanel.layers.length > 0))}/>
         </Row>
       </Panel>
     );
@@ -199,47 +197,44 @@ class LayerMutations extends PureComponent {
   }
 
   render () {
-    const { showControls, isFullScreen, currentPanel, removeAllLayersEnabled, sources, toggleLayerChooser } = this.props;
-    if (showControls) {
-      if (isFullScreen) {
-        return (
-          <div style={{ flexDirection: 'column-reverse', marginLeft: '.66rem' }}>
-            <Row style={{ marginBottom: showControls ? '.33rem' : 0 }}>
-              <Col xs='auto'>
-                <Button onClick={this.props.toggleControls} color='primary' title={showControls ? 'Hide controls' : 'Show controls'}>
-                  <Icon name={showControls ? 'eye-slash' : 'eye'} />
-                </Button>
-              </Col>
-              <Col xs='auto'>
-                <Button onClick={this.props.toggleFullscreen} color='primary' title='Exit full screen mode'>
-                  <Icon name='compress' />
-                </Button>
-              </Col>
-            </Row>
-            <Row style={{ flex: 1 }} />
-          </div>);
-      } else {
-        return (
-          <div style={{ flexDirection: 'column-reverse', marginLeft: '.66rem' }}>
-            <Row style={{ flexDirection: isFullScreen ? 'row-reverse' : 'inherit' }}>
-              <Col style={{ marginRight: 0 }} />
-              <Col xs='auto' style={{ marginRight: 0 }}>
-                <Button disabled={Array.isArray(sources) || Object.keys(sources).length === 0} onClick={toggleLayerChooser}
-                  color='primary' title='Add layers'>
-                  <Icon name='plus' />
-                </Button>
-              </Col>
-              <Col xs='auto' style={{ marginBottom: isFullScreen ? 0 : '0.33rem', marginRight: isFullScreen ? '0.33rem' : 0 }}>
-                <Button disabled={!(removeAllLayersEnabled)}
-                  onClick={this.resetLayers} color='primary' title='Remove all layers'>
-                  <Icon name='trash' />
-                </Button>
-              </Col>
-            </Row>
-            <Row style={{ flex: 1 }} />
-          </div>);
-      }
-    }
+    const { showControls, isFullScreen, currentPanel, removeAllLayersEnabled, sources, toggleControls, toggleLayerChooser, toggleFullscreen } = this.props;
+    return (
+      <Col xs='auto' style={{ flexDirection: 'column-reverse', marginLeft: '.66rem' }}>
+
+        {showControls
+          ? <Row style={{ flexDirection: isFullScreen ? 'row-reverse' : 'inherit' }}>
+            <Col style={{ marginRight: 0 }} />
+            <Col xs='auto' style={{ marginRight: 0 }}>
+              <Button disabled={Array.isArray(sources) || Object.keys(sources).length === 0} onClick={toggleLayerChooser}
+                color='primary' title='Add layers'>
+                <Icon name='plus' />
+              </Button>
+            </Col>
+            <Col xs='auto' style={{ marginBottom: isFullScreen ? 0 : '0.33rem', marginRight: isFullScreen ? '0.33rem' : 0 }}>
+              <Button disabled={!(currentPanel && ((currentPanel.baselayers.length > 2) || (currentPanel.layers.length > 0)))}
+                onClick={this.resetLayers} color='primary' title='Remove all layers'>
+                <Icon name='trash' />
+              </Button>
+            </Col>
+          </Row>
+          : null}
+        {isFullScreen
+          ? <Row style={{ marginBottom: showControls ? '.33rem' : 0 }}>
+            <Col xs='auto'>
+              <Button onClick={toggleControls} color='primary' title={showControls ? 'Hide controls' : 'Show controls'}>
+                <Icon name={showControls ? 'eye-slash' : 'eye'} />
+              </Button>
+            </Col>
+            <Col xs='auto'>
+              <Button onClick={toggleFullscreen} color='primary' title='Exit full screen mode'>
+                <Icon name='compress' />
+              </Button>
+            </Col>
+          </Row>
+          : null}
+        <Row style={{ flex: 1 }} />
+      </Col>
+    );
   }
 }
 
@@ -254,13 +249,7 @@ class LayerChooser extends PureComponent {
     };
   }
 
-  // shouldComponentUpdate (nextProps, nextState) {
-  //   return this.state !== nextState ||
-  //          this.props.open !== nextProps.open ||
-  //          this.props.data !== nextProps.data;
-  // }
-
-  handleAddLayer(addItem) {
+  handleAddLayer (addItem) {
     const { dispatch, panelsActions, panelsProperties } = this.props;
     if (this.state.activeSource.goal !== 'OVERLAY') {
       // eslint-disable-next-line no-undef
@@ -544,6 +533,7 @@ class TimeControls extends Component {
           <Row />
         </div>);
     }
+    return null;
   }
 }
 
