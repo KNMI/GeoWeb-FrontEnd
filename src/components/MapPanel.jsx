@@ -71,6 +71,7 @@ export class SinglePanel extends PureComponent {
     }
     return this.state !== nextState ||
            this.props.isLoggedIn !== nextProps.isLoggedIn ||
+           this.props.mapProperties !== nextProps.mapProperties ||
            this.props.panelsProperties.panelLayout !== nextProps.panelsProperties.panelLayout ||
            this.props.panelsProperties.panels[mapId].type !== nextProps.panelsProperties.panels[mapId].type ||
            this.props.adagucProperties.timeDimension !== nextProps.adagucProperties.timeDimension || specificChangesHappening;
