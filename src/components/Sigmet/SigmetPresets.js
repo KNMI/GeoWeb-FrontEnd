@@ -57,7 +57,7 @@ export const getPresetForPhenomenon = (p, sources) => {
           },
           display: {
             npanels: 4,
-            type: 'quaduneven'
+            type: 'quadsigmet'
           },
           layers: [
             [
@@ -104,12 +104,6 @@ export const getPresetForPhenomenon = (p, sources) => {
             ],
             [
               {
-                type: 'progtemp',
-                location: 'EHAM'
-              }
-            ],
-            [
-              {
                 service: HARMONIE_URL,
                 title: 'Harmonie36',
                 name: 'precipitation_flux',
@@ -129,6 +123,13 @@ export const getPresetForPhenomenon = (p, sources) => {
                 enabled: true,
                 opacity: 0.8,
                 overlay: false
+              },
+              ...defaultOverlays
+            ],
+            [
+              {
+                type: 'progtemp',
+                location: 'EHAM'
               }
             ]
           ]
@@ -145,7 +146,7 @@ export const getPresetForPhenomenon = (p, sources) => {
           },
           display: {
             npanels: 4,
-            type: 'quaduneven'
+            type: 'quadsigmet'
           },
           layers: [
             [
@@ -159,12 +160,6 @@ export const getPresetForPhenomenon = (p, sources) => {
                 overlay: false
               },
               ...defaultOverlays
-            ],
-            [
-              {
-                type: 'progtemp',
-                location: 'EHAM'
-              }
             ],
             [
               {
@@ -192,6 +187,12 @@ export const getPresetForPhenomenon = (p, sources) => {
                 overlay: false
               },
               ...defaultOverlays
+            ],
+            [
+              {
+                type: 'progtemp',
+                location: 'EHAM'
+              }
             ]
           ]
         }
@@ -206,7 +207,7 @@ export const getPresetForPhenomenon = (p, sources) => {
           },
           display: {
             npanels: 4,
-            type: 'quaduneven'
+            type: 'quadcol'
           },
           layers: [
             [
@@ -261,7 +262,7 @@ export const getPresetForPhenomenon = (p, sources) => {
           },
           display: {
             npanels: 4,
-            type: 'quaduneven'
+            type: 'quad'
           },
           layers: [
             [
@@ -321,7 +322,7 @@ export const getPresetForPhenomenon = (p, sources) => {
           },
           display: {
             npanels: 4,
-            type: 'quaduneven'
+            type: 'quadsigmet'
           },
           layers: [
             [
@@ -335,12 +336,6 @@ export const getPresetForPhenomenon = (p, sources) => {
                 overlay: false
               },
               ...defaultOverlays
-            ],
-            [
-              {
-                type: 'progtemp',
-                location: 'EHAM'
-              }
             ],
             [
               {
@@ -368,6 +363,12 @@ export const getPresetForPhenomenon = (p, sources) => {
                 overlay: false
               },
               ...defaultOverlays
+            ],
+            [
+              {
+                type: 'progtemp',
+                location: 'EHAM'
+              }
             ]
 
           ]
@@ -384,7 +385,7 @@ export const getPresetForPhenomenon = (p, sources) => {
           },
           display: {
             npanels: 4,
-            type: 'quaduneven'
+            type: 'quad'
           },
           layers: [
             [
@@ -404,7 +405,8 @@ export const getPresetForPhenomenon = (p, sources) => {
                 label: 'FIR areas',
                 enabled: true,
                 overlay: true
-              }
+              },
+              ...defaultOverlays
             ],
             [
               {
@@ -423,7 +425,8 @@ export const getPresetForPhenomenon = (p, sources) => {
                 label: 'FIR areas',
                 enabled: true,
                 overlay: true
-              }
+              },
+              ...defaultOverlays
             ],
             [
               {
@@ -450,7 +453,8 @@ export const getPresetForPhenomenon = (p, sources) => {
                 label: 'FIR areas',
                 enabled: true,
                 overlay: true
-              }
+              },
+              ...defaultOverlays
             ],
             [
               {
@@ -469,7 +473,8 @@ export const getPresetForPhenomenon = (p, sources) => {
                 label: 'FIR areas',
                 enabled: true,
                 overlay: true
-              }
+              },
+              ...defaultOverlays
             ]
           ]
         }
