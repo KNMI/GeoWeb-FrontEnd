@@ -34,10 +34,7 @@ class Panel extends PureComponent {
         <div className={className ? 'Panel ' + className : 'Panel'} id={id} onClick={onClick}>
           {(type && panelOpts.some((opt) => opt === type))
             ? <Row className='title notitle' style={{ ...style, overflow: 'visible' }}>
-              <div style={{ marginTop: '0.33rem', flexWrap: 'wrap' }}>
-                <PanelTypeChanger mapId={mapId} type={type} dispatch={dispatch} panelsActions={panelsActions} isLoggedIn={isLoggedIn} />
-                <ModeLocationChanger location={this.props.location} dispatch={dispatch} adagucActions={this.props.adagucActions} locations={this.props.locations} type={type} referenceTime={this.props.referenceTime} />
-              </div>
+              <ModeLocationChanger mapId={mapId} type={type} location={this.props.location} dispatch={dispatch} isLoggedIn={isLoggedIn} panelsActions={panelsActions} adagucActions={this.props.adagucActions} locations={this.props.locations} type={type} referenceTime={this.props.referenceTime} />
             </Row>
             : <Row className='title notitle' style={style} />
           }
@@ -71,11 +68,18 @@ class ModeLocationChanger extends PureComponent {
   constructor () {
     super();
     this.toggleModelOpen = this.toggleModelOpen.bind(this);
+    this.toggleType = this.toggleType.bind(this);
     this.setChosenLocation = this.setChosenLocation.bind(this);
     this.clearTypeAhead = this.clearTypeAhead.bind(this);
     this.state = {
-      modelIsOpen: false
+      modelIsOpen: false,
+      typeIsOpen: false
     }
+  }
+  toggleType () {
+    this.setState({
+      typeIsOpen: !this.state.typeIsOpen
+    });
   }
 
   componentDidUpdate (prevProps) {
@@ -149,10 +153,27 @@ class ModeLocationChanger extends PureComponent {
   }
 
   render () {
+    const { type, dispatch, mapId, panelsActions, isLoggedIn } = this.props;
     const panelOpts = ['TIMESERIES', 'PROGTEMP'];
+    if (!isLoggedIn) {
+      return null;
+    }
     if (panelOpts.some((t) => t === this.props.type)) {
       return (
-        <div>
+        <div style={{ marginTop: '0.33rem', flexWrap: 'wrap' }}>
+          <ButtonDropdown style={{ marginRight: '0.25rem' }} isOpen={this.state.typeIsOpen} toggle={this.toggleType}>
+            <DropdownToggle caret style={{ textTransform: 'capitalize' }} size='sm'>
+              {type.toLowerCase()}
+            </DropdownToggle>
+            <DropdownMenu>
+              {
+                ['ADAGUC', 'TIMESERIES', 'PROGTEMP'].map((type) => {
+                  return (<DropdownItem key={`panelType-${type}`} style={{ textTransform: 'capitalize' }}
+                    onClick={(e) => { dispatch(panelsActions.setPanelType({ type, mapId })); }} >{type.toLowerCase()}</DropdownItem>);
+                })
+              }
+            </DropdownMenu>
+          </ButtonDropdown>
           <ButtonDropdown size='sm' style={{ marginRight: '0.25rem' }} isOpen={this.state.modelIsOpen} toggle={this.toggleModelOpen}>
             <DropdownToggle caret size='sm'>
               {this.props.referenceTime
@@ -170,47 +191,26 @@ class ModeLocationChanger extends PureComponent {
               }
             }} onChange={this.setChosenLocation} options={this.props.locations || []} labelKey='name' placeholder='Select ICAO location&hellip;' submitFormOnEnter />
           </div>
-          <div>
-            {this.getLocationAsString()}
-          </div>
+          {this.getLocationAsString()}
         </div>
       );
+    } else {
+      return <div style={{ marginTop: '0.33rem', flexWrap: 'wrap' }}>
+        <ButtonDropdown style={{ marginRight: '0.25rem' }} isOpen={this.state.typeIsOpen} toggle={this.toggleType}>
+          <DropdownToggle caret style={{ textTransform: 'capitalize' }} size='sm'>
+            {type.toLowerCase()}
+          </DropdownToggle>
+          <DropdownMenu>
+            {
+              ['ADAGUC', 'TIMESERIES', 'PROGTEMP'].map((type) => {
+                return (<DropdownItem key={`panelType-${type}`} style={{ textTransform: 'capitalize' }}
+                  onClick={(e) => { dispatch(panelsActions.setPanelType({ type, mapId })); }} >{type.toLowerCase()}</DropdownItem>);
+              })
+            }
+          </DropdownMenu>
+        </ButtonDropdown>
+      </div>
     }
-    return null;
-  }
-}
-
-class PanelTypeChanger extends PureComponent {
-  constructor () {
-    super();
-    this.toggleType = this.toggleType.bind(this);
-    this.state = {
-      typeIsOpen: false
-    }
-  }
-  toggleType () {
-    this.setState({
-      typeIsOpen: !this.state.typeIsOpen
-    });
-  }
-  render () {
-    const { type, dispatch, mapId, panelsActions, isLoggedIn } = this.props;
-    if (!isLoggedIn) {
-      return null;
-    }
-    return (<ButtonDropdown style={{ marginRight: '0.25rem' }} isOpen={this.state.typeIsOpen} toggle={this.toggleType}>
-      <DropdownToggle caret style={{ textTransform: 'capitalize' }} size='sm'>
-        {type.toLowerCase()}
-      </DropdownToggle>
-      <DropdownMenu>
-        {
-          ['ADAGUC', 'TIMESERIES', 'PROGTEMP'].map((type) => {
-            return (<DropdownItem key={`panelType-${type}`} style={{ textTransform: 'capitalize' }}
-              onClick={(e) => { dispatch(panelsActions.setPanelType({ type, mapId })); }} >{type.toLowerCase()}</DropdownItem>);
-          })
-        }
-      </DropdownMenu>
-    </ButtonDropdown>);
   }
 }
 
