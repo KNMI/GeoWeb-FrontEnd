@@ -1,19 +1,18 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import Enum from 'es6-enum';
-import { drawVertice } from '../../utils/DrawUtils';
 export default class AdagucMapDraw extends PureComponent {
   constructor (props) {
     super(props);
     this.EDITMODE = Enum('EMPTY', 'DELETE_FEATURES', 'ADD_FEATURE');
-    this.DRAWMODE = Enum('POLYGON', 'BOX', 'POINT');
+    this.DRAWMODE = Enum('POLYGON', 'BOX', 'MULTIPOINT', 'POINT');
     this.VERTEX = Enum('NONE', 'MIDDLE_POINT_OF_FEATURE');
     this.EDGE = Enum('NONE');
     this.FEATURE = Enum('NONE');
     this.SNAPPEDPOYLYGON = Enum('NONE');
     this.DRAGMODE = Enum('NONE', 'VERTEX', 'FEATURE');
     this.editMode = this.EDITMODE.EMPTY;
-    this.drawMode = this.DRAWMODE.POLYGON;
+    this.drawMode = this.DRAWMODE.MULTIPOINT;
     this.adagucBeforeDraw = this.adagucBeforeDraw.bind(this);
     this.adagucMouseMove = this.adagucMouseMove.bind(this);
     this.adagucMouseDown = this.adagucMouseDown.bind(this);
@@ -33,13 +32,15 @@ export default class AdagucMapDraw extends PureComponent {
     this.transposeVertex = this.transposeVertex.bind(this);
     this.triggerMouseDownTimer = this.triggerMouseDownTimer.bind(this);
     this.adagucMouseDoubleClick = this.adagucMouseDoubleClick.bind(this);
-
+    this.textPositions = [];
+    this.mouseOverPolygonCoordinates = [];
+    this.pointNumber = 0;
     this.defaultPolyProps = {
-      'stroke': '#a734d7',
-      'stroke-width': 2,
+      'stroke': '#',
+      'stroke-width': 0.4,
       'stroke-opacity': 1,
       'fill': '#33cc00',
-      'fill-opacity': 0.5
+      'fill-opacity': 1
     };
   }
   /* istanbul ignore next */
@@ -53,14 +54,68 @@ export default class AdagucMapDraw extends PureComponent {
     return XYCoords;
   }
 
+  getPixelCoordFromGeoCoord (featureCoords) {
+    const { webmapjs } = this.props;
+    const { width, height } = webmapjs.getSize();
+    const bbox = webmapjs.getBBOX();
+    const proj = webmapjs.getProj4();
+
+    const XYCoords = [];
+    for (let j = 0; j < featureCoords.length; j++) {
+      let coordinates = { x: featureCoords[j][0], y: featureCoords[j][1] };
+      proj.Proj4js.transform(proj.lonlat, proj.proj4, coordinates);
+      const x = (width * (coordinates.x - bbox.left)) / (bbox.right - bbox.left);
+      const y = (height * (coordinates.y - bbox.top)) / (bbox.bottom - bbox.top);
+      XYCoords.push({ x: x, y: y });
+    }
+    return XYCoords;
+  };
+
+  drawVertice (ctx, _coord, selected, middle, isInEditMode) {
+    let w = 7;
+    let coord = { x: parseInt(_coord.x), y: parseInt(_coord.y) };
+    if (isInEditMode === false) {
+      /* Standard style, no editing, just display location of vertices */
+      ctx.strokeStyle = '#000';
+      ctx.fillStyle = '#000';
+      ctx.lineWidth = 1.0;
+      w = 5;
+    } else if (selected === false) {
+      if (middle === true) {
+        /* Style for middle editable vertice */
+        ctx.strokeStyle = '#000';
+        ctx.fillStyle = '#D87502';
+        ctx.lineWidth = 1.0;
+      } else {
+        /* Style for standard editable vertice */
+        ctx.strokeStyle = '#000';
+        ctx.fillStyle = '#0275D8';
+        ctx.lineWidth = 1.0;
+      }
+    } else {
+      /* Style for selected editable vertice */
+      ctx.strokeStyle = '#000';
+      ctx.fillStyle = '#FF0';
+      ctx.lineWidth = 1.0;
+      w = 11;
+    }
+    ctx.globalAlpha = 1.0;
+    ctx.fillRect(coord.x - w / 2, coord.y - w / 2, w, w);
+    ctx.strokeRect(coord.x - w / 2, coord.y - w / 2, w, w);
+    if (isInEditMode) {
+      ctx.strokeRect(coord.x - 0.5, coord.y - 0.5, 1, 1);
+    }
+  }
+
   /* istanbul ignore next */
   drawPolygon (ctx, XYCoords, featureIndex, polygonIndex) {
     const feature = this.props.geojson.features[featureIndex];
+    if (!feature) return;
     let polyProps = feature.properties;
     if (!polyProps) polyProps = this.defaultPolyProps;
 
     /* Draw polygons and calculate center of poly */
-    const middle = { x: 0, y: 0 };
+    const middle = { x: 0, y: 0, nr: 0 };
 
     ctx.strokeStyle = polyProps.stroke || this.defaultPolyProps.stroke;
     ctx.lineWidth = polyProps['stroke-width'] || this.defaultPolyProps['stroke-width'];
@@ -79,10 +134,16 @@ export default class AdagucMapDraw extends PureComponent {
       middle.y += coord.y;
     }
     ctx.closePath();
+
     ctx.globalAlpha = polyProps['fill-opacity'] || this.defaultPolyProps['fill-opacity'];
     ctx.fill();
     ctx.globalAlpha = polyProps['stroke-opacity'] || this.defaultPolyProps['stroke-opacity'];
     ctx.stroke();
+
+    let test = ctx.isPointInPath(this.mouseX, this.mouseY);
+    if (test) {
+      this.mouseOverPolygonCoordinates = XYCoords;
+    }
     middle.x = parseInt(middle.x / XYCoords.length);
     middle.y = parseInt(middle.y / XYCoords.length);
 
@@ -101,6 +162,8 @@ export default class AdagucMapDraw extends PureComponent {
       ctx.stroke();
     }
 
+    middle.nr = XYCoords.length;
+
     return middle;
   }
 
@@ -111,40 +174,156 @@ export default class AdagucMapDraw extends PureComponent {
      You are free to draw anything you like on the canvas.
     */
 
+    if (!this.props.geojson || !this.props.geojson.features || !this.props.geojson.features.length) return;
+    this.textPositions = [];
+    this.mouseOverPolygonCoordinates = [];
     /* Current selected feature from GeoJSON */
     for (let featureIndex = 0; featureIndex < this.props.geojson.features.length; featureIndex++) {
       const feature = this.props.geojson.features[featureIndex];
 
-      /* Loop through all polygons of the same feature */
-      for (let polygonIndex = 0; polygonIndex < feature.geometry.coordinates.length; polygonIndex++) {
-        const featureCoords = feature.geometry.coordinates[polygonIndex];
+      const featureType = feature.geometry.type;
+      let totalmiddle = { x: 0, y: 0, nr: 0 };
 
-        const XYCoords = this.convertGeoCoordsToScreenCoords(featureCoords);
-        /* Only draw if there is stuff to show */
+      if (featureType === 'Point') {
+        let featureCoords = feature.geometry.coordinates;
+        const XYCoords = this.getPixelCoordFromGeoCoord([featureCoords]);
         if (XYCoords.length === 0) {
           continue;
         }
-
-        const middle = this.drawPolygon(ctx, XYCoords, featureIndex, polygonIndex);
-
-        /* Draw all vertices on the edges of the polygons */
         for (let j = 0; j < XYCoords.length; j++) {
-          drawVertice(ctx,
-            XYCoords[j],
-            this.snappedPolygonIndex === polygonIndex && this.mouseIsOverVertexNr === j && this.props.featureNrToEdit === featureIndex,
+          this.drawVertice(ctx, XYCoords[j],
+            this.mouseIsOverVertexNr === j && this.props.featureNrToEdit === featureIndex,
             false,
             this.props.isInEditMode && this.props.featureNrToEdit === featureIndex);
         }
+      }
 
-        if (this.props.isInEditMode === true && XYCoords.length >= 3) {
-          /* Draw middle vertice for the poly if poly covers an area, e.g. when it contains more than three points */
-          drawVertice(ctx,
-            middle,
-            this.snappedPolygonIndex === polygonIndex && this.mouseIsOverVertexNr === this.VERTEX.MIDDLE_POINT_OF_FEATURE && this.props.featureNrToEdit === featureIndex,
-            true,
+      if (featureType === 'MultiPoint') {
+        let featureCoords = feature.geometry.coordinates;
+        const XYCoords = this.getPixelCoordFromGeoCoord(featureCoords);
+        if (XYCoords.length === 0) {
+          continue;
+        }
+        for (let j = 0; j < XYCoords.length; j++) {
+          this.drawVertice(ctx, XYCoords[j],
+            this.mouseIsOverVertexNr === j && this.props.featureNrToEdit === featureIndex,
+            false,
             this.props.isInEditMode && this.props.featureNrToEdit === featureIndex);
         }
       }
+
+      if (featureType === 'MultiPolygon') {
+        for (let multiPolygonIndex = 0; multiPolygonIndex < feature.geometry.coordinates.length; multiPolygonIndex++) {
+          const multiPoly = feature.geometry.coordinates[multiPolygonIndex];
+          for (let polygonIndex = 0; polygonIndex < multiPoly.length; polygonIndex++) {
+            const featureCoords = multiPoly[polygonIndex];
+            const XYCoords = this.getPixelCoordFromGeoCoord(featureCoords);
+            /* Only draw if there is stuff to show */
+            if (XYCoords.length === 0) {
+              continue;
+            }
+
+            const middle = this.drawPolygon(ctx, XYCoords, featureIndex, polygonIndex);
+            totalmiddle.x += middle.x * middle.nr;
+            totalmiddle.y += middle.y * middle.nr;
+            totalmiddle.nr += middle.nr;
+            if (this.props.isInEditMode) {
+              /* Draw all vertices on the edges of the polygons */
+              for (let j = 0; j < XYCoords.length; j++) {
+                this.drawVertice(ctx,
+                  XYCoords[j],
+                  this.snappedPolygonIndex === polygonIndex && this.mouseIsOverVertexNr === j && this.props.featureNrToEdit === featureIndex,
+                  false,
+                  this.props.isInEditMode && this.props.featureNrToEdit === featureIndex);
+              }
+
+              if (this.props.isInEditMode === true && XYCoords.length >= 3) {
+                /* Draw middle vertice for the poly if poly covers an area, e.g. when it contains more than three points */
+                this.drawVertice(ctx,
+                  middle,
+                  this.snappedPolygonIndex === polygonIndex && this.mouseIsOverVertexNr === this.VERTEX.MIDDLE_POINT_OF_FEATURE && this.props.featureNrToEdit === featureIndex,
+                  true,
+                  this.props.isInEditMode && this.props.featureNrToEdit === featureIndex);
+              }
+            }
+          }
+        }
+        if (totalmiddle.nr > 0) {
+          let mx = totalmiddle.x / totalmiddle.nr;
+          let my = totalmiddle.y / totalmiddle.nr;
+          if (feature.properties && feature.properties.NUTS_ID) {
+            this.textPositions.push({ x:mx, y:my, text: feature.properties.NUTS_ID });
+          }
+        }
+      } else {
+        /* Loop through all polygons of the same feature */
+        for (let polygonIndex = 0; polygonIndex < feature.geometry.coordinates.length; polygonIndex++) {
+          const featureCoords = feature.geometry.coordinates[polygonIndex];
+
+          const XYCoords = this.getPixelCoordFromGeoCoord(featureCoords);
+          /* Only draw if there is stuff to show */
+          if (XYCoords.length === 0) {
+            continue;
+          }
+
+          const middle = this.drawPolygon(ctx, XYCoords, featureIndex, polygonIndex);
+
+          if (feature.properties && feature.properties.NUTS_ID) {
+            this.textPositions.push({ x:middle.x, y:middle.y, text: feature.properties.NUTS_ID });
+          }
+
+          if (this.props.isInEditMode) {
+            /* Draw all vertices on the edges of the polygons */
+            for (let j = 0; j < XYCoords.length; j++) {
+              this.drawVertice(ctx,
+                XYCoords[j],
+                this.snappedPolygonIndex === polygonIndex && this.mouseIsOverVertexNr === j && this.props.featureNrToEdit === featureIndex,
+                false,
+                this.props.isInEditMode && this.props.featureNrToEdit === featureIndex);
+            }
+
+            if (this.props.isInEditMode === true && XYCoords.length >= 3) {
+              /* Draw middle vertice for the poly if poly covers an area, e.g. when it contains more than three points */
+              this.drawVertice(ctx,
+                middle,
+                this.snappedPolygonIndex === polygonIndex && this.mouseIsOverVertexNr === this.VERTEX.MIDDLE_POINT_OF_FEATURE && this.props.featureNrToEdit === featureIndex,
+                true,
+                this.props.isInEditMode && this.props.featureNrToEdit === featureIndex);
+            }
+          }
+        }
+      }
+    }
+
+    /* Higlight polygon with mousehover */
+    if ((this.mouseIsOverVertexNr === this.VERTEX.NONE &&
+      this.snappedPolygonIndex === this.SNAPPEDPOYLYGON.NONE &&
+      this.selectedEdge === this.EDGE.NONE) ||
+      this.mouseIsOverVertexNr === this.VERTEX.MIDDLE_POINT_OF_FEATURE) {
+      if (this.mouseOverPolygonCoordinates.length >= 2) {
+        ctx.beginPath();
+
+        ctx.moveTo(this.mouseOverPolygonCoordinates[0].x, this.mouseOverPolygonCoordinates[0].y);
+        for (let j = 1; j < this.mouseOverPolygonCoordinates.length; j++) {
+          const coord = this.mouseOverPolygonCoordinates[j];
+          ctx.lineTo(coord.x, coord.y);
+        }
+        ctx.closePath();
+        ctx.strokeStyle = 'blue';
+        ctx.lineWidth = 1;
+        ctx.fillStyle = '#88F';
+        ctx.globalAlpha = 0.3;
+        ctx.fill();
+        ctx.globalAlpha = 1;
+        ctx.stroke();
+      }
+    }
+
+    /* Draw labels */
+    for (let j = 0; j < this.textPositions.length; j++) {
+      const { x, y, text } = this.textPositions[j];
+      ctx.fillStyle = 'black';
+      ctx.fillText(text, x, y);
     }
   }
 
@@ -164,7 +343,7 @@ export default class AdagucMapDraw extends PureComponent {
 
   /* Checks if mouse is in proximity of given coordinate */
   /* istanbul ignore next */
-  checkDist (coord, featureIndex, polygonIndex, mouseX, mouseY) {
+  checkDist (coord, polygonIndex, mouseX, mouseY) {
     const VERTEX = this.distance(coord, { x: mouseX, y: mouseY });
     if (VERTEX < 8) {
       this.snappedGeoCoords = { ...this.mouseGeoCoord };
@@ -215,6 +394,10 @@ export default class AdagucMapDraw extends PureComponent {
       this.somethingWasDragged = this.DRAGMODE.VERTEX;
     }
 
+    if (this.drawMode === this.DRAWMODE.MULTIPOINT) {
+      return;
+    }
+
     if (this.drawMode === this.DRAWMODE.BOX && featureCoords.length === 4) {
       if (this.mouseIsOverVertexNr === 0) {
         featureCoords[1][0] = this.mouseGeoCoord.x;
@@ -259,9 +442,28 @@ export default class AdagucMapDraw extends PureComponent {
   }
 
   /* istanbul ignore next */
-  hoverVertex (feature, featureIndex, mouseX, mouseY) {
+  hoverVertex (feature, mouseX, mouseY) {
     let foundVertex = this.VERTEX.NONE;
     this.mouseIsOverVertexNr = this.VERTEX.NONE;
+
+    if (feature.geometry.type === 'MultiPoint') {
+      this.snappedPolygonIndex = this.SNAPPEDPOYLYGON.NONE;
+      for (let polygonIndex = feature.geometry.coordinates.length - 1; polygonIndex >= 0; polygonIndex--) {
+        const featureCoords = feature.geometry.coordinates[polygonIndex];
+        if (featureCoords === undefined) {
+          continue;
+        }
+        /* Get all vertexes */
+        const XYCoords = this.convertGeoCoordsToScreenCoords([featureCoords]);
+        if (this.checkDist(XYCoords[0], polygonIndex, mouseX, mouseY)) {
+          console.log('jo');
+          this.mouseIsOverVertexNr = polygonIndex;
+          this.pointNumber = polygonIndex;
+          return;
+        }
+      }
+      return;
+    }
 
     for (let polygonIndex = feature.geometry.coordinates.length - 1; polygonIndex >= 0; polygonIndex--) {
       const featureCoords = feature.geometry.coordinates[polygonIndex];
@@ -277,7 +479,7 @@ export default class AdagucMapDraw extends PureComponent {
         middle.x += coord.x;
         middle.y += coord.y;
 
-        if (this.checkDist(coord, featureIndex, polygonIndex, mouseX, mouseY)) {
+        if (this.checkDist(coord, polygonIndex, mouseX, mouseY)) {
           foundVertex = j;
           break;
         }
@@ -285,7 +487,7 @@ export default class AdagucMapDraw extends PureComponent {
       middle.x = parseInt(middle.x / XYCoords.length);
       middle.y = parseInt(middle.y / XYCoords.length);
       /* Check if the mouse hovers the middle vertex */
-      if (foundVertex === this.VERTEX.NONE && this.checkDist(middle, featureIndex, polygonIndex, mouseX, mouseY)) {
+      if (foundVertex === this.VERTEX.NONE && this.checkDist(middle, polygonIndex, mouseX, mouseY)) {
         foundVertex = this.VERTEX.MIDDLE_POINT_OF_FEATURE;
       }
 
@@ -299,6 +501,10 @@ export default class AdagucMapDraw extends PureComponent {
       This event is only triggered if the map is in hover state.
       E.g. when the map is dragging/panning, this event is not triggerd
     */
+    const { mouseX, mouseY, mouseDown } = event;
+    this.mouseX = mouseX;
+    this.mouseY = mouseY;
+
     if (this.props.isInEditMode === false) {
       return;
     }
@@ -307,7 +513,7 @@ export default class AdagucMapDraw extends PureComponent {
     const featureCoords = feature.geometry.coordinates[this.snappedPolygonIndex];
 
     const { webmapjs } = this.props;
-    const { mouseX, mouseY, mouseDown } = event;
+
     this.mouseGeoCoord = webmapjs.getLatLongFromPixelCoord({ x: mouseX, y: mouseY });
 
     /* The mouse is hovering a vertice, and the mousedown is into effect, move vertice accordingly */
@@ -318,7 +524,7 @@ export default class AdagucMapDraw extends PureComponent {
     }
 
     /* Check if the mouse hovers any vertice of any polygon */
-    this.hoverVertex(feature, this.props.featureNrToEdit, mouseX, mouseY);
+    this.hoverVertex(feature, mouseX, mouseY);
     if (this.mouseIsOverVertexNr !== this.VERTEX.NONE) {
       /* We found a vertex */
       this.selectedEdge = this.EDGE.NONE; /* We found a vertex, not an edge: reset it */
@@ -327,11 +533,7 @@ export default class AdagucMapDraw extends PureComponent {
       return false;
     }
 
-    if (this.props.isInEditMode) {
-      webmapjs.setCursor('crosshair');
-    } else {
-      webmapjs.setCursor();
-    }
+    webmapjs.setCursor();
 
     /* Check if the mouse hovers an edge of a polygon */
     this.selectedEdge = this.EDGE.NONE;
@@ -442,35 +644,74 @@ export default class AdagucMapDraw extends PureComponent {
       const feature = this.props.geojson.features[this.props.featureNrToEdit];
       this.mouseGeoCoord = webmapjs.getLatLongFromPixelCoord({ x: mouseX, y: mouseY });
 
-      if (feature.geometry.coordinates === undefined) {
-        feature.geometry.coordinates = [];
-      }
-      if (feature.geometry.coordinates[0] === undefined) {
-        feature.geometry.coordinates[0] = [];
+      if (this.drawMode === this.DRAWMODE.POINT || this.drawMode === this.DRAWMODE.MULTIPOINT) {
+        /* Create points */
+        console.log('create point');
+        if (feature.geometry.coordinates === undefined) {
+          feature.geometry.coordinates = [];
+        }
+        if (this.drawMode === this.DRAWMODE.POINT) {
+          const featureCoords = feature.geometry.coordinates;
+          featureCoords[0] = this.mouseGeoCoord.x;
+          featureCoords[1] = this.mouseGeoCoord.y;
+          this.pointNumber = 0;
+          this.snappedPolygonIndex = this.SNAPPEDPOYLYGON.NONE;
+        }
+        if (this.drawMode === this.DRAWMODE.MULTIPOINT) {
+          const featureCoords = feature.geometry.coordinates;
+          featureCoords.push([this.mouseGeoCoord.x, this.mouseGeoCoord.y]);
+          this.pointNumber = featureCoords.length;
+          this.snappedPolygonIndex = this.SNAPPEDPOYLYGON.NONE;
+        }
       } else {
-        feature.geometry.coordinates.push([]);
-      }
-      this.snappedPolygonIndex = feature.geometry.coordinates.length - 1;
-      const featureCoords = feature.geometry.coordinates[this.snappedPolygonIndex];
-      featureCoords.push([this.mouseGeoCoord.x, this.mouseGeoCoord.y]);
-      featureCoords.push([this.mouseGeoCoord.x, this.mouseGeoCoord.y]);
-
-      /* This is triggered when a bounding box is created. Four points are added at once */
-      if (this.drawMode === this.DRAWMODE.BOX) {
+        /* Create poly's and boxes */
+        if (feature.geometry.coordinates === undefined) {
+          feature.geometry.coordinates = [];
+        }
+        if (feature.geometry.coordinates[0] === undefined) {
+          feature.geometry.coordinates[0] = [];
+        } else {
+          feature.geometry.coordinates.push([]);
+        }
+        this.snappedPolygonIndex = feature.geometry.coordinates.length - 1;
+        const featureCoords = feature.geometry.coordinates[this.snappedPolygonIndex];
         featureCoords.push([this.mouseGeoCoord.x, this.mouseGeoCoord.y]);
         featureCoords.push([this.mouseGeoCoord.x, this.mouseGeoCoord.y]);
-      }
 
-      this.featureHasChanged('new poly created');
+        /* This is triggered when a bounding box is created. Four points are added at once */
+        if (this.drawMode === this.DRAWMODE.BOX) {
+          featureCoords.push([this.mouseGeoCoord.x, this.mouseGeoCoord.y]);
+          featureCoords.push([this.mouseGeoCoord.x, this.mouseGeoCoord.y]);
+        }
 
-      if (this.drawMode === this.DRAWMODE.BOX) {
-        this.mouseIsOverVertexNr = 2;
-      } else {
-        this.mouseIsOverVertexNr = featureCoords.length - 1;
+        this.featureHasChanged('new poly created');
+
+        if (this.drawMode === this.DRAWMODE.BOX) {
+          this.mouseIsOverVertexNr = 2;
+        } else {
+          this.mouseIsOverVertexNr = featureCoords.length - 1;
+        }
       }
       webmapjs.draw('AdagucMapDraw::adagucMouseDown');
 
       return false;
+    }
+
+    // console.log('this.editMode ', this.editMode);
+    // console.log('this.snappedPolygonIndex ', this.snappedPolygonIndex);
+    /* This is triggered when new points are added during the addmultipoint mode. One point is added per time */
+
+    if (this.drawMode === this.DRAWMODE.MULTIPOINT) {
+      if (this.editMode === this.EDITMODE.ADD_FEATURE && this.pointNumber !== this.SNAPPEDPOYLYGON.NONE) {
+        this.mouseGeoCoord = webmapjs.getLatLongFromPixelCoord({ x: mouseX, y: mouseY });
+        const feature = this.props.geojson.features[this.props.featureNrToEdit];
+        feature.geometry.coordinates.push([this.mouseGeoCoord.x, this.mouseGeoCoord.y]);
+        this.featureHasChanged('point added to multipoint');
+        this.pointNumber = feature.geometry.coordinates.length;
+        console.log(this.pointNumber);
+        this.adagucMouseMove(event);
+        return false;
+      }
     }
 
     /* This is triggered when new points are added during the addpolygon mode. One point is added per time */
@@ -643,6 +884,7 @@ export default class AdagucMapDraw extends PureComponent {
     /* Handle drawmode */
     if (nextProps.drawMode) {
       if (nextProps.drawMode === 'POINT') { this.drawMode = this.DRAWMODE.POINT; }
+      if (nextProps.drawMode === 'MULTIPOINT') { this.drawMode = this.DRAWMODE.MULTIPOINT; }
       if (nextProps.drawMode === 'BOX') { this.drawMode = this.DRAWMODE.BOX; }
       if (nextProps.drawMode === 'POLYGON') { this.drawMode = this.DRAWMODE.POLYGON; }
     }
