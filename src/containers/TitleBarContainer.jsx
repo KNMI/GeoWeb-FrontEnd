@@ -29,7 +29,7 @@ const browserFullScreenRequests = [
 ];
 
 class TitleBarContainer extends PureComponent {
-  constructor(props) {
+  constructor (props) {
     super(props);
     this.setTime = this.setTime.bind(this);
     this.doLogin = this.doLogin.bind(this);
@@ -66,14 +66,14 @@ class TitleBarContainer extends PureComponent {
     };
   }
 
-  triggerService() {
+  triggerService () {
     if (!this.triggerIntervalId) {
       this.retrieveTriggers();
       this.triggerIntervalId = setInterval(this.retrieveTriggers, moment.duration(2, 'minute').asMilliseconds());
     }
   }
 
-  retrieveTriggers() {
+  retrieveTriggers () {
     const { urls } = this.props;
     axios({
       method: 'get',
@@ -84,10 +84,10 @@ class TitleBarContainer extends PureComponent {
       .catch(this.errorTriggersCallback);
   }
 
-  getTriggerTitle(trigger) {
+  getTriggerTitle (trigger) {
     return trigger.phenomenon.parameter + ' (' + trigger.phenomenon.source + ')';
   }
-  getTriggerMessage(trigger) {
+  getTriggerMessage (trigger) {
     let retStr = '';
     const { phenomenon, triggerdate } = trigger;
     const { parameter, operator, threshold, units } = phenomenon;
@@ -99,14 +99,14 @@ class TitleBarContainer extends PureComponent {
     return retStr;
   }
 
-  seen(notification) {
+  seen (notification) {
     if (!this.props.recentTriggers) {
       return false;
     }
     return this.props.recentTriggers.some((trigger) => trigger.uuid === notification.uuid);
   }
 
-  handleTriggerClick(locations) {
+  handleTriggerClick (locations) {
     if (locations !== this.props.adagucProperties.triggerLocations) {
       this.props.dispatch(this.props.actions.setTriggerLocations(locations));
     } else {
@@ -114,13 +114,13 @@ class TitleBarContainer extends PureComponent {
     }
   }
 
-  diffWrtNow(adate, bdate) {
+  diffWrtNow (adate, bdate) {
     const adiff = moment.utc().diff(moment.utc(adate), 'seconds');
     const bdiff = moment.utc().diff(moment.utc(bdate), 'seconds');
     return adiff - bdiff;
   }
 
-  gotTriggersCallback(result) {
+  gotTriggersCallback (result) {
     if (result.data.length > 0) {
       result.data.filter((notification) => !this.seen(notification)).filter((trigger) =>
         !this.props.notifications.some((not) => not.id === trigger.uuid)).sort((a, b) => this.diffWrtNow(a.triggerdate, b.triggerdate)).slice(0, 3).forEach((trigger, i) => {
@@ -148,11 +148,11 @@ class TitleBarContainer extends PureComponent {
     }
   }
 
-  errorTriggersCallback(error) {
+  errorTriggersCallback (error) {
     console.error('Error occurred while retrieving triggers', error);
   }
 
-  getServices() {
+  getServices () {
     const { urls, dispatch, adagucActions } = this.props;
 
     GetServices(urls.BACKEND_SERVER_URL).then((sources) => {
@@ -160,11 +160,11 @@ class TitleBarContainer extends PureComponent {
     });
   }
 
-  getTitleForRoute(routeItem) {
+  getTitleForRoute (routeItem) {
     return (routeItem.indexRoute ? routeItem.indexRoute.title : routeItem.title) || 'Untitled';
   }
 
-  isRouteEnd(routes, index) {
+  isRouteEnd (routes, index) {
     const lastIndex = routes.length - 1;
     if (index === lastIndex) {
       return true;
@@ -176,36 +176,30 @@ class TitleBarContainer extends PureComponent {
     return false;
   }
 
-  setTime() {
+  setTime () {
     const time = moment().utc().format(timeFormat).toString();
     this.setState({ currentTime: time });
   }
 
-  // TODO: Enough?
-  shouldComponentUpdate (nextProps, nextState) {
-    return this.state !== nextState ||
-           this.props.panelsProperties.panelLayout !== nextProps.panelsProperties.panelLayout;
-  }
-
-  componentWillUnmount() {
+  componentWillUnmount () {
     clearInterval(this.timer);
     clearInterval(this.triggerIntervalId);
   }
 
-  componentDidMount() {
+  componentDidMount () {
     this.triggerService();
     this.timer = setInterval(this.setTime, 15000);
     this.setState({ currentTime: moment().utc().format(timeFormat).toString() });
     this.checkCredentials();
   }
 
-  componentDidUpdate() {
+  componentDidUpdate () {
     if (this.userNameInputRef && this.state.loginModal === true) {
       this.userNameInputRef.focus();
     }
   }
 
-  doLogin() {
+  doLogin () {
     const { user, urls } = this.props;
     const { isLoggedIn } = user;
     if (!isLoggedIn) {
@@ -229,7 +223,7 @@ class TitleBarContainer extends PureComponent {
     }
   }
 
-  doLogout() {
+  doLogout () {
     const { urls } = this.props;
     this.toggleLoginModal();
     axios({
@@ -245,7 +239,7 @@ class TitleBarContainer extends PureComponent {
     });
   }
 
-  checkCredentials(callback) {
+  checkCredentials (callback) {
     const { urls } = this.props;
 
     try {
@@ -268,7 +262,7 @@ class TitleBarContainer extends PureComponent {
     });
   }
 
-  setLoggedOutCallback(message) {
+  setLoggedOutCallback (message) {
     this.inputfieldPassword = '';
     this.inputfieldUserName = '';
     const { dispatch, userActions } = this.props;
@@ -280,7 +274,7 @@ class TitleBarContainer extends PureComponent {
     this.getServices();
   };
 
-  checkCredentialsOKCallback(data) {
+  checkCredentialsOKCallback (data) {
     const { dispatch } = this.props;
     const username = data.username ? data.username : data.userName;
     const roles = data.roles;
@@ -316,7 +310,7 @@ class TitleBarContainer extends PureComponent {
     }
   }
 
-  checkCredentialsBadCallback(error) {
+  checkCredentialsBadCallback (error) {
     let errormsg = '';
     try {
       if (error.response && error.response.data) {
@@ -335,14 +329,14 @@ class TitleBarContainer extends PureComponent {
     this.getServices();
   }
 
-  toggleLoginModal() {
+  toggleLoginModal () {
     this.setState({
       loginModal: !this.state.loginModal,
       loginModalMessage: ''
     });
   }
 
-  toggleFullscreen() {
+  toggleFullscreen () {
     const elmt = document.querySelector('body');
     let requestFullScreenFunc = elmt.requestFullscreen;
     if (!requestFullScreenFunc) {
@@ -356,13 +350,13 @@ class TitleBarContainer extends PureComponent {
     setTimeout(() => hashHistory.push('/full_screen'), 100);
   }
 
-  handleKeyPressPassword(target) {
+  handleKeyPressPassword (target) {
     if (target.charCode === 13) {
       this.doLogin();
     }
   }
 
-  handleOnChange(event) {
+  handleOnChange (event) {
     if (event.target.name === 'password') {
       this.inputfieldPassword = event.target.value;
     }
@@ -371,18 +365,18 @@ class TitleBarContainer extends PureComponent {
     }
   }
 
-  toggleFeedbackModal() {
+  toggleFeedbackModal () {
     this.setState({ presetModal: false, loginModal: false, feedbackModalOpen: !this.state.feedbackModalOpen });
   }
-  toggleSharePresetModal() {
+  toggleSharePresetModal () {
     this.setState({ sharePresetModal: !this.state.sharePresetModal, loginModal: false, feedbackModalOpen: false, popoverOpen: false });
   }
 
-  returnInputRef(ref) {
+  returnInputRef (ref) {
     this.input = ref;
   }
 
-  renderLoginModal(loginModalOpen, loginModalMessage, toggleLoginModal, handleOnChange, handleKeyPressPassword) {
+  renderLoginModal (loginModalOpen, loginModalMessage, toggleLoginModal, handleOnChange, handleKeyPressPassword) {
     return (<Modal isOpen={loginModalOpen} toggle={toggleLoginModal}>
       <ModalHeader toggle={toggleLoginModal}>Sign in</ModalHeader>
       <ModalBody>
@@ -407,7 +401,7 @@ class TitleBarContainer extends PureComponent {
     </Modal>);
   }
 
-  sendFeedback(e, formValues) {
+  sendFeedback (e, formValues) {
     const flattenLayers = (state) => {
       const stateCpy = cloneDeep(state);
       stateCpy.panelsProperties.panels.map((panel) => {
@@ -447,7 +441,7 @@ class TitleBarContainer extends PureComponent {
       .catch((error) => { console.error('Send feedback failed: ', error); });
   }
 
-  renderFeedbackModal(feedbackModalOpen, toggle) {
+  renderFeedbackModal (feedbackModalOpen, toggle) {
     return (<Modal isOpen={feedbackModalOpen} toggle={toggle}>
       <ModalHeader>Tell us what happened</ModalHeader>
       <ModalBody>
@@ -508,7 +502,7 @@ class TitleBarContainer extends PureComponent {
       </ModalFooter>
     </Modal>);
   }
-  renderLoggedInPopover(loginModal, toggle, userName) {
+  renderLoggedInPopover (loginModal, toggle, userName) {
     return (
       <Popover placement='bottom' isOpen={loginModal} target='loginIcon' toggle={toggle}>
         <PopoverTitle>Hi {userName}</PopoverTitle>
@@ -531,13 +525,13 @@ class TitleBarContainer extends PureComponent {
       console.error(error);
     });
   }
-  componentWillUpdate(nextprops) {
+  componentWillUpdate (nextprops) {
     if (!this.state.presets || this.props.user.username !== nextprops.user.username) {
       this.fetchPresets();
     }
   }
 
-  makePresetObj(presetName, saveLayers, savePanelLayout, saveBoundingBox, role) {
+  makePresetObj (presetName, saveLayers, savePanelLayout, saveBoundingBox, role) {
     const { mapProperties } = this.props;
     const { layout } = mapProperties;
     let numPanels;
@@ -676,7 +670,8 @@ class TitleBarContainer extends PureComponent {
               <NavLink className='active' onClick={this.toggleLoginModal} ><Icon name='user' id='loginIcon' />{isLoggedIn ? ' ' + username : ' Sign in'}</NavLink>
               {hasRoleADMIN ? <Link to='manage' className='active nav-link'><Icon name='cog' /></Link> : ''}
               <NavLink className='active' onClick={this.toggleFeedbackModal}><Icon name='exclamation-triangle' /> Report problem</NavLink>
-              <LayoutDropDown panelsProperties={this.props.panelsProperties} savePreset={this.savePreset} fetchNewPresets={this.fetchPresets} mapActions={this.props.mapActions} presets={this.state.presets} onChangeServices={this.getServices}
+              <LayoutDropDown panelsProperties={this.props.panelsProperties} savePreset={this.savePreset}
+                fetchNewPresets={this.fetchPresets} mapActions={this.props.mapActions} presets={this.state.presets} onChangeServices={this.getServices}
                 urls={this.props.urls} panelsActions={this.props.panelsActions} mapProperties={this.props.mapProperties} dispatch={this.props.dispatch} />
               <NavLink className='active' onClick={this.toggleFullscreen} ><Icon name='expand' /></NavLink>
               {isLoggedIn
@@ -753,23 +748,23 @@ class LayoutDropDown extends PureComponent {
     });
   }
 
-  printBBOX(bbox) {
+  printBBOX (bbox) {
     return bbox.map((item) => item.toFixed(2)).join(', ');
   }
 
-  setBBOX(bbox) {
+  setBBOX (bbox) {
     if (bbox && bbox.length > 0) {
       this.props.dispatch(this.props.mapActions.setCut(bbox[0]));
     }
   }
 
-  setProjection(projection) {
+  setProjection (projection) {
     if (projection && projection.length > 0) {
       this.props.dispatch(this.props.mapActions.setProjection(projection[0]));
     }
   }
 
-  setPreset(preset) {
+  setPreset (preset) {
     const { dispatch, panelsActions, mapActions } = this.props;
     const thePreset = preset[0];
     if (thePreset.area) {
@@ -828,7 +823,7 @@ class LayoutDropDown extends PureComponent {
     }
   }
 
-  sharePreset() {
+  sharePreset () {
     this.setState({ popoverOpen: false });
     const presetName = uuidV4();
     const dataToSend = this.makePresetObj(presetName, true, true, true, '');
@@ -844,7 +839,7 @@ class LayoutDropDown extends PureComponent {
     });
   }
 
-  makePresetObj(presetName, saveLayers, savePanelLayout, saveBoundingBox, role) {
+  makePresetObj (presetName, saveLayers, savePanelLayout, saveBoundingBox, role) {
     const { mapProperties } = this.props;
     const { layout } = mapProperties;
     let numPanels;
@@ -908,7 +903,7 @@ class LayoutDropDown extends PureComponent {
     return dataToSend;
   }
 
-  renderSharePresetModal(sharePresetModelOpen, toggleSharePresetModal, sharePresetName) {
+  renderSharePresetModal (sharePresetModelOpen, toggleSharePresetModal, sharePresetName) {
     return (<Modal isOpen={sharePresetModelOpen} toggle={toggleSharePresetModal}>
       <ModalHeader toggle={toggleSharePresetModal}> Share preset URL</ModalHeader>
       <ModalBody >
@@ -927,8 +922,7 @@ class LayoutDropDown extends PureComponent {
     </Modal>);
   };
 
-  render() {
-
+  render () {
     const togglePreset = () => this.setState({ popoverOpen: !this.state.popoverOpen });
     const { panelsProperties, mapProperties } = this.props;
     const isActive = (layout) => panelsProperties && panelsProperties.panelLayout === layout;

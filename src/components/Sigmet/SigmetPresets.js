@@ -123,7 +123,8 @@ export const getPresetForPhenomenon = (p, sources) => {
                 enabled: true,
                 opacity: 0.8,
                 overlay: false
-              }
+              },
+              ...defaultOverlays
             ],
             [
               {
@@ -404,7 +405,8 @@ export const getPresetForPhenomenon = (p, sources) => {
                 label: 'FIR areas',
                 enabled: true,
                 overlay: true
-              }
+              },
+              ...defaultOverlays
             ],
             [
               {
@@ -423,7 +425,8 @@ export const getPresetForPhenomenon = (p, sources) => {
                 label: 'FIR areas',
                 enabled: true,
                 overlay: true
-              }
+              },
+              ...defaultOverlays
             ],
             [
               {
@@ -450,7 +453,8 @@ export const getPresetForPhenomenon = (p, sources) => {
                 label: 'FIR areas',
                 enabled: true,
                 overlay: true
-              }
+              },
+              ...defaultOverlays
             ],
             [
               {
@@ -469,7 +473,8 @@ export const getPresetForPhenomenon = (p, sources) => {
                 label: 'FIR areas',
                 enabled: true,
                 overlay: true
-              }
+              },
+              ...defaultOverlays
             ]
           ]
         }

@@ -13,6 +13,16 @@
   padding: 0.19rem 0.5rem;
 }
 
+.accordion .Sigmet .row.disabled {
+  background-color: #eee;
+}
+
+.accordion .Sigmet .disabled .badge {
+  color: #eee;
+  background-color: #919191;
+  border-color: #eee;
+}
+
 .accordion .Sigmet.btn-secondary:hover {
   background-color: #d5f4ff;
 }
@@ -22,4 +32,17 @@
   -moz-transition: all 0.5s ease-in-out;
   -o-transition: all 0.5s ease-in-out;
   transition: all 0.5s ease-in-out;
+}
+
+.Sigmet .required {
+  padding-left: 0.33rem;
+}
+
+.Sigmet .required:after {
+  content: '*';
+}
+
+.Sigmet .required.missing {
+  color: red;
+  font-weight: bold;
 }

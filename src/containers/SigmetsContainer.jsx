@@ -61,7 +61,7 @@ class SigmetsContainer extends Component {
       isOpenCategory[item.ref] = false;
       item.source = (item.isGetType ? GET_SIGMETS_URL : SET_SIGMET_URL) + item.source;
     });
-    this.state = { isOpen: true, selectedItem: {}, isOpenCategory: isOpenCategory, closingCategory: [] };
+    this.state = { isOpen: true, selectedItem: {}, isOpenCategory: isOpenCategory, closingCategory: [], categoryLimits: [ 5, 5, 5, 1 ] };
     axios.get(this.props.urls.BACKEND_SERVER_URL + '/sigmet/getsigmetphenomena').then((result) => {
       this.setState({ phenomena: result.data });
     }).catch((error) => {
@@ -129,8 +129,18 @@ class SigmetsContainer extends Component {
     const nodelist = evt.target.querySelectorAll('.Sigmet');
     const lastItem = nodelist.item(nodelist.length - 1);
 
-    if (lastItem.getBoundingClientRect().top < evt.target.getBoundingClientRect().bottom) {
-      console.error('Should render more items');
+    if (lastItem.getBoundingClientRect().bottom < evt.target.getBoundingClientRect().bottom + 10) {
+      const categoryItem = evt.target.closest('.row.accordion.card');
+      if (categoryItem) {
+        const categoryHeaderItem = categoryItem.querySelector('.row.card-header');
+        if (categoryHeaderItem) {
+          const title = categoryHeaderItem.getAttribute('title');
+          const itemsIndex = ITEMS.findIndex((item) => item.title === title);
+          const newCatLimits = cloneDeep(this.state.categoryLimits);
+          newCatLimits[itemsIndex] += 5;
+          this.setState({ categoryLimits: newCatLimits });
+        }
+      }
     }
   }
 
@@ -186,7 +196,8 @@ class SigmetsContainer extends Component {
                   selectMethod={(index, geo, cat = item.ref) => this.select(cat, index, geo)} toggleMethod={(evt, cat = item.ref) => this.toggleCategory(cat)}
                   dispatch={this.props.dispatch} actions={this.props.actions}
                   parameters={this.state.parameters || {}} updateAllComponents={this.updateAllComponents}
-                  sources={this.props.sources} isGetType={item.isGetType} />
+                  sources={this.props.sources} isGetType={item.isGetType}
+                  itemLimit={this.state.categoryLimits[index]} />
               )}
             </Col>
           </Panel>
