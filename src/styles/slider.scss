@@ -66,3 +66,9 @@ div.rc-slider-rail {
 
   border-radius: 3.75rem!important;
 }
+
+@-moz-document url-prefix() {
+  span.rc-slider-mark-text {
+    margin-bottom: -4%!important;
+  }
+}
