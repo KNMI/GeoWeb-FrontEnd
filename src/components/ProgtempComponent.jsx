@@ -185,6 +185,14 @@ export default class ProgtempComponent extends PureComponent {
     }
   }
 
+  shouldComponentUpdate (nextProps, nextState) {
+    return this.state !== nextState ||
+           this.props.selectedModel !== nextProps.selectedModel ||
+           this.props.location !== nextProps.location ||
+           this.props.time !== nextProps.time ||
+           this.props.referenceTime !== nextProps.referenceTime;
+  }
+
   componentDidMount () {
     this.fetchAndRender(this.props.selectedModel, this.props.location, this.props.referenceTime);
   }

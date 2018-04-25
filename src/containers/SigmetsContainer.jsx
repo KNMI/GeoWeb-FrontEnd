@@ -159,6 +159,13 @@ class SigmetsContainer extends Component {
     }
   }
 
+  shouldComponentUpdate (nextProps, nextState) {
+    if (this.state !== nextState || nextProps.drawProperties !== this.props.drawProperties) {
+      return true;
+    }
+    return false;
+  }
+
   drawSIGMET (geojson) {
     console.log('drawSIGMET', geojson);
     this.props.dispatch(this.props.drawActions.setGeoJSON(geojson));
