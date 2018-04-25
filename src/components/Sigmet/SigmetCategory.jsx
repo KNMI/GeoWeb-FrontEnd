@@ -366,12 +366,10 @@ class SigmetCategory extends Component {
     listCpy[0].phenomenon = onlyObj.code;
     this.setState({ list: listCpy });
 
-    console.log(onlyObj);
     if (!onlyObj.layerpreset) {
       return;
     }
     const preset = getPresetForPhenomenon(onlyObj.layerpreset, this.props.sources);
-    console.log(preset);
     if (!preset) {
       return;
     }
