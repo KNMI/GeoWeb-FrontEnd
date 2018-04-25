@@ -11,8 +11,12 @@ const TEMPLATES = {
   },
   FEATURE: {
     type: 'Feature',
+    id: null, // string
     properties: {
       type: null, // string
+      selectionType: null, // string
+      featureFunction: null, // string
+      relatesTo: null, // string
       stroke: null, // string
       'stroke-width': null, // number
       'stroke-opacity': null, // number
@@ -79,8 +83,12 @@ const TYPES = {
   }),
   FEATURE: PropTypes.shape({
     type: PropTypes.string,
+    id: PropTypes.string,
     properties: PropTypes.shape({
       type: PropTypes.string,
+      selectionType: PropTypes.string,
+      featureFunction: PropTypes.string,
+      relatesTo: PropTypes.string,
       stroke: PropTypes.string,
       'stroke-width': PropTypes.number,
       'stroke-opacity': PropTypes.number,
@@ -111,7 +119,7 @@ const TYPES = {
   SEQUENCE: PropTypes.number,
   STATUS: PropTypes.string,
   LOCATION_INDICATOR_ICAO: PropTypes.string,
-  LOCATION_INDICATOR_WMO: PropTypes.string
+  LOCATION_INDICATOR_MWO: PropTypes.string
 };
 TYPES.GEOJSON = PropTypes.shape({
   type: PropTypes.string,

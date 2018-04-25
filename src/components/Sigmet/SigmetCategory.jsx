@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Button, ButtonGroup, Col, Row, Badge, Card, CardHeader, CardBlock, Alert, Input, InputGroupAddon, InputGroup } from 'reactstrap';
+import { Button, Col, Row, Badge, Card, CardHeader, CardBlock, Alert, Input, InputGroupAddon, InputGroup } from 'reactstrap';
 import Moment from 'react-moment';
 import moment from 'moment';
 import Icon from 'react-fa';
@@ -20,6 +20,8 @@ import Slider from 'rc-slider';
 import Tooltip from 'rc-tooltip';
 import PropTypes from 'prop-types';
 import { SIGMET_TEMPLATES, CHANGES, DIRECTIONS, UNITS_ALT } from './SigmetTemplates';
+import { clearNullPointersAndAncestors } from '../../utils/json';
+
 import { getPresetForPhenomenon } from './SigmetPresets';
 const createSliderWithTooltip = Slider.createSliderWithTooltip;
 const Range = createSliderWithTooltip(Slider.Range);
@@ -35,9 +37,6 @@ const TAG_NAMES = {
 };
 const EMPTY_GEO_JSON = cloneDeep(SIGMET_TEMPLATES.GEOJSON);
 const EMPTY_SIGMET = cloneDeep(SIGMET_TEMPLATES.SIGMET);
-EMPTY_SIGMET.validdate = moment().utc().format();
-EMPTY_SIGMET.validdate_end = moment().utc().add(4, 'hour').format();
-
 const FALLBACK_PARAMS = {
   maxhoursofvalidity: 4,
   hoursbeforevalidity: 4,
@@ -48,8 +47,24 @@ const FALLBACK_PARAMS = {
       areapreset: 'NL_FIR'
     }
   ],
-  location_indicator_wmo: 'EHDB'
+  location_indicator_mwo: 'EHDB',
+  change: 'NC'
 };
+
+/**
+ * Generate a 'next-half-hour-rounded now Moment object
+ * @return {moment} Moment-object with the current now in UTC rounded to the next half hour
+ */
+const getRoundedNow = () => {
+  return moment().utc().minutes() < 30 ? moment().utc().startOf('hour').minutes(30) : moment().utc().startOf('hour').add(1, 'hour');
+};
+
+EMPTY_SIGMET.validdate = getRoundedNow().format();
+EMPTY_SIGMET.validdate_end = getRoundedNow().add(4, 'hour').format();
+EMPTY_SIGMET.location_indicator_mwo = FALLBACK_PARAMS.location_indicator_mwo;
+EMPTY_SIGMET.location_indicator_icao = FALLBACK_PARAMS.firareas[0].location_indicator_icao;
+EMPTY_SIGMET.firname = FALLBACK_PARAMS.firareas[0].firname;
+EMPTY_SIGMET.change = FALLBACK_PARAMS.change;
 
 class SigmetCategory extends Component {
   constructor (props) {
@@ -64,7 +79,7 @@ class SigmetCategory extends Component {
     this.getExistingSigmets = this.getExistingSigmets.bind(this);
     this.gotExistingSigmetsCallback = this.gotExistingSigmetsCallback.bind(this);
     this.setSelectedMovement = this.setSelectedMovement.bind(this);
-    this.setSetMovementType = this.setSetMovementType.bind(this);
+    this.setProgressType = this.setProgressType.bind(this);
     this.setSelectedDirection = this.setSelectedDirection.bind(this);
     this.setSpeed = this.setSpeed.bind(this);
     this.setChange = this.setChange.bind(this);
@@ -76,7 +91,8 @@ class SigmetCategory extends Component {
       isClosing: props.isClosing,
       list: [EMPTY_SIGMET],
       renderRange: false,
-      lowerUnit: UNITS_ALT.FL
+      lowerUnit: UNITS_ALT.FT,
+      isProgressByEnd: true
     };
   }
 
@@ -261,7 +277,6 @@ class SigmetCategory extends Component {
 
   handleActionClick (action, sigmetPart) {
     const { dispatch, mapActions, drawActions } = this.props;
-
     switch (action) {
       case 'select-point':
         dispatch(mapActions.setMapMode('draw'));
@@ -304,6 +319,7 @@ class SigmetCategory extends Component {
     const newList = cloneDeep(this.state.list);
     newList[0].geojson = this.props.drawProperties.adagucMapDraw.geojson;
     this.setState({ list: newList });
+    clearNullPointersAndAncestors(newList);
     axios({
       method: 'post',
       url: this.props.source,
@@ -362,7 +378,6 @@ class SigmetCategory extends Component {
     if (preset.display) {
       dispatch(mapActions.setCut({ name: 'Custom', bbox: [preset.area.left || 570875, preset.area.bottom, preset.area.right || 570875, preset.area.top] }));
     }
-
 
     if (preset.layers) {
       // This is tricky because all layers need to be restored in the correct order
@@ -444,9 +459,9 @@ class SigmetCategory extends Component {
     this.setState({ list: listCpy });
   }
 
-  setSelectedForecastPosition (forecastPosition) {
+  setSelectedObservedOrForecastAt (obsOrFcAt) {
     let listCpy = cloneDeep(this.state.list);
-    listCpy[0].forecast_position = forecastPosition.utc().format();
+    listCpy[0].obs_or_forecast.obsFcTime = obsOrFcAt.utc().format();
     this.setState({ list: listCpy });
   }
 
@@ -469,11 +484,8 @@ class SigmetCategory extends Component {
     this.setState({ list: listCpy });
   }
 
-  setSetMovementType (evt) {
-    const isDefinedByArea = !evt.target.checked;
-    let listCpy = cloneDeep(this.state.list);
-    listCpy[0].movement.movementtype = isDefinedByArea;
-    this.setState({ list: listCpy });
+  setProgressType (evt) {
+    this.setState({ isProgressByEnd: !evt.target.checked });
   }
 
   setSelectedDirection (dir) {
@@ -573,7 +585,7 @@ class SigmetCategory extends Component {
     if (this.props.editable && Array.isArray(this.state.list) && this.state.list.length > 0 &&
         this.state.list[0].validdate) {
       const curVal = moment(this.state.list[0].validdate).utc();
-      const nowVal = moment().utc();
+      const nowVal = getRoundedNow();
       if (curVal.isBefore(nowVal, 'minute')) {
         const newList = update(this.state.list, {
           0: {
@@ -634,7 +646,7 @@ class SigmetCategory extends Component {
   };
 
   showLevels (level) {
-    if (!level.lev1) {
+    if (!level || !level.lev1) {
       return '';
     }
     let result = '';
@@ -818,17 +830,16 @@ class SigmetCategory extends Component {
                 isChecked={this.state.renderRange} action={(evt) => this.setState({ renderRange: evt.target.checked })} align='center' />
             </Col>
           </Row>
-          <Row style={{ flex: 'none', padding: '0.5rem 0' }}>
+          <Row>
             <Col xs={{ size: 3, offset: 1 }}>
               <Badge>Units</Badge>
             </Col>
-            <Col xs={{ size: 6, offset: 1 }} style={{ justifyContent: 'center' }}>
-              <ButtonGroup>
-                <Button color='primary' onClick={() => this.setState({ lowerUnit: UNITS_ALT.FT })} active={this.state.lowerUnit === UNITS_ALT.FT}
-                  disabled={this.state.tops}>{`${UNITS_ALT.FT}/${UNITS_ALT.FL}`}</Button>
-                <Button color='primary' onClick={() => this.setState({ lowerUnit: UNITS_ALT.M })} active={this.state.lowerUnit === UNITS_ALT.M}
-                  disabled={this.state.tops}>{`${UNITS_ALT.M}/${UNITS_ALT.FL}`}</Button>
-              </ButtonGroup>
+            <Col xs='8' style={{ justifyContent: 'center' }} className={this.state.tops ? 'disabled' : null}>
+              <SwitchButton id='unitswitch' name='unitswitch'
+                labelLeft={`${UNITS_ALT.FT} / ${UNITS_ALT.FL}`} labelRight={`${UNITS_ALT.M} / ${UNITS_ALT.FL}`}
+                isChecked={this.state.lowerUnit === UNITS_ALT.M}
+                action={(evt) => this.setState({ lowerUnit: evt.target.checked ? UNITS_ALT.M : UNITS_ALT.FT })}
+                align='center' />
             </Col>
           </Row>
 
@@ -852,6 +863,8 @@ class SigmetCategory extends Component {
 
   render () {
     const { title, icon, parentCollapsed, editable, selectedIndex, toggleMethod, scrollAction, drawProperties } = this.props;
+    let { itemLimit } = this.props;
+    itemLimit = itemLimit || 5;
     const notifications = !editable ? this.state.list.length : 0;
     // Show a warning in case there is no drawing yet, so both the this.state.list and the this.props.drawProperties are empty
     const showDrawWarningFromState = !this.state.list.length > 0 || !this.state.list[0].hasOwnProperty('geojson') || !this.state.list[0].geojson.hasOwnProperty('features') ||
@@ -860,12 +873,12 @@ class SigmetCategory extends Component {
     const showDrawWarningFromProps = !drawProperties || !drawProperties.hasOwnProperty('geojson') || !drawProperties.adagucMapDraw.geojson.hasOwnProperty('features') ||
       !drawProperties.adagucMapDraw.geojson.features.length > 0 || !drawProperties.adagucMapDraw.geojson.features[0].hasOwnProperty('geometry') ||
       !drawProperties.adagucMapDraw.geojson.features[0].geometry.hasOwnProperty('coordinates') || !drawProperties.adagucMapDraw.geojson.features[0].geometry.coordinates.length > 0;
-    let maxSize = this.state.list ? 550 * this.state.list.slice(0, 5).length : 0;
+    let maxSize = this.state.list ? 550 * this.state.list.slice(0, itemLimit).length : 0;
     if (editable) {
-      maxSize = 1020;
+      maxSize = 1134; // (1070 + 4rem)
     }
     const sourceless = Object.keys(this.props.sources || {}).length === 0;
-    const now = moment().utc();
+    const now = getRoundedNow();
     const availablePhenomena = this.getPhenomena();
     const availableFirs = this.getParameters().firareas;
     const drawActions = [
@@ -926,13 +939,11 @@ class SigmetCategory extends Component {
               {(this.state.isOpen || this.state.isClosing)
                 ? <Row>
                   <Col className='btn-group-vertical' style={{ minWidth: 0, flexGrow: 1, minHeight: maxSize }}>
-                    {this.state.list.slice(0, 5).map((item, index) => {
+                    {this.state.list.slice(0, itemLimit).map((item, index) => {
                       const selectedPhenomenon = availablePhenomena.filter((ph) => ph.code === item.phenomenon).shift();
                       const selectedFir = availableFirs.filter((fr) => fr.firname === item.firname).shift();
                       const selectedDirection = DIRECTIONS.filter((dr) => dr.shortName === item.movement.dir).shift();
                       const selectedChange = CHANGES.filter((ch) => ch.shortName === item.change).shift();
-                      let { issuedate } = item;
-                      issuedate = issuedate || 'Not yet issued';
                       if (item.cancels) {
                         return <Button tag='div' className={'Sigmet row' + (selectedIndex === index ? ' active' : '')}
                           key={index} onClick={(evt) => { this.handleSigmetClick(evt, index); }} title={item.phenomenonHRT} >
@@ -944,19 +955,6 @@ class SigmetCategory extends Component {
                               Cancellation of SIGMET {item.cancels}
                             </Col>
                           </Row>
-                          <Row style={{ paddingTop: '0.19rem' }}>
-                            <Col xs={{ size: 2, offset: 1 }}>
-                              <Badge>At</Badge>
-                            </Col>
-                            <Col xs='9'>
-                              {
-                                issuedate === 'Not yet issued'
-                                  ? <span>{issuedate}</span>
-                                  : <Moment format={DATE_TIME_FORMAT} date={issuedate} />
-                              }
-                            </Col>
-                          </Row>
-
                           <Row className='section' style={{ minHeight: '1.75rem' }}>
                             <Col xs='3'>
                               <Badge color='success'>Valid</Badge>
@@ -983,7 +981,7 @@ class SigmetCategory extends Component {
                               <Badge color='success'>Where</Badge>
                             </Col>
                             <Col xs='9'>
-                              <span>{item.firname || 'no firname provided yet'}</span>
+                              <span>{item.firname || '(no firname provided yet)'}</span>
                             </Col>
                           </Row>
                           <Row style={editable ? { minHeight: '2.5rem' } : null}>
@@ -1004,7 +1002,7 @@ class SigmetCategory extends Component {
                       }
                       return <Button tag='div' className={'Sigmet row' + (selectedIndex === index ? ' active' : '')}
                         key={index} onClick={(evt) => { this.handleSigmetClick(evt, index); }} title={item.phenomenonHRT} >
-                        <Row style={editable ? { minHeight: '2rem' } : null}>
+                        <Row style={editable ? { maxHeight: '1.8rem' } : null}>
                           <Col xs='3'>
                             <Badge color='success'>What</Badge>
                           </Col>
@@ -1017,14 +1015,22 @@ class SigmetCategory extends Component {
                                 clearButton />
                               : <span style={{ fontWeight: 'bold' }}>{item.phenomenon}</span>
                             }
+                            {editable
+                              ? <span className={item.phenomenon ? 'required' : 'required missing'} />
+                              : null
+                            }
                           </Col>
                         </Row>
-                        <Row style={editable ? { marginTop: '0.19rem', minHeight: '2rem' } : null}>
+                        <Row style={editable ? { marginTop: '0.33rem', minHeight: '2rem' } : null}>
                           <Col xs={{ size: 9, offset: 3 }}>
                             {editable
                               ? <SwitchButton id='obsfcstswitch' name='obsfcstswitch'
                                 labelRight='Observed' labelLeft='Forecast' isChecked={item.obs_or_forecast.obs} action={(evt) => this.setSelectedObservedForecast(evt.target.checked)} />
                               : <span>{item.obs_or_forecast.obs ? 'Observed' : 'Forecast'}</span>
+                            }
+                            {editable
+                              ? <span className='required' />
+                              : null
                             }
                           </Col>
                         </Row>
@@ -1035,22 +1041,21 @@ class SigmetCategory extends Component {
                           <Col xs='9'>
                             {editable
                               ? <DateTimePicker style={{ width: '100%' }} dateFormat={DATE_FORMAT} timeFormat={TIME_FORMAT} utc
-                                onChange={(at) => this.setSelectedForecastPosition(at)}
-                                inputProps={item.obs_or_forecast.obs ? { disabled: true } : null}
+                                onChange={(at) => this.setSelectedObservedOrForecastAt(at)}
                                 isValidDate={(curr, selected) => curr.isAfter(now.subtract(1, 'day')) &&
                                   curr.isBefore(now.add(this.getParameters().hoursbeforevalidity, 'hour'))}
                                 timeConstraints={{
                                   hours: {
-                                    min: now.hour(),
+                                    min: (now.hour() - this.getParameters().hoursbeforevalidity),
                                     max: (now.hour() + this.getParameters().hoursbeforevalidity)
                                   }
                                 }}
                                 viewMode='time'
-                                value={item.forecast_position ? moment.utc(item.forecast_position) : now}
+                                value={(item.obs_or_forecast && item.obs_or_forecast.obsFcTime) ? moment.utc(item.obs_or_forecast.obsFcTime) : now}
                               />
-                              : (issuedate === 'Not yet issued'
-                                ? <span>{issuedate}</span>
-                                : <Moment format={DATE_TIME_FORMAT} date={issuedate} />)
+                              : (item.obs_or_forecast && item.obs_or_forecast.obsFcTime)
+                                ? <Moment format={DATE_TIME_FORMAT} date={item.obs_or_forecast.obsFcTime} />
+                                : <span>{item.obs_or_forecast.obs ? '(no observation time provided)' : '(no forecasted time provided)'}</span>
                             }
                           </Col>
                         </Row>
@@ -1080,6 +1085,10 @@ class SigmetCategory extends Component {
                               />
                               : <Moment format={DATE_TIME_FORMAT} date={item.validdate} />
                             }
+                            {editable
+                              ? <span className={item.validdate ? 'required' : 'required missing'} />
+                              : null
+                            }
                           </Col>
                         </Row>
                         <Row style={editable ? { paddingTop: '0.19rem', minHeight: '2.5rem' } : { paddingTop: '0.19rem' }}>
@@ -1102,9 +1111,13 @@ class SigmetCategory extends Component {
                                 value={moment.utc(item.validdate_end) || moment.utc(item.validdate).add(this.getParameters().maxhoursofvalidity, 'hour')} />
                               : <Moment format={DATE_TIME_FORMAT} date={item.validdate_end} />
                             }
+                            {editable
+                              ? <span className={item.validdate_end ? 'required' : 'required missing'} />
+                              : null
+                            }
                           </Col>
                         </Row>
-                        <Row className='section' style={editable ? { minHeight: '2.5rem' } : null}>
+                        <Row className='section' style={editable ? { minHeight: '2rem', maxHeight: '2.5rem' } : null}>
                           <Col xs='3'>
                             <Badge color='success'>Where</Badge>
                           </Col>
@@ -1114,7 +1127,11 @@ class SigmetCategory extends Component {
                                 options={availableFirs} onChange={(firList) => this.setSelectedFir(firList)}
                                 selected={selectedFir ? [selectedFir] : []} placeholder={'Select FIR'}
                                 clearButton />
-                              : <span>{item.firname || 'no firname provided yet'}</span>
+                              : <span>{item.firname || '(no firname provided yet)'}</span>
+                            }
+                            {editable
+                              ? <span className={item.firname ? 'required' : 'required missing'} />
+                              : null
                             }
                           </Col>
                         </Row>
@@ -1124,7 +1141,7 @@ class SigmetCategory extends Component {
                           </Col>
                         </Row>
                         {editable
-                          ? <Row className='section' style={{ minHeight: '3.685rem', marginBottom: '0.33rem' }}>
+                          ? <Row className='section' style={{ minHeight: '3.685rem', paddingBottom: '0.33rem' }}>
                             {drawActions.map((actionItem, index) =>
                               <Col xs={{ size: 'auto', offset: index === 0 ? 3 : null }} key={index} style={{ padding: '0 0.167rem' }}>
                                 <Button color='primary' active={actionItem.action === 'mapProperties.mapMode'} disabled={actionItem.disabled || null}
@@ -1134,7 +1151,7 @@ class SigmetCategory extends Component {
                               </Col>)
                             }
                           </Row>
-                          : ''
+                          : null
                         }
                         {selectedIndex > -1 && editable && (showDrawWarningFromState && showDrawWarningFromProps)
                           ? <Row style={{ flex: 'none', padding: '0.5rem 0 0.5rem 0.12rem', maxWidth: '28.7rem' }}>
@@ -1145,7 +1162,7 @@ class SigmetCategory extends Component {
                               </Alert>
                             </Col>
                           </Row>
-                          : ''
+                          : null
                         }
                         <Row className='section' style={editable ? { minHeight: '14rem' } : null}>
                           <Col xs={editable ? { size: 12 } : { size: 9, offset: 3 }}>
@@ -1156,77 +1173,115 @@ class SigmetCategory extends Component {
                           <Col xs='3'>
                             <Badge color='success'>Progress</Badge>
                           </Col>
-                          <Col xs='9' style={{ justifyContent: 'center' }}>
-                            {/* dir: {N,NNE,NE,ENE,E,ESE,SE,SSE,S,SSW,SW,WSW,W,WNW} */}
-                            {/* speed: int */}
+                          <Col xs='9' className='shiftRight'>
                             {editable
                               ? <SwitchButton id='movementswitch' name='movementswitch'
                                 labelRight='Move' labelLeft='Stationary' isChecked={!item.movement.stationary} action={this.setSelectedMovement} />
                               : <span>{item.movement.stationary ? 'Stationary' : 'Move'}</span>
                             }
-
-                          </Col>
-                        </Row>
-                        <Row className='section' style={{ minHeight: '2.5rem' }}>
-                          <Col xs='3'>
-                            <Badge color='success'>Type</Badge>
-                          </Col>
-                          <Col xs='9' style={{ justifyContent: 'center' }}>
-                            {/* dir: {N,NNE,NE,ENE,E,ESE,SE,SSE,S,SSW,SW,WSW,W,WNW} */}
-                            {/* speed: int */}
                             {editable
-                              ? <SwitchButton id='movementtypeswitch' name='movementtypeswitch'
-                                labelLeft='By area' labelRight='By speed and direction' isChecked={item.movement.movementtype === false} action={this.setSetMovementType} />
-                              : <span>{!item.movement.movementtype ? 'Movement defined by area' : 'Movement defined with speed and direction'}</span>
+                              ? <span className='required' />
+                              : null
                             }
-
                           </Col>
                         </Row>
+                        {(editable || !item.movement.stationary)
+                          ? <Row className={(editable && item.movement.stationary) ? 'section disabled' : 'section'} style={{ minHeight: '2.6rem' }}>
+                            <Col xs='3'>
+                              <Badge color='success'>Move</Badge>
+                            </Col>
+                            <Col xs='9'>
+                              {editable
+                                ? <SwitchButton id='moveswitch' name='moveswitch'
+                                  labelLeft='End location' labelRight='Speed &amp; direction' isChecked={!this.state.isProgressByEnd}
+                                  action={this.setProgressType} />
+                                : <span>{(!item.movement.dir && !item.movement.speed) ? 'specified by end location' : null}</span>
+                              }
+
+                            </Col>
+                          </Row>
+                          : null
+                        }
                         {editable
-                          ? <Row className='section' style={{ minHeight: '3.685rem', marginBottom: '0.33rem' }}>
+                          ? <Row className={(item.movement.stationary || !this.state.isProgressByEnd) ? 'section disabled' : 'section'}
+                            style={{ minHeight: '4.015rem', paddingBottom: '0.66rem' }}>
                             {drawActions.map((actionItem, index) =>
                               <Col xs={{ size: 'auto', offset: index === 0 ? 3 : null }} key={index} style={{ padding: '0 0.167rem' }}>
                                 <Button color='primary' active={actionItem.action === 'mapProperties.mapMode'}
-                                  disabled={!item.movement.movementtype || item.movement.stationary || actionItem.disabled || null}
+                                  disabled={(item.movement.stationary || !this.state.isProgressByEnd || actionItem.disabled)}
                                   id={actionItem.action + '_button'} title={actionItem.title} onClick={() => this.handleActionClick(actionItem.action, 'progress')} style={{ width: '3rem' }}>
                                   <Icon name={actionItem.icon} />
                                 </Button>
                               </Col>)
                             }
                           </Row>
-                          : ''
+                          : null
                         }
-                        <Row style={editable ? { marginTop: '0.19rem', minHeight: '2rem' } : null}>
-                          <Col xs={{ size: 2, offset: 1 }}>
-                            <Badge title='Direction'>Direction</Badge>
-                          </Col>
-                          <Col xs='9'>
-                            {editable
-                              ? <Typeahead style={{ width: '100%' }} filterBy={['shortName', 'longName']} labelKey='longName'
-                                disabled={item.movement.stationary || item.movement.movementtype}
-                                options={DIRECTIONS} placeholder={item.movement.stationary ? null : 'Select direction'}
-                                onChange={(dir) => this.setSelectedDirection(dir)}
-                                selected={selectedDirection ? [selectedDirection] : []}
-                                clearButton />
-                              : <span>{selectedDirection ? selectedDirection.longName : (!item.movement.stationary ? 'No direction selected' : null)}</span>
-                            }
-                          </Col>
-                        </Row>
-                        <Row style={editable ? { marginTop: '0.19rem', minHeight: '2rem' } : null}>
-                          <Col xs={{ size: 2, offset: 1 }}>
-                            <Badge>Speed</Badge>
-                          </Col>
-                          <Col xs='9'>
-                            {editable
-                              ? <InputGroup>
-                                <Input onChange={this.setSpeed} defaultValue='0' type='number' step='1' disabled={item.movement.stationary || item.movement.movementtype} />
-                                <InputGroupAddon>KT</InputGroupAddon>
-                              </InputGroup>
-                              : <span>{item.movement.speed ? `${item.movement.speed} KT` : null }</span>
-                            }
-                          </Col>
-                        </Row>
-                        <Row className='section' style={editable ? { marginTop: '0.19rem', minHeight: '2.5rem' } : null}>
+                        {(editable || !item.movement.stationary)
+                          ? <Row className={(editable && (item.movement.stationary || this.state.isProgressByEnd)) ? 'disabled' : null}
+                            style={editable ? { marginTop: '0.19rem', maxHeight: '2rem' } : null}>
+                            <Col xs={{ size: 2, offset: 1 }}>
+                              <Badge title='Direction'>Direction</Badge>
+                            </Col>
+                            <Col xs='9'>
+                              {/* dir: {N,NNE,NE,ENE,E,ESE,SE,SSE,S,SSW,SW,WSW,W,WNW} */}
+                              {/* speed: int */}
+                              {editable
+                                ? <Typeahead style={{ width: '100%' }} filterBy={['shortName', 'longName']} labelKey='longName'
+                                  disabled={(item.movement.stationary || this.state.isProgressByEnd)}
+                                  options={DIRECTIONS} placeholder={(item.movement.stationary || this.state.isProgressByEnd) ? null : 'Select direction'}
+                                  onChange={(dir) => this.setSelectedDirection(dir)}
+                                  selected={selectedDirection ? [selectedDirection] : []}
+                                  clearButton />
+                                : <span>{selectedDirection
+                                  ? selectedDirection.longName
+                                  : ((!item.movement.stationary && !this.state.isProgressByEnd)
+                                    ? '(no direction selected)'
+                                    : null)}
+                                </span>
+                              }
+                              {editable
+                                ? <span className={(item.movement.stationary || this.state.isProgressByEnd)
+                                  ? null
+                                  : item.movement.dir
+                                    ? 'required'
+                                    : 'required missing'} />
+                                : null
+                              }
+                            </Col>
+                          </Row>
+                          : null
+                        }
+                        {(editable || !item.movement.stationary)
+                          ? <Row className={(editable && (item.movement.stationary || this.state.isProgressByEnd)) ? 'disabled' : null}
+                            style={editable ? { marginTop: '0.19rem', maxHeight: '2rem' } : null}>
+                            <Col xs={{ size: 2, offset: 1 }}>
+                              <Badge>Speed</Badge>
+                            </Col>
+                            <Col xs='9'>
+                              {editable
+                                ? <InputGroup>
+                                  <Input onChange={this.setSpeed}
+                                    defaultValue='0'
+                                    type='number'
+                                    step='1' disabled={(item.movement.stationary || this.state.isProgressByEnd)} />
+                                  <InputGroupAddon>{(item.movement.stationary || this.state.isProgressByEnd) ? null : 'KT'}</InputGroupAddon>
+                                </InputGroup>
+                                : <span>{item.movement.speed ? `${item.movement.speed} KT` : null}</span>
+                              }
+                              {editable
+                                ? <span className={(item.movement.stationary || this.state.isProgressByEnd)
+                                  ? null
+                                  : item.movement.speed
+                                    ? 'required'
+                                    : 'required missing'} />
+                                : null
+                              }
+                            </Col>
+                          </Row>
+                          : null
+                        }
+                        <Row className='section' style={editable ? { margin: '0.19rem 0', maxHeight: '2.5rem' } : null}>
                           <Col xs='3'>
                             <Badge color='success'>Change</Badge>
                           </Col>
@@ -1239,11 +1294,10 @@ class SigmetCategory extends Component {
                                 clearButton />
                               : <span>{selectedChange ? selectedChange.longName : 'No change selected'}</span>
                             }
-                          </Col>
-                        </Row>
-                        <Row>
-                          <Col xs={{ size: 9, offset: 3 }}>
-                            {item.forecast_position}
+                            {editable
+                              ? <span className={item.change ? 'required' : 'required missing'} />
+                              : null
+                            }
                           </Col>
                         </Row>
                         <Row className='section' style={{ minHeight: '2.5rem' }}>
@@ -1268,7 +1322,7 @@ class SigmetCategory extends Component {
                               <Badge>Sequence</Badge>
                             </Col>
                             <Col xs='6'>
-                              {(!isNaN(item.sequence) && item.sequence !== -1) ? item.sequence : '(not yet published)'}
+                              {(!isNaN(item.sequence) && item.sequence !== -1 && item.sequence !== 0) ? item.sequence : '(not yet published)'}
                             </Col>
                           </Row>
                           : null
@@ -1336,17 +1390,21 @@ SigmetCategory.propTypes = {
   mapActions: PropTypes.object,
   drawActions: PropTypes.object,
   panelsActions: PropTypes.object,
+  adagucActions: PropTypes.object,
   drawProperties: PropTypes.shape({
-    adagucMapDraw: {
+    adagucMapDraw: PropTypes.shape({
       geojson: PropTypes.object
-    }
+    })
   }),
   sources: PropTypes.object,
   latestUpdateTime: PropTypes.string,
   updateAllComponents: PropTypes.func,
   isGetType: PropTypes.bool,
   scrollAction: PropTypes.func,
-  urls: PropTypes.arrayOf(PropTypes.string)
+  urls: PropTypes.shape({
+    BACKEND_SERVER_URL: PropTypes.string
+  }),
+  itemLimit: PropTypes.number
 };
 
 export default SigmetCategory;
