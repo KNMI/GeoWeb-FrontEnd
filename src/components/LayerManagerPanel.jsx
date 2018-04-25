@@ -136,16 +136,6 @@ class LayerManagerPanel extends PureComponent {
     }
   }
 
-  // shouldComponentUpdate (nextProps, nextState) {
-  //   const { activePanelId } = this.props.panelsProperties;
-  //   return this.state !== nextState ||
-  //          this.props.adagucProperties.animationSettings !== nextProps.adagucProperties.animationSettings ||
-  //          this.props.adagucProperties.timeDimension !== nextProps.adagucProperties.timeDimension ||
-  //          this.props.adagucProperties.sources !== nextProps.adagucProperties.sources ||
-  //          this.props.panelsProperties.activePanelId !== nextProps.panelsProperties.activePanelId ||
-  //          this.props.panelsProperties.panels[activePanelId] !== nextProps.panelsProperties.panels[activePanelId];
-  // }
-
   render () {
     const { title, dispatch, panelsActions, adagucProperties, panelsProperties, mapProperties, adagucActions } = this.props;
     const { sources, animationSettings } = adagucProperties;
@@ -211,44 +201,44 @@ class LayerMutations extends PureComponent {
   render () {
     const { showControls, isFullScreen, currentPanel, removeAllLayersEnabled, sources, toggleLayerChooser } = this.props;
     if (showControls) {
-      return (
-        <div style={{ flexDirection: 'column-reverse', marginLeft: '.66rem' }}>
-          <Row style={{ flexDirection: isFullScreen ? 'row-reverse' : 'inherit' }}>
-            <Col style={{ marginRight: 0 }} />
-            <Col xs='auto' style={{ marginRight: 0 }}>
-              <Button disabled={Array.isArray(sources) || Object.keys(sources).length === 0} onClick={toggleLayerChooser}
-                color='primary' title='Add layers'>
-                <Icon name='plus' />
-              </Button>
-            </Col>
-            <Col xs='auto' style={{ marginBottom: isFullScreen ? 0 : '0.33rem', marginRight: isFullScreen ? '0.33rem' : 0 }}>
-              <Button disabled={!(removeAllLayersEnabled)}
-                onClick={this.resetLayers} color='primary' title='Remove all layers'>
-                <Icon name='trash' />
-              </Button>
-            </Col>
-          </Row>
-          <Row style={{ flex: 1 }} />
-        </div>);
-    }
-
-    if (isFullScreen) {
-      return (
-        <div style={{ flexDirection: 'column-reverse', marginLeft: '.66rem' }}>
-          <Row style={{ marginBottom: showControls ? '.33rem' : 0 }}>
-            <Col xs='auto'>
-              <Button onClick={this.props.toggleControls} color='primary' title={showControls ? 'Hide controls' : 'Show controls'}>
-                <Icon name={showControls ? 'eye-slash' : 'eye'} />
-              </Button>
-            </Col>
-            <Col xs='auto'>
-              <Button onClick={this.props.toggleFullscreen} color='primary' title='Exit full screen mode'>
-                <Icon name='compress' />
-              </Button>
-            </Col>
-          </Row>
-          <Row style={{ flex: 1 }} />
-        </div>);
+      if (isFullScreen) {
+        return (
+          <div style={{ flexDirection: 'column-reverse', marginLeft: '.66rem' }}>
+            <Row style={{ marginBottom: showControls ? '.33rem' : 0 }}>
+              <Col xs='auto'>
+                <Button onClick={this.props.toggleControls} color='primary' title={showControls ? 'Hide controls' : 'Show controls'}>
+                  <Icon name={showControls ? 'eye-slash' : 'eye'} />
+                </Button>
+              </Col>
+              <Col xs='auto'>
+                <Button onClick={this.props.toggleFullscreen} color='primary' title='Exit full screen mode'>
+                  <Icon name='compress' />
+                </Button>
+              </Col>
+            </Row>
+            <Row style={{ flex: 1 }} />
+          </div>);
+      } else {
+        return (
+          <div style={{ flexDirection: 'column-reverse', marginLeft: '.66rem' }}>
+            <Row style={{ flexDirection: isFullScreen ? 'row-reverse' : 'inherit' }}>
+              <Col style={{ marginRight: 0 }} />
+              <Col xs='auto' style={{ marginRight: 0 }}>
+                <Button disabled={Array.isArray(sources) || Object.keys(sources).length === 0} onClick={toggleLayerChooser}
+                  color='primary' title='Add layers'>
+                  <Icon name='plus' />
+                </Button>
+              </Col>
+              <Col xs='auto' style={{ marginBottom: isFullScreen ? 0 : '0.33rem', marginRight: isFullScreen ? '0.33rem' : 0 }}>
+                <Button disabled={!(removeAllLayersEnabled)}
+                  onClick={this.resetLayers} color='primary' title='Remove all layers'>
+                  <Icon name='trash' />
+                </Button>
+              </Col>
+            </Row>
+            <Row style={{ flex: 1 }} />
+          </div>);
+      }
     }
   }
 }

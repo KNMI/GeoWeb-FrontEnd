@@ -274,6 +274,23 @@ class MapPanel extends PureComponent {
             </Col>
           </Col>
         </Row>);
+      case 'quadsigmet':
+        return (<Row tag='main'>
+          <Col xs='4'>
+            <SinglePanel isLoggedIn={isLoggedIn} mapId={0} {...this.props} referenceTime={this.state.referenceTime} progtempLocations={this.progtempLocations} model={this.state.model} />
+          </Col>
+          <Col xs='5' style={{ flexDirection: 'column' }} >
+            <Row xs='6' style={{ flex: 1 }}>
+              <SinglePanel isLoggedIn={isLoggedIn} mapId={1} {...this.props} referenceTime={this.state.referenceTime} progtempLocations={this.progtempLocations} model={this.state.model} />
+            </Row>
+            <Row xs='6' style={{ flex: 1 }}>
+              <SinglePanel isLoggedIn={isLoggedIn} mapId={2} {...this.props} referenceTime={this.state.referenceTime} progtempLocations={this.progtempLocations} model={this.state.model} />
+            </Row>
+          </Col>
+          <Col xs='3'>
+            <SinglePanel isLoggedIn={isLoggedIn} mapId={3} {...this.props} referenceTime={this.state.referenceTime} progtempLocations={this.progtempLocations} model={this.state.model} />
+          </Col>
+        </Row>);
       case 'single':
       default:
         return (

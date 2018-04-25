@@ -363,7 +363,6 @@ class SigmetCategory extends Component {
       dispatch(mapActions.setCut({ name: 'Custom', bbox: [preset.area.left || 570875, preset.area.bottom, preset.area.right || 570875, preset.area.top] }));
     }
 
-
     if (preset.layers) {
       // This is tricky because all layers need to be restored in the correct order
       // So first create all panels as null....
