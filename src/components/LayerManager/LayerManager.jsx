@@ -25,6 +25,7 @@ export default class LayerManager extends PureComponent {
         this.props.panel.layers[i].currentStyle !== nextProps.panel.layers[i].currentStyle ||
         this.props.panel.layers[i].opacity !== nextProps.panel.layers[i].opacity ||
         this.props.panel.layers[i].active !== nextProps.panel.layers[i].active ||
+        this.props.panel.layers[i].dimensions.filter((dim) => !dim.name.includes('time')) !== nextProps.panel.layers[i].dimensions.filter((dim) => !dim.name.includes('time')) ||
         this.props.panel.layers[i].enabled !== nextProps.panel.layers[i].enabled) {
         return true;
       }
