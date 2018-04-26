@@ -88,6 +88,13 @@ class MapActionContainer extends PureComponent {
     }
   }
 
+  shouldComponentUpdate (nextProps, nextState) {
+    return this.state !== nextState ||
+           this.props.adagucProperties.cursor !== nextProps.adagucProperties.cursor ||
+           this.props.mapProperties.mapMode !== nextProps.mapProperties.mapMode ||
+           this.props.user !== nextProps.user;
+  }
+
   render () {
     const { title, adagucProperties, mapProperties } = this.props;
     const items = [
@@ -157,7 +164,8 @@ MapActionContainer.propTypes = {
   adagucActions: PropTypes.object,
   panelsProperties: PropTypes.object,
   mapActions: PropTypes.object,
-  urls: PropTypes.object
+  urls: PropTypes.object,
+  user: PropTypes.object
 };
 
 export default MapActionContainer;

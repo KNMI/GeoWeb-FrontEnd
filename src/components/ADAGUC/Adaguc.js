@@ -1,9 +1,8 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import AdagucMapDraw from './AdagucMapDraw.js';
+import AdagucMapDraw from '../../utils/AdagucMapDraw.js';
 import AdagucMeasureDistance from './AdagucMeasureDistance.js';
 import ModelTime from './ModelTime';
-import diff from 'deep-diff';
 import moment from 'moment';
 import cloneDeep from 'lodash.clonedeep';
 import { DefaultLocations } from '../../constants/defaultlocations';
@@ -136,10 +135,11 @@ export default class Adaguc extends PureComponent {
   }
 
   reparseLayers () {
-    const { mapId, panelsProperties, active, dispatch, panelsActions } = this.props;
+    const { mapId, panelsProperties, active, dispatch, panelsActions, adagucProperties } = this.props;
     const panel = panelsProperties.panels[mapId];
-
-    const promises = []
+    const { animationSettings } = adagucProperties;
+    const origPanel = cloneDeep(panel);
+    const promises = [];
     panel.layers.map((layer, i) => {
       promises.push(new Promise((resolve, reject) => {
         layer.parseLayer((newLayer) => {
@@ -153,8 +153,9 @@ export default class Adaguc extends PureComponent {
         if (layer.active) {
           dispatch(panelsActions.setActiveLayer({ activePanelId: mapId, layerClicked: i }));
         }
-      })
-      this.updateLayers(panel.layers, newLayers, active);
+      });
+      this.updateLayers(origPanel.layers, newLayers, active);
+      this.onChangeAnimation(animationSettings, active)
     });
   }
 
@@ -269,28 +270,24 @@ export default class Adaguc extends PureComponent {
   // Returns true when the panelsProperties are actually different w.r.t. next panelsProperties, otherwise false
   /* istanbul ignore next */
   updateBaselayers (baselayers, nextBaselayers) {
-    if (Array.isArray(baselayers) && diff(baselayers, nextBaselayers)) {
-      const nextBaseLayers = nextBaselayers.filter((layer) => !layer.keepOnTop);
-      const nextOverlays = nextBaselayers.filter((layer) => layer.keepOnTop === true);
-
-      const currentBaseLayers = this.webMapJS.getBaseLayers();
-      const potentialNextBaseLayers = nextBaseLayers.concat(nextOverlays);
-      currentBaseLayers.map((baselayer) => {
-        if (!potentialNextBaseLayers.includes(baselayer)) {
-          if (!baselayer.keepOnTop) {
-            potentialNextBaseLayers.unshift(baselayer);
-          } else {
-            if (nextBaselayers.includes(baselayer)) {
-              potentialNextBaseLayers.push(baselayer);
-            }
-          }
+    let change = false;
+    if (baselayers.length !== nextBaselayers.length) {
+      change = true;
+    } else {
+      for (let i = 0; i < baselayers.length; ++i) {
+        if (baselayers[i].service !== nextBaselayers[i].service ||
+          baselayers[i].name !== nextBaselayers[i].name || baselayers[i].enabled !== nextBaselayers[i].enabled) {
+          change = true;
+          break;
         }
-      });
-      this.webMapJS.setBaseLayers(potentialNextBaseLayers);
-
-      return true;
+      }
     }
-    return false;
+
+    if (change) {
+      const currentBaseLayer = this.webMapJS.getBaseLayers().filter((layer) => !layer.keepOnTop);
+      this.webMapJS.setBaseLayers([...currentBaseLayer, ...nextBaselayers.filter((layer) => layer.keepOnTop === true)]);
+    }
+    return change;
   }
 
   updateAnimationActiveLayerChange (currDataLayers, nextDataLayers, active) {
@@ -351,7 +348,38 @@ export default class Adaguc extends PureComponent {
   // Returns true when the panelsProperties are actually different w.r.t. next panelsProperties, otherwise false
   /* istanbul ignore next */
   updateLayers (currDataLayers, nextDataLayers, active) {
-    const change = diff(currDataLayers, nextDataLayers);
+    function isDefined (variable) {
+      if (typeof variable === 'undefined') {
+        return false;
+      }
+      return true;
+    };
+
+    let change = false;
+    if (currDataLayers.length !== nextDataLayers.length) {
+      change = true;
+    } else {
+      for (let i = 0; i < currDataLayers.length; ++i) {
+        if (currDataLayers[i].service !== nextDataLayers[i].service ||
+            currDataLayers[i].name !== nextDataLayers[i].name ||
+            currDataLayers[i].currentStyle !== nextDataLayers[i].currentStyle ||
+            currDataLayers[i].opacity !== nextDataLayers[i].opacity ||
+            currDataLayers[i].active !== nextDataLayers[i].active ||
+            currDataLayers[i].enabled !== nextDataLayers[i].enabled) {
+          change = true;
+          break;
+        }
+        if (isDefined(currDataLayers[i].getDimension('time')) === isDefined(nextDataLayers[i].getDimension('time'))) {
+          if (isDefined(currDataLayers[i].getDimension('time')) && currDataLayers[i].getDimension('time').defaultValue !== nextDataLayers[i].getDimension('time').defaultValue) {
+            change = true;
+            break;
+          }
+        } else {
+          change = true;
+          break;
+        }
+      }
+    }
     if (change && nextDataLayers && Array.isArray(nextDataLayers)) {
       this.webMapJS.removeAllLayers();
       const layersCpy = cloneDeep(nextDataLayers);
@@ -371,7 +399,7 @@ export default class Adaguc extends PureComponent {
         this.updateAnimationActiveLayerChange(currDataLayers, nextDataLayers, active);
       }
     }
-    return Array.isArray(change) && change.length > 0;
+    return change;
   }
 
   componentWillUpdate (nextProps) {
@@ -398,8 +426,8 @@ export default class Adaguc extends PureComponent {
 
     // Update animation -- animate iff animate is set and the panel is active.
     if (nextProps.adagucProperties.animationSettings !== animationSettings ||
-        activePanelId !== nextProps.panelsProperties.activePanelId ||
-        (currActiveLayers.length === 1 && nextActiveLayers.length === 1 && currActiveLayers[0] !== nextActiveLayers[0])) {
+      activePanelId !== nextProps.panelsProperties.activePanelId ||
+      (currActiveLayers.length === 1 && nextActiveLayers.length === 1 && currActiveLayers[0] !== nextActiveLayers[0])) {
       this.onChangeAnimation(nextProps.adagucProperties.animationSettings, nextProps.active);
     }
 
@@ -460,7 +488,6 @@ export default class Adaguc extends PureComponent {
   }
   render () {
     const { mapProperties, drawProperties, drawActions, dispatch } = this.props;
-
     return (
       <div ref='adaguccontainer' style={{ border: 'none', width: 'inherit', height: 'inherit', overflow: 'hidden' }}>
         <div style={{ overflow: 'visible', width:0, height:0 }} >

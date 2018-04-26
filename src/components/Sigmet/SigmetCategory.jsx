@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Button, ButtonGroup, Col, Row, Badge, Card, CardHeader, CardBlock, Alert, Input, InputGroupAddon, InputGroup } from 'reactstrap';
+import { Button, Col, Row, Badge, Card, CardHeader, CardBlock, Alert, Input, InputGroupAddon, InputGroup } from 'reactstrap';
 import Moment from 'react-moment';
 import moment from 'moment';
 import Icon from 'react-fa';
@@ -9,18 +9,20 @@ import isEmpty from 'lodash.isempty';
 import isEqual from 'lodash.isequal';
 import range from 'lodash.range';
 import update from 'immutability-helper';
-import CollapseOmni from '../components/CollapseOmni';
+import CollapseOmni from '../CollapseOmni';
 import SwitchButton from 'lyef-switch-button';
 import 'lyef-switch-button/css/main.css';
 import { Typeahead } from 'react-bootstrap-typeahead';
 import DateTimePicker from 'react-datetime';
+import { ReadLocations } from '../../utils/admin';
 
 import Slider from 'rc-slider';
 import Tooltip from 'rc-tooltip';
 import PropTypes from 'prop-types';
-import { BOUNDING_BOXES } from '../constants/bounding_boxes';
-import { GetServiceByName } from '../utils/getServiceByName';
+import { SIGMET_TEMPLATES, CHANGES, DIRECTIONS, UNITS_ALT } from './SigmetTemplates';
+import { clearNullPointersAndAncestors } from '../../utils/json';
 
+import { getPresetForPhenomenon } from './SigmetPresets';
 const createSliderWithTooltip = Slider.createSliderWithTooltip;
 const Range = createSliderWithTooltip(Slider.Range);
 const Handle = Slider.Handle;
@@ -33,70 +35,8 @@ const TAG_NAMES = {
   DIV: 'div',
   SPAN: 'span'
 };
-const UNIT_M = 'm';
-const UNIT_FL = 'FL';
-const UNIT_FT = 'ft';
-const EMPTY_GEO_JSON = {
-  type: 'FeatureCollection',
-  features: [
-    {
-      type: 'Feature',
-      geometry: {
-        type: 'Polygon',
-        coordinates: []
-      },
-      properties: {
-        'stroke': '#000',
-        'stroke-width': 2,
-        'stroke-opacity': 1,
-        'fill': '#F00',
-        'fill-opacity': 0.3
-      }
-    },
-    {
-      type: 'Feature',
-      geometry: {
-        type: 'Polygon',
-        coordinates: []
-      },
-      properties: {
-        'stroke': '#000000',
-        'stroke-width': 2,
-        'stroke-opacity': 1,
-        'fill': '#00F',
-        'fill-opacity': 0.3
-      }
-    }
-  ]
-};
-const EMPTY_SIGMET = {
-  geojson: EMPTY_GEO_JSON,
-  phenomenon: '',
-  obs_or_forecast: {
-    obs: true
-  },
-  level: {
-    lev1: {
-      value: 100.0,
-      unit: 'FL'
-    }
-  },
-  movement: {
-    stationary: true,
-    movementtype: true
-  },
-  change: 'NC',
-  forecast_position: '',
-  issuedate: '',
-  validdate: moment().utc().format(),
-  validdate_end: moment().utc().add(4, 'hour').format(),
-  firname: 'AMSTERDAM FIR',
-  location_indicator_icao: 'EHAA',
-  location_indicator_mwo: 'EHDB',
-  uuid: '00000000-0000-0000-0000-000000000000',
-  status: 'PRODUCTION'
-};
-
+const EMPTY_GEO_JSON = cloneDeep(SIGMET_TEMPLATES.GEOJSON);
+const EMPTY_SIGMET = cloneDeep(SIGMET_TEMPLATES.SIGMET);
 const FALLBACK_PARAMS = {
   maxhoursofvalidity: 4,
   hoursbeforevalidity: 4,
@@ -107,8 +47,24 @@ const FALLBACK_PARAMS = {
       areapreset: 'NL_FIR'
     }
   ],
-  location_indicator_wmo: 'EHDB'
+  location_indicator_mwo: 'EHDB',
+  change: 'NC'
 };
+
+/**
+ * Generate a 'next-half-hour-rounded now Moment object
+ * @return {moment} Moment-object with the current now in UTC rounded to the next half hour
+ */
+const getRoundedNow = () => {
+  return moment().utc().minutes() < 30 ? moment().utc().startOf('hour').minutes(30) : moment().utc().startOf('hour').add(1, 'hour');
+};
+
+EMPTY_SIGMET.validdate = getRoundedNow().format();
+EMPTY_SIGMET.validdate_end = getRoundedNow().add(4, 'hour').format();
+EMPTY_SIGMET.location_indicator_mwo = FALLBACK_PARAMS.location_indicator_mwo;
+EMPTY_SIGMET.location_indicator_icao = FALLBACK_PARAMS.firareas[0].location_indicator_icao;
+EMPTY_SIGMET.firname = FALLBACK_PARAMS.firareas[0].firname;
+EMPTY_SIGMET.change = FALLBACK_PARAMS.change;
 
 class SigmetCategory extends Component {
   constructor (props) {
@@ -122,10 +78,8 @@ class SigmetCategory extends Component {
     this.savedSigmetCallback = this.savedSigmetCallback.bind(this);
     this.getExistingSigmets = this.getExistingSigmets.bind(this);
     this.gotExistingSigmetsCallback = this.gotExistingSigmetsCallback.bind(this);
-    this.getDirections = this.getDirections.bind(this);
-    this.getChanges = this.getChanges.bind(this);
     this.setSelectedMovement = this.setSelectedMovement.bind(this);
-    this.setSetMovementType = this.setSetMovementType.bind(this);
+    this.setProgressType = this.setProgressType.bind(this);
     this.setSelectedDirection = this.setSelectedDirection.bind(this);
     this.setSpeed = this.setSpeed.bind(this);
     this.setChange = this.setChange.bind(this);
@@ -137,7 +91,8 @@ class SigmetCategory extends Component {
       isClosing: props.isClosing,
       list: [EMPTY_SIGMET],
       renderRange: false,
-      lowerUnit: UNIT_FL
+      lowerUnit: UNITS_ALT.FT,
+      isProgressByEnd: true
     };
   }
 
@@ -264,39 +219,6 @@ class SigmetCategory extends Component {
     return parameters;
   }
 
-  /**
-   * Gets Cardinal, intercardinal and named points for directions of wind
-   */
-  getDirections () {
-    return [
-      { shortName: 'N', longName: 'North' },
-      { shortName: 'NNE', longName: 'North-Northeast' },
-      { shortName: 'NE', longName: 'Northeast' },
-      { shortName: 'ENE', longName: 'East-Northeast' },
-      { shortName: 'E', longName: 'East' },
-      { shortName: 'ESE', longName: 'East-Southeast' },
-      { shortName: 'SE', longName: 'Southeast' },
-      { shortName: 'SSE', longName: 'South-Southeast' },
-      { shortName: 'S', longName: 'South' },
-      { shortName: 'SSW', longName: 'South-Southwest' },
-      { shortName: 'SW', longName: 'Southwest' },
-      { shortName: 'WSW', longName: 'West-Southwest' },
-      { shortName: 'W', longName: 'West' },
-      { shortName: 'WNW', longName: 'West-Northwest' }
-    ];
-  }
-
-  /**
-   * Gets change types
-   */
-  getChanges () {
-    return [
-      { shortName: 'WKN', longName: 'Weakening' },
-      { shortName: 'NC', longName: 'No change' },
-      { shortName: 'INTSF', longName: 'Intensifying' }
-    ];
-  }
-
   hasTagName (element, tagName) {
     return element.tagName.toLowerCase() === tagName;
   }
@@ -355,7 +277,6 @@ class SigmetCategory extends Component {
 
   handleActionClick (action, sigmetPart) {
     const { dispatch, mapActions, drawActions } = this.props;
-
     switch (action) {
       case 'select-point':
         dispatch(mapActions.setMapMode('draw'));
@@ -383,6 +304,7 @@ class SigmetCategory extends Component {
         console.error(`Selection method ${action} unknown and not implemented`);
     }
 
+    /* TODO based on property featureFunction, get the array index based on start or end */
     if (sigmetPart === 'where') dispatch(drawActions.setFeatureNr(0));
     if (sigmetPart === 'progress') dispatch(drawActions.setFeatureNr(1));
   }
@@ -398,6 +320,7 @@ class SigmetCategory extends Component {
     const newList = cloneDeep(this.state.list);
     newList[0].geojson = this.props.drawProperties.adagucMapDraw.geojson;
     this.setState({ list: newList });
+    clearNullPointersAndAncestors(newList);
     axios({
       method: 'post',
       url: this.props.source,
@@ -433,329 +356,8 @@ class SigmetCategory extends Component {
       this.props.updateAllComponents();
     });
   }
-
-  sigmetLayers (p) {
-    const HARMONIE_URL = GetServiceByName(this.props.sources, 'Harmonie36');
-    const OVERLAY_URL = GetServiceByName(this.props.sources, 'OVL');
-    const OBSERVATIONS_URL = GetServiceByName(this.props.sources, 'OBS');
-    const RADAR_URL = GetServiceByName(this.props.sources, 'RADAR');
-    const LIGHTNING_URL = GetServiceByName(this.props.sources, 'LGT');
-    const SATELLITE_URL = GetServiceByName(this.props.sources, 'SAT');
-    const HARMONIE_ML_URL = GetServiceByName(this.props.sources, 'Harmonie36');
-    switch (p) {
-      case 'sigmet_layer_TS':
-        return (
-          {
-            area: {
-              bottom: BOUNDING_BOXES[1].bbox[1],
-              top: BOUNDING_BOXES[1].bbox[3],
-              crs: 'EPSG:3857'
-            },
-            display: {
-              npanels: 4,
-              type: 'quaduneven'
-            },
-            panelsProperties: [
-              [
-                {
-                  service: HARMONIE_URL,
-                  title: 'Harmonie36',
-                  name: 'precipitation_flux',
-                  label: 'Prec: Precipitation rate',
-                  opacity: 1,
-                  enabled: true,
-                  overlay: false
-                },
-                {
-                  service: OVERLAY_URL,
-                  title: 'OVL',
-                  name: 'FIR_DEC_2013_EU',
-                  label: 'FIR areas',
-                  enabled: true,
-                  overlay: true
-                }
-              ],
-              [
-                {
-                  service: OBSERVATIONS_URL,
-                  title: 'OBS',
-                  name: '10M/ww',
-                  label: 'wawa Weather Code (ww)',
-                  enabled: true,
-                  opacity: 1,
-                  overlay: false
-                },
-                {
-                  service: OVERLAY_URL,
-                  title: 'OVL',
-                  name: 'FIR_DEC_2013_EU',
-                  label: 'FIR areas',
-                  enabled: true,
-                  overlay: true
-                }
-              ],
-              [
-                {
-                  service: RADAR_URL,
-                  title: 'RADAR',
-                  name: 'precipitation',
-                  label: 'Neerslag',
-                  opacity: 1,
-                  enabled: true,
-                  overlay: false
-                }, {
-                  service: LIGHTNING_URL,
-                  title: 'LGT',
-                  name: 'LGT_NL25_LAM_05M',
-                  label: 'LGT_NL25_LAM_05M',
-                  enabled: true,
-                  opacity: 1,
-                  overlay: false
-                },
-                {
-                  service: OVERLAY_URL,
-                  title: 'OVL',
-                  name: 'FIR_DEC_2013_EU',
-                  label: 'FIR areas',
-                  enabled: true,
-                  overlay: true
-                }
-              ],
-              [
-                {
-                  service: OVERLAY_URL,
-                  title: 'OVL',
-                  name: 'FIR_DEC_2013_EU',
-                  label: 'FIR areas',
-                  enabled: true,
-                  overlay: true
-                }
-              ]
-            ]
-          }
-        );
-
-      case 'sigmet_layer_SEV_TURB':
-        return (
-          {
-            area: {
-              bottom: BOUNDING_BOXES[1].bbox[1],
-              top: BOUNDING_BOXES[1].bbox[3],
-              crs: 'EPSG:3857'
-            },
-            display: {
-              npanels: 4,
-              type: 'quaduneven'
-            },
-            panelsProperties: [
-              [
-                {
-                  service: OVERLAY_URL,
-                  title: 'OVL',
-                  name: 'FIR_DEC_2013_EU',
-                  label: 'FIR areas',
-                  overlay: true
-                },
-                {
-                  service: HARMONIE_ML_URL,
-                  title: 'ADAGUC WMS Service for Geoweb',
-                  name: 'wind__at_ml',
-                  label: 'Wind flags (ML)',
-                  opacity: 1,
-                  enabled: true,
-                  modellevel: 17,
-                  style: 'Windbarbs_mps/barbshaded',
-                  styleTitle: 'Wind barbs+sh',
-                  overlay: false
-                }
-              ], [], [],
-              [
-                {
-                  service: OBSERVATIONS_URL,
-                  title: 'OBS',
-                  name: '10M/derived/windforce',
-                  label: 'Wind force',
-                  opacity: 1,
-                  enabled: true,
-                  style: 'bftalldiscvec/barb',
-                  styleTitle: 'bftalldiscvec/barb',
-                  overlay: false
-                },
-                {
-                  service: OVERLAY_URL,
-                  title: 'OVL',
-                  name: 'FIR_DEC_2013_EU',
-                  label: 'FIR areas',
-                  overlay: true
-                }
-              ]
-            ]
-          }
-        );
-      case 'sigmet_layer_SEV_ICE':
-        return (
-          {
-            area: {
-              bottom: BOUNDING_BOXES[1].bbox[1],
-              top: BOUNDING_BOXES[1].bbox[3],
-              crs: 'EPSG:3857'
-            },
-            display: {
-              npanels: 4,
-              type: 'quaduneven'
-            },
-            panelsProperties: [
-              [
-                {
-                  service: SATELLITE_URL,
-                  title: 'SAT',
-                  name: 'HRVIS',
-                  label: 'HRVIS',
-                  opacity: 1,
-                  enabled: true,
-                  overlay: false
-                },
-                {
-                  service: RADAR_URL,
-                  title: 'RADAR',
-                  name: 'precipitation_eur',
-                  label: 'Neerslag EUR',
-                  opacity: 1,
-                  overlay: false
-                }
-              ], [], [],
-              [
-                {
-                  service: OBSERVATIONS_URL,
-                  title: 'OBS',
-                  name: '10M/td',
-                  label: 'Dew Point Temperature 1.5m 1 Min Average (td)',
-                  opacity: 1,
-                  enabled: true,
-                  style: 'auto/nearest',
-                  styleTitle: 'auto/nearest',
-                  overlay: false
-                },
-                {
-                  service: OBSERVATIONS_URL,
-                  title: 'OBS',
-                  name: '10M/ta',
-                  label: 'Air Temperature 1 Min Average (ta)',
-                  opacity: 1,
-                  enabled: true,
-                  style: 'temperaturedisc/point',
-                  styleTitle: 'temperaturedisc/point',
-                  overlay: false
-                }
-              ]
-            ]
-          }
-        );
-
-      default:
-        return (
-          {
-            area: {
-              bottom: BOUNDING_BOXES[1].bbox[1],
-              top: BOUNDING_BOXES[1].bbox[3],
-              crs: 'EPSG:3857'
-            },
-            display: {
-              npanels: 4,
-              type: 'quaduneven'
-            },
-            panelsProperties: [
-              [
-                {
-                  service: HARMONIE_URL,
-                  title: 'Harmonie36',
-                  name: 'precipitation_flux',
-                  label: 'Prec: Precipitation rate',
-                  opacity: 1,
-                  enabled: true,
-                  overlay: false
-                },
-                {
-                  service: OVERLAY_URL,
-                  title: 'OVL',
-                  name: 'FIR_DEC_2013_EU',
-                  label: 'FIR areas',
-                  enabled: true,
-                  overlay: true
-                }
-              ],
-              [
-                {
-                  service: OBSERVATIONS_URL,
-                  title: 'OBS',
-                  name: '10M/ww',
-                  label: 'wawa Weather Code (ww)',
-                  enabled: true,
-                  opacity: 1,
-                  overlay: false
-                },
-                {
-                  service: OVERLAY_URL,
-                  title: 'OVL',
-                  name: 'FIR_DEC_2013_EU',
-                  label: 'FIR areas',
-                  enabled: true,
-                  overlay: true
-                }
-              ],
-              [
-                {
-                  service: RADAR_URL,
-                  title: 'RADAR',
-                  name: 'precipitation',
-                  label: 'Neerslag',
-                  opacity: 1,
-                  enabled: true,
-                  overlay: false
-                }, {
-                  service: LIGHTNING_URL,
-                  title: 'LGT',
-                  name: 'LGT_NL25_LAM_05M',
-                  label: 'LGT_NL25_LAM_05M',
-                  enabled: true,
-                  opacity: 1,
-                  overlay: false
-                },
-                {
-                  service: OVERLAY_URL,
-                  title: 'OVL',
-                  name: 'FIR_DEC_2013_EU',
-                  label: 'FIR areas',
-                  enabled: true,
-                  overlay: true
-                }
-              ],
-              [
-                {
-                  service: SATELLITE_URL,
-                  title: 'SAT',
-                  name: 'HRV-COMB',
-                  label: 'RGB-HRV-COMB',
-                  enabled: true,
-                  opacity: 1,
-                  overlay: false
-                },
-                {
-                  service: OVERLAY_URL,
-                  title: 'OVL',
-                  name: 'FIR_DEC_2013_EU',
-                  label: 'FIR areas',
-                  enabled: true,
-                  overlay: true
-                }
-              ]
-            ]
-          }
-        );
-    }
-  };
-
   setSelectedPhenomenon (phenomenonList) {
+    const { dispatch, panelsActions, adagucActions, mapActions } = this.props;
     if (phenomenonList.length === 0) {
       return;
     }
@@ -763,10 +365,85 @@ class SigmetCategory extends Component {
     let listCpy = cloneDeep(this.state.list);
     listCpy[0].phenomenon = onlyObj.code;
     this.setState({ list: listCpy });
-    /* const preset = this.sigmetLayers(onlyObj.layerpreset);
-    this.props.dispatch(this.props.panelsActions.setPanelLayout(preset.display.type));
-    this.props.dispatch(this.props.panelsActions.setPresetLayers(preset.panelsProperties));
-    this.props.dispatch(this.props.mapActions.setCut({ name: 'Custom', bbox: [preset.area.left || 570875, preset.area.bottom, preset.area.right || 570875, preset.area.top] })); */
+
+    if (!onlyObj.layerpreset) {
+      return;
+    }
+    const preset = getPresetForPhenomenon(onlyObj.layerpreset, this.props.sources);
+    if (!preset) {
+      return;
+    }
+    if (preset.area) {
+      dispatch(panelsActions.setPanelLayout(preset.display.type));
+    }
+    if (preset.display) {
+      dispatch(mapActions.setCut({ name: 'Custom', bbox: [preset.area.left || 570875, preset.area.bottom, preset.area.right || 570875, preset.area.top] }));
+    }
+
+    if (preset.layers) {
+      // This is tricky because all layers need to be restored in the correct order
+      // So first create all panels as null....
+      const newPanels = [null, null, null, null];
+      const promises = [];
+      preset.layers.map((panel, panelIdx) => {
+        // Then for each panel initialize it to this object where layers is an empty array with the
+        // length of the layers in the panel, as it needs to be inserted in a certain order. For the baselayers
+        // this is irrelevant because the order of overlays is not relevant
+        if (panel.length === 1 && panel[0].type && panel[0].type.toLowerCase() !== 'adaguc') {
+          newPanels[panelIdx] = { 'layers': [], 'baselayers': [], type: panel[0].type.toUpperCase() };
+          if (this.state.locations && panel[0].location) {
+            // Assume ICAO name
+            if (typeof panel[0].location === 'string') {
+              const possibleLocation = this.state.locations.filter((loc) => loc.name === panel[0].location);
+              if (possibleLocation.length === 1) {
+                dispatch(adagucActions.setCursorLocation(possibleLocation[0]));
+              } else {
+                dispatch(adagucActions.setCursorLocation(panel[0].location));
+              }
+            }
+          }
+        } else {
+          newPanels[panelIdx] = { 'layers': new Array(panel.length), 'baselayers': [] };
+          panel.map((layer, i) => {
+            // Create a Promise for parsing all WMJSlayers because we can only do something when ALL layers have been parsed
+            promises.push(new Promise((resolve, reject) => {
+              // eslint-disable-next-line no-undef
+              const wmjsLayer = new WMJSLayer(layer);
+              wmjsLayer.parseLayer((newLayer) => {
+                if (!newLayer.service) {
+                  return resolve(null);
+                }
+                newLayer.keepOnTop = (layer.overlay || layer.keepOnTop);
+                if (layer.dimensions) {
+                  Object.keys(layer.dimensions).map((dim) => {
+                    newLayer.setDimension(dim, layer.dimensions[dim]);
+                  });
+                }
+                return resolve({ layer: newLayer, panelIdx: panelIdx, index: i })
+              });
+            }));
+          });
+        }
+      });
+
+      // Once that happens, insert the layer in the appropriate place in the appropriate panel
+      Promise.all(promises).then((layers) => {
+        layers.map((layerDescription) => {
+          if (layerDescription) {
+            const { layer, panelIdx, index } = layerDescription;
+            if (layer.keepOnTop === true) {
+              layer.keepOnTop = true;
+              newPanels[panelIdx].baselayers.push(layer);
+            } else {
+              newPanels[panelIdx].layers[index] = layer;
+            }
+          }
+        });
+        // Beware: a layer can still contain null values because a layer might have been a null value
+        // also, panels may have had no layers in them
+        dispatch(panelsActions.setPresetLayers(newPanels));
+      });
+    }
   }
 
   setSelectedFir (firList) {
@@ -788,9 +465,9 @@ class SigmetCategory extends Component {
     this.setState({ list: listCpy });
   }
 
-  setSelectedForecastPosition (forecastPosition) {
+  setSelectedObservedOrForecastAt (obsOrFcAt) {
     let listCpy = cloneDeep(this.state.list);
-    listCpy[0].forecast_position = forecastPosition.utc().format();
+    listCpy[0].obs_or_forecast.obsFcTime = obsOrFcAt.utc().format();
     this.setState({ list: listCpy });
   }
 
@@ -813,11 +490,8 @@ class SigmetCategory extends Component {
     this.setState({ list: listCpy });
   }
 
-  setSetMovementType (evt) {
-    const isDefinedByArea = !evt.target.checked;
-    let listCpy = cloneDeep(this.state.list);
-    listCpy[0].movement.movementtype = isDefinedByArea;
-    this.setState({ list: listCpy });
+  setProgressType (evt) {
+    this.setState({ isProgressByEnd: !evt.target.checked });
   }
 
   setSelectedDirection (dir) {
@@ -893,6 +567,9 @@ class SigmetCategory extends Component {
     } else {
       this.getExistingSigmets(this.props.source);
     }
+    ReadLocations(`${this.props.urls.BACKEND_SERVER_URL}/admin/read`, (locations) => {
+      this.setState({ locations });
+    });
   }
 
   componentWillReceiveProps (nextProps) {
@@ -914,7 +591,7 @@ class SigmetCategory extends Component {
     if (this.props.editable && Array.isArray(this.state.list) && this.state.list.length > 0 &&
         this.state.list[0].validdate) {
       const curVal = moment(this.state.list[0].validdate).utc();
-      const nowVal = moment().utc();
+      const nowVal = getRoundedNow();
       if (curVal.isBefore(nowVal, 'minute')) {
         const newList = update(this.state.list, {
           0: {
@@ -934,48 +611,34 @@ class SigmetCategory extends Component {
 
   marks (values) {
     const retObj = {};
-    values.map((val) => {
+    const flValues = range(50, 655, 5);
+    values.map((val, i) => {
       if (val < 50) {
-        if (this.state.lowerUnit === UNIT_FT) {
-          retObj[val] = parseInt(val * 100) + ' ' + UNIT_FT;
+        if (this.state.lowerUnit === UNITS_ALT.FT) {
+          retObj[val] = parseInt(val * 100) + ' ' + UNITS_ALT.FT;
         } else {
-          retObj[val] = parseInt(Math.round(val * 30.48)) + ' ' + UNIT_M;
+          retObj[val] = parseInt(Math.round(val * 30.48)) + ' ' + UNITS_ALT.M;
         }
       } else {
         // 50 = a * 50 + b   \
         //                    -> y = 7 * x - 300
         // 400 = a * 100 + b /
-        retObj[val] = UNIT_FL + Math.round(7 * val - 300);
+        retObj[val] = UNITS_ALT.FL + flValues[i - values.filter((f) => f < 50).length];
       }
     });
 
     retObj[0] = 'Surface';
-    retObj[100] = 'Above';
+    retObj[171] = 'Above';
 
     return retObj;
   };
 
-  tooltip (height) {
-    if (height === 100) {
-      return 'Above';
-    }
-    if (height === 0) {
-      return 'Surface';
-    }
-
-    if (height < 50) {
-      if (this.state.lowerUnit === UNIT_FT) {
-        return parseInt(height * 100) + ' ' + UNIT_FT;
-      } else {
-        return parseInt(Math.round(height * 30.48)) + ' ' + UNIT_M;
-      }
-    } else {
-      return UNIT_FL + Math.round(7 * height - 300);
-    }
+  tooltip (height, marks) {
+    return marks[height];
   };
 
   showLevels (level) {
-    if (!level.lev1) {
+    if (!level || !level.lev1) {
       return '';
     }
     let result = '';
@@ -985,10 +648,10 @@ class SigmetCategory extends Component {
           return '';
         }
         result = 'Between surface and ';
-        if (level.lev2.unit === UNIT_FL) {
-          result += UNIT_FL + level.lev2.value;
+        if (level.lev2.unit === UNITS_ALT.FL) {
+          result += UNITS_ALT.FL + level.lev2.value;
         } else {
-          result += level.lev2.value + level.lev2.unit === UNIT_M ? 'm' : 'ft';
+          result += level.lev2.value + level.lev2.unit === UNITS_ALT.M ? 'm' : 'ft';
         }
         return result;
       case 'TOP':
@@ -1001,17 +664,17 @@ class SigmetCategory extends Component {
 
     if (!level.lev2) {
       let result = 'At ';
-      if (level.lev1.unit === UNIT_FL) {
+      if (level.lev1.unit === UNITS_ALT.FL) {
         result += 'FL' + level.lev1.value;
       } else {
-        result += level.lev1.value + level.lev1.unit === UNIT_M ? 'm' : 'ft';
+        result += level.lev1.value + level.lev1.unit === UNITS_ALT.M ? 'm' : 'ft';
       }
       return result;
     } else {
       let result = 'Between ';
-      if (level.lev1.unit === UNIT_FL) {
+      if (level.lev1.unit === UNITS_ALT.FL) {
         result += 'FL' + level.lev1.value + ' and FL' + level.lev2.value;
-      } else if (level.lev1.unit === UNIT_M) {
+      } else if (level.lev1.unit === UNITS_ALT.M) {
         result += level.lev1.value + 'm and ' + level.lev2.value + 'm';
       } else {
         result += level.lev1.value + 'ft and ' + level.lev2.value + 'ft';
@@ -1023,7 +686,7 @@ class SigmetCategory extends Component {
   setTops (evt) {
     let newPartialState = { tops: evt.target.checked };
     if (newPartialState.tops) {
-      newPartialState['lowerUnit'] = UNIT_FL;
+      newPartialState['lowerUnit'] = UNITS_ALT.FL;
     }
     this.setState(newPartialState);
   }
@@ -1041,15 +704,15 @@ class SigmetCategory extends Component {
         listCpy[0].level.lev1 = { unit: 'TOP', value: val };
       } else {
         switch (this.state.lowerUnit) {
-          case UNIT_M:
+          case UNITS_ALT.M:
             const meterVal = Math.round((val * 30.48) / 100) * 100;
             listCpy[0].level.lev1 = { unit: 'M', value: meterVal };
             break;
-          case UNIT_FT:
+          case UNITS_ALT.FT:
             const feetVal = val * 100;
             listCpy[0].level.lev1 = { unit: 'FT', value: feetVal };
             break;
-          case UNIT_FL:
+          case UNITS_ALT.FL:
           default:
             listCpy[0].level.lev1 = { unit: 'FL', value: val };
             break;
@@ -1066,28 +729,28 @@ class SigmetCategory extends Component {
         // SFC
         listCpy[0].level.lev1 = { unit: 'SFC', value: 0 };
         switch (this.state.lowerUnit) {
-          case UNIT_M:
+          case UNITS_ALT.M:
             const meterVal = Math.round((lowerVal * 30.48) / 100) * 100;
             listCpy[0].level.lev2 = { unit: 'M', value: meterVal };
             break;
-          case UNIT_FT:
+          case UNITS_ALT.FT:
             const feetVal = lowerVal * 100;
             listCpy[0].level.lev2 = { unit: 'FT', value: feetVal };
             break;
-          case UNIT_FL:
+          case UNITS_ALT.FL:
           default:
             listCpy[0].level.lev2 = { unit: 'FL', value: lowerVal };
             break;
         }
-      } else if (upperVal === 400) {
+      } else if (upperVal === 650) {
         // Above
         listCpy[0].level.lev1 = { unit: this.state.tops ? 'TOP_ABV' : 'ABV', value: 0 };
         switch (this.state.lowerUnit) {
-          case UNIT_M:
+          case UNITS_ALT.M:
             break;
-          case UNIT_FT:
+          case UNITS_ALT.FT:
             break;
-          case UNIT_FL:
+          case UNITS_ALT.FL:
           default:
             listCpy[0].level.lev2 = { unit: 'FL', value: lowerVal };
             break;
@@ -1095,19 +758,19 @@ class SigmetCategory extends Component {
       } else {
         // Between
         switch (this.state.lowerUnit) {
-          case UNIT_M:
+          case UNITS_ALT.M:
             const lowerMeterVal = Math.round((lowerVal * 30.48) / 100) * 100;
             const upperMeterVal = Math.round((upperVal * 30.48) / 100) * 100;
             listCpy[0].level.lev1 = { unit: 'M', value: lowerMeterVal };
             listCpy[0].level.lev2 = { unit: 'M', value: upperMeterVal };
             break;
-          case UNIT_FT:
+          case UNITS_ALT.FT:
             const lowerFeetVal = lowerVal * 100;
             const upperFeetVal = upperVal * 100;
             listCpy[0].level.lev1 = { unit: 'FT', value: lowerFeetVal };
             listCpy[0].level.lev2 = { unit: 'FT', value: upperFeetVal };
             break;
-          case UNIT_FL:
+          case UNITS_ALT.FL:
           default:
             listCpy[0].level.lev1 = { unit: 'FL', value: lowerVal };
             listCpy[0].level.lev2 = { unit: 'FL', value: upperVal };
@@ -1119,15 +782,31 @@ class SigmetCategory extends Component {
   }
 
   renderLevelSelection (editable, item) {
-    const feetNumbers = range(0, 50, 10);
-    const flNumbers = range(50, 100, 7.142857);
+    const feetNumbers = range(0, 50, 5);
+    const flNumbers = range(50, 171, 1);
     const markValues = this.marks([...feetNumbers, ...flNumbers]);
+    const renderMarks = { ...markValues };
+    Object.keys(renderMarks).map((key) => {
+      if (key !== 0 && key !== 171) {
+        if (key < 50) {
+          if (key % 10 !== 0) {
+            renderMarks[key] = '';
+          }
+        } else {
+          if (key % 10 !== 0 || key > 160) {
+            renderMarks[key] = '';
+          }
+        }
+      }
+      renderMarks[171] = 'Above';
+    });
+
     const handle = (params) => {
       const { value, dragging, index, ...restProps } = params;
       return (
         <Tooltip
           prefixCls='rc-slider-tooltip'
-          overlay={this.tooltip(value, this.state.lowerUnit)}
+          overlay={this.tooltip(value, markValues)}
           visible={dragging}
           placement='top'
           key={index}
@@ -1159,15 +838,16 @@ class SigmetCategory extends Component {
                 isChecked={this.state.renderRange} action={(evt) => this.setState({ renderRange: evt.target.checked })} align='center' />
             </Col>
           </Row>
-          <Row style={{ flex: 'none', padding: '0.5rem 0' }}>
+          <Row>
             <Col xs={{ size: 3, offset: 1 }}>
               <Badge>Units</Badge>
             </Col>
-            <Col xs={{ size: 6, offset: 1 }} style={{ justifyContent: 'center' }}>
-              <ButtonGroup>
-                <Button color='primary' onClick={() => this.setState({ lowerUnit: UNIT_FT })} active={this.state.lowerUnit === UNIT_FT} disabled={this.state.tops}>{`${UNIT_FT}/${UNIT_FL}`}</Button>
-                <Button color='primary' onClick={() => this.setState({ lowerUnit: UNIT_M })} active={this.state.lowerUnit === UNIT_M} disabled={this.state.tops}>{`${UNIT_M}/${UNIT_FL}`}</Button>
-              </ButtonGroup>
+            <Col xs='8' style={{ justifyContent: 'center' }} className={this.state.tops ? 'disabled' : null}>
+              <SwitchButton id='unitswitch' name='unitswitch'
+                labelLeft={`${UNITS_ALT.FT} / ${UNITS_ALT.FL}`} labelRight={`${UNITS_ALT.M} / ${UNITS_ALT.FL}`}
+                isChecked={this.state.lowerUnit === UNITS_ALT.M}
+                action={(evt) => this.setState({ lowerUnit: evt.target.checked ? UNITS_ALT.M : UNITS_ALT.FT })}
+                align='center' />
             </Col>
           </Row>
 
@@ -1176,9 +856,9 @@ class SigmetCategory extends Component {
         <Col xs='3'>
           <Row style={{ padding: '1rem 0' }}>
             {this.state.renderRange
-              ? <Range step={0.5} allowCross={false} min={0} max={100} marks={markValues} vertical
-                onChange={(v) => this.setSigmetLevel(v)} tipFormatter={value => this.tooltip(value, this.state.lowerUnit)} />
-              : <Slider step={0.5} allowCross={false} min={0} max={100} marks={markValues} vertical onChange={(v) => this.setSigmetLevel([v])} handle={handle} />
+              ? <Range step={null} allowCross={false} min={0} max={171} marks={renderMarks} vertical
+                onChange={(v) => this.setSigmetLevel(v)} tipFormatter={value => this.tooltip(value, markValues)} />
+              : <Slider step={null} allowCross={false} min={0} max={171} marks={renderMarks} vertical onChange={(v) => this.setSigmetLevel([v])} handle={handle} />
             }
           </Row>
         </Col>
@@ -1191,6 +871,8 @@ class SigmetCategory extends Component {
 
   render () {
     const { title, icon, parentCollapsed, editable, selectedIndex, toggleMethod, scrollAction, drawProperties } = this.props;
+    let { itemLimit } = this.props;
+    itemLimit = itemLimit || 5;
     const notifications = !editable ? this.state.list.length : 0;
     // Show a warning in case there is no drawing yet, so both the this.state.list and the this.props.drawProperties are empty
     const showDrawWarningFromState = !this.state.list.length > 0 || !this.state.list[0].hasOwnProperty('geojson') || !this.state.list[0].geojson.hasOwnProperty('features') ||
@@ -1199,16 +881,14 @@ class SigmetCategory extends Component {
     const showDrawWarningFromProps = !drawProperties || !drawProperties.hasOwnProperty('geojson') || !drawProperties.adagucMapDraw.geojson.hasOwnProperty('features') ||
       !drawProperties.adagucMapDraw.geojson.features.length > 0 || !drawProperties.adagucMapDraw.geojson.features[0].hasOwnProperty('geometry') ||
       !drawProperties.adagucMapDraw.geojson.features[0].geometry.hasOwnProperty('coordinates') || !drawProperties.adagucMapDraw.geojson.features[0].geometry.coordinates.length > 0;
-    let maxSize = this.state.list ? 550 * this.state.list.slice(0, 5).length : 0;
+    let maxSize = this.state.list ? 550 * this.state.list.slice(0, itemLimit).length : 0;
     if (editable) {
-      maxSize = 1020;
+      maxSize = 1134; // (1070 + 4rem)
     }
     const sourceless = Object.keys(this.props.sources || {}).length === 0;
-    const now = moment().utc();
+    const now = getRoundedNow();
     const availablePhenomena = this.getPhenomena();
     const availableFirs = this.getParameters().firareas;
-    const availableChanges = this.getChanges();
-    const availableDirections = this.getDirections();
     const drawActions = [
       /* {
         title: 'Select point',
@@ -1267,19 +947,11 @@ class SigmetCategory extends Component {
               {(this.state.isOpen || this.state.isClosing)
                 ? <Row>
                   <Col className='btn-group-vertical' style={{ minWidth: 0, flexGrow: 1, minHeight: maxSize }}>
-                    {this.state.list.slice(0, 5).map((item, index) => {
+                    {this.state.list.slice(0, itemLimit).map((item, index) => {
                       const selectedPhenomenon = availablePhenomena.filter((ph) => ph.code === item.phenomenon).shift();
                       const selectedFir = availableFirs.filter((fr) => fr.firname === item.firname).shift();
-                      const selectedDirection = availableDirections.filter((dr) => dr.shortName === item.movement.dir).shift();
-                      const selectedChange = availableChanges.filter((ch) => ch.shortName === item.change).shift();
-                      const pad2 = (number) => ('00' + number).slice(-2);
-                      const { issuedate, validdate, validdate_end } = item;
-                      let issueDate = 'Not yet issued';
-                      if (issuedate) {
-                        issueDate = issuedate.year + '-' + pad2(issuedate.monthValue) + '-' + pad2(issuedate.dayOfMonth) + 'T' + pad2(issuedate.hour) + ':' + pad2(issuedate.minute) + ':' + pad2(issuedate.second) + 'Z'
-                      }
-                      const validDate = validdate.year + '-' + pad2(validdate.monthValue) + '-' + pad2(validdate.dayOfMonth) + 'T' + pad2(validdate.hour) + ':' + pad2(validdate.minute) + ':' + pad2(validdate.second) + 'Z'
-                      const endValidDate = validdate_end.year + '-' + pad2(validdate_end.monthValue) + '-' + pad2(validdate_end.dayOfMonth) + 'T' + pad2(validdate_end.hour) + ':' + pad2(validdate_end.minute) + ':' + pad2(validdate_end.second) + 'Z'
+                      const selectedDirection = DIRECTIONS.filter((dr) => dr.shortName === item.movement.dir).shift();
+                      const selectedChange = CHANGES.filter((ch) => ch.shortName === item.change).shift();
                       if (item.cancels) {
                         return <Button tag='div' className={'Sigmet row' + (selectedIndex === index ? ' active' : '')}
                           key={index} onClick={(evt) => { this.handleSigmetClick(evt, index); }} title={item.phenomenonHRT} >
@@ -1291,19 +963,6 @@ class SigmetCategory extends Component {
                               Cancellation of SIGMET {item.cancels}
                             </Col>
                           </Row>
-                          <Row style={{ paddingTop: '0.19rem' }}>
-                            <Col xs={{ size: 2, offset: 1 }}>
-                              <Badge>At</Badge>
-                            </Col>
-                            <Col xs='9'>
-                              {
-                                issueDate === 'Not yet issued'
-                                  ? <span>{issueDate}</span>
-                                  : <Moment format={DATE_TIME_FORMAT} date={issueDate} />
-                              }
-                            </Col>
-                          </Row>
-
                           <Row className='section' style={{ minHeight: '1.75rem' }}>
                             <Col xs='3'>
                               <Badge color='success'>Valid</Badge>
@@ -1314,7 +973,7 @@ class SigmetCategory extends Component {
                               <Badge>From</Badge>
                             </Col>
                             <Col xs='9'>
-                              <Moment format={DATE_TIME_FORMAT} date={validDate} />
+                              <Moment format={DATE_TIME_FORMAT} date={item.validdate} />
                             </Col>
                           </Row>
                           <Row style={{ paddingTop: '0.19rem' }}>
@@ -1322,7 +981,7 @@ class SigmetCategory extends Component {
                               <Badge>Until</Badge>
                             </Col>
                             <Col xs='9'>
-                              <Moment format={DATE_TIME_FORMAT} date={endValidDate} />
+                              <Moment format={DATE_TIME_FORMAT} date={item.validdate_end} />
                             </Col>
                           </Row>
                           <Row className='section' style={editable ? { minHeight: '2.5rem' } : null}>
@@ -1330,7 +989,7 @@ class SigmetCategory extends Component {
                               <Badge color='success'>Where</Badge>
                             </Col>
                             <Col xs='9'>
-                              <span>{item.firname || 'no firname provided yet'}</span>
+                              <span>{item.firname || '(no firname provided yet)'}</span>
                             </Col>
                           </Row>
                           <Row style={editable ? { minHeight: '2.5rem' } : null}>
@@ -1351,7 +1010,7 @@ class SigmetCategory extends Component {
                       }
                       return <Button tag='div' className={'Sigmet row' + (selectedIndex === index ? ' active' : '')}
                         key={index} onClick={(evt) => { this.handleSigmetClick(evt, index); }} title={item.phenomenonHRT} >
-                        <Row style={editable ? { minHeight: '2rem' } : null}>
+                        <Row style={editable ? { maxHeight: '1.8rem' } : null}>
                           <Col xs='3'>
                             <Badge color='success'>What</Badge>
                           </Col>
@@ -1364,14 +1023,22 @@ class SigmetCategory extends Component {
                                 clearButton />
                               : <span style={{ fontWeight: 'bold' }}>{item.phenomenon}</span>
                             }
+                            {editable
+                              ? <span className={item.phenomenon ? 'required' : 'required missing'} />
+                              : null
+                            }
                           </Col>
                         </Row>
-                        <Row style={editable ? { marginTop: '0.19rem', minHeight: '2rem' } : null}>
+                        <Row style={editable ? { marginTop: '0.33rem', minHeight: '2rem' } : null}>
                           <Col xs={{ size: 9, offset: 3 }}>
                             {editable
                               ? <SwitchButton id='obsfcstswitch' name='obsfcstswitch'
                                 labelRight='Observed' labelLeft='Forecast' isChecked={item.obs_or_forecast.obs} action={(evt) => this.setSelectedObservedForecast(evt.target.checked)} />
                               : <span>{item.obs_or_forecast.obs ? 'Observed' : 'Forecast'}</span>
+                            }
+                            {editable
+                              ? <span className='required' />
+                              : null
                             }
                           </Col>
                         </Row>
@@ -1382,22 +1049,21 @@ class SigmetCategory extends Component {
                           <Col xs='9'>
                             {editable
                               ? <DateTimePicker style={{ width: '100%' }} dateFormat={DATE_FORMAT} timeFormat={TIME_FORMAT} utc
-                                onChange={(at) => this.setSelectedForecastPosition(at)}
-                                inputProps={item.obs_or_forecast.obs ? { disabled: true } : null}
+                                onChange={(at) => this.setSelectedObservedOrForecastAt(at)}
                                 isValidDate={(curr, selected) => curr.isAfter(now.subtract(1, 'day')) &&
                                   curr.isBefore(now.add(this.getParameters().hoursbeforevalidity, 'hour'))}
                                 timeConstraints={{
                                   hours: {
-                                    min: now.hour(),
+                                    min: (now.hour() - this.getParameters().hoursbeforevalidity),
                                     max: (now.hour() + this.getParameters().hoursbeforevalidity)
                                   }
                                 }}
                                 viewMode='time'
-                                value={item.forecast_position ? moment.utc(item.forecast_position) : now}
+                                value={(item.obs_or_forecast && item.obs_or_forecast.obsFcTime) ? moment.utc(item.obs_or_forecast.obsFcTime) : now}
                               />
-                              : (issueDate === 'Not yet issued'
-                                ? <span>{issueDate}</span>
-                                : <Moment format={DATE_TIME_FORMAT} date={issueDate} />)
+                              : (item.obs_or_forecast && item.obs_or_forecast.obsFcTime)
+                                ? <Moment format={DATE_TIME_FORMAT} date={item.obs_or_forecast.obsFcTime} />
+                                : <span>{item.obs_or_forecast.obs ? '(no observation time provided)' : '(no forecasted time provided)'}</span>
                             }
                           </Col>
                         </Row>
@@ -1425,7 +1091,11 @@ class SigmetCategory extends Component {
                                 viewMode='time'
                                 value={moment.utc(item.validdate) || now}
                               />
-                              : <Moment format={DATE_TIME_FORMAT} date={validDate} />
+                              : <Moment format={DATE_TIME_FORMAT} date={item.validdate} />
+                            }
+                            {editable
+                              ? <span className={item.validdate ? 'required' : 'required missing'} />
+                              : null
                             }
                           </Col>
                         </Row>
@@ -1447,11 +1117,15 @@ class SigmetCategory extends Component {
                                 }}
                                 viewMode='time'
                                 value={moment.utc(item.validdate_end) || moment.utc(item.validdate).add(this.getParameters().maxhoursofvalidity, 'hour')} />
-                              : <Moment format={DATE_TIME_FORMAT} date={endValidDate} />
+                              : <Moment format={DATE_TIME_FORMAT} date={item.validdate_end} />
+                            }
+                            {editable
+                              ? <span className={item.validdate_end ? 'required' : 'required missing'} />
+                              : null
                             }
                           </Col>
                         </Row>
-                        <Row className='section' style={editable ? { minHeight: '2.5rem' } : null}>
+                        <Row className='section' style={editable ? { minHeight: '2rem', maxHeight: '2.5rem' } : null}>
                           <Col xs='3'>
                             <Badge color='success'>Where</Badge>
                           </Col>
@@ -1461,7 +1135,11 @@ class SigmetCategory extends Component {
                                 options={availableFirs} onChange={(firList) => this.setSelectedFir(firList)}
                                 selected={selectedFir ? [selectedFir] : []} placeholder={'Select FIR'}
                                 clearButton />
-                              : <span>{item.firname || 'no firname provided yet'}</span>
+                              : <span>{item.firname || '(no firname provided yet)'}</span>
+                            }
+                            {editable
+                              ? <span className={item.firname ? 'required' : 'required missing'} />
+                              : null
                             }
                           </Col>
                         </Row>
@@ -1471,7 +1149,7 @@ class SigmetCategory extends Component {
                           </Col>
                         </Row>
                         {editable
-                          ? <Row className='section' style={{ minHeight: '3.685rem', marginBottom: '0.33rem' }}>
+                          ? <Row className='section' style={{ minHeight: '3.685rem', paddingBottom: '0.33rem' }}>
                             {drawActions.map((actionItem, index) =>
                               <Col xs={{ size: 'auto', offset: index === 0 ? 3 : null }} key={index} style={{ padding: '0 0.167rem' }}>
                                 <Button color='primary' active={actionItem.action === 'mapProperties.mapMode'} disabled={actionItem.disabled || null}
@@ -1481,7 +1159,7 @@ class SigmetCategory extends Component {
                               </Col>)
                             }
                           </Row>
-                          : ''
+                          : null
                         }
                         {selectedIndex > -1 && editable && (showDrawWarningFromState && showDrawWarningFromProps)
                           ? <Row style={{ flex: 'none', padding: '0.5rem 0 0.5rem 0.12rem', maxWidth: '28.7rem' }}>
@@ -1492,9 +1170,9 @@ class SigmetCategory extends Component {
                               </Alert>
                             </Col>
                           </Row>
-                          : ''
+                          : null
                         }
-                        <Row className='section' style={editable ? { minHeight: '14rem' } : null}>
+                        <Row className='section' style={editable ? { minHeight: '18rem' } : null}>
                           <Col xs={editable ? { size: 12 } : { size: 9, offset: 3 }}>
                             {this.renderLevelSelection(editable, item)}
                           </Col>
@@ -1503,94 +1181,131 @@ class SigmetCategory extends Component {
                           <Col xs='3'>
                             <Badge color='success'>Progress</Badge>
                           </Col>
-                          <Col xs='9' style={{ justifyContent: 'center' }}>
-                            {/* dir: {N,NNE,NE,ENE,E,ESE,SE,SSE,S,SSW,SW,WSW,W,WNW} */}
-                            {/* speed: int */}
+                          <Col xs='9' className='shiftRight'>
                             {editable
                               ? <SwitchButton id='movementswitch' name='movementswitch'
                                 labelRight='Move' labelLeft='Stationary' isChecked={!item.movement.stationary} action={this.setSelectedMovement} />
                               : <span>{item.movement.stationary ? 'Stationary' : 'Move'}</span>
                             }
-
-                          </Col>
-                        </Row>
-                        <Row className='section' style={{ minHeight: '2.5rem' }}>
-                          <Col xs='3'>
-                            <Badge color='success'>Type</Badge>
-                          </Col>
-                          <Col xs='9' style={{ justifyContent: 'center' }}>
-                            {/* dir: {N,NNE,NE,ENE,E,ESE,SE,SSE,S,SSW,SW,WSW,W,WNW} */}
-                            {/* speed: int */}
                             {editable
-                              ? <SwitchButton id='movementtypeswitch' name='movementtypeswitch'
-                                labelLeft='By area' labelRight='By speed and direction' isChecked={item.movement.movementtype === false} action={this.setSetMovementType} />
-                              : <span>{!item.movement.movementtype ? 'Movement defined by area' : 'Movement defined with speed and direction'}</span>
+                              ? <span className='required' />
+                              : null
                             }
-
                           </Col>
                         </Row>
+                        {(editable || !item.movement.stationary)
+                          ? <Row className={(editable && item.movement.stationary) ? 'section disabled' : 'section'} style={{ minHeight: '2.6rem' }}>
+                            <Col xs='3'>
+                              <Badge color='success'>Move</Badge>
+                            </Col>
+                            <Col xs='9'>
+                              {editable
+                                ? <SwitchButton id='moveswitch' name='moveswitch'
+                                  labelLeft='End location' labelRight='Speed &amp; direction' isChecked={!this.state.isProgressByEnd}
+                                  action={this.setProgressType} />
+                                : <span>{(!item.movement.dir && !item.movement.speed) ? 'specified by end location' : null}</span>
+                              }
+
+                            </Col>
+                          </Row>
+                          : null
+                        }
                         {editable
-                          ? <Row className='section' style={{ minHeight: '3.685rem', marginBottom: '0.33rem' }}>
+                          ? <Row className={(item.movement.stationary || !this.state.isProgressByEnd) ? 'section disabled' : 'section'}
+                            style={{ minHeight: '4.015rem', paddingBottom: '0.66rem' }}>
                             {drawActions.map((actionItem, index) =>
                               <Col xs={{ size: 'auto', offset: index === 0 ? 3 : null }} key={index} style={{ padding: '0 0.167rem' }}>
                                 <Button color='primary' active={actionItem.action === 'mapProperties.mapMode'}
-                                  disabled={!item.movement.movementtype || item.movement.stationary || actionItem.disabled || null}
+                                  disabled={(item.movement.stationary || !this.state.isProgressByEnd || actionItem.disabled)}
                                   id={actionItem.action + '_button'} title={actionItem.title} onClick={() => this.handleActionClick(actionItem.action, 'progress')} style={{ width: '3rem' }}>
                                   <Icon name={actionItem.icon} />
                                 </Button>
                               </Col>)
                             }
                           </Row>
-                          : ''
+                          : null
                         }
-                        <Row style={editable ? { marginTop: '0.19rem', minHeight: '2rem' } : null}>
-                          <Col xs={{ size: 2, offset: 1 }}>
-                            <Badge title='Direction'>Direction</Badge>
-                          </Col>
-                          <Col xs='9'>
-                            {editable
-                              ? <Typeahead style={{ width: '100%' }} filterBy={['shortName', 'longName']} labelKey='longName'
-                                disabled={item.movement.stationary || item.movement.movementtype}
-                                options={availableDirections} placeholder={item.movement.stationary ? null : 'Select direction'}
-                                onChange={(dir) => this.setSelectedDirection(dir)}
-                                selected={selectedDirection ? [selectedDirection] : []}
-                                clearButton />
-                              : <span>{selectedDirection ? selectedDirection.longName : (!item.movement.stationary ? 'No direction selected' : null)}</span>
-                            }
-                          </Col>
-                        </Row>
-                        <Row style={editable ? { marginTop: '0.19rem', minHeight: '2rem' } : null}>
-                          <Col xs={{ size: 2, offset: 1 }}>
-                            <Badge>Speed</Badge>
-                          </Col>
-                          <Col xs='9'>
-                            {editable
-                              ? <InputGroup>
-                                <Input onChange={this.setSpeed} defaultValue='0' type='number' step='1' disabled={item.movement.stationary || item.movement.movementtype} />
-                                <InputGroupAddon>KT</InputGroupAddon>
-                              </InputGroup>
-                              : <span>{item.movement.speed ? `${item.movement.speed} KT` : null }</span>
-                            }
-                          </Col>
-                        </Row>
-                        <Row className='section' style={editable ? { marginTop: '0.19rem', minHeight: '2.5rem' } : null}>
+                        {(editable || !item.movement.stationary)
+                          ? <Row className={(editable && (item.movement.stationary || this.state.isProgressByEnd)) ? 'disabled' : null}
+                            style={editable ? { marginTop: '0.19rem', maxHeight: '2rem' } : null}>
+                            <Col xs={{ size: 2, offset: 1 }}>
+                              <Badge title='Direction'>Direction</Badge>
+                            </Col>
+                            <Col xs='9'>
+                              {/* dir: {N,NNE,NE,ENE,E,ESE,SE,SSE,S,SSW,SW,WSW,W,WNW} */}
+                              {/* speed: int */}
+                              {editable
+                                ? <Typeahead style={{ width: '100%' }} filterBy={['shortName', 'longName']} labelKey='longName'
+                                  disabled={(item.movement.stationary || this.state.isProgressByEnd)}
+                                  options={DIRECTIONS} placeholder={(item.movement.stationary || this.state.isProgressByEnd) ? null : 'Select direction'}
+                                  onChange={(dir) => this.setSelectedDirection(dir)}
+                                  selected={selectedDirection ? [selectedDirection] : []}
+                                  clearButton />
+                                : <span>{selectedDirection
+                                  ? selectedDirection.longName
+                                  : ((!item.movement.stationary && !this.state.isProgressByEnd)
+                                    ? '(no direction selected)'
+                                    : null)}
+                                </span>
+                              }
+                              {editable
+                                ? <span className={(item.movement.stationary || this.state.isProgressByEnd)
+                                  ? null
+                                  : item.movement.dir
+                                    ? 'required'
+                                    : 'required missing'} />
+                                : null
+                              }
+                            </Col>
+                          </Row>
+                          : null
+                        }
+                        {(editable || !item.movement.stationary)
+                          ? <Row className={(editable && (item.movement.stationary || this.state.isProgressByEnd)) ? 'disabled' : null}
+                            style={editable ? { marginTop: '0.19rem', maxHeight: '2rem' } : null}>
+                            <Col xs={{ size: 2, offset: 1 }}>
+                              <Badge>Speed</Badge>
+                            </Col>
+                            <Col xs='9'>
+                              {editable
+                                ? <InputGroup>
+                                  <Input onChange={this.setSpeed}
+                                    defaultValue='0'
+                                    type='number'
+                                    step='1' disabled={(item.movement.stationary || this.state.isProgressByEnd)} />
+                                  <InputGroupAddon>{(item.movement.stationary || this.state.isProgressByEnd) ? null : 'KT'}</InputGroupAddon>
+                                </InputGroup>
+                                : <span>{item.movement.speed ? `${item.movement.speed} KT` : null}</span>
+                              }
+                              {editable
+                                ? <span className={(item.movement.stationary || this.state.isProgressByEnd)
+                                  ? null
+                                  : item.movement.speed
+                                    ? 'required'
+                                    : 'required missing'} />
+                                : null
+                              }
+                            </Col>
+                          </Row>
+                          : null
+                        }
+                        <Row className='section' style={editable ? { margin: '0.19rem 0', maxHeight: '2.5rem' } : null}>
                           <Col xs='3'>
                             <Badge color='success'>Change</Badge>
                           </Col>
                           <Col xs='9'>
                             {editable
                               ? <Typeahead style={{ width: '100%' }} filterBy={['shortName', 'longName']} labelKey='longName'
-                                options={availableChanges} placeholder={'Select change'}
+                                options={CHANGES} placeholder={'Select change'}
                                 onChange={(chg) => this.setChange(chg)}
                                 selected={selectedChange ? [selectedChange] : []}
                                 clearButton />
                               : <span>{selectedChange ? selectedChange.longName : 'No change selected'}</span>
                             }
-                          </Col>
-                        </Row>
-                        <Row>
-                          <Col xs={{ size: 9, offset: 3 }}>
-                            {item.forecast_position}
+                            {editable
+                              ? <span className={item.change ? 'required' : 'required missing'} />
+                              : null
+                            }
                           </Col>
                         </Row>
                         <Row className='section' style={{ minHeight: '2.5rem' }}>
@@ -1615,7 +1330,7 @@ class SigmetCategory extends Component {
                               <Badge>Sequence</Badge>
                             </Col>
                             <Col xs='6'>
-                              {(!isNaN(item.sequence) && item.sequence !== -1) ? item.sequence : '(not yet published)'}
+                              {(!isNaN(item.sequence) && item.sequence !== -1 && item.sequence !== 0) ? item.sequence : '(not yet published)'}
                             </Col>
                           </Row>
                           : null
@@ -1683,16 +1398,21 @@ SigmetCategory.propTypes = {
   mapActions: PropTypes.object,
   drawActions: PropTypes.object,
   panelsActions: PropTypes.object,
+  adagucActions: PropTypes.object,
   drawProperties: PropTypes.shape({
-    adagucMapDraw: {
+    adagucMapDraw: PropTypes.shape({
       geojson: PropTypes.object
-    }
+    })
   }),
   sources: PropTypes.object,
   latestUpdateTime: PropTypes.string,
   updateAllComponents: PropTypes.func,
   isGetType: PropTypes.bool,
-  scrollAction: PropTypes.func
+  scrollAction: PropTypes.func,
+  urls: PropTypes.shape({
+    BACKEND_SERVER_URL: PropTypes.string
+  }),
+  itemLimit: PropTypes.number
 };
 
 export default SigmetCategory;

@@ -9,6 +9,7 @@ import cloneDeep from 'lodash.clonedeep';
 import setNestedProperty from 'lodash.set';
 import getNestedProperty from 'lodash.get';
 import removeNestedProperty from 'lodash.unset';
+import { getJsonPointers, clearNullPointersAndAncestors } from '../../utils/json';
 import moment from 'moment';
 import { Button, Row, Col, Alert, ListGroup, ListGroupItem } from 'reactstrap';
 import { jsonToTacForWind, jsonToTacForWeather, jsonToTacForClouds } from './TafFieldsConverter';
@@ -38,79 +39,6 @@ const generateDefaultValues = () => {
     start: now.hour(TAFStartHour).minutes(0).seconds(0).format('YYYY-MM-DDTHH:mm:ss') + 'Z',
     end: now.hour(TAFStartHour).minutes(0).seconds(0).add(30, 'hour').format('YYYY-MM-DDTHH:mm:ss') + 'Z'
   };
-};
-
-/**
- * Upwards recursively remove empty properties
- * @param  {Object} objectToClear The object to cleanse
- * @param  {Array} pathParts Array of JSON-path-elements
- */
-const clearRecursive = (objectToClear, pathParts) => {
-  pathParts.pop();
-  const parent = getNestedProperty(objectToClear, pathParts);
-  // Check for empty sibling arrays / objects
-  if (Array.isArray(parent) && parent.length === 0) {
-    const length = parent.length;
-    for (let index = 0; index < length; index++) {
-      if (!parent[index] ||
-          (Array.isArray(parent[index]) && parent[index].length === 0) ||
-          (typeof parent[index] === 'object' && Object.indexs(parent[index]).length === 0)) {
-        pathParts.push(index);
-        removeNestedProperty(objectToClear, pathParts);
-        pathParts.pop();
-      }
-    }
-  } else if (parent && typeof parent === 'object') {
-    Object.entries(parent).forEach(([key, value]) => {
-      if ((!value && value !== 0) ||
-          (Array.isArray(value) && value.length === 0) ||
-          (value && typeof value === 'object' && Object.keys(value).length === 0)) {
-        pathParts.push(key);
-        removeNestedProperty(objectToClear, pathParts);
-        pathParts.pop();
-      }
-    });
-  }
-  if ((Array.isArray(parent) && parent.length === 0) || (parent && typeof parent === 'object' && Object.keys(parent).length === 0)) {
-    removeNestedProperty(objectToClear, pathParts);
-    clearRecursive(objectToClear, pathParts);
-  };
-};
-
-/**
- * Collect JSON pointers for all (nested) properties which are matched
- * @param  {Object|Array|String} collection A Collection or property to descend
- * @param  {Function} predicate The test to apply to each property
- * @param  {Array} accumulator The array to store the (intermediate) results
- * @param  {String, optional} parentName The parent pointer
- * @return {Array|Boolean} The result of the test, XOR an array with (intermediate) results
- */
-const getJsonPointers = (collection, predicate, accumulator, parentName = '') => {
-  accumulator = accumulator || [];
-  const propertyList = [];
-  if (Array.isArray(collection)) {
-    const length = collection.length;
-    for (let arrIndex = 0; arrIndex < length; arrIndex++) {
-      propertyList.push(arrIndex);
-    }
-  } else if (collection && typeof collection === 'object') {
-    for (let property in collection) {
-      propertyList.push(property);
-    }
-  }
-  const listLength = propertyList.length;
-  for (let listIndex = 0; listIndex < listLength; listIndex++) {
-    const property = propertyList[listIndex];
-    const myAccum = [];
-    if (getJsonPointers(collection[property], predicate, myAccum, property) === true) {
-      myAccum.push(property);
-    }
-    const length = myAccum.length;
-    for (let accumIndex = 0; accumIndex < length; accumIndex++) {
-      accumulator.push(parentName + '/' + myAccum[accumIndex]);
-    }
-  }
-  return predicate(collection) || accumulator;
 };
 
 /**
@@ -147,7 +75,6 @@ class TafCategory extends Component {
     this.byStartAndChangeType = this.byStartAndChangeType.bind(this);
     this.validateTaf = debounce(this.validateTaf.bind(this), 1250, false);
     this.saveTaf = this.saveTaf.bind(this);
-
 
     const initialState = {
       tafAsObject: props.taf,
@@ -217,17 +144,7 @@ class TafCategory extends Component {
       inputParsingReport.succeeded = true;
     }
 
-    const nullPointers = [];
-    getJsonPointers(taf, (field) => field === null, nullPointers);
-    // TODO: Should this be really necessary?
-    // Remove null's and empty fields -- BackEnd doesn't handle them nicely
-    const nullPointersLength = nullPointers.length;
-    for (let pointerIndex = 0; pointerIndex < nullPointersLength; pointerIndex++) {
-      const pathParts = nullPointers[pointerIndex].split('/');
-      pathParts.shift();
-      removeNestedProperty(taf, pathParts);
-      clearRecursive(taf, pathParts);
-    }
+    clearNullPointersAndAncestors(taf);
     if (!getNestedProperty(taf, ['changegroups'])) {
       setNestedProperty(taf, ['changegroups'], []);
     }
@@ -280,7 +197,6 @@ class TafCategory extends Component {
     });
   }
 
-
   deleteTAF (uuid) {
     axios({
       method: 'delete',
@@ -295,17 +211,7 @@ class TafCategory extends Component {
 
   saveTaf (tafAsObject, focusTaf = false, publishTaf = false) {
     const taf = cloneDeep(tafAsObject);
-    const nullPointers = [];
-    getJsonPointers(taf, (field) => field === null, nullPointers);
-    // TODO: Should this be really necessary?
-    // Remove null's and empty fields -- BackEnd doesn't handle them nicely
-    const nullPointersLength = nullPointers.length;
-    for (let pointerIndex = 0; pointerIndex < nullPointersLength; pointerIndex++) {
-      const pathParts = nullPointers[pointerIndex].split('/');
-      pathParts.shift();
-      removeNestedProperty(taf, pathParts);
-      clearRecursive(taf, pathParts);
-    }
+    clearNullPointersAndAncestors(taf);
     if (!getNestedProperty(taf, ['changegroups'])) {
       setNestedProperty(taf, ['changegroups'], []);
     }
@@ -980,8 +886,8 @@ class TafCategory extends Component {
     const newUuid = uuidv4();
     taf.metadata.previousUuid = taf.metadata.uuid;
     taf.metadata.uuid = newUuid;
-    delete taf.metadata.status ;
-    delete taf.metadata.previousUuid ;
+    delete taf.metadata.status;
+    delete taf.metadata.previousUuid;
     delete taf.metadata.issueTime;
     taf.metadata.type = 'normal';
 
@@ -1020,30 +926,34 @@ class TafCategory extends Component {
           <Row style={{ padding:'0 0.5rem 0.5rem 0.5rem', flex: 'none' }}>
             <Col />
             <Col xs='auto'>
-                <Button style={{ marginRight: '0.33rem' }} color='primary' onClick={() => {
-                    this.editTafAsNew(this.state.tafAsObject);
-                }} >Edit as new</Button>
+              <Button style={{ marginRight: '0.33rem' }} color='primary'
+                onClick={() => {
+                  this.editTafAsNew(this.state.tafAsObject);
+                }}>
+                Edit as new
+              </Button>
               {this.state.tafAsObject.metadata.status === 'published' && !this.state.correctOrAmend
                 ? <div>
-                  <Button disabled={!currentlyInValidityTime || this.state.tafAsObject.metadata.type==='canceled'} style={{ marginRight: '0.33rem' }} color='primary' onClick={() => {
+                  <Button disabled={!currentlyInValidityTime || this.state.tafAsObject.metadata.type === 'canceled'} style={{ marginRight: '0.33rem' }} color='primary' onClick={() => {
                     this.amendTaf(this.state.tafAsObject);
                   }} >Amend</Button>
-                  <Button disabled={this.state.tafAsObject.metadata.type==='canceled'} style={{ marginRight: '0.33rem' }} color='primary' onClick={() => {
+                  <Button disabled={this.state.tafAsObject.metadata.type === 'canceled'} style={{ marginRight: '0.33rem' }} color='primary' onClick={() => {
                     this.correctTaf(this.state.tafAsObject);
                   }} >Correct</Button>
-                  <Button disabled={this.state.tafAsObject.metadata.type==='canceled'} style={{ marginRight: '0.33rem' }} color='primary' onClick={() => {
+                  <Button disabled={this.state.tafAsObject.metadata.type === 'canceled'} style={{ marginRight: '0.33rem' }} color='primary' onClick={() => {
                     this.cancelTaf(this.state.tafAsObject);
                   }} >Cancel</Button></div>
                 : null}
-              {this.state.tafAsObject.metadata.status!=='published' ?
-                <div>
+              {this.state.tafAsObject.metadata.status !== 'published'
+                ? <div>
                   <Button style={{ marginRight: '0.33rem' }} color='primary' onClick={() => {
                     this.saveTaf(this.state.tafAsObject);
                   }} >Save</Button>
-                  <Button disabled={!validationSucceeded } onClick={() => {
+                  <Button disabled={!validationSucceeded} onClick={() => {
                     this.saveTaf(this.state.tafAsObject, true, true);
                   }} color='primary'>Publish</Button>
-                </div> : null
+                </div>
+                : null
               }
             </Col>
           </Row>

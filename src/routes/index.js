@@ -96,7 +96,8 @@ const mapDispatchToSigmetProps = function (dispatch) {
     dispatch,
     drawActions,
     mapActions,
-    panelsActions
+    panelsActions,
+    adagucActions
   });
 };
 const mapStateToMapProps = state => ({
@@ -140,6 +141,7 @@ export const createRoutes = (store) => {
   const layerManager = React.createElement(connect(mapStateToLayerManagerProps, mapDispatchToLayerManagerProps)(LayerManagerPanel));
   const products = React.createElement(connect(mapStateToProductsContainerProps, mapDispatchToLayerManagerProps)(ProductsContainer));
   const sigmet = React.createElement(connect((state) => ({
+
     drawProperties: state.drawProperties, urls: state.urls, sources: state.adagucProperties.sources
   }), mapDispatchToSigmetProps)(SigmetsContainer));
   const taf = connect(mapStateToTafsContainerProps, mapDispatchToLayerManagerProps)(TafsContainer);

@@ -2,7 +2,8 @@ import React, { Component } from 'react';
 import { Button, Col, Row } from 'reactstrap';
 import Icon from 'react-fa';
 import CollapseOmni from '../components/CollapseOmni';
-import SigmetCategory from '../components/SigmetCategory';
+import SigmetCategory from '../components/Sigmet/SigmetCategory';
+import { SIGMET_TEMPLATES } from '../components/Sigmet/SigmetTemplates';
 import Panel from '../components/Panel';
 import cloneDeep from 'lodash.clonedeep';
 import axios from 'axios';
@@ -43,21 +44,7 @@ const ITEMS = [
     editable: true
   }
 ];
-const EMPTY_GEO_JSON = {
-  type: 'FeatureCollection',
-  features: [
-    {
-      type: 'Feature',
-      geometry: {
-        type: 'Polygon',
-        coordinates: []
-      },
-      properties: {
-        prop0: 'value0'
-      }
-    }
-  ]
-};
+const EMPTY_GEO_JSON = cloneDeep(SIGMET_TEMPLATES.GEOJSON);
 
 class SigmetsContainer extends Component {
   constructor (props) {
@@ -74,7 +61,7 @@ class SigmetsContainer extends Component {
       isOpenCategory[item.ref] = false;
       item.source = (item.isGetType ? GET_SIGMETS_URL : SET_SIGMET_URL) + item.source;
     });
-    this.state = { isOpen: true, selectedItem: {}, isOpenCategory: isOpenCategory, closingCategory: [] };
+    this.state = { isOpen: true, selectedItem: {}, isOpenCategory: isOpenCategory, closingCategory: [], categoryLimits: [ 5, 5, 5, 1 ] };
     axios.get(this.props.urls.BACKEND_SERVER_URL + '/sigmet/getsigmetphenomena').then((result) => {
       this.setState({ phenomena: result.data });
     }).catch((error) => {
@@ -142,8 +129,18 @@ class SigmetsContainer extends Component {
     const nodelist = evt.target.querySelectorAll('.Sigmet');
     const lastItem = nodelist.item(nodelist.length - 1);
 
-    if (lastItem.getBoundingClientRect().top < evt.target.getBoundingClientRect().bottom) {
-      console.error('Should render more items');
+    if (lastItem.getBoundingClientRect().bottom < evt.target.getBoundingClientRect().bottom + 10) {
+      const categoryItem = evt.target.closest('.row.accordion.card');
+      if (categoryItem) {
+        const categoryHeaderItem = categoryItem.querySelector('.row.card-header');
+        if (categoryHeaderItem) {
+          const title = categoryHeaderItem.getAttribute('title');
+          const itemsIndex = ITEMS.findIndex((item) => item.title === title);
+          const newCatLimits = cloneDeep(this.state.categoryLimits);
+          newCatLimits[itemsIndex] += 5;
+          this.setState({ categoryLimits: newCatLimits });
+        }
+      }
     }
   }
 
@@ -157,6 +154,13 @@ class SigmetsContainer extends Component {
       this.setState({ selectedItem: { category: category, index: index, geojson: geo } });
       return true;
     }
+  }
+
+  shouldComponentUpdate (nextProps, nextState) {
+    if (this.state !== nextState || nextProps.drawProperties !== this.props.drawProperties) {
+      return true;
+    }
+    return false;
   }
 
   drawSIGMET (geojson) {
@@ -183,7 +187,7 @@ class SigmetsContainer extends Component {
               {ITEMS.map((item, index) =>
                 <SigmetCategory phenomenonMapping={this.state.phenomena || []} adagucProperties={this.props.adagucProperties}
                   key={index} title={item.title} parentCollapsed={!this.state.isOpen} drawProperties={this.props.drawProperties}
-                  mapActions={this.props.mapActions} drawActions={this.props.drawActions} panelsActions={this.props.panelsActions}
+                  adagucActions={this.props.adagucActions} mapActions={this.props.mapActions} drawActions={this.props.drawActions} panelsActions={this.props.panelsActions}
                   icon={item.icon} source={item.source} editable={item.editable} latestUpdateTime={this.state.latestUpdateTime}
                   isOpen={this.state.isOpen && this.state.isOpenCategory[item.ref]}
                   isClosing={this.state.closingCategory.includes(item.ref)}
@@ -192,7 +196,8 @@ class SigmetsContainer extends Component {
                   selectMethod={(index, geo, cat = item.ref) => this.select(cat, index, geo)} toggleMethod={(evt, cat = item.ref) => this.toggleCategory(cat)}
                   dispatch={this.props.dispatch} actions={this.props.actions}
                   parameters={this.state.parameters || {}} updateAllComponents={this.updateAllComponents}
-                  sources={this.props.sources} isGetType={item.isGetType} />
+                  sources={this.props.sources} isGetType={item.isGetType}
+                  itemLimit={this.state.categoryLimits[index]} />
               )}
             </Col>
           </Panel>

@@ -50,6 +50,33 @@ export class SinglePanel extends PureComponent {
     }
   }
 
+  shouldComponentUpdate (nextProps, nextState) {
+    const mapId = this.props.mapId;
+    const { type } = nextProps.panelsProperties.panels[mapId];
+    let specificChangesHappening = false;
+    switch (type.toUpperCase()) {
+      case 'TIMESERIES':
+      case 'PROGTEMP':
+        specificChangesHappening = this.props.model !== nextProps.model ||
+                                   this.props.referenceTime !== nextProps.referenceTime ||
+                                   this.props.adagucProperties.cursor !== nextProps.adagucProperties.cursor;
+        break;
+      case 'ADAGUC':
+        specificChangesHappening = (this.props.adagucProperties.animationSettings !== nextProps.adagucProperties.animationSettings) ||
+                                   (this.props.panelsProperties.activePanelId !== nextProps.panelsProperties.activePanelId) ||
+                                   (this.props.panelsProperties.panels[mapId].layers !== nextProps.panelsProperties.panels[mapId].layers) ||
+                                   (this.props.panelsProperties.panels[mapId].baselayers !== nextProps.panelsProperties.panels[mapId].baselayers) ||
+                                   (this.props.drawProperties !== nextProps.drawProperties);
+        break;
+    }
+    return this.state !== nextState ||
+           this.props.isLoggedIn !== nextProps.isLoggedIn ||
+           this.props.mapProperties !== nextProps.mapProperties ||
+           this.props.panelsProperties.panelLayout !== nextProps.panelsProperties.panelLayout ||
+           this.props.panelsProperties.panels[mapId].type !== nextProps.panelsProperties.panels[mapId].type ||
+           this.props.adagucProperties.timeDimension !== nextProps.adagucProperties.timeDimension || specificChangesHappening;
+  }
+
   render () {
     const { title, mapProperties, dispatch, mapActions, mapId, panelsProperties, panelsActions, adagucActions } = this.props;
     const { activePanelId, panels, panelLayout } = panelsProperties;
@@ -247,6 +274,23 @@ class MapPanel extends PureComponent {
             <Col xs='6'>
               <SinglePanel isLoggedIn={isLoggedIn} mapId={3} {...this.props} referenceTime={this.state.referenceTime} progtempLocations={this.progtempLocations} model={this.state.model} />
             </Col>
+          </Col>
+        </Row>);
+      case 'quadsigmet':
+        return (<Row tag='main'>
+          <Col xs='4'>
+            <SinglePanel isLoggedIn={isLoggedIn} mapId={0} {...this.props} referenceTime={this.state.referenceTime} progtempLocations={this.progtempLocations} model={this.state.model} />
+          </Col>
+          <Col xs='5' style={{ flexDirection: 'column' }} >
+            <Row xs='6' style={{ flex: 1 }}>
+              <SinglePanel isLoggedIn={isLoggedIn} mapId={1} {...this.props} referenceTime={this.state.referenceTime} progtempLocations={this.progtempLocations} model={this.state.model} />
+            </Row>
+            <Row xs='6' style={{ flex: 1 }}>
+              <SinglePanel isLoggedIn={isLoggedIn} mapId={2} {...this.props} referenceTime={this.state.referenceTime} progtempLocations={this.progtempLocations} model={this.state.model} />
+            </Row>
+          </Col>
+          <Col xs='3'>
+            <SinglePanel isLoggedIn={isLoggedIn} mapId={3} {...this.props} referenceTime={this.state.referenceTime} progtempLocations={this.progtempLocations} model={this.state.model} />
           </Col>
         </Row>);
       case 'single':
