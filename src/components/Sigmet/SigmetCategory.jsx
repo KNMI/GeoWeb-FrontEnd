@@ -20,8 +20,8 @@ import Slider from 'rc-slider';
 import Tooltip from 'rc-tooltip';
 import PropTypes from 'prop-types';
 import { SIGMET_TEMPLATES, CHANGES, DIRECTIONS, UNITS_ALT } from './SigmetTemplates';
+import SigmetEditable from './SigmetEditable';
 import { clearNullPointersAndAncestors } from '../../utils/json';
-
 import { getPresetForPhenomenon } from './SigmetPresets';
 const createSliderWithTooltip = Slider.createSliderWithTooltip;
 const Range = createSliderWithTooltip(Slider.Range);
@@ -43,7 +43,7 @@ const FALLBACK_PARAMS = {
   firareas: [
     {
       location_indicator_icao: 'EHAA',
-      firname: 'AMSTERDAM FIR',
+      firname: 'FIR AMSTERDAM',
       areapreset: 'NL_FIR'
     }
   ],
@@ -870,6 +870,53 @@ class SigmetCategory extends Component {
   }
 
   render () {
+    const { title, icon, parentCollapsed, editable, toggleMethod, scrollAction } = this.props;
+    const notifications = !editable ? this.state.list.length : 0;
+    const maxSize = 1000;
+    const itemLimit = 5;
+    return <Card className='row accordion' style={{ flex: (this.state.isOpen || this.state.isClosing) ? 'auto' : null, minWidth: 0, flexWrap: 'nowrap' }}>
+      {parentCollapsed
+        ? <CardHeader className='row' style={{ minHeight: '2.5rem' }}>
+          <Col xs='auto'>
+            <Icon name={icon} />
+          </Col>
+          <Col xs='auto'>&nbsp;</Col>
+          <Col xs='auto'>
+            {notifications > 0 ? <Badge color='danger' pill className='collapsed'>{notifications}</Badge> : null}
+          </Col>
+        </CardHeader>
+        : <CardHeader onClick={maxSize > 0 ? toggleMethod : null} className={maxSize > 0 ? 'row' : 'row disabled'} title={title} style={{ minHeight: '2.5rem' }}>
+          <Col xs='auto'>
+            <Icon name={icon} />
+          </Col>
+          <Col style={{ marginLeft: '0.9rem' }}>
+            {title}
+          </Col>
+          <Col xs='auto'>
+            {notifications > 0 ? <Badge color='danger' pill>{notifications}</Badge> : null}
+          </Col>
+        </CardHeader>
+      }
+      <Row style={{ flex: 'auto', overflowY: 'auto' }} onScroll={scrollAction}>
+        <CollapseOmni className='CollapseOmni col' isOpen={this.state.isOpen} minSize={0} maxSize={maxSize}>
+          <CardBlock>
+            {(this.state.isOpen || this.state.isClosing)
+              ? <Row>
+                <Col className='btn-group-vertical' style={{ minWidth: 0, flexGrow: 1, minHeight: maxSize }}>
+                  {this.state.list.slice(0, itemLimit).map((item, index) => {
+                    return <SigmetEditable />;
+                  })}
+                </Col>
+              </Row>
+              : null
+            }
+          </CardBlock>
+        </CollapseOmni>
+      </Row>
+    </Card>;
+  }
+
+  render2 () {
     const { title, icon, parentCollapsed, editable, selectedIndex, toggleMethod, scrollAction, drawProperties } = this.props;
     let { itemLimit } = this.props;
     itemLimit = itemLimit || 5;
@@ -952,6 +999,7 @@ class SigmetCategory extends Component {
                       const selectedFir = availableFirs.filter((fr) => fr.firname === item.firname).shift();
                       const selectedDirection = DIRECTIONS.filter((dr) => dr.shortName === item.movement.dir).shift();
                       const selectedChange = CHANGES.filter((ch) => ch.shortName === item.change).shift();
+                      item.cancels = '52895503-251b-469c-a4c6-a46bcbdd8253';
                       if (item.cancels) {
                         return <Button tag='div' className={'Sigmet row' + (selectedIndex === index ? ' active' : '')}
                           key={index} onClick={(evt) => { this.handleSigmetClick(evt, index); }} title={item.phenomenonHRT} >
