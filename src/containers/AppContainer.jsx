@@ -1,9 +1,14 @@
 import React, { Component } from 'react';
+import { hot, setConfig } from 'react-hot-loader';
 import { hashHistory, Router } from 'react-router';
 import { Provider } from 'react-redux';
 import PropTypes from 'prop-types';
 
 class AppContainer extends Component {
+  constructor () {
+    super();
+    setConfig({ logLevel: 'debug' });
+  }
   shouldComponentUpdate () {
     return false;
   }
@@ -24,5 +29,4 @@ AppContainer.propTypes = {
   routes : PropTypes.object.isRequired,
   store  : PropTypes.object.isRequired
 };
-
-export default AppContainer;
+export default hot(module)(AppContainer)

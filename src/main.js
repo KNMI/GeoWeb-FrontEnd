@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import createStore from './store/createStore';
-import AppContainer from './containers/AppContainer';
+// import AppContainer from './containers/AppContainer';
 import routesDefinition from './routes';
 import 'font-awesome/css/font-awesome.css';
 
@@ -10,18 +10,30 @@ import 'font-awesome/css/font-awesome.css';
 // ========================================================
 const MOUNT_NODE = document.getElementById('root');
 
-let render = () => {
-  createStore({}, __DEV__).then((store) => {
-    const routes = routesDefinition(store);
-    ReactDOM.render(
-      <AppContainer store={store} routes={routes} />,
-      MOUNT_NODE
-    );
-  });
+let globalStore = null;
+
+let doTheRender = (AppContainer) => {
+  const routes = routesDefinition(globalStore);
+  ReactDOM.render(
+    <AppContainer store={globalStore} routes={routes} />,
+    MOUNT_NODE
+  );
+};
+
+let render = (AppContainer) => {
+  if (!globalStore) {
+    createStore({}, __DEV__).then((store) => {
+      globalStore = store;
+      doTheRender(AppContainer);
+    });
+  } else {
+    console.log('reusing store');
+    doTheRender(AppContainer);
+  }
 };
 
 // This code is excluded from production bundle
-if (__DEV__ && module.hot) {
+if (__DEV__) {
   // Development render functions
   const renderApp = render;
   const renderError = (error) => {
@@ -31,25 +43,27 @@ if (__DEV__ && module.hot) {
   };
 
   // Wrap render in try/catch
-  render = () => {
+  render = (AppContainer) => {
     try {
-      renderApp();
+      renderApp(AppContainer);
     } catch (error) {
       console.error(error);
       renderError(error);
     }
   };
 
-  // Setup hot module replacement
-  module.hot.accept('./routes/index', () =>
-    setImmediate(() => {
-      ReactDOM.unmountComponentAtNode(MOUNT_NODE);
-      render();
-    })
-  );
-}
+  // HMR interface
+  if (module.hot) {
+    // Capture hot update
+    const AppContainer = require('./containers/AppContainer').default;
 
+    module.hot.accept(['./routes/index'], () => {
+      ReactDOM.unmountComponentAtNode(MOUNT_NODE);
+      render(AppContainer);
+    });
+  }
+}
 // ========================================================
 // Go!
 // ========================================================
-render();
+render(require('./containers/AppContainer').default);
