@@ -14,7 +14,6 @@
     "lint": "eslint bin build config server src",
     "lint:fix": "better-npm-run lint -- --fix",
     "start": "better-npm-run start",
-    "serve": "better-npm-run serve",
     "dev": "better-npm-run dev",
     "test": "better-npm-run test",
     "test:dev": "better-npm-run test -- --watch",
@@ -72,16 +71,10 @@
         "DEBUG": "app:*"
       }
     },
-    "serve": {
+    "start": {
       "command": "webpack-dev-server --hot --port 3000 --config config/webpack.config.js",
       "env": {
         "NODE_ENV": "development",
-        "DEBUG": "app:*"
-      }
-    },
-    "start": {
-      "command": "node bin/dev-server",
-      "env": {
         "DEBUG": "app:*"
       }
     },
