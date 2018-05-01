@@ -14,6 +14,7 @@
     "lint": "eslint bin build config server src",
     "lint:fix": "better-npm-run lint -- --fix",
     "start": "better-npm-run start",
+    "serve": "better-npm-run serve",
     "dev": "better-npm-run dev",
     "test": "better-npm-run test",
     "test:dev": "better-npm-run test -- --watch",
@@ -71,6 +72,13 @@
         "DEBUG": "app:*"
       }
     },
+    "serve": {
+      "command": "webpack-dev-server --hot --port 3000 --config config/webpack.config.js",
+      "env": {
+        "NODE_ENV": "development",
+        "DEBUG": "app:*"
+      }
+    },
     "start": {
       "command": "node bin/dev-server",
       "env": {
@@ -125,6 +133,7 @@
     "react-copy-to-clipboard": "^5.0.0",
     "react-dom": "^15.6.1",
     "react-fa": "^5.0.0",
+    "react-hot-loader": "^4.1.2",
     "react-inlinesvg": "^0.7.1",
     "react-json-edit": "^0.3.1",
     "react-json-tree": "^0.11.0",
@@ -220,9 +229,9 @@
     "style-loader": "^0.19.0",
     "transform-runtime": "0.0.0",
     "url-loader": "^0.6.2",
-    "webpack": "^3.8.1",
-    "webpack-dev-middleware": "^1.12.0",
-    "webpack-hot-middleware": "^2.20.0",
+    "webpack": "^3.11.0",
+    "webpack-dev-server": "^2.11.1",
+    "webpack-cli": "^2.0.0",
     "yargs": "^10.0.3"
   },
   "pre-commit": [

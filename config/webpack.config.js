@@ -8,7 +8,9 @@ const __PROD__ = project.globals.__PROD__;
 
 debug('Creating awesome webpack configuration.');
 const webpackConfig = {
-  devServer: { historyApiFallback: true },
+  devServer: {
+    historyApiFallback: true
+  },
   name: 'client',
   target: 'web',
   devtool: project.compiler_devtool,
@@ -20,7 +22,6 @@ const webpackConfig = {
     extensions: ['.js', '.jsx', '.json'],
     enforceExtension: false
   },
-
   module: {}
 };
 // ------------------------------------
@@ -29,9 +30,10 @@ const webpackConfig = {
 const APP_ENTRY = project.paths.client('main.js');
 
 webpackConfig.entry = {
-  app: __DEV__
-    ? [APP_ENTRY].concat(`webpack-hot-middleware/client?path=${project.compiler_public_path}__webpack_hmr`)
-    : [APP_ENTRY],
+  app: [APP_ENTRY],
+  // app: __DEV__
+  //   ? [APP_ENTRY].concat(`webpack-hot-middleware/client?path=${project.compiler_public_path}__webpack_hmr`)
+  //   : [APP_ENTRY],
   libs: project.compiler_vendors
 };
 
@@ -63,9 +65,9 @@ webpackConfig.plugins = [
   new CopyWebpackPlugin([
     { from: 'src/static' }
   ]),
-  new webpack.optimize.CommonsChunkPlugin({
-    name: 'commons'
-  }),
+  // new webpack.optimize.CommonsChunkPlugin({
+  //   name: 'commons'
+  // }),
   new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/)
 ];
 
@@ -82,7 +84,8 @@ if (__DEV__) {
         collapseWhitespace: true
       }
     }),
-    new webpack.HotModuleReplacementPlugin(),
+    // new webpack.HotModuleReplacementPlugin(),
+    new webpack.NamedModulesPlugin(),
     new webpack.NoEmitOnErrorsPlugin()
   );
 } else if (__PROD__) {
