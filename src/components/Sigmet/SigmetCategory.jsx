@@ -904,7 +904,7 @@ class SigmetCategory extends Component {
               ? <Row>
                 <Col className='btn-group-vertical' style={{ minWidth: 0, flexGrow: 1, minHeight: maxSize }}>
                   {this.state.list.slice(0, itemLimit).map((item, index) => {
-                    return <SigmetEditable />;
+                    return <SigmetEditable key={index} />;
                   })}
                 </Col>
               </Row>

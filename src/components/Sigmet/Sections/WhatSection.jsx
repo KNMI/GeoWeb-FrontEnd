@@ -4,30 +4,30 @@ import PropTypes from 'prop-types';
 
 class WhatSection extends PureComponent {
   render () {
-    const { children } = this.props;
-    const phenomenon = children.filter(child => child.props.dataFunction === 'phenomenon');
-    const obsOrFcst = children.filter(child => child.props.dataFunction === 'obs_or_fcst');
-    const obsFcTime = children.filter(child => child.props.dataFunction === 'obsFcTime');
-    return <Col style={{ flexDirection: 'column' }}>
-      <Row style={{ flex: '0 auto' }}>
+    const children = {};
+    this.props.children.map(child => {
+      children[child.props.dataField] = child;
+    });
+    return <Col className='What'>
+      <Row>
         <Col xs='3'>
           <Badge color='success'>What</Badge>
         </Col>
         <Col xs='9'>
-          {phenomenon}
+          {children.phenomenon}
         </Col>
       </Row>
-      <Row style={{ flex: '0 auto' }}>
+      <Row>
         <Col xs={{ size: 9, offset: 3 }}>
-          {obsOrFcst}
+          {children.obs_or_fcst}
         </Col>
       </Row>
-      <Row style={{ flex: '0 auto' }}>
+      <Row>
         <Col xs={{ size: 2, offset: 1 }}>
           <Badge>At</Badge>
         </Col>
         <Col xs='9'>
-          {obsFcTime}
+          {children.obsFcTime}
         </Col>
       </Row>
     </Col>;

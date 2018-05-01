@@ -35,7 +35,7 @@ const LayerManagerPanel = (props) => <Async load={import('../components/LayerMan
 const MapPanel = (props) => <Async load={import('../components/MapPanel')} componentProps={props} />;
 const SidebarContainer = (props) => <Async load={import('../containers/Management/SidebarContainer')} componentProps={props} />;
 const ManagementPanel = (props) => <Async load={import('../components/Management/ManagementPanel')} componentProps={props} />;
-const SigmetsContainer = (props) => <Async load={import('../containers/SigmetsContainer')} componentProps={props} />;
+const SigmetsContainer = (props) => <Async load={import('../containers/Sigmet/SigmetsContainer')} componentProps={props} />;
 const mapStateToHeaderProps = state => ({
   title: 'header',
   user: state.userProperties,

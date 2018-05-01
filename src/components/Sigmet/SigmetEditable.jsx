@@ -13,11 +13,11 @@ class SigmetEditable extends PureComponent {
   render () {
     return <Button tag='div' className={'Sigmet row'}>
       <WhatSection>
-        <Typeahead filterBy={['name', 'code']} labelKey='name' dataFunction='phenomenon'
+        <Typeahead filterBy={['name', 'code']} labelKey='name' dataField='phenomenon'
           options={[ { name: 'eerste', code: 1 }, { name: 'tweede', code: 2 } ]} placeholder={'Select phenomenon'}
           clearButton />
-        <SwitchButton id='obs_or_fcst' name='obs_or_fcst' labelLeft='Observed' labelRight='Forecast' align='center' dataFunction='obs_or_fcst' />
-        <DateTimePicker style={{ width: '100%' }} dateFormat={DATE_FORMAT} timeFormat={TIME_FORMAT} utc dataFunction='obsFcTime'
+        <SwitchButton id='obs_or_fcst' name='obs_or_fcst' labelLeft='Observed' labelRight='Forecast' align='center' dataField='obs_or_fcst' />
+        <DateTimePicker style={{ width: '100%' }} dateFormat={DATE_FORMAT} timeFormat={TIME_FORMAT} utc dataField='obsFcTime'
           viewMode='time'
           value={moment.utc()}
         />
