@@ -1,74 +1,25 @@
 import React, { Component } from 'react';
 import { Col } from 'reactstrap';
+import PropTypes from 'prop-types';
+import produce from 'immer';
+import axios from 'axios';
 import Panel from '../../components/Panel';
 import CollapseOmni from '../../components/CollapseOmni';
-import { LOCAL_ACTION_TYPES, LOCAL_ACTIONS } from './SigmetActions';
+import { INITIAL_STATE, LOCAL_ACTION_TYPES, LOCAL_ACTIONS } from './SigmetActions';
 import ContainerHeader from './ContainerHeader';
 import SigmetsCategory from '../../components/Sigmet/SigmetsCategory';
 import MinifiedCategory from '../../components/Sigmet/MinifiedCategory';
+
+const ERROR_MSG = 'Could not retrieve SIGMETs:';
 
 class SigmetsContainer extends Component {
   constructor (props) {
     super(props);
     this.localDispatch = this.localDispatch.bind(this);
+    this.retrieveSigmets = this.retrieveSigmets.bind(this);
+    this.receivedSigmetsCallback = this.receivedSigmetsCallback.bind(this);
     this.toggleContainer = this.toggleContainer.bind(this);
-    this.state = {
-      categories: [
-        {
-          title: 'Open active SIGMETs',
-          ref: 'active-sigmets',
-          icon: 'folder-open',
-          sigmets: [],
-          allowedActions: {
-            isEditable: false,
-            isPublishable: false,
-            isCancelable: true,
-            isDeletable: false
-          }
-        },
-        {
-          title: 'Open concept SIGMETs',
-          ref: 'concept-sigmets',
-          icon: 'folder-open-o',
-          sigmets: [],
-          allowedActions: {
-            isEditable: true,
-            isPublishable: true,
-            isCancelable: false,
-            isDeletable: true
-          }
-        },
-        {
-          title: 'Create new SIGMET',
-          ref: 'add-sigmet',
-          icon: 'star-o',
-          sigmets: [],
-          allowedActions: {
-            isEditable: true,
-            isPublishable: false,
-            isCancelable: false,
-            isDeletable: true
-          }
-        },
-        {
-          title: 'Open archived SIGMETs',
-          ref: 'archived-sigmets',
-          icon: 'archive',
-          sigmets: [],
-          allowedActions: {
-            isEditable: false,
-            isPublishable: false,
-            isCancelable: false,
-            isDeletable: false
-          }
-        }
-      ],
-      phenomena: [],
-      parameters: {},
-      focussedCategoryRef: 'add-sigmet',
-      focussedSigmetIndex: 0,
-      isContainerOpen: true
-    };
+    this.state = INITIAL_STATE;
   }
 
   localDispatch (localAction) {
@@ -79,10 +30,52 @@ class SigmetsContainer extends Component {
     }
   }
 
+  retrieveSigmets () {
+    const endpoint = `${this.props.urls.BACKEND_SERVER_URL}/sigmet/getsigmetlist`;
+
+    let sigmets = [
+      { ref: 'active-sigmets', urlSuffix: '?active=true' },
+      { ref: 'concept-sigmets', urlSuffix: '?active=false&status=PRODUCTION' },
+      { ref: 'archived-sigmets', urlSuffix: '?active=false&status=CANCELLED' }
+    ];
+    sigmets.forEach((sigmet) => {
+      axios({
+        method: 'get',
+        url: `${endpoint}${sigmet.urlSuffix}`,
+        withCredentials: true,
+        responseType: 'json'
+      }).then(response => {
+        this.receivedSigmetsCallback(sigmet.ref, response);
+      }).catch(error => {
+        console.error(ERROR_MSG, sigmet.ref, error);
+      });
+    });
+  }
+
+  receivedSigmetsCallback (ref, response) {
+    if (response.status === 200 && response.data) {
+      if (response.data.nsigmets === 0 || !response.data.sigmets) {
+        response.data.sigmets = [];
+      }
+      this.setState(produce(this.state, draftState => {
+        const categoryIndex = draftState.categories.findIndex((category) => category.ref === ref);
+        draftState.categories[categoryIndex].sigmets.length = 0;
+        draftState.categories[categoryIndex].sigmets.push(...response.data.sigmets);
+      }));
+    } else {
+      console.error(ERROR_MSG, ref, response.status, response.data);
+    }
+  }
+
   toggleContainer (evt) {
-    this.setState({ isContainerOpen: !this.state.isContainerOpen });
-    this.setState({ isOpen: !this.state.isOpen });
     evt.preventDefault();
+    this.setState(produce(this.state, draftState => {
+      draftState.isContainerOpen = !draftState.isContainerOpen;
+    }));
+  }
+
+  componentDidMount () {
+    this.retrieveSigmets();
   }
 
   render () {
@@ -107,7 +100,9 @@ class SigmetsContainer extends Component {
 }
 
 SigmetsContainer.propTypes = {
-
+  urls: PropTypes.shape({
+    BACKEND_SERVER_URL: PropTypes.string
+  })
 };
 
 export default SigmetsContainer;

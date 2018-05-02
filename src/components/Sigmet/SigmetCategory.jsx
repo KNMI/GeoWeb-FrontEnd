@@ -876,7 +876,7 @@ class SigmetCategory extends Component {
     const itemLimit = 5;
     return <Card className='row accordion' style={{ flex: (this.state.isOpen || this.state.isClosing) ? 'auto' : null, minWidth: 0, flexWrap: 'nowrap' }}>
       {parentCollapsed
-        ? <CardHeader className='row' style={{ minHeight: '2.5rem' }}>
+        ? <CardHeader className='row'>
           <Col xs='auto'>
             <Icon name={icon} />
           </Col>
@@ -885,7 +885,7 @@ class SigmetCategory extends Component {
             {notifications > 0 ? <Badge color='danger' pill className='collapsed'>{notifications}</Badge> : null}
           </Col>
         </CardHeader>
-        : <CardHeader onClick={maxSize > 0 ? toggleMethod : null} className={maxSize > 0 ? 'row' : 'row disabled'} title={title} style={{ minHeight: '2.5rem' }}>
+        : <CardHeader onClick={maxSize > 0 ? toggleMethod : null} className={maxSize > 0 ? 'row' : 'row disabled'} title={title}>
           <Col xs='auto'>
             <Icon name={icon} />
           </Col>

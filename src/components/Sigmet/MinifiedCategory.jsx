@@ -8,7 +8,7 @@ class MinifiedCategory extends PureComponent {
     const { icon, sigmetCount } = this.props;
     return <Card className='SigmetsCategory row accordion'>
       <Col>
-        <CardHeader className='row' style={{ minHeight: '2.5rem' }}>
+        <CardHeader className='row'>
           <Col xs='auto'>
             <Icon name={icon} />
           </Col>
