@@ -109,6 +109,7 @@ class SigmetsContainer extends Component {
                     icon={category.icon}
                     isOpen={this.state.focussedCategoryRef === category.ref}
                     sigmets={category.sigmets}
+                    focussedSigmet={this.state.focussedSigmet}
                     dispatch={this.localDispatch}
                     actions={LOCAL_ACTIONS} />
                   : <MinifiedCategory key={category.ref}

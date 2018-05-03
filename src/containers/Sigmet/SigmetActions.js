@@ -8,6 +8,12 @@ export const LOCAL_ACTIONS = {
   toggleCategoryAction: (evt, ref) => ({ type: LOCAL_ACTION_TYPES.TOGGLE_CATEGORY, event: evt, ref: ref })
 };
 
+export const SIGMET_STATES = {
+  EDIT: 'EDIT',
+  READ: 'READ',
+  CANCEL: 'CANCEL'
+};
+
 export const INITIAL_STATE = {
   categories: [
     {
@@ -62,6 +68,9 @@ export const INITIAL_STATE = {
   phenomena: [],
   parameters: {},
   focussedCategoryRef: 'add-sigmet',
-  focussedSigmetIndex: 0,
+  focussedSigmet: {
+    uuid: '',
+    state: SIGMET_STATES.READ
+  },
   isContainerOpen: true
 };

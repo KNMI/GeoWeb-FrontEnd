@@ -6,7 +6,7 @@ class WhatSection extends PureComponent {
   render () {
     const children = {};
     this.props.children.map(child => {
-      children[child.props.dataField] = child;
+      children[child.props['data-field']] = child;
     });
     return <Col className='What'>
       <Row>

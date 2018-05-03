@@ -37,6 +37,8 @@
         overflow-y: scroll;
         flex: auto;
         .btn-group-vertical {
+          min-height: min-content;
+          max-height: min-content;
           min-width: 0;
           flex-grow: 1;
         }
