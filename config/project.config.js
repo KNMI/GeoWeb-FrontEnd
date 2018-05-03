@@ -31,7 +31,7 @@ const config = {
   // ----------------------------------
   // Compiler Configuration
   // ----------------------------------
-  compiler_devtool         : 'source-map',
+  compiler_devtool         : 'eval',
   compiler_hash_type       : 'hash',
   compiler_fail_on_warning : false,
   compiler_quiet           : false,
@@ -84,6 +84,8 @@ const config = {
     'validator'
   ],
   compiler_babel: {
+    cacheDirectory: true,
+    plugins: ['react-hot-loader/babel'],
     presets: ['es2015']
   }
 };
