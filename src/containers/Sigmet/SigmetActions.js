@@ -1,10 +1,11 @@
 export const LOCAL_ACTION_TYPES = {
-  TOGGLE_CONTAINER: 'TOGGLE_CONTAINER'
+  TOGGLE_CONTAINER: 'TOGGLE_CONTAINER',
+  TOGGLE_CATEGORY: 'TOGGLE_CATEGORY'
 };
 
 export const LOCAL_ACTIONS = {
   toggleContainerAction: (evt) => ({ type: LOCAL_ACTION_TYPES.TOGGLE_CONTAINER, event: evt }),
-  secondAction: (param) => ({ type: 'SECOND_ACTION', payload: param })
+  toggleCategoryAction: (evt, ref) => ({ type: LOCAL_ACTION_TYPES.TOGGLE_CATEGORY, event: evt, ref: ref })
 };
 
 export const INITIAL_STATE = {

@@ -7,48 +7,53 @@ import PropTypes from 'prop-types';
 
 class SigmetsCategory extends PureComponent {
   render () {
-    const { title, icon, sigmets, isOpen } = this.props;
+    const { typeRef, title, icon, sigmets, isOpen, dispatch, actions } = this.props;
     const maxSize = 1000;
     const itemLimit = 5;
-    return <Card className='SigmetsCategory row accordion'>
+    return <Card className={`SigmetsCategory row accordion${isOpen ? ' open' : ''}`}>
       <Col>
-        <CardHeader className='row' title={title} style={{ minHeight: '2.5rem' }}>
+        <CardHeader className='row' title={title} onClick={(evt) => dispatch(actions.toggleCategoryAction(evt, typeRef))}>
           <Col xs='auto'>
             <Icon name={icon} />
           </Col>
-          <Col style={{ marginLeft: '0.9rem' }}>
+          <Col>
             {title}
           </Col>
           <Col xs='auto'>
             {sigmets.length > 0 ? <Badge color='danger' pill>{sigmets.length}</Badge> : null}
           </Col>
         </CardHeader>
-        <Row style={{ flex: 'auto', overflowY: 'auto' }}>
-          <CollapseOmni className='CollapseOmni col' isOpen={isOpen} minSize={0} maxSize={maxSize}>
-            <CardBlock>
-              {isOpen
-                ? <Row>
-                  <Col className='btn-group-vertical' style={{ minWidth: 0, flexGrow: 1, minHeight: maxSize }}>
+        {isOpen
+          ? <Row>
+            <CollapseOmni className='CollapseOmni col' isOpen={isOpen} minSize={0} maxSize={maxSize}>
+              <CardBlock>
+                <Row>
+                  <Col className='btn-group-vertical' style={{ minHeight: maxSize }}>
                     {sigmets.slice(0, itemLimit).map((sigmet, index) => {
                       return <SigmetEditable key={index} />;
                     })}
                   </Col>
                 </Row>
-                : null
-              }
-            </CardBlock>
-          </CollapseOmni>
-        </Row>
+              </CardBlock>
+            </CollapseOmni>
+          </Row>
+          : null
+        }
       </Col>
     </Card>;
   }
 }
 
 SigmetsCategory.propTypes = {
+  typeRef: PropTypes.string,
   title: PropTypes.string,
   icon: PropTypes.string,
   sigmets: PropTypes.array,
-  isOpen: PropTypes.bool
+  isOpen: PropTypes.bool,
+  dispatch: PropTypes.func,
+  actions: PropTypes.shape({
+    toggleCategoryAction: PropTypes.func
+  })
 };
 
 export default SigmetsCategory;

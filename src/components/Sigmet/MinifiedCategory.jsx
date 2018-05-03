@@ -6,15 +6,13 @@ import PropTypes from 'prop-types';
 class MinifiedCategory extends PureComponent {
   render () {
     const { icon, sigmetCount } = this.props;
-    return <Card className='SigmetsCategory row accordion'>
+    return <Card className='SigmetsCategory row accordion minified'>
       <Col>
         <CardHeader className='row'>
-          <Col xs='auto'>
+          <Col>
             <Icon name={icon} />
-          </Col>
-          <Col xs='auto'>
             {sigmetCount > 0
-              ? <Badge color='danger' pill className='minified'>{sigmetCount}</Badge>
+              ? <Badge color='danger' pill>{sigmetCount}</Badge>
               : null
             }
           </Col>

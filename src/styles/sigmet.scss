@@ -1,7 +1,8 @@
 .SigmetsContainer {
   .ContainerHeader {
     .btn:not(:first-of-type) {
-      margin-left: 0.5rem;
+      margin-left: 0.33rem;
+      font-size: 0.8rem;
     }
   }
 
@@ -14,10 +15,50 @@
     min-width: 0;
     min-height: 2.5rem;
     flex-wrap: nowrap;
-    .badge.minified {
-      font-size: 68%;
-      padding: 0.23rem 0.3rem;
-      margin: -0.2rem 0.6rem 0.2rem -0.6rem;
+
+    > .col {
+      flex-direction: column;
+    }
+
+    .card-header {
+      flex: none;
+      .col:nth-child(2):not(.col-auto) {
+        padding-left: 0.9rem;
+      }
+      cursor: pointer;
+    }
+  }
+
+  .SigmetsCategory.open {
+    flex: 1;
+
+    > .col {
+      > .row:not(.card-header) {
+        overflow-y: scroll;
+        flex: auto;
+        .btn-group-vertical {
+          min-width: 0;
+          flex-grow: 1;
+        }
+      }
+    }
+  }
+
+  .SigmetsCategory.minified {
+    .card-header {
+      flex: inherit;
+      flex-direction: row;
+      padding: 0.2rem 0.2rem 0.5rem 0.7rem;
+      span.fa {
+        padding-top: 0.4rem;
+      }
+      span.badge {
+        font-size: 60%;
+        border-width: 0.08rem;
+        padding: 0.1rem 0.2rem;
+        max-height: 1rem;
+        margin-left: -0.5rem;
+      }
     }
   }
 }
