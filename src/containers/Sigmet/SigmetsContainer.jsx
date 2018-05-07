@@ -3,15 +3,31 @@ import { Col } from 'reactstrap';
 import PropTypes from 'prop-types';
 import produce from 'immer';
 import axios from 'axios';
+import moment from 'moment';
 import Panel from '../../components/Panel';
 import CollapseOmni from '../../components/CollapseOmni';
-import { INITIAL_STATE, LOCAL_ACTION_TYPES, LOCAL_ACTIONS } from './SigmetActions';
-import ContainerHeader from './ContainerHeader';
+import { INITIAL_STATE, SIGMET_STATES, LOCAL_ACTION_TYPES, LOCAL_ACTIONS } from './SigmetActions';
+import { SIGMET_TEMPLATES } from '../../components/Sigmet/SigmetTemplates';
+import ContainerHeader from '../../components/Sigmet/ContainerHeader';
 import SigmetsCategory from '../../components/Sigmet/SigmetsCategory';
 import MinifiedCategory from '../../components/Sigmet/MinifiedCategory';
 
 const ERROR_MSG = {
-  RETRIEVE_SIGMETS: 'Could not retrieve SIGMETs:'
+  RETRIEVE_SIGMETS: 'Could not retrieve SIGMETs:',
+  RETRIEVE_PARAMS: 'Could not retrieve SIGMET parameters',
+  RETRIEVE_PHENOMENA: 'Could not retrieve SIGMET phenomena'
+};
+
+const WARN_MSG = {
+  PREREQUISITES_NOT_MET: 'Not all prerequisites are met:'
+};
+
+/**
+* Generate a 'next-half-hour-rounded now Moment object
+* @return {moment} Moment-object with the current now in UTC rounded to the next half hour
+*/
+const getRoundedNow = () => {
+  return moment().utc().minutes() < 30 ? moment().utc().startOf('hour').minutes(30) : moment().utc().startOf('hour').add(1, 'hour');
 };
 
 class SigmetsContainer extends Component {
@@ -20,11 +36,20 @@ class SigmetsContainer extends Component {
     this.localDispatch = this.localDispatch.bind(this);
     this.retrieveSigmets = this.retrieveSigmets.bind(this);
     this.receivedSigmetsCallback = this.receivedSigmetsCallback.bind(this);
+    this.retrieveParameters = this.retrieveParameters.bind(this);
+    this.receivedParametersCallback = this.receivedParametersCallback.bind(this);
+    this.retrievePhenomena = this.retrievePhenomena.bind(this);
+    this.receivedPhenomenaCallback = this.receivedPhenomenaCallback.bind(this);
     this.toggleContainer = this.toggleContainer.bind(this);
     this.toggleCategory = this.toggleCategory.bind(this);
-    this.state = INITIAL_STATE;
+    this.addSigmet = this.addSigmet.bind(this);
+    this.state = produce(INITIAL_STATE, draftState => {});
   }
 
+  /**
+   * SigmetsContainer has its own state, this is the dispatch for updating the state
+   * @param {object} localAction Action-object containing the type and additional, action specific, parameters
+   */
   localDispatch (localAction) {
     switch (localAction.type) {
       case LOCAL_ACTION_TYPES.TOGGLE_CONTAINER:
@@ -32,6 +57,9 @@ class SigmetsContainer extends Component {
         break;
       case LOCAL_ACTION_TYPES.TOGGLE_CATEGORY:
         this.toggleCategory(localAction.event, localAction.ref);
+        break;
+      case LOCAL_ACTION_TYPES.ADD_SIGMET:
+        this.addSigmet(localAction.ref);
         break;
     }
   }
@@ -65,12 +93,95 @@ class SigmetsContainer extends Component {
       }
       this.setState(produce(this.state, draftState => {
         const categoryIndex = draftState.categories.findIndex((category) => category.ref === ref);
-        draftState.categories[categoryIndex].sigmets.length = 0;
-        draftState.categories[categoryIndex].sigmets.push(...response.data.sigmets);
+        if (!isNaN(categoryIndex) && categoryIndex > 0) {
+          draftState.categories[categoryIndex].sigmets.length = 0;
+          draftState.categories[categoryIndex].sigmets.push(...response.data.sigmets);
+        }
       }));
     } else {
       console.error(ERROR_MSG.RETRIEVE_SIGMETS, ref, response.status, response.data);
     }
+  }
+
+  retrieveParameters () {
+    const endpoint = `${this.props.urls.BACKEND_SERVER_URL}/sigmet/getsigmetparameters`;
+
+    axios({
+      method: 'get',
+      url: endpoint,
+      withCredentials: true,
+      responseType: 'json'
+    }).then(response => {
+      this.receivedParametersCallback(response);
+    }).catch(error => {
+      console.error(ERROR_MSG.RETRIEVE_PARAMS, error);
+    });
+  }
+
+  receivedParametersCallback (response) {
+    if (response.status === 200 && response.data) {
+      this.setState(produce(this.state, draftState => {
+        Object.assign(draftState.parameters, response.data);
+      }));
+      this.localDispatch({ type: LOCAL_ACTION_TYPES.ADD_SIGMET, ref: 'add-sigmet' });
+    } else {
+      console.error(ERROR_MSG.RETRIEVE_PARAMS, response.status, response.data);
+    }
+  }
+
+  retrievePhenomena () {
+    const endpoint = `${this.props.urls.BACKEND_SERVER_URL}/sigmet/getsigmetphenomena`;
+
+    axios({
+      method: 'get',
+      url: endpoint,
+      withCredentials: true,
+      responseType: 'json'
+    }).then(response => {
+      this.receivedPhenomenaCallback(response);
+    }).catch(error => {
+      console.error(ERROR_MSG.RETRIEVE_PHENOMENA, error);
+    });
+  }
+
+  receivedPhenomenaCallback (response) {
+    if (response.status === 200 && response.data) {
+      this.setState(produce(this.state, draftState => {
+        draftState.phenomena.length = 0;
+        draftState.phenomena.push(...response.data);
+      }));
+      this.localDispatch({ type: LOCAL_ACTION_TYPES.ADD_SIGMET, ref: 'add-sigmet' });
+    } else {
+      console.error(ERROR_MSG.RETRIEVE_PARAMS, response.status, response.data);
+    }
+  }
+
+  addSigmet (ref) {
+    if (this.state.parameters && Array.isArray(this.state.phenomena) && this.state.phenomena.length > 0) {
+      this.setState(produce(this.state, draftState => {
+        const newSigmet = produce(SIGMET_TEMPLATES.SIGMET, draftState => {
+          draftState.validdate = getRoundedNow().format();
+          draftState.validdate_end = getRoundedNow().add(this.state.parameters.maxhoursofvalidity, 'hour').format();
+          draftState.location_indicator_mwo = this.state.parameters.location_indicator_mwo;
+          draftState.location_indicator_icao = this.state.parameters.firareas[0].location_indicator_icao;
+          draftState.firname = this.state.parameters.firareas[0].firname;
+          draftState.change = this.state.parameters.change;
+        });
+        const categoryIndex = draftState.categories.findIndex((category) => category.ref === ref);
+        if (!isNaN(categoryIndex) && categoryIndex > 0) {
+          draftState.categories[categoryIndex].sigmets.push(newSigmet);
+        }
+      }));
+    } else {
+      console.warn(WARN_MSG.PREREQUISITES_NOT_MET, 'parameters:', this.state.parameters, 'phenomena:', this.state.phenomena);
+    }
+  }
+
+  editSigmet (uuid) {
+    this.setState(produce(this.state, draftState => {
+      draftState.focussedSigmet.uuid = uuid;
+      draftState.focussedSigmet.state = SIGMET_STATES.EDIT;
+    }));
   }
 
   toggleContainer (evt) {
@@ -90,6 +201,8 @@ class SigmetsContainer extends Component {
   }
 
   componentDidMount () {
+    this.retrieveParameters();
+    this.retrievePhenomena();
     this.retrieveSigmets();
   }
 
@@ -108,13 +221,14 @@ class SigmetsContainer extends Component {
                     title={category.title}
                     icon={category.icon}
                     isOpen={this.state.focussedCategoryRef === category.ref}
+                    stageActions={category.stageActions}
                     sigmets={category.sigmets}
                     focussedSigmet={this.state.focussedSigmet}
                     dispatch={this.localDispatch}
                     actions={LOCAL_ACTIONS} />
                   : <MinifiedCategory key={category.ref}
                     icon={category.icon}
-                    sigmetCount={category.sigmets.length} />;
+                    sigmetCount={(category.ref === 'add-sigmet') ? 0 : category.sigmets.length} />;
               })}
             </Col>
           </Panel>

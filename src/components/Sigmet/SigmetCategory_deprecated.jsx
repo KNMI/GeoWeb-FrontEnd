@@ -20,7 +20,7 @@ import Slider from 'rc-slider';
 import Tooltip from 'rc-tooltip';
 import PropTypes from 'prop-types';
 import { SIGMET_TEMPLATES, CHANGES, DIRECTIONS, UNITS_ALT } from './SigmetTemplates';
-import SigmetEditable from './SigmetEditable';
+import SigmetEditMode from './SigmetEditMode';
 import { clearNullPointersAndAncestors } from '../../utils/json';
 import { getPresetForPhenomenon } from './SigmetPresets';
 const createSliderWithTooltip = Slider.createSliderWithTooltip;
@@ -904,7 +904,7 @@ class SigmetCategory extends Component {
               ? <Row>
                 <Col className='btn-group-vertical' style={{ minWidth: 0, flexGrow: 1, minHeight: maxSize }}>
                   {this.state.list.slice(0, itemLimit).map((item, index) => {
-                    return <SigmetEditable key={index} />;
+                    return <SigmetEditMode key={index} />;
                   })}
                 </Col>
               </Row>

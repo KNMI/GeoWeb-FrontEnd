@@ -25,7 +25,7 @@
       .col:nth-child(2):not(.col-auto) {
         padding-left: 0.9rem;
       }
-      cursor: pointer;
+      cursor: not-allowed;
     }
   }
 
@@ -43,6 +43,12 @@
           flex-grow: 1;
         }
       }
+    }
+  }
+
+  .SigmetsCategory.openable {
+    .card-header {
+      cursor: pointer;
     }
   }
 
@@ -65,23 +71,31 @@
   }
 }
 
-.accordion .Sigmet {
+.accordion .Sigmet.btn {
   flex-direction: column;
   padding: 0.19rem;
   line-height: 1.4;
 
   .What {
-    flex-direction: column;
-    .row {
-      flex: 0 auto;
-    }
     .row:not(:first-of-type) {
       margin-top: 0.2rem;
     }
+    [data-field='phenomenon'] {
+      font-weight: bold;
+    }
   }
 
+  .Action {
+    border-top: 0.06rem solid #eee;
+    padding-top: 0.33rem;
+  }
+
+  .col {
+    flex-direction: column;
+  }
   .row {
     flex-direction: row;
+    flex: 0 auto;
   }
 
   .row.disabled {

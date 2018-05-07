@@ -10,7 +10,7 @@ import WhatSection from './Sections/WhatSection';
 const DATE_FORMAT = 'DD MMM YYYY';
 const TIME_FORMAT = 'HH:mm UTC';
 
-class SigmetEditable extends PureComponent {
+class SigmetEditMode extends PureComponent {
   render () {
     const { uuid } = this.props;
     return <Button tag='div' className={'Sigmet row'} id={uuid}>
@@ -28,8 +28,8 @@ class SigmetEditable extends PureComponent {
   }
 }
 
-SigmetEditable.propTypes = {
+SigmetEditMode.propTypes = {
   uuid: PropTypes.string
 };
 
-export default SigmetEditable;
+export default SigmetEditMode;

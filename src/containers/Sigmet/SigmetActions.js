@@ -1,11 +1,15 @@
 export const LOCAL_ACTION_TYPES = {
   TOGGLE_CONTAINER: 'TOGGLE_CONTAINER',
-  TOGGLE_CATEGORY: 'TOGGLE_CATEGORY'
+  TOGGLE_CATEGORY: 'TOGGLE_CATEGORY',
+  ADD_SIGMET: 'ADD_SIGMET',
+  EDIT_SIGMET: 'EDIT_SIGMET'
 };
 
 export const LOCAL_ACTIONS = {
   toggleContainerAction: (evt) => ({ type: LOCAL_ACTION_TYPES.TOGGLE_CONTAINER, event: evt }),
-  toggleCategoryAction: (evt, ref) => ({ type: LOCAL_ACTION_TYPES.TOGGLE_CATEGORY, event: evt, ref: ref })
+  toggleCategoryAction: (evt, ref) => ({ type: LOCAL_ACTION_TYPES.TOGGLE_CATEGORY, event: evt, ref: ref }),
+  addSigmetAction: (ref) => ({ type: LOCAL_ACTION_TYPES.ADD_SIGMET, ref: ref }),
+  editSigmetAction: (uuid) => ({ type: LOCAL_ACTION_TYPES.EDIT_SIGMET, uuid: uuid })
 };
 
 export const SIGMET_STATES = {
@@ -21,7 +25,7 @@ export const INITIAL_STATE = {
       ref: 'active-sigmets',
       icon: 'folder-open',
       sigmets: [],
-      allowedActions: {
+      stageActions: {
         isEditable: false,
         isPublishable: false,
         isCancelable: true,
@@ -33,7 +37,7 @@ export const INITIAL_STATE = {
       ref: 'concept-sigmets',
       icon: 'folder-open-o',
       sigmets: [],
-      allowedActions: {
+      stageActions: {
         isEditable: true,
         isPublishable: true,
         isCancelable: false,
@@ -45,7 +49,7 @@ export const INITIAL_STATE = {
       ref: 'add-sigmet',
       icon: 'star-o',
       sigmets: [],
-      allowedActions: {
+      stageActions: {
         isEditable: true,
         isPublishable: false,
         isCancelable: false,
@@ -57,19 +61,20 @@ export const INITIAL_STATE = {
       ref: 'archived-sigmets',
       icon: 'archive',
       sigmets: [],
-      allowedActions: {
+      stageActions: {
         isEditable: false,
         isPublishable: false,
         isCancelable: false,
-        isDeletable: false
+        isDeletable: false,
+        isCloneable: false
       }
     }
   ],
   phenomena: [],
   parameters: {},
-  focussedCategoryRef: 'add-sigmet',
+  focussedCategoryRef: null,
   focussedSigmet: {
-    uuid: '',
+    uuid: null,
     state: SIGMET_STATES.READ
   },
   isContainerOpen: true

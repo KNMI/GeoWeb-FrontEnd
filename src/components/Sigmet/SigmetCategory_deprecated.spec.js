@@ -1,5 +1,5 @@
 import React from 'react';
-import { default as SigmetCategory } from './SigmetCategory';
+import { default as SigmetCategory } from './SigmetCategory_deprecated';
 import { mount } from 'enzyme';
 import moxios from 'moxios';
 import { BACKEND_SERVER_URL } from '../../static/urls.json';

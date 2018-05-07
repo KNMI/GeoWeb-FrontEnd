@@ -4,17 +4,18 @@ import CollapseOmni from '../../components/CollapseOmni';
 import Icon from 'react-fa';
 import PropTypes from 'prop-types';
 import { SIGMET_STATES } from '../../containers/Sigmet/SigmetActions';
-import SigmetEditable from './SigmetEditable';
-import SigmetReadable from './SigmetReadable';
+import SigmetEditMode from './SigmetEditMode';
+import SigmetReadMode from './SigmetReadMode';
 
 class SigmetsCategory extends PureComponent {
   render () {
-    const { typeRef, title, icon, sigmets, focussedSigmet, isOpen, dispatch, actions } = this.props;
+    const { typeRef, title, icon, sigmets, focussedSigmet, isOpen, dispatch, actions, stageActions } = this.props;
     const maxSize = 1000;
     const itemLimit = 15;
-    return <Card className={`SigmetsCategory row accordion${isOpen ? ' open' : ''}`}>
+    const isOpenable = (isOpen || (!isOpen && sigmets.length > 0));
+    return <Card className={`SigmetsCategory row accordion${isOpen ? ' open' : ''}${isOpenable ? ' openable' : ''}`}>
       <Col>
-        <CardHeader className='row' title={title} onClick={(evt) => dispatch(actions.toggleCategoryAction(evt, typeRef))}>
+        <CardHeader className='row' title={title} onClick={isOpenable ? (evt) => dispatch(actions.toggleCategoryAction(evt, typeRef)) : null}>
           <Col xs='auto'>
             <Icon name={icon} />
           </Col>
@@ -22,7 +23,12 @@ class SigmetsCategory extends PureComponent {
             {title}
           </Col>
           <Col xs='auto'>
-            {sigmets.length > 0 ? <Badge color='danger' pill>{sigmets.length}</Badge> : null}
+            {sigmets.length > 0
+              ? (sigmets.length === 1 && typeRef === 'add-sigmet')
+                ? <Badge color='danger' pill><Icon name='plus' /></Badge>
+                : <Badge color='danger' pill>{sigmets.length}</Badge>
+              : null
+            }
           </Col>
         </CardHeader>
         {isOpen
@@ -35,10 +41,14 @@ class SigmetsCategory extends PureComponent {
                       if (focussedSigmet.uuid === sigmet.uuid) {
                         switch (focussedSigmet.state) {
                           case SIGMET_STATES.EDIT:
-                            return <SigmetEditable key={index} uuid={sigmet.uuid} />;
+                            return <SigmetEditMode key={index} uuid={sigmet.uuid} />;
                         }
                       }
-                      return <SigmetReadable key={sigmet.uuid}
+                      return <SigmetReadMode key={sigmet.uuid}
+                        dispatch={dispatch}
+                        actions={actions}
+                        {...stageActions}
+                        uuid={sigmet.uuid}
                         phenomenon={sigmet.phenomenon}
                         isObserved={!(sigmet.obs_or_forecast && sigmet.obs_or_forecast.obsFcTime)} />;
                     })}
@@ -64,6 +74,13 @@ SigmetsCategory.propTypes = {
     state: PropTypes.string
   }),
   isOpen: PropTypes.bool,
+  stageActions: PropTypes.shape({
+    isEditable: PropTypes.bool,
+    isPublishable: PropTypes.bool,
+    isCancelable: PropTypes.bool,
+    isDeletable: PropTypes.bool,
+    isCloneable: PropTypes.bool
+  }),
   dispatch: PropTypes.func,
   actions: PropTypes.shape({
     toggleCategoryAction: PropTypes.func
