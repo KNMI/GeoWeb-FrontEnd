@@ -365,6 +365,7 @@ export default class Adaguc extends PureComponent {
             currDataLayers[i].currentStyle !== nextDataLayers[i].currentStyle ||
             currDataLayers[i].opacity !== nextDataLayers[i].opacity ||
             currDataLayers[i].active !== nextDataLayers[i].active ||
+            currDataLayers[i].dimensions.filter((dim) => !dim.name.includes('time')) !== nextDataLayers[i].dimensions.filter((dim) => !dim.name.includes('time')) ||
             currDataLayers[i].enabled !== nextDataLayers[i].enabled) {
           change = true;
           break;
