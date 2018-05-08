@@ -4,14 +4,12 @@ import PropTypes from 'prop-types';
 
 class ActionSection extends PureComponent {
   render () {
-    const { children } = this.props;
-
-    console.log('AS', children);
-    const offset = 12 - children.length * 2;
+    const { children, colSize } = this.props;
+    const childrenSize = children.length * colSize;
     return <Row className='Action'>
       <Col>
         <Row>
-          <Col xs={{ size: 2 * children.length, offset: offset }}>
+          <Col xs={{ size: childrenSize, offset: 12 - childrenSize }}>
             {children}
           </Col>
         </Row>
@@ -21,7 +19,8 @@ class ActionSection extends PureComponent {
 }
 
 ActionSection.propTypes = {
-  children: PropTypes.arrayOf(PropTypes.element)
+  children: PropTypes.arrayOf(PropTypes.element),
+  colSize: PropTypes.number
 };
 
 export default ActionSection;

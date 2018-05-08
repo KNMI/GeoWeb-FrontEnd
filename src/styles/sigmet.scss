@@ -71,8 +71,9 @@
   }
 }
 
-.accordion .Sigmet.btn {
+.accordion .Sigmet.btn.row {
   flex-direction: column;
+  flex: 0 auto;
   padding: 0.19rem;
   line-height: 1.4;
 
@@ -164,6 +165,20 @@
   }
 }
 
-.accordion .Sigmet.btn-secondary:hover {
+.accordion .Sigmet.btn-secondary.focus {
+  background-color: #c5edff;
+  border-color: #aaa;
+  border-right-width: 0.1rem;
+  border-bottom-width: 0.1rem;
+  border-radius: 0.2rem;
+  box-shadow: none;
+  cursor: default;
+}
+
+.accordion .Sigmet.btn-secondary:not(.focus) {
+  cursor: pointer;
+}
+
+.accordion .Sigmet.btn-secondary:not(.focus):hover {
   background-color: #d5f4ff;
 }

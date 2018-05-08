@@ -870,53 +870,6 @@ class SigmetCategory extends Component {
   }
 
   render () {
-    const { title, icon, parentCollapsed, editable, toggleMethod, scrollAction } = this.props;
-    const notifications = !editable ? this.state.list.length : 0;
-    const maxSize = 1000;
-    const itemLimit = 5;
-    return <Card className='row accordion' style={{ flex: (this.state.isOpen || this.state.isClosing) ? 'auto' : null, minWidth: 0, flexWrap: 'nowrap' }}>
-      {parentCollapsed
-        ? <CardHeader className='row'>
-          <Col xs='auto'>
-            <Icon name={icon} />
-          </Col>
-          <Col xs='auto'>&nbsp;</Col>
-          <Col xs='auto'>
-            {notifications > 0 ? <Badge color='danger' pill className='collapsed'>{notifications}</Badge> : null}
-          </Col>
-        </CardHeader>
-        : <CardHeader onClick={maxSize > 0 ? toggleMethod : null} className={maxSize > 0 ? 'row' : 'row disabled'} title={title}>
-          <Col xs='auto'>
-            <Icon name={icon} />
-          </Col>
-          <Col style={{ marginLeft: '0.9rem' }}>
-            {title}
-          </Col>
-          <Col xs='auto'>
-            {notifications > 0 ? <Badge color='danger' pill>{notifications}</Badge> : null}
-          </Col>
-        </CardHeader>
-      }
-      <Row style={{ flex: 'auto', overflowY: 'auto' }} onScroll={scrollAction}>
-        <CollapseOmni className='CollapseOmni col' isOpen={this.state.isOpen} minSize={0} maxSize={maxSize}>
-          <CardBlock>
-            {(this.state.isOpen || this.state.isClosing)
-              ? <Row>
-                <Col className='btn-group-vertical' style={{ minWidth: 0, flexGrow: 1, minHeight: maxSize }}>
-                  {this.state.list.slice(0, itemLimit).map((item, index) => {
-                    return <SigmetEditMode key={index} />;
-                  })}
-                </Col>
-              </Row>
-              : null
-            }
-          </CardBlock>
-        </CollapseOmni>
-      </Row>
-    </Card>;
-  }
-
-  render2 () {
     const { title, icon, parentCollapsed, editable, selectedIndex, toggleMethod, scrollAction, drawProperties } = this.props;
     let { itemLimit } = this.props;
     itemLimit = itemLimit || 5;

@@ -142,7 +142,8 @@ class SigmetsContainer extends Component {
                     sigmets={category.sigmets}
                     focussedSigmet={this.state.focussedSigmet}
                     dispatch={this.localDispatch}
-                    actions={LOCAL_ACTIONS} />
+                    actions={LOCAL_ACTIONS}
+                    phenomena={this.state.phenomena} />
                   : <MinifiedCategory key={category.ref}
                     icon={category.icon}
                     sigmetCount={(category.ref === CATEGORY_REFS.ADD_SIGMET) ? 0 : category.sigmets.length} />;

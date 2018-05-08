@@ -25,6 +25,9 @@ const toggleContainer = (evt, container) => {
 const toggleCategory = (evt, ref, container) => {
   evt.preventDefault();
   container.setState(produce(container.state, draftState => {
+    if (ref === CATEGORY_REFS.ADD_SIGMET && ref !== draftState.focussedCategoryRef) {
+      draftState.focussedSigmet.mode = SIGMET_MODES.EDIT;
+    }
     draftState.focussedCategoryRef = (draftState.focussedCategoryRef === ref)
       ? ''
       : ref;
@@ -48,9 +51,57 @@ const updateParameters = (parameters, container) => {
 };
 
 const updatePhenomena = (phenomena, container) => {
+  const SEPARATOR = '_';
+
   container.setState(produce(container.state, draftState => {
-    draftState.phenomena.length = 0;
-    draftState.phenomena.push(...phenomena);
+    if (Array.isArray(phenomena)) {
+      draftState.phenomena.length = 0;
+      phenomena.forEach((item) => {
+        if (item.variants.length === 0) {
+          const res = {
+            name: item.phenomenon.name,
+            code: item.phenomenon.code,
+            layerpreset: item.phenomenon.layerpreset
+          };
+          item.additions.forEach((addition) => {
+            draftState.phenomena.push({
+              name: res.name + ' ' + addition.name,
+              code: res.code + SEPARATOR + addition.code,
+              layerpreset: item.phenomenon.layerpreset
+            });
+          });
+          draftState.phenomena.push(res);
+        } else {
+          item.variants.forEach((variant) => {
+            const res = {
+              name: variant.name + ' ' + item.phenomenon.name.toLowerCase(),
+              code: variant.code + SEPARATOR + item.phenomenon.code,
+              layerpreset: item.phenomenon.layerpreset
+            };
+            item.additions.forEach((addition) => {
+              draftState.phenomena.push({
+                name: res.name + ' ' + addition.name,
+                code: res.code + addition.code,
+                layerpreset: item.phenomenon.layerpreset
+              });
+            });
+            draftState.phenomena.push(res);
+          });
+        }
+      });
+    }
+  }));
+};
+
+const focusSigmet = (evt, uuid, container) => {
+  evt.preventDefault();
+  container.setState(produce(container.state, draftState => {
+    if (draftState.focussedSigmet.mode === SIGMET_MODES.EDIT) {
+      console.warn('focusSigmet: switching the focus while in edit mode is not yet implemented (otherwise it will unintentionally discard changes)');
+    } else {
+      draftState.focussedSigmet.uuid = uuid;
+      draftState.focussedSigmet.mode = SIGMET_MODES.READ;
+    }
   }));
 };
 
@@ -82,8 +133,42 @@ const addSigmet = (ref, container) => {
   }
 };
 
+const updateSigmet = (uuid, dataField, value, container) => {
+  container.setState(produce(container.state, draftState => {
+    if (dataField) {
+      let sigmetIndex = -1;
+      const categoryIndex = draftState.categories.findIndex((category) => {
+        sigmetIndex = category.sigmets.findIndex((sigmet) => sigmet.uuid === uuid);
+        return sigmetIndex !== -1;
+      });
+      if (categoryIndex !== -1 && sigmetIndex !== -1) {
+        if (dataField === 'phenomenon' && Array.isArray(value)) {
+          if (value.length === 0) {
+            value = '';
+          } else {
+            value = value[0].code;
+          }
+        }
+        draftState.categories[categoryIndex].sigmets[sigmetIndex][dataField] = value;
+      }
+    }
+  }));
+  console.warn('updateSigmet is not yet implemented');
+};
+
+const clearSigmet = (event, uuid, container) => {
+  console.warn('clearSigmet is not yet implemented');
+};
+
+const discardSigmet = (event, uuid, container) => {
+  console.warn('discardSigmet is not yet implemented');
+};
+
+const saveSigmet = (event, uuid, container) => {
+  console.warn('saveSigmet is not yet implemented');
+};
+
 const editSigmet = (event, uuid, container) => {
-  console.warn('editSigmet is not yet implemented');
   container.setState(produce(container.state, draftState => {
     draftState.focussedSigmet.uuid = uuid;
     draftState.focussedSigmet.mode = SIGMET_MODES.EDIT;
@@ -130,8 +215,23 @@ export const localDispatch = (localAction, container) => {
     case LOCAL_ACTION_TYPES.UPDATE_PHENOMENA:
       updatePhenomena(localAction.phenomena, container);
       break;
+    case LOCAL_ACTION_TYPES.FOCUS_SIGMET:
+      focusSigmet(localAction.event, localAction.uuid, container);
+      break;
     case LOCAL_ACTION_TYPES.ADD_SIGMET:
       addSigmet(localAction.ref, container);
+      break;
+    case LOCAL_ACTION_TYPES.UPDATE_SIGMET:
+      updateSigmet(localAction.uuid, localAction.dataField, localAction.value, container);
+      break;
+    case LOCAL_ACTION_TYPES.CLEAR_SIGMET:
+      clearSigmet(localAction.event, localAction.uuid, container);
+      break;
+    case LOCAL_ACTION_TYPES.DISCARD_SIGMET:
+      discardSigmet(localAction.event, localAction.uuid, container);
+      break;
+    case LOCAL_ACTION_TYPES.SAVE_SIGMET:
+      saveSigmet(localAction.event, localAction.uuid, container);
       break;
     case LOCAL_ACTION_TYPES.EDIT_SIGMET:
       editSigmet(localAction.event, localAction.uuid, container);

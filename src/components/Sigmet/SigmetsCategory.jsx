@@ -9,8 +9,8 @@ import SigmetReadMode from './SigmetReadMode';
 
 class SigmetsCategory extends PureComponent {
   render () {
-    const { typeRef, title, icon, sigmets, focussedSigmet, isOpen, dispatch, actions, abilities } = this.props;
-    const maxSize = 1000;
+    const { typeRef, title, icon, sigmets, focussedSigmet, isOpen, dispatch, actions, abilities, phenomena } = this.props;
+    const maxSize = 10000; // for now, arbitrairy big
     const itemLimit = 15;
     const isOpenable = (isOpen || (!isOpen && sigmets.length > 0));
     return <Card className={`SigmetsCategory row accordion${isOpen ? ' open' : ''}${isOpenable ? ' openable' : ''}`}>
@@ -38,20 +38,21 @@ class SigmetsCategory extends PureComponent {
                 <Row>
                   <Col className='btn-group-vertical'>
                     {sigmets.slice(0, itemLimit).map((sigmet, index) => {
-                      if (focussedSigmet.uuid === sigmet.uuid) {
-                        switch (focussedSigmet.mode) {
-                          case SIGMET_MODES.EDIT:
-                            return <SigmetEditMode key={sigmet.uuid}
-                              dispatch={dispatch}
-                              actions={actions}
-                              abilities={abilities}
-                              uuid={sigmet.uuid} />;
-                        }
+                      if (focussedSigmet.uuid === sigmet.uuid && focussedSigmet.mode === SIGMET_MODES.EDIT) {
+                        return <SigmetEditMode key={sigmet.uuid}
+                          dispatch={dispatch}
+                          actions={actions}
+                          abilities={abilities[SIGMET_MODES.EDIT]}
+                          availablePhenomena={phenomena}
+                          phenomenon={sigmet.phenomenon}
+                          focus
+                          uuid={sigmet.uuid} />;
                       }
                       return <SigmetReadMode key={sigmet.uuid}
                         dispatch={dispatch}
                         actions={actions}
-                        abilities={abilities}
+                        abilities={abilities[SIGMET_MODES.READ]}
+                        focus={focussedSigmet.uuid === sigmet.uuid}
                         uuid={sigmet.uuid}
                         phenomenon={sigmet.phenomenon}
                         isObserved={!(sigmet.obs_or_forecast && sigmet.obs_or_forecast.obsFcTime)} />;
@@ -78,6 +79,7 @@ SigmetsCategory.propTypes = {
   title: PropTypes.string,
   icon: PropTypes.string,
   sigmets: PropTypes.array,
+  phenomena: PropTypes.array,
   focussedSigmet: PropTypes.shape({
     uuid: PropTypes.string,
     state: PropTypes.string

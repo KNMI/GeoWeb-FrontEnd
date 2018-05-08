@@ -10,15 +10,17 @@ const DATE_TIME_FORMAT = 'DD MMM YYYY HH:mm UTC';
 
 class SigmetReadMode extends PureComponent {
   render () {
-    const { dispatch, actions, abilities, uuid, phenomenon, isObserved, obsFcTime } = this.props;
+    const { dispatch, actions, abilities, focus, uuid, phenomenon, isObserved, obsFcTime } = this.props;
     const abilityCtAs = []; // CtA = Call To Action
-    Object.values(READ_ABILITIES).map((ability) => {
-      if (abilities[ability.check] === true) {
-        abilityCtAs.push(ability);
-      }
-    });
-    abilityCtAs.sort(byReadAbilities);
-    return <Button tag='div' className={'Sigmet row'}>
+    if (focus) {
+      Object.values(READ_ABILITIES).map((ability) => {
+        if (abilities[ability.check] === true) {
+          abilityCtAs.push(ability);
+        }
+      });
+      abilityCtAs.sort(byReadAbilities);
+    }
+    return <Button tag='div' className={`Sigmet row${focus ? ' focus' : ''}`} onClick={!focus ? (evt) => dispatch(actions.focusSigmetAction(evt, uuid)) : null}>
       <Col>
         <WhatSection>
           <span data-field='phenomenon'>{phenomenon}</span>
@@ -33,7 +35,7 @@ class SigmetReadMode extends PureComponent {
             </span>
           }
         </WhatSection>
-        <ActionSection>
+        <ActionSection colSize={2}>
           {abilityCtAs.map((ability) =>
             <Button key={`action-${ability.dataField}`}
               data-field={ability.dataField}
@@ -59,9 +61,11 @@ SigmetReadMode.propTypes = {
     editSigmetAction: PropTypes.func,
     publishSigmetAction: PropTypes.func,
     cancelSigmetAction: PropTypes.func,
-    deleteSigmetAction: PropTypes.func
+    deleteSigmetAction: PropTypes.func,
+    focusSigmetAction: PropTypes.func
   }),
   abilities: PropTypes.shape(abilitiesPropTypes),
+  focus: PropTypes.bool,
   uuid: PropTypes.string,
   phenomenon: PropTypes.string,
   isObserved: PropTypes.bool,

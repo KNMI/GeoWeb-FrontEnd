@@ -4,7 +4,12 @@ export const LOCAL_ACTION_TYPES = {
   UPDATE_CATEGORY: 'UPDATE_CATEGORY',
   UPDATE_PARAMETERS: 'UPDATE_PARAMETERS',
   UPDATE_PHENOMENA: 'UPDATE_PHENOMENA',
+  FOCUS_SIGMET: 'FOCUS_SIGMET',
   ADD_SIGMET: 'ADD_SIGMET',
+  UPDATE_SIGMET: 'UPDATE_SIGMET',
+  CLEAR_SIGMET: 'CLEAR_SIGMET',
+  DISCARD_SIGMET: 'DISCARD_SIGMET',
+  SAVE_SIGMET: 'SAVE_SIGMET',
   EDIT_SIGMET: 'EDIT_SIGMET',
   DELETE_SIGMET: 'DELETE_SIGMET',
   COPY_SIGMET: 'COPY_SIGMET',
@@ -18,7 +23,12 @@ export const LOCAL_ACTIONS = {
   updateCategoryAction: (ref, sigmets) => ({ type: LOCAL_ACTION_TYPES.UPDATE_CATEGORY, ref: ref, sigmets: sigmets }),
   updateParametersAction: (parameters) => ({ type: LOCAL_ACTION_TYPES.UPDATE_PARAMETERS, parameters: parameters }),
   updatePhenomenaAction: (phenomena) => ({ type: LOCAL_ACTION_TYPES.UPDATE_PHENOMENA, phenomena: phenomena }),
+  focusSigmetAction: (evt, uuid) => ({ type: LOCAL_ACTION_TYPES.FOCUS_SIGMET, event: evt, uuid: uuid }),
   addSigmetAction: (ref) => ({ type: LOCAL_ACTION_TYPES.ADD_SIGMET, ref: ref }),
+  updateSigmetAction: (uuid, dataField, value) => ({ type: LOCAL_ACTION_TYPES.UPDATE_SIGMET, uuid: uuid, dataField: dataField, value: value }),
+  clearSigmetAction: (evt, uuid) => ({ type: LOCAL_ACTION_TYPES.CLEAR_SIGMET, event: evt, uuid: uuid }),
+  discardSigmetAction: (evt, uuid) => ({ type: LOCAL_ACTION_TYPES.DISCARD_SIGMET, event: evt, uuid: uuid }),
+  saveSigmetAction: (evt, uuid) => ({ type: LOCAL_ACTION_TYPES.SAVE_SIGMET, event: evt, uuid: uuid }),
   editSigmetAction: (evt, uuid) => ({ type: LOCAL_ACTION_TYPES.EDIT_SIGMET, event: evt, uuid: uuid }),
   deleteSigmetAction: (evt, uuid) => ({ type: LOCAL_ACTION_TYPES.DELETE_SIGMET, event: evt, uuid: uuid }),
   copySigmetAction: (evt, uuid) => ({ type: LOCAL_ACTION_TYPES.COPY_SIGMET, event: evt, uuid: uuid }),
@@ -34,11 +44,21 @@ export const SIGMET_MODES = {
 export const EDIT_ABILITIES = {
   CLEAR: {
     'dataField': 'clear',
-    'check': 'isClearable'
+    'label': 'Clear',
+    'check': 'isClearable',
+    'action': 'clearSigmetAction'
+  },
+  DISCARD: {
+    'dataField': 'discard',
+    'label': 'Discard changes',
+    'check': 'isDiscardable',
+    'action': 'discardSigmetAction'
   },
   SAVE: {
     'dataField': 'save',
-    'check': 'isSavable'
+    'label': 'Save',
+    'check': 'isSavable',
+    'action': 'saveSigmetAction'
   }
 };
 
@@ -142,34 +162,48 @@ const STATE = {
 
 // active-sigmets
 STATE.categories[0].ref = CATEGORY_REFS.ACTIVE_SIGMETS;
-STATE.categories[0].abilities[READ_ABILITIES.CANCEL.check] = true;
-STATE.categories[0].abilities[READ_ABILITIES.DELETE.check] = false;
-STATE.categories[0].abilities[READ_ABILITIES.EDIT.check] = false;
-STATE.categories[0].abilities[READ_ABILITIES.COPY.check] = true;
-STATE.categories[0].abilities[READ_ABILITIES.PUBLISH.check] = false;
+STATE.categories[0].abilities[SIGMET_MODES.READ] = {};
+STATE.categories[0].abilities[SIGMET_MODES.READ][READ_ABILITIES.CANCEL.check] = true;
+STATE.categories[0].abilities[SIGMET_MODES.READ][READ_ABILITIES.DELETE.check] = false;
+STATE.categories[0].abilities[SIGMET_MODES.READ][READ_ABILITIES.EDIT.check] = false;
+STATE.categories[0].abilities[SIGMET_MODES.READ][READ_ABILITIES.COPY.check] = true;
+STATE.categories[0].abilities[SIGMET_MODES.READ][READ_ABILITIES.PUBLISH.check] = false;
+STATE.categories[0].abilities[SIGMET_MODES.EDIT] = {};
 
 // concept-sigmets
 STATE.categories[1].ref = CATEGORY_REFS.CONCEPT_SIGMETS;
-STATE.categories[1].abilities[READ_ABILITIES.CANCEL.check] = false;
-STATE.categories[1].abilities[READ_ABILITIES.DELETE.check] = true;
-STATE.categories[1].abilities[READ_ABILITIES.EDIT.check] = true;
-STATE.categories[1].abilities[READ_ABILITIES.COPY.check] = true;
-STATE.categories[1].abilities[READ_ABILITIES.PUBLISH.check] = true;
+STATE.categories[1].abilities[SIGMET_MODES.READ] = {};
+STATE.categories[1].abilities[SIGMET_MODES.READ][READ_ABILITIES.CANCEL.check] = false;
+STATE.categories[1].abilities[SIGMET_MODES.READ][READ_ABILITIES.DELETE.check] = true;
+STATE.categories[1].abilities[SIGMET_MODES.READ][READ_ABILITIES.EDIT.check] = true;
+STATE.categories[1].abilities[SIGMET_MODES.READ][READ_ABILITIES.COPY.check] = true;
+STATE.categories[1].abilities[SIGMET_MODES.READ][READ_ABILITIES.PUBLISH.check] = true;
+STATE.categories[1].abilities[SIGMET_MODES.EDIT] = {};
+STATE.categories[1].abilities[SIGMET_MODES.EDIT][EDIT_ABILITIES.CLEAR.check] = false;
+STATE.categories[1].abilities[SIGMET_MODES.EDIT][EDIT_ABILITIES.DISCARD.check] = true;
+STATE.categories[1].abilities[SIGMET_MODES.EDIT][EDIT_ABILITIES.SAVE.check] = true;
 
 // add-sigmets
 STATE.categories[2].ref = CATEGORY_REFS.ADD_SIGMET;
-STATE.categories[2].abilities[READ_ABILITIES.CANCEL.check] = false;
-STATE.categories[2].abilities[READ_ABILITIES.DELETE.check] = false;
-STATE.categories[2].abilities[READ_ABILITIES.EDIT.check] = true;
-STATE.categories[2].abilities[READ_ABILITIES.COPY.check] = false;
-STATE.categories[2].abilities[READ_ABILITIES.PUBLISH.check] = false;
+STATE.categories[2].abilities[SIGMET_MODES.READ] = {};
+STATE.categories[2].abilities[SIGMET_MODES.READ][READ_ABILITIES.CANCEL.check] = false;
+STATE.categories[2].abilities[SIGMET_MODES.READ][READ_ABILITIES.DELETE.check] = false;
+STATE.categories[2].abilities[SIGMET_MODES.READ][READ_ABILITIES.EDIT.check] = true;
+STATE.categories[2].abilities[SIGMET_MODES.READ][READ_ABILITIES.COPY.check] = false;
+STATE.categories[2].abilities[SIGMET_MODES.READ][READ_ABILITIES.PUBLISH.check] = false;
+STATE.categories[2].abilities[SIGMET_MODES.EDIT] = {};
+STATE.categories[2].abilities[SIGMET_MODES.EDIT][EDIT_ABILITIES.CLEAR.check] = true;
+STATE.categories[2].abilities[SIGMET_MODES.EDIT][EDIT_ABILITIES.DISCARD.check] = false;
+STATE.categories[2].abilities[SIGMET_MODES.EDIT][EDIT_ABILITIES.SAVE.check] = true;
 
 // archived-sigmets
 STATE.categories[3].ref = CATEGORY_REFS.ARCHIVED_SIGMETS;
-STATE.categories[3].abilities[READ_ABILITIES.CANCEL.check] = false;
-STATE.categories[3].abilities[READ_ABILITIES.DELETE.check] = false;
-STATE.categories[3].abilities[READ_ABILITIES.EDIT.check] = false;
-STATE.categories[3].abilities[READ_ABILITIES.COPY.check] = true;
-STATE.categories[3].abilities[READ_ABILITIES.PUBLISH.check] = false;
+STATE.categories[3].abilities[SIGMET_MODES.READ] = {};
+STATE.categories[3].abilities[SIGMET_MODES.READ][READ_ABILITIES.CANCEL.check] = false;
+STATE.categories[3].abilities[SIGMET_MODES.READ][READ_ABILITIES.DELETE.check] = false;
+STATE.categories[3].abilities[SIGMET_MODES.READ][READ_ABILITIES.EDIT.check] = false;
+STATE.categories[3].abilities[SIGMET_MODES.READ][READ_ABILITIES.COPY.check] = true;
+STATE.categories[3].abilities[SIGMET_MODES.READ][READ_ABILITIES.PUBLISH.check] = false;
+STATE.categories[3].abilities[SIGMET_MODES.EDIT] = {};
 
 export const INITIAL_STATE = STATE;
