@@ -2,6 +2,7 @@ import React, { PureComponent } from 'react';
 import { Button, Col } from 'reactstrap';
 import Moment from 'react-moment';
 import PropTypes from 'prop-types';
+import { READ_ABILITIES, byReadAbilities } from '../../containers/Sigmet/SigmetActions';
 import WhatSection from './Sections/WhatSection';
 import ActionSection from './Sections/ActionSection';
 
@@ -9,7 +10,14 @@ const DATE_TIME_FORMAT = 'DD MMM YYYY HH:mm UTC';
 
 class SigmetReadMode extends PureComponent {
   render () {
-    const { dispatch, actions, isCancelable, isEditable, uuid, phenomenon, isObserved, obsFcTime } = this.props;
+    const { dispatch, actions, abilities, uuid, phenomenon, isObserved, obsFcTime } = this.props;
+    const abilityCtAs = []; // CtA = Call To Action
+    Object.values(READ_ABILITIES).map((ability) => {
+      if (abilities[ability.check] === true) {
+        abilityCtAs.push(ability);
+      }
+    });
+    abilityCtAs.sort(byReadAbilities);
     return <Button tag='div' className={'Sigmet row'}>
       <Col>
         <WhatSection>
@@ -26,19 +34,24 @@ class SigmetReadMode extends PureComponent {
           }
         </WhatSection>
         <ActionSection>
-          {isCancelable
-            ? <Button data-field='cancel' color='primary' onClick={(evt) => dispatch(actions.cancelSigmetAction(evt, uuid))}>Cancel</Button>
-            : null
-          }
-          {isEditable
-            ? <Button data-field='edit' color='primary' onClick={(evt) => dispatch(actions.editSigmetAction(evt, uuid))}>Edit</Button>
-            : null
-          }
+          {abilityCtAs.map((ability) =>
+            <Button key={`action-${ability.dataField}`}
+              data-field={ability.dataField}
+              color='primary'
+              onClick={(evt) => dispatch(actions[ability.action](evt, uuid))}>
+              {ability.label}
+            </Button>
+          )}
         </ActionSection>
       </Col>
     </Button>;
   }
 }
+
+const abilitiesPropTypes = {};
+Object.values(READ_ABILITIES).map(ability => {
+  abilitiesPropTypes[ability.check] = PropTypes.bool;
+});
 
 SigmetReadMode.propTypes = {
   dispatch: PropTypes.func,
@@ -48,11 +61,7 @@ SigmetReadMode.propTypes = {
     cancelSigmetAction: PropTypes.func,
     deleteSigmetAction: PropTypes.func
   }),
-  isEditable: PropTypes.bool,
-  isPublishable: PropTypes.bool,
-  isCancelable: PropTypes.bool,
-  isDeletable: PropTypes.bool,
-  isCloneable: PropTypes.bool,
+  abilities: PropTypes.shape(abilitiesPropTypes),
   uuid: PropTypes.string,
   phenomenon: PropTypes.string,
   isObserved: PropTypes.bool,

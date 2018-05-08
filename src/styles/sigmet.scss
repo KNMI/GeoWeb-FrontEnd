@@ -88,6 +88,10 @@
   .Action {
     border-top: 0.06rem solid #eee;
     padding-top: 0.33rem;
+
+    .btn:not(:last-of-type) {
+      margin-right: 0.33rem;
+    }
   }
 
   .col {

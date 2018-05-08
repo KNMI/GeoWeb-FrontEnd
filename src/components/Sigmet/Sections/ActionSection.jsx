@@ -4,17 +4,15 @@ import PropTypes from 'prop-types';
 
 class ActionSection extends PureComponent {
   render () {
-    const children = {};
-    this.props.children.map(child => {
-      if (child && child.props) {
-        children[child.props['data-field']] = child;
-      }
-    });
+    const { children } = this.props;
+
+    console.log('AS', children);
+    const offset = 12 - children.length * 2;
     return <Row className='Action'>
       <Col>
         <Row>
-          <Col xs={{ size: 3, offset: 9 }}>
-            {children.edit}
+          <Col xs={{ size: 2 * children.length, offset: offset }}>
+            {children}
           </Col>
         </Row>
       </Col>

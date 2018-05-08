@@ -3,11 +3,12 @@ import { Col } from 'reactstrap';
 import PropTypes from 'prop-types';
 import produce from 'immer';
 import axios from 'axios';
-import moment from 'moment';
+
 import Panel from '../../components/Panel';
 import CollapseOmni from '../../components/CollapseOmni';
-import { INITIAL_STATE, SIGMET_STATES, LOCAL_ACTION_TYPES, LOCAL_ACTIONS } from './SigmetActions';
-import { SIGMET_TEMPLATES } from '../../components/Sigmet/SigmetTemplates';
+import { CATEGORY_REFS, INITIAL_STATE, LOCAL_ACTION_TYPES, LOCAL_ACTIONS } from './SigmetActions';
+import { localDispatch as dispatch } from './SigmetReducers';
+
 import ContainerHeader from '../../components/Sigmet/ContainerHeader';
 import SigmetsCategory from '../../components/Sigmet/SigmetsCategory';
 import MinifiedCategory from '../../components/Sigmet/MinifiedCategory';
@@ -16,18 +17,6 @@ const ERROR_MSG = {
   RETRIEVE_SIGMETS: 'Could not retrieve SIGMETs:',
   RETRIEVE_PARAMS: 'Could not retrieve SIGMET parameters',
   RETRIEVE_PHENOMENA: 'Could not retrieve SIGMET phenomena'
-};
-
-const WARN_MSG = {
-  PREREQUISITES_NOT_MET: 'Not all prerequisites are met:'
-};
-
-/**
-* Generate a 'next-half-hour-rounded now Moment object
-* @return {moment} Moment-object with the current now in UTC rounded to the next half hour
-*/
-const getRoundedNow = () => {
-  return moment().utc().minutes() < 30 ? moment().utc().startOf('hour').minutes(30) : moment().utc().startOf('hour').add(1, 'hour');
 };
 
 class SigmetsContainer extends Component {
@@ -40,37 +29,20 @@ class SigmetsContainer extends Component {
     this.receivedParametersCallback = this.receivedParametersCallback.bind(this);
     this.retrievePhenomena = this.retrievePhenomena.bind(this);
     this.receivedPhenomenaCallback = this.receivedPhenomenaCallback.bind(this);
-    this.toggleContainer = this.toggleContainer.bind(this);
-    this.toggleCategory = this.toggleCategory.bind(this);
-    this.addSigmet = this.addSigmet.bind(this);
     this.state = produce(INITIAL_STATE, draftState => {});
   }
 
-  /**
-   * SigmetsContainer has its own state, this is the dispatch for updating the state
-   * @param {object} localAction Action-object containing the type and additional, action specific, parameters
-   */
   localDispatch (localAction) {
-    switch (localAction.type) {
-      case LOCAL_ACTION_TYPES.TOGGLE_CONTAINER:
-        this.toggleContainer(localAction.event);
-        break;
-      case LOCAL_ACTION_TYPES.TOGGLE_CATEGORY:
-        this.toggleCategory(localAction.event, localAction.ref);
-        break;
-      case LOCAL_ACTION_TYPES.ADD_SIGMET:
-        this.addSigmet(localAction.ref);
-        break;
-    }
-  }
+    dispatch(localAction, this);
+  };
 
   retrieveSigmets () {
     const endpoint = `${this.props.urls.BACKEND_SERVER_URL}/sigmet/getsigmetlist`;
 
     let sigmets = [
-      { ref: 'active-sigmets', urlSuffix: '?active=true' },
-      { ref: 'concept-sigmets', urlSuffix: '?active=false&status=PRODUCTION' },
-      { ref: 'archived-sigmets', urlSuffix: '?active=false&status=CANCELLED' }
+      { ref: CATEGORY_REFS.ACTIVE_SIGMETS, urlSuffix: '?active=true' },
+      { ref: CATEGORY_REFS.CONCEPT_SIGMETS, urlSuffix: '?active=false&status=PRODUCTION' },
+      { ref: CATEGORY_REFS.ARCHIVED_SIGMETS, urlSuffix: '?active=false&status=CANCELLED' }
     ];
     sigmets.forEach((sigmet) => {
       axios({
@@ -91,13 +63,7 @@ class SigmetsContainer extends Component {
       if (response.data.nsigmets === 0 || !response.data.sigmets) {
         response.data.sigmets = [];
       }
-      this.setState(produce(this.state, draftState => {
-        const categoryIndex = draftState.categories.findIndex((category) => category.ref === ref);
-        if (!isNaN(categoryIndex) && categoryIndex > 0) {
-          draftState.categories[categoryIndex].sigmets.length = 0;
-          draftState.categories[categoryIndex].sigmets.push(...response.data.sigmets);
-        }
-      }));
+      this.localDispatch({ type: LOCAL_ACTION_TYPES.UPDATE_CATEGORY, ref: ref, sigmets: response.data.sigmets });
     } else {
       console.error(ERROR_MSG.RETRIEVE_SIGMETS, ref, response.status, response.data);
     }
@@ -120,10 +86,8 @@ class SigmetsContainer extends Component {
 
   receivedParametersCallback (response) {
     if (response.status === 200 && response.data) {
-      this.setState(produce(this.state, draftState => {
-        Object.assign(draftState.parameters, response.data);
-      }));
-      this.localDispatch({ type: LOCAL_ACTION_TYPES.ADD_SIGMET, ref: 'add-sigmet' });
+      this.localDispatch({ type: LOCAL_ACTION_TYPES.UPDATE_PARAMETERS, parameters: response.data });
+      this.localDispatch({ type: LOCAL_ACTION_TYPES.ADD_SIGMET, ref: CATEGORY_REFS.ADD_SIGMET });
     } else {
       console.error(ERROR_MSG.RETRIEVE_PARAMS, response.status, response.data);
     }
@@ -146,58 +110,11 @@ class SigmetsContainer extends Component {
 
   receivedPhenomenaCallback (response) {
     if (response.status === 200 && response.data) {
-      this.setState(produce(this.state, draftState => {
-        draftState.phenomena.length = 0;
-        draftState.phenomena.push(...response.data);
-      }));
-      this.localDispatch({ type: LOCAL_ACTION_TYPES.ADD_SIGMET, ref: 'add-sigmet' });
+      this.localDispatch({ type: LOCAL_ACTION_TYPES.UPDATE_PHENOMENA, phenomena: response.data });
+      this.localDispatch({ type: LOCAL_ACTION_TYPES.ADD_SIGMET, ref: CATEGORY_REFS.ADD_SIGMET });
     } else {
       console.error(ERROR_MSG.RETRIEVE_PARAMS, response.status, response.data);
     }
-  }
-
-  addSigmet (ref) {
-    if (this.state.parameters && Array.isArray(this.state.phenomena) && this.state.phenomena.length > 0) {
-      this.setState(produce(this.state, draftState => {
-        const newSigmet = produce(SIGMET_TEMPLATES.SIGMET, draftState => {
-          draftState.validdate = getRoundedNow().format();
-          draftState.validdate_end = getRoundedNow().add(this.state.parameters.maxhoursofvalidity, 'hour').format();
-          draftState.location_indicator_mwo = this.state.parameters.location_indicator_mwo;
-          draftState.location_indicator_icao = this.state.parameters.firareas[0].location_indicator_icao;
-          draftState.firname = this.state.parameters.firareas[0].firname;
-          draftState.change = this.state.parameters.change;
-        });
-        const categoryIndex = draftState.categories.findIndex((category) => category.ref === ref);
-        if (!isNaN(categoryIndex) && categoryIndex > 0) {
-          draftState.categories[categoryIndex].sigmets.push(newSigmet);
-        }
-      }));
-    } else {
-      console.warn(WARN_MSG.PREREQUISITES_NOT_MET, 'parameters:', this.state.parameters, 'phenomena:', this.state.phenomena);
-    }
-  }
-
-  editSigmet (uuid) {
-    this.setState(produce(this.state, draftState => {
-      draftState.focussedSigmet.uuid = uuid;
-      draftState.focussedSigmet.state = SIGMET_STATES.EDIT;
-    }));
-  }
-
-  toggleContainer (evt) {
-    evt.preventDefault();
-    this.setState(produce(this.state, draftState => {
-      draftState.isContainerOpen = !draftState.isContainerOpen;
-    }));
-  }
-
-  toggleCategory (evt, ref) {
-    evt.preventDefault();
-    this.setState(produce(this.state, draftState => {
-      draftState.focussedCategoryRef = (draftState.focussedCategoryRef === ref)
-        ? ''
-        : ref;
-    }));
   }
 
   componentDidMount () {
@@ -221,14 +138,14 @@ class SigmetsContainer extends Component {
                     title={category.title}
                     icon={category.icon}
                     isOpen={this.state.focussedCategoryRef === category.ref}
-                    stageActions={category.stageActions}
+                    abilities={category.abilities}
                     sigmets={category.sigmets}
                     focussedSigmet={this.state.focussedSigmet}
                     dispatch={this.localDispatch}
                     actions={LOCAL_ACTIONS} />
                   : <MinifiedCategory key={category.ref}
                     icon={category.icon}
-                    sigmetCount={(category.ref === 'add-sigmet') ? 0 : category.sigmets.length} />;
+                    sigmetCount={(category.ref === CATEGORY_REFS.ADD_SIGMET) ? 0 : category.sigmets.length} />;
               })}
             </Col>
           </Panel>
