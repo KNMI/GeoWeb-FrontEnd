@@ -285,6 +285,8 @@ export default class Adaguc extends PureComponent {
 
     if (change) {
       const currentBaseLayer = this.webMapJS.getBaseLayers().filter((layer) => !layer.keepOnTop);
+      /* First tiled baselayer will get a new name, based on this tiled baselayer is changed */
+      currentBaseLayer[0].name = nextBaselayers.filter((layer) => !layer.keepOnTop)[0].name;
       this.webMapJS.setBaseLayers([...currentBaseLayer, ...nextBaselayers.filter((layer) => layer.keepOnTop === true)]);
     }
     return change;

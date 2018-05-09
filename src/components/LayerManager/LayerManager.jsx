@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import Layers from './Layers'
+import Layers from './Layers';
 import { Col, Row } from 'reactstrap';
 export default class LayerManager extends PureComponent {
   constructor () {

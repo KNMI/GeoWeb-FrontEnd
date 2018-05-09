@@ -669,9 +669,9 @@ export default class AdagucMapDraw extends PureComponent {
           feature.geometry.coordinates = [];
         }
         if (feature.geometry.coordinates[0] === undefined) {
-          feature.geometry.coordinates[0] = [];
+          feature.geometry.coordinates[0] = []; /* Used to create the first polygon */
         } else {
-          feature.geometry.coordinates.push([]);
+          feature.geometry.coordinates.push([]); /* Used to create extra polygons in the same feature */
         }
         this.snappedPolygonIndex = feature.geometry.coordinates.length - 1;
         const featureCoords = feature.geometry.coordinates[this.snappedPolygonIndex];
