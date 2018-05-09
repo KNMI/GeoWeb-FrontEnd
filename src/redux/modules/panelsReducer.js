@@ -13,6 +13,7 @@ const SET_ACTIVE_PANEL = 'SET_ACTIVE_PANEL';
 const SET_PANEL_LAYOUT = 'SET_PANEL_LAYOUT';
 const RESET_LAYERS = 'RESET_LAYERS';
 const SET_DIMENSION_VALUE = 'SET_DIMENSION_VALUE';
+const SET_BASELAYER = 'SET_BASELAYER';
 
 const addLayer = createAction(ADD_LAYER);
 const setActiveLayer = createAction(SET_ACTIVE_LAYER);
@@ -26,6 +27,7 @@ const setActivePanel = createAction(SET_ACTIVE_PANEL);
 const setPanelLayout = createAction(SET_PANEL_LAYOUT);
 const resetLayers = createAction(RESET_LAYERS);
 const setDimensionValue = createAction(SET_DIMENSION_VALUE);
+const setBaseLayer = createAction(SET_BASELAYER);
 
 const getNumPanels = (name) => {
   let numPanels = 0;
@@ -80,7 +82,8 @@ export const actions = {
   setActivePanel,
   setPanelLayout,
   resetLayers,
-  setDimensionValue
+  setDimensionValue,
+  setBaseLayer
 };
 
 export default handleActions({
@@ -237,6 +240,12 @@ export default handleActions({
       return state;
     }
     layerDim[0].currentValue = value;
+    return stateCpy;
+  },
+  [SET_BASELAYER]: (state, { payload }) => {
+    const { index, name } = payload;
+    const stateCpy = cloneDeep(state);
+    stateCpy.panels[state.activePanelId].baselayers.filter((layer) => !layer.keepOnTop)[index].name = name;
     return stateCpy;
   }
 }, INITIAL_STATE);

@@ -7,18 +7,22 @@ import { Col, Row, Popover, PopoverTitle, PopoverContent } from 'reactstrap';
 import { SortableElement } from 'react-sortable-hoc';
 import Slider from 'rc-slider';
 import { Icon } from 'react-fa';
-import cloneDeep from 'lodash.clonedeep';
+
 require('rc-slider/assets/index.css');
+const basemaps = require('../../../config/basemaps');
 
 export default class Layer extends PureComponent {
   constructor () {
     super();
+    this.renderBaseLayerChanger = this.renderBaseLayerChanger.bind(this);
     this.renderLayerChanger = this.renderLayerChanger.bind(this);
+    this.alterBaseLayer = this.alterBaseLayer.bind(this);
     this.alterLayer = this.alterLayer.bind(this);
     this.alterStyle = this.alterStyle.bind(this);
     this.alterOpacity = this.alterOpacity.bind(this);
     this.renderRemainingDimensions = this.renderRemainingDimensions.bind(this);
     this.state = {
+      baseLayerChanger: false,
       layerChangerOpen: false,
       styleChangerOpen: false,
       opacityChangerOpen: false,
@@ -26,6 +30,15 @@ export default class Layer extends PureComponent {
       serviceStyles: [],
       target: ''
     };
+  }
+
+  alterBaseLayer (newBaseLayerName) {
+    const { dispatch, panelsActions, index, activePanelId } = this.props;
+    const newLayer = { ...this.props.layer, name, title: newBaseLayerName };
+    new WMJSLayer(newLayer).parseLayer((l) => {
+      l.name = newBaseLayerName;
+      dispatch(panelsActions.setBaseLayer({ mapId: activePanelId, index: index, name: newBaseLayerName }));
+    });
   }
 
   alterLayer (newValue) {
@@ -49,6 +62,28 @@ export default class Layer extends PureComponent {
     const newLayer = { ...this.props.layer };
     newLayer.setOpacity(newValue);
     dispatch(panelsActions.replaceLayer({ mapId: activePanelId, index: index, layer: newLayer }));
+  }
+
+  renderBaseLayerChanger () {
+    const { baseLayerChanger, target } = this.state;
+    return (
+      <Popover placement={'top'} width={'auto'} target={target} isOpen={baseLayerChanger} style={{ overflowY: 'hidden' }}
+        toggle={() => this.setState({
+          baseLayerChanger: !baseLayerChanger,
+          serviceLayers: [],
+          target: ''
+        })}>
+        <PopoverTitle>Select service</PopoverTitle>
+        <PopoverContent style={{ overflowY: 'auto', maxHeight: '50rem', overflowX: 'hidden' }}>
+          {Object.keys(basemaps).map((baseLayerName) =>
+            <li onClick={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+              this.alterBaseLayer(baseLayerName);
+            }} key={baseLayerName}>{baseLayerName}</li>)}
+        </PopoverContent>
+      </Popover>
+    );
   }
 
   renderLayerChanger () {
@@ -175,19 +210,19 @@ export default class Layer extends PureComponent {
           {this.renderOpacityChanger()}
 
           <ConcreteCell active={layer.active} color={color}>{layer.WMJSService.title}</ConcreteCell>
-          <EditableCell id={'layer'+id} onClick={(e) => {
+          <EditableCell id={'layer' + id} onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
             layer.WMJSService.getLayerObjectsFlat((layers) => {
               this.setState({ layerChangerOpen: true, target: 'layer'+id, serviceLayers: layers });
             });
           }} active={layer.active} color={color}>{layer.title}</EditableCell>
-          <EditableCell id={'style'+id} onClick={(e) => {
+          <EditableCell id={'style' + id} onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
             this.setState({ styleChangerOpen: true, target: 'style'+id, serviceStyles: styles });
           }} active={layer.active} color={color}>{layer.currentStyle}</EditableCell>
-          <EditableCell id={'opacity'+id} onClick={(e) => {
+          <EditableCell id={'opacity' + id} onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
             this.setState({ opacityChangerOpen: true, target: 'opacity'+id });
@@ -197,7 +232,12 @@ export default class Layer extends PureComponent {
       case 'overlays':
         return <Col><ConcreteCell color={color}>{layer.title}</ConcreteCell></Col>;
       case 'maplayers':
-        return <Col><EditableCell color={color}>{layer.title}</EditableCell></Col>;
+        const maplayersid = 'maplayers' + index;
+        return <Col>{this.renderBaseLayerChanger()}<EditableCell id={'service' + maplayersid} onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          this.setState({ baseLayerChanger: true, target: 'service' + maplayersid });
+        }} color={color}>{layer.title}</EditableCell></Col>;
     }
   }
 }

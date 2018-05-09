@@ -1,14 +1,14 @@
 {
     "arcGisCanvas": {
         "EPSG:3857": {
-            "home": "//services.arcgisonline.nl.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/",
+            "home": "//services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/",
             "minLevel": 1,
             "maxLevel": 16,
             "tileServerType": "arcgisonline",
             "copyRight": "Basemap copyright: 2013 Esri, DeLorme, NAVTEQ"
         },
         "EPSG:28992": {
-            "home": "//services.arcgisonline.nl.nl/arcgis/rest/services/Basiskaarten/Canvas/MapServer/tile/",
+            "home": "//services.arcgisonline.com/arcgis/rest/services/Basiskaarten/Canvas/MapServer/tile/",
             "minLevel": 1,
             "maxLevel": 12,
             "origX": -285401.92,
@@ -20,14 +20,14 @@
     },
     "arcGisTopo": {
         "EPSG:3857": {
-            "home": "//services.arcgisonline.nl.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/",
+            "home": "//services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/",
             "minLevel": 1,
             "maxLevel": 19,
             "tileServerType": "arcgisonline",
             "copyRight": "Basemap sources: Esri, DeLorme, NAVTEQ, TomTom, Intermap, increment P Corp., GEBCO, USGS, FAO, NPS, NRCAN, GeoBase, IGN, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), and the GIS User Community"
         },
         "EPSG:28992": {
-            "home": "//services.arcgisonline.nl.nl/arcgis/rest/services/Basiskaarten/Topo/MapServer/tile/",
+            "home": "//services.arcgisonline.com/arcgis/rest/services/Basiskaarten/Topo/MapServer/tile/",
             "minLevel": 1,
             "maxLevel": 12,
             "origX": -285401.92,
@@ -38,7 +38,7 @@
         }
     },
     "arcGisOceanBaseMap": {
-        "home": "//services.arcgisonline.nl.com/ArcGIS/rest/services/Ocean_Basemap/MapServer/tile/",
+        "home": "//services.arcgisonline.com/ArcGIS/rest/services/Ocean_Basemap/MapServer/tile/",
         "minLevel": 1,
         "maxLevel": 19,
         "tileServerType": "arcgisonline",
@@ -46,7 +46,7 @@
     },
     "arcGisSat": {
         "EPSG:4326": {
-            "home": "//services.arcgisonline.nl.com/ArcGIS/rest/services/ESRI_Imagery_World_2D/MapServer/tile/",
+            "home": "//services.arcgisonline.com/ArcGIS/rest/services/ESRI_Imagery_World_2D/MapServer/tile/",
             "minLevel": 1,
             "maxLevel": 15,
             "tileServerType": "arcgisonline",
@@ -56,7 +56,7 @@
             "tileSize": 512
         },
         "EPSG:3857": {
-            "home": "//services.arcgisonline.nl.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/",
+            "home": "//services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/",
             "minLevel": 1,
             "maxLevel": 18,
             "tileServerType": "arcgisonline"
@@ -70,7 +70,7 @@
             "tileServerType": "osm"
         },
         "EPSG:28992": {
-            "home": "//services.arcgisonline.nl.nl/ArcGIS/rest/services/Basiskaarten/PDOK_BRT/MapServer/tile/",
+            "home": "//services.arcgisonline.com/ArcGIS/rest/services/Basiskaarten/PDOK_BRT/MapServer/tile/",
             "minLevel": 1,
             "maxLevel": 12,
             "origX": -285401.92,

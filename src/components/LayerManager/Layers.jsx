@@ -11,7 +11,6 @@ const SortableLayers = SortableContainer(({ role, color, data, dispatch, panelsA
   );
 });
 
-
 export default class Layers extends PureComponent {
   constructor () {
     super();
