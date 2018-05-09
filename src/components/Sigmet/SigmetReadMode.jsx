@@ -4,13 +4,15 @@ import Moment from 'react-moment';
 import PropTypes from 'prop-types';
 import { READ_ABILITIES, byReadAbilities } from '../../containers/Sigmet/SigmetActions';
 import WhatSection from './Sections/WhatSection';
+import ValiditySection from './Sections/ValiditySection';
 import ActionSection from './Sections/ActionSection';
+import FirSection from './Sections/FirSection';
 
 const DATE_TIME_FORMAT = 'DD MMM YYYY HH:mm UTC';
 
 class SigmetReadMode extends PureComponent {
   render () {
-    const { dispatch, actions, abilities, focus, uuid, phenomenon, isObserved, obsFcTime } = this.props;
+    const { dispatch, actions, abilities, focus, uuid, phenomenon, isObserved, obsFcTime, validdate, validdate_end, firname, location_indicator_icao } = this.props;
     const abilityCtAs = []; // CtA = Call To Action
     if (focus) {
       Object.values(READ_ABILITIES).map((ability) => {
@@ -20,6 +22,7 @@ class SigmetReadMode extends PureComponent {
       });
       abilityCtAs.sort(byReadAbilities);
     }
+    console.log(validdate);
     return <Button tag='div' className={`Sigmet row${focus ? ' focus' : ''}`} onClick={!focus ? (evt) => dispatch(actions.focusSigmetAction(evt, uuid)) : null}>
       <Col>
         <WhatSection>
@@ -35,6 +38,18 @@ class SigmetReadMode extends PureComponent {
             </span>
           }
         </WhatSection>
+
+        <ValiditySection>
+          <Moment format={DATE_TIME_FORMAT} date={validdate} data-field='validdate' />
+          <Moment format={DATE_TIME_FORMAT} date={validdate_end} data-field='validdate_end' />
+        </ValiditySection>
+
+        <FirSection>
+          <span data-field='firname'>{firname}</span>
+          <span data-field='location_indicator_icao'>{location_indicator_icao}</span>
+        </FirSection>
+
+
         <ActionSection colSize={2}>
           {abilityCtAs.map((ability) =>
             <Button key={`action-${ability.dataField}`}
@@ -69,7 +84,9 @@ SigmetReadMode.propTypes = {
   uuid: PropTypes.string,
   phenomenon: PropTypes.string,
   isObserved: PropTypes.bool,
-  obsFcTime: PropTypes.string
+  obsFcTime: PropTypes.string,
+  validdate: PropTypes.string,
+  validdate_end: PropTypes.string
 };
 
 export default SigmetReadMode;

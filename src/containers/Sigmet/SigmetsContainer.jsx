@@ -131,7 +131,7 @@ class SigmetsContainer extends Component {
         <CollapseOmni className='CollapseOmni' isOpen={this.state.isContainerOpen} isHorizontal minSize={64} maxSize={maxSize}>
           <Panel className='Panel' title={header}>
             <Col xs='auto' className='accordionsWrapper' style={{ minWidth: this.state.isContainerOpen ? maxSize - 32 : 'unset' }}>
-              {this.state.categories.map((category) => {
+              { this.state.categories.map((category) => {
                 return this.state.isContainerOpen
                   ? <SigmetsCategory key={category.ref}
                     typeRef={category.ref}

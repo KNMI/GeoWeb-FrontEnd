@@ -38,6 +38,7 @@ class SigmetsCategory extends PureComponent {
                 <Row>
                   <Col className='btn-group-vertical'>
                     {sigmets.slice(0, itemLimit).map((sigmet, index) => {
+                      console.log(sigmet);
                       if (focussedSigmet.uuid === sigmet.uuid && focussedSigmet.mode === SIGMET_MODES.EDIT) {
                         return <SigmetEditMode key={sigmet.uuid}
                           dispatch={dispatch}
@@ -46,7 +47,10 @@ class SigmetsCategory extends PureComponent {
                           availablePhenomena={phenomena}
                           phenomenon={sigmet.phenomenon}
                           focus
-                          uuid={sigmet.uuid} />;
+                          uuid={sigmet.uuid}
+                          obsFcTime={sigmet.obsFcTime}
+                          validdate={sigmet.validdate}
+                          validdate_end={sigmet.validdate_end} />;
                       }
                       return <SigmetReadMode key={sigmet.uuid}
                         dispatch={dispatch}
@@ -54,8 +58,13 @@ class SigmetsCategory extends PureComponent {
                         abilities={abilities[SIGMET_MODES.READ]}
                         focus={focussedSigmet.uuid === sigmet.uuid}
                         uuid={sigmet.uuid}
+                        obsFcTime={sigmet.obsFcTime}
                         phenomenon={sigmet.phenomenon}
-                        isObserved={!(sigmet.obs_or_forecast && sigmet.obs_or_forecast.obsFcTime)} />;
+                        isObserved={!(sigmet.obs_or_forecast && sigmet.obs_or_forecast.obsFcTime)}
+                        validdate={sigmet.validdate}
+                        validdate_end={sigmet.validdate_end}
+                        firname={sigmet.firname}
+                        location_indicator_icao={sigmet.location_indicator_icao} />;
                     })}
                   </Col>
                 </Row>
