@@ -1,5 +1,6 @@
 {
     "arcGisCanvas": {
+        "title":"ArcGIS canvas map",
         "EPSG:3857": {
             "home": "//services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/",
             "minLevel": 1,
@@ -19,6 +20,7 @@
         }
     },
     "arcGisTopo": {
+      "title":"ArcGIS topo map",
         "EPSG:3857": {
             "home": "//services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/",
             "minLevel": 1,
@@ -38,13 +40,17 @@
         }
     },
     "arcGisOceanBaseMap": {
+      "EPSG:3857": {
+        "title":"ArcGIS ocean map",
         "home": "//services.arcgisonline.com/ArcGIS/rest/services/Ocean_Basemap/MapServer/tile/",
         "minLevel": 1,
         "maxLevel": 19,
         "tileServerType": "arcgisonline",
         "copyRight": "Basemap sources: Esri, GEBCO, NOAA, National Geographic, DeLorme, NAVTEQ, Geonames.org, and other contributors"
+      }
     },
     "arcGisSat": {
+        "title":"ArcGIS satellite map",
         "EPSG:4326": {
             "home": "//services.arcgisonline.com/ArcGIS/rest/services/ESRI_Imagery_World_2D/MapServer/tile/",
             "minLevel": 1,
@@ -63,6 +69,7 @@
         }
     },
     "OSM": {
+        "title":"Open street map",
         "EPSG:3857": {
             "home": "//b.tile.openstreetmap.org/",
             "minLevel": 1,

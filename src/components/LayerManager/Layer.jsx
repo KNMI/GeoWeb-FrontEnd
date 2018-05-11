@@ -9,7 +9,7 @@ import Slider from 'rc-slider';
 import { Icon } from 'react-fa';
 
 require('rc-slider/assets/index.css');
-const basemaps = require('../../../config/basemaps');
+import { MAP_STYLES } from '../../constants/map_styles';
 
 export default class Layer extends PureComponent {
   constructor () {
@@ -32,13 +32,9 @@ export default class Layer extends PureComponent {
     };
   }
 
-  alterBaseLayer (newBaseLayerName) {
+  alterBaseLayer (newBaseLayer) {
     const { dispatch, panelsActions, index, activePanelId } = this.props;
-    const newLayer = { ...this.props.layer, name, title: newBaseLayerName };
-    new WMJSLayer(newLayer).parseLayer((l) => {
-      l.name = newBaseLayerName;
-      dispatch(panelsActions.setBaseLayer({ mapId: activePanelId, index: index, name: newBaseLayerName }));
-    });
+    dispatch(panelsActions.setBaseLayer({ mapId: activePanelId, index: index, layer: new WMJSLayer(newBaseLayer) }));
   }
 
   alterLayer (newValue) {
@@ -75,12 +71,12 @@ export default class Layer extends PureComponent {
         })}>
         <PopoverTitle>Select service</PopoverTitle>
         <PopoverContent style={{ overflowY: 'auto', maxHeight: '50rem', overflowX: 'hidden' }}>
-          {Object.keys(basemaps).map((baseLayerName) =>
+          {MAP_STYLES.map((baseLayer) =>
             <li onClick={(e) => {
               e.stopPropagation();
               e.preventDefault();
-              this.alterBaseLayer(baseLayerName);
-            }} key={baseLayerName}>{baseLayerName}</li>)}
+              this.alterBaseLayer(baseLayer);
+            }} key={baseLayer.name}>{baseLayer.title || baseLayer.name}</li>)}
         </PopoverContent>
       </Popover>
     );
