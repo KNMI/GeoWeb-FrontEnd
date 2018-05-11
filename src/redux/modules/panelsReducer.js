@@ -43,25 +43,30 @@ const getNumPanels = (name) => {
   return numPanels;
 };
 
+/* istanbul ignore next */
 let INITIAL_STATE = {
   panels: [
     {
-      baselayers: [MAP_STYLES[1]],
+      // eslint-disable-next-line no-undef
+      baselayers: [MAP_STYLES[0]],
       layers: [],
       type: 'ADAGUC'
     },
     {
-      baselayers: [MAP_STYLES[1]],
+      // eslint-disable-next-line no-undef
+      baselayers: [MAP_STYLES[0]],
       layers: [],
       type: 'ADAGUC'
     },
     {
-      baselayers: [MAP_STYLES[1]],
+      // eslint-disable-next-line no-undef
+      baselayers: [MAP_STYLES[0]],
       layers: [],
       type: 'ADAGUC'
     },
     {
-      baselayers: [MAP_STYLES[1]],
+      // eslint-disable-next-line no-undef
+      baselayers: [MAP_STYLES[0]],
       layers: [],
       type: 'ADAGUC'
     }
@@ -90,7 +95,7 @@ export default handleActions({
   [RESET_LAYERS]: (state) => {
     const stateCpy = cloneDeep(state);
     stateCpy.panels[state.activePanelId] = {
-      baselayers: [MAP_STYLES[1]],
+      baselayers: [MAP_STYLES[0]],
       layers: [],
       type: 'ADAGUC'
     };
@@ -206,7 +211,7 @@ export default handleActions({
       stateCpy.panels[i].layers = [];
       if (panel) {
         stateCpy.panels[i].layers = panel.layers.filter((layer) => layer);
-        stateCpy.panels[i].baselayers = [MAP_STYLES[1]].concat(panel.baselayers);
+        stateCpy.panels[i].baselayers = [MAP_STYLES[0]].concat(panel.baselayers);
         stateCpy.panels[i].type = panel.type || 'ADAGUC';
       }
     });
@@ -243,9 +248,9 @@ export default handleActions({
     return stateCpy;
   },
   [SET_BASELAYER]: (state, { payload }) => {
-    const { index, name } = payload;
+    const { index, layer } = payload;
     const stateCpy = cloneDeep(state);
-    stateCpy.panels[state.activePanelId].baselayers.filter((layer) => !layer.keepOnTop)[index].name = name;
+    Object.assign(stateCpy.panels[state.activePanelId].baselayers.filter((baselayer) => !baselayer.keepOnTop)[index], layer);
     return stateCpy;
   }
 }, INITIAL_STATE);
