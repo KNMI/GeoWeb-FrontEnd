@@ -63,8 +63,14 @@ class SigmetsCategory extends PureComponent {
                         isObserved={!(sigmet.obs_or_forecast && sigmet.obs_or_forecast.obsFcTime)}
                         validdate={sigmet.validdate}
                         validdate_end={sigmet.validdate_end}
+                        issuedate={sigmet.issuedate}
+                        sequence={sigmet.sequence}
                         firname={sigmet.firname}
-                        location_indicator_icao={sigmet.location_indicator_icao} />;
+                        location_indicator_icao={sigmet.location_indicator_icao}
+                        location_indicator_mwo={sigmet.location_indicator_mwo}
+                        level={sigmet.level}
+                        movement={sigmet.movement}
+                        change={sigmet.change} />;
                     })}
                   </Col>
                 </Row>

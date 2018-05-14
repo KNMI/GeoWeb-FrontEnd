@@ -2,7 +2,7 @@ import React, { PureComponent } from 'react';
 import { Row, Col } from 'reactstrap';
 import PropTypes from 'prop-types';
 
-class ActionSection extends PureComponent {
+export default class ActionSection extends PureComponent {
   render () {
     const { children, colSize } = this.props;
     const childrenSize = children.length * colSize;
@@ -22,5 +22,3 @@ ActionSection.propTypes = {
   children: PropTypes.arrayOf(PropTypes.element),
   colSize: PropTypes.number
 };
-
-export default ActionSection;
