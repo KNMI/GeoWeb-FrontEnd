@@ -86,6 +86,16 @@
     }
   }
 
+  .DrawSection {
+    min-height: '3.685rem';
+    padding-bottom: '0.33rem';
+
+    .col-auto .btn {
+      min-width: 3rem;
+      margin: 0 0.33rem 0 0;
+    }
+  }
+
   .Action {
     border-top: 0.06rem solid #eee;
     padding-top: 0.33rem;

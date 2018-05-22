@@ -25,14 +25,16 @@ export default class IssueSection extends PureComponent {
             {children.issueLocation}
           </Col>
         </Row>
-        <Row>
-          <Col xs={{ size: 2, offset: 1 }}>
-            <Badge>Sequence</Badge>
-          </Col>
-          <Col xs='9'>
-            {children.sequence}
-          </Col>
-        </Row>
+        {children.sequence
+          ? <Row>
+            <Col xs={{ size: 2, offset: 1 }}>
+              <Badge>Sequence</Badge>
+            </Col>
+            <Col xs='9'>
+              {children.sequence}
+            </Col>
+          </Row>
+          : null}
       </Col>
     </Row>;
   }

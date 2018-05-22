@@ -156,6 +156,10 @@ const updateSigmet = (uuid, dataField, value, container) => {
   console.warn('updateSigmet is not yet implemented');
 };
 
+const drawSigmet = (event, action, sigmetPart) => {
+  event.preventDefault();
+};
+
 const clearSigmet = (event, uuid, container) => {
   console.warn('clearSigmet is not yet implemented');
 };
@@ -247,6 +251,9 @@ export const localDispatch = (localAction, container) => {
       break;
     case LOCAL_ACTION_TYPES.CANCEL_SIGMET:
       cancelSigmet(localAction.event, localAction.uuid, container);
+      break;
+    case LOCAL_ACTION_TYPES.DRAW_SIGMET:
+      drawSigmet(localAction.event, localAction.action, localAction.sigmetPart);
       break;
   }
 };

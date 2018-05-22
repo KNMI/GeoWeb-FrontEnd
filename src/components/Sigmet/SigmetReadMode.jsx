@@ -10,7 +10,7 @@ import ValiditySection from './Sections/ValiditySection';
 import ActionSection from './Sections/ActionSection';
 import FirSection from './Sections/FirSection';
 import HeightSection from './Sections/HeightSection';
-import MovementSection from './Sections/MovementSection';
+import ProgressSection from './Sections/ProgressSection';
 import ChangeSection from './Sections/ChangeSection';
 import IssueSection from './Sections/IssueSection';
 
@@ -63,7 +63,6 @@ class SigmetReadMode extends PureComponent {
     }
   }
   render () {
-    console.log('sigmetReadMode: ', this.props);
     const { dispatch, actions, abilities, focus, uuid, phenomenon, isObserved, obsFcTime, validdate, validdate_end, firname, location_indicator_icao, issuedate,
       location_indicator_mwo, level, movement, change, sequence } = this.props;
     const abilityCtAs = []; // CtA = Call To Action
@@ -107,14 +106,14 @@ class SigmetReadMode extends PureComponent {
 
         {/* TODO: Can this be done better? */}
         {movement.stationary === false && movement.hasOwnProperty('speed') && movement.hasOwnProperty('dir')
-          ? <MovementSection>
+          ? <ProgressSection>
             <span data-field='movement'>Moving</span>
             <span data-field='speed'>{movement.speed}KT</span>
             <span data-field='direction'>{DIRECTIONS.find((obj) => obj.shortName === movement.dir).longName}</span>
-          </MovementSection>
-          : <MovementSection>
+          </ProgressSection>
+          : <ProgressSection>
             <span data-field='movement'>{movement.stationary ? 'Stationary' : 'Movement is defined by area'}</span>
-          </MovementSection>
+          </ProgressSection>
         }
 
         <ChangeSection>

@@ -9,7 +9,7 @@ import SigmetReadMode from './SigmetReadMode';
 
 class SigmetsCategory extends PureComponent {
   render () {
-    const { typeRef, title, icon, sigmets, focussedSigmet, isOpen, dispatch, actions, abilities, phenomena } = this.props;
+    const { typeRef, title, icon, sigmets, focussedSigmet, isOpen, dispatch, actions, abilities, phenomena, parameters } = this.props;
     const maxSize = 10000; // for now, arbitrairy big
     const itemLimit = 15;
     const isOpenable = (isOpen || (!isOpen && sigmets.length > 0));
@@ -38,7 +38,6 @@ class SigmetsCategory extends PureComponent {
                 <Row>
                   <Col className='btn-group-vertical'>
                     {sigmets.slice(0, itemLimit).map((sigmet, index) => {
-                      console.log(sigmet);
                       if (focussedSigmet.uuid === sigmet.uuid && focussedSigmet.mode === SIGMET_MODES.EDIT) {
                         return <SigmetEditMode key={sigmet.uuid}
                           dispatch={dispatch}
@@ -48,9 +47,19 @@ class SigmetsCategory extends PureComponent {
                           phenomenon={sigmet.phenomenon}
                           focus
                           uuid={sigmet.uuid}
-                          obsFcTime={sigmet.obsFcTime}
+                          obsFcTime={sigmet.obs_or_forecast.obsFcTime}
                           validdate={sigmet.validdate}
-                          validdate_end={sigmet.validdate_end} />;
+                          validdate_end={sigmet.validdate_end}
+                          issuedate={sigmet.issuedate}
+                          sequence={sigmet.sequence}
+                          firname={sigmet.firname}
+                          location_indicator_icao={sigmet.location_indicator_icao}
+                          location_indicator_mwo={sigmet.location_indicator_mwo || parameters.location_indicator_wmo}
+                          level={sigmet.level}
+                          movement={sigmet.movement}
+                          change={sigmet.change}
+                          isObserved={sigmet.obs_or_forecast.obs}
+                          availableFirs={parameters.firareas} />;
                       }
                       return <SigmetReadMode key={sigmet.uuid}
                         dispatch={dispatch}
@@ -58,9 +67,9 @@ class SigmetsCategory extends PureComponent {
                         abilities={abilities[SIGMET_MODES.READ]}
                         focus={focussedSigmet.uuid === sigmet.uuid}
                         uuid={sigmet.uuid}
-                        obsFcTime={sigmet.obsFcTime}
+                        obsFcTime={sigmet.obs_or_forecast.obsFcTime}
                         phenomenon={sigmet.phenomenon}
-                        isObserved={!(sigmet.obs_or_forecast && sigmet.obs_or_forecast.obsFcTime)}
+                        isObserved={sigmet.obs_or_forecast.obs}
                         validdate={sigmet.validdate}
                         validdate_end={sigmet.validdate_end}
                         issuedate={sigmet.issuedate}

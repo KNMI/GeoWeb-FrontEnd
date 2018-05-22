@@ -14,42 +14,36 @@ export default class MovementSection extends PureComponent {
         }
       });
     }
-    console.log(children)
 
     return <Row className='Validity'>
       <Col>
         <Row>
           <Col xs='3'>
-            <Badge color='success'>Progress</Badge>
+            <Badge color='success'>Move</Badge>
           </Col>
           <Col xs='9'>
-            {children.movement}
+            {children.movementType}
           </Col>
         </Row>
-        {
-          children.hasOwnProperty('direction')
-            ? <Row>
-              <Col xs={{ size: 2, offset: 1 }}>
-                <Badge>Direction</Badge>
-              </Col>
-              <Col xs='9'>
-                {children.direction}
-              </Col>
-            </Row>
-            : null
-        }
-        {
-          children.hasOwnProperty('speed')
-            ? <Row>
-              <Col xs={{ size: 2, offset: 1 }}>
-                <Badge>Speed</Badge>
-              </Col>
-              <Col xs='9'>
-                {children.speed}
-              </Col>
-            </Row>
-            : null
-        }
+        <Row>
+          <Col>
+            {children.drawbar}
+          </Col>
+        </Row>
+        <Row>
+          <Col xs={{ size: 2, offset: 1 }}>
+            <Badge>Direction</Badge>
+          </Col>
+          <Col xs='9'>
+            {children.direction}
+          </Col>
+          <Col xs={{ size: 2, offset: 1 }}>
+            <Badge>Speed</Badge>
+          </Col>
+          <Col xs='9'>
+            {children.speed}
+          </Col>
+        </Row>
       </Col>
     </Row>;
   }

@@ -14,7 +14,8 @@ export const LOCAL_ACTION_TYPES = {
   DELETE_SIGMET: 'DELETE_SIGMET',
   COPY_SIGMET: 'COPY_SIGMET',
   PUBLISH_SIGMET: 'PUBLISH_SIGMET',
-  CANCEL_SIGMET: 'CANCEL_SIGMET'
+  CANCEL_SIGMET: 'CANCEL_SIGMET',
+  DRAW_SIGMET: 'DRAW_SIGMET'
 };
 
 export const LOCAL_ACTIONS = {
@@ -33,7 +34,8 @@ export const LOCAL_ACTIONS = {
   deleteSigmetAction: (evt, uuid) => ({ type: LOCAL_ACTION_TYPES.DELETE_SIGMET, event: evt, uuid: uuid }),
   copySigmetAction: (evt, uuid) => ({ type: LOCAL_ACTION_TYPES.COPY_SIGMET, event: evt, uuid: uuid }),
   publishSigmetAction: (evt, uuid) => ({ type: LOCAL_ACTION_TYPES.PUBLISH_SIGMET, event: evt, uuid: uuid }),
-  cancelSigmetAction: (evt, uuid) => ({ type: LOCAL_ACTION_TYPES.CANCEL_SIGMET, event: evt, uuid: uuid })
+  cancelSigmetAction: (evt, uuid) => ({ type: LOCAL_ACTION_TYPES.CANCEL_SIGMET, event: evt, uuid: uuid }),
+  drawAction: (evt, action, sigmetPart) => ({ type: LOCAL_ACTION_TYPES.DRAW_SIGMET, event: evt, action: action, sigmetPart: sigmetPart })
 };
 
 export const SIGMET_MODES = {
