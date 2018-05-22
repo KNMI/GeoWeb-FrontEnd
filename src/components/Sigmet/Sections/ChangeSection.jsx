@@ -30,8 +30,8 @@ export default class ChangeSection extends PureComponent {
 }
 
 ChangeSection.propTypes = {
-  children: PropTypes.oneOf([
+  children: PropTypes.oneOfType([
     PropTypes.arrayOf(PropTypes.element),
-    PropTypes.object
+    PropTypes.element
   ])
 };

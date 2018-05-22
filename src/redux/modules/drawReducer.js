@@ -1,5 +1,5 @@
 import { createAction, handleActions } from 'redux-actions';
-
+import cloneDeep from 'lodash.clonedeep';
 const ADAGUCMAPDRAW_UPDATEFEATURE = 'ADAGUCMAPDRAW_UPDATEFEATURE';
 const ADAGUCMEASUREDISTANCE_UPDATE = 'ADAGUCMEASUREDISTANCE_UPDATE';
 const SET_GEOJSON = 'SET_GEOJSON';
@@ -7,6 +7,7 @@ const ADAGUCMAPDRAW_EDIT_POINT = 'ADAGUCMAPDRAW_EDIT_POINT';
 const ADAGUCMAPDRAW_EDIT_BOX = 'ADAGUCMAPDRAW_EDIT_BOX';
 const ADAGUCMAPDRAW_EDIT_POLYGON = 'ADAGUCMAPDRAW_EDIT_POLYGON';
 const ADAGUCMAPDRAW_SET_FEATURE_NR = 'ADAGUCMAPDRAW_SET_FEATURE_NR';
+const SET_FEATURE = 'SET_FEATURE';
 
 const updateFeature = createAction(ADAGUCMAPDRAW_UPDATEFEATURE);
 const setGeoJSON = createAction(SET_GEOJSON);
@@ -15,6 +16,7 @@ const setFeatureEditPoint = createAction(ADAGUCMAPDRAW_EDIT_POINT);
 const setFeatureEditBox = createAction(ADAGUCMAPDRAW_EDIT_BOX);
 const setFeatureEditPolygon = createAction(ADAGUCMAPDRAW_EDIT_POLYGON);
 const setFeatureNr = createAction(ADAGUCMAPDRAW_SET_FEATURE_NR);
+const setFeature = createAction(SET_FEATURE);
 
 const INITIAL_STATE = {
   adagucMapDraw: {
@@ -62,6 +64,7 @@ const INITIAL_STATE = {
 export const actions = {
   updateFeature,
   setGeoJSON,
+  setFeature,
   measureDistanceUpdate,
   setFeatureEditPoint,
   setFeatureEditBox,
@@ -70,6 +73,19 @@ export const actions = {
 };
 
 export default handleActions({
+  [SET_FEATURE]: (state, { payload }) => {
+    const { coordinates, selectionType, featureFunction } = payload;
+    console.log(featureFunction);
+    const stateCpy = cloneDeep(state);
+    const feature = stateCpy.adagucMapDraw.geojson.features.find((geo) => geo.properties.featureFunction === featureFunction);
+    console.log(feature);
+    if (!feature) {
+      return state;
+    }
+    feature.properties.selectionType = selectionType;
+    feature.geometry.coordinates = coordinates;
+    return stateCpy;
+  },
   [ADAGUCMAPDRAW_EDIT_BOX]: (state, { payload }) => {
     return (
       { ...state,

@@ -15,7 +15,7 @@ export default class HeightSection extends PureComponent {
     }
 
     return (
-      <Row className='Level'>
+      <Row className='Level'> 
         <Col xs={{ offset: 3, size: 3 }}>
           {children.level}
         </Col>
@@ -25,8 +25,8 @@ export default class HeightSection extends PureComponent {
 }
 
 HeightSection.propTypes = {
-  children: PropTypes.oneOf([
+  children: PropTypes.oneOfType([
     PropTypes.arrayOf(PropTypes.element),
-    PropTypes.object
+    PropTypes.element
   ])
 };

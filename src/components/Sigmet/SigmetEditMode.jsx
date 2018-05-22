@@ -112,6 +112,7 @@ class SigmetEditMode extends PureComponent {
               }
               dispatch(actions.updateSigmetAction(uuid, 'firname', firname));
               dispatch(actions.updateSigmetAction(uuid, 'location_indicator_icao', location_indicator_icao));
+              dispatch(actions.updateFir(firname));
             }}
             selected={selectedFir ? [selectedFir] : []} placeholder={'Select FIR'}
             clearButton />
@@ -122,7 +123,7 @@ class SigmetEditMode extends PureComponent {
           {
             drawActions.map((actionItem) =>
               <Button color='primary' active={actionItem.action === 'mapProperties.mapMode'} disabled={actionItem.disabled || null}
-                id={actionItem.action + '_button'} title={actionItem.title} onClick={(evt) => dispatch(actions.drawAction(evt, actionItem.action, 'where'))}
+                id={actionItem.action + '_button'} title={actionItem.title} onClick={(evt) => dispatch(actions.drawAction(evt, uuid, actionItem.action, 'start'))}
                 key={actionItem.action + '_button'} data-field={actionItem.action} >
                 <Icon name={actionItem.icon} />
               </Button>
@@ -159,17 +160,19 @@ class SigmetEditMode extends PureComponent {
               defaultValue='0'
               type='number'
               step='1' />
+            <InputGroupAddon>{(movement.stationary) ? null : 'KT'}</InputGroupAddon>
           </InputGroup>
           <DrawSection data-field='drawbar'>
             {
               drawActions.map((actionItem) =>
                 <Button color='primary' active={actionItem.action === 'mapProperties.mapMode'} disabled={actionItem.disabled || null}
-                  id={actionItem.action + '_button'} title={actionItem.title} onClick={(evt) => dispatch(actions.drawAction(evt, actionItem.action, 'progress'))}
+                  id={actionItem.action + '_button'} title={actionItem.title} onClick={(evt) => dispatch(actions.drawAction(evt, uuid, actionItem.action, 'end'))}
                   key={actionItem.action + '_button'} data-field={actionItem.action} >
                   <Icon name={actionItem.icon} />
                 </Button>
               )
             }
+            <span data-field='noDrawingWarning'>asdf</span>
           </DrawSection>
         </MovementSection>
 

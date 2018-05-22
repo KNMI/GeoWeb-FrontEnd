@@ -55,8 +55,8 @@ export default class ProgressSection extends PureComponent {
 }
 
 ProgressSection.propTypes = {
-  children: PropTypes.oneOf([
+  children: PropTypes.oneOfType([
     PropTypes.arrayOf(PropTypes.element),
-    PropTypes.object
+    PropTypes.element
   ])
 };

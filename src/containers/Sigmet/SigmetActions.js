@@ -15,7 +15,8 @@ export const LOCAL_ACTION_TYPES = {
   COPY_SIGMET: 'COPY_SIGMET',
   PUBLISH_SIGMET: 'PUBLISH_SIGMET',
   CANCEL_SIGMET: 'CANCEL_SIGMET',
-  DRAW_SIGMET: 'DRAW_SIGMET'
+  DRAW_SIGMET: 'DRAW_SIGMET',
+  UPDATE_FIR: 'UPDATE_FIR'
 };
 
 export const LOCAL_ACTIONS = {
@@ -35,7 +36,8 @@ export const LOCAL_ACTIONS = {
   copySigmetAction: (evt, uuid) => ({ type: LOCAL_ACTION_TYPES.COPY_SIGMET, event: evt, uuid: uuid }),
   publishSigmetAction: (evt, uuid) => ({ type: LOCAL_ACTION_TYPES.PUBLISH_SIGMET, event: evt, uuid: uuid }),
   cancelSigmetAction: (evt, uuid) => ({ type: LOCAL_ACTION_TYPES.CANCEL_SIGMET, event: evt, uuid: uuid }),
-  drawAction: (evt, action, sigmetPart) => ({ type: LOCAL_ACTION_TYPES.DRAW_SIGMET, event: evt, action: action, sigmetPart: sigmetPart })
+  drawAction: (evt, uuid, action, featureFunction) => ({ type: LOCAL_ACTION_TYPES.DRAW_SIGMET, uuid: uuid, event: evt, action: action, featureFunction: featureFunction }),
+  updateFir: (firName) => ({ type: LOCAL_ACTION_TYPES.UPDATE_FIR, firName: firName })
 };
 
 export const SIGMET_MODES = {
@@ -154,6 +156,7 @@ const STATE = {
   ],
   phenomena: [],
   parameters: {},
+  firs: {},
   focussedCategoryRef: null,
   focussedSigmet: {
     uuid: null,

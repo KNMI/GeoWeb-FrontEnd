@@ -50,8 +50,8 @@ export default class MovementSection extends PureComponent {
 }
 
 MovementSection.propTypes = {
-  children: PropTypes.oneOf([
+  children: PropTypes.oneOfType([
     PropTypes.arrayOf(PropTypes.element),
-    PropTypes.object
+    PropTypes.element
   ])
 };

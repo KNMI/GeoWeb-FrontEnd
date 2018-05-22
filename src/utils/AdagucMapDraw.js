@@ -456,7 +456,6 @@ export default class AdagucMapDraw extends PureComponent {
         /* Get all vertexes */
         const XYCoords = this.convertGeoCoordsToScreenCoords([featureCoords]);
         if (this.checkDist(XYCoords[0], polygonIndex, mouseX, mouseY)) {
-          console.log('jo');
           this.mouseIsOverVertexNr = polygonIndex;
           this.pointNumber = polygonIndex;
           return;
@@ -646,7 +645,6 @@ export default class AdagucMapDraw extends PureComponent {
 
       if (this.drawMode === this.DRAWMODE.POINT || this.drawMode === this.DRAWMODE.MULTIPOINT) {
         /* Create points */
-        console.log('create point');
         if (feature.geometry.coordinates === undefined) {
           feature.geometry.coordinates = [];
         }
@@ -708,7 +706,6 @@ export default class AdagucMapDraw extends PureComponent {
         feature.geometry.coordinates.push([this.mouseGeoCoord.x, this.mouseGeoCoord.y]);
         this.featureHasChanged('point added to multipoint');
         this.pointNumber = feature.geometry.coordinates.length;
-        console.log(this.pointNumber);
         this.adagucMouseMove(event);
         return false;
       }
