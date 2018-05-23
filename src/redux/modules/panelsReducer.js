@@ -13,6 +13,7 @@ const SET_ACTIVE_PANEL = 'SET_ACTIVE_PANEL';
 const SET_PANEL_LAYOUT = 'SET_PANEL_LAYOUT';
 const RESET_LAYERS = 'RESET_LAYERS';
 const SET_DIMENSION_VALUE = 'SET_DIMENSION_VALUE';
+const SET_BASELAYER = 'SET_BASELAYER';
 
 const addLayer = createAction(ADD_LAYER);
 const setActiveLayer = createAction(SET_ACTIVE_LAYER);
@@ -26,6 +27,7 @@ const setActivePanel = createAction(SET_ACTIVE_PANEL);
 const setPanelLayout = createAction(SET_PANEL_LAYOUT);
 const resetLayers = createAction(RESET_LAYERS);
 const setDimensionValue = createAction(SET_DIMENSION_VALUE);
+const setBaseLayer = createAction(SET_BASELAYER);
 
 const getNumPanels = (name) => {
   let numPanels = 0;
@@ -41,25 +43,30 @@ const getNumPanels = (name) => {
   return numPanels;
 };
 
+/* istanbul ignore next */
 let INITIAL_STATE = {
   panels: [
     {
-      baselayers: [MAP_STYLES[1]],
+      // eslint-disable-next-line no-undef
+      baselayers: [MAP_STYLES[0]],
       layers: [],
       type: 'ADAGUC'
     },
     {
-      baselayers: [MAP_STYLES[1]],
+      // eslint-disable-next-line no-undef
+      baselayers: [MAP_STYLES[0]],
       layers: [],
       type: 'ADAGUC'
     },
     {
-      baselayers: [MAP_STYLES[1]],
+      // eslint-disable-next-line no-undef
+      baselayers: [MAP_STYLES[0]],
       layers: [],
       type: 'ADAGUC'
     },
     {
-      baselayers: [MAP_STYLES[1]],
+      // eslint-disable-next-line no-undef
+      baselayers: [MAP_STYLES[0]],
       layers: [],
       type: 'ADAGUC'
     }
@@ -80,14 +87,15 @@ export const actions = {
   setActivePanel,
   setPanelLayout,
   resetLayers,
-  setDimensionValue
+  setDimensionValue,
+  setBaseLayer
 };
 
 export default handleActions({
   [RESET_LAYERS]: (state) => {
     const stateCpy = cloneDeep(state);
     stateCpy.panels[state.activePanelId] = {
-      baselayers: [MAP_STYLES[1]],
+      baselayers: [MAP_STYLES[0]],
       layers: [],
       type: 'ADAGUC'
     };
@@ -203,7 +211,7 @@ export default handleActions({
       stateCpy.panels[i].layers = [];
       if (panel) {
         stateCpy.panels[i].layers = panel.layers.filter((layer) => layer);
-        stateCpy.panels[i].baselayers = [MAP_STYLES[1]].concat(panel.baselayers);
+        stateCpy.panels[i].baselayers = [MAP_STYLES[0]].concat(panel.baselayers);
         stateCpy.panels[i].type = panel.type || 'ADAGUC';
       }
     });
@@ -237,6 +245,12 @@ export default handleActions({
       return state;
     }
     layerDim[0].currentValue = value;
+    return stateCpy;
+  },
+  [SET_BASELAYER]: (state, { payload }) => {
+    const { index, layer } = payload;
+    const stateCpy = cloneDeep(state);
+    Object.assign(stateCpy.panels[state.activePanelId].baselayers.filter((baselayer) => !baselayer.keepOnTop)[index], layer);
     return stateCpy;
   }
 }, INITIAL_STATE);
