@@ -7,7 +7,7 @@ export default class HeightSection extends PureComponent {
     if (!Array.isArray(this.props.children)) {
       children[this.props.children.props['data-field']] = this.props.children;
     } else {
-      this.props.children.map(child => {
+      this.props.children.flatten().map(child => {
         if (child && child.props) {
           children[child.props['data-field']] = child;
         }
@@ -15,7 +15,7 @@ export default class HeightSection extends PureComponent {
     }
 
     return (
-      <Row className='Level'> 
+      <Row className='Level'>
         <Col xs={{ offset: 3, size: 3 }}>
           {children.level}
         </Col>

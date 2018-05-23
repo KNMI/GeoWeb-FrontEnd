@@ -1,5 +1,7 @@
 import React, { PureComponent } from 'react';
-import { Button, Col, Alert, InputGroup, InputGroupAddon, Input } from 'reactstrap';
+import {
+  Button, Col, Row, Alert, InputGroup, InputGroupAddon, Input, FormGroup, Label, InputGroupButtonDropdown,
+  DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap';
 import { Typeahead } from 'react-bootstrap-typeahead';
 import SwitchButton from 'lyef-switch-button';
 import DateTimePicker from 'react-datetime';
@@ -16,6 +18,7 @@ import ProgressSection from './Sections/ProgressSection';
 import MovementSection from './Sections/MovementSection';
 import IssueSection from './Sections/IssueSection';
 import ChangeSection from './Sections/ChangeSection';
+import HeightsSection from './Sections/HeightsSection';
 import { UNITS_ALT, DIRECTIONS, CHANGES } from './SigmetTemplates';
 
 const DATE_FORMAT = 'DD MMM YYYY';
@@ -24,11 +27,11 @@ const DATETIME_FORMAT = 'YYYY-MM-DD[T]HH:mm:ss[Z]';//2017-08-07T11:30:00Z'
 
 class SigmetEditMode extends PureComponent {
   render () {
-    const { dispatch, actions, abilities, availablePhenomena, availableFirs, movement, focus, uuid, location_indicator_mwo, change, phenomenon, isObserved, obsFcTime, validdate, validdate_end, firname, location_indicator_icao } = this.props;
+    const { dispatch, actions, abilities, availablePhenomena, availableFirs, level, movement, focus, uuid, location_indicator_mwo, change, phenomenon, isObserved, obsFcTime, validdate, validdate_end, firname, location_indicator_icao } = this.props;
     const selectedPhenomenon = availablePhenomena.filter((ph) => ph.code === phenomenon).shift();
     const selectedFir = availableFirs.filter((fir) => fir.location_indicator_icao === location_indicator_icao).shift();
     const selectedChange = change ? CHANGES.filter((c) => c.shortName === change.shortName).shift() : null;
-
+    const selectedDirection = movement.direction ? DIRECTIONS.filter((c) => c.shortName === movement.direction).shift() : null;
     const drawActions = [
       /* {
         title: 'Select point',
@@ -120,16 +123,95 @@ class SigmetEditMode extends PureComponent {
         </FirSection>
 
         <DrawSection>
-          {
-            drawActions.map((actionItem) =>
-              <Button color='primary' active={actionItem.action === 'mapProperties.mapMode'} disabled={actionItem.disabled || null}
-                id={actionItem.action + '_button'} title={actionItem.title} onClick={(evt) => dispatch(actions.drawAction(evt, uuid, actionItem.action, 'start'))}
-                key={actionItem.action + '_button'} data-field={actionItem.action} >
-                <Icon name={actionItem.icon} />
-              </Button>
-            )
-          }
+          <Row data-field='buttons-row' className='buttons-row'>
+            {
+              drawActions.map((actionItem, index) =>
+                <Col xs={{ size: 'auto' }} className='drawbutton' key={actionItem.action + '_button'}>
+                  <Button color='primary' active={actionItem.action === 'mapProperties.mapMode'} disabled={actionItem.disabled || null}
+                    id={actionItem.action + '_button'} title={actionItem.title} onClick={(evt) => dispatch(actions.drawAction(evt, uuid, actionItem.action, 'start'))}>
+                    <Icon name={actionItem.icon} />
+                  </Button>
+                </Col>
+              )
+            }
+          </Row>
+          {!this.props.hasStartCoordinates
+            ? <Row data-field='danger-row' className='dangerrow'>
+              <Alert className='noDrawingWarning' color='danger'>
+                Please use one of the selection tools above to indicate on the map where the phenomenon is {isObserved ? ' observed.' : ' expected to occur.'}
+              </Alert>
+            </Row>
+            : null}
         </DrawSection>
+
+        <HeightsSection>
+          <SwitchButton id='movementType'
+            labelLeft='Between'
+            labelRight='At/Above'
+            align='center'
+            data-field='between-at-toggle'
+            isChecked={level.use_at_above}
+            action={(evt) => dispatch(actions.updateSigmetAction(uuid, 'level', { ...level, use_at_above: evt.target.checked }))} />
+          <FormGroup check data-field='tops-toggle'>
+            <Label check>
+              <Input type='checkbox' />{' '}
+              Tops
+            </Label>
+          </FormGroup>
+          <SwitchButton id='movementType'
+            labelLeft='At'
+            labelRight='Above'
+            align='center'
+            disabled={!level.use_at_above}
+            data-field='at-above-toggle'
+            isChecked={movement.useGeometry}
+            action={(evt) => dispatch(actions.updateSigmetAction(uuid, 'level', { ...movement, useGeometry: evt.target.checked }))} />
+          <InputGroup data-field='at-above-altitude'>
+            <InputGroupAddon addonType='prepend'>
+              FL
+            </InputGroupAddon>
+
+            <Input placeholder='Altitude'/>
+            {/* <InputGroupAddon addonType='append'>
+              <DropdownToggle caret>
+                FT
+              </DropdownToggle>
+              <DropdownMenu>
+                <DropdownItem>FT</DropdownItem>
+                <DropdownItem>MPS</DropdownItem>
+                <DropdownItem>FL</DropdownItem>
+              </DropdownMenu>
+
+            </InputGroupAddon> */}
+          </InputGroup>
+
+          <InputGroup data-field='between-lev-1'>
+            <InputGroupAddon addonType='prepend'>
+              FL
+            </InputGroupAddon>
+            <Input placeholder='Altitude' />
+          </InputGroup>
+
+          <InputGroup data-field='between-lev-2'>
+            <InputGroupAddon addonType='prepend'>
+              FL
+            </InputGroupAddon>
+
+            <Input placeholder='Altitude' />
+            {/* <InputGroupAddon addonType='append'>
+              <DropdownToggle caret>
+                FT
+              </DropdownToggle>
+              <DropdownMenu>
+                <DropdownItem>FT</DropdownItem>
+                <DropdownItem>MPS</DropdownItem>
+                <DropdownItem>FL</DropdownItem>
+              </DropdownMenu>
+
+            </InputGroupAddon> */}
+          </InputGroup>
+
+        </HeightsSection>
 
         <ProgressSection>
           <SwitchButton id='movement'
@@ -141,45 +223,47 @@ class SigmetEditMode extends PureComponent {
             action={(evt) => dispatch(actions.updateSigmetAction(uuid, 'movement', { ...movement, stationary: !evt.target.checked }))} />
         </ProgressSection>
 
-        <MovementSection>
+        <MovementSection disabled={movement.stationary}>
           <SwitchButton id='movementType'
-            labelLeft='End location'
-            labelRight='Speed & Direction'
+            labelLeft='Speed & Direction'
+            labelRight='End location'
             align='center'
             disabled={movement.stationary}
             data-field='movementType'
-            isChecked={!movement.stationary}
-            action={(evt) => dispatch(actions.updateSigmetAction(uuid, 'movement', { ...movement, stationary: !evt.target.checked }))} />
+            isChecked={movement.useGeometry}
+            action={(evt) => dispatch(actions.updateSigmetAction(uuid, 'movement', { ...movement, useGeometry: evt.target.checked })) } />
           <Typeahead filterBy={['shortName', 'longName']} labelKey='longName' data-field='direction'
-            options={DIRECTIONS} placeholder={'Set direction'}
-            onChange={(selectedValues) => dispatch(actions.updateSigmetAction(uuid, 'phenomenon', selectedValues))}
-            selected={selectedPhenomenon ? [selectedPhenomenon] : []}
+            options={DIRECTIONS} placeholder={'Set direction'} disabled={movement.stationary || movement.useGeometry}
+            onChange={(selectedval) => dispatch(actions.updateSigmetAction(uuid, 'movement', { ...movement, direction: selectedval[0].shortName }))}
+            selected={selectedDirection ? [selectedDirection] : []}
             clearButton />
           <InputGroup data-field='speed'>
-            <Input onChange={this.setSpeed}
+            <Input onChange={(evt) => dispatch(actions.updateSigmetAction(uuid, 'movement', { ...movement, speed: parseInt(evt.target.value) }))}
               defaultValue='0'
-              type='number'
+              type='number' disabled={movement.stationary || movement.useGeometry}
               step='1' />
-            <InputGroupAddon>{(movement.stationary) ? null : 'KT'}</InputGroupAddon>
+            <InputGroupAddon>KT</InputGroupAddon>
           </InputGroup>
           <DrawSection data-field='drawbar'>
-            {
-              drawActions.map((actionItem) =>
-                <Button color='primary' active={actionItem.action === 'mapProperties.mapMode'} disabled={actionItem.disabled || null}
-                  id={actionItem.action + '_button'} title={actionItem.title} onClick={(evt) => dispatch(actions.drawAction(evt, uuid, actionItem.action, 'end'))}
-                  key={actionItem.action + '_button'} data-field={actionItem.action} >
-                  <Icon name={actionItem.icon} />
-                </Button>
-              )
-            }
-            <span data-field='noDrawingWarning'>asdf</span>
+            <Row data-field='buttons-row' className='buttons-row'>
+              {
+                drawActions.map((actionItem) =>
+                  <Col xs={{ size: 'auto' }} className='drawbutton' key={actionItem.action + '_button'}>
+                    <Button color='primary' active={actionItem.action === 'mapProperties.mapMode'} disabled={actionItem.disabled || movement.stationary || !movement.useGeometry || null}
+                      id={actionItem.action + '_button'} title={actionItem.title} onClick={(evt) => dispatch(actions.drawAction(evt, uuid, actionItem.action, 'end'))}>
+                      <Icon name={actionItem.icon} />
+                    </Button>
+                  </Col>
+                )
+              }
+            </Row>
           </DrawSection>
         </MovementSection>
 
         <ChangeSection>
           <Typeahead filterBy={['shortName', 'longName']} labelKey='longName' data-field='change'
             options={CHANGES} placeholder={'Select change'}
-            onChange={(selectedValues) => dispatch(actions.updateSigmetAction(uuid, 'change', selectedValues))}
+            onChange={(selectedValues) => dispatch(actions.updateSigmetAction(uuid, 'change', selectedValues[0].shortName))}
             selected={selectedChange ? [selectedChange] : []}
             clearButton />
         </ChangeSection>

@@ -141,12 +141,14 @@ const initialGeoJson = () => {
   draftState.features[0].id = startId;
   draftState.features[0].properties.featureFunction = 'start';
   draftState.features[0].properties.selectionType = 'poly';
+  draftState.features[0].properties['fill-opacity'] = 0.33;
   draftState.features[0].geometry.type = 'Polygon';
 
   draftState.features[1].id = uuidv4();
   draftState.features[1].properties.featureFunction = 'end';
   draftState.features[1].properties.relatesTo = startId;
   draftState.features[1].properties.selectionType = 'poly';
+  draftState.features[1].properties['fill-opacity'] = 0.33;
   draftState.features[1].properties.fill = '#ff0000';
   draftState.features[1].geometry.type = 'Polygon';
   return draftState;
@@ -157,7 +159,7 @@ const addSigmet = (ref, container) => {
     const newSigmet = produce(SIGMET_TEMPLATES.SIGMET, draftState => {
       draftState.validdate = getRoundedNow().format();
       draftState.validdate_end = getRoundedNow().add(container.state.parameters.maxhoursofvalidity, 'hour').format();
-      draftState.location_indicator_mwo = container.state.parameters.location_indicator_mwo;
+      draftState.location_indicator_mwo = container.state.parameters.location_indicator_wmo;
       if (Array.isArray(container.state.parameters.firareas)) {
         draftState.location_indicator_icao = container.state.parameters.firareas[0].location_indicator_icao;
         draftState.firname = container.state.parameters.firareas[0].firname;
