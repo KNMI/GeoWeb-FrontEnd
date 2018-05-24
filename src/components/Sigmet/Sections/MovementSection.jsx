@@ -15,7 +15,7 @@ export default class MovementSection extends PureComponent {
       });
     }
 
-    return <Row className='Validity'>
+    return <Row className={this.props.disabled ? 'Validity disabled' : 'Validity'}>
       <Col>
         <Row>
           <Col xs='3'>
@@ -50,8 +50,9 @@ export default class MovementSection extends PureComponent {
 }
 
 MovementSection.propTypes = {
-  children: PropTypes.oneOf([
+  children: PropTypes.oneOfType([
     PropTypes.arrayOf(PropTypes.element),
-    PropTypes.object
-  ])
+    PropTypes.element
+  ]),
+  disabled: PropTypes.bool
 };

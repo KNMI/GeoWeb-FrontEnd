@@ -2,6 +2,9 @@ import produce from 'immer';
 import moment from 'moment';
 import { SIGMET_TEMPLATES } from '../../components/Sigmet/SigmetTemplates';
 import { SIGMET_MODES, LOCAL_ACTION_TYPES, CATEGORY_REFS } from './SigmetActions';
+import axios from 'axios';
+import cloneDeep from 'lodash.clonedeep';
+const uuidv4 = require('uuid/v4');
 
 const WARN_MSG = {
   PREREQUISITES_NOT_MET: 'Not all prerequisites are met yet:'
@@ -52,7 +55,6 @@ const updateParameters = (parameters, container) => {
 
 const updatePhenomena = (phenomena, container) => {
   const SEPARATOR = '_';
-
   container.setState(produce(container.state, draftState => {
     if (Array.isArray(phenomena)) {
       draftState.phenomena.length = 0;
@@ -105,17 +107,66 @@ const focusSigmet = (evt, uuid, container) => {
   }));
 };
 
+const updateFir = (firName, container) => {
+  let fir = null;
+  let trimmedFirname = null;
+  if (firName) {
+    trimmedFirname = firName.trim();
+  }
+  if (trimmedFirname && !Object.keys(container.state.firs).includes(trimmedFirname)) {
+    const { BACKEND_SERVER_URL } = container.props.urls;
+    axios.get(`${BACKEND_SERVER_URL}/sigmet/getfir`, {
+      withCredentials: true,
+      params: {
+        name: trimmedFirname
+      }
+    }).then(res => {
+      fir = res.data;
+      if (fir !== null) {
+        container.setState(produce(container.state, draftState => {
+          draftState.firs[trimmedFirname] = fir;
+        }));
+      }
+    }).catch(ex => {
+      console.error('Error!: ', ex);
+    });
+  }
+};
+
+// TODO: Should be Immutable, but AdagucMapDraw can't handle this ATM. Fix this.
+const initialGeoJson = () => {
+  const draftState = cloneDeep(SIGMET_TEMPLATES.GEOJSON);
+  draftState.features.push(cloneDeep(SIGMET_TEMPLATES.FEATURE));
+  const startId = uuidv4();
+  draftState.features[0].id = startId;
+  draftState.features[0].properties.featureFunction = 'start';
+  draftState.features[0].properties.selectionType = 'poly';
+  draftState.features[0].properties['fill-opacity'] = 0.33;
+  draftState.features[0].geometry.type = 'Polygon';
+
+  draftState.features[1].id = uuidv4();
+  draftState.features[1].properties.featureFunction = 'end';
+  draftState.features[1].properties.relatesTo = startId;
+  draftState.features[1].properties.selectionType = 'poly';
+  draftState.features[1].properties['fill-opacity'] = 0.33;
+  draftState.features[1].properties.fill = '#ff0000';
+  draftState.features[1].geometry.type = 'Polygon';
+  return draftState;
+};
+
 const addSigmet = (ref, container) => {
   if (container.state.parameters && Array.isArray(container.state.phenomena) && container.state.phenomena.length > 0) {
     const newSigmet = produce(SIGMET_TEMPLATES.SIGMET, draftState => {
       draftState.validdate = getRoundedNow().format();
       draftState.validdate_end = getRoundedNow().add(container.state.parameters.maxhoursofvalidity, 'hour').format();
-      draftState.location_indicator_mwo = container.state.parameters.location_indicator_mwo;
+      draftState.location_indicator_mwo = container.state.parameters.location_indicator_wmo;
       if (Array.isArray(container.state.parameters.firareas)) {
         draftState.location_indicator_icao = container.state.parameters.firareas[0].location_indicator_icao;
         draftState.firname = container.state.parameters.firareas[0].firname;
+        updateFir(draftState.firname, container);
       }
       draftState.change = container.state.parameters.change;
+      container.props.dispatch(container.props.drawActions.setGeoJSON(initialGeoJson()));
     });
     container.setState(produce(container.state, draftState => {
       const categoryIndex = draftState.categories.findIndex((category) => category.ref === ref);
@@ -156,8 +207,41 @@ const updateSigmet = (uuid, dataField, value, container) => {
   console.warn('updateSigmet is not yet implemented');
 };
 
-const drawSigmet = (event, action, sigmetPart) => {
+const drawSigmet = (event, uuid, container, action, featureFunction) => {
   event.preventDefault();
+  const { dispatch, mapActions, drawActions } = container.props;
+  const allSigmets = container.state.categories.find((cat) => cat.ref === container.state.focussedCategoryRef).sigmets;
+  const coordinates = container.state.firs[allSigmets.find((sigmet) => sigmet.uuid === uuid).firname].geometry.coordinates;
+  switch (action) {
+    case 'select-point':
+      dispatch(mapActions.setMapMode('draw'));
+      dispatch(drawActions.setFeatureEditPoint());
+      break;
+    case 'select-region':
+      dispatch(mapActions.setMapMode('draw'));
+      dispatch(drawActions.setFeatureEditBox());
+      dispatch(drawActions.setFeature({ coordinates: [], selectionType: 'box', featureFunction }));
+      break;
+    case 'select-shape':
+      dispatch(mapActions.setMapMode('draw'));
+      dispatch(drawActions.setFeatureEditPolygon());
+      dispatch(drawActions.setFeature({ coordinates: [], selectionType: 'poly', featureFunction }));
+      break;
+    case 'select-fir':
+      dispatch(mapActions.setMapMode('pan'));
+      dispatch(drawActions.setFeatureEditPolygon());
+      dispatch(drawActions.setFeature({ coordinates, selectionType: 'poly', featureFunction }));
+      break;
+    case 'delete-selection':
+      dispatch(mapActions.setMapMode('pan'));
+      dispatch(drawActions.setFeature({ coordinates: [], selectionType: 'poly', featureFunction }));
+      break;
+    default:
+      console.error(`Selection method ${action} unknown and not implemented`);
+  }
+  // Select relevant polygon to edit, this assumes there is ONE start and ONE end feature.
+  dispatch(drawActions.setFeatureNr(container.props.drawProperties.adagucMapDraw.geojson.features.findIndex((feature) =>
+    feature.properties.featureFunction === featureFunction)));
 };
 
 const clearSigmet = (event, uuid, container) => {
@@ -253,7 +337,10 @@ export const localDispatch = (localAction, container) => {
       cancelSigmet(localAction.event, localAction.uuid, container);
       break;
     case LOCAL_ACTION_TYPES.DRAW_SIGMET:
-      drawSigmet(localAction.event, localAction.action, localAction.sigmetPart);
+      drawSigmet(localAction.event, localAction.uuid, container, localAction.action, localAction.featureFunction);
+      break;
+    case LOCAL_ACTION_TYPES.UPDATE_FIR:
+      updateFir(localAction.firName, container);
       break;
   }
 };

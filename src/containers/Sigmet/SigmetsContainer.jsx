@@ -126,6 +126,25 @@ class SigmetsContainer extends Component {
   render () {
     const maxSize = 520;
     const header = <ContainerHeader isContainerOpen={this.state.isContainerOpen} dispatch={this.localDispatch} actions={LOCAL_ACTIONS} />;
+    const startFeature = this.props.drawProperties.adagucMapDraw.geojson.features.find((feature) => feature.properties.featureFunction === 'start');
+    const endFeature = this.props.drawProperties.adagucMapDraw.geojson.features.find((feature) => feature.properties.featureFunction === 'end');
+    let hasStartCoordinates = false;
+    if (startFeature) {
+      if (startFeature.geometry.coordinates[0]) {
+        hasStartCoordinates = startFeature.geometry.coordinates[0][0].length > 0;
+      } else {
+        hasStartCoordinates = startFeature.geometry.coordinates.length > 0;
+      }
+    }
+    let hasEndCoordinates = false;
+    if (endFeature) {
+      if (endFeature.geometry.coordinates[0]) {
+        hasEndCoordinates = endFeature.geometry.coordinates[0][0].length > 0;
+      } else {
+        hasEndCoordinates = endFeature.geometry.coordinates.length > 0;
+      }
+    }
+
     return (
       <Col className='SigmetsContainer'>
         <CollapseOmni className='CollapseOmni' isOpen={this.state.isContainerOpen} isHorizontal minSize={64} maxSize={maxSize}>
@@ -144,6 +163,8 @@ class SigmetsContainer extends Component {
                     dispatch={this.localDispatch}
                     actions={LOCAL_ACTIONS}
                     phenomena={this.state.phenomena}
+                    hasStartCoordinates={hasStartCoordinates}
+                    hasEndCoordinates={hasEndCoordinates}
                     parameters={this.state.parameters} />
                   : <MinifiedCategory key={category.ref}
                     icon={category.icon}

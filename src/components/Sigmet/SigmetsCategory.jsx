@@ -39,6 +39,7 @@ class SigmetsCategory extends PureComponent {
                   <Col className='btn-group-vertical'>
                     {sigmets.slice(0, itemLimit).map((sigmet, index) => {
                       if (focussedSigmet.uuid === sigmet.uuid && focussedSigmet.mode === SIGMET_MODES.EDIT) {
+                        console.log(sigmet);
                         return <SigmetEditMode key={sigmet.uuid}
                           dispatch={dispatch}
                           actions={actions}
@@ -54,11 +55,12 @@ class SigmetsCategory extends PureComponent {
                           sequence={sigmet.sequence}
                           firname={sigmet.firname}
                           location_indicator_icao={sigmet.location_indicator_icao}
-                          location_indicator_mwo={sigmet.location_indicator_mwo || parameters.location_indicator_wmo}
+                          location_indicator_mwo={sigmet.location_indicator_mwo}
                           level={sigmet.level}
                           movement={sigmet.movement}
                           change={sigmet.change}
                           isObserved={sigmet.obs_or_forecast.obs}
+                          hasStartCoordinates={this.props.hasStartCoordinates}
                           availableFirs={parameters.firareas} />;
                       }
                       return <SigmetReadMode key={sigmet.uuid}

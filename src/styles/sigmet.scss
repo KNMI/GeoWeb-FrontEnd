@@ -117,6 +117,24 @@
     background-color: #eee;
   }
 
+  .noDrawingWarning {
+    display: block;
+    margin: 0;
+    white-space: normal;
+    padding: 0.75rem;
+  }
+
+  .buttons-row {
+    margin-left: 7.33rem;
+    .drawbutton {
+      padding: 0 0.167rem;
+    }
+    .dangerrow {
+      max-width: 30rem;
+      padding: 0.33rem 1rem;
+    }
+  }
+
   .badge {
     padding: 0.25em 0.4em;
     width: 100%;
@@ -141,6 +159,7 @@
   .btn-primary {
     padding: 0.5rem 0.7rem;
   }
+
 
   .switch-button {
     .label {

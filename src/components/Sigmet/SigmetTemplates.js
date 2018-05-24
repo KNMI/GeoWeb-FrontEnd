@@ -13,7 +13,6 @@ const TEMPLATES = {
     type: 'Feature',
     id: null, // string
     properties: {
-      type: null, // string
       selectionType: null, // string
       featureFunction: null, // string
       relatesTo: null, // string
