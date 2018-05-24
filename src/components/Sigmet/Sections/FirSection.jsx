@@ -10,7 +10,7 @@ export default class FirSection extends PureComponent {
         children[child.props['data-field']] = child;
       }
     });
-    return <Row className='Validity'>
+    return <Row className='Where'>
       <Col>
         <Row>
           <Col xs='3'>

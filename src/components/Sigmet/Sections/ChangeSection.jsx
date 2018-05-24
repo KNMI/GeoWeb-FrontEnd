@@ -14,7 +14,7 @@ export default class ChangeSection extends PureComponent {
         }
       });
     }
-    return <Row className='What'>
+    return <Row className='Change'>
       <Col>
         <Row>
           <Col xs='3'>

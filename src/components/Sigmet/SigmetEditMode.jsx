@@ -59,7 +59,7 @@ class SigmetEditMode extends PureComponent {
         icon: 'trash'
       }
     ];
-    const abilityCtAs = []; // CtA = Call To Action
+    const abilityCtAs = []; // CtA = Call to Action
     if (focus) {
       Object.values(EDIT_ABILITIES).map((ability) => {
         if (abilities[ability.check] === true) {
@@ -148,7 +148,7 @@ class SigmetEditMode extends PureComponent {
           <SwitchButton id='movementType'
             labelLeft='Between'
             labelRight='At/Above'
-            align='center'
+            align='left'
             data-field='between-at-toggle'
             isChecked={level.use_at_above}
             action={(evt) => dispatch(actions.updateSigmetAction(uuid, 'level', { ...level, use_at_above: evt.target.checked }))} />
@@ -161,7 +161,7 @@ class SigmetEditMode extends PureComponent {
           <SwitchButton id='movementType'
             labelLeft='At'
             labelRight='Above'
-            align='center'
+            align='left'
             disabled={!level.use_at_above}
             data-field='at-above-toggle'
             isChecked={movement.useGeometry}
@@ -171,7 +171,7 @@ class SigmetEditMode extends PureComponent {
               FL
             </InputGroupAddon>
 
-            <Input placeholder='Altitude'/>
+            <Input placeholder='Altitude' />
             {/* <InputGroupAddon addonType='append'>
               <DropdownToggle caret>
                 FT
