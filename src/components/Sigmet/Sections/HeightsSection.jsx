@@ -25,27 +25,27 @@ export default class HeightsSection extends PureComponent {
             <Col xs='auto' />
           </Row>
           <Row>
-            <Col xs='2' style={{ top: '0.5rem' }}>
+            <Col xs={{ size: 2, offset: 3 }} style={{ top: '0.5rem' }}>
               {children['tops-toggle']}
             </Col>
-            <Col xs='5' style={{ top: '0.5rem' }}>
+            <Col xs='4' style={{ top: '0.5rem' }}>
               {children['at-above-toggle']}
             </Col>
-            <Col>
+            <Col xs='3'>
               {children['at-above-altitude']}
             </Col>
           </Row>
-          <Row>
-            <Col xs='2' style={{ top: '0.5rem' }}>
+          <Row className='disabled' >
+            <Col xs={{ size: 2, offset: 3 }} style={{ top: '0.5rem' }}>
               <span>Between</span>
             </Col>
-            <Col>
+            <Col xs='3'>
               {children['between-lev-1']}
             </Col>
             <Col xs='1' style={{ left: '0.25rem', top: '0.5rem' }}>
               <span>and</span>
             </Col>
-            <Col>
+            <Col xs='3'>
               {children['between-lev-2']}
             </Col>
 

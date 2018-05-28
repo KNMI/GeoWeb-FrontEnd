@@ -145,10 +145,10 @@ class SigmetEditMode extends PureComponent {
         </DrawSection>
 
         <HeightsSection>
-          <SwitchButton id='movementType'
+          <SwitchButton id='betweenAtToggle'
             labelLeft='Between'
             labelRight='At/Above'
-            align='center'
+            align='left'
             data-field='between-at-toggle'
             isChecked={level.use_at_above}
             action={(evt) => dispatch(actions.updateSigmetAction(uuid, 'level', { ...level, use_at_above: evt.target.checked }))} />
@@ -158,10 +158,10 @@ class SigmetEditMode extends PureComponent {
               Tops
             </Label>
           </FormGroup>
-          <SwitchButton id='movementType'
+          <SwitchButton id='atAboveToggle'
             labelLeft='At'
             labelRight='Above'
-            align='center'
+            align='left'
             disabled={!level.use_at_above}
             data-field='at-above-toggle'
             isChecked={movement.useGeometry}
