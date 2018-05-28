@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import Layers from './Layers'
+import Layers from './Layers';
 import { Col, Row } from 'reactstrap';
 export default class LayerManager extends PureComponent {
   constructor () {
@@ -19,17 +19,22 @@ export default class LayerManager extends PureComponent {
       return true;
     }
 
-    for (let i = 0; i < this.props.panel.layers.length; ++i) {
-      if (this.props.panel.layers[i].service !== nextProps.panel.layers[i].service ||
-        this.props.panel.layers[i].name !== nextProps.panel.layers[i].name ||
-        this.props.panel.layers[i].currentStyle !== nextProps.panel.layers[i].currentStyle ||
-        this.props.panel.layers[i].opacity !== nextProps.panel.layers[i].opacity ||
-        this.props.panel.layers[i].active !== nextProps.panel.layers[i].active ||
-        this.props.panel.layers[i].enabled !== nextProps.panel.layers[i].enabled) {
-        return true;
+    let checkIfLayerArrayChanged = (layers, nextLayers) => {
+      for (let i = 0; i < layers.length; ++i) {
+        if (layers[i].service !== nextLayers[i].service ||
+          layers[i].name !== nextLayers[i].name ||
+          layers[i].currentStyle !== nextLayers[i].currentStyle ||
+          layers[i].opacity !== nextLayers[i].opacity ||
+          layers[i].active !== nextLayers[i].active ||
+          layers[i].dimensions.filter((dim) => !dim.name.includes('time')) !== nextLayers[i].dimensions.filter((dim) => !dim.name.includes('time')) ||
+          layers[i].enabled !== nextLayers[i].enabled) {
+          return true;
+        }
       }
-    }
-    return false;
+    };
+
+    return checkIfLayerArrayChanged(this.props.panel.layers, nextProps.panel.layers) ||
+      checkIfLayerArrayChanged(this.props.panel.baselayers, nextProps.panel.baselayers);
   }
 
   render () {
