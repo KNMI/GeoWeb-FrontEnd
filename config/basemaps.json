@@ -1,4 +1,49 @@
 {
+    "WorldMap": {
+      "EPSG:3857": {
+        "home": "https://tileserver.ingmapping.com/worldmap/",
+        "minLevel": 1,
+        "maxLevel": 6,
+        "tileServerType": "osm",
+        "copyRight": "Made by Ingmar with QGIS and QTiles "
+      }
+    },
+    "WorldMap_Light": {
+      "EPSG:3857": {
+        "home": "https://tileserver.ingmapping.com/worldmap_light/",
+        "minLevel": 1,
+        "maxLevel": 6,
+        "tileServerType": "osm",
+        "copyRight": "Made by Ingmar with QGIS and QTiles "
+      }
+    },
+    "WorldMap_Canvas": {
+      "EPSG:3857": {
+         "home": "https://tileserver.ingmapping.com/worldmap_canvas/",
+         "minLevel": 1,
+         "maxLevel": 6,
+         "tileServerType": "osm",
+         "copyRight": "Made by Ingmar with QGIS and QTiles "
+      }
+    },
+    "WorldMap_GreyCanvas": {
+      "EPSG:3857": {
+        "home": "https://tileserver.ingmapping.com/worldmap_greycanvas/",
+        "minLevel": 1,
+        "maxLevel": 6,
+        "tileServerType": "osm",
+        "copyRight": "Made by Ingmar with QGIS and QTiles "
+      }
+    },
+    "WorldMap_LightGreyCanvas": {
+      "EPSG:3857": {
+         "home": "https://s3.eu-central-1.amazonaws.com/knmi-basemaps/WorldMapLightGreyCanvas/",
+         "minLevel": 1,
+         "maxLevel": 9,
+         "tileServerType": "osm",
+         "copyRight": "Made by Ingmar with QGIS and QTiles "
+     }
+    },
     "arcGisCanvas": {
         "title":"ArcGIS canvas map",
         "EPSG:3857": {
