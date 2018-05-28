@@ -159,6 +159,7 @@ const STATE = {
   firs: {},
   focussedCategoryRef: null,
   focussedSigmet: {
+    useGeometry: false,
     uuid: null,
     mode: SIGMET_MODES.READ
   },

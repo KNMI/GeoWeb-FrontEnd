@@ -86,13 +86,59 @@
     }
   }
 
-  .DrawSection {
-    min-height: '3.685rem';
-    padding-bottom: '0.33rem';
+  .Validity, .Where, .Draw, .Level, .Progress, .Move, .Change, .Issue {
+    margin-top: 0.33rem;
+    padding-top: 0.33rem;
+    border-top: 0.05rem solid #ccc;
+  }
 
-    .col-auto .btn {
-      min-width: 3rem;
+  .Draw {
+    min-height: 3.685rem;
+    padding-bottom: 0.33rem;
+
+    .btn {
+      width: 3rem;
       margin: 0 0.33rem 0 0;
+    }
+
+    [data-field=drawing_alert] {
+      margin-top: 0.33rem;
+      width: 100%;
+      white-space: normal;
+    }
+  }
+
+  .Level {
+    .row:nth-child(1) > div:nth-child(2) {
+      margin-top: 0.2rem;
+    }
+    .row:nth-child(2) {
+      > div:nth-child(1) {
+        margin-top: 0.6rem;
+        .form-check {
+          margin: 0;
+        }
+      }
+      > div:nth-child(2) {
+        padding-left: 1.27rem;
+        margin-top: 0.5rem;
+
+        .switch-button {
+          margin: auto;
+        }
+      }
+    }
+
+    .row:nth-child(3) {
+      margin-top: 0.2rem;
+
+      > div:not(:nth-child(2)):not(:nth-child(4)) {
+        margin-top: 0.5rem;
+      }
+
+      > div:nth-child(3) {
+        padding-left: 0.2rem;
+      }
     }
   }
 
@@ -117,22 +163,11 @@
     background-color: #eee;
   }
 
-  .noDrawingWarning {
-    display: block;
-    margin: 0;
-    white-space: normal;
-    padding: 0.75rem;
-  }
-
-  .buttons-row {
-    margin-left: 7.33rem;
-    .drawbutton {
-      padding: 0 0.167rem;
-    }
-    .dangerrow {
-      max-width: 30rem;
-      padding: 0.33rem 1rem;
-    }
+  label {
+    padding-top: 0.2rem;
+    font-size: inherit;
+    font-family: inherit;
+    color: #666666;
   }
 
   .badge {
@@ -165,7 +200,17 @@
     .label {
       line-height: 1.2;
       padding-top: 0.2rem;
-      margin: 0 0.75rem;
+      font-size: inherit;
+      font-family: inherit;
+      color: #666666;
+    }
+
+    .label:first-of-type {
+      margin: 0 0.5rem 0 0.1rem;
+    }
+
+    .label:last-of-type {
+      margin: 0 0.1rem 0 0.5rem;
     }
 
     .toggle {

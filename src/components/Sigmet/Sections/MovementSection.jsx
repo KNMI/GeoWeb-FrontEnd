@@ -15,7 +15,7 @@ export default class MovementSection extends PureComponent {
       });
     }
 
-    return <Row className={this.props.disabled ? 'Validity disabled' : 'Validity'}>
+    return <Row className={this.props.disabled ? 'Move disabled' : 'Move'}>
       <Col>
         <Row>
           <Col xs='3'>

@@ -10,7 +10,7 @@ export default class IssueSection extends PureComponent {
         children[child.props['data-field']] = child;
       }
     });
-    return <Row className='What'>
+    return <Row className='Issue'>
       <Col>
         <Row>
           <Col xs='3'>

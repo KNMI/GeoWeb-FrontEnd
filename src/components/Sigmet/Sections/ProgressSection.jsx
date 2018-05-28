@@ -15,7 +15,7 @@ export default class ProgressSection extends PureComponent {
       });
     }
 
-    return <Row className='Validity'>
+    return <Row className='Progress'>
       <Col>
         <Row>
           <Col xs='3'>

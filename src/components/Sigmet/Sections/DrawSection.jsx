@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { Row, Col, Badge } from 'reactstrap';
+import { Col, Row } from 'reactstrap';
 import PropTypes from 'prop-types';
 
 export default class DrawSection extends PureComponent {
@@ -14,9 +14,19 @@ export default class DrawSection extends PureComponent {
         }
       });
     }
-    return <Row className='section DrawSection'>
-      {children['buttons-row']}
-      {children['danger-row']}
+    const buttons = Object.entries(children).filter((child) => child[0].endsWith('_button'));
+    const alerts = Object.entries(children).filter((child) => child[0].endsWith('_alert'));
+    return <Row className='Draw'>
+      <Col xs={{ size: 9, offset: 3 }}>
+        { buttons.map((button) =>
+          button[1]
+        )}
+      </Col>
+      <Col xs='12'>
+        {alerts.map((alert) =>
+          alert[1]
+        )}
+      </Col>
     </Row>;
   }
 }

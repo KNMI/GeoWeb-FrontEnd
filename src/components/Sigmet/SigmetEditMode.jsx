@@ -59,7 +59,7 @@ class SigmetEditMode extends PureComponent {
         icon: 'trash'
       }
     ];
-    const abilityCtAs = []; // CtA = Call To Action
+    const abilityCtAs = []; // CtA = Call to Action
     if (focus) {
       Object.values(EDIT_ABILITIES).map((ability) => {
         if (abilities[ability.check] === true) {
@@ -123,24 +123,19 @@ class SigmetEditMode extends PureComponent {
         </FirSection>
 
         <DrawSection>
-          <Row data-field='buttons-row' className='buttons-row'>
-            {
-              drawActions.map((actionItem, index) =>
-                <Col xs={{ size: 'auto' }} className='drawbutton' key={actionItem.action + '_button'}>
-                  <Button color='primary' active={actionItem.action === 'mapProperties.mapMode'} disabled={actionItem.disabled || null}
-                    id={actionItem.action + '_button'} title={actionItem.title} onClick={(evt) => dispatch(actions.drawAction(evt, uuid, actionItem.action, 'start'))}>
-                    <Icon name={actionItem.icon} />
-                  </Button>
-                </Col>
-              )
-            }
-          </Row>
+          {
+            drawActions.map((actionItem, index) =>
+              <Button color='primary' key={actionItem.action + '_button'} data-field={actionItem.action + '_button'}
+                active={actionItem.action === 'mapProperties.mapMode'} disabled={actionItem.disabled || null}
+                id={actionItem.action + '_button'} title={actionItem.title} onClick={(evt) => dispatch(actions.drawAction(evt, uuid, actionItem.action, 'start'))}>
+                <Icon name={actionItem.icon} />
+              </Button>
+            )
+          }
           {!this.props.hasStartCoordinates
-            ? <Row data-field='danger-row' className='dangerrow'>
-              <Alert className='noDrawingWarning' color='danger'>
+            ? <Alert data-field='drawing_alert' color='danger'>
                 Please use one of the selection tools above to indicate on the map where the phenomenon is {isObserved ? ' observed.' : ' expected to occur.'}
-              </Alert>
-            </Row>
+            </Alert>
             : null}
         </DrawSection>
 
@@ -171,7 +166,7 @@ class SigmetEditMode extends PureComponent {
               FL
             </InputGroupAddon>
 
-            <Input placeholder='Altitude'/>
+            <Input placeholder='Altitude' />
             {/* <InputGroupAddon addonType='append'>
               <DropdownToggle caret>
                 FT
@@ -245,18 +240,15 @@ class SigmetEditMode extends PureComponent {
             <InputGroupAddon>KT</InputGroupAddon>
           </InputGroup>
           <DrawSection data-field='drawbar'>
-            <Row data-field='buttons-row' className='buttons-row'>
-              {
-                drawActions.map((actionItem) =>
-                  <Col xs={{ size: 'auto' }} className='drawbutton' key={actionItem.action + '_button'}>
-                    <Button color='primary' active={actionItem.action === 'mapProperties.mapMode'} disabled={actionItem.disabled || movement.stationary || !movement.useGeometry || null}
-                      id={actionItem.action + '_button'} title={actionItem.title} onClick={(evt) => dispatch(actions.drawAction(evt, uuid, actionItem.action, 'end'))}>
-                      <Icon name={actionItem.icon} />
-                    </Button>
-                  </Col>
-                )
-              }
-            </Row>
+            {
+              drawActions.map((actionItem, index) =>
+                <Button color='primary' key={actionItem.action + '_button'} data-field={actionItem.action + '_button'}
+                  active={actionItem.action === 'mapProperties.mapMode'} disabled={actionItem.disabled || null}
+                  id={actionItem.action + '_button'} title={actionItem.title} onClick={(evt) => dispatch(actions.drawAction(evt, uuid, actionItem.action, 'end'))}>
+                  <Icon name={actionItem.icon} />
+                </Button>
+              )
+            }
           </DrawSection>
         </MovementSection>
 
