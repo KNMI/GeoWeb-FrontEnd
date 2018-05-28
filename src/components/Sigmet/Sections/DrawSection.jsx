@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { Row } from 'reactstrap';
+import { Col, Row } from 'reactstrap';
 import PropTypes from 'prop-types';
 
 export default class DrawSection extends PureComponent {
@@ -15,8 +15,10 @@ export default class DrawSection extends PureComponent {
       });
     }
     return <Row className='Draw'>
-      {children['buttons-row']}
-      {children['danger-row']}
+      <Col>
+        {children['buttons-row']}
+        {children['danger-row']}
+      </Col>
     </Row>;
   }
 }

@@ -30,10 +30,10 @@ export default class HeightsSection extends PureComponent {
             <Col xs={{ size: 1, offset: 3 }}>
               {children['tops-toggle']}
             </Col>
-            <Col xs='4'>
+            <Col xs='5'>
               {children['at-above-toggle']}
             </Col>
-            <Col xs='4'>
+            <Col xs='3'>
               {children['at-above-altitude']}
             </Col>
           </Row>

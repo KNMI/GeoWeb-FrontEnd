@@ -123,10 +123,10 @@ class SigmetEditMode extends PureComponent {
         </FirSection>
 
         <DrawSection>
-          <Row data-field='buttons-row' className='buttons-row'>
+          <Row data-field='buttons-row'>
             {
               drawActions.map((actionItem, index) =>
-                <Col xs={{ size: 'auto' }} className='drawbutton' key={actionItem.action + '_button'}>
+                <Col xs={index === 0 ? { size: 'auto', offset: 3 } : 'auto'} className='drawbutton' key={actionItem.action + '_button'}>
                   <Button color='primary' active={actionItem.action === 'mapProperties.mapMode'} disabled={actionItem.disabled || null}
                     id={actionItem.action + '_button'} title={actionItem.title} onClick={(evt) => dispatch(actions.drawAction(evt, uuid, actionItem.action, 'start'))}>
                     <Icon name={actionItem.icon} />
@@ -136,7 +136,7 @@ class SigmetEditMode extends PureComponent {
             }
           </Row>
           {!this.props.hasStartCoordinates
-            ? <Row data-field='danger-row' className='dangerrow'>
+            ? <Row data-field='danger-row'>
               <Alert className='noDrawingWarning' color='danger'>
                 Please use one of the selection tools above to indicate on the map where the phenomenon is {isObserved ? ' observed.' : ' expected to occur.'}
               </Alert>
@@ -245,10 +245,10 @@ class SigmetEditMode extends PureComponent {
             <InputGroupAddon>KT</InputGroupAddon>
           </InputGroup>
           <DrawSection data-field='drawbar'>
-            <Row data-field='buttons-row' className='buttons-row'>
+            <Row data-field='buttons-row'>
               {
-                drawActions.map((actionItem) =>
-                  <Col xs={{ size: 'auto' }} className='drawbutton' key={actionItem.action + '_button'}>
+                drawActions.map((actionItem, index) =>
+                  <Col xs={index === 0 ? { size: 'auto', offset: 3 } : 'auto'} className='drawbutton' key={actionItem.action + '_button'}>
                     <Button color='primary' active={actionItem.action === 'mapProperties.mapMode'} disabled={actionItem.disabled || movement.stationary || !movement.useGeometry || null}
                       id={actionItem.action + '_button'} title={actionItem.title} onClick={(evt) => dispatch(actions.drawAction(evt, uuid, actionItem.action, 'end'))}>
                       <Icon name={actionItem.icon} />
