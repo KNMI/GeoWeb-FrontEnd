@@ -175,7 +175,6 @@ export default class Taf extends Component {
     });
   }
 
-
   setExpandedTAF (uuid, expandAndCollapse = false, refreshTafList = false) {
     // Clicking the already expanded TAF collapses it
     if (this.state.expandedTAF === uuid && expandAndCollapse) {
@@ -184,8 +183,8 @@ export default class Taf extends Component {
       this.setState({ expandedTAF: 'edit', expandedTAC: null });
     } else {
       //TODO Only refresh list when needed
-      if(refreshTafList) {
-        this.fetchTAFs ().then(() => {
+      if (refreshTafList) {
+        this.fetchTAFs().then(() => {
           this.loadAndExpandTaf(uuid);
         });
       } else {

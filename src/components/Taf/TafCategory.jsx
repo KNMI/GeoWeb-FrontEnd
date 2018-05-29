@@ -642,7 +642,7 @@ class TafCategory extends Component {
       if (phenomenonName !== this.state.preset.forPhenomenon) {
         if (!this.state.preset.inWindow || this.state.preset.inWindow.closed) {
           // Only do this if it isnt already opened
-          if ((this.props.browserLocation && !this.props.browserLocation.query.opened)) {
+          /* if ((this.props.browserLocation && !this.props.browserLocation.query.opened)) {
             const newWindow = window.open(window.location.href + '?opened=true', 'TafPresetWindow', 'width=1250,height=750', '_blank');
             const origWindow = window.open(getPhenomenonPresetUrl(phenomenonName), '_self');
             this.setState({
@@ -652,7 +652,7 @@ class TafCategory extends Component {
                 origWindow: origWindow
               }
             });
-          }
+          } */
         }
       }
     }

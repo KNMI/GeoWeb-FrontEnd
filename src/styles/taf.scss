@@ -1,0 +1,34 @@
+.TafsContainer {
+  .ContainerHeader {
+    .btn {
+      font-size: 0.8rem;
+    }
+  }
+  .Panel .col {
+    flex-direction: column;
+  }
+  .TafSelector {
+    padding-bottom: 0.33rem;
+    ul {
+      min-width: 100%;
+
+      li a {
+        display: flex;
+
+        .row {
+          width: 100%;
+        }
+
+        .col, .col-5, .col-2 {
+          padding: 0;
+        }
+      }
+      li:nth-child(odd) a {
+        background-color: #e1f4ff;
+      }
+      li a:hover {
+        background-color: #d0ecff;
+      }
+    }
+  }
+}
