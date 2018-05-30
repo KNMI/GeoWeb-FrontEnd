@@ -74,11 +74,10 @@ export const actions = {
 
 export default handleActions({
   [SET_FEATURE]: (state, { payload }) => {
-    const { coordinates, selectionType, featureFunction } = payload;
-    console.log(featureFunction);
+    const { coordinates, selectionType, featureId } = payload;
+    console.log('fI', featureId);
     const stateCpy = cloneDeep(state);
-    const feature = stateCpy.adagucMapDraw.geojson.features.find((geo) => geo.properties.featureFunction === featureFunction);
-    console.log(feature);
+    const feature = stateCpy.adagucMapDraw.geojson.features.find((feature) => feature.uuid === featureId);
     if (!feature) {
       return state;
     }

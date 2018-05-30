@@ -16,7 +16,8 @@ export const LOCAL_ACTION_TYPES = {
   PUBLISH_SIGMET: 'PUBLISH_SIGMET',
   CANCEL_SIGMET: 'CANCEL_SIGMET',
   DRAW_SIGMET: 'DRAW_SIGMET',
-  UPDATE_FIR: 'UPDATE_FIR'
+  UPDATE_FIR: 'UPDATE_FIR',
+  CREATE_FIR_INTERSECTION: 'CREATE_FIR_INTERSECTION'
 };
 
 export const LOCAL_ACTIONS = {
@@ -37,7 +38,8 @@ export const LOCAL_ACTIONS = {
   publishSigmetAction: (evt, uuid) => ({ type: LOCAL_ACTION_TYPES.PUBLISH_SIGMET, event: evt, uuid: uuid }),
   cancelSigmetAction: (evt, uuid) => ({ type: LOCAL_ACTION_TYPES.CANCEL_SIGMET, event: evt, uuid: uuid }),
   drawAction: (evt, uuid, action, featureFunction) => ({ type: LOCAL_ACTION_TYPES.DRAW_SIGMET, uuid: uuid, event: evt, action: action, featureFunction: featureFunction }),
-  updateFir: (firName) => ({ type: LOCAL_ACTION_TYPES.UPDATE_FIR, firName: firName })
+  updateFir: (firName) => ({ type: LOCAL_ACTION_TYPES.UPDATE_FIR, firName: firName }),
+  createFirIntersectionAction: (featureId) => ({ type: LOCAL_ACTION_TYPES.CREATE_FIR_INTERSECTION, featureId: featureId })
 };
 
 export const SIGMET_MODES = {
