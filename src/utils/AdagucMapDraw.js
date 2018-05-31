@@ -855,7 +855,6 @@ export default class AdagucMapDraw extends PureComponent {
   featureHasChanged (text) {
     const { dispatch, actions } = this.props;
     const geojson = cloneDeep(this.geojson);
-    geojson.hasNewFeature = true;
     dispatch(actions.updateFeature(geojson, text));
   }
   /* istanbul ignore next */
