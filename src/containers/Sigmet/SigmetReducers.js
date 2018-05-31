@@ -143,16 +143,18 @@ const initialGeoJson = () => {
   draftState.features[0].id = startId;
   draftState.features[0].properties.featureFunction = 'start';
   draftState.features[0].properties.selectionType = 'poly';
-  draftState.features[0].properties['fill-opacity'] = 0.33;
+  draftState.features[0].properties['fill-opacity'] = 0.2;
   draftState.features[0].properties.fill = '#0f0';
+  draftState.features[0].properties['stroke-width'] = 0.8;
   draftState.features[0].geometry.type = 'Polygon';
 
   draftState.features[1].id = endId;
   draftState.features[1].properties.featureFunction = 'end';
   draftState.features[1].properties.relatesTo = startId;
   draftState.features[1].properties.selectionType = 'poly';
-  draftState.features[1].properties['fill-opacity'] = 0.33;
+  draftState.features[1].properties['fill-opacity'] = 0.2;
   draftState.features[1].properties.fill = '#f00';
+  draftState.features[1].properties['stroke-width'] = 0.8;
   draftState.features[1].geometry.type = 'Polygon';
 
   draftState.features[2].id = uuidv4();
@@ -161,6 +163,7 @@ const initialGeoJson = () => {
   draftState.features[2].properties.selectionType = 'poly';
   draftState.features[2].properties['fill-opacity'] = 0.33;
   draftState.features[2].properties.fill = '#2a2';
+  draftState.features[2].properties['stroke-width'] = 2;
   draftState.features[2].geometry.type = 'Polygon';
 
   draftState.features[3].id = uuidv4();
@@ -169,6 +172,7 @@ const initialGeoJson = () => {
   draftState.features[3].properties.selectionType = 'poly';
   draftState.features[3].properties['fill-opacity'] = 0.33;
   draftState.features[3].properties.fill = '#a22';
+  draftState.features[3].properties['stroke-width'] = 2;
   draftState.features[3].geometry.type = 'Polygon';
   return draftState;
 };
@@ -269,10 +273,28 @@ const drawSigmet = (event, uuid, container, action, featureFunction) => {
   dispatch(drawActions.setFeatureNr(featureIndex));
 };
 
-const combineSigmetWithGeo = (sigmet, geojson, container) => {
+const complementCoordinates = (coordinates) => {
+  const result = { complemented: false, coordinates: cloneDeep(coordinates) };
+  if (result.coordinates && Array.isArray(result.coordinates) && result.coordinates.length > 0 &&
+    result.coordinates[0] && Array.isArray(result.coordinates[0]) && result.coordinates[0].length > 0 &&
+    result.coordinates[0][0] !== result.coordinates[0][result.coordinates[0].length - 1]) {
+    result.coordinates[0].push(result.coordinates[0][0]);
+    result.complemented = true;
+  }
+  return result;
+};
+
+const combineSigmetWithGeo = (sigmet, geojson) => {
   let cleanedFeatures = cloneDeep(geojson.features);
-  clearNullPointersAndAncestors(cleanedFeatures);
-  cleanedFeatures = cleanedFeatures.filter((feature) => container.featureHasCoordinates(feature));
+  cleanedFeatures.forEach((feature) => {
+    if (feature.properties.featureFunction === 'intersection') {
+      feature.geometry.coordinates = [[]];
+    }
+    const complementResult = complementCoordinates(feature.geometry.coordinates);
+    if (complementResult.complemented === true) {
+      feature.geometry.coordinates = complementResult.coordinates;
+    }
+  });
   return produce(sigmet, draftState => {
     clearNullPointersAndAncestors(draftState);
     draftState.geojson.features.length = 0;
@@ -280,7 +302,7 @@ const combineSigmetWithGeo = (sigmet, geojson, container) => {
   });
 };
 
-const createFirIntersection = (featureId, container) => {
+const createFirIntersection = (featureId, geojson, container) => {
   const { dispatch, drawActions, urls } = container.props;
   const activeCategory = container.state.categories.find((category) => category.ref === container.state.focussedCategoryRef);
   if (!activeCategory) {
@@ -292,24 +314,30 @@ const createFirIntersection = (featureId, container) => {
   }
   /* const featureToIntersect = container.props.drawProperties.adagucMapDraw.geojson.features.find((feature) =>
     feature.id === featureId); */
-  const completedSigmet = combineSigmetWithGeo(activePartialSigmet, container.props.drawProperties.adagucMapDraw.geojson, container);
-  const intersectionFeature = container.props.drawProperties.adagucMapDraw.geojson.features.find((feature) =>
-    feature.properties.relatesTo === featureId && feature.properties.featureFunction === 'intersection');
-  axios({
-    method: 'post',
-    url: `${urls.BACKEND_SERVER_URL}/sigmet/sigmetintersections`,
-    withCredentials: true,
-    responseType: 'json',
-    data: completedSigmet
-  }).then((response) => {
-    const resultingFeature = response.data.sigmet.geojson.features.find((feature) =>
-      feature.id === intersectionFeature.id);
-    if (resultingFeature) {
-      dispatch(drawActions.setFeature({ coordinates: resultingFeature.geometry.coordinates, selectionType: 'poly', featureId: resultingFeature.id }));
-    }
-  }).catch(error => {
-    console.error('Couldn\'t retrieve intersection for feature', error, featureId);
+  const complementedSigmet = combineSigmetWithGeo(activePartialSigmet, geojson);
+  const intersectionFeature = geojson.features.find((iSFeature) => {
+    return iSFeature.properties.relatesTo === featureId && iSFeature.properties.featureFunction === 'intersection';
   });
+  if (intersectionFeature) {
+    axios({
+      method: 'post',
+      url: `${urls.BACKEND_SERVER_URL}/sigmet/sigmetintersections`,
+      withCredentials: true,
+      responseType: 'json',
+      data: complementedSigmet
+    }).then((response) => {
+      const resultingFeature = response.data.sigmet.geojson.features.find((rFeature) =>
+        rFeature.properties.relatesTo === intersectionFeature.properties.relatesTo &&
+        rFeature.properties.featureFunction === intersectionFeature.properties.featureFunction);
+      if (resultingFeature) {
+        dispatch(drawActions.setFeature({ coordinates: resultingFeature.geometry.coordinates, selectionType: 'poly', featureId: intersectionFeature.id }));
+      }
+    }).catch(error => {
+      console.error('Couldn\'t retrieve intersection for feature', error, featureId);
+    });
+  } else {
+    console.warn('The intersection feature was not found');
+  }
 };
 
 const modifyFocussedSigmet = (dataField, value, container) => {
@@ -414,7 +442,7 @@ export const localDispatch = (localAction, container) => {
       drawSigmet(localAction.event, localAction.uuid, container, localAction.action, localAction.featureFunction);
       break;
     case LOCAL_ACTION_TYPES.CREATE_FIR_INTERSECTION:
-      createFirIntersection(localAction.featureId, container);
+      createFirIntersection(localAction.featureId, localAction.geoJson, container);
       break;
     case LOCAL_ACTION_TYPES.UPDATE_FIR:
       updateFir(localAction.firName, container);

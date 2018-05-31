@@ -158,10 +158,11 @@ class SigmetsContainer extends Component {
         return;
       }
       if (!isEqual(currentStartFeature, nextStartFeature)) {
-        this.localDispatch(LOCAL_ACTIONS.createFirIntersectionAction(nextStartFeature.id));
+        console.warn('start', nextStartFeature);
+        this.localDispatch(LOCAL_ACTIONS.createFirIntersectionAction(nextStartFeature.id, nextProps.drawProperties.adagucMapDraw.geojson));
       }
       if (!isEqual(currentEndFeature, nextEndFeature)) {
-        this.localDispatch(LOCAL_ACTIONS.createFirIntersectionAction(nextEndFeature.id));
+        this.localDispatch(LOCAL_ACTIONS.createFirIntersectionAction(nextEndFeature.id, nextProps.drawProperties.adagucMapDraw.geojson));
       }
     }
   }

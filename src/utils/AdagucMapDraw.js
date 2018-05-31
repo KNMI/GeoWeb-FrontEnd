@@ -78,10 +78,7 @@ export default class AdagucMapDraw extends PureComponent {
     let coord = { x: parseInt(_coord.x), y: parseInt(_coord.y) };
     if (isInEditMode === false) {
       /* Standard style, no editing, just display location of vertices */
-      ctx.strokeStyle = '#000';
-      ctx.fillStyle = '#000';
-      ctx.lineWidth = 1.0;
-      w = 5;
+      return;
     } else if (selected === false) {
       if (middle === true) {
         /* Style for middle editable vertice */
