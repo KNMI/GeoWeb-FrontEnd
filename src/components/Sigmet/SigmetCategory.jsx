@@ -608,6 +608,7 @@ class SigmetCategory extends Component {
   }
 
   intersectGeoJSON (_geojson) {
+    console.log('intersectGeoJSON', _geojson);
     const { urls, dispatch, drawActions } = this.props;
 
     const newList = cloneDeep(this.state.list);
