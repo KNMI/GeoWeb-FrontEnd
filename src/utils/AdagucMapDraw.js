@@ -1,6 +1,8 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import Enum from 'es6-enum';
+import cloneDeep from 'lodash.clonedeep';
+
 export default class AdagucMapDraw extends PureComponent {
   constructor (props) {
     super(props);
@@ -37,10 +39,10 @@ export default class AdagucMapDraw extends PureComponent {
     this.pointNumber = 0;
     this.defaultPolyProps = {
       'stroke': '#',
-      'stroke-width': 0.4,
+      'stroke-width': 2,
       'stroke-opacity': 1,
-      'fill': '#33cc00',
-      'fill-opacity': 1
+      'fill': '#F00',
+      'fill-opacity': 0.3
     };
   }
   /* istanbul ignore next */
@@ -109,7 +111,7 @@ export default class AdagucMapDraw extends PureComponent {
 
   /* istanbul ignore next */
   drawPolygon (ctx, XYCoords, featureIndex, polygonIndex) {
-    const feature = this.props.geojson.features[featureIndex];
+    const feature = this.geojson.features[featureIndex];
     if (!feature) return;
     let polyProps = feature.properties;
     if (!polyProps) polyProps = this.defaultPolyProps;
@@ -174,12 +176,12 @@ export default class AdagucMapDraw extends PureComponent {
      You are free to draw anything you like on the canvas.
     */
 
-    if (!this.props.geojson || !this.props.geojson.features || !this.props.geojson.features.length) return;
+    if (!this.geojson || !this.geojson.features || !this.geojson.features.length) return;
     this.textPositions = [];
     this.mouseOverPolygonCoordinates = [];
     /* Current selected feature from GeoJSON */
-    for (let featureIndex = 0; featureIndex < this.props.geojson.features.length; featureIndex++) {
-      const feature = this.props.geojson.features[featureIndex];
+    for (let featureIndex = 0; featureIndex < this.geojson.features.length; featureIndex++) {
+      const feature = this.geojson.features[featureIndex];
 
       const featureType = feature.geometry.type;
       let totalmiddle = { x: 0, y: 0, nr: 0 };
@@ -508,7 +510,7 @@ export default class AdagucMapDraw extends PureComponent {
       return;
     }
 
-    const feature = this.props.geojson.features[this.props.featureNrToEdit];
+    const feature = this.geojson.features[this.props.featureNrToEdit];
     const featureCoords = feature.geometry.coordinates[this.snappedPolygonIndex];
 
     const { webmapjs } = this.props;
@@ -626,7 +628,7 @@ export default class AdagucMapDraw extends PureComponent {
         this.editMode !== this.EDITMODE.DELETE_FEATURES &&
         this.drawMode !== this.DRAWMODE.BOX) {
       this.mouseGeoCoord = webmapjs.getLatLongFromPixelCoord({ x: mouseX, y: mouseY });
-      const feature = this.props.geojson.features[this.props.featureNrToEdit];
+      const feature = this.geojson.features[this.props.featureNrToEdit];
       const featureCoords = feature.geometry.coordinates[this.snappedPolygonIndex];
       if (featureCoords === undefined) {
         return false;
@@ -640,7 +642,7 @@ export default class AdagucMapDraw extends PureComponent {
     /* This is trigged when a new polygon is created. Two points are added at once */
     if (this.editMode === this.EDITMODE.EMPTY) {
       this.editMode = this.EDITMODE.ADD_FEATURE;
-      const feature = this.props.geojson.features[this.props.featureNrToEdit];
+      const feature = this.geojson.features[this.props.featureNrToEdit];
       this.mouseGeoCoord = webmapjs.getLatLongFromPixelCoord({ x: mouseX, y: mouseY });
 
       if (this.drawMode === this.DRAWMODE.POINT || this.drawMode === this.DRAWMODE.MULTIPOINT) {
@@ -668,8 +670,6 @@ export default class AdagucMapDraw extends PureComponent {
         }
         if (feature.geometry.coordinates[0] === undefined) {
           feature.geometry.coordinates[0] = [];
-        } else {
-          feature.geometry.coordinates.push([]);
         }
         this.snappedPolygonIndex = feature.geometry.coordinates.length - 1;
         const featureCoords = feature.geometry.coordinates[this.snappedPolygonIndex];
@@ -702,7 +702,7 @@ export default class AdagucMapDraw extends PureComponent {
     if (this.drawMode === this.DRAWMODE.MULTIPOINT) {
       if (this.editMode === this.EDITMODE.ADD_FEATURE && this.pointNumber !== this.SNAPPEDPOYLYGON.NONE) {
         this.mouseGeoCoord = webmapjs.getLatLongFromPixelCoord({ x: mouseX, y: mouseY });
-        const feature = this.props.geojson.features[this.props.featureNrToEdit];
+        const feature = this.geojson.features[this.props.featureNrToEdit];
         feature.geometry.coordinates.push([this.mouseGeoCoord.x, this.mouseGeoCoord.y]);
         this.featureHasChanged('point added to multipoint');
         this.pointNumber = feature.geometry.coordinates.length;
@@ -714,7 +714,7 @@ export default class AdagucMapDraw extends PureComponent {
     /* This is triggered when new points are added during the addpolygon mode. One point is added per time */
     if (this.editMode === this.EDITMODE.ADD_FEATURE && this.snappedPolygonIndex !== this.SNAPPEDPOYLYGON.NONE) {
       this.mouseGeoCoord = webmapjs.getLatLongFromPixelCoord({ x: mouseX, y: mouseY });
-      const feature = this.props.geojson.features[this.props.featureNrToEdit];
+      const feature = this.geojson.features[this.props.featureNrToEdit];
       const featureCoords = feature.geometry.coordinates[this.snappedPolygonIndex];
       featureCoords.push([this.mouseGeoCoord.x, this.mouseGeoCoord.y]);
       this.featureHasChanged('vertex added to polygon');
@@ -728,7 +728,7 @@ export default class AdagucMapDraw extends PureComponent {
   }
 
   deletePolygon (index) {
-    const feature = this.props.geojson.features[this.props.featureNrToEdit];
+    const feature = this.geojson.features[this.props.featureNrToEdit];
     feature.geometry.coordinates.splice(index, 1);
     if (this.props.deletePolygonCallback) {
       this.props.deletePolygonCallback();
@@ -742,7 +742,7 @@ export default class AdagucMapDraw extends PureComponent {
     if (this.mouseIsOverVertexNr === this.VERTEX.NONE) {
       return;
     }
-    const feature = this.props.geojson.features[this.props.featureNrToEdit];
+    const feature = this.geojson.features[this.props.featureNrToEdit];
     const featureCoords = feature.geometry.coordinates[this.snappedPolygonIndex];
     if (featureCoords === undefined) {
       return;
@@ -854,11 +854,15 @@ export default class AdagucMapDraw extends PureComponent {
   }
   featureHasChanged (text) {
     const { dispatch, actions } = this.props;
-    // console.log(JSON.stringify(this.props.geojson, null, 2));
-    dispatch(actions.updateFeature(this.props.geojson, text));
+    const geojson = cloneDeep(this.geojson);
+    dispatch(actions.updateFeature(geojson, text));
   }
   /* istanbul ignore next */
   componentWillReceiveProps (nextProps) {
+    if (nextProps.geojson) {
+      this.geojson = cloneDeep(nextProps.geojson);
+    }
+
     /* Handle toggle edit */
     if (nextProps.isInEditMode === false && this.editMode !== this.EDITMODE.EMPTY) {
       this.cancelEdit(true); /* Throw away last vertice */

@@ -3,10 +3,11 @@ import { Col } from 'reactstrap';
 import PropTypes from 'prop-types';
 import produce from 'immer';
 import axios from 'axios';
+import isEqual from 'lodash.isequal';
 
 import Panel from '../../components/Panel';
 import CollapseOmni from '../../components/CollapseOmni';
-import { CATEGORY_REFS, INITIAL_STATE, LOCAL_ACTION_TYPES, LOCAL_ACTIONS } from './SigmetActions';
+import { CATEGORY_REFS, INITIAL_STATE, LOCAL_ACTIONS } from './SigmetActions';
 import { localDispatch as dispatch } from './SigmetReducers';
 
 import ContainerHeader from '../../components/Sigmet/ContainerHeader';
@@ -16,7 +17,8 @@ import MinifiedCategory from '../../components/Sigmet/MinifiedCategory';
 const ERROR_MSG = {
   RETRIEVE_SIGMETS: 'Could not retrieve SIGMETs:',
   RETRIEVE_PARAMS: 'Could not retrieve SIGMET parameters',
-  RETRIEVE_PHENOMENA: 'Could not retrieve SIGMET phenomena'
+  RETRIEVE_PHENOMENA: 'Could not retrieve SIGMET phenomena',
+  FEATURE_ID_MISMATCH: 'GeoJson: the %s feature has a mutated id'
 };
 
 class SigmetsContainer extends Component {
@@ -29,6 +31,8 @@ class SigmetsContainer extends Component {
     this.receivedParametersCallback = this.receivedParametersCallback.bind(this);
     this.retrievePhenomena = this.retrievePhenomena.bind(this);
     this.receivedPhenomenaCallback = this.receivedPhenomenaCallback.bind(this);
+    this.findFeatureByFunction = this.findFeatureByFunction.bind(this);
+    this.featureHasCoordinates = this.featureHasCoordinates.bind(this);
     this.state = produce(INITIAL_STATE, draftState => {});
   }
 
@@ -63,7 +67,7 @@ class SigmetsContainer extends Component {
       if (response.data.nsigmets === 0 || !response.data.sigmets) {
         response.data.sigmets = [];
       }
-      this.localDispatch({ type: LOCAL_ACTION_TYPES.UPDATE_CATEGORY, ref: ref, sigmets: response.data.sigmets });
+      this.localDispatch(LOCAL_ACTIONS.updateCategoryAction(ref, response.data.sigmets));
     } else {
       console.error(ERROR_MSG.RETRIEVE_SIGMETS, ref, response.status, response.data);
     }
@@ -86,8 +90,8 @@ class SigmetsContainer extends Component {
 
   receivedParametersCallback (response) {
     if (response.status === 200 && response.data) {
-      this.localDispatch({ type: LOCAL_ACTION_TYPES.UPDATE_PARAMETERS, parameters: response.data });
-      this.localDispatch({ type: LOCAL_ACTION_TYPES.ADD_SIGMET, ref: CATEGORY_REFS.ADD_SIGMET });
+      this.localDispatch(LOCAL_ACTIONS.updateParametersAction(response.data));
+      this.localDispatch(LOCAL_ACTIONS.addSigmetAction(CATEGORY_REFS.ADD_SIGMET));
     } else {
       console.error(ERROR_MSG.RETRIEVE_PARAMS, response.status, response.data);
     }
@@ -110,10 +114,55 @@ class SigmetsContainer extends Component {
 
   receivedPhenomenaCallback (response) {
     if (response.status === 200 && response.data) {
-      this.localDispatch({ type: LOCAL_ACTION_TYPES.UPDATE_PHENOMENA, phenomena: response.data });
-      this.localDispatch({ type: LOCAL_ACTION_TYPES.ADD_SIGMET, ref: CATEGORY_REFS.ADD_SIGMET });
+      this.localDispatch(LOCAL_ACTIONS.updatePhenomenaAction(response.data));
+      this.localDispatch(LOCAL_ACTIONS.addSigmetAction(CATEGORY_REFS.ADD_SIGMET));
     } else {
       console.error(ERROR_MSG.RETRIEVE_PARAMS, response.status, response.data);
+    }
+  }
+
+  findFeatureByFunction (functionName, containerProperties = this.props) {
+    if (containerProperties.drawProperties.adagucMapDraw.geojson.features) {
+      return containerProperties.drawProperties.adagucMapDraw.geojson.features.find((feature) => feature.properties.featureFunction === functionName);
+    }
+    return null;
+  }
+
+  featureHasCoordinates (feature) {
+    if (feature && feature.geometry && feature.geometry.coordinates &&
+      Array.isArray(feature.geometry.coordinates)) { // shapes
+      const coordinates = feature.geometry.coordinates;
+      if (coordinates.length > 0 && Array.isArray(coordinates[0])) { // lines
+        if (coordinates[0].length > 0 && Array.isArray(coordinates[0][0])) { // points
+          if (coordinates[0][0].length === 2 && !isNaN(coordinates[0][0][0]) && !isNaN(coordinates[0][0][1])) { // lat-long coordinates
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+  componentWillReceiveProps (nextProps) {
+    if (nextProps.drawProperties.adagucMapDraw.geojson.features && this.props.drawProperties.adagucMapDraw.geojson.features) {
+      const currentStartFeature = this.findFeatureByFunction('start');
+      const currentEndFeature = this.findFeatureByFunction('end');
+      const nextStartFeature = this.findFeatureByFunction('start', nextProps);
+      const nextEndFeature = this.findFeatureByFunction('end', nextProps);
+      if (!currentStartFeature || !nextStartFeature || currentStartFeature.id !== nextStartFeature.id) {
+        console.warn(ERROR_MSG.FEATURE_ID_MISMATCH, 'start');
+        return;
+      }
+      if (!currentEndFeature || !nextEndFeature || currentEndFeature.id !== nextEndFeature.id) {
+        console.warn(ERROR_MSG.FEATURE_ID_MISMATCH, 'end');
+        return;
+      }
+      if (!isEqual(currentStartFeature, nextStartFeature)) {
+        this.localDispatch(LOCAL_ACTIONS.createFirIntersectionAction(nextStartFeature.id));
+      }
+      if (!isEqual(currentEndFeature, nextEndFeature)) {
+        this.localDispatch(LOCAL_ACTIONS.createFirIntersectionAction(nextEndFeature.id));
+      }
     }
   }
 
@@ -128,22 +177,8 @@ class SigmetsContainer extends Component {
     const header = <ContainerHeader isContainerOpen={this.state.isContainerOpen} dispatch={this.localDispatch} actions={LOCAL_ACTIONS} />;
     const startFeature = this.props.drawProperties.adagucMapDraw.geojson.features.find((feature) => feature.properties.featureFunction === 'start');
     const endFeature = this.props.drawProperties.adagucMapDraw.geojson.features.find((feature) => feature.properties.featureFunction === 'end');
-    let hasStartCoordinates = false;
-    if (startFeature) {
-      if (startFeature.geometry.coordinates[0]) {
-        hasStartCoordinates = startFeature.geometry.coordinates[0][0].length > 0;
-      } else {
-        hasStartCoordinates = startFeature.geometry.coordinates.length > 0;
-      }
-    }
-    let hasEndCoordinates = false;
-    if (endFeature) {
-      if (endFeature.geometry.coordinates[0]) {
-        hasEndCoordinates = endFeature.geometry.coordinates[0][0].length > 0;
-      } else {
-        hasEndCoordinates = endFeature.geometry.coordinates.length > 0;
-      }
-    }
+    const hasStartCoordinates = this.featureHasCoordinates(startFeature);
+    const hasEndCoordinates = this.featureHasCoordinates(endFeature);
 
     return (
       <Col className='SigmetsContainer'>
@@ -181,7 +216,14 @@ class SigmetsContainer extends Component {
 SigmetsContainer.propTypes = {
   urls: PropTypes.shape({
     BACKEND_SERVER_URL: PropTypes.string
-  })
+  }),
+  drawProperties: PropTypes.shape({
+    adagucMapDraw: PropTypes.shape({
+      geojson: PropTypes.shape({
+        features: PropTypes.array.isRequired
+      }).isRequired
+    }).isRequired
+  }).isRequired
 };
 
 export default SigmetsContainer;

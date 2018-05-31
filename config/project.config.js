@@ -55,7 +55,6 @@ const config = {
     'lyef-switch-button',
     'moment',
     'moment-timezone',
-    'popper.js',
     'prop-types',
     'rc-slider',
     'react',

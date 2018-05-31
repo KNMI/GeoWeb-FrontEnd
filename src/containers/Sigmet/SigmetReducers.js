@@ -2,6 +2,7 @@ import produce from 'immer';
 import moment from 'moment';
 import { SIGMET_TEMPLATES } from '../../components/Sigmet/SigmetTemplates';
 import { SIGMET_MODES, LOCAL_ACTION_TYPES, CATEGORY_REFS } from './SigmetActions';
+import { clearNullPointersAndAncestors } from '../../utils/json';
 import axios from 'axios';
 import cloneDeep from 'lodash.clonedeep';
 const uuidv4 = require('uuid/v4');
@@ -136,21 +137,39 @@ const updateFir = (firName, container) => {
 // TODO: Should be Immutable, but AdagucMapDraw can't handle this ATM. Fix this.
 const initialGeoJson = () => {
   const draftState = cloneDeep(SIGMET_TEMPLATES.GEOJSON);
-  draftState.features.push(cloneDeep(SIGMET_TEMPLATES.FEATURE));
+  draftState.features.push(cloneDeep(SIGMET_TEMPLATES.FEATURE), cloneDeep(SIGMET_TEMPLATES.FEATURE), cloneDeep(SIGMET_TEMPLATES.FEATURE));
   const startId = uuidv4();
+  const endId = uuidv4();
   draftState.features[0].id = startId;
   draftState.features[0].properties.featureFunction = 'start';
   draftState.features[0].properties.selectionType = 'poly';
   draftState.features[0].properties['fill-opacity'] = 0.33;
+  draftState.features[0].properties.fill = '#0f0';
   draftState.features[0].geometry.type = 'Polygon';
 
-  draftState.features[1].id = uuidv4();
+  draftState.features[1].id = endId;
   draftState.features[1].properties.featureFunction = 'end';
   draftState.features[1].properties.relatesTo = startId;
   draftState.features[1].properties.selectionType = 'poly';
   draftState.features[1].properties['fill-opacity'] = 0.33;
-  draftState.features[1].properties.fill = '#ff0000';
+  draftState.features[1].properties.fill = '#f00';
   draftState.features[1].geometry.type = 'Polygon';
+
+  draftState.features[2].id = uuidv4();
+  draftState.features[2].properties.featureFunction = 'intersection';
+  draftState.features[2].properties.relatesTo = startId;
+  draftState.features[2].properties.selectionType = 'poly';
+  draftState.features[2].properties['fill-opacity'] = 0.33;
+  draftState.features[2].properties.fill = '#2a2';
+  draftState.features[2].geometry.type = 'Polygon';
+
+  draftState.features[3].id = uuidv4();
+  draftState.features[3].properties.featureFunction = 'intersection';
+  draftState.features[3].properties.relatesTo = endId;
+  draftState.features[3].properties.selectionType = 'poly';
+  draftState.features[3].properties['fill-opacity'] = 0.33;
+  draftState.features[3].properties.fill = '#a22';
+  draftState.features[3].geometry.type = 'Polygon';
   return draftState;
 };
 
@@ -209,9 +228,15 @@ const updateSigmet = (uuid, dataField, value, container) => {
 
 const drawSigmet = (event, uuid, container, action, featureFunction) => {
   event.preventDefault();
-  const { dispatch, mapActions, drawActions } = container.props;
-  const allSigmets = container.state.categories.find((cat) => cat.ref === container.state.focussedCategoryRef).sigmets;
-  const coordinates = container.state.firs[allSigmets.find((sigmet) => sigmet.uuid === uuid).firname].geometry.coordinates;
+  const { dispatch, mapActions, drawActions, drawProperties } = container.props;
+  const features = drawProperties.adagucMapDraw.geojson.features;
+  // Select relevant polygon to edit, this assumes there is ONE start and ONE end feature.
+  const featureIndex = features.findIndex((feature) =>
+    feature.properties.featureFunction === featureFunction);
+  if (featureIndex === -1) {
+    return;
+  }
+  const featureId = features[featureIndex].id;
   switch (action) {
     case 'select-point':
       dispatch(mapActions.setMapMode('draw'));
@@ -220,28 +245,71 @@ const drawSigmet = (event, uuid, container, action, featureFunction) => {
     case 'select-region':
       dispatch(mapActions.setMapMode('draw'));
       dispatch(drawActions.setFeatureEditBox());
-      dispatch(drawActions.setFeature({ coordinates: [], selectionType: 'box', featureFunction }));
+      dispatch(drawActions.setFeature({ coordinates: [], selectionType: 'box', featureId }));
       break;
     case 'select-shape':
       dispatch(mapActions.setMapMode('draw'));
       dispatch(drawActions.setFeatureEditPolygon());
-      dispatch(drawActions.setFeature({ coordinates: [], selectionType: 'poly', featureFunction }));
+      dispatch(drawActions.setFeature({ coordinates: [], selectionType: 'poly', featureId }));
       break;
     case 'select-fir':
+      const allSigmets = container.state.categories.find((cat) => cat.ref === container.state.focussedCategoryRef).sigmets;
+      const coordinates = container.state.firs[allSigmets.find((sigmet) => sigmet.uuid === uuid).firname].geometry.coordinates;
       dispatch(mapActions.setMapMode('pan'));
       dispatch(drawActions.setFeatureEditPolygon());
-      dispatch(drawActions.setFeature({ coordinates, selectionType: 'poly', featureFunction }));
+      dispatch(drawActions.setFeature({ coordinates, selectionType: 'poly', featureId }));
       break;
     case 'delete-selection':
       dispatch(mapActions.setMapMode('pan'));
-      dispatch(drawActions.setFeature({ coordinates: [], selectionType: 'poly', featureFunction }));
+      dispatch(drawActions.setFeature({ coordinates: [], selectionType: 'poly', featureId }));
       break;
     default:
       console.error(`Selection method ${action} unknown and not implemented`);
   }
-  // Select relevant polygon to edit, this assumes there is ONE start and ONE end feature.
-  dispatch(drawActions.setFeatureNr(container.props.drawProperties.adagucMapDraw.geojson.features.findIndex((feature) =>
-    feature.properties.featureFunction === featureFunction)));
+  dispatch(drawActions.setFeatureNr(featureIndex));
+};
+
+const combineSigmetWithGeo = (sigmet, geojson, container) => {
+  let cleanedFeatures = cloneDeep(geojson.features);
+  clearNullPointersAndAncestors(cleanedFeatures);
+  cleanedFeatures = cleanedFeatures.filter((feature) => container.featureHasCoordinates(feature));
+  return produce(sigmet, draftState => {
+    clearNullPointersAndAncestors(draftState);
+    draftState.geojson.features.length = 0;
+    draftState.geojson.features.push(...cleanedFeatures);
+  });
+};
+
+const createFirIntersection = (featureId, container) => {
+  const { dispatch, drawActions, urls } = container.props;
+  const activeCategory = container.state.categories.find((category) => category.ref === container.state.focussedCategoryRef);
+  if (!activeCategory) {
+    return;
+  }
+  const activePartialSigmet = activeCategory.sigmets.find((sigmet) => sigmet.uuid === container.state.focussedSigmet.uuid);
+  if (!activePartialSigmet) {
+    return;
+  }
+  /* const featureToIntersect = container.props.drawProperties.adagucMapDraw.geojson.features.find((feature) =>
+    feature.id === featureId); */
+  const completedSigmet = combineSigmetWithGeo(activePartialSigmet, container.props.drawProperties.adagucMapDraw.geojson, container);
+  const intersectionFeature = container.props.drawProperties.adagucMapDraw.geojson.features.find((feature) =>
+    feature.properties.relatesTo === featureId && feature.properties.featureFunction === 'intersection');
+  axios({
+    method: 'post',
+    url: `${urls.BACKEND_SERVER_URL}/sigmet/sigmetintersections`,
+    withCredentials: true,
+    responseType: 'json',
+    data: completedSigmet
+  }).then((response) => {
+    const resultingFeature = response.data.sigmet.geojson.features.find((feature) =>
+      feature.id === intersectionFeature.id);
+    if (resultingFeature) {
+      dispatch(drawActions.setFeature({ coordinates: resultingFeature.geometry.coordinates, selectionType: 'poly', featureId: resultingFeature.id }));
+    }
+  }).catch(error => {
+    console.error('Couldn\'t retrieve intersection for feature', error, featureId);
+  });
 };
 
 const modifyFocussedSigmet = (dataField, value, container) => {
@@ -344,6 +412,9 @@ export const localDispatch = (localAction, container) => {
       break;
     case LOCAL_ACTION_TYPES.DRAW_SIGMET:
       drawSigmet(localAction.event, localAction.uuid, container, localAction.action, localAction.featureFunction);
+      break;
+    case LOCAL_ACTION_TYPES.CREATE_FIR_INTERSECTION:
+      createFirIntersection(localAction.featureId, container);
       break;
     case LOCAL_ACTION_TYPES.UPDATE_FIR:
       updateFir(localAction.firName, container);
