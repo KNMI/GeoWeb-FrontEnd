@@ -133,11 +133,8 @@ class SigmetsContainer extends Component {
       Array.isArray(feature.geometry.coordinates)) { // shapes
       const coordinates = feature.geometry.coordinates;
       if (coordinates.length > 0 && Array.isArray(coordinates[0])) { // lines
-        console.log('lines');
         if (coordinates[0].length > 0 && Array.isArray(coordinates[0][0])) { // points
-          console.log('points');
           if (coordinates[0][0].length === 2 && !isNaN(coordinates[0][0][0]) && !isNaN(coordinates[0][0][1])) { // lat-long coordinates
-            console.log('coords');
             return true;
           }
         }
