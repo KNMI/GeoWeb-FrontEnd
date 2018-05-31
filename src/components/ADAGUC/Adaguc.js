@@ -269,14 +269,14 @@ export default class Adaguc extends PureComponent {
 
   // Returns true when the panelsProperties are actually different w.r.t. next panelsProperties, otherwise false
   /* istanbul ignore next */
-  updateBaselayers (baselayers, nextBaselayers) {
+  updateBaseLayers (baselayers, nextBaseLayers) {
     let change = false;
-    if (baselayers.length !== nextBaselayers.length) {
+    if (baselayers.length !== nextBaseLayers.length) {
       change = true;
     } else {
       for (let i = 0; i < baselayers.length; ++i) {
-        if (baselayers[i].service !== nextBaselayers[i].service ||
-          baselayers[i].name !== nextBaselayers[i].name || baselayers[i].enabled !== nextBaselayers[i].enabled) {
+        if (baselayers[i].service !== nextBaseLayers[i].service ||
+          baselayers[i].name !== nextBaseLayers[i].name || baselayers[i].enabled !== nextBaseLayers[i].enabled) {
           change = true;
           break;
         }
@@ -284,8 +284,8 @@ export default class Adaguc extends PureComponent {
     }
 
     if (change) {
-      const currentBaseLayer = this.webMapJS.getBaseLayers().filter((layer) => !layer.keepOnTop);
-      this.webMapJS.setBaseLayers([...currentBaseLayer, ...nextBaselayers.filter((layer) => layer.keepOnTop === true)]);
+      // eslint-disable-next-line no-undef
+      this.webMapJS.setBaseLayers(nextBaseLayers.map((layer) => new WMJSLayer(layer)));
     }
     return change;
   }
@@ -423,7 +423,7 @@ export default class Adaguc extends PureComponent {
     }
 
     const layersChanged = this.updateLayers(activePanel.layers, nextActivePanel.layers, nextProps.active);
-    const baseChanged = this.updateBaselayers(baseLayers, nextBaseLayers);
+    const baseChanged = this.updateBaseLayers(baseLayers, nextBaseLayers);
 
     // Update animation -- animate iff animate is set and the panel is active.
     if (nextProps.adagucProperties.animationSettings !== animationSettings ||

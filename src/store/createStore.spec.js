@@ -44,7 +44,7 @@ describe('(Store) createStore', () => {
       style: null,
       styles: null,
       overlay: null,
-      mapType: MAP_STYLES[1],
+      mapType: MAP_STYLES[0],
       boundingBox: BOUNDING_BOXES[0],
       projectionName: 'EPSG:3857',
       mapCreated: false
