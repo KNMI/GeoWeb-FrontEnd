@@ -41,16 +41,19 @@ export default class HeightsSection extends PureComponent {
             <Col xs={{ size: 2, offset: 3 }}>
               <label>Between</label>
             </Col>
-            <Col xs='3'>
+            <Col xs='6'>
               {children['between-lev-1']}
             </Col>
-            <Col xs='1'>
+            <Col />
+          </Row>
+          <Row>
+            <Col xs={{ size: 1, offset: 3 }}>
               <label>and</label>
             </Col>
             <Col xs='3'>
               {children['between-lev-2']}
             </Col>
-
+            <Col />
           </Row>
         </Col>
       </Row>);

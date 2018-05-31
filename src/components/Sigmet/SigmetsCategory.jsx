@@ -39,8 +39,9 @@ class SigmetsCategory extends PureComponent {
                   <Col className='btn-group-vertical'>
                     {sigmets.slice(0, itemLimit).map((sigmet, index) => {
                       if (focussedSigmet.uuid === sigmet.uuid && focussedSigmet.mode === SIGMET_MODES.EDIT) {
-                        console.log(sigmet);
                         return <SigmetEditMode key={sigmet.uuid}
+                          useGeometry={focussedSigmet.useGeometry}
+                          useLevelAtAbove={focussedSigmet.useLevelAtAbove}
                           dispatch={dispatch}
                           actions={actions}
                           abilities={abilities[SIGMET_MODES.EDIT]}

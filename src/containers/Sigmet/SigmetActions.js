@@ -16,7 +16,8 @@ export const LOCAL_ACTION_TYPES = {
   PUBLISH_SIGMET: 'PUBLISH_SIGMET',
   CANCEL_SIGMET: 'CANCEL_SIGMET',
   DRAW_SIGMET: 'DRAW_SIGMET',
-  UPDATE_FIR: 'UPDATE_FIR'
+  UPDATE_FIR: 'UPDATE_FIR',
+  MODIFY_FOCUSSED_SIGMET: 'MODIFY_FOCUSSED_SIGMET'
 };
 
 export const LOCAL_ACTIONS = {
@@ -37,7 +38,8 @@ export const LOCAL_ACTIONS = {
   publishSigmetAction: (evt, uuid) => ({ type: LOCAL_ACTION_TYPES.PUBLISH_SIGMET, event: evt, uuid: uuid }),
   cancelSigmetAction: (evt, uuid) => ({ type: LOCAL_ACTION_TYPES.CANCEL_SIGMET, event: evt, uuid: uuid }),
   drawAction: (evt, uuid, action, featureFunction) => ({ type: LOCAL_ACTION_TYPES.DRAW_SIGMET, uuid: uuid, event: evt, action: action, featureFunction: featureFunction }),
-  updateFir: (firName) => ({ type: LOCAL_ACTION_TYPES.UPDATE_FIR, firName: firName })
+  updateFir: (firName) => ({ type: LOCAL_ACTION_TYPES.UPDATE_FIR, firName: firName }),
+  modifyFocussedSigmet: (dataField, value) => ({ type: LOCAL_ACTION_TYPES.MODIFY_FOCUSSED_SIGMET, dataField: dataField, value: value })
 };
 
 export const SIGMET_MODES = {
@@ -160,6 +162,7 @@ const STATE = {
   focussedCategoryRef: null,
   focussedSigmet: {
     useGeometry: false,
+    useLevelAtAbove: true,
     uuid: null,
     mode: SIGMET_MODES.READ
   },

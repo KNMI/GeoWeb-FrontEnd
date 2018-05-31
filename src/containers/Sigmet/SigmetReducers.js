@@ -244,6 +244,12 @@ const drawSigmet = (event, uuid, container, action, featureFunction) => {
     feature.properties.featureFunction === featureFunction)));
 };
 
+const modifyFocussedSigmet = (dataField, value, container) => {
+  container.setState(produce(container.state, draftState => {
+    draftState.focussedSigmet[dataField] = value;
+  }));
+};
+
 const clearSigmet = (event, uuid, container) => {
   console.warn('clearSigmet is not yet implemented');
 };
@@ -341,6 +347,9 @@ export const localDispatch = (localAction, container) => {
       break;
     case LOCAL_ACTION_TYPES.UPDATE_FIR:
       updateFir(localAction.firName, container);
+      break;
+    case LOCAL_ACTION_TYPES.MODIFY_FOCUSSED_SIGMET:
+      modifyFocussedSigmet(localAction.dataField, localAction.value, container);
       break;
   }
 };
