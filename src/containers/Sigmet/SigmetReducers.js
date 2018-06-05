@@ -344,18 +344,9 @@ const drawSigmet = (event, uuid, container, action, featureFunction) => {
   dispatch(drawActions.setFeatureNr(featureIndex));
 };
 
-const isEmptyCoordinates = (coordinates) => {
-  if (!coordinates || !Array.isArray(coordinates) || !coordinates.length > 0 ||
-    !coordinates[0] || !Array.isArray(coordinates[0]) || !coordinates[0].length > 0 ||
-    !coordinates[0][0] || !Array.isArray(coordinates[0][0]) || isNaN(coordinates[0][0][0]) || isNaN(coordinates[0][0][1])) {
-    return true;
-  }
-  return false;
-};
-
-const complementCoordinates = (coordinates) => {
-  const result = { complemented: false, coordinates: cloneDeep(coordinates) };
-  if (!isEmptyCoordinates(result.coordinates)) {
+const complementFeatureCoordinates = (feature, container) => {
+  const result = { complemented: false, coordinates: cloneDeep(feature.geometry.coordinates) };
+  if (container.featureHasCoordinates(feature)) {
     if (result.coordinates[0][0] !== result.coordinates[0][result.coordinates[0].length - 1]) {
       result.coordinates[0].push(result.coordinates[0][0]);
       result.complemented = true;
@@ -364,14 +355,14 @@ const complementCoordinates = (coordinates) => {
   return result;
 };
 
-const createIntersectionData = (feature, firname) => {
+const createIntersectionData = (feature, firname, container) => {
   const cleanedFeature = cloneDeep(feature);
-  const complementResult = complementCoordinates(cleanedFeature.geometry.coordinates);
+  const complementResult = complementFeatureCoordinates(cleanedFeature, container);
   if (complementResult.complemented === true) {
     cleanedFeature.geometry.coordinates = complementResult.coordinates;
   }
   clearNullPointersAndAncestors(cleanedFeature);
-  return (isEmptyCoordinates(cleanedFeature.geometry.coordinates) || cleanedFeature.geometry.coordinates[0].length < 4)
+  return (!container.featureHasCoordinates(cleanedFeature) || cleanedFeature.geometry.coordinates[0].length < 4)
     ? null
     : { firname: firname, feature: cleanedFeature };
 };
@@ -388,7 +379,7 @@ const createFirIntersection = (featureId, geojson, container) => {
   }
   const featureToIntersect = geojson.features.find((feature) =>
     feature.id === featureId);
-  const intersectionData = createIntersectionData(featureToIntersect, affectedSigmet.firname);
+  const intersectionData = createIntersectionData(featureToIntersect, affectedSigmet.firname, container);
   const intersectionFeature = geojson.features.find((iSFeature) => {
     return iSFeature.properties.relatesTo === featureId && iSFeature.properties.featureFunction === 'intersection';
   });
@@ -419,7 +410,8 @@ const modifyFocussedSigmet = (dataField, value, container) => {
 };
 
 const clearSigmet = (event, uuid, container) => {
-  console.warn('clearSigmet is not yet implemented');
+  addSigmet(container.state.focussedCategoryRef, container);
+  console.warn('clearSigmet is not yet fully implemented');
 };
 
 const discardSigmet = (event, uuid, container) => {
@@ -427,6 +419,46 @@ const discardSigmet = (event, uuid, container) => {
 };
 
 const saveSigmet = (event, uuid, container) => {
+  const { drawProperties, urls } = container.props;
+  event.preventDefault();
+  if (container.state.focussedSigmet.uuid !== uuid) {
+    return;
+  }
+  const activeCategory = container.state.categories.find((category) => category.ref === container.state.focussedCategoryRef);
+  if (!activeCategory) {
+    return;
+  }
+  const affectedSigmet = activeCategory.sigmets.find((sigmet) => sigmet.uuid === uuid);
+  if (!affectedSigmet) {
+    return;
+  }
+  const geojson = cloneDeep(drawProperties.adagucMapDraw.geojson);
+  let cleanedFeatures = geojson.features;
+  clearNullPointersAndAncestors(cleanedFeatures);
+  cleanedFeatures = cleanedFeatures.filter((feature) => container.featureHasCoordinates(feature));
+  cleanedFeatures.forEach((feature) => {
+    const complementResult = complementFeatureCoordinates(feature, container);
+    if (complementResult.complemented === true) {
+      feature.geometry.coordinates = complementResult.coordinates;
+    }
+  });
+  const complementedSigmet = produce(affectedSigmet, draftState => {
+    clearNullPointersAndAncestors(draftState);
+    draftState.geojson.features.length = 0;
+    draftState.geojson.features.push(...cleanedFeatures);
+  });
+
+  axios({
+    method: 'post',
+    url: `${urls.BACKEND_SERVER_URL}/sigmet/storesigmet`,
+    withCredentials: true,
+    responseType: 'json',
+    data: complementedSigmet
+  }).then(response => {
+    console.log('res', response.data);
+  }).catch(error => {
+    console.error(`Could not save Sigmet identified by ${uuid}`, error);
+  });
   console.warn('saveSigmet is not yet implemented');
 };
 

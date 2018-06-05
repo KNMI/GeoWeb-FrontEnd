@@ -208,7 +208,7 @@ class SigmetEditMode extends PureComponent {
               </ButtonDropdown>
             </InputGroupButton>
             <Input placeholder='Level' disabled={isLevelBetween} type='number'
-              value={isLevelBetween ? '' : levelinfo.levels[0].value}
+              value={(isLevelBetween || !levelinfo.levels[0].value) ? '' : levelinfo.levels[0].value}
               onChange={(evt) => dispatch(actions.updateSigmetLevelAction(uuid, 'value', { value: evt.target.value, isUpperLevel: false }))} />
           </InputGroup>
           <SwitchButton id='sfcLevelToggle'
@@ -228,7 +228,7 @@ class SigmetEditMode extends PureComponent {
                 </ButtonDropdown>
               </InputGroupButton>
               <Input placeholder='Level' disabled={!isLevelBetween || !isNotLevelSurface} type='number'
-                value={!isLevelBetween || !isNotLevelSurface ? '' : levelinfo.levels[0].value}
+                value={(!isLevelBetween || !isNotLevelSurface || !levelinfo.levels[0].value) ? '' : levelinfo.levels[0].value}
                 onChange={(evt) => dispatch(actions.updateSigmetLevelAction(uuid, 'value', { value: evt.target.value, isUpperLevel: false }))} />
             </InputGroup>}
             disabled={!isLevelBetween}
@@ -250,7 +250,7 @@ class SigmetEditMode extends PureComponent {
               </ButtonDropdown>
             </InputGroupButton>
             <Input placeholder='Level' disabled={!isLevelBetween} type='number'
-              value={!isLevelBetween ? '' : levelinfo.levels[1].value}
+              value={(!isLevelBetween || !levelinfo.levels[1].value) ? '' : levelinfo.levels[1].value}
               onChange={(evt) => dispatch(actions.updateSigmetLevelAction(uuid, 'value', { value: evt.target.value, isUpperLevel: true }))} />
           </InputGroup>
         </HeightsSection>
