@@ -191,7 +191,7 @@ export default class AdagucMapDraw extends PureComponent {
 
       const featureType = feature.geometry.type;
       let totalmiddle = { x: 0, y: 0, nr: 0 };
-      console.log('featureType', featureType);
+
       if (featureType === 'Point') {
         let featureCoords = feature.geometry.coordinates;
         const XYCoords = this.getPixelCoordFromGeoCoord([featureCoords]);
