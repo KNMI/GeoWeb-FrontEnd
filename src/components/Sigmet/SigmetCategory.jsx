@@ -23,9 +23,6 @@ import { SIGMET_TEMPLATES, CHANGES, DIRECTIONS, UNITS_ALT } from './SigmetTempla
 import { clearNullPointersAndAncestors } from '../../utils/json';
 
 import { getPresetForPhenomenon } from './SigmetPresets';
-
-const uuidv4 = require('uuid/v4');
-
 const createSliderWithTooltip = Slider.createSliderWithTooltip;
 const Range = createSliderWithTooltip(Slider.Range);
 const Handle = Slider.Handle;
@@ -46,7 +43,7 @@ const FALLBACK_PARAMS = {
   firareas: [
     {
       location_indicator_icao: 'EHAA',
-      firname: 'FIR AMSTERDAM', // TODO should be FIR AMSTERDAM
+      firname: 'AMSTERDAM FIR',
       areapreset: 'NL_FIR'
     }
   ],
@@ -88,7 +85,7 @@ class SigmetCategory extends Component {
     this.setChange = this.setChange.bind(this);
     this.setTops = this.setTops.bind(this);
     this.selectFir = this.selectFir.bind(this);
-    this.intersectGeoJSON = this.intersectGeoJSON.bind(this);
+
     this.state = {
       isOpen: props.isOpen,
       isClosing: props.isClosing,
@@ -422,7 +419,7 @@ class SigmetCategory extends Component {
                     newLayer.setDimension(dim, layer.dimensions[dim]);
                   });
                 }
-                return resolve({ layer: newLayer, panelIdx: panelIdx, index: i });
+                return resolve({ layer: newLayer, panelIdx: panelIdx, index: i })
               });
             }));
           });
@@ -588,14 +585,13 @@ class SigmetCategory extends Component {
         !isEqual(nextProps.drawProperties.adagucMapDraw.geojson, EMPTY_GEO_JSON) &&
         Array.isArray(this.state.list) && this.state.list.length > 0) {
       const newList = cloneDeep(this.state.list);
-      // newList[0].geojson = this.props.drawProperties.adagucMapDraw.geojson; // TODO, when this is enabled the fist concept sigmet will never show its geojson
+      newList[0].geojson = this.props.drawProperties.adagucMapDraw.geojson;
       this.setState({ list: newList });
     }
-
     if (this.props.editable && Array.isArray(this.state.list) && this.state.list.length > 0 &&
         this.state.list[0].validdate) {
       const curVal = moment(this.state.list[0].validdate).utc();
-      const nowVal = getRoundedNow(); // TODO: Is this overwriting the date with now?
+      const nowVal = getRoundedNow();
       if (curVal.isBefore(nowVal, 'minute')) {
         const newList = update(this.state.list, {
           0: {
@@ -607,101 +603,9 @@ class SigmetCategory extends Component {
     }
   }
 
-  intersectGeoJSON (_geojson) {
-    console.log('intersectGeoJSON', _geojson);
-    const { urls, dispatch, drawActions } = this.props;
-
-    const newList = cloneDeep(this.state.list);
-
-    if (!newList.length || newList.length === 0) {
-      // console.log('No sigmet');
-      return;
-    }
-
-    let geojson = cloneDeep(_geojson);
-    let orgGeojson = cloneDeep(_geojson); // Needed for assembling
-
-    if (orgGeojson.newFeature && orgGeojson.newFeature === true) {
-      console.log('start intersecting');
-      delete orgGeojson.newFeature;
-    } else {
-      return;
-    }
-
-    for (let j = 0; j < geojson.features.length; j++) {
-      if (!geojson.features[j].id || geojson.features[j].id === 'null' || geojson.features[j].id === null) {
-        geojson.features[j].id = uuidv4();
-      }
-
-      /* Add last coordinate to array to make a closing ring polygon, issue in ADAGUCMapDraw */
-      if (geojson.features[j].geometry.coordinates && geojson.features[j].geometry.coordinates[0] && geojson.features[j].geometry.coordinates[0].length > 0) {
-        geojson.features[j].geometry.coordinates[0].push(geojson.features[j].geometry.coordinates[0][0]);
-      }
-    }
-
-    /* Remove intersections from geojson */
-    let j = geojson.features.length;
-    while (j--) {
-      if (geojson.features[j].properties.featureFunction === 'intersection') {
-        console.log('removing intersection at index ' + j);
-        geojson.features.splice(j, 1);
-      }
-    }
-
-    /* Remove intersections from orgGeoJson */
-    j = orgGeojson.features.length;
-    while (j--) {
-      if (orgGeojson.features[j].properties.featureFunction === 'intersection') {
-        console.log('removing intersection at index ' + j);
-        orgGeojson.features.splice(j, 1);
-      }
-    }
-
-    newList[0].geojson = geojson;
-
-    newList[0].firname = 'FIR AMSTERDAM'; // TODO CHECK "AMSTERDAM FIR" IS COMING BACK
-
-    clearNullPointersAndAncestors(newList);
-    //console.log(JSON.stringify(newList[0], null, 2));
-    axios({
-      method: 'post',
-      url: urls.BACKEND_SERVER_URL + '/sigmet/sigmetintersections',
-      withCredentials: true,
-      responseType: 'json',
-      data: newList[0]
-    }).then((src) => {
-      let receivedGeojson = cloneDeep(src.data.sigmet.geojson);
-      for (let j = 0; j < receivedGeojson.features.length; j++) {
-        /* Set style for intersecting poly */
-        if (receivedGeojson.features[j].properties.featureFunction === 'intersection') {
-          receivedGeojson.features[j].properties['stroke-width'] = 1.5;
-          receivedGeojson.features[j].properties['fill'] = '#FFF';
-          receivedGeojson.features[j].properties['fill-opacity'] = 0.5;
-          console.log('Adding intersection at index ' + j);
-          orgGeojson.features.push(receivedGeojson.features[j]); // Append this intersection
-        }
-      }
-
-      dispatch(drawActions.setGeoJSON(orgGeojson));
-    }).catch(error => {
-      console.log('error while posting to intersect service', error);
-    });
-  }
-
   componentWillUpdate (nextProps) {
     if (this.props.latestUpdateTime !== nextProps.latestUpdateTime && this.props.isGetType === true) {
       this.getExistingSigmets(this.props.source);
-    }
-
-    /* Detect changes in geojson */
-    if (nextProps.hasOwnProperty('drawProperties') && typeof nextProps.drawProperties === 'object' && nextProps.drawProperties.hasOwnProperty('adagucMapDraw') &&
-      nextProps.drawProperties.adagucMapDraw.hasOwnProperty('geojson') && nextProps.drawProperties.adagucMapDraw.geojson &&
-        this.props.hasOwnProperty('drawProperties') && typeof this.props.drawProperties === 'object' && this.props.drawProperties.hasOwnProperty('adagucMapDraw') &&
-        this.props.drawProperties.adagucMapDraw.hasOwnProperty('geojson') && this.props.drawProperties.adagucMapDraw.geojson) {
-      let geojsonHasChanged = !isEqual(nextProps.drawProperties.adagucMapDraw.geojson, this.props.drawProperties.adagucMapDraw.geojson);
-      if (geojsonHasChanged) {
-        this.intersectGeoJSON(nextProps.drawProperties.adagucMapDraw.geojson);
-      }
     }
   }
 
