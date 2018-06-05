@@ -7,6 +7,7 @@ export const LOCAL_ACTION_TYPES = {
   FOCUS_SIGMET: 'FOCUS_SIGMET',
   ADD_SIGMET: 'ADD_SIGMET',
   UPDATE_SIGMET: 'UPDATE_SIGMET',
+  UPDATE_SIGMET_LEVEL: 'UPDATE_SIGMET_LEVEL',
   CLEAR_SIGMET: 'CLEAR_SIGMET',
   DISCARD_SIGMET: 'DISCARD_SIGMET',
   SAVE_SIGMET: 'SAVE_SIGMET',
@@ -30,6 +31,7 @@ export const LOCAL_ACTIONS = {
   focusSigmetAction: (evt, uuid) => ({ type: LOCAL_ACTION_TYPES.FOCUS_SIGMET, event: evt, uuid: uuid }),
   addSigmetAction: (ref) => ({ type: LOCAL_ACTION_TYPES.ADD_SIGMET, ref: ref }),
   updateSigmetAction: (uuid, dataField, value) => ({ type: LOCAL_ACTION_TYPES.UPDATE_SIGMET, uuid: uuid, dataField: dataField, value: value }),
+  updateSigmetLevelAction: (uuid, dataField, context) => ({ type: LOCAL_ACTION_TYPES.UPDATE_SIGMET_LEVEL, uuid: uuid, dataField: dataField, context: context }),
   clearSigmetAction: (evt, uuid) => ({ type: LOCAL_ACTION_TYPES.CLEAR_SIGMET, event: evt, uuid: uuid }),
   discardSigmetAction: (evt, uuid) => ({ type: LOCAL_ACTION_TYPES.DISCARD_SIGMET, event: evt, uuid: uuid }),
   saveSigmetAction: (evt, uuid) => ({ type: LOCAL_ACTION_TYPES.SAVE_SIGMET, event: evt, uuid: uuid }),
@@ -163,10 +165,11 @@ const STATE = {
   firs: {},
   focussedCategoryRef: null,
   focussedSigmet: {
-    useGeometry: false,
-    useLevelAtAbove: true,
+    useGeometryForEnd: false,
     uuid: null,
-    mode: SIGMET_MODES.READ
+    mode: SIGMET_MODES.READ,
+    drawModeStart: null,
+    drawModeEnd: null
   },
   isContainerOpen: true
 };

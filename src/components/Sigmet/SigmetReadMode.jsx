@@ -3,7 +3,7 @@ import { Button, Col } from 'reactstrap';
 import Moment from 'react-moment';
 import PropTypes from 'prop-types';
 import { READ_ABILITIES, byReadAbilities } from '../../containers/Sigmet/SigmetActions';
-import { UNITS_ALT, DIRECTIONS, CHANGES } from './SigmetTemplates';
+import { UNITS_ALT, DIRECTIONS, CHANGES, MODES_LVL } from './SigmetTemplates';
 
 import WhatSection from './Sections/WhatSection';
 import ValiditySection from './Sections/ValiditySection';
@@ -17,54 +17,40 @@ import IssueSection from './Sections/IssueSection';
 const DATE_TIME_FORMAT = 'DD MMM YYYY HH:mm UTC';
 
 class SigmetReadMode extends PureComponent {
-  showLevels (level) {
-    if (!level || !level.lev1) {
-      return '';
-    }
-    let result = '';
-    switch (level.lev1.unit) {
-      case 'SFC':
-        if (!level.lev2) {
-          return '';
-        }
-        result = 'Between surface and ';
-        if (level.lev2.unit === UNITS_ALT.FL) {
-          result += UNITS_ALT.FL + level.lev2.value;
-        } else {
-          result += level.lev2.value + level.lev2.unit === UNITS_ALT.M ? 'm' : 'ft';
-        }
-        return result;
-      case 'TOP':
-        return 'Tops at FL' + level.lev1.value;
-      case 'TOP_ABV':
-        return 'Tops above FL' + level.lev1.value;
-      case 'ABV':
-        return 'Above FL' + level.lev1.value;
-    }
+  getUnitLabel (unitName) {
+    return UNITS_ALT.find((unit) => unit.unit === unitName).label;
+  };
 
-    if (!level.lev2) {
-      let result = 'At ';
-      if (level.lev1.unit === UNITS_ALT.FL) {
-        result += 'FL' + level.lev1.value;
-      } else {
-        result += level.lev1.value + level.lev1.unit === UNITS_ALT.M ? 'm' : 'ft';
-      }
-      return result;
-    } else {
-      let result = 'Between ';
-      if (level.lev1.unit === UNITS_ALT.FL) {
-        result += 'FL' + level.lev1.value + ' and FL' + level.lev2.value;
-      } else if (level.lev1.unit === UNITS_ALT.M) {
-        result += level.lev1.value + 'm and ' + level.lev2.value + 'm';
-      } else {
-        result += level.lev1.value + 'ft and ' + level.lev2.value + 'ft';
-      }
-      return result;
+  showLevels (levelinfo) {
+    const level0 = levelinfo.levels[0];
+    const level1 = levelinfo.levels[1];
+    const is0FL = level0.unit === UNITS_ALT.FL;
+    const is1FL = level1.unit === UNITS_ALT.FL;
+    const unit0Label = this.getUnitLabel(level0.unit);
+    const unit1Label = this.getUnitLabel(level1.unit);
+    switch (levelinfo.mode) {
+      case MODES_LVL.ABV:
+        return `Above ${is0FL ? unit0Label : ''} ${level0.value} ${!is0FL ? unit0Label : ''}`;
+      case MODES_LVL.AT:
+        return `At ${is0FL ? unit0Label : ''} ${level0.value} ${!is0FL ? unit0Label : ''}`;
+      case MODES_LVL.BETW:
+        return `Between ${is0FL ? unit0Label : ''} ${level0.value} ${!is0FL ? unit0Label : ''} and
+          ${is1FL ? unit1Label : ''} ${level1.value} ${!is1FL ? unit1Label : ''}`;
+      case MODES_LVL.BETW_SFC:
+        return `Between surface and ${is1FL ? unit1Label : ''} ${level1.value} ${!is1FL ? unit1Label : ''}`;
+      case MODES_LVL.TOPS:
+        return `Tops at ${is0FL ? unit0Label : ''} ${level0.value} ${!is0FL ? unit0Label : ''}`;
+      case MODES_LVL.TOPS_ABV:
+        return `Tops above ${is0FL ? unit0Label : ''} ${level0.value} ${!is0FL ? unit0Label : ''}`;
+      case MODES_LVL.TOPS_BLW:
+        return `Tops below ${is0FL ? unit0Label : ''} ${level0.value} ${!is0FL ? unit0Label : ''}`;
+      default:
+        return '';
     }
   }
   render () {
-    const { dispatch, actions, abilities, focus, uuid, phenomenon, isObserved, obsFcTime, validdate, validdate_end, firname, location_indicator_icao, issuedate,
-      location_indicator_mwo, level, movement, change, sequence } = this.props;
+    const { dispatch, actions, abilities, focus, uuid, phenomenon, isObserved, obsFcTime, validdate, validdateEnd, firname, locationIndicatorIcao, issuedate,
+      locationIndicatorMwo, levelinfo, movement, change, sequence } = this.props;
     const abilityCtAs = []; // CtA = Call To Action
     if (focus) {
       Object.values(READ_ABILITIES).map((ability) => {
@@ -92,16 +78,16 @@ class SigmetReadMode extends PureComponent {
 
         <ValiditySection>
           <Moment format={DATE_TIME_FORMAT} date={validdate} data-field='validdate' />
-          <Moment format={DATE_TIME_FORMAT} date={validdate_end} data-field='validdate_end' />
+          <Moment format={DATE_TIME_FORMAT} date={validdateEnd} data-field='validdate_end' />
         </ValiditySection>
 
         <FirSection>
           <span data-field='firname'>{firname}</span>
-          <span data-field='location_indicator_icao'>{location_indicator_icao}</span>
+          <span data-field='location_indicator_icao'>{locationIndicatorIcao}</span>
         </FirSection>
 
         <HeightSection>
-          <span data-field='level'>{this.showLevels(level)}</span>
+          <span data-field='level'>{this.showLevels(levelinfo)}</span>
         </HeightSection>
 
         {/* TODO: Can this be done better? */}
@@ -122,7 +108,7 @@ class SigmetReadMode extends PureComponent {
 
         <IssueSection>
           <Moment format={DATE_TIME_FORMAT} date={issuedate} data-field='issuedate' />
-          <span data-field='issueLocation'>{location_indicator_mwo}</span>
+          <span data-field='issueLocation'>{locationIndicatorMwo}</span>
           <span data-field='sequence'>{sequence < 1 ? '(Not yet issued)' : sequence}</span>
         </IssueSection>
 
@@ -163,16 +149,13 @@ SigmetReadMode.propTypes = {
   obsFcTime: PropTypes.string,
   issuedate: PropTypes.string,
   validdate: PropTypes.string,
-  validdate_end: PropTypes.string,
-  level: PropTypes.shape({
-    lev1: PropTypes.shape({
-      level: PropTypes.number,
+  validdateEnd: PropTypes.string,
+  levelinfo: PropTypes.shape({
+    mode: PropTypes.string,
+    levels: PropTypes.arrayOf(PropTypes.shape({
+      value: PropTypes.number,
       unit: PropTypes.string
-    }).isRequired,
-    lev2: PropTypes.shape({
-      level: PropTypes.number,
-      unit: PropTypes.string
-    })
+    }))
   }),
   movement: PropTypes.shape({
     stationary: PropTypes.bool.isRequired,
@@ -181,8 +164,8 @@ SigmetReadMode.propTypes = {
   }),
   change: PropTypes.string,
   sequence: PropTypes.number,
-  location_indicator_icao: PropTypes.string,
-  location_indicator_mwo: PropTypes.string,
+  locationIndicatorIcao: PropTypes.string,
+  locationIndicatorMwo: PropTypes.string,
   firname: PropTypes.string
 };
 

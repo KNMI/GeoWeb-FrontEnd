@@ -40,8 +40,7 @@ class SigmetsCategory extends PureComponent {
                     {sigmets.slice(0, itemLimit).map((sigmet, index) => {
                       if (focussedSigmet.uuid === sigmet.uuid && focussedSigmet.mode === SIGMET_MODES.EDIT) {
                         return <SigmetEditMode key={sigmet.uuid}
-                          useGeometry={focussedSigmet.useGeometry}
-                          useLevelAtAbove={focussedSigmet.useLevelAtAbove}
+                          useGeometryForEnd={focussedSigmet.useGeometryForEnd}
                           dispatch={dispatch}
                           actions={actions}
                           abilities={abilities[SIGMET_MODES.EDIT]}
@@ -55,13 +54,16 @@ class SigmetsCategory extends PureComponent {
                           issuedate={sigmet.issuedate}
                           sequence={sigmet.sequence}
                           firname={sigmet.firname}
-                          location_indicator_icao={sigmet.location_indicator_icao}
-                          location_indicator_mwo={sigmet.location_indicator_mwo}
-                          level={sigmet.level}
+                          locationIndicatorIcao={sigmet.location_indicator_icao}
+                          locationIndicatorMwo={sigmet.location_indicator_mwo}
+                          levelinfo={sigmet.levelinfo}
                           movement={sigmet.movement}
                           change={sigmet.change}
                           isObserved={sigmet.obs_or_forecast.obs}
+                          drawModeStart={focussedSigmet.drawModeStart}
+                          drawModeEnd={focussedSigmet.drawModeEnd}
                           hasStartCoordinates={this.props.hasStartCoordinates}
+                          hasEndCoordinates={this.props.hasEndCoordinates}
                           availableFirs={parameters.firareas} />;
                       }
                       return <SigmetReadMode key={sigmet.uuid}
@@ -74,13 +76,13 @@ class SigmetsCategory extends PureComponent {
                         phenomenon={sigmet.phenomenon}
                         isObserved={sigmet.obs_or_forecast.obs}
                         validdate={sigmet.validdate}
-                        validdate_end={sigmet.validdate_end}
+                        validdateEnd={sigmet.validdate_end}
                         issuedate={sigmet.issuedate}
                         sequence={sigmet.sequence}
                         firname={sigmet.firname}
-                        location_indicator_icao={sigmet.location_indicator_icao}
-                        location_indicator_mwo={sigmet.location_indicator_mwo}
-                        level={sigmet.level}
+                        locationIndicatorIcao={sigmet.location_indicator_icao}
+                        locationIndicatorMwo={sigmet.location_indicator_mwo}
+                        levelinfo={sigmet.levelinfo}
                         movement={sigmet.movement}
                         change={sigmet.change} />;
                     })}
@@ -116,6 +118,13 @@ SigmetsCategory.propTypes = {
   dispatch: PropTypes.func,
   actions: PropTypes.shape({
     toggleCategoryAction: PropTypes.func
+  }),
+  drawModeStart: PropTypes.string,
+  drawModeEnd: PropTypes.string,
+  hasStartCoordinates: PropTypes.bool,
+  hasEndCoordinates: PropTypes.bool,
+  parameters: PropTypes.shape({
+    firareas: PropTypes.array
   })
 };
 

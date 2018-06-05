@@ -1,6 +1,6 @@
 import produce from 'immer';
 import moment from 'moment';
-import { SIGMET_TEMPLATES } from '../../components/Sigmet/SigmetTemplates';
+import { SIGMET_TEMPLATES, UNITS, UNITS_ALT, MODES_LVL } from '../../components/Sigmet/SigmetTemplates';
 import { SIGMET_MODES, LOCAL_ACTION_TYPES, CATEGORY_REFS } from './SigmetActions';
 import { clearNullPointersAndAncestors } from '../../utils/json';
 import axios from 'axios';
@@ -183,6 +183,10 @@ const addSigmet = (ref, container) => {
       draftState.validdate = getRoundedNow().format();
       draftState.validdate_end = getRoundedNow().add(container.state.parameters.maxhoursofvalidity, 'hour').format();
       draftState.location_indicator_mwo = container.state.parameters.location_indicator_wmo;
+      draftState.levelinfo.mode = MODES_LVL.AT;
+      draftState.levelinfo.levels[0].unit = UNITS.FL;
+      draftState.levelinfo.levels.push(cloneDeep(SIGMET_TEMPLATES.LEVEL));
+      draftState.levelinfo.levels[1].unit = UNITS.FL;
       if (Array.isArray(container.state.parameters.firareas)) {
         draftState.location_indicator_icao = container.state.parameters.firareas[0].location_indicator_icao;
         draftState.firname = container.state.parameters.firareas[0].firname;
@@ -207,15 +211,20 @@ const addSigmet = (ref, container) => {
   }
 };
 
+const findCategoryAndSigmetIndex = (uuid, state) => {
+  let sigmetIndex = -1;
+  const categoryIndex = state.categories.findIndex((category) => {
+    sigmetIndex = category.sigmets.findIndex((sigmet) => sigmet.uuid === uuid);
+    return sigmetIndex !== -1;
+  });
+  return { sigmetIndex, categoryIndex };
+};
+
 const updateSigmet = (uuid, dataField, value, container) => {
   container.setState(produce(container.state, draftState => {
     if (dataField) {
-      let sigmetIndex = -1;
-      const categoryIndex = draftState.categories.findIndex((category) => {
-        sigmetIndex = category.sigmets.findIndex((sigmet) => sigmet.uuid === uuid);
-        return sigmetIndex !== -1;
-      });
-      if (categoryIndex !== -1 && sigmetIndex !== -1) {
+      const indices = findCategoryAndSigmetIndex(uuid, draftState);
+      if (indices.categoryIndex !== -1 && indices.sigmetIndex !== -1) {
         if (dataField === 'phenomenon' && Array.isArray(value)) {
           if (value.length === 0) {
             value = '';
@@ -223,11 +232,61 @@ const updateSigmet = (uuid, dataField, value, container) => {
             value = value[0].code;
           }
         }
-        draftState.categories[categoryIndex].sigmets[sigmetIndex][dataField] = value;
+        draftState.categories[indices.categoryIndex].sigmets[indices.sigmetIndex][dataField] = value;
       }
     }
   }));
-  console.warn('updateSigmet is not yet implemented');
+};
+
+const updateSigmetLevel = (uuid, dataField, context, container) => {
+  let newLevelInfo = {};
+  switch (dataField) {
+    case 'mode':
+      if (context.between) {
+        newLevelInfo.mode = context.notSurface ? MODES_LVL.BETW : MODES_LVL.BETW_SFC;
+      } else if (context.tops) {
+        newLevelInfo.mode = context.above ? MODES_LVL.TOPS_ABV : MODES_LVL.TOPS;
+      } else {
+        newLevelInfo.mode = context.above ? MODES_LVL.ABV : MODES_LVL.AT;
+      }
+      break;
+    case 'unit':
+      if (UNITS_ALT.includes(context.unit) && typeof context.isUpperLevel === 'boolean') {
+        newLevelInfo.levels = [];
+        newLevelInfo.levels[context.isUpperLevel ? 1 : 0] = { unit: context.unit.unit };
+      }
+      break;
+    case 'value':
+      if (typeof context.isUpperLevel === 'boolean') {
+        newLevelInfo.levels = [];
+        newLevelInfo.levels[context.isUpperLevel ? 1 : 0] = { value: !isNaN(context.value) ? parseInt(context.value) : null };
+      }
+      break;
+    default:
+      console.error(`Level dataField ${dataField} is unknown and not implemented.`);
+  }
+  container.setState(produce(container.state, draftState => {
+    if (Object.keys(newLevelInfo).length > 0) {
+      const indices = findCategoryAndSigmetIndex(uuid, draftState);
+      if (indices.categoryIndex !== -1 && indices.sigmetIndex !== -1) {
+        if (newLevelInfo.mode && typeof newLevelInfo.mode === 'string') {
+          draftState.categories[indices.categoryIndex].sigmets[indices.sigmetIndex]['levelinfo']['mode'] = newLevelInfo.mode;
+          if (newLevelInfo.mode !== MODES_LVL.BETW) {
+            draftState.categories[indices.categoryIndex].sigmets[indices.sigmetIndex]['levelinfo']['levels'][1].value = null;
+          }
+        }
+        if (newLevelInfo.levels && Array.isArray(newLevelInfo.levels)) {
+          newLevelInfo.levels.map((level, index) => {
+            if (typeof level === 'object') {
+              Object.entries(level).map((entry) => {
+                draftState.categories[indices.categoryIndex].sigmets[indices.sigmetIndex]['levelinfo']['levels'][index][entry[0]] = entry[1];
+              });
+            }
+          });
+        }
+      }
+    }
+  }));
 };
 
 const drawSigmet = (event, uuid, container, action, featureFunction) => {
@@ -241,20 +300,24 @@ const drawSigmet = (event, uuid, container, action, featureFunction) => {
     return;
   }
   const featureId = features[featureIndex].id;
+  const drawMode = `drawMode${featureFunction.charAt(0).toUpperCase() + featureFunction.slice(1)}`;
   switch (action) {
     case 'select-point':
       dispatch(mapActions.setMapMode('draw'));
       dispatch(drawActions.setFeatureEditPoint());
+      modifyFocussedSigmet(drawMode, action, container);
       break;
     case 'select-region':
       dispatch(mapActions.setMapMode('draw'));
       dispatch(drawActions.setFeatureEditBox());
       dispatch(drawActions.setFeature({ coordinates: [], selectionType: 'box', featureId }));
+      modifyFocussedSigmet(drawMode, action, container);
       break;
     case 'select-shape':
       dispatch(mapActions.setMapMode('draw'));
       dispatch(drawActions.setFeatureEditPolygon());
       dispatch(drawActions.setFeature({ coordinates: [], selectionType: 'poly', featureId }));
+      modifyFocussedSigmet(drawMode, action, container);
       break;
     case 'select-fir':
       const allSigmets = container.state.categories.find((cat) => cat.ref === container.state.focussedCategoryRef).sigmets;
@@ -262,10 +325,12 @@ const drawSigmet = (event, uuid, container, action, featureFunction) => {
       dispatch(mapActions.setMapMode('pan'));
       dispatch(drawActions.setFeatureEditPolygon());
       dispatch(drawActions.setFeature({ coordinates, selectionType: 'poly', featureId }));
+      modifyFocussedSigmet(drawMode, action, container);
       break;
     case 'delete-selection':
       dispatch(mapActions.setMapMode('pan'));
       dispatch(drawActions.setFeature({ coordinates: [], selectionType: 'poly', featureId }));
+      modifyFocussedSigmet(drawMode, null, container);
       break;
     default:
       console.error(`Selection method ${action} unknown and not implemented`);
@@ -413,6 +478,9 @@ export const localDispatch = (localAction, container) => {
       break;
     case LOCAL_ACTION_TYPES.UPDATE_SIGMET:
       updateSigmet(localAction.uuid, localAction.dataField, localAction.value, container);
+      break;
+    case LOCAL_ACTION_TYPES.UPDATE_SIGMET_LEVEL:
+      updateSigmetLevel(localAction.uuid, localAction.dataField, localAction.context, container);
       break;
     case LOCAL_ACTION_TYPES.CLEAR_SIGMET:
       clearSigmet(localAction.event, localAction.uuid, container);

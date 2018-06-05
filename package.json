@@ -114,7 +114,7 @@
     "lodash.range": "^3.2.0",
     "lodash.set": "^4.3.2",
     "lodash.unset": "^4.5.2",
-    "lyef-switch-button": "git+https://github.com/maartenlterpstra/lyef-switch-button.git#elementAsLabel",
+    "lyef-switch-button": "^1.4.2",
     "moment": "^2.20.1",
     "moment-timezone": "^0.5.14",
     "prop-types": "^15.6.0",

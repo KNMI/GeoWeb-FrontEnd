@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { Row, Col, Badge } from 'reactstrap';
+import { Row, Col } from 'reactstrap';
 import PropTypes from 'prop-types';
 export default class HeightSection extends PureComponent {
   render () {

@@ -158,7 +158,6 @@ class SigmetsContainer extends Component {
         return;
       }
       if (!isEqual(currentStartFeature, nextStartFeature)) {
-        console.warn('start', nextStartFeature);
         this.localDispatch(LOCAL_ACTIONS.createFirIntersectionAction(nextStartFeature.id, nextProps.drawProperties.adagucMapDraw.geojson));
       }
       if (!isEqual(currentEndFeature, nextEndFeature)) {
