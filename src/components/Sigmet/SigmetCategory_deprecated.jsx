@@ -21,7 +21,6 @@ import Tooltip from 'rc-tooltip';
 import PropTypes from 'prop-types';
 import { SIGMET_TEMPLATES, CHANGES, DIRECTIONS, UNITS_ALT } from './SigmetTemplates';
 import { clearNullPointersAndAncestors } from '../../utils/json';
-
 import { getPresetForPhenomenon } from './SigmetPresets';
 const createSliderWithTooltip = Slider.createSliderWithTooltip;
 const Range = createSliderWithTooltip(Slider.Range);
@@ -43,7 +42,7 @@ const FALLBACK_PARAMS = {
   firareas: [
     {
       location_indicator_icao: 'EHAA',
-      firname: 'AMSTERDAM FIR',
+      firname: 'FIR AMSTERDAM',
       areapreset: 'NL_FIR'
     }
   ],
@@ -651,7 +650,8 @@ class SigmetCategory extends Component {
         if (level.lev2.unit === UNITS_ALT.FL) {
           result += UNITS_ALT.FL + level.lev2.value;
         } else {
-          result += level.lev2.value + level.lev2.unit === UNITS_ALT.M ? 'm' : 'ft';
+          result += level.lev2.value || '';
+          result += level.lev2.unit === UNITS_ALT.M ? 'm' : 'ft';
         }
         return result;
       case 'TOP':
@@ -952,6 +952,7 @@ class SigmetCategory extends Component {
                       const selectedFir = availableFirs.filter((fr) => fr.firname === item.firname).shift();
                       const selectedDirection = DIRECTIONS.filter((dr) => dr.shortName === item.movement.dir).shift();
                       const selectedChange = CHANGES.filter((ch) => ch.shortName === item.change).shift();
+                      item.cancels = '52895503-251b-469c-a4c6-a46bcbdd8253';
                       if (item.cancels) {
                         return <Button tag='div' className={'Sigmet row' + (selectedIndex === index ? ' active' : '')}
                           key={index} onClick={(evt) => { this.handleSigmetClick(evt, index); }} title={item.phenomenonHRT} >

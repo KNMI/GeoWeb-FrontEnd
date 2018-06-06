@@ -13,4 +13,4 @@ utils/latest
 
 config/config.json
 config/config.*.json
-src/static/urls.js
+src/static/urls.json

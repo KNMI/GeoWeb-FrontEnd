@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { Button, Col, Row } from 'reactstrap';
 import Icon from 'react-fa';
 import CollapseOmni from '../components/CollapseOmni';
-import SigmetCategory from '../components/Sigmet/SigmetCategory';
+import SigmetCategory from '../components/Sigmet/SigmetCategory_deprecated';
 import { SIGMET_TEMPLATES } from '../components/Sigmet/SigmetTemplates';
 import Panel from '../components/Panel';
 import cloneDeep from 'lodash.clonedeep';
