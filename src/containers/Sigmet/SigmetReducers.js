@@ -4,6 +4,7 @@ import { SIGMET_TEMPLATES, UNITS, UNITS_ALT, MODES_LVL } from '../../components/
 import { SIGMET_MODES, LOCAL_ACTION_TYPES, CATEGORY_REFS } from './SigmetActions';
 import { clearNullPointersAndAncestors } from '../../utils/json';
 import axios from 'axios';
+import { notify } from 'reapop';
 import cloneDeep from 'lodash.clonedeep';
 const uuidv4 = require('uuid/v4');
 
@@ -41,7 +42,7 @@ const toggleCategory = (evt, ref, container) => {
 const updateCategory = (ref, sigmets, container) => {
   container.setState(produce(container.state, draftState => {
     const categoryIndex = draftState.categories.findIndex((category) => category.ref === ref);
-    if (!isNaN(categoryIndex) && categoryIndex > 0) {
+    if (!isNaN(categoryIndex) && categoryIndex >= 0) {
       draftState.categories[categoryIndex].sigmets.length = 0;
       draftState.categories[categoryIndex].sigmets.push(...sigmets);
     }
@@ -177,24 +178,27 @@ const initialGeoJson = () => {
   return draftState;
 };
 
+const getEmptySigmet = (container) => produce(SIGMET_TEMPLATES.SIGMET, draftSigmet => {
+  draftSigmet.validdate = getRoundedNow().format();
+  draftSigmet.validdate_end = getRoundedNow().add(container.state.parameters.maxhoursofvalidity, 'hour').format();
+  draftSigmet.location_indicator_mwo = container.state.parameters.location_indicator_wmo;
+  draftSigmet.levelinfo.mode = MODES_LVL.AT;
+  draftSigmet.levelinfo.levels[0].unit = UNITS.FL;
+  draftSigmet.levelinfo.levels.push(cloneDeep(SIGMET_TEMPLATES.LEVEL));
+  draftSigmet.levelinfo.levels[1].unit = UNITS.FL;
+  if (Array.isArray(container.state.parameters.firareas)) {
+    draftSigmet.location_indicator_icao = container.state.parameters.firareas[0].location_indicator_icao;
+    draftSigmet.firname = container.state.parameters.firareas[0].firname;
+    updateFir(draftSigmet.firname, container);
+  }
+  draftSigmet.mode = SIGMET_MODES.EDIT;
+  draftSigmet.change = container.state.parameters.change;
+  container.props.dispatch(container.props.drawActions.setGeoJSON(initialGeoJson()));
+});
+
 const addSigmet = (ref, container) => {
   if (container.state.parameters && Array.isArray(container.state.phenomena) && container.state.phenomena.length > 0) {
-    const newSigmet = produce(SIGMET_TEMPLATES.SIGMET, draftState => {
-      draftState.validdate = getRoundedNow().format();
-      draftState.validdate_end = getRoundedNow().add(container.state.parameters.maxhoursofvalidity, 'hour').format();
-      draftState.location_indicator_mwo = container.state.parameters.location_indicator_wmo;
-      draftState.levelinfo.mode = MODES_LVL.AT;
-      draftState.levelinfo.levels[0].unit = UNITS.FL;
-      draftState.levelinfo.levels.push(cloneDeep(SIGMET_TEMPLATES.LEVEL));
-      draftState.levelinfo.levels[1].unit = UNITS.FL;
-      if (Array.isArray(container.state.parameters.firareas)) {
-        draftState.location_indicator_icao = container.state.parameters.firareas[0].location_indicator_icao;
-        draftState.firname = container.state.parameters.firareas[0].firname;
-        updateFir(draftState.firname, container);
-      }
-      draftState.change = container.state.parameters.change;
-      container.props.dispatch(container.props.drawActions.setGeoJSON(initialGeoJson()));
-    });
+    const newSigmet = getEmptySigmet(container);
     container.setState(produce(container.state, draftState => {
       const categoryIndex = draftState.categories.findIndex((category) => category.ref === ref);
       if (!isNaN(categoryIndex) && categoryIndex > 0) {
@@ -419,7 +423,7 @@ const discardSigmet = (event, uuid, container) => {
 };
 
 const saveSigmet = (event, uuid, container) => {
-  const { drawProperties, urls } = container.props;
+  const { drawProperties, urls, dispatch } = container.props;
   event.preventDefault();
   if (container.state.focussedSigmet.uuid !== uuid) {
     return;
@@ -432,6 +436,7 @@ const saveSigmet = (event, uuid, container) => {
   if (!affectedSigmet) {
     return;
   }
+  console.log('affected: ', affectedSigmet);
   const geojson = cloneDeep(drawProperties.adagucMapDraw.geojson);
   let cleanedFeatures = geojson.features;
   clearNullPointersAndAncestors(cleanedFeatures);
@@ -443,9 +448,35 @@ const saveSigmet = (event, uuid, container) => {
     }
   });
   const complementedSigmet = produce(affectedSigmet, draftState => {
+    const origStationary = cloneDeep(draftState.movement.stationary);
+    const origObs = cloneDeep(draftState.obs_or_forecast);
     clearNullPointersAndAncestors(draftState);
+    draftState.movement.stationary = origStationary;
+    draftState.obs_or_forecast = origObs;
     draftState.geojson.features.length = 0;
     draftState.geojson.features.push(...cleanedFeatures);
+    if (affectedSigmet.movement.stationary === true) {
+      draftState.movement = { stationary: true };
+    } else {
+      if (container.state.useGeometryForEnd) {
+        draftState.movement = { stationary: false };
+      } else {
+        const endGeometry = draftState.geojson.features.find((f) => f.properties.featureFunction === 'end');
+        if (endGeometry) {
+          const endGeometryUuid = endGeometry.uuid;
+          draftState.geojson.features = draftState.geojson.features.filter((f) => {
+            if (f.id === endGeometryUuid) {
+              return false;
+            }
+
+            if (f.properties && f.properties.relatesTo === endGeometryUuid) {
+              return false;
+            }
+            return true;
+          });
+        }
+      }
+    }
   });
 
   axios({
@@ -456,8 +487,31 @@ const saveSigmet = (event, uuid, container) => {
     data: complementedSigmet
   }).then(response => {
     console.log('res', response.data);
+    dispatch(notify({
+      title: 'Sigmet Saved',
+      message: 'Sigmet ' + response.data.uuid + ' was successfully saved',
+      status: 'success',
+      position: 'bl',
+      dismissible: true,
+      dismissAfter: 3000
+    }));
+
+    // Create new edit sigmet
+    container.setState(produce(container.state, draftState => {
+      draftState.focussedSigmet = getEmptySigmet(container);
+    }));
+    // reload concepts
+    container.retrieveSigmets();
   }).catch(error => {
     console.error(`Could not save Sigmet identified by ${uuid}`, error);
+    dispatch(notify({
+      title: 'Error',
+      message: error.response.data.error,
+      status: 'error',
+      position: 'bl',
+      dismissible: true,
+      dismissAfter: 3000
+    }));
   });
   console.warn('saveSigmet is not yet implemented');
 };
@@ -478,13 +532,73 @@ const copySigmet = (event, uuid, container) => {
 };
 
 const publishSigmet = (event, uuid, container) => {
-  console.warn('publishSigmet is not yet implemented');
+  const { urls } = container.props;
+
+  axios({
+    method: 'get',
+    url: `${urls.BACKEND_SERVER_URL}/sigmet/publishsigmet`,
+    withCredentials: true,
+    responseType: 'json',
+    params: {
+      uuid: uuid
+    }
+  }).then((response) => {
+    console.log(response);
+  }).catch((error) => {
+    console.log(error);
+  })
+
+  // console.warn('publishSigmet is not yet implemented');
 };
+
+const showTAC = (event, uuid, container) => {
+  event.preventDefault();
+  const { urls } = container.props;
+
+  axios({
+    method: 'get',
+    url: `${urls.BACKEND_SERVER_URL}/sigmet/${uuid}`,
+    withCredentials: true,
+    responseType: 'text/plain',
+    headers: {
+      'Accept': 'text/plain'
+    }
+  }).then((res) => {
+    const tab = window.open('about:blank', '_blank');
+    tab.document.write(res.data); // where 'html' is a variable containing your HTML
+    tab.document.close(); // to finish loading the page
+
+    // window.open('data:text/plain,' + encodeURIComponent(res.data));
+  });
+}
+
+const showIWXXM = (event, uuid, container) => {
+  event.preventDefault();
+  const { urls } = container.props;
+
+  window.open(`${urls.BACKEND_SERVER_URL}/sigmet/${uuid}`);
+}
 
 const cancelSigmet = (event, uuid, container) => {
   console.warn('cancelSigmet is not yet implemented');
 };
 
+const setSigmetDrawing = (uuid, container) => {
+  const { dispatch, drawActions } = container.props;
+  if (container.state.focussedSigmet.uuid !== uuid) {
+    return;
+  }
+  const activeCategory = container.state.categories.find((category) => category.ref === container.state.focussedCategoryRef);
+  if (!activeCategory) {
+    return;
+  }
+  const affectedSigmet = activeCategory.sigmets.find((sigmet) => sigmet.uuid === uuid);
+  if (!affectedSigmet) {
+    return;
+  }
+
+  dispatch(drawActions.setGeoJSON(affectedSigmet.geojson));
+}
 /**
  * SigmetsContainer has its own state, this is the dispatch for updating the state
  * @param {object} localAction Action-object containing the type and additional, action specific, parameters
@@ -556,6 +670,15 @@ export const localDispatch = (localAction, container) => {
       break;
     case LOCAL_ACTION_TYPES.MODIFY_FOCUSSED_SIGMET:
       modifyFocussedSigmet(localAction.dataField, localAction.value, container);
+      break;
+    case LOCAL_ACTION_TYPES.SHOW_IWXXM:
+      showIWXXM(localAction.event, localAction.uuid, container);
+      break;
+    case LOCAL_ACTION_TYPES.SHOW_TAC:
+      showTAC(localAction.event, localAction.uuid, container);
+      break;
+    case LOCAL_ACTION_TYPES.SET_DRAWING:
+      setSigmetDrawing(localAction.uuid, container);
       break;
   }
 };

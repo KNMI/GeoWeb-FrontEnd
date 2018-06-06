@@ -3,7 +3,7 @@ import { Col, Row, Badge, Card, CardHeader, CardBlock } from 'reactstrap';
 import CollapseOmni from '../../components/CollapseOmni';
 import Icon from 'react-fa';
 import PropTypes from 'prop-types';
-import { SIGMET_MODES, CATEGORY_REFS, READ_ABILITIES } from '../../containers/Sigmet/SigmetActions';
+import { SIGMET_MODES, CATEGORY_REFS, READ_ABILITIES, PUBLISHED_ABILITIES } from '../../containers/Sigmet/SigmetActions';
 import SigmetEditMode from './SigmetEditMode';
 import SigmetReadMode from './SigmetReadMode';
 
@@ -50,7 +50,7 @@ class SigmetsCategory extends PureComponent {
                           uuid={sigmet.uuid}
                           obsFcTime={sigmet.obs_or_forecast.obsFcTime}
                           validdate={sigmet.validdate}
-                          validdate_end={sigmet.validdate_end}
+                          validdateEnd={sigmet.validdate_end}
                           issuedate={sigmet.issuedate}
                           sequence={sigmet.sequence}
                           firname={sigmet.firname}
@@ -66,15 +66,20 @@ class SigmetsCategory extends PureComponent {
                           hasEndCoordinates={this.props.hasEndCoordinates}
                           availableFirs={parameters.firareas} />;
                       }
+                      if (focussedSigmet.uuid === sigmet.uuid && focussedSigmet.mode === SIGMET_MODES.READ) {
+                        console.log(focussedSigmet);
+                        console.log('show drawing here');
+                        dispatch(actions.setSigmetDrawing(focussedSigmet.uuid));
+                      }
                       return <SigmetReadMode key={sigmet.uuid}
                         dispatch={dispatch}
                         actions={actions}
                         abilities={abilities[SIGMET_MODES.READ]}
                         focus={focussedSigmet.uuid === sigmet.uuid}
                         uuid={sigmet.uuid}
-                        obsFcTime={sigmet.obs_or_forecast.obsFcTime}
+                        obsFcTime={sigmet.obs_or_forecast ? sigmet.obs_or_forecast.obsFcTime : null}
                         phenomenon={sigmet.phenomenon}
-                        isObserved={sigmet.obs_or_forecast.obs}
+                        isObserved={sigmet.obs_or_forecast ? sigmet.obs_or_forecast.obs : null}
                         validdate={sigmet.validdate}
                         validdateEnd={sigmet.validdate_end}
                         issuedate={sigmet.issuedate}

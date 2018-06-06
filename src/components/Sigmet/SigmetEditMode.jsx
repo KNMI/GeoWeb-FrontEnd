@@ -57,7 +57,7 @@ class SigmetEditMode extends PureComponent {
     const selectedPhenomenon = availablePhenomena.filter((ph) => ph.code === phenomenon).shift();
     const selectedFir = availableFirs.filter((fir) => fir.location_indicator_icao === locationIndicatorIcao).shift();
     const selectedChange = change ? CHANGES.filter((c) => c.shortName === change.shortName).shift() : null;
-    const selectedDirection = movement.direction ? DIRECTIONS.filter((c) => c.shortName === movement.direction).shift() : null;
+    const selectedDirection = movement && movement.dir ? DIRECTIONS.filter((c) => c.shortName === movement.dir).shift() : null;
     const isLevelBetween = [MODES_LVL.BETW, MODES_LVL.BETW_SFC].includes(levelinfo.mode);
     const isLevelTops = [MODES_LVL.TOPS, MODES_LVL.TOPS_ABV, MODES_LVL.TOPS_BLW].includes(levelinfo.mode);
     const isLevelAbove = [MODES_LVL.ABV, MODES_LVL.TOPS_ABV].includes(levelinfo.mode);
@@ -261,28 +261,28 @@ class SigmetEditMode extends PureComponent {
             labelRight='Move'
             align='center'
             data-field='movement'
-            isChecked={!movement.stationary}
+            isChecked={movement && !movement.stationary}
             action={(evt) => dispatch(actions.updateSigmetAction(uuid, 'movement', { ...movement, stationary: !evt.target.checked }))} />
         </ProgressSection>
 
-        <MovementSection disabled={movement.stationary}>
+        <MovementSection disabled={movement && movement.stationary}>
           <SwitchButton id='movementType'
             labelLeft='Speed & Direction'
             labelRight='End location'
             align='center'
-            disabled={movement.stationary}
+            disabled={movement && movement.stationary}
             data-field='movementType'
             isChecked={useGeometryForEnd}
-            action={(evt) => dispatch(actions.modifyFocussedSigmet('useGeometryForEnd', evt.target.checked))} />
+            action={(evt) => { dispatch(actions.modifyFocussedSigmet('useGeometryForEnd', evt.target.checked)); }} />
           <Typeahead filterBy={['shortName', 'longName']} labelKey='longName' data-field='direction'
-            options={DIRECTIONS} placeholder={'Set direction'} disabled={movement.stationary || useGeometryForEnd}
-            onChange={(selectedval) => dispatch(actions.updateSigmetAction(uuid, 'movement', { ...movement, direction: selectedval[0].shortName }))}
+            options={DIRECTIONS} placeholder={'Set direction'} disabled={!movement || movement.stationary || useGeometryForEnd}
+            onChange={(selectedval) => dispatch(actions.updateSigmetAction(uuid, 'movement', { ...movement, dir: selectedval[0].shortName }))}
             selected={selectedDirection ? [selectedDirection] : []}
             clearButton />
           <InputGroup data-field='speed'>
             <Input onChange={(evt) => dispatch(actions.updateSigmetAction(uuid, 'movement', { ...movement, speed: parseInt(evt.target.value) }))}
               defaultValue='0'
-              type='number' disabled={movement.stationary || useGeometryForEnd}
+              type='number' disabled={!movement || movement.stationary || useGeometryForEnd}
               step='1' />
             <InputGroupAddon>KT</InputGroupAddon>
           </InputGroup>
@@ -290,14 +290,14 @@ class SigmetEditMode extends PureComponent {
             {
               drawActions.map((actionItem, index) =>
                 <Button color='primary' key={actionItem.action + '_button'} data-field={actionItem.action + '_button'}
-                  active={actionItem.action === this.props.drawModeEnd} disabled={actionItem.disabled || movement.stationary || !useGeometryForEnd}
+                  active={actionItem.action === this.props.drawModeEnd} disabled={actionItem.disabled || !movement || movement.stationary || !useGeometryForEnd}
                   id={actionItem.action + '_button'} title={actionItem.title} onClick={(evt) => dispatch(actions.drawAction(evt, uuid, actionItem.action, 'end'))}>
                   <Icon name={actionItem.icon} />
                 </Button>
               )
             }
 
-            {!movement.stationary && useGeometryForEnd && !this.props.hasEndCoordinates
+            {movement && !movement.stationary && useGeometryForEnd && !this.props.hasEndCoordinates
               ? <Alert data-field='drawing_alert' color='danger'>
                 Please use one of the selection tools above to indicate on the map where the phenomenon is expected to be at the end of the valid period.
               </Alert>

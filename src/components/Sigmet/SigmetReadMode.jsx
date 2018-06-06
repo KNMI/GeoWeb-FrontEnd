@@ -22,6 +22,9 @@ class SigmetReadMode extends PureComponent {
   };
 
   showLevels (levelinfo) {
+    if (!levelinfo) {
+      return;
+    }
     const level0 = levelinfo.levels[0];
     const level1 = levelinfo.levels[1];
     const is0FL = level0.unit === UNITS_ALT.FL;
@@ -91,19 +94,19 @@ class SigmetReadMode extends PureComponent {
         </HeightSection>
 
         {/* TODO: Can this be done better? */}
-        {movement.stationary === false && movement.hasOwnProperty('speed') && movement.hasOwnProperty('dir')
+        {movement && movement.stationary === false && movement.hasOwnProperty('speed') && movement.hasOwnProperty('dir')
           ? <ProgressSection>
             <span data-field='movement'>Moving</span>
             <span data-field='speed'>{movement.speed}KT</span>
-            <span data-field='direction'>{DIRECTIONS.find((obj) => obj.shortName === movement.dir).longName}</span>
+            <span data-field='direction'>{movement && DIRECTIONS.find((obj) => obj.shortName === movement.dir).longName}</span>
           </ProgressSection>
           : <ProgressSection>
-            <span data-field='movement'>{movement.stationary ? 'Stationary' : 'Movement is defined by area'}</span>
+            <span data-field='movement'>{movement && movement.stationary ? 'Stationary' : 'Movement is defined by area'}</span>
           </ProgressSection>
         }
 
         <ChangeSection>
-          <span data-field='change'>{CHANGES.find((obj) => obj.shortName === change).longName}</span>
+          <span data-field='change'>{change && CHANGES.find((obj) => obj.shortName === change).longName}</span>
         </ChangeSection>
 
         <IssueSection>

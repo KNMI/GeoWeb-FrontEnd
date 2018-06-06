@@ -19,7 +19,10 @@ export const LOCAL_ACTION_TYPES = {
   DRAW_SIGMET: 'DRAW_SIGMET',
   UPDATE_FIR: 'UPDATE_FIR',
   CREATE_FIR_INTERSECTION: 'CREATE_FIR_INTERSECTION',
-  MODIFY_FOCUSSED_SIGMET: 'MODIFY_FOCUSSED_SIGMET'
+  MODIFY_FOCUSSED_SIGMET: 'MODIFY_FOCUSSED_SIGMET',
+  SHOW_IWXXM: 'SHOW_IWXXM',
+  SHOW_TAC: 'SHOW_TAC',
+  SET_DRAWING: 'SET_DRAWING'
 };
 
 export const LOCAL_ACTIONS = {
@@ -43,12 +46,16 @@ export const LOCAL_ACTIONS = {
   drawAction: (evt, uuid, action, featureFunction) => ({ type: LOCAL_ACTION_TYPES.DRAW_SIGMET, uuid: uuid, event: evt, action: action, featureFunction: featureFunction }),
   updateFir: (firName) => ({ type: LOCAL_ACTION_TYPES.UPDATE_FIR, firName: firName }),
   createFirIntersectionAction: (featureId, geoJson) => ({ type: LOCAL_ACTION_TYPES.CREATE_FIR_INTERSECTION, featureId: featureId, geoJson: geoJson }),
-  modifyFocussedSigmet: (dataField, value) => ({ type: LOCAL_ACTION_TYPES.MODIFY_FOCUSSED_SIGMET, dataField: dataField, value: value })
+  modifyFocussedSigmet: (dataField, value) => ({ type: LOCAL_ACTION_TYPES.MODIFY_FOCUSSED_SIGMET, dataField: dataField, value: value }),
+  showIWXXM: (evt, uuid) => ({ type: LOCAL_ACTION_TYPES.SHOW_IWXXM, event: evt, uuid: uuid }),
+  showTAC: (evt, uuid) => ({ type: LOCAL_ACTION_TYPES.SHOW_TAC, event: evt, uuid: uuid }),
+  setSigmetDrawing: (uuid) => ({ type: LOCAL_ACTION_TYPES.SET_DRAWING, uuid: uuid })
 };
 
 export const SIGMET_MODES = {
   EDIT: 'EDIT',
-  READ: 'READ'
+  READ: 'READ',
+  PUBLISHED: 'PUBLISHED'
 };
 
 export const EDIT_ABILITIES = {
@@ -83,6 +90,19 @@ export const byEditAbilities = (abilityA, abilityB) => {
 };
 
 export const READ_ABILITIES = {
+  IWXXM: {
+    'dataField': 'iwxxm',
+    'label': 'IWXXM',
+    'check': 'isXMLAble',
+    'action': 'showIWXXM'
+  },
+  TAC: {
+    'dataField': 'tac',
+    'label': 'TAC',
+    'check': 'isTACAble',
+    'action': 'showTAC'
+
+  },
   EDIT: {
     'dataField': 'edit',
     'label': 'Edit',
@@ -116,6 +136,8 @@ export const READ_ABILITIES = {
 };
 
 const READ_ABILITIES_ORDER = [
+  READ_ABILITIES.IWXXM['dataField'],
+  READ_ABILITIES.TAC['dataField'],
   READ_ABILITIES.CANCEL['dataField'],
   READ_ABILITIES.DELETE['dataField'],
   READ_ABILITIES.EDIT['dataField'],
@@ -178,6 +200,8 @@ const STATE = {
 // active-sigmets
 STATE.categories[0].ref = CATEGORY_REFS.ACTIVE_SIGMETS;
 STATE.categories[0].abilities[SIGMET_MODES.READ] = {};
+STATE.categories[0].abilities[SIGMET_MODES.READ][READ_ABILITIES.IWXXM.check] = true;
+STATE.categories[0].abilities[SIGMET_MODES.READ][READ_ABILITIES.TAC.check] = true;
 STATE.categories[0].abilities[SIGMET_MODES.READ][READ_ABILITIES.CANCEL.check] = true;
 STATE.categories[0].abilities[SIGMET_MODES.READ][READ_ABILITIES.DELETE.check] = false;
 STATE.categories[0].abilities[SIGMET_MODES.READ][READ_ABILITIES.EDIT.check] = false;
@@ -188,6 +212,8 @@ STATE.categories[0].abilities[SIGMET_MODES.EDIT] = {};
 // concept-sigmets
 STATE.categories[1].ref = CATEGORY_REFS.CONCEPT_SIGMETS;
 STATE.categories[1].abilities[SIGMET_MODES.READ] = {};
+STATE.categories[1].abilities[SIGMET_MODES.READ][READ_ABILITIES.IWXXM.check] = false;
+STATE.categories[1].abilities[SIGMET_MODES.READ][READ_ABILITIES.TAC.check] = false;
 STATE.categories[1].abilities[SIGMET_MODES.READ][READ_ABILITIES.CANCEL.check] = false;
 STATE.categories[1].abilities[SIGMET_MODES.READ][READ_ABILITIES.DELETE.check] = true;
 STATE.categories[1].abilities[SIGMET_MODES.READ][READ_ABILITIES.EDIT.check] = true;
@@ -201,6 +227,8 @@ STATE.categories[1].abilities[SIGMET_MODES.EDIT][EDIT_ABILITIES.SAVE.check] = tr
 // add-sigmets
 STATE.categories[2].ref = CATEGORY_REFS.ADD_SIGMET;
 STATE.categories[2].abilities[SIGMET_MODES.READ] = {};
+STATE.categories[2].abilities[SIGMET_MODES.READ][READ_ABILITIES.IWXXM.check] = false;
+STATE.categories[2].abilities[SIGMET_MODES.READ][READ_ABILITIES.TAC.check] = false;
 STATE.categories[2].abilities[SIGMET_MODES.READ][READ_ABILITIES.CANCEL.check] = false;
 STATE.categories[2].abilities[SIGMET_MODES.READ][READ_ABILITIES.DELETE.check] = false;
 STATE.categories[2].abilities[SIGMET_MODES.READ][READ_ABILITIES.EDIT.check] = true;
@@ -214,6 +242,8 @@ STATE.categories[2].abilities[SIGMET_MODES.EDIT][EDIT_ABILITIES.SAVE.check] = tr
 // archived-sigmets
 STATE.categories[3].ref = CATEGORY_REFS.ARCHIVED_SIGMETS;
 STATE.categories[3].abilities[SIGMET_MODES.READ] = {};
+STATE.categories[2].abilities[SIGMET_MODES.READ][READ_ABILITIES.IWXXM.check] = false;
+STATE.categories[2].abilities[SIGMET_MODES.READ][READ_ABILITIES.TAC.check] = false;
 STATE.categories[3].abilities[SIGMET_MODES.READ][READ_ABILITIES.CANCEL.check] = false;
 STATE.categories[3].abilities[SIGMET_MODES.READ][READ_ABILITIES.DELETE.check] = false;
 STATE.categories[3].abilities[SIGMET_MODES.READ][READ_ABILITIES.EDIT.check] = false;
