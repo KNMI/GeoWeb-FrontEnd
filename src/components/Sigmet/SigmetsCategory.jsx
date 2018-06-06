@@ -67,8 +67,6 @@ class SigmetsCategory extends PureComponent {
                           availableFirs={parameters.firareas} />;
                       }
                       if (focussedSigmet.uuid === sigmet.uuid && focussedSigmet.mode === SIGMET_MODES.READ) {
-                        console.log(focussedSigmet);
-                        console.log('show drawing here');
                         dispatch(actions.setSigmetDrawing(focussedSigmet.uuid));
                       }
                       return <SigmetReadMode key={sigmet.uuid}

@@ -63,7 +63,6 @@ class SigmetsContainer extends Component {
   }
 
   receivedSigmetsCallback (ref, response) {
-    console.log(ref, response.data.sigmets);
     if (response.status === 200 && response.data) {
       if (response.data.nsigmets === 0 || !response.data.sigmets) {
         response.data.sigmets = [];

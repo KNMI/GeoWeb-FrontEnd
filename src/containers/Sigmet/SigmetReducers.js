@@ -396,7 +396,6 @@ const createFirIntersection = (featureId, geojson, container) => {
       data: intersectionData
     }).then((response) => {
       if (response.data) {
-        console.log(response.data);
         dispatch(drawActions.setFeature({ coordinates: response.data.geometry.coordinates, selectionType: 'poly', featureId: intersectionFeature.id }));
       }
     }).catch(error => {
@@ -436,7 +435,6 @@ const saveSigmet = (event, uuid, container) => {
   if (!affectedSigmet) {
     return;
   }
-  console.log('affected: ', affectedSigmet);
   const geojson = cloneDeep(drawProperties.adagucMapDraw.geojson);
   let cleanedFeatures = geojson.features;
   clearNullPointersAndAncestors(cleanedFeatures);
@@ -486,7 +484,6 @@ const saveSigmet = (event, uuid, container) => {
     responseType: 'json',
     data: complementedSigmet
   }).then(response => {
-    console.log('res', response.data);
     dispatch(notify({
       title: 'Sigmet Saved',
       message: 'Sigmet ' + response.data.uuid + ' was successfully saved',
@@ -543,9 +540,9 @@ const publishSigmet = (event, uuid, container) => {
       uuid: uuid
     }
   }).then((response) => {
-    console.log(response);
+    console.log('Published: ', response.data);
   }).catch((error) => {
-    console.log(error);
+    console.error(error);
   })
 
   // console.warn('publishSigmet is not yet implemented');
