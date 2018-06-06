@@ -2,7 +2,7 @@
 
 const OSM_STYLE = {
   name: 'OSM',
-  title: 'OpenStreetMap',
+  title: 'OpenStreetMap Service',
   type: 'twms',
   enabled: true,
   dimensions: []
@@ -10,7 +10,7 @@ const OSM_STYLE = {
 
 const OSM_NL_STYLE = {
   name: 'OpenStreetMap_NL',
-  title: 'OpenStreetMap NL',
+  title: 'KNMI GeoWeb OpenStreetMap NL',
   type: 'twms',
   enabled: true,
   dimensions: []
@@ -18,7 +18,7 @@ const OSM_NL_STYLE = {
 
 const ESRI_ARCGIS_CANVAS = {
   name: 'arcGisCanvas',
-  title: 'ArcGIS canvas map',
+  title: 'ESRI ArcGIS canvas map',
   type: 'twms',
   enabled: true,
   dimensions: []
@@ -26,7 +26,7 @@ const ESRI_ARCGIS_CANVAS = {
 
 const ESRI_ARCGIS_TOPO = {
   name: 'arcGisTopo',
-  title: 'ArcGIS topgraphical map',
+  title: 'ESRI ArcGIS topgraphical map',
   type: 'twms',
   enabled: true,
   dimensions: []
@@ -34,7 +34,7 @@ const ESRI_ARCGIS_TOPO = {
 
 const ESRI_ARCGIS_SAT = {
   name: 'arcGisSat',
-  title: 'ArcGIS satellite map',
+  title: 'ESRI ArcGIS satellite map',
   type: 'twms',
   enabled: true,
   dimensions: []
@@ -42,7 +42,7 @@ const ESRI_ARCGIS_SAT = {
 
 const ESRI_ARCGIS_OCEAN = {
   name: 'arcGisOceanBaseMap',
-  title: 'ArcGIS ocean map',
+  title: 'ESRI ArcGIS ocean map',
   type: 'twms',
   enabled: true,
   dimensions: []
@@ -50,7 +50,7 @@ const ESRI_ARCGIS_OCEAN = {
 
 const KNMI_NATURALEARTH2 = {
   name: 'NaturalEarth2',
-  title: 'KNMI Natural Earth map',
+  title: 'KNMI Natural Earth Map',
   type: 'twms',
   enabled: true,
   dimensions: []
@@ -60,42 +60,43 @@ const MWS_STYLE = {
   service: 'http://geoservices.knmi.nl/cgi-bin/worldmaps.cgi?',
   name: 'mwsmap',
   transparent: true,
-  title: 'KNMI MWS style map',
+  title: 'KNMI MWS map',
   format: 'image/png',
   enabled: true,
   dimensions: []
 };
 
 const INGMAPPING_WORLDMAP = {
-  title:'WorldMap',
+  title:'KNMI GeoWeb WorldMap',
   name:'WorldMap',
   type: 'twms',
   enabled:true
 };
 const INGMAPPING_WORLDMAP_LIGHT = {
-  title:'WorldMap_Light',
+  title:'KNMI GeoWeb WorldMap Light',
   name:'WorldMap_Light',
   type: 'twms',
   enabled:true
 };
 const INGMAPPING_WORLDMAP_CANVAS = {
-  title:'WorldMap_Canvas',
+  title:'KNMI GeoWeb WorldMap Canvas',
   name:'WorldMap_Canvas',
   type: 'twms',
   enabled:true
 };
 const INGMAPPING_WORLDMAP_GREYCANVAS = {
-  title:'WorldMap_GreyCanvas',
+  title:'KNMI GeoWeb WorldMap Grey Canvas',
   name:'WorldMap_GreyCanvas',
   type: 'twms',
   enabled:true
 };
 const INGMAPPING_WORLDMAP_LIGHT_GRAY_CANVAS = {
-  title:'WorldMap_LightGreyCanvas',
+  title:'KNMI GeoWeb WorldMap Light Grey Canvas',
   name:'WorldMap_LightGreyCanvas',
   type: 'twms',
   enabled:true
 };
 
-export const MAP_STYLES = [OSM_STYLE, KNMI_NATURALEARTH2, MWS_STYLE, ESRI_ARCGIS_CANVAS, ESRI_ARCGIS_TOPO, ESRI_ARCGIS_SAT, ESRI_ARCGIS_OCEAN, INGMAPPING_WORLDMAP,
-  INGMAPPING_WORLDMAP_LIGHT, INGMAPPING_WORLDMAP_CANVAS, INGMAPPING_WORLDMAP_GREYCANVAS, INGMAPPING_WORLDMAP_LIGHT_GRAY_CANVAS, OSM_NL_STYLE];
+export const MAP_STYLES = [OSM_STYLE, KNMI_NATURALEARTH2, MWS_STYLE, INGMAPPING_WORLDMAP,
+  INGMAPPING_WORLDMAP_LIGHT, INGMAPPING_WORLDMAP_CANVAS, INGMAPPING_WORLDMAP_GREYCANVAS,
+  INGMAPPING_WORLDMAP_LIGHT_GRAY_CANVAS, OSM_NL_STYLE, ESRI_ARCGIS_CANVAS, ESRI_ARCGIS_TOPO, ESRI_ARCGIS_SAT, ESRI_ARCGIS_OCEAN];
