@@ -1,5 +1,5 @@
 import React from 'react';
-import { default as SigmetsContainer } from './SigmetsContainer';
+import { default as SigmetsContainer } from './SigmetsContainer_deprecated';
 import { mount } from 'enzyme';
 
 const emptyDispatch = () => { /* intentionally left blank */ };

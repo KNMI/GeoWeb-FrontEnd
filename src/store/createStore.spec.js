@@ -88,7 +88,7 @@ describe('(Store) createStore', () => {
     });
     it('ADAGUC should be initialized with OpenStreetMap style', () => {
       const adagucProps = store.getState().adagucProperties;
-      expect(adagucProps.mapType.title).to.equal('OpenStreetMap');
+      expect(adagucProps.mapType.title).to.equal('OpenStreetMap Service');
     });
     it('ADAGUC should be initialized with Mercator (EPSG:3857) projection', () => {
       const adagucProps = store.getState().adagucProperties;

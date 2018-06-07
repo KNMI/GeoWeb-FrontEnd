@@ -65,7 +65,6 @@ class ProductsContainer extends Component {
   }
 
   render () {
-    console.log('render productscontainer');
     const { user } = this.props;
     if (user && (!user.isLoggedIn || !CheckIfUserHasRole(user, 'MET'))) {
       hashHistory.push('/');

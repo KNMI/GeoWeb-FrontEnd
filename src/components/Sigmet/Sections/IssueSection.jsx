@@ -2,7 +2,7 @@ import React, { PureComponent } from 'react';
 import { Row, Col, Badge } from 'reactstrap';
 import PropTypes from 'prop-types';
 
-export default class WhatSection extends PureComponent {
+export default class IssueSection extends PureComponent {
   render () {
     const children = {};
     this.props.children.map(child => {
@@ -10,34 +10,36 @@ export default class WhatSection extends PureComponent {
         children[child.props['data-field']] = child;
       }
     });
-    return <Row className='What'>
+    return <Row className='Issue'>
       <Col>
         <Row>
           <Col xs='3'>
-            <Badge color='success'>What</Badge>
+            <Badge color='success'>Issued at</Badge>
           </Col>
           <Col xs='9'>
-            {children.phenomenon}
+            {children.issuedate}
           </Col>
         </Row>
         <Row>
           <Col xs={{ size: 9, offset: 3 }}>
-            {children.obs_or_fcst}
+            {children.issueLocation}
           </Col>
         </Row>
-        <Row>
-          <Col xs={{ size: 2, offset: 1 }}>
-            <Badge>At</Badge>
-          </Col>
-          <Col xs='9'>
-            {children.obsFcTime}
-          </Col>
-        </Row>
+        {children.sequence
+          ? <Row>
+            <Col xs={{ size: 2, offset: 1 }}>
+              <Badge>Sequence</Badge>
+            </Col>
+            <Col xs='9'>
+              {children.sequence}
+            </Col>
+          </Row>
+          : null}
       </Col>
     </Row>;
   }
 }
 
-WhatSection.propTypes = {
+IssueSection.propTypes = {
   children: PropTypes.arrayOf(PropTypes.element)
 };

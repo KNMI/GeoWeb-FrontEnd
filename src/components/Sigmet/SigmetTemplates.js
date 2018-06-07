@@ -13,7 +13,6 @@ const TEMPLATES = {
     type: 'Feature',
     id: null, // string
     properties: {
-      type: null, // string
       selectionType: null, // string
       featureFunction: null, // string
       relatesTo: null, // string
@@ -25,7 +24,7 @@ const TEMPLATES = {
     },
     geometry: {
       type: null, // string
-      coordinates: [[[]]] // number values
+      coordinates: [[]] // array (lines) of array (lines) of array (coordinates) of number values
     }
   },
   LEVEL: {
@@ -43,9 +42,9 @@ TEMPLATES.GEOJSON = {
   type: 'FeatureCollection', // string
   features: [cloneDeep(TEMPLATES.FEATURE)]
 };
-TEMPLATES.LEVELS = {
-  lev1: cloneDeep(TEMPLATES.LEVEL),
-  lev2: cloneDeep(TEMPLATES.LEVEL)
+TEMPLATES.LEVELINFO = {
+  mode: null, // string, one of AT, ABV, BETW, BETW_SFC, TOPS, TOPS_ABV, TOPS_BLW
+  levels: [cloneDeep(TEMPLATES.LEVEL)]
 };
 TEMPLATES.SIGMET = {
   /* What */
@@ -53,7 +52,7 @@ TEMPLATES.SIGMET = {
   obs_or_forecast: cloneDeep(TEMPLATES.OBS_OR_FORECAST),
   /* Where */
   geojson: cloneDeep(TEMPLATES.GEOJSON),
-  level: cloneDeep(TEMPLATES.LEVELS),
+  levelinfo: cloneDeep(TEMPLATES.LEVELINFO),
   firname: null, // string
   /* When */
   validdate: null, // string
@@ -125,9 +124,9 @@ TYPES.GEOJSON = PropTypes.shape({
   type: PropTypes.string,
   features: PropTypes.arrayOf(TYPES.FEATURE)
 });
-TYPES.LEVELS = PropTypes.shape({
-  lev1: TYPES.LEVEL,
-  lev2: TYPES.LEVEL
+TYPES.LEVELINFO = PropTypes.shape({
+  mode: PropTypes.string,
+  levels: PropTypes.arrayOf(TYPES.LEVEL)
 });
 
 /**
@@ -158,11 +157,28 @@ const CHANGES = [
   { shortName: 'INTSF', longName: 'Intensifying' }
 ];
 
-// Units for altitude
-const UNITS_ALT = {
-  M: 'm',
+const UNITS = {
   FL: 'FL',
-  FT: 'ft'
+  FT: 'FT',
+  M: 'M'
+};
+
+// Units for altitude
+const UNITS_ALT = [
+  { unit: UNITS.FL, label: 'FL' },
+  { unit: UNITS.FT, label: 'ft' },
+  { unit: UNITS.M, label: 'm' }
+];
+
+// Modes for levels
+const MODES_LVL = {
+  AT: 'AT',
+  ABV: 'ABV',
+  BETW: 'BETW',
+  BETW_SFC: 'BETW_SFC',
+  TOPS: 'TOPS',
+  TOPS_ABV: 'TOPS_ABV',
+  TOPS_BLW: 'TOPS_BLW'
 };
 
 module.exports = {
@@ -170,5 +186,7 @@ module.exports = {
   SIGMET_TYPES: TYPES,
   DIRECTIONS: DIRECTIONS,
   CHANGES: CHANGES,
-  UNITS_ALT: UNITS_ALT
+  UNITS_ALT: UNITS_ALT,
+  UNITS: UNITS,
+  MODES_LVL: MODES_LVL
 };
