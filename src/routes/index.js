@@ -35,7 +35,7 @@ const LayerManagerPanel = (props) => <Async load={import('../components/LayerMan
 const MapPanel = (props) => <Async load={import('../components/MapPanel')} componentProps={props} />;
 const SidebarContainer = (props) => <Async load={import('../containers/Management/SidebarContainer')} componentProps={props} />;
 const ManagementPanel = (props) => <Async load={import('../components/Management/ManagementPanel')} componentProps={props} />;
-const SigmetsContainer = (props) => <Async load={import('../containers/SigmetsContainer')} componentProps={props} />;
+const SigmetsContainer = (props) => <Async load={import('../containers/Sigmet/SigmetsContainer')} componentProps={props} />;
 const mapStateToHeaderProps = state => ({
   title: 'header',
   user: state.userProperties,
@@ -141,8 +141,9 @@ export const createRoutes = (store) => {
   const layerManager = React.createElement(connect(mapStateToLayerManagerProps, mapDispatchToLayerManagerProps)(LayerManagerPanel));
   const products = React.createElement(connect(mapStateToProductsContainerProps, mapDispatchToLayerManagerProps)(ProductsContainer));
   const sigmet = React.createElement(connect((state) => ({
-
-    drawProperties: state.drawProperties, urls: state.urls, sources: state.adagucProperties.sources
+    drawProperties: state.drawProperties,
+    urls: state.urls,
+    sources: state.adagucProperties.sources
   }), mapDispatchToSigmetProps)(SigmetsContainer));
   const taf = connect(mapStateToTafsContainerProps, mapDispatchToLayerManagerProps)(TafsContainer);
   const trigger = React.createElement(connect(mapStateToLayerManagerProps, mapDispatchToLayerManagerProps)(TriggersContainer));

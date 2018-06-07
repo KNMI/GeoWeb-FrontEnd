@@ -3,6 +3,8 @@ import { hot, setConfig } from 'react-hot-loader';
 import { hashHistory, Router } from 'react-router';
 import { Provider } from 'react-redux';
 import PropTypes from 'prop-types';
+import NotificationsSystem from 'reapop';
+import theme from 'reapop-theme-wybo';
 
 class AppContainer extends Component {
   constructor () {
@@ -19,6 +21,7 @@ class AppContainer extends Component {
       <Provider store={store} >
         <div style={{ height: 'inherit' }}>
           <Router history={hashHistory} children={routes} />
+          <NotificationsSystem theme={theme} />
         </div>
       </Provider>
     );

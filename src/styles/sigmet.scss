@@ -1,0 +1,308 @@
+.SigmetsContainer {
+  .ContainerHeader {
+    .btn:not(:first-of-type) {
+      margin-left: 0.33rem;
+      font-size: 0.8rem;
+    }
+  }
+
+  .accordionsWrapper {
+    max-height: 100%;
+    width: 100%;
+  }
+
+  .SigmetsCategory {
+    min-width: 0;
+    min-height: 2.5rem;
+    flex-wrap: nowrap;
+
+    > .col {
+      flex-direction: column;
+    }
+
+    .card-header {
+      flex: none;
+      .col:nth-child(2):not(.col-auto) {
+        padding-left: 0.9rem;
+      }
+      cursor: not-allowed;
+    }
+  }
+
+  .SigmetsCategory.open {
+    flex: 1;
+
+    > .col {
+      > .row:not(.card-header) {
+        overflow-y: scroll;
+        flex: auto;
+        .btn-group-vertical {
+          min-height: min-content;
+          max-height: min-content;
+          min-width: 0;
+          flex-grow: 1;
+        }
+      }
+    }
+  }
+
+  .SigmetsCategory.openable {
+    .card-header {
+      cursor: pointer;
+    }
+  }
+
+  .SigmetsCategory.minified {
+    .card-header {
+      flex: inherit;
+      flex-direction: row;
+      padding: 0.2rem 0.2rem 0.5rem 0.7rem;
+      span.fa {
+        padding-top: 0.4rem;
+      }
+      span.badge {
+        font-size: 60%;
+        border-width: 0.08rem;
+        padding: 0.1rem 0.2rem;
+        max-height: 1rem;
+        margin-left: -0.5rem;
+      }
+    }
+  }
+}
+
+.accordion .Sigmet.btn.row {
+  flex-direction: column;
+  flex: 0 auto;
+  padding: 0.19rem;
+  line-height: 1.4;
+
+  .What {
+    .row:not(:first-of-type) {
+      margin-top: 0.2rem;
+    }
+    [data-field=phenomenon] {
+      font-weight: bold;
+    }
+  }
+
+  .Validity, .Where, .Draw, .Level, .Progress, .Move, .Change, .Issue {
+    margin-top: 0.33rem;
+    padding-top: 0.33rem;
+    border-top: 0.05rem solid #ccc;
+  }
+
+  .Draw {
+    min-height: 3.685rem;
+    padding-bottom: 0.33rem;
+
+    .btn {
+      width: 3rem;
+      margin: 0 0.33rem 0 0;
+    }
+
+    [data-field=drawing_alert] {
+      margin: 0.33rem 0 0 0;
+      width: 100%;
+      white-space: normal;
+    }
+  }
+
+  .Level {
+    [data-field=tops-toggle] input {
+      margin-right: 0.2rem;
+    }
+
+    .btn-group {
+      height: 100%;
+
+      .dropdown-toggle {
+        min-width: 3.2rem;
+      }
+
+      .dropdown-menu {
+        margin: 0;
+        min-width: 3rem;
+        padding: 0.3rem;
+
+        button {
+          padding: 0.2rem 0.5rem;
+          border-radius: 0.2rem;
+        }
+
+        button:hover {
+          background-color: #c5edff;
+        }
+      }
+    }
+
+    .row:nth-child(2) {
+      > div:nth-child(1) {
+        margin-top: 0.5rem;
+        .form-check {
+          margin: 0;
+        }
+      }
+      > div:nth-child(2) {
+        padding-left: 1.27rem;
+        margin-top: 0.3rem;
+
+        .switch-button {
+          margin: auto;
+        }
+      }
+    }
+
+    .row:nth-child(3) {
+      margin-top: 0.33rem;
+
+      > div:nth-child(2) {
+        padding-left: 1.25rem;
+
+        .switch-button {
+          margin: auto;
+
+          label:first-of-type {
+            padding-top: 0.7rem;
+          }
+
+          .toggle-container {
+            padding-top: 0.5rem;
+          }
+
+          label:nth-of-type(2) {
+            padding-top: 0;
+          }
+        }
+      }
+
+      > div:not(:nth-child(2)) {
+        margin-top: 0.5rem;
+      }
+
+      > div:nth-child(3) {
+        padding-left: 0.2rem;
+      }
+    }
+
+    .row:nth-child(4) {
+      > div:first-child {
+        margin-top: 0.5rem;
+      }
+    }
+  }
+
+  .Action {
+    border-top: 0.06rem solid #eee;
+    padding-top: 0.33rem;
+
+    .btn:not(:last-of-type) {
+      margin-right: 0.33rem;
+    }
+  }
+
+  .col {
+    flex-direction: column;
+  }
+  .row {
+    flex-direction: row;
+    flex: 0 auto;
+  }
+
+  .row.disabled {
+    background-color: #eee;
+  }
+
+  label {
+    padding-top: 0.2rem;
+    font-size: inherit;
+    font-family: inherit;
+    color: #666666;
+  }
+
+  .badge {
+    padding: 0.25em 0.4em;
+    width: 100%;
+    height: 1.2rem;
+    border-width: 0.05rem;
+  }
+
+  .disabled .badge {
+    color: #eee;
+    background-color: #919191;
+    border-color: #eee;
+  }
+
+  .bootstrap-typeahead, .bootstrap-typeahead-input {
+    width: 100%;
+  }
+
+  .btn-group .btn {
+    padding: 0.19rem 0.5rem;
+  }
+
+  .btn-primary {
+    padding: 0.5rem 0.7rem;
+  }
+
+
+  .switch-button {
+    label {
+      line-height: 1.2;
+      padding-top: 0.2rem;
+      font-size: inherit;
+      font-family: inherit;
+      color: #666666;
+    }
+
+    .label:first-of-type {
+      margin: 0 0.5rem 0 0.1rem;
+    }
+
+    .label:nth-of-type(2) {
+      margin: 0 0.1rem 0 0.5rem;
+    }
+
+    .toggle {
+      margin-bottom: 0;
+    }
+  }
+
+  .required {
+    padding-left: 0.33rem;
+  }
+
+  .required:after {
+    content: '*';
+  }
+
+  .required.missing {
+    color: red;
+    font-weight: bold;
+  }
+
+  .CollapseOmni.collapsing {
+    -webkit-transition: all 0.5s ease-in-out;
+    -moz-transition: all 0.5s ease-in-out;
+    -o-transition: all 0.5s ease-in-out;
+    transition: all 0.5s ease-in-out;
+  }
+}
+
+.accordion .Sigmet.btn-secondary.focus {
+  background-color: #c5edff;
+  border-color: #aaa;
+  border-right-width: 0.1rem;
+  border-bottom-width: 0.1rem;
+  border-radius: 0.2rem;
+  box-shadow: none;
+  cursor: default;
+}
+
+.accordion .Sigmet.btn-secondary:not(.focus) {
+  cursor: pointer;
+}
+
+.accordion .Sigmet.btn-secondary:not(.focus):hover {
+  background-color: #d5f4ff;
+}

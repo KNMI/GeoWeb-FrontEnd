@@ -1,16 +1,17 @@
 @import '~normalize.css/normalize.css';
 @import '~bootstrap/scss/bootstrap';
+@import '~lyef-switch-button/css/main.css';
 @import 'typeaheadjs';
 @import 'collapse';
 @import 'timeschedule';
 @import 'slider';
 @import 'taftable';
-@import 'sigmetcontainer';
 @import 'taf';
 @import 'popover';
 @import 'datetime';
 @import 'layermanager';
 @import 'managementpanel';
+@import 'sigmet';
 $radius-size: 0.19rem;
 $shadow: 0.06rem 0.125rem 0.125rem rgba(0,0,0,0.3);
 $inverse-inactive-color: rgba(255, 255, 255, 0.7);
@@ -651,20 +652,6 @@ input[type=number]::-webkit-inner-spin-button {
 
 .LayerManagerPanel .btn {
   width: 3rem;
-}
-
-.Sigmet .btn-primary {
-  padding: 0.5rem 0.7rem;
-}
-
-.accordion .card-block .Sigmet.row.btn {
-  flex-direction: column;
-  padding: 0.19rem;
-  line-height: 1.4rem;
-}
-
-.accordion .card-block .Sigmet.row.btn .row {
-  flex-direction: row;
 }
 
 *,
