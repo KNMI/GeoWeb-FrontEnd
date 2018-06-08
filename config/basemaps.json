@@ -48,7 +48,7 @@
       "EPSG:3857": {
          "home": "https://s3.eu-central-1.amazonaws.com/knmi-basemaps/openstreetmapnl/",
          "minLevel": 9,
-         "maxLevel": 15,
+         "maxLevel": 16,
          "tileServerType": "osm",
          "copyRight": "Made by Ingmar with QGIS and QTiles "
      }
