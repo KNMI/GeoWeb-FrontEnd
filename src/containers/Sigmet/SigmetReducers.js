@@ -543,7 +543,7 @@ const publishSigmet = (event, uuid, container) => {
     console.log('Published: ', response.data);
   }).catch((error) => {
     console.error(error);
-  })
+  });
 
   // console.warn('publishSigmet is not yet implemented');
 };
@@ -567,14 +567,14 @@ const showTAC = (event, uuid, container) => {
 
     // window.open('data:text/plain,' + encodeURIComponent(res.data));
   });
-}
+};
 
 const showIWXXM = (event, uuid, container) => {
   event.preventDefault();
   const { urls } = container.props;
 
   window.open(`${urls.BACKEND_SERVER_URL}/sigmet/${uuid}`);
-}
+};
 
 const cancelSigmet = (event, uuid, container) => {
   console.warn('cancelSigmet is not yet implemented');
@@ -595,7 +595,8 @@ const setSigmetDrawing = (uuid, container) => {
   }
 
   dispatch(drawActions.setGeoJSON(affectedSigmet.geojson));
-}
+};
+
 /**
  * SigmetsContainer has its own state, this is the dispatch for updating the state
  * @param {object} localAction Action-object containing the type and additional, action specific, parameters

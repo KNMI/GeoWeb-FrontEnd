@@ -4,6 +4,7 @@ import { qualifierMap, qualifierInverseMap, descriptorMap, descriptorInverseMap,
 import { amountMap, amountInverseMap, modMap, modInverseMap } from './TafCloudsMaps';
 import { probabilityMap, probabilityInverseMap, typeMap, typeInverseMap } from './TafChangeTypeMaps';
 import { TAF_TEMPLATES } from './TafTemplates';
+import { LIFECYCLE_STAGES } from '../../containers/Taf/TafActions';
 import moment from 'moment';
 import cloneDeep from 'lodash.clonedeep';
 import escapeRegExp from 'lodash.escaperegexp';
@@ -73,6 +74,29 @@ const getMapValue = (name, mapToUse, allCaps = false) => {
 /**
  * JSON to TAC converters
  */
+const jsonToTacForType = (typeAsJson, useFallback = false) => {
+  let result = null;
+  if (typeAsJson && typeof typeAsJson === 'string') {
+    const matchedOption = LIFECYCLE_STAGES.find((option) => option.stage === typeAsJson.toUpperCase());
+    if (matchedOption) {
+      result = matchedOption.label;
+    }
+  }
+  return result;
+};
+
+const jsonToTacForIssue = (issueAsJson, useFallback = false) => {
+  let result = null;
+  if (issueAsJson && typeof issueAsJson === 'string') {
+    if (moment(issueAsJson).isValid()) {
+      result = moment.utc(issueAsJson).format('DDHHmm[Z]');
+    } else if (issueAsJson.toLowerCase() === 'not yet issued') {
+      result = 'not yet issued';
+    }
+  }
+  return result;
+};
+
 const jsonToTacForProbability = (probabilityAsJson, useFallback = false) => {
   let result = null;
   if (probabilityAsJson && typeof probabilityAsJson === 'string') {
@@ -132,16 +156,7 @@ const jsonToTacForPeriod = (startTimestampAsJson, endTimestampAsJson, useFallbac
   return result;
 };
 
-const jsonToTacForLocation = (locationAsJson, useFallback = false) => {
-  if (!locationAsJson) return null;
-  return locationAsJson.toUpperCase();
-};
-
-const tacToJsonForLocation = (locationAsTac) => {
-  return locationAsTac;
-};
-
-const jsonToTacForWind = (windAsJson, useFallback = false) => {
+const jsonToTacForWind = (windAsJson, useFallback = false, showDefaultUnit = false) => {
   let result = null;
   if (!windAsJson) {
     return result;
@@ -183,7 +198,7 @@ const jsonToTacForWind = (windAsJson, useFallback = false) => {
       const unit = getMapValue(windAsJson.unit, windUnitMap);
       if (!unit) {
         return useFallback && windAsJson.hasOwnProperty('fallback') ? windAsJson.fallback.value : null;
-      } else if (unit !== windUnitMap.KT) { // Skip default unit
+      } else if (showDefaultUnit || unit !== windUnitMap.KT) { // Skip default unit
         result += unit;
       }
     }
@@ -642,11 +657,12 @@ const converterMessagesMap = {
 };
 
 module.exports = {
+  jsonToTacForIssue: jsonToTacForIssue,
+  jsonToTacForType: jsonToTacForType,
   jsonToTacForProbability: jsonToTacForProbability,
   jsonToTacForChangeType: jsonToTacForChangeType,
   jsonToTacForTimestamp: jsonToTacForTimestamp,
   jsonToTacForPeriod: jsonToTacForPeriod,
-  jsonToTacForLocation: jsonToTacForLocation,
   jsonToTacForWind: jsonToTacForWind,
   jsonToTacForVisibility: jsonToTacForVisibility,
   jsonToTacForCavok: jsonToTacForCavok,
@@ -658,7 +674,6 @@ module.exports = {
   tacToJsonForChangeType: tacToJsonForChangeType,
   tacToJsonForTimestamp: tacToJsonForTimestamp,
   tacToJsonForPeriod: tacToJsonForPeriod,
-  tacToJsonForLocation: tacToJsonForLocation,
   tacToJsonForWind: tacToJsonForWind,
   tacToJsonForVisibility: tacToJsonForVisibility,
   tacToJsonForCavok: tacToJsonForCavok,

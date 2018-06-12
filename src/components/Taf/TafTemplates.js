@@ -269,6 +269,8 @@ const getPhenomenonLabel = (typeSymbol) => {
   }
 };
 
+const TIMESTAMP_FORMAT = ('YYYY-MM-DD[T]HH:mm:ss[Z]');
+
 module.exports = {
   TAF_TEMPLATES: TEMPLATES,
   TAF_TYPES: TYPES,
@@ -279,5 +281,6 @@ module.exports = {
   PHENOMENON_TYPES: PHENOMENON_TYPES,
   PHENOMENON_TYPES_ORDER: PHENOMENON_TYPES_ORDER,
   getPhenomenonType: getPhenomenonType,
-  getPhenomenonLabel: getPhenomenonLabel
+  getPhenomenonLabel: getPhenomenonLabel,
+  TIMESTAMP_FORMAT: TIMESTAMP_FORMAT
 };

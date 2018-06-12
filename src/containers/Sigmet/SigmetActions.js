@@ -54,8 +54,7 @@ export const LOCAL_ACTIONS = {
 
 export const SIGMET_MODES = {
   EDIT: 'EDIT',
-  READ: 'READ',
-  PUBLISHED: 'PUBLISHED'
+  READ: 'READ'
 };
 
 export const EDIT_ABILITIES = {

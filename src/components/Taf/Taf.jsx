@@ -1,145 +1,200 @@
 import React, { Component } from 'react';
+import { arrayMove } from 'react-sortable-hoc';
 import PropTypes from 'prop-types';
-import { Icon } from 'react-fa';
-import { Col, Row, Card, CardTitle, CardText, Button, ButtonGroup, InputGroupAddon } from 'reactstrap';
-import CollapseOmni from '../CollapseOmni';
-import moment from 'moment';
-import axios from 'axios';
-import { TAF_TEMPLATES } from './TafTemplates';
+import Enum from 'es6-enum';
+import TimeSchedule from '../TimeSchedule';
+import { TAF_TEMPLATES, TAF_TYPES, CHANGE_TYPES, CHANGE_TYPES_ORDER, CHANGE_TYPES_SHORTHAND, getChangeType,
+  PHENOMENON_TYPES, PHENOMENON_TYPES_ORDER, getPhenomenonType, getPhenomenonLabel } from './TafTemplates';
 import cloneDeep from 'lodash.clonedeep';
-import TafCategory from './TafCategory';
-import { ReadLocations } from '../../utils/admin';
+import setNestedProperty from 'lodash.set';
+import getNestedProperty from 'lodash.get';
+import removeNestedProperty from 'lodash.unset';
+import { getJsonPointers, clearNullPointersAndAncestors } from '../../utils/json';
+import moment from 'moment';
+import { Button, Row, Col, Alert, ListGroup, ListGroupItem } from 'reactstrap';
+import { jsonToTacForWind, jsonToTacForWeather, jsonToTacForClouds } from './TafFieldsConverter';
+import TafTable from './TafTable';
+import TacView from './TacView';
+import axios from 'axios';
+import { debounce } from '../../utils/debounce';
 
-const TAF = 'taf';
+const uuidv4 = require('uuid/v4');
+const TMP = '◷';
 
-/*
-  Renders multiple TafCategories, provides additional functions for loading and saving, and has functions for filtering on type and status.
-*/
-export default class Taf extends Component {
-  constructor () {
-    super();
-    this.deleteTAF = this.deleteTAF.bind(this);
-    this.fetchTAFs = this.fetchTAFs.bind(this);
-    this.selectLocation = this.selectLocation.bind(this);
-    this.setStatusFilter = this.setStatusFilter.bind(this);
-    this.updateTafs = this.updateTafs.bind(this);
+const MOVE_DIRECTION = Enum(
+  'UP',
+  'RIGHT',
+  'DOWN',
+  'LEFT'
+);
 
-    this.state = {
-      tafs: [],
-      expandedTAF: null,
-      expandedTAC: null,
-      expandedJSON: null,
-      tafTypeSelections: [],
-      tafLocationSelections: [],
-      tafLocations: [],
-      tafSelectedLocation: null
+/**
+ * Generate fallback / default values for tafObject
+ * @return {object} Object containing default values for start timestamp, end timestamp, issue timestamp and location
+ */
+const generateDefaultValues = () => {
+  const now = moment().utc();
+  let TAFStartHour = now.hour();
+  TAFStartHour = TAFStartHour - TAFStartHour % 6 + 6;
+  return {
+    start: now.hour(TAFStartHour).minutes(0).seconds(0).format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+    end: now.hour(TAFStartHour).minutes(0).seconds(0).add(30, 'hour').format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+  };
+};
+
+/**
+ * TafCategory is the component which renders an editable and sortable TAF table.
+ * The UI is generated from a TAF JSON and it can generate/update TAF JSON from user input
+ *
+ * The component hierarchy is structured as follows:
+ *
+ *                                 BaseForecast -> \
+ *                                                   --> TafTable -> TafCategory -> Taf
+ *     ChangeGroup(s) -> SortableChangeGroup(s) -> /
+ *
+ */
+class Taf extends Component {
+  constructor (props) {
+    super(props);
+    this.onSortEnd = this.onSortEnd.bind(this);
+    this.onClick = this.onClick.bind(this);
+    this.onKeyUp = this.onKeyUp.bind(this);
+    this.onKeyDown = this.onKeyDown.bind(this);
+    this.registerElement = this.registerElement.bind(this);
+    this.setTafValues = this.setTafValues.bind(this);
+    this.addRow = this.addRow.bind(this);
+    this.removeRow = this.removeRow.bind(this);
+    this.setFocus = this.setFocus.bind(this);
+    this.moveFocus = this.moveFocus.bind(this);
+    this.onFocus = this.onFocus.bind(this);
+    this.extractScheduleInformation = this.extractScheduleInformation.bind(this);
+    this.serializePhenomenonValue = this.serializePhenomenonValue.bind(this);
+    this.serializeWindObjectValue = this.serializeWindObjectValue.bind(this);
+    this.serializeCloudsArray = this.serializeCloudsArray.bind(this);
+    this.serializeWeatherArray = this.serializeWeatherArray.bind(this);
+    this.byPhenomenonType = this.byPhenomenonType.bind(this);
+    this.byStartAndChangeType = this.byStartAndChangeType.bind(this);
+    this.validateTaf = debounce(this.validateTaf.bind(this), 1250, false);
+    this.saveTaf = this.saveTaf.bind(this);
+
+    const initialState = {
+      tafAsObject: props.taf,
+      focusedFieldName: 'forecast-wind',
+      hasEdits: false,
+      preset: {
+        forPhenomenon: null,
+        inWindow: null
+      }
     };
-  }
 
-  componentWillMount () {
-    this.fetchTAFs();
-    this.fetchLocations();
-  }
-
-  // componentWillReceiveProps (nextprops, nextstate) {
-  //   if (this.props.latestUpdateTime !== nextprops.latestUpdateTime) {
-  //     if (this.props.title === 'Open concept TAFs') {
-  //       this.fetchTAFs();
-  //     }
-  //   }
-  // }
-
-  // Sort by location
-  sortTAFs (tafs) {
-    const order = ['EHAM', 'EHRD', 'EHGG', 'EHBK', 'EHLE'];
-    const tafsCpy = cloneDeep(tafs);
-    tafsCpy.sort((a, b) => {
-      const aLocation = a.metadata.location;
-      const bLocation = b.metadata.location;
-
-      const aStart = moment.utc(a.metadata.validityStart);
-      const bStart = moment.utc(b.metadata.validityStart);
-
-      // If the location is the same
-      if (aLocation === bLocation) {
-        // Place the taf with the latest start time first
-        if (aStart.isAfter(bStart)) {
-          return -1;
-        } else if (aStart.isBefore(bStart)) {
-          return 1;
-        } else {
-          return 0;
-        }
-      } else {
-        // Check whether the location is in the order array
-        if (order.includes(aLocation)) {
-          if (order.includes(bLocation)) {
-            // If they both are, compare them according to the order in the array
-            return order.indexOf(aLocation) < order.indexOf(bLocation) ? -1 : 1;
-          }
-          // The first location is in the array, and the second isn't, so a comes first
-          return -1;
-        } else {
-          // only the second is in the array so the first comes later
-          if (order.includes(bLocation)) {
-            return 1;
-          }
-        }
-
-        // Both not in the array, so sort according to lexicographical order.
-        return aLocation < bLocation ? -1 : 1;
-      }
-    });
-    return tafsCpy;
-  }
-
-  fetchTAFs (url) {
-    if (!url && !this.props.source) return;
-    let fetchUrl = url;
-    if (!fetchUrl) {
-      fetchUrl = this.props.source;
+    // TODO: should we include defaults?
+    const defaults = generateDefaultValues();
+    if (!props.taf.metadata.validityStart) {
+      initialState.tafAsObject.metadata.validityStart = defaults.start;
     }
-    return new Promise((resolve, reject) => {
-      axios({
-        method: 'get',
-        url: fetchUrl,
-        withCredentials: true,
-        responseType: 'json'
-      }).then(src => {
-        if (src.data && src.data.tafs) {
-          this.setState({ tafs: src.data.tafs });
-        } else if (src.data.ntafs === 0) {
-          this.setState({ tafs: [] });
+    if (!props.taf.metadata.validityEnd) {
+      initialState.tafAsObject.metadata.validityEnd = defaults.end;
+    }
+    // if (!props.taf.metadata.issueTime) {
+    //   initialState.tafAsObject.metadata.issueTime = defaults.issue;
+    // }
+    if (!props.taf.metadata.location) {
+      initialState.tafAsObject.metadata.location = props.location;
+    }
+
+    this.state = initialState;
+    this.register = [];
+  };
+
+  /**
+   * Validates TAF input in two steps:
+   * 1) Check for fallback values
+   * 2) Server side validation
+   * @param  {object} tafAsObject The TAF JSON to validate
+   * @return {object} A report of the validation
+   */
+  validateTaf (tafAsObject) {
+    const taf = cloneDeep(tafAsObject);
+    const fallbackPointers = [];
+    getJsonPointers(taf, (field) => field && field.hasOwnProperty('fallback'), fallbackPointers);
+
+    const inputParsingReport = {};
+    const fallbackPointersLength = fallbackPointers.length;
+    if (fallbackPointersLength > 0) {
+      inputParsingReport.message = 'TAF is not valid';
+      inputParsingReport.succeeded = false;
+      for (let pointerIndex = 0; pointerIndex < fallbackPointersLength; pointerIndex++) {
+        if (!inputParsingReport.hasOwnProperty('errors')) {
+          inputParsingReport.errors = {};
         }
-        resolve('Fetched tafs');
-      }).catch(error => {
-        reject(error);
+        if (!inputParsingReport.errors.hasOwnProperty(fallbackPointers[pointerIndex])) {
+          inputParsingReport.errors[fallbackPointers[pointerIndex]] = [];
+        }
+        const pointerParts = fallbackPointers[pointerIndex].split('/');
+        pointerParts.shift();
+        let message = 'The pattern of the input was not recognized.';
+        const fallbackedProperty = getNestedProperty(taf, pointerParts);
+        if (fallbackedProperty.hasOwnProperty('fallback') && fallbackedProperty.fallback.hasOwnProperty('message')) {
+          message = fallbackedProperty.fallback.message;
+        }
+        inputParsingReport.errors[fallbackPointers[pointerIndex]].push(message);
+        removeNestedProperty(taf, pointerParts);
+      }
+    } else {
+      inputParsingReport.message = 'TAF input is verified';
+      inputParsingReport.succeeded = true;
+    }
+
+    clearNullPointersAndAncestors(taf);
+    if (!getNestedProperty(taf, ['changegroups'])) {
+      setNestedProperty(taf, ['changegroups'], []);
+    }
+    // if (getNestedProperty(taf, ['metadata', 'issueTime']) === 'not yet issued') {
+    //   setNestedProperty(taf, ['metadata', 'issueTime'], moment.utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z');
+    // }
+
+    axios({
+      method: 'post',
+      url: this.props.urls.BACKEND_SERVER_URL + '/tafs/verify',
+      withCredentials: true,
+      data: JSON.stringify(taf),
+      headers: { 'Content-Type': 'application/json' }
+    }).then(
+      response => {
+        if (response.data) {
+          let responseJson = response.data;
+          if (responseJson.hasOwnProperty('errors') && typeof responseJson.errors === 'string') {
+            try {
+              responseJson.errors = JSON.parse(responseJson.errors);
+            } catch (exception) {
+              console.error('Unparseable errors data from response', exception);
+            }
+          }
+          const aggregateReport = {
+            message: responseJson.message ? responseJson.message : (inputParsingReport.succeeded && responseJson.succeeded ? 'TAF input is verified' : 'TAF input is not valid'),
+            succeeded: inputParsingReport.succeeded && responseJson.succeeded,
+            errors: Object.assign({}, inputParsingReport.errors, responseJson.errors)
+          };
+          this.setState({
+            validationReport: aggregateReport
+          });
+        } else {
+          this.setState({
+            validationReport: inputParsingReport
+          });
+        }
+      }
+    ).catch(error => {
+      console.error(error);
+      const aggregateReport = {
+        message: 'TAF input is not valid',
+        subheading: '(Couldn\'t retrieve all validation details.)',
+        succeeded: false,
+        errors: inputParsingReport.errors
+      };
+      this.setState({
+        validationReport: aggregateReport
       });
-    });
-  }
-
-  fetchLocations () {
-    if (!this.props.hasOwnProperty('urls') || !this.props.urls ||
-      !this.props.urls.hasOwnProperty('BACKEND_SERVER_URL') || typeof this.props.urls.BACKEND_SERVER_URL !== 'string') {
-      return;
-    }
-    ReadLocations(`${this.props.urls.BACKEND_SERVER_URL}/admin/read`, (tafLocationsData) => {
-      if (tafLocationsData && typeof tafLocationsData === 'object') {
-        const locationNames = [];
-        tafLocationsData.forEach((location) => {
-          if (location.hasOwnProperty('name') && typeof location.name === 'string' &&
-            location.hasOwnProperty('availability') && Array.isArray(location.availability) && location.availability.includes(TAF)) {
-            locationNames.push(location.name);
-          }
-        });
-        let selectedLocation = this.state.tafSelectedLocation;
-        if (!locationNames.includes(selectedLocation)) {
-          selectedLocation = locationNames[0];
-        }
-        this.setState({ tafLocations: locationNames, tafSelectedLocation: selectedLocation });
-      } else {
-        console.error('Couldn\'t retrieve locations');
-      }
     });
   }
 
@@ -155,215 +210,814 @@ export default class Taf extends Component {
     });
   }
 
-  // Selecting a new or another TAF, loads its TAC and sets it to expanded
-  loadAndExpandTaf (uuid) {
-    axios({
-      method: 'get',
-      url: this.props.urls.BACKEND_SERVER_URL + '/tafs/' + uuid,
-      withCredentials: true,
-      responseType: 'text',
-      headers: { 'Accept': 'text/plain' }
-    }).then(src => this.setState({ expandedTAC: src.data }));
-    axios({
-      method: 'get',
-      url: this.props.urls.BACKEND_SERVER_URL + '/tafs/' + uuid,
-      withCredentials: true,
-      responseType: 'json',
-      headers: { 'Accept': 'application/json' }
-    }).then(src => {
-      this.setState({ expandedTAF: uuid, expandedJSON: src.data });
+  saveTaf (tafAsObject, focusTaf = false, publishTaf = false) {
+    const taf = cloneDeep(tafAsObject);
+    clearNullPointersAndAncestors(taf);
+    if (!getNestedProperty(taf, ['changegroups'])) {
+      setNestedProperty(taf, ['changegroups'], []);
+    }
+
+    if (publishTaf === true) {
+      setNestedProperty(taf, ['metadata', 'status'], 'published');
+      setNestedProperty(taf, ['metadata', 'extraInfo', 'author'], this.props.user.username);
+      setNestedProperty(taf, ['metadata', 'extraInfo', 'lastModified'], moment.utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z');
+    }
+
+    return new Promise((resolve, reject) => {
+      axios({
+        method: 'post',
+        url: this.props.urls.BACKEND_SERVER_URL + '/tafs',
+        withCredentials: true,
+        data: JSON.stringify(taf),
+        headers: { 'Content-Type': 'application/json' }
+      }).then(src => {
+        this.setState({ validationReport:src.data });
+        try {
+          if (focusTaf === true) {
+            this.props.focusTaf(src.data.tafjson);
+          } else {
+            if (!(taf.metadata && src.data && (taf.metadata.uuid === src.data.uuid))) {
+              this.props.focusTaf(src.data.tafjson);
+            } else {
+              if (src.data.tafjson.metadata.status !== taf.metadata.status) {
+                this.props.focusTaf(src.data.tafjson);
+              }
+            }
+          }
+        } catch (e) {
+          console.error('Unable to focusTaf', e);
+        }
+
+        return resolve(src.data.uuid);
+      }).catch(error => {
+        this.setState({ validationReport:{ message: 'Unable to save: error occured while saving TAF.' } });
+        try {
+          console.error('Error occured', error);
+          if (error.response.data.message) {
+            this.setState({ validationReport:{ message: error.response.data.message } });
+          }
+        } catch (e) {
+          console.error(e);
+          this.setState({ validationReport:{ message: JSON.stringify(error.response) } });
+        }
+        return reject('Error saving taf');
+      });
     });
   }
 
-  setExpandedTAF (uuid, expandAndCollapse = false, refreshTafList = false) {
-    // Clicking the already expanded TAF collapses it
-    if (this.state.expandedTAF === uuid && expandAndCollapse) {
-      this.setState({ expandedTAF: null, expandedTAC: null });
-    } else if (uuid === 'edit') {
-      this.setState({ expandedTAF: 'edit', expandedTAC: null });
+  /**
+   * Comparator: Compares series by phenomenon type, in ascending order
+   * @param {object} seriesA An series with a string as label property
+   * @param {object} seriesB Another series with a string as label property
+   * @return {number} The order of the entries
+   */
+  byPhenomenonType (seriesA, seriesB) {
+    let labelA = seriesA.label;
+    const tmpIndexA = labelA.indexOf(TMP);
+    labelA = labelA.substring(0, tmpIndexA !== -1 ? tmpIndexA : labelA.length);
+    let labelB = seriesB.label;
+    const tmpIndexB = labelB.indexOf(TMP);
+    labelB = labelB.substring(0, tmpIndexB !== -1 ? tmpIndexB : labelB.length);
+    const typeAindex = PHENOMENON_TYPES_ORDER.indexOf(getPhenomenonType(labelA));
+    const typeBindex = PHENOMENON_TYPES_ORDER.indexOf(getPhenomenonType(labelB));
+    return typeBindex < typeAindex
+      ? 1
+      : typeBindex > typeAindex
+        ? -1
+        : 0;
+  }
+
+  /**
+   * Comparator: Compares items by start and change type, in ascending order
+   * @param {object} itemA An item with a string as property 'changeStart' and a string as property 'changeType'
+   * @param {object} itemB Another item with a string as property 'changeStart' and a string as property 'changeType'
+   * @return {number} The result of the comparison
+   */
+  byStartAndChangeType (itemA, itemB) {
+    const startA = moment.utc(itemA.changeStart);
+    const startB = moment.utc(itemB.changeStart);
+    // Checks for startA/B.isValid()
+    const typeAindex = CHANGE_TYPES_ORDER.indexOf(getChangeType(itemA.changeType));
+    const typeBindex = CHANGE_TYPES_ORDER.indexOf(getChangeType(itemB.changeType));
+    return startB.isBefore(startA)
+      ? 1
+      : startB.isAfter(startA)
+        ? -1
+        : typeBindex < typeAindex
+          ? 1
+          : typeBindex > typeAindex
+            ? -1
+            : 0;
+  }
+
+  /**
+   * Maps the wind object value into a presentable form
+   * @param {object} value The wind object to present
+   * @return {string} A readable presentation of the phenomenon value
+   */
+  serializeWindObjectValue (value) {
+    if (value && typeof value === 'object' && value.hasOwnProperty('direction') &&
+        (typeof value.direction === 'number' || (typeof value.direction === 'string' && value.direction === 'VRB')) &&
+        value.hasOwnProperty('speed') && typeof value.speed === 'number') {
+      return jsonToTacForWind(value);
     } else {
-      //TODO Only refresh list when needed
-      if (refreshTafList) {
-        this.fetchTAFs().then(() => {
-          this.loadAndExpandTaf(uuid);
+      return null;
+    }
+  }
+
+  /**
+   * Maps the clouds array value into a presentable form
+   * @param {array} value The clouds array to present
+   * @return {string} A readable presentation of the phenomenon value
+   */
+  serializeCloudsArray (value) {
+    if (Array.isArray(value) && value.length > 0 && value[0] && typeof value[0] === 'object' && value[0].hasOwnProperty('amount') && typeof value[0].amount === 'string') {
+      return value.map((cloud, index) => {
+        return jsonToTacForClouds(cloud);
+      }).join(', ');
+    } else {
+      return null;
+    }
+  }
+
+  /**
+   * Maps the weather array value into a presentable string
+   * @param {array} value The weather array to present
+   * @return {string} A readable presentation of the phenomenon value
+   */
+  serializeWeatherArray (value) {
+    if (Array.isArray(value) && value.length > 0 && value[0] && typeof value[0] === 'object' &&
+        value[0].hasOwnProperty('phenomena') && Array.isArray(value[0].phenomena) && value[0].phenomena.length > 0) {
+      return value.map((weather, index) => {
+        return jsonToTacForWeather(weather);
+      }).join(', ');
+    } else {
+      return null;
+    }
+  }
+
+  /**
+   * Maps the data in the phenomenon-value object into a presentable form
+   * @param {string} phenomenonType The type of the phenomenon
+   * @param {object} phenomenonValueObject The phenomenon-value object to map (i.e. to serialize)
+   * @return {React.Component} A component with a readable presentation of the phenomenon value
+   */
+  serializePhenomenonValue (phenomenonType, phenomenonValueObject) {
+    switch (getPhenomenonType(phenomenonType)) {
+      case PHENOMENON_TYPES.WIND:
+        if (phenomenonValueObject && typeof phenomenonValueObject === 'object') {
+          return this.serializeWindObjectValue(phenomenonValueObject);
+        }
+        return null;
+      case PHENOMENON_TYPES.CAVOK:
+        if (typeof phenomenonValueObject === 'boolean' && phenomenonValueObject) {
+          return 'CaVOK';
+        }
+        return null;
+      case PHENOMENON_TYPES.VISIBILITY:
+        if (phenomenonValueObject && typeof phenomenonValueObject === 'object' && phenomenonValueObject.hasOwnProperty('value') &&
+          typeof phenomenonValueObject.value === 'number' &&
+          !isNaN(phenomenonValueObject.value)) {
+          return phenomenonValueObject.value.toString().padStart(4, '0');
+        }
+        return null;
+      case PHENOMENON_TYPES.WEATHER:
+        if (typeof phenomenonValueObject === 'string') {
+          return phenomenonValueObject;
+        } else if (Array.isArray(phenomenonValueObject)) {
+          return this.serializeWeatherArray(phenomenonValueObject);
+        }
+        return null;
+      case PHENOMENON_TYPES.CLOUDS:
+        if (typeof phenomenonValueObject === 'string') {
+          return phenomenonValueObject;
+        } else if (Array.isArray(phenomenonValueObject)) {
+          return this.serializeCloudsArray(phenomenonValueObject);
+        }
+        return null;
+      case PHENOMENON_TYPES.VERTICAL_VISIBILITY:
+        if (typeof phenomenonValueObject === 'number') {
+          return phenomenonValueObject.toString().padStart(3, '0');
+        }
+        return null;
+      default: return null;
+    }
+  }
+
+  /**
+   * Extract the schedule information from the TAF data
+   * @param {object} tafDataAsJson The object containing the TAF data
+   * @return {array} The schedule information as an array of schedule items
+   */
+  extractScheduleInformation (tafDataAsJson) {
+    const scheduleSeries = [];
+    const scopeStart = moment.utc(tafDataAsJson.metadata.validityStart);
+    const scopeEnd = moment.utc(tafDataAsJson.metadata.validityEnd);
+    Object.entries(tafDataAsJson.forecast || {}).map((entry) => {
+      const value = this.serializePhenomenonValue(entry[0], entry[1], null);
+      if (value !== null) {
+        scheduleSeries.push({
+          label: entry[0],
+          isLabelVisible: true,
+          ranges: [ {
+            start: scopeStart,
+            end: scopeEnd,
+            value: value,
+            styles: []
+          } ]
         });
+      }
+    });
+
+    tafDataAsJson.changegroups.sort(this.byStartAndChangeType).map(change => {
+      const changeType = getChangeType(change.changeType);
+      const fallbackValue = cloneDeep(scopeStart).subtract(1, 'hour');
+
+      const start = change.changeStart && !change.changeStart.hasOwnProperty('fallback')
+        ? moment.utc(change.changeStart)
+        : fallbackValue;
+
+      // FM only has a change start, and persists until scope end
+      const end = changeType === CHANGE_TYPES.FM
+        ? (start !== fallbackValue
+          ? scopeEnd
+          : fallbackValue)
+        : (change.changeEnd && !change.changeEnd.hasOwnProperty('fallback')
+          ? moment.utc(change.changeEnd)
+          : fallbackValue);
+      if (!end.isAfter(start)) {
+        return;
+      }
+
+      // What to do in this case?
+      if (!change.forecast) {
+        return;
+      }
+
+      Object.entries(change.forecast).map((entry) => {
+        let value = this.serializePhenomenonValue(entry[0], entry[1]);
+        if (value !== null) {
+          const type = getPhenomenonType(entry[0]);
+          const labelSuffix = (changeType !== CHANGE_TYPES.FM && changeType !== CHANGE_TYPES.BECMG) ? TMP : '';
+          const label = getPhenomenonLabel(type) + labelSuffix;
+
+          // Correct overlappings
+          if (changeType === CHANGE_TYPES.FM || changeType === CHANGE_TYPES.BECMG) {
+            const exclusiveTypes = [type];
+            if (type === PHENOMENON_TYPES.CAVOK) {
+              exclusiveTypes.push(
+                PHENOMENON_TYPES.VISIBILITY,
+                PHENOMENON_TYPES.VERTICAL_VISIBILITY,
+                PHENOMENON_TYPES.CLOUDS
+              );
+            } else if (type === PHENOMENON_TYPES.VISIBILITY || type === PHENOMENON_TYPES.VERTICAL_VISIBILITY || type === PHENOMENON_TYPES.CLOUDS) {
+              exclusiveTypes.push(
+                PHENOMENON_TYPES.CAVOK
+              );
+            }
+
+            exclusiveTypes.forEach((exclusiveType) => {
+              const exclusiveSeriesIndex = scheduleSeries.findIndex(serie => serie.label === getPhenomenonLabel(exclusiveType));
+              if (exclusiveSeriesIndex !== -1) {
+                scheduleSeries[exclusiveSeriesIndex].ranges.map(range => {
+                  if (start.isSameOrBefore(range.end) && end.isSameOrAfter(range.start)) {
+                    // it does overlap!
+                    if (start.isSameOrBefore(range.start)) {
+                      if (end.isSameOrAfter(range.end)) {
+                        // fully includes / overrides previous range => set duration to 0
+                        range.end = range.start;
+                      } else {
+                        // there's a remainder at the end, but FM and BECMG changes are persistent => set duration to 0
+                        range.end = range.start;
+                      }
+                      if (changeType === CHANGE_TYPES.BECMG && start.isSame(range.start)) {
+                        const prevValue = type === PHENOMENON_TYPES.CAVOK ? '-' : range.value;
+                        value = `${prevValue}\u2026 ${this.serializePhenomenonValue(entry[0], entry[1])}`; // \u2026 horizontal ellipsis
+                      }
+                    } else {
+                      // there's a remainder at the start
+                      range.end = moment.max(start, range.start);
+                    }
+                  }
+                });
+              }
+            });
+          }
+
+          let seriesIndex = scheduleSeries.findIndex(serie => serie.label === label);
+          // Append to the series
+          if (seriesIndex !== -1) {
+            scheduleSeries[seriesIndex].ranges.push({
+              start: start,
+              end: end,
+              value: value,
+              prefix: CHANGE_TYPES_SHORTHAND[changeType],
+              styles: [ changeType === CHANGE_TYPES.BECMG ? 'striped' : (changeType === CHANGE_TYPES.PROB30 || changeType === CHANGE_TYPES.PROB40) ? 'split' : null ]
+            });
+          } else { // Create a new series
+            seriesIndex = scheduleSeries.push({
+              label: label,
+              isLabelVisible: labelSuffix.length === 0 || scheduleSeries.findIndex(serie => serie.label === entry[0]) === -1,
+              ranges: [ {
+                start: start,
+                end: end,
+                value: value,
+                prefix: CHANGE_TYPES_SHORTHAND[changeType],
+                styles: [ changeType === CHANGE_TYPES.BECMG ? 'striped' : changeType === CHANGE_TYPES.PROB30 || changeType === CHANGE_TYPES.PROB40 ? 'split' : null ]
+              } ]
+            }) - 1; // push returns the length, but the last index is needed
+          }
+          // For BECMG after the changing period, the value is persistent
+          if (changeType === CHANGE_TYPES.BECMG) {
+            scheduleSeries[seriesIndex].ranges.push({
+              start: end,
+              end: scopeEnd,
+              value: this.serializePhenomenonValue(entry[0], entry[1]),
+              styles: []
+            });
+          }
+        }
+      });
+    });
+    scheduleSeries.sort(this.byPhenomenonType);
+    return scheduleSeries;
+  }
+
+  /**
+   * Responds to key releases when TafTable is in focus
+   * @param {KeyboardEvent} keyboardEvent The KeyboardEvent that has been fired
+   */
+  onKeyUp (keyboardEvent) {
+    if (keyboardEvent.type === 'keyup') {
+      switch (keyboardEvent.key) {
+        case 'Enter':
+          this.addRow();
+          break;
+        case 'Escape':
+          keyboardEvent.target.blur();
+          break;
+        default:
+          break;
+      }
+    }
+  }
+
+  /**
+   * Responds to key presses when TafTable is in focus
+   * @param {KeyboardEvent} keyboardEvent The KeyboardEvent that has been fired
+   */
+  onKeyDown (keyboardEvent) {
+    if (keyboardEvent.type === 'keydown') {
+      switch (keyboardEvent.key) {
+        case 'ArrowUp':
+          this.moveFocus(keyboardEvent.target.name, MOVE_DIRECTION.UP);
+          break;
+        case 'ArrowRight':
+          if (!keyboardEvent.target.value || (keyboardEvent.target.selectionStart === keyboardEvent.target.value.length)) {
+            this.moveFocus(keyboardEvent.target.name, MOVE_DIRECTION.RIGHT);
+            keyboardEvent.preventDefault();
+            keyboardEvent.stopPropagation();
+          }
+          break;
+        case 'ArrowDown':
+          this.moveFocus(keyboardEvent.target.name, MOVE_DIRECTION.DOWN);
+          break;
+        case 'ArrowLeft':
+          if (!keyboardEvent.target.value || (keyboardEvent.target.selectionStart === 0)) {
+            this.moveFocus(keyboardEvent.target.name, MOVE_DIRECTION.LEFT);
+            keyboardEvent.preventDefault();
+            keyboardEvent.stopPropagation();
+          }
+          break;
+        default:
+          break;
+      }
+    }
+  }
+
+  /**
+   * Event handler which handles click events
+   * @param  {ClickEvent} event The click event which occurred
+   */
+  onClick (event) {
+    if (event.type === 'click' && 'name' in event.target && typeof event.target.name === 'string') { // hasOwnPropery seems not working properly on HTMLElement-objects
+      if (event.target.name === 'addible') {
+        this.addRow();
+        return;
+      }
+      if (event.target.name.endsWith('removable')) {
+        const nameParts = event.target.name.split('-');
+        if (nameParts.length > 1 && nameParts[1] >= 0) {
+          this.removeRow(parseInt(nameParts[1]));
+        }
+        event.preventDefault();
+        event.stopPropagation();
+      }
+    }
+  }
+
+  /**
+   * Event handler to handle focus events
+   * @param  {FocusEvent} focusEvent The focus event which occurred
+   */
+  onFocus (focusEvent) {
+    if (focusEvent.type === 'focus' && 'name' in focusEvent.target && typeof focusEvent.target.name === 'string') {
+      const nameParts = focusEvent.target.name.split('-');
+      let phenomenonName = '';
+      // TODO Check if resulting phenomenon name is a known phenomenon
+      if (!isNaN(nameParts[nameParts.length - 1])) {
+        phenomenonName = nameParts[nameParts.length - 2];
       } else {
-        this.loadAndExpandTaf(uuid);
+        phenomenonName = nameParts[nameParts.length - 1];
       }
-    }
-  }
 
-  setStatusFilter (clickEvent) {
-    if (clickEvent.hasOwnProperty('target') && clickEvent.target.getAttribute('data-status')) {
-      const clickedStatus = clickEvent.target.getAttribute('data-status');
-      if (typeof clickedStatus === 'string') {
-        const selectionsCopy = cloneDeep(this.state.tafTypeSelections);
-        const index = selectionsCopy.indexOf(clickedStatus);
-        if (index === -1) {
-          selectionsCopy.push(clickedStatus);
-        } else {
-          selectionsCopy.splice(index, 1);
+      if (!getPhenomenonType(phenomenonName)) {
+        return;
+      }
+
+      const getPhenomenonPresetUrl = (phenomenon) => {
+        // TODO: More presets per phenomenon
+        // TODO: This should be done in a better way
+        return window.location.origin + window.location.pathname + '?presetid=06c0a5b4-1e98-4d19-8e8e-39a66fc4e10b&location=EHAM#/';
+      };
+      if (phenomenonName !== this.state.preset.forPhenomenon) {
+        if (!this.state.preset.inWindow || this.state.preset.inWindow.closed) {
+          // Only do this if it isnt already opened
+          /* if ((this.props.browserLocation && !this.props.browserLocation.query.opened)) {
+            const newWindow = window.open(window.location.href + '?opened=true', 'TafPresetWindow', 'width=1250,height=750', '_blank');
+            const origWindow = window.open(getPhenomenonPresetUrl(phenomenonName), '_self');
+            this.setState({
+              preset: {
+                forPhenomenon: phenomenonName,
+                inWindow: newWindow,
+                origWindow: origWindow
+              }
+            });
+          } */
         }
-        this.setState({ tafTypeSelections: selectionsCopy });
       }
     }
   }
 
-  selectLocation (clickEvent) {
-    if (clickEvent.hasOwnProperty('target') && clickEvent.target.getAttribute('data-location')) {
-      const clickedLocation = clickEvent.target.getAttribute('data-location');
-      if (typeof clickedLocation === 'string' && clickedLocation !== this.state.tafSelectedLocation) {
-        this.setState({ tafSelectedLocation: clickedLocation });
-      }
-      if (typeof clickedLocation === 'string') {
-        const selectionsCopy = cloneDeep(this.state.tafLocationSelections);
-        const index = selectionsCopy.indexOf(clickedLocation);
-        if (index === -1) {
-          selectionsCopy.push(clickedLocation);
-        } else {
-          selectionsCopy.splice(index, 1);
+  /**
+   * Updates the value(s) in the state
+   * @param {Array} values An array with objects, each containing a propertyPath and propertyValue
+   */
+  setTafValues (values) {
+    if (values && Array.isArray(values) && values.length > 0) {
+      const newTafState = cloneDeep(this.state.tafAsObject);
+      let hasUpdates = false;
+      values.map((entry) => {
+        if (entry && typeof entry === 'object' && entry.hasOwnProperty('propertyPath') && entry.hasOwnProperty('propertyValue')) {
+          if (entry.deleteProperty === true) {
+            // removeNestedProperty on an array leaves an empty array element
+            // Therefore, the array needs to be cleaned by this one neat trick
+            removeNestedProperty(newTafState, entry.propertyPath);
+
+            // If the last element is a number, then it is an index in an array, so we know we are dealing with an array
+            const lastPathElem = entry.propertyPath.pop();
+            if (!isNaN(lastPathElem)) {
+              // Retrieve the array and leave all items that evaluate truthy.
+              // this filters everything as null, undefined, 0, {}, false, "", etc...
+              const theArr = getNestedProperty(newTafState, entry.propertyPath);
+              setNestedProperty(newTafState, entry.propertyPath, theArr.filter(n => n));
+            }
+          } else {
+            setNestedProperty(newTafState, entry.propertyPath, entry.propertyValue);
+          }
+          hasUpdates = true;
         }
-        this.setState({ tafLocationSelections: selectionsCopy });
+      });
+      if (hasUpdates) {
+        this.validateTaf(newTafState);
+        this.setState({
+          tafAsObject: newTafState,
+          hasEdits: true
+        });
       }
     }
   }
 
-  updateTafs () {
-    this.props.updateParent();
+  /**
+   * Registers the category child DOM elements, as it's necessary to interact with them
+   * @param {HTMLElement} element The element to register
+   */
+  registerElement (element) {
+    const name = element ? (element.name || element.props.name) : null;
+    const hasFocusMethod = element ? 'focus' in element : false;
+    if (name && hasFocusMethod) {
+      this.register.push({ name: name, element: element });
+    }
+  }
+
+  /**
+   * Set the focus to a named and registered field
+   * @param {string} fieldNameToFocus The field name to set to focus to
+   */
+  setFocus (fieldNameToFocus) {
+    const foundItem = this.register.find((item) => item.name === fieldNameToFocus);
+    if (foundItem && this.state.focusedFieldName !== fieldNameToFocus) {
+      foundItem.element.focus();
+      this.setState({ focusedFieldName: fieldNameToFocus });
+    }
+  }
+
+  /**
+   * This function sets the focus to an adjacent field
+   * @param {string} foccusedFieldName The name of the field which is currently focussed
+   */
+  moveFocus (focusedFieldName, direction) {
+    if (focusedFieldName && typeof focusedFieldName === 'string') {
+      if (direction === MOVE_DIRECTION.RIGHT) {
+        const registerLength = this.register.length;
+        const currentItemIndex = this.register.findIndex((item) => item.name === focusedFieldName);
+        let nextItemIndex = -1;
+        for (let nextIndex = currentItemIndex + 1; nextIndex < registerLength; nextIndex++) {
+          if (!this.register[nextIndex].element.disabled) {
+            nextItemIndex = nextIndex;
+            break;
+          }
+        }
+        if (nextItemIndex !== -1) {
+          this.setFocus(this.register[nextItemIndex].name);
+        }
+      }
+      if (direction === MOVE_DIRECTION.LEFT) {
+        const currentItemIndex = this.register.findIndex((item) => item.name === focusedFieldName);
+        let prevItemIndex = -1;
+        for (let prevIndex = currentItemIndex - 1; prevIndex > -1; prevIndex--) {
+          if (!this.register[prevIndex].element.disabled) {
+            prevItemIndex = prevIndex;
+            break;
+          }
+        }
+        if (prevItemIndex !== -1) {
+          this.setFocus(this.register[prevItemIndex].name);
+        }
+      }
+      const nameParts = focusedFieldName.split('-');
+      if (nameParts.length > 1) {
+        const prevRowIndex = nameParts[0] === 'changegroups' ? parseInt(nameParts[1]) : -1; // -1 for Base Forecast
+        if (direction === MOVE_DIRECTION.UP && prevRowIndex !== -1) {
+          const nextRowIndex = parseInt(nameParts[1]) - 1;
+          if (nextRowIndex === -1) {
+            this.setFocus(nameParts.slice(2).join('-'));
+          } else {
+            nameParts[1] = nextRowIndex;
+            this.setFocus(nameParts.join('-'));
+          }
+        }
+        if (direction === MOVE_DIRECTION.DOWN) {
+          if (prevRowIndex === -1) {
+            this.setFocus(`changegroups-0-${focusedFieldName}`);
+          } else {
+            nameParts[1] = parseInt(nameParts[1]) + 1;
+            this.setFocus(nameParts.join('-'));
+          }
+        }
+      }
+      this.validateTaf(this.state.tafAsObject);
+    }
+  }
+
+  /**
+   * This function adds a new changegroup to the TAF.
+   */
+  addRow () {
+    const newTafState = cloneDeep(this.state.tafAsObject);
+    newTafState.changegroups.push(cloneDeep(TAF_TEMPLATES.CHANGE_GROUP));
+    this.validateTaf(newTafState);
+    this.setState({
+      tafAsObject: newTafState,
+      hasEdits: true
+    });
+  }
+
+  /**
+   * This function removes a changegroup from the TAF.
+   * @param  {number} rowIndex The rowIndex is the index of the changegroup row to delete
+   */
+  removeRow (rowIndex) {
+    if (rowIndex !== null && typeof rowIndex === 'number') {
+      const newTafState = cloneDeep(this.state.tafAsObject);
+      newTafState.changegroups.splice(rowIndex, 1);
+      if (newTafState.changegroups.length === 0) {
+        // Prepend empty TAF row as to clear it rather than deleting
+        newTafState.changegroups.unshift(TAF_TEMPLATES.CHANGE_GROUP);
+      }
+      this.validateTaf(newTafState);
+      this.setState({
+        tafAsObject: newTafState,
+        hasEdits: true
+      });
+    }
+  }
+
+  /*
+    Callback function called by SortableElement and SortableContainer when changegroups are sorted by Drag and Drop
+  */
+  onSortEnd ({ oldIndex, newIndex }) {
+    const newTafState = cloneDeep(this.state.tafAsObject);
+    newTafState.changegroups = arrayMove(newTafState.changegroups, oldIndex, newIndex);
+    this.validateTaf(newTafState);
+    this.setState({
+      tafAsObject: newTafState,
+      hasEdits: true
+    });
+  };
+
+  componentWillReceiveProps (nextProps) {
+    if (!this.state.hasEdits) {
+      let nextP = cloneDeep(nextProps);
+      if ('taf' in nextP && nextP.taf) {
+        const defaults = generateDefaultValues();
+        if (!nextP.taf.metadata.validityStart) {
+          nextP.taf.metadata.validityStart = defaults.start;
+        }
+        if (!nextP.taf.metadata.validityEnd) {
+          nextP.taf.metadata.validityEnd = defaults.end;
+        }
+        // if (!nextP.taf.metadata.issueTime) {
+        //   nextP.taf.metadata.issueTime = defaults.issue;
+        // }
+        if (!nextP.taf.metadata.location) {
+          nextP.taf.metadata.location = nextP.location;
+        }
+      } else if ('location' in nextP && nextP.location) {
+        const loc = nextP.location;
+        nextP = { taf: cloneDeep(this.state.tafAsObject) };
+        nextP.taf.metadata.location = loc;
+      }
+      this.validateTaf(nextP.taf);
+      this.setState({ tafAsObject: nextP.taf });
+    }
+  }
+
+  correctTaf () {
+    const taf = cloneDeep(this.state.tafAsObject);
+    const newUuid = uuidv4();
+    taf.metadata.previousUuid = taf.metadata.uuid;
+    taf.metadata.uuid = newUuid;
+    taf.metadata.status = 'concept';
+    taf.metadata.type = 'correction';
+    this.saveTaf(taf, true)
+  }
+
+  amendTaf () {
+    const taf = cloneDeep(this.state.tafAsObject);
+    const newUuid = uuidv4();
+    taf.metadata.previousUuid = taf.metadata.uuid;
+    taf.metadata.uuid = newUuid;
+    taf.metadata.status = 'concept';
+    taf.metadata.type = 'amendment';
+    this.saveTaf(taf, true);
+  }
+
+  cancelTaf () {
+    const taf = cloneDeep(this.state.tafAsObject);
+    const newUuid = uuidv4();
+    taf.metadata.previousUuid = taf.metadata.uuid;
+    taf.metadata.uuid = newUuid;
+    taf.metadata.type = 'canceled';
+    this.saveTaf(taf, true);
+  }
+
+  editTafAsNew () {
+    const taf = cloneDeep(this.state.tafAsObject);
+    const newUuid = uuidv4();
+    taf.metadata.previousUuid = taf.metadata.uuid;
+    taf.metadata.uuid = newUuid;
+    delete taf.metadata.status;
+    delete taf.metadata.previousUuid;
+    delete taf.metadata.issueTime;
+    taf.metadata.type = 'normal';
+
+    const defaults = generateDefaultValues();
+    taf.metadata.validityStart = defaults.start;
+    taf.metadata.validityEnd = defaults.end;
+
+    taf.metadata.baseTime = null;
+    this.saveTaf(taf, true);
   }
 
   render () {
-    const tafLocation = this.state.tafSelectedLocation || (this.state.tafLocations.length > 0 ? this.state.tafLocations[0] : null);
-    if (this.state.tafs) {
-      const tafStates = [
-        { state: 'NORMAL', name: 'ORG' },
-        { state: 'AMENDMENT', name: 'AMD' },
-        { state: 'CORRECTION', name: 'COR' },
-        { state: 'RETARDED', name: 'RTD' },
-        { state: 'CANCEL', name: 'CNL' },
-        { state: 'MISSING', name: 'NIL' }
-      ];
-
-      return <Col style={{ flexDirection: 'column' }}>
-        { this.props.tafStatus === 'concept'
-          ? <ButtonGroup style={{ marginTop: '.167rem', marginBottom: '0.33rem' }}>
-            <InputGroupAddon style={{ padding: '0.2rem 0.3rem', fontSize: '80%' }}><Icon name='filter' /></InputGroupAddon>
-            {tafStates.map((status, index) => {
-              return <Button key={`filterByStatus-${index}`} className='col-1 btn btn-info' color='info' data-status={status.state} onClick={this.setStatusFilter}
-                active={this.state.tafTypeSelections.includes(status.state)}>{status.name}</Button>;
-            })}
-          </ButtonGroup>
-          : null
-        }
-        { /* this.state.tafLocations.length > 0 && this.props.tafStatus === 'new'
-          ? <ButtonGroup style={{ marginTop: '.167rem', marginBottom: '0.33rem' }}>
-            <InputGroupAddon style={{ padding: '0.2rem 0.3rem', fontSize: '70%' }}><Icon name='circle' /></InputGroupAddon>
-            {this.state.tafLocations.map((locationName, index) => {
-              return <Button key={`filterByLocation-${index}`} className='col-1 btn btn-info' color='info' data-location={locationName} onClick={this.selectLocation}
-                active={tafLocation === locationName}>{locationName}</Button>;
-            })}
-          </ButtonGroup>
-          : null */
-        }
-        { this.state.tafLocations.length > 0 && this.props.tafStatus !== 'new'
-          ? <ButtonGroup style={{ marginTop: '.167rem', marginBottom: '0.33rem' }}>
-            <InputGroupAddon style={{ padding: '0.2rem 0.3rem', fontSize: '70%' }}><Icon name='filter' /></InputGroupAddon>
-            {this.state.tafLocations.map((locationName, index) => {
-              return <Button key={`filterByLocation-${index}`} className='col-1 btn btn-info' color='info' data-location={locationName} onClick={this.selectLocation}
-                active={this.state.tafLocationSelections.includes(locationName)}>{locationName}</Button>;
-            })}
-          </ButtonGroup>
-          : null
-        }
-        {
-          this.props.editable
-            ? <Card block>
-              <Row>
-                <Col>
-                  <TafCategory
-                    focusTaf={this.props.focusTaf}
-                    urls={this.props.urls}
-                    taf={this.state.inputValueJSON || cloneDeep(TAF_TEMPLATES.TAF)}
-                    update
-                    editable={this.props.tafEditable}
-                    fixedLayout={this.props.fixedLayout}
-                    location={tafLocation}
-                    browserLocation={this.props.browserLocation}
-                    updateParent={this.updateTafs}
-                    tafLocations={this.state.tafLocations}
-                    location={tafLocation}
-                    user={this.props.user}
-                  />
-                </Col>
-              </Row>
-            </Card>
-            : this.state.tafs.filter(
-              (taf) => {
-                return ((this.state.tafTypeSelections.includes(taf.metadata.type.toUpperCase() ) || this.state.tafTypeSelections.length === 0) &&
-                (this.state.tafLocationSelections.includes(taf.metadata.location.toUpperCase() ) || this.state.tafLocationSelections.length === 0));
-              }
-            ).map((taf, index) => {
-              return <Card key={index} block>
-                <CardTitle onClick={() => this.setExpandedTAF(taf.metadata.uuid)} style={{ cursor: 'pointer' }}>
-                  {taf.metadata ? taf.metadata.location : 'EWat?'} - {moment.utc(taf.metadata.validityStart).format('YYYY-MM-DDTHH:mm') + ' UTC'} - {taf.metadata.type} - {taf.metadata.uuid}
-                </CardTitle>
-                <CollapseOmni className='CollapseOmni' style={{ flexDirection: 'column' }} isOpen={this.state.expandedTAF === taf.metadata.uuid} minSize={0} maxSize={1000}>
-                  <Row>
-                    <Col>
-                      <CardText onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>{this.state.expandedTAC}</CardText>
-                    </Col>
-                  </Row>
-                  {taf.metadata.status === 'concept'
-                    ? <Row style={{ padding: '0.5rem' }}>
-                      <Col />
-                      <Col xs='auto'>
-                        <a href={this.props.urls.BACKEND_SERVER_URL + '/tafs/' + taf.metadata.uuid} target='_blank'>
-                          <Button color='primary' style={{ marginRight: '0.33rem' }}>Show IWXXM</Button>
-                        </a>
-                      </Col>
-                      <Col xs='auto'>
-                        <Button onClick={(e) => { e.preventDefault(); e.stopPropagation(); this.deleteTAF(taf.metadata.uuid); }} color='primary'>Delete</Button>
-                      </Col>
-                    </Row>
-                    : null }
-                  <Row>
-                    <Col>
-                      <TafCategory
-                        focusTaf={this.props.focusTaf}
-                        urls={this.props.urls}
-                        taf={this.state.expandedJSON || cloneDeep(TAF_TEMPLATES.TAF)}
-                        update
-                        editable={this.props.tafEditable}
-                        fixedLayout={this.props.fixedLayout}
-                        browserLocation={this.props.browserLocation}
-                        updateParent={this.updateTafs}
-                        tafLocations={this.state.tafLocations}
-                        location={tafLocation}
-                        user={this.props.user}
-                      />
-                    </Col>
-                  </Row>
-                </CollapseOmni>
-              </Card>;
-            })
-        }
-      </Col>
-      ;
-    } else {
-      return <div />;
+    const flatten = list => list.reduce(
+      (a, b) => a.concat(Array.isArray(b) ? flatten(b) : b), []
+    );
+    let validationErrors = null;
+    let validationSucceeded = false;
+    if (this.state.validationReport) {
+      if (this.state.validationReport.errors) {
+        validationErrors = this.state.validationReport.errors;
+      }
+      if (this.state.validationReport.succeeded === true) {
+        validationSucceeded = true;
+      }
     }
+
+    const series = this.extractScheduleInformation(cloneDeep(this.state.tafAsObject));
+    const starttime = moment.utc(this.state.tafAsObject.metadata.validityStart);
+    const endtime = moment.utc(this.state.tafAsObject.metadata.validityEnd);
+
+    // TODO: evaluate this every minute?
+    const currentlyInValidityTime = starttime.isBefore(moment.utc()) && endtime.isAfter(moment.utc());
+    return (
+      <Row className='Taf'>
+        <Col>
+          <TacView taf={this.state.tafAsObject} />
+          <Row className='TafTable'>
+            <Col>
+              <TafTable
+                validationReport={this.state.validationReport}
+                taf={this.state.tafAsObject}
+                focusedFieldName={this.state.focusedFieldName}
+                inputRef={this.registerElement}
+                onSortEnd={this.onSortEnd}
+                setTafValues={this.setTafValues}
+                onClick={this.onClick}
+                onKeyUp={this.onKeyUp}
+                onKeyDown={this.onKeyDown}
+                onFocus={this.onFocus}
+                editable={this.props.editable || this.state.correctOrAmend} />
+            </Col>
+          </Row>
+          { this.state.validationReport
+            ? <Row style={{ flex: 'none' }}>
+              <Col style={{ padding: '0.5rem' }}>
+                <Alert color={validationSucceeded ? 'success' : 'danger'} style={{ width: '100%', display: 'block', margin: '0' }}>
+                  <h4 className='alert-heading' style={{ fontSize: '1.2rem' }}>{this.state.validationReport.message}</h4>
+                  {this.state.validationReport.subheading
+                    ? <h6>{this.state.validationReport.subheading}</h6>
+                    : null
+                  }
+                  { validationErrors
+                    ? <ListGroup>
+                      {(flatten(Object.values(validationErrors).filter(v => Array.isArray(v)))).map((value, index) => {
+                        return (<ListGroupItem key={'errmessageno' + index} color={validationSucceeded ? 'success' : 'danger'}
+                          style={{ borderColor: '#a94442' }}>{(index + 1)} - {value}</ListGroupItem>);
+                      })}
+                    </ListGroup>
+                    : null
+                  }
+                </Alert>
+              </Col>
+            </Row>
+            : null
+          }
+          <TimeSchedule series={series}
+            startMoment={moment.utc(this.state.tafAsObject.metadata.validityStart)}
+            endMoment={moment.utc(this.state.tafAsObject.metadata.validityEnd)} />
+          <Row className='TafActions'>
+            <Col />
+            <Col xs='auto'>
+              <Button style={{ marginRight: '0.33rem' }} color='primary'
+                onClick={() => {
+                  this.editTafAsNew(this.state.tafAsObject);
+                }}>
+                Edit as new
+              </Button>
+              {this.state.tafAsObject.metadata.status === 'published' && !this.state.correctOrAmend
+                ? <div>
+                  <Button disabled={!currentlyInValidityTime || this.state.tafAsObject.metadata.type === 'canceled'} style={{ marginRight: '0.33rem' }} color='primary' onClick={() => {
+                    this.amendTaf(this.state.tafAsObject);
+                  }} >Amend</Button>
+                  <Button disabled={this.state.tafAsObject.metadata.type === 'canceled'} style={{ marginRight: '0.33rem' }} color='primary' onClick={() => {
+                    this.correctTaf(this.state.tafAsObject);
+                  }} >Correct</Button>
+                  <Button disabled={this.state.tafAsObject.metadata.type === 'canceled'} style={{ marginRight: '0.33rem' }} color='primary' onClick={() => {
+                    this.cancelTaf(this.state.tafAsObject);
+                  }} >Cancel</Button></div>
+                : null}
+              {this.state.tafAsObject.metadata.status !== 'published'
+                ? <div>
+                  <Button style={{ marginRight: '0.33rem' }} color='primary' onClick={() => {
+                    this.saveTaf(this.state.tafAsObject);
+                  }} >Save</Button>
+                  <Button disabled={!validationSucceeded} onClick={() => {
+                    this.saveTaf(this.state.tafAsObject, true, true);
+                  }} color='primary'>Publish</Button>
+                </div>
+                : null
+              }
+            </Col>
+          </Row>
+        </Col>
+      </Row>
+    );
   }
 }
 
+Taf.defaultProps = {
+  taf: cloneDeep(TAF_TEMPLATES.TAF),
+  editable: false
+};
+
 Taf.propTypes = {
+  taf: TAF_TYPES.TAF.isRequired,
   editable: PropTypes.bool,
-  tafEditable: PropTypes.bool,
-  updateParent: PropTypes.func,
-  source: PropTypes.string,
-  latestUpdateTime: PropTypes.object,
-  title: PropTypes.string,
   urls: PropTypes.shape({
     BACKEND_SERVER_URL: PropTypes.string
-  }),
-  fixedLayout: PropTypes.bool
+  })
 };
+
+export default Taf;

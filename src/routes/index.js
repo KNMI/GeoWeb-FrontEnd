@@ -27,7 +27,7 @@ import TafExampleTafManagementPanel from '../components/Management/TafExampleTaf
 import TafLocationsManagementPanel from '../components/Management/TafLocationsManagementPanel';
 import SigmetParameterManagementPanel from '../components/Management/SigmetParameterManagementPanel';
 import LocationManagementPanel from '../components/Management/LocationManagementPanel';
-import TafsContainer from '../containers/TafsContainer';
+import TafsContainer from '../containers/Taf/TafsContainer';
 const SigmetManagementPanel = (props) => <Async load={import('../components/Management/SigmetManagementPanel')} componentProps={props} />;
 const TitleBarContainer = (props) => <Async load={import('../containers/TitleBarContainer')} componentProps={props} />;
 const MapActionsContainer = (props) => <Async load={import('../containers/MapActionsContainer')} componentProps={props} />;
