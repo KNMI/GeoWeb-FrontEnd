@@ -4,8 +4,7 @@
         "home": "https://tileserver.ingmapping.com/worldmap/",
         "minLevel": 1,
         "maxLevel": 6,
-        "tileServerType": "osm",
-        "copyRight": "Made by Ingmar with QGIS and QTiles "
+        "tileServerType": "osm"
       }
     },
     "WorldMap_Light": {
@@ -13,8 +12,7 @@
         "home": "https://tileserver.ingmapping.com/worldmap_light/",
         "minLevel": 1,
         "maxLevel": 6,
-        "tileServerType": "osm",
-        "copyRight": "Made by Ingmar with QGIS and QTiles "
+        "tileServerType": "osm"
       }
     },
     "WorldMap_Canvas": {
@@ -22,8 +20,7 @@
          "home": "https://tileserver.ingmapping.com/worldmap_canvas/",
          "minLevel": 1,
          "maxLevel": 6,
-         "tileServerType": "osm",
-         "copyRight": "Made by Ingmar with QGIS and QTiles "
+         "tileServerType": "osm"
       }
     },
     "WorldMap_GreyCanvas": {
@@ -31,8 +28,7 @@
         "home": "https://tileserver.ingmapping.com/worldmap_greycanvas/",
         "minLevel": 1,
         "maxLevel": 6,
-        "tileServerType": "osm",
-        "copyRight": "Made by Ingmar with QGIS and QTiles "
+        "tileServerType": "osm"
       }
     },
     "WorldMap_LightGreyCanvas": {
@@ -40,17 +36,15 @@
          "home": "https://s3.eu-central-1.amazonaws.com/knmi-basemaps/WorldMapLightGreyCanvas/",
          "minLevel": 1,
          "maxLevel": 9,
-         "tileServerType": "osm",
-         "copyRight": "Made by Ingmar with QGIS and QTiles "
+         "tileServerType": "osm"
      }
     },
     "OpenStreetMap_NL": {
       "EPSG:3857": {
          "home": "https://s3.eu-central-1.amazonaws.com/knmi-basemaps/openstreetmapnl/",
-         "minLevel": 9,
+         "minLevel": 5,
          "maxLevel": 16,
-         "tileServerType": "osm",
-         "copyRight": "Made by Ingmar with QGIS and QTiles "
+         "tileServerType": "osm"
      }
     },
     "arcGisCanvas": {
