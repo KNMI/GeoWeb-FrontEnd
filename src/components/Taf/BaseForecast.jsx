@@ -39,7 +39,8 @@ class BaseForecast extends Component {
       },
       {
         name: 'metadata-validity',
-        value: tafMetadata.hasOwnProperty('validityStart') && tafMetadata.hasOwnProperty('validityEnd') ? jsonToTacForPeriod(tafMetadata.validityStart, tafMetadata.validityEnd) || '' : '',
+        value: tafMetadata.hasOwnProperty('validityStart') && tafMetadata.hasOwnProperty('validityEnd')
+          ? jsonToTacForPeriod(tafMetadata.validityStart, tafMetadata.validityEnd) || '' : '',
         disabled: true,
         classes: ['TACnotEditable']
       },

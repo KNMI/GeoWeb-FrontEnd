@@ -4,7 +4,6 @@ import { Typeahead } from 'react-bootstrap-typeahead';
 import { Icon } from 'react-fa';
 import PropTypes from 'prop-types';
 import momentPropTypes from 'react-moment-proptypes';
-import { STATUSES } from '../../containers/Taf/TafActions';
 
 export default class TafSelector extends PureComponent {
   render () {
@@ -12,25 +11,14 @@ export default class TafSelector extends PureComponent {
     return <Row className='TafSelector'>
       <Col xs='auto'>TAF for</Col>
       <Col xs='auto'>
-        <Typeahead filterBy={['location', 'timeLabel']} labelKey={option => `${option.location} ${option.timeLabel}`}
+        <Typeahead labelKey={option => option.label.text}
           options={selectableTafs} onChange={onChange}
           selected={selectedTaf || []} placeholder={'Select a TAF'}
           renderMenuItemChildren={(option, props, index) => {
-            let iconName = 'star-o';
-            switch (option.status) {
-              case STATUSES.PUBLISHED:
-                iconName = 'folder-open';
-                break;
-              case STATUSES.CONCEPT:
-                iconName = 'folder-open-o';
-                break;
-              default:
-                break;
-            }
             return <Row>
               <Col xs='5'>{option.location}</Col>
-              <Col xs='5'>{option.timeLabel}</Col>
-              <Col xs='2'><Icon name={iconName} /></Col>
+              <Col xs='5'>{option.label.time}</Col>
+              <Col xs='2'><Icon name={option.label.icon} /></Col>
             </Row>;
           }}
           clearButton />

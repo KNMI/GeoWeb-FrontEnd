@@ -87,12 +87,15 @@ const jsonToTacForType = (typeAsJson, useFallback = false) => {
 
 const jsonToTacForIssue = (issueAsJson, useFallback = false) => {
   let result = null;
+  const NOT_YET = 'not yet issued';
   if (issueAsJson && typeof issueAsJson === 'string') {
     if (moment(issueAsJson).isValid()) {
       result = moment.utc(issueAsJson).format('DDHHmm[Z]');
-    } else if (issueAsJson.toLowerCase() === 'not yet issued') {
-      result = 'not yet issued';
+    } else if (issueAsJson.toLowerCase() === NOT_YET) {
+      result = NOT_YET;
     }
+  } else {
+    result = NOT_YET;
   }
   return result;
 };

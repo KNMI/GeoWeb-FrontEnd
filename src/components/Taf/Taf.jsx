@@ -29,20 +29,6 @@ const MOVE_DIRECTION = Enum(
 );
 
 /**
- * Generate fallback / default values for tafObject
- * @return {object} Object containing default values for start timestamp, end timestamp, issue timestamp and location
- */
-const generateDefaultValues = () => {
-  const now = moment().utc();
-  let TAFStartHour = now.hour();
-  TAFStartHour = TAFStartHour - TAFStartHour % 6 + 6;
-  return {
-    start: now.hour(TAFStartHour).minutes(0).seconds(0).format('YYYY-MM-DDTHH:mm:ss') + 'Z',
-    end: now.hour(TAFStartHour).minutes(0).seconds(0).add(30, 'hour').format('YYYY-MM-DDTHH:mm:ss') + 'Z'
-  };
-};
-
-/**
  * TafCategory is the component which renders an editable and sortable TAF table.
  * The UI is generated from a TAF JSON and it can generate/update TAF JSON from user input
  *
@@ -78,7 +64,7 @@ class Taf extends Component {
     this.saveTaf = this.saveTaf.bind(this);
 
     const initialState = {
-      tafAsObject: props.taf,
+      tafAsObject: props.selectableTaf.taf,
       focusedFieldName: 'forecast-wind',
       hasEdits: false,
       preset: {
@@ -86,22 +72,6 @@ class Taf extends Component {
         inWindow: null
       }
     };
-
-    // TODO: should we include defaults?
-    const defaults = generateDefaultValues();
-    if (!props.taf.metadata.validityStart) {
-      initialState.tafAsObject.metadata.validityStart = defaults.start;
-    }
-    if (!props.taf.metadata.validityEnd) {
-      initialState.tafAsObject.metadata.validityEnd = defaults.end;
-    }
-    // if (!props.taf.metadata.issueTime) {
-    //   initialState.tafAsObject.metadata.issueTime = defaults.issue;
-    // }
-    if (!props.taf.metadata.location) {
-      initialState.tafAsObject.metadata.location = props.location;
-    }
-
     this.state = initialState;
     this.register = [];
   };
@@ -828,28 +798,7 @@ class Taf extends Component {
 
   componentWillReceiveProps (nextProps) {
     if (!this.state.hasEdits) {
-      let nextP = cloneDeep(nextProps);
-      if ('taf' in nextP && nextP.taf) {
-        const defaults = generateDefaultValues();
-        if (!nextP.taf.metadata.validityStart) {
-          nextP.taf.metadata.validityStart = defaults.start;
-        }
-        if (!nextP.taf.metadata.validityEnd) {
-          nextP.taf.metadata.validityEnd = defaults.end;
-        }
-        // if (!nextP.taf.metadata.issueTime) {
-        //   nextP.taf.metadata.issueTime = defaults.issue;
-        // }
-        if (!nextP.taf.metadata.location) {
-          nextP.taf.metadata.location = nextP.location;
-        }
-      } else if ('location' in nextP && nextP.location) {
-        const loc = nextP.location;
-        nextP = { taf: cloneDeep(this.state.tafAsObject) };
-        nextP.taf.metadata.location = loc;
-      }
-      this.validateTaf(nextP.taf);
-      this.setState({ tafAsObject: nextP.taf });
+      this.validateTaf(nextProps.selectableTaf.taf);
     }
   }
 
@@ -883,7 +832,7 @@ class Taf extends Component {
   }
 
   editTafAsNew () {
-    const taf = cloneDeep(this.state.tafAsObject);
+    /* const taf = cloneDeep(this.state.tafAsObject);
     const newUuid = uuidv4();
     taf.metadata.previousUuid = taf.metadata.uuid;
     taf.metadata.uuid = newUuid;
@@ -897,7 +846,7 @@ class Taf extends Component {
     taf.metadata.validityEnd = defaults.end;
 
     taf.metadata.baseTime = null;
-    this.saveTaf(taf, true);
+    this.saveTaf(taf, true); */
   }
 
   render () {
@@ -1008,12 +957,12 @@ class Taf extends Component {
 }
 
 Taf.defaultProps = {
-  taf: cloneDeep(TAF_TEMPLATES.TAF),
+  selectableTaf: cloneDeep(TAF_TEMPLATES.SELECTABLE_TAF),
   editable: false
 };
 
 Taf.propTypes = {
-  taf: TAF_TYPES.TAF.isRequired,
+  selectableTaf: TAF_TYPES.SELECTABLE_TAF.isRequired,
   editable: PropTypes.bool,
   urls: PropTypes.shape({
     BACKEND_SERVER_URL: PropTypes.string

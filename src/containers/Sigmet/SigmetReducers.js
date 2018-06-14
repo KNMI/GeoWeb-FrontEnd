@@ -17,7 +17,7 @@ const WARN_MSG = {
 * @return {moment} Moment-object with the current now in UTC rounded to the next half hour
 */
 const getRoundedNow = () => {
-  return moment().utc().minutes() < 30 ? moment().utc().startOf('hour').minutes(30) : moment().utc().startOf('hour').add(1, 'hour');
+  return moment.utc().minutes() < 30 ? moment.utc().startOf('hour').minutes(30) : moment.utc().startOf('hour').add(1, 'hour');
 };
 
 const toggleContainer = (evt, container) => {
@@ -604,7 +604,7 @@ const setSigmetDrawing = (uuid, container) => {
  * @param {component} container The component to update the state
  }}
  */
-export const localDispatch = (localAction, container) => {
+export default (localAction, container) => {
   switch (localAction.type) {
     case LOCAL_ACTION_TYPES.TOGGLE_CONTAINER:
       toggleContainer(localAction.event, container);

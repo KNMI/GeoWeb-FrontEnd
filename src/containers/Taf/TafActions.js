@@ -1,8 +1,8 @@
-import { STATUS_OPTIONS, TIMESTAMP_FORMAT } from '../../components/Taf/TafTemplates';
+import { TIMESTAMP_FORMAT } from '../../components/Taf/TafTemplates';
 
 export const LOCAL_ACTION_TYPES = {
   UPDATE_LOCATIONS: 'UPDATE_LOCATIONS',
-  UPDATE_TIMESTAMPS: 'UPSDATE_TIMESTAMPS',
+  UPDATE_TIMESTAMPS: 'UPDATE_TIMESTAMPS',
   SELECT_TAF: 'SELECT_TAF',
   DISCARD_TAF: 'DISCARD_TAF',
   SAVE_TAF: 'SAVE_TAF',
@@ -17,8 +17,8 @@ export const LOCAL_ACTION_TYPES = {
 
 export const LOCAL_ACTIONS = {
   updateLocationsAction: () => ({ type: LOCAL_ACTION_TYPES.UPDATE_LOCATIONS }),
-  updateTimestampsAction: (evt, uuid) => ({ type: LOCAL_ACTION_TYPES.UPDATE_TIMESTAMPS, event: evt, uuid: uuid }),
-  selectTafAction: (evt, uuid) => ({ type: LOCAL_ACTION_TYPES.SELECT_TAF, event: evt, uuid: uuid }),
+  updateTimestampsAction: () => ({ type: LOCAL_ACTION_TYPES.UPDATE_TIMESTAMPS }),
+  selectTafAction: (tafSelection) => ({ type: LOCAL_ACTION_TYPES.SELECT_TAF, selection: tafSelection }),
   discardTafAction: (evt, uuid) => ({ type: LOCAL_ACTION_TYPES.DISCARD_TAF, event: evt, uuid: uuid }),
   saveTafAction: (evt, uuid) => ({ type: LOCAL_ACTION_TYPES.SAVE_TAF, event: evt, uuid: uuid }),
   editTafAction: (evt, uuid) => ({ type: LOCAL_ACTION_TYPES.EDIT_TAF, event: evt, uuid: uuid }),
@@ -30,7 +30,7 @@ export const LOCAL_ACTIONS = {
   cancelTafAction: (evt, uuid) => ({ type: LOCAL_ACTION_TYPES.CANCEL_TAF, event: evt, uuid: uuid })
 };
 
-export const TAF_MODES = {
+export const MODES = {
   EDIT: 'EDIT',
   READ: 'READ'
 };
@@ -123,7 +123,7 @@ export const STATUSES = {
   CONCEPT: 'CONCEPT'
 };
 
-const LIFECYCLE_STAGE_NAMES = {
+export const LIFECYCLE_STAGE_NAMES = {
   NORMAL: 'NORMAL',
   AMENDMENT: 'AMENDMENT',
   CORRECTION: 'CORRECTION',
@@ -144,10 +144,9 @@ export const LIFECYCLE_STAGES = [
 const STATE = {
   locations: [],
   timestamps: {},
-  selectableTafOptions: [],
-  selectedTafOption: null,
-  existingTafs: [],
-  selectedTaf: null
+  selectableTafs: [],
+  selectedTaf: null,
+  mode: null
 };
 
 export const INITIAL_STATE = STATE;
@@ -164,12 +163,14 @@ export const getExample = (start, location, status) => ({
     tafs: [
       {
         'metadata': {
-          'issueTime': status === STATUS_OPTIONS.PUBLISHED ? start.clone().subtract(1, 'hour').format(TIMESTAMP_FORMAT) : null,
+          'issueTime': status === STATUSES.PUBLISHED ? start.clone().subtract(1, 'hour').format(TIMESTAMP_FORMAT) : null,
           'validityStart': start.format(TIMESTAMP_FORMAT),
           'validityEnd': start.clone().add(30, 'hour').format(TIMESTAMP_FORMAT),
           'status': status,
           'type': 'normal',
-          'location': location
+          'location': location,
+          'modified': start.clone().subtract(1, 'hour').format(TIMESTAMP_FORMAT),
+          'author': 'Met1'
         },
         'forecast': {
           'wind': {

@@ -32,7 +32,7 @@ const MOVE_DIRECTION = Enum(
  * @return {object} Object containing default values for start timestamp, end timestamp, issue timestamp and location
  */
 const generateDefaultValues = () => {
-  const now = moment().utc();
+  const now = moment.utc();
   let TAFStartHour = now.hour();
   TAFStartHour = TAFStartHour - TAFStartHour % 6 + 6;
   return {

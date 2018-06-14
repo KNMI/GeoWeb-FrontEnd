@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import momentPropTypes from 'react-moment-proptypes';
 import cloneDeep from 'lodash.clonedeep';
 import Enum from 'es6-enum';
 
@@ -37,7 +38,9 @@ const TEMPLATES = {
     type: null, // string
     uuid: null, // string
     validityStart: null, // string
-    validityEnd: null // string
+    validityEnd: null, // string,
+    modified: null, // string
+    author: null
   }
 };
 
@@ -62,6 +65,16 @@ TEMPLATES.TAF = {
   changegroups: [
     cloneDeep(TEMPLATES.CHANGE_GROUP)
   ]
+};
+TEMPLATES.SELECTABLE_TAF = {
+  location: null, // string
+  timestamp: null, // moment
+  label: {
+    time: null, // string
+    text: null, // string
+    icon: null // string
+  },
+  taf: cloneDeep(TEMPLATES.TAF)
 };
 
 /**
@@ -130,7 +143,9 @@ const TYPES = {
     type: PropTypes.string,
     uuid: PropTypes.string,
     validityStart: PropTypes.string,
-    validityEnd: PropTypes.string
+    validityEnd: PropTypes.string,
+    modified: PropTypes.string,
+    author: PropTypes.string
   })
 };
 TYPES.FORECAST = PropTypes.shape({
@@ -166,6 +181,16 @@ TYPES.TAF = PropTypes.shape({
   forecast: TYPES.FORECAST,
   metadata: TYPES.METADATA,
   changegroups: PropTypes.arrayOf(TYPES.CHANGE_GROUP)
+});
+TYPES.SELECTABLE_TAF = PropTypes.shape({
+  location: PropTypes.string,
+  timestamp: momentPropTypes.momentObj,
+  label: {
+    time: PropTypes.string,
+    text: PropTypes.string,
+    icon: PropTypes.string
+  },
+  taf: TYPES.TAF
 });
 
 /**
@@ -270,6 +295,7 @@ const getPhenomenonLabel = (typeSymbol) => {
 };
 
 const TIMESTAMP_FORMAT = ('YYYY-MM-DD[T]HH:mm:ss[Z]');
+const TIMELABEL_FORMAT = ('HH:mm');
 
 module.exports = {
   TAF_TEMPLATES: TEMPLATES,
@@ -282,5 +308,6 @@ module.exports = {
   PHENOMENON_TYPES_ORDER: PHENOMENON_TYPES_ORDER,
   getPhenomenonType: getPhenomenonType,
   getPhenomenonLabel: getPhenomenonLabel,
-  TIMESTAMP_FORMAT: TIMESTAMP_FORMAT
+  TIMESTAMP_FORMAT: TIMESTAMP_FORMAT,
+  TIMELABEL_FORMAT: TIMELABEL_FORMAT
 };
