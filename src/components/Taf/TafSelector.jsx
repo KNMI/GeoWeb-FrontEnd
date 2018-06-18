@@ -3,7 +3,7 @@ import { Row, Col, Alert } from 'reactstrap';
 import { Typeahead } from 'react-bootstrap-typeahead';
 import { Icon } from 'react-fa';
 import PropTypes from 'prop-types';
-import momentPropTypes from 'react-moment-proptypes';
+import MomentPropTypes from 'react-moment-proptypes';
 
 export default class TafSelector extends PureComponent {
   render () {
@@ -39,13 +39,13 @@ TafSelector.propTypes = {
   selectableTafs: PropTypes.arrayOf(PropTypes.shape({
     location: PropTypes.string,
     timeLabel: PropTypes.string,
-    timestamp: momentPropTypes.momentObj,
+    timestamp: MomentPropTypes.momentObj,
     status: PropTypes.string
   })),
   selectedTaf: PropTypes.arrayOf(PropTypes.shape({
     location: PropTypes.string,
     timeLabel: PropTypes.string,
-    timestamp: momentPropTypes.momentObj,
+    timestamp: MomentPropTypes.momentObj,
     status: PropTypes.string
   })),
   onChange: PropTypes.func

@@ -28,6 +28,9 @@ export default class TacView extends PureComponent {
       vertical_visibility: jsonToTacForVerticalVisibility(taf.forecast.vertical_visibility) || '',
       changegroups: []
     };
+    if (tac.issueTime === 'not yet issued') {
+      tac.issueTime = `<${tac.issueTime}>`;
+    }
     if (Array.isArray(taf.changegroups)) {
       taf.changegroups.map((changegroup) => {
         tac.changegroups.push({

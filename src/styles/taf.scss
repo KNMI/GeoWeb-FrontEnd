@@ -10,7 +10,7 @@
   }
   .TafSelector {
     padding: 0.33rem;
-    border-bottom: 0.05rem solid #e8e8ef;
+    border-bottom: 0.05rem solid #d4f0ff;
     background-color: #e9f8ff;
     border-radius: 0.2rem 0.2rem 0 0;
 
@@ -56,7 +56,7 @@
   .Taf {
     flex: 1;
     overflow: auto;
-    border: 0.05rem solid #d0ecff;
+    border: 0.05rem solid #d4f0ff;
     border-top-width: 0;
     border-radius: 0 0 0.2rem 0.2rem;
     > .col > .row {
@@ -84,8 +84,18 @@
       border-radius: 0.2rem;
     }
 
-    .TafActions {
-      margin: 0.2rem 0.5rem;
+    .TafAction {
+      border-top: 0.06rem solid #d4f0ff;
+      padding: 0.5rem;
+      padding-top: 0.33rem;
+
+      .btn {
+        width: 100%;
+      }
+
+      .btn:not(:last-of-type) {
+        margin-right: 0.33rem;
+      }
     }
   }
 }

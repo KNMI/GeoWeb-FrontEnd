@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import momentPropTypes from 'react-moment-proptypes';
+import MomentPropTypes from 'react-moment-proptypes';
 import cloneDeep from 'lodash.clonedeep';
 import Enum from 'es6-enum';
 
@@ -69,12 +69,13 @@ TEMPLATES.TAF = {
 TEMPLATES.SELECTABLE_TAF = {
   location: null, // string
   timestamp: null, // moment
+  hasEdits: false, // boolean
   label: {
     time: null, // string
     text: null, // string
     icon: null // string
   },
-  taf: cloneDeep(TEMPLATES.TAF)
+  tafData: cloneDeep(TEMPLATES.TAF)
 };
 
 /**
@@ -184,13 +185,14 @@ TYPES.TAF = PropTypes.shape({
 });
 TYPES.SELECTABLE_TAF = PropTypes.shape({
   location: PropTypes.string,
-  timestamp: momentPropTypes.momentObj,
-  label: {
+  timestamp: MomentPropTypes.momentObj,
+  hasEdits: PropTypes.bool,
+  label: PropTypes.shape({
     time: PropTypes.string,
     text: PropTypes.string,
     icon: PropTypes.string
-  },
-  taf: TYPES.TAF
+  }),
+  tafData: TYPES.TAF
 });
 
 /**

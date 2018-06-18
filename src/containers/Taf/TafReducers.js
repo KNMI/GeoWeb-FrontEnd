@@ -2,7 +2,7 @@ import produce from 'immer';
 import axios from 'axios';
 import moment from 'moment';
 import { ReadLocations } from '../../utils/admin';
-import { LOCAL_ACTION_TYPES, STATUSES, LIFECYCLE_STAGE_NAMES, getExample, MODES } from './TafActions'; // MODES
+import { LOCAL_ACTION_TYPES, STATUSES, LIFECYCLE_STAGE_NAMES, getExample, MODES } from './TafActions';
 import { TAF_TEMPLATES, TIMELABEL_FORMAT, TIMESTAMP_FORMAT } from '../../components/Taf/TafTemplates';
 
 /**
@@ -70,11 +70,11 @@ const isTafSelectable = (locations, timestamps) => (taf) =>
   (timestamps.current.isSame(moment.utc(taf.metadata.validityStart)) || timestamps.next.isSame(moment.utc(taf.metadata.validityStart))) &&
   locations.includes(taf.metadata.location.toUpperCase());
 
-  /**
-   * Callback to handle succesfull receiving of TAFs
-   * @param {Element} container The container as context to pass through
-   * @param {object} data The response data with received TAFs
-   */
+/**
+ * Callback to handle succesfull receiving of TAFs
+ * @param {Element} container The container as context to pass through
+ * @param {object} data The response data with received TAFs
+ */
 const receivedTafsCallback = (container, data) => {
   if (data && data.ntafs && !isNaN(data.ntafs) &&
     Number.isInteger(data.ntafs) && data.ntafs > 0 &&
@@ -212,7 +212,7 @@ const updateSelectableTafs = (container, tafs) => {
   // currently TAFs are retrieved in several calls, by status
   const statusUpdatableTafs = tafs[0].metadata.status.toUpperCase();
   container.setState(produce(state, draftState => {
-    const persistingTafs = draftState.selectableTafs.filter((selectable) => selectable.taf.metadata.status.toUpperCase() !== statusUpdatableTafs);
+    const persistingTafs = draftState.selectableTafs.filter((selectable) => selectable.tafData.metadata.status.toUpperCase() !== statusUpdatableTafs);
     draftState.selectableTafs.length = 0;
     const { locations, timestamps } = draftState;
     tafs.filter(isTafSelectable(locations, timestamps)).forEach((incomingTaf) => {
@@ -235,18 +235,14 @@ const updateSelectableTafs = (container, tafs) => {
           }
         }
         draftSelectable.label.icon = iconName;
-        draftSelectable.taf.metadata.location = draftSelectable.location;
-        draftSelectable.taf.metadata.validityStart = incomingTaf.metadata.validityStart;
-        draftSelectable.taf.metadata.validityEnd = incomingTaf.metadata.validityEnd;
-        draftSelectable.taf.metadata.issueTime = incomingTaf.metadata.issueTime;
-        draftSelectable.taf.metadata.status = incomingTaf.metadata.status;
-        draftSelectable.taf.metadata.type = incomingTaf.metadata.type;
-        draftSelectable.taf.metadata.uuid = incomingTaf.metadata.uuid;
-        draftSelectable.taf.metadata.modified = incomingTaf.metadata.modified;
-        draftSelectable.taf.metadata.author = incomingTaf.metadata.author;
-        draftSelectable.taf.forecast = incomingTaf.forecast;
-        draftSelectable.taf.changegroups.length = 0;
-        draftSelectable.taf.changegroups.push(...incomingTaf.changegroups);
+        Object.entries(draftSelectable.tafData.metadata).forEach((entry) => {
+          if (incomingTaf.metadata.hasOwnProperty(entry[0])) {
+            draftSelectable.tafData.metadata[entry[0]] = incomingTaf.metadata[entry[0]];
+          }
+        });
+        draftSelectable.tafData.forecast = incomingTaf.forecast;
+        draftSelectable.tafData.changegroups.length = 0;
+        draftSelectable.tafData.changegroups.push(...incomingTaf.changegroups);
       });
       draftState.selectableTafs.push(selectableTaf);
     });
@@ -262,11 +258,11 @@ const updateSelectableTafs = (container, tafs) => {
           draftSelectable.label.time = combination.timestamp.format(TIMELABEL_FORMAT);
           draftSelectable.label.text = `${combination.location} ${draftSelectable.label.time}`;
           draftSelectable.label.icon = 'star-o';
-          draftSelectable.taf.metadata.location = combination.location;
-          draftSelectable.taf.metadata.validityStart = combination.timestamp.format(TIMESTAMP_FORMAT);
-          draftSelectable.taf.metadata.validityEnd = combination.timestamp.clone().add(30, 'hour').format(TIMESTAMP_FORMAT);
-          draftSelectable.taf.metadata.status = STATUSES.CONCEPT;
-          draftSelectable.taf.metadata.type = LIFECYCLE_STAGE_NAMES.NORMAL;
+          draftSelectable.tafData.metadata.location = combination.location;
+          draftSelectable.tafData.metadata.validityStart = combination.timestamp.format(TIMESTAMP_FORMAT);
+          draftSelectable.tafData.metadata.validityEnd = combination.timestamp.clone().add(30, 'hour').format(TIMESTAMP_FORMAT);
+          draftSelectable.tafData.metadata.status = STATUSES.NEW;
+          draftSelectable.tafData.metadata.type = LIFECYCLE_STAGE_NAMES.NORMAL;
         });
         draftState.selectableTafs.push(selectableTaf);
       });
@@ -319,6 +315,10 @@ const selectTaf = (selection, container) => {
     }
     draftState.selectedTaf.length = 0;
     draftState.selectedTaf.push(selection[0]);
+    if (selection[0].tafData && selection[0].tafData.metadata && selection[0].tafData.metadata.status &&
+        selection[0].tafData.metadata.status === STATUSES.NEW) {
+      draftState.mode = MODES.EDIT;
+    }
   }));
 };
 
@@ -356,6 +356,36 @@ const correctTaf = (event, container) => {
 
 const cancelTaf = (event, container) => {
   console.warn('cancelTaf is not yet fully implemented');
+};
+
+const addTafRow = (event, rowIndex, container) => {
+  const { state } = container;
+  const { selectedTaf } = state;
+  if (!selectedTaf || !Array.isArray(selectedTaf) || selectedTaf.length !== 1) {
+    return;
+  }
+  if (typeof rowIndex !== 'number') {
+    rowIndex = selectedTaf[0].tafData.changegroups.length;
+  }
+  container.setState(produce(state, draftState => {
+    draftState.selectedTaf[0].tafData.changegroups.splice(rowIndex, 0, produce(TAF_TEMPLATES.CHANGE_GROUP, draftChangegroup => {}));
+  }));
+};
+
+const removeTafRow = (event, rowIndex, container) => {
+  const { state } = container;
+  const { selectedTaf } = state;
+  if (!selectedTaf || !Array.isArray(selectedTaf) || selectedTaf.length !== 1 || typeof rowIndex !== 'number') {
+    return;
+  }
+  container.setState(produce(state, draftState => {
+    draftState.selectedTaf[0].tafData.changegroups.splice(rowIndex, 1);
+    // if (draftState.selectedTaf[0].tafData.changegroups.length === 0) {
+    //   draftState.selectedTaf[0].tafData.changegroups.push(produce(TAF_TEMPLATES.CHANGE_GROUP, draftChangegroup => { }));
+    // }
+    draftState.selectedTaf[0].hasEdits = true;
+  }));
+  console.warn('removeTafRow is not yet fully implemented');
 };
 
 /**
@@ -402,6 +432,12 @@ export default (localAction, container) => {
       break;
     case LOCAL_ACTION_TYPES.CANCEL_TAF:
       cancelTaf(localAction.event, container);
+      break;
+    case LOCAL_ACTION_TYPES.ADD_TAF_ROW:
+      addTafRow(localAction.event, localAction.rowIndex, container);
+      break;
+    case LOCAL_ACTION_TYPES.REMOVE_TAF_ROW:
+      removeTafRow(localAction.event, localAction.rowIndex, container);
       break;
   }
 };

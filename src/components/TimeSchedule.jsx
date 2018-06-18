@@ -121,7 +121,7 @@ class TimeSchedule extends PureComponent {
     const intervalMinorBasis = 100 / numberOfMinorTickIntervals;
 
     return <Row className='TimeSchedule'>
-      <Col style={{ flex: 1, flexDirection: 'column' }}>
+      <Col>
         {series.map(serie => {
           let cumOffset = 0;
           let rowClasses = (serie.hasOwnProperty(STYLES) ? serie[STYLES].join(' ') : '') + ' ' + serie.label + ' groupRow';

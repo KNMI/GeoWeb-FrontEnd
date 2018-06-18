@@ -6,7 +6,7 @@ export default class ActionSection extends PureComponent {
   render () {
     const { children, colSize } = this.props;
     const childrenSize = children.length * (colSize || 1);
-    return <Row className='Action'>
+    return <Row className='TafAction'>
       <Col>
         <Row>
           <Col xs={{ size: childrenSize, offset: 12 - childrenSize }}>

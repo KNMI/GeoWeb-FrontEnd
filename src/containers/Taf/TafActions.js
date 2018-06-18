@@ -12,22 +12,26 @@ export const LOCAL_ACTION_TYPES = {
   PUBLISH_TAF: 'PUBLISH_TAF',
   AMEND_TAF: 'AMEND_TAF',
   CORRECT_TAF: 'CORRECT_TAF',
-  CANCEL_TAF: 'CANCEL_TAF'
+  CANCEL_TAF: 'CANCEL_TAF',
+  ADD_TAF_ROW: 'ADD_TAF_ROW',
+  REMOVE_TAF_ROW: 'REMOVE_TAF_ROW'
 };
 
 export const LOCAL_ACTIONS = {
   updateLocationsAction: () => ({ type: LOCAL_ACTION_TYPES.UPDATE_LOCATIONS }),
   updateTimestampsAction: () => ({ type: LOCAL_ACTION_TYPES.UPDATE_TIMESTAMPS }),
   selectTafAction: (tafSelection) => ({ type: LOCAL_ACTION_TYPES.SELECT_TAF, selection: tafSelection }),
-  discardTafAction: (evt, uuid) => ({ type: LOCAL_ACTION_TYPES.DISCARD_TAF, event: evt, uuid: uuid }),
-  saveTafAction: (evt, uuid) => ({ type: LOCAL_ACTION_TYPES.SAVE_TAF, event: evt, uuid: uuid }),
-  editTafAction: (evt, uuid) => ({ type: LOCAL_ACTION_TYPES.EDIT_TAF, event: evt, uuid: uuid }),
-  deleteTafAction: (evt, uuid) => ({ type: LOCAL_ACTION_TYPES.DELETE_TAF, event: evt, uuid: uuid }),
-  copyTafAction: (evt, uuid) => ({ type: LOCAL_ACTION_TYPES.COPY_TAF, event: evt, uuid: uuid }),
-  publishTafAction: (evt, uuid) => ({ type: LOCAL_ACTION_TYPES.PUBLISH_TAF, event: evt, uuid: uuid }),
-  amendTafAction: (evt, uuid) => ({ type: LOCAL_ACTION_TYPES.AMEND_TAF, event: evt, uuid: uuid }),
-  correctTafAction: (evt, uuid) => ({ type: LOCAL_ACTION_TYPES.CORRECT_TAF, event: evt, uuid: uuid }),
-  cancelTafAction: (evt, uuid) => ({ type: LOCAL_ACTION_TYPES.CANCEL_TAF, event: evt, uuid: uuid })
+  discardTafAction: (evt) => ({ type: LOCAL_ACTION_TYPES.DISCARD_TAF, event: evt }),
+  saveTafAction: (evt) => ({ type: LOCAL_ACTION_TYPES.SAVE_TAF, event: evt }),
+  editTafAction: (evt) => ({ type: LOCAL_ACTION_TYPES.EDIT_TAF, event: evt }),
+  deleteTafAction: (evt) => ({ type: LOCAL_ACTION_TYPES.DELETE_TAF, event: evt }),
+  copyTafAction: (evt) => ({ type: LOCAL_ACTION_TYPES.COPY_TAF, event: evt }),
+  publishTafAction: (evt) => ({ type: LOCAL_ACTION_TYPES.PUBLISH_TAF, event: evt }),
+  amendTafAction: (evt) => ({ type: LOCAL_ACTION_TYPES.AMEND_TAF, event: evt }),
+  correctTafAction: (evt) => ({ type: LOCAL_ACTION_TYPES.CORRECT_TAF, event: evt }),
+  cancelTafAction: (evt) => ({ type: LOCAL_ACTION_TYPES.CANCEL_TAF, event: evt }),
+  addTafRowAction: (evt, rowIndex) => ({ type: LOCAL_ACTION_TYPES.ADD_TAF_ROW, event: evt, rowIndex: rowIndex }),
+  removeTafRowAction: (evt, rowIndex) => ({ type: LOCAL_ACTION_TYPES.REMOVE_TAF_ROW, event: evt, rowIndex: rowIndex })
 };
 
 export const MODES = {
@@ -38,7 +42,7 @@ export const MODES = {
 export const EDIT_ABILITIES = {
   DISCARD: {
     'dataField': 'discard',
-    'label': 'Discard changes',
+    'label': 'Discard',
     'check': 'isDiscardable',
     'action': 'discardTafAction'
   },
@@ -120,7 +124,8 @@ export const byReadAbilities = (abilityA, abilityB) => {
 
 export const STATUSES = {
   PUBLISHED: 'PUBLISHED',
-  CONCEPT: 'CONCEPT'
+  CONCEPT: 'CONCEPT',
+  NEW: 'NEW'
 };
 
 export const LIFECYCLE_STAGE_NAMES = {
@@ -146,8 +151,58 @@ const STATE = {
   timestamps: {},
   selectableTafs: [],
   selectedTaf: null,
-  mode: null
+  mode: MODES.READ,
+  abilitiesPerStatus: [
+    {
+      ref: STATUSES.NEW,
+      abilities: {}
+    },
+    {
+      ref: STATUSES.CONCEPT,
+      abilities: {}
+    },
+    {
+      ref: STATUSES.PUBLISHED,
+      abilities: {}
+    }
+  ]
 };
+// New TAFs
+STATE.abilitiesPerStatus[0].abilities[MODES.READ] = {};
+STATE.abilitiesPerStatus[0].abilities[MODES.READ][READ_ABILITIES.DELETE.check] = false;
+STATE.abilitiesPerStatus[0].abilities[MODES.READ][READ_ABILITIES.EDIT.check] = true;
+STATE.abilitiesPerStatus[0].abilities[MODES.READ][READ_ABILITIES.COPY.check] = false;
+STATE.abilitiesPerStatus[0].abilities[MODES.READ][READ_ABILITIES.CANCEL.check] = false;
+STATE.abilitiesPerStatus[0].abilities[MODES.READ][READ_ABILITIES.CORRECT.check] = false;
+STATE.abilitiesPerStatus[0].abilities[MODES.READ][READ_ABILITIES.AMEND.check] = false;
+STATE.abilitiesPerStatus[0].abilities[MODES.READ][READ_ABILITIES.PUBLISH.check] = false;
+STATE.abilitiesPerStatus[0].abilities[MODES.EDIT] = {};
+STATE.abilitiesPerStatus[0].abilities[MODES.EDIT][EDIT_ABILITIES.DISCARD.check] = true;
+STATE.abilitiesPerStatus[0].abilities[MODES.EDIT][EDIT_ABILITIES.SAVE.check] = true;
+
+// Concept TAFs
+STATE.abilitiesPerStatus[1].abilities[MODES.READ] = {};
+STATE.abilitiesPerStatus[1].abilities[MODES.READ][READ_ABILITIES.DELETE.check] = true;
+STATE.abilitiesPerStatus[1].abilities[MODES.READ][READ_ABILITIES.EDIT.check] = true;
+STATE.abilitiesPerStatus[1].abilities[MODES.READ][READ_ABILITIES.COPY.check] = true;
+STATE.abilitiesPerStatus[1].abilities[MODES.READ][READ_ABILITIES.CANCEL.check] = false;
+STATE.abilitiesPerStatus[1].abilities[MODES.READ][READ_ABILITIES.CORRECT.check] = false;
+STATE.abilitiesPerStatus[1].abilities[MODES.READ][READ_ABILITIES.AMEND.check] = false;
+STATE.abilitiesPerStatus[1].abilities[MODES.READ][READ_ABILITIES.PUBLISH.check] = true;
+STATE.abilitiesPerStatus[1].abilities[MODES.EDIT] = {};
+STATE.abilitiesPerStatus[1].abilities[MODES.EDIT][EDIT_ABILITIES.DISCARD.check] = true;
+STATE.abilitiesPerStatus[1].abilities[MODES.EDIT][EDIT_ABILITIES.SAVE.check] = true;
+
+// Published TAFs
+STATE.abilitiesPerStatus[2].abilities[MODES.READ] = {};
+STATE.abilitiesPerStatus[2].abilities[MODES.READ][READ_ABILITIES.DELETE.check] = false;
+STATE.abilitiesPerStatus[2].abilities[MODES.READ][READ_ABILITIES.EDIT.check] = false;
+STATE.abilitiesPerStatus[2].abilities[MODES.READ][READ_ABILITIES.COPY.check] = true;
+STATE.abilitiesPerStatus[2].abilities[MODES.READ][READ_ABILITIES.CANCEL.check] = true;
+STATE.abilitiesPerStatus[2].abilities[MODES.READ][READ_ABILITIES.CORRECT.check] = true;
+STATE.abilitiesPerStatus[2].abilities[MODES.READ][READ_ABILITIES.AMEND.check] = true;
+STATE.abilitiesPerStatus[2].abilities[MODES.READ][READ_ABILITIES.PUBLISH.check] = false;
+STATE.abilitiesPerStatus[2].abilities[MODES.EDIT] = {};
 
 export const INITIAL_STATE = STATE;
 
