@@ -51,7 +51,7 @@ describe('(Container) Taf/TafTable.jsx', () => {
     const _instance = _component.instance();
     _instance.updateValue(inputMock);
     expect(values).to.eql([ { propertyPath: [ 'forecast', 'wind' ],
-      propertyValue: { direction: 123, speed: 45, gusts: null, unit: 'KT' } } ]);
+      propertyValue: { direction: 123, speed: 45, gusts: null, unit: 'KT', speedOperator: null, gustsOperator: null } } ]);
   });
   it('Performs method updateValue for changegroup forecast clouds', () => {
     let values;

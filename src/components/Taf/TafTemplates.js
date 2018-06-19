@@ -24,7 +24,9 @@ const TEMPLATES = {
   WIND: {
     direction: null, // number
     speed: null, // number
+    speedOperator: null, // string
     gusts: null, // number
+    gustsOperator: null, // string
     unit: null // string
   },
   TEMPERATURE: [{
@@ -37,6 +39,7 @@ const TEMPLATES = {
     status: null, // string
     type: null, // string
     uuid: null, // string
+    previousUuid: null, // string
     validityStart: null, // string
     validityEnd: null, // string,
     modified: null, // string
@@ -143,6 +146,7 @@ const TYPES = {
     status: PropTypes.string,
     type: PropTypes.string,
     uuid: PropTypes.string,
+    previousUuid: PropTypes.string,
     validityStart: PropTypes.string,
     validityEnd: PropTypes.string,
     modified: PropTypes.string,

@@ -79,9 +79,9 @@ export const EDIT_ABILITIES = {
 };
 
 const EDIT_ABILITIES_ORDER = [
-  EDIT_ABILITIES.CLEAR,
-  EDIT_ABILITIES.DISCARD,
-  EDIT_ABILITIES.SAVE
+  EDIT_ABILITIES.CLEAR['dataField'],
+  EDIT_ABILITIES.DISCARD['dataField'],
+  EDIT_ABILITIES.SAVE['dataField']
 ];
 
 export const byEditAbilities = (abilityA, abilityB) => {

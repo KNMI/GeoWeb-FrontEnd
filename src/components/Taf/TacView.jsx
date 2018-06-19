@@ -2,7 +2,7 @@ import React, { PureComponent } from 'react';
 import { Row, Col } from 'reactstrap';
 import { TAF_TYPES } from './TafTemplates';
 import {
-  jsonToTacForProbability, jsonToTacForChangeType, jsonToTacForPeriod,
+  jsonToTacForType, jsonToTacForProbability, jsonToTacForChangeType, jsonToTacForPeriod,
   jsonToTacForIssue, jsonToTacForWind, jsonToTacForCavok, jsonToTacForVerticalVisibility,
   jsonToTacForVisibility, jsonToTacForWeather, jsonToTacForClouds
 } from './TafFieldsConverter';
@@ -17,6 +17,7 @@ export default class TacView extends PureComponent {
       ? clouds.reduce((result, cloudsItem) => `${result} ${jsonToTacForClouds(cloudsItem) || ''}`, '')
       : '';
     const tac = {
+      type: jsonToTacForType(taf.metadata.type) || '',
       location: taf.metadata.location || '',
       issueTime: jsonToTacForIssue(taf.metadata.issueTime) || '',
       period: jsonToTacForPeriod(taf.metadata.validityStart, taf.metadata.validityEnd) || '',
@@ -54,7 +55,7 @@ export default class TacView extends PureComponent {
             TAC
           </Col>
           <Col xs='auto'>
-            {`TAF ${tac.location} ${tac.issueTime} ${tac.period} ${tac.wind} ${tac.visibility} ${tac.cavok} ${tac.weather}
+            {`TAF ${tac.type} ${tac.location} ${tac.issueTime} ${tac.period} ${tac.wind} ${tac.visibility} ${tac.cavok} ${tac.weather}
             ${tac.clouds} ${tac.vertical_visibility}`}</Col>
         </Row>
         {tac.changegroups.map((chg, index) =>

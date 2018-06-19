@@ -26,7 +26,7 @@ export default class TafsContainer extends Component {
   }
 
   render () {
-    const { selectableTafs, selectedTaf, mode, abilitiesPerStatus } = this.state;
+    const { selectableTafs, selectedTaf, mode, abilitiesPerStatus, copiedTafRef, feedback } = this.state;
     const tafToShow = selectedTaf && Array.isArray(selectedTaf) && selectedTaf.length === 1 ? selectedTaf[0] : null;
     return (
       <Col className='TafsContainer'>
@@ -35,7 +35,8 @@ export default class TafsContainer extends Component {
             <TafSelector selectableTafs={selectableTafs} selectedTaf={selectedTaf}
               onChange={(tafSelection) => this.localDispatch(LOCAL_ACTIONS.selectTafAction(tafSelection))} />
             {tafToShow
-              ? <Taf selectedTaf={tafToShow} urls={this.props.urls} dispatch={this.localDispatch} actions={LOCAL_ACTIONS} mode={mode} abilitiesPerStatus={abilitiesPerStatus} />
+              ? <Taf selectedTaf={tafToShow} urls={this.props.urls} dispatch={this.localDispatch} actions={LOCAL_ACTIONS}
+                mode={mode} abilitiesPerStatus={abilitiesPerStatus} copiedTafRef={copiedTafRef} feedback={feedback} />
               : null
             }
           </Col>

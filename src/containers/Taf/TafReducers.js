@@ -5,6 +5,8 @@ import { arrayMove } from 'react-sortable-hoc';
 import setNestedProperty from 'lodash.set';
 import getNestedProperty from 'lodash.get';
 import removeNestedProperty from 'lodash.unset';
+import uuidv4 from 'uuid/v4';
+import { clearNullPointersAndAncestors } from '../../utils/json';
 import { ReadLocations } from '../../utils/admin';
 import { LOCAL_ACTION_TYPES, STATUSES, LIFECYCLE_STAGE_NAMES, getExample, MODES } from './TafActions';
 import { TAF_TEMPLATES, TIMELABEL_FORMAT, TIMESTAMP_FORMAT } from '../../components/Taf/TafTemplates';
@@ -144,9 +146,14 @@ const synchronizeSelectableTafs = (container) => {
       withCredentials: true,
       responseType: 'json'
     }).then(response => {
-      response = tafResource.status === STATUSES.PUBLISHED
+      const additionalResponse = tafResource.status === STATUSES.PUBLISHED
         ? getExample(container.state.timestamps.current, container.state.locations[0], tafResource.status)
         : getExample(container.state.timestamps.next, container.state.locations[2], tafResource.status);
+      response.data.ntafs += additionalResponse.data.ntafs;
+      if (!Array.isArray(response.data.tafs)) {
+        response.data.tafs = [];
+      }
+      response.data.tafs.push(...additionalResponse.data.tafs);
       receivedTafsCallback(container, response.data);
     }).catch(error => {
       console.error('Couldn\'t retrieve TAFs', error);
@@ -194,7 +201,7 @@ const updateTimestamps = (container) => {
   const { state } = container;
   const now = moment.utc();
   let TAFStartHour = now.hour();
-  TAFStartHour = TAFStartHour - TAFStartHour % 6 + 6;
+  TAFStartHour = TAFStartHour - TAFStartHour % 6;
   const currentTafTimestamp = now.clone().hour(TAFStartHour).startOf('hour');
   container.setState(produce(state, draftState => {
     draftState.timestamps.current = currentTafTimestamp;
@@ -204,6 +211,25 @@ const updateTimestamps = (container) => {
   if (shouldSync(container)) {
     synchronizeSelectableTafs(container);
   }
+};
+
+/**
+ * Update the feedback
+ * @param {string} title The title for the feedback
+ * @param {string} status The status for the feedback
+ * @param {string} subTitle The subtitle for the feedback
+ * @param {array} list The list of messages
+ */
+const updateFeedback = (title, status, subTitle, list, container) => {
+  const { state } = container;
+  container.setState(produce(state, draftState => {
+    draftState.feedback = {
+      title: title,
+      status: status,
+      subTitle: subTitle,
+      list: list
+    };
+  }));
 };
 
 /**
@@ -327,37 +353,188 @@ const selectTaf = (selection, container) => {
 };
 
 const discardTaf = (event, container) => {
-  console.warn('discardTaf is not yet fully implemented');
+  const { state } = container;
+  container.setState(produce(state, draftState => {
+    draftState.mode = MODES.READ;
+    draftState.selectedTaf.length = 0;
+  }));
 };
 
+/**
+ * Saving TAF to backend
+ * @param {object} event The event that triggered saving
+ * @param {Element} container The container in which the save action was triggered
+ */
 const saveTaf = (event, container) => {
-  console.warn('saveTaf is not yet fully implemented');
+  const { state, props } = container;
+  const { selectedTaf } = state;
+  const { BACKEND_SERVER_URL } = props.urls;
+  if (!selectedTaf || !Array.isArray(selectedTaf) || selectedTaf.length !== 1 || !BACKEND_SERVER_URL) {
+    return;
+  }
+  const newTafState = produce(selectedTaf[0].tafData, draftTaf => {
+    clearNullPointersAndAncestors(draftTaf);
+    if (!getNestedProperty(draftTaf, ['changegroups'])) {
+      setNestedProperty(draftTaf, ['changegroups'], []);
+    }
+    if (draftTaf.metadata.status === STATUSES.NEW) {
+      draftTaf.metadata.status = STATUSES.CONCEPT;
+    }
+    draftTaf.metadata.status = draftTaf.metadata.status.toLowerCase();
+    draftTaf.metadata.type = draftTaf.metadata.type.toLowerCase();
+  });
+  axios({
+    method: 'post',
+    url: `${BACKEND_SERVER_URL}/tafs`,
+    withCredentials: true,
+    data: JSON.stringify(newTafState),
+    headers: { 'Content-Type': 'application/json' }
+  }).then(response => {
+    updateFeedback(response.data.message, response.data.succeeded ? 'success' : 'danger', null, null, container);
+    container.setState(produce(state, draftState => {
+      draftState.mode = MODES.READ;
+    }));
+    synchronizeSelectableTafs(container);
+  }).catch(error => {
+    console.error('Couldn\'t save TAF', error);
+    updateFeedback('Couldn\'t save TAF: an error occured while trying to save.',
+      'danger', null, null, container);
+  });
 };
 
+/**
+ * Set TAF mode to EDIT
+ * @param {object} event The event that triggered editing
+ * @param {Element} container The container in which the edit action was triggered
+ */
 const editTaf = (event, container) => {
-  console.warn('editTaf is not yet fully implemented');
+  const { state } = container;
+  container.setState(produce(state, draftState => {
+    draftState.mode = MODES.EDIT;
+  }));
 };
 
+/**
+ * Deleting TAF from backend
+ * @param {object} event The event that triggered deleting
+ * @param {Element} container The container in which the delete action was triggered
+ */
 const deleteTaf = (event, container) => {
-  console.warn('deleteTaf is not yet fully implemented');
+  const { state, props } = container;
+  const { selectedTaf } = state;
+  const { BACKEND_SERVER_URL } = props.urls;
+  if (!selectedTaf || !Array.isArray(selectedTaf) || selectedTaf.length !== 1 || !BACKEND_SERVER_URL) {
+    return;
+  }
+  const uuid = selectedTaf[0].tafData.metadata.uuid;
+  if (!uuid) {
+    return;
+  }
+  axios({
+    method: 'delete',
+    url: `${BACKEND_SERVER_URL}/tafs/${uuid}`,
+    withCredentials: true,
+    responseType: 'json'
+  }).then(response => {
+    updateFeedback(response.data, 'success', null, null, container);
+    container.setState(produce(state, draftState => {
+      draftState.mode = MODES.READ;
+      draftState.selectedTaf.length = 0;
+    }));
+    synchronizeSelectableTafs(container);
+  }).catch(error => {
+    console.error('Couldn\'t delete TAF', error);
+    updateFeedback('Couldn\'t delete TAF: an error occured while trying to delete.',
+      'danger', null, null, container);
+  });
 };
 
+/**
+ * Copy TAF information
+ * @param {object} event The event that triggered copying
+ * @param {Element} container The container in which the copy action was triggered
+ */
 const copyTaf = (event, container) => {
-  console.warn('copyTaf is not yet fully implemented');
+  const { state } = container;
+  container.setState(produce(state, draftState => {
+    draftState.copiedTafRef = draftState.selectedTaf[0].tafData.metadata.uuid;
+  }));
 };
 
+/**
+ * Paste TAF information
+ * @param {object} event The event that triggered pasting
+ * @param {Element} container The container in which the paste action was triggered
+ */
+const pasteTaf = (event, container) => {
+  const { state } = container;
+  const copiedTaf = state.selectableTafs.find((selectable) => selectable.tafData.metadata.uuid === state.copiedTafRef);
+  if (!copiedTaf) {
+    return;
+  }
+  container.setState(produce(state, draftState => {
+    draftState.selectedTaf[0].tafData.forecast = copiedTaf.tafData.forecast;
+    if (copiedTaf.tafData.changegroups.length > 0) {
+      draftState.selectedTaf[0].tafData.changegroups.push(...copiedTaf.tafData.changegroups);
+    }
+    draftState.copiedTafRef = null;
+    draftState.selectedTaf[0].hasEdits = true;
+  }));
+};
+
+/**
+ * Publish TAF
+ * @param {object} event The event that triggered publishing
+ * @param {Element} container The container in which the publish action was triggered
+ */
 const publishTaf = (event, container) => {
-  console.warn('publishTaf is not yet fully implemented');
+  const { state } = container;
+  container.setState(produce(state, draftState => {
+    draftState.selectedTaf[0].tafData.metadata.status = STATUSES.PUBLISHED;
+    draftState.mode = MODES.READ;
+  }));
+  saveTaf(event, container);
 };
 
+/**
+ * Amend TAF
+ * @param {object} event The event that triggered creating a amendation
+ * @param {Element} container The container in which the create amendation action was triggered
+ */
 const amendTaf = (event, container) => {
-  console.warn('amendTaf is not yet fully implemented');
+  const { state } = container;
+  const correctionUuid = uuidv4();
+  container.setState(produce(state, draftState => {
+    draftState.selectedTaf[0].tafData.metadata.previousUuid = draftState.selectedTaf[0].tafData.metadata.uuid;
+    draftState.selectedTaf[0].tafData.metadata.uuid = correctionUuid;
+    draftState.selectedTaf[0].tafData.metadata.status = STATUSES.CONCEPT;
+    draftState.selectedTaf[0].tafData.metadata.type = LIFECYCLE_STAGE_NAMES.AMENDMENT;
+    draftState.mode = MODES.EDIT;
+  }));
 };
 
+/**
+ * Correct TAF
+ * @param {object} event The event that triggered creating a correction
+ * @param {Element} container The container in which the create correction action was triggered
+ */
 const correctTaf = (event, container) => {
-  console.warn('correctTaf is not yet fully implemented');
+  const { state } = container;
+  const correctionUuid = uuidv4();
+  container.setState(produce(state, draftState => {
+    draftState.selectedTaf[0].tafData.metadata.previousUuid = draftState.selectedTaf[0].tafData.metadata.uuid;
+    draftState.selectedTaf[0].tafData.metadata.uuid = correctionUuid;
+    draftState.selectedTaf[0].tafData.metadata.status = STATUSES.CONCEPT;
+    draftState.selectedTaf[0].tafData.metadata.type = LIFECYCLE_STAGE_NAMES.CORRECTION;
+    draftState.mode = MODES.EDIT;
+  }));
 };
 
+/**
+ * Cancel TAF
+ * @param {object} event The event that triggered canceling a TAF
+ * @param {Element} container The container in which the cancel action was triggered
+ */
 const cancelTaf = (event, container) => {
   console.warn('cancelTaf is not yet fully implemented');
 };
@@ -479,6 +656,9 @@ export default (localAction, container) => {
     case LOCAL_ACTION_TYPES.UPDATE_TIMESTAMPS:
       updateTimestamps(container);
       break;
+    case LOCAL_ACTION_TYPES.UPDATE_FEEDBACK:
+      updateFeedback(localAction.title, localAction.status, localAction.subTitle, localAction.list, container);
+      break;
     case LOCAL_ACTION_TYPES.SELECT_TAF:
       selectTaf(localAction.selection, container);
       break;
@@ -496,6 +676,9 @@ export default (localAction, container) => {
       break;
     case LOCAL_ACTION_TYPES.COPY_TAF:
       copyTaf(localAction.event, container);
+      break;
+    case LOCAL_ACTION_TYPES.PASTE_TAF:
+      pasteTaf(localAction.event, container);
       break;
     case LOCAL_ACTION_TYPES.PUBLISH_TAF:
       publishTaf(localAction.event, container);

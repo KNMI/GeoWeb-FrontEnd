@@ -33,12 +33,12 @@ const timestampRegEx = /^(\d{2})(\d{2})$/i;
 const periodRegEx = /^(\d{4})\/(\d{4})$/i;
 
 const windRegEx = new RegExp('^(\\d{3}|' + convertMapToRegExpOptions(windDirectionInverseMap) + ')' +
-  '(P?\\d{2})' +
-  '(?:G(\\d{2}))?' +
+  '(P?)(\\d{2})' +
+  '(?:G(P?)(\\d{2}))?' +
   '(?:(' + convertMapToRegExpOptions(windUnitInverseMap) + '))?$', 'i');
 const windDirectionRegEx = new RegExp('^(\\d{3}|' + convertMapToRegExpOptions(windDirectionInverseMap) + ')', 'i');
-const windSpeedRegEx = /.*P?\d{2}/i;
-const windGustsRegEx = /.*G\d{2}/i;
+const windSpeedRegEx = /.*(P?)(\d{2})/i;
+const windGustsRegEx = /.*G(P?)(\d{2})/i;
 const windUnitRegEx = new RegExp('.*(' + convertMapToRegExpOptions(windUnitInverseMap) + ')$', 'i');
 
 const visibilityRegEx = new RegExp('^(\\d{4})(?:(' + convertMapToRegExpOptions(visibilityUnitInverseMap) + '))?$', 'i');
@@ -178,11 +178,21 @@ const jsonToTacForWind = (windAsJson, useFallback = false, showDefaultUnit = fal
   } else {
     return useFallback && windAsJson.hasOwnProperty('fallback') ? windAsJson.fallback.value : null;
   }
+  if (windAsJson.hasOwnProperty('speedOperator')) {
+    if (typeof windAsJson.speedOperator === 'string') {
+      const speedOperator = windAsJson.speedOperator.toLowerCase() === 'above' ? 'P' : null;
+      if (!speedOperator) {
+        return useFallback && windAsJson.hasOwnProperty('fallback') ? windAsJson.fallback.value : null;
+      } else {
+        result += speedOperator;
+      }
+    }
+  } else {
+    return useFallback && windAsJson.hasOwnProperty('fallback') ? windAsJson.fallback.value : null;
+  }
   if (windAsJson.hasOwnProperty('speed')) {
     if (typeof windAsJson.speed === 'number') {
       result += windAsJson.speed.toString().padStart(2, '0');
-    } else if (typeof windAsJson.speed === 'string' && /^P\d{2}$/i.test(windAsJson.speed)) {
-      result += windAsJson.speed;
     } else {
       return useFallback && windAsJson.hasOwnProperty('fallback') ? windAsJson.fallback.value : null;
     }
@@ -191,7 +201,20 @@ const jsonToTacForWind = (windAsJson, useFallback = false, showDefaultUnit = fal
   }
   if (windAsJson.hasOwnProperty('gusts')) {
     if (typeof windAsJson.gusts === 'number') {
-      result += 'G' + windAsJson.gusts.toString().padStart(2, '0');
+      result += 'G';
+      if (windAsJson.hasOwnProperty('gustsOperator')) {
+        if (typeof windAsJson.gustsOperator === 'string') {
+          const gustsOperator = windAsJson.gustsOperator.toLowerCase() === 'above' ? 'P' : null;
+          if (!gustsOperator) {
+            return useFallback && windAsJson.hasOwnProperty('fallback') ? windAsJson.fallback.value : null;
+          } else {
+            result += gustsOperator;
+          }
+        }
+      } else {
+        return useFallback && windAsJson.hasOwnProperty('fallback') ? windAsJson.fallback.value : null;
+      }
+      result += windAsJson.gusts.toString().padStart(2, '0');
     }
   } else {
     return useFallback && windAsJson.hasOwnProperty('fallback') ? windAsJson.fallback.value : null;
@@ -500,14 +523,19 @@ const tacToJsonForWind = (windAsTac, useFallback = false) => {
       result.direction = isNaN(direction)
         ? getMapValue(matchResult[1], windDirectionInverseMap, true)
         : direction;
-      const speed = parseInt(matchResult[2]);
-      result.speed = isNaN(speed)
-        ? matchResult[2].toUpperCase()
-        : speed;
-      if (matchResult[3]) {
-        result.gusts = parseInt(matchResult[3]);
+      if (matchResult[2]) {
+        result.speedOperator = 'above';
       }
-      result.unit = getMapValue(matchResult[4], windUnitInverseMap, true) || 'KT';
+      if (matchResult[3]) {
+        result.speed = parseInt(matchResult[3]);
+      }
+      if (matchResult[4]) {
+        result.gustsOperator = 'above';
+      }
+      if (matchResult[5]) {
+        result.gusts = parseInt(matchResult[5]);
+      }
+      result.unit = getMapValue(matchResult[6], windUnitInverseMap, true) || 'KT';
     }
   }
   if (useFallback && isEqual(result, TAF_TEMPLATES.WIND) && windAsTac && typeof windAsTac === 'string') {
