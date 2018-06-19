@@ -40,7 +40,7 @@ describe('(Reducer) TafReducers', () => {
     const container = {
       props: {
         urls: {
-          BACKEND_SERVER_URL: 'http://localhost'
+          BACKEND_SERVER_URL: 'localhost'
         }
       },
       state: {
@@ -72,7 +72,7 @@ describe('(Reducer) TafReducers', () => {
     const container = {
       props: {
         urls: {
-          BACKEND_SERVER_URL: 'http://localhost'
+          BACKEND_SERVER_URL: 'localhost'
         }
       },
       state: {

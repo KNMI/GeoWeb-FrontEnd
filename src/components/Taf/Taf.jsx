@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import { arrayMove } from 'react-sortable-hoc';
 import PropTypes from 'prop-types';
 import Enum from 'es6-enum';
 import TimeSchedule from '../TimeSchedule';
@@ -45,13 +44,11 @@ const MOVE_DIRECTION = Enum(
 class Taf extends Component {
   constructor (props) {
     super(props);
-    this.onSortEnd = this.onSortEnd.bind(this);
     this.onClick = this.onClick.bind(this);
     this.onKeyUp = this.onKeyUp.bind(this);
     this.onKeyDown = this.onKeyDown.bind(this);
     this.registerElement = this.registerElement.bind(this);
     this.reduceAbilities = this.reduceAbilities.bind(this);
-    this.setTafValues = this.setTafValues.bind(this);
     this.setFocus = this.setFocus.bind(this);
     this.moveFocus = this.moveFocus.bind(this);
     this.onFocus = this.onFocus.bind(this);
@@ -528,9 +525,9 @@ class Taf extends Component {
             const nameParts = keyboardEvent.target.name.split('-');
             if (nameParts[0] === 'changegroups' && !isNaN(nameParts[1])) {
               const rowIndex = parseInt(nameParts[1]) + 1;
-              dispatch(actions.addTafRowAction(event, rowIndex));
+              dispatch(actions.addTafRowAction(rowIndex));
             } else {
-              dispatch(actions.addTafRowAction(event));
+              dispatch(actions.addTafRowAction());
             }
             event.preventDefault();
             event.stopPropagation();
@@ -556,6 +553,7 @@ class Taf extends Component {
           this.moveFocus(keyboardEvent.target.name, MOVE_DIRECTION.UP);
           break;
         case 'ArrowRight':
+        case 'Tab':
           if (!keyboardEvent.target.value || (keyboardEvent.target.selectionStart === keyboardEvent.target.value.length)) {
             this.moveFocus(keyboardEvent.target.name, MOVE_DIRECTION.RIGHT);
             keyboardEvent.preventDefault();
@@ -590,9 +588,9 @@ class Taf extends Component {
         const nameParts = focusedFieldName.split('-');
         if (nameParts[0] === 'changegroups' && !isNaN(nameParts[1])) {
           const rowIndex = parseInt(nameParts[1]) + 1;
-          dispatch(actions.addTafRowAction(event, rowIndex));
+          dispatch(actions.addTafRowAction(rowIndex));
         } else {
-          dispatch(actions.addTafRowAction(event));
+          dispatch(actions.addTafRowAction());
         }
         event.preventDefault();
         event.stopPropagation();
@@ -602,7 +600,7 @@ class Taf extends Component {
         const nameParts = event.target.name.split('-');
         if (nameParts.length > 1 && nameParts[1] >= 0) {
           const rowIndex = parseInt(nameParts[1]);
-          dispatch(actions.removeTafRowAction(event, rowIndex));
+          dispatch(actions.removeTafRowAction(rowIndex));
         }
         event.preventDefault();
         event.stopPropagation();
@@ -651,45 +649,6 @@ class Taf extends Component {
             });
           } */
         }
-      }
-    }
-  }
-
-  /**
-   * Updates the value(s) in the state
-   * @param {Array} values An array with objects, each containing a propertyPath and propertyValue
-   */
-  setTafValues (values) {
-    if (values && Array.isArray(values) && values.length > 0) {
-      const newTafState = cloneDeep(this.state.tafAsObject);
-      let hasUpdates = false;
-      values.map((entry) => {
-        if (entry && typeof entry === 'object' && entry.hasOwnProperty('propertyPath') && entry.hasOwnProperty('propertyValue')) {
-          if (entry.deleteProperty === true) {
-            // removeNestedProperty on an array leaves an empty array element
-            // Therefore, the array needs to be cleaned by this one neat trick
-            removeNestedProperty(newTafState, entry.propertyPath);
-
-            // If the last element is a number, then it is an index in an array, so we know we are dealing with an array
-            const lastPathElem = entry.propertyPath.pop();
-            if (!isNaN(lastPathElem)) {
-              // Retrieve the array and leave all items that evaluate truthy.
-              // this filters everything as null, undefined, 0, {}, false, "", etc...
-              const theArr = getNestedProperty(newTafState, entry.propertyPath);
-              setNestedProperty(newTafState, entry.propertyPath, theArr.filter(n => n));
-            }
-          } else {
-            setNestedProperty(newTafState, entry.propertyPath, entry.propertyValue);
-          }
-          hasUpdates = true;
-        }
-      });
-      if (hasUpdates) {
-        this.validateTaf(newTafState);
-        this.setState({
-          tafAsObject: newTafState,
-          hasEdits: true
-        });
       }
     }
   }
@@ -776,19 +735,6 @@ class Taf extends Component {
     }
   }
 
-  /*
-    Callback function called by SortableElement and SortableContainer when changegroups are sorted by Drag and Drop
-  */
-  onSortEnd ({ oldIndex, newIndex }) {
-    const newTafState = cloneDeep(this.state.tafAsObject);
-    newTafState.changegroups = arrayMove(newTafState.changegroups, oldIndex, newIndex);
-    this.validateTaf(newTafState);
-    this.setState({
-      tafAsObject: newTafState,
-      hasEdits: true
-    });
-  };
-
   componentWillReceiveProps (nextProps) {
     if (!this.state.hasEdits && nextProps.selectedTaf) {
       this.validateTaf(nextProps.selectedTaf.tafData);
@@ -869,7 +815,6 @@ class Taf extends Component {
   }
 
   render () {
-    console.log('focused', this.state.focusedFieldName);
     const { selectedTaf, mode, dispatch, actions } = this.props;
     if (!selectedTaf) {
       return null;
@@ -908,8 +853,8 @@ class Taf extends Component {
                 taf={tafData}
                 focusedFieldName={this.state.focusedFieldName}
                 inputRef={this.registerElement}
-                onSortEnd={this.onSortEnd}
-                setTafValues={this.setTafValues}
+                onSortEnd={({ oldIndex, newIndex }) => { console.log(oldIndex, newIndex); dispatch(actions.reorderTafRowAction(oldIndex, newIndex)); }}
+                setTafValues={(valuesAtPaths) => dispatch(actions.updateTafFieldsAction(valuesAtPaths))}
                 onClick={this.onClick}
                 onKeyUp={this.onKeyUp}
                 onKeyDown={this.onKeyDown}

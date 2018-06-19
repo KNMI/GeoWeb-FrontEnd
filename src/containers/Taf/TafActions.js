@@ -14,7 +14,9 @@ export const LOCAL_ACTION_TYPES = {
   CORRECT_TAF: 'CORRECT_TAF',
   CANCEL_TAF: 'CANCEL_TAF',
   ADD_TAF_ROW: 'ADD_TAF_ROW',
-  REMOVE_TAF_ROW: 'REMOVE_TAF_ROW'
+  REMOVE_TAF_ROW: 'REMOVE_TAF_ROW',
+  REORDER_TAF_ROW: 'REORDER_TAF_ROW',
+  UPDATE_TAF_FIELDS: 'UPDATE_TAF_FIELDS'
 };
 
 export const LOCAL_ACTIONS = {
@@ -30,8 +32,10 @@ export const LOCAL_ACTIONS = {
   amendTafAction: (evt) => ({ type: LOCAL_ACTION_TYPES.AMEND_TAF, event: evt }),
   correctTafAction: (evt) => ({ type: LOCAL_ACTION_TYPES.CORRECT_TAF, event: evt }),
   cancelTafAction: (evt) => ({ type: LOCAL_ACTION_TYPES.CANCEL_TAF, event: evt }),
-  addTafRowAction: (evt, rowIndex) => ({ type: LOCAL_ACTION_TYPES.ADD_TAF_ROW, event: evt, rowIndex: rowIndex }),
-  removeTafRowAction: (evt, rowIndex) => ({ type: LOCAL_ACTION_TYPES.REMOVE_TAF_ROW, event: evt, rowIndex: rowIndex })
+  addTafRowAction: (rowIndex) => ({ type: LOCAL_ACTION_TYPES.ADD_TAF_ROW, rowIndex: rowIndex }),
+  removeTafRowAction: (rowIndex) => ({ type: LOCAL_ACTION_TYPES.REMOVE_TAF_ROW, rowIndex: rowIndex }),
+  reorderTafRowAction: (affectedIndex, newIndexValue) => ({ type: LOCAL_ACTION_TYPES.REORDER_TAF_ROW, affectedIndex: affectedIndex, newIndexValue: newIndexValue }),
+  updateTafFieldsAction: (valuesAtPaths) => ({ type: LOCAL_ACTION_TYPES.UPDATE_TAF_FIELDS, valuesAtPaths: valuesAtPaths })
 };
 
 export const MODES = {
@@ -46,6 +50,12 @@ export const EDIT_ABILITIES = {
     'check': 'isDiscardable',
     'action': 'discardTafAction'
   },
+  PASTE: {
+    'dataField': 'paste',
+    'label': 'Paste',
+    'check': 'isPastable',
+    'action': 'pasteTafAction'
+  },
   SAVE: {
     'dataField': 'save',
     'label': 'Save',
@@ -55,6 +65,7 @@ export const EDIT_ABILITIES = {
 };
 
 const EDIT_ABILITIES_ORDER = [
+  EDIT_ABILITIES.PASTE,
   EDIT_ABILITIES.DISCARD,
   EDIT_ABILITIES.SAVE
 ];
@@ -178,6 +189,7 @@ STATE.abilitiesPerStatus[0].abilities[MODES.READ][READ_ABILITIES.AMEND.check] = 
 STATE.abilitiesPerStatus[0].abilities[MODES.READ][READ_ABILITIES.PUBLISH.check] = false;
 STATE.abilitiesPerStatus[0].abilities[MODES.EDIT] = {};
 STATE.abilitiesPerStatus[0].abilities[MODES.EDIT][EDIT_ABILITIES.DISCARD.check] = true;
+STATE.abilitiesPerStatus[0].abilities[MODES.EDIT][EDIT_ABILITIES.PASTE.check] = true;
 STATE.abilitiesPerStatus[0].abilities[MODES.EDIT][EDIT_ABILITIES.SAVE.check] = true;
 
 // Concept TAFs
@@ -191,6 +203,7 @@ STATE.abilitiesPerStatus[1].abilities[MODES.READ][READ_ABILITIES.AMEND.check] = 
 STATE.abilitiesPerStatus[1].abilities[MODES.READ][READ_ABILITIES.PUBLISH.check] = true;
 STATE.abilitiesPerStatus[1].abilities[MODES.EDIT] = {};
 STATE.abilitiesPerStatus[1].abilities[MODES.EDIT][EDIT_ABILITIES.DISCARD.check] = true;
+STATE.abilitiesPerStatus[1].abilities[MODES.EDIT][EDIT_ABILITIES.PASTE.check] = false;
 STATE.abilitiesPerStatus[1].abilities[MODES.EDIT][EDIT_ABILITIES.SAVE.check] = true;
 
 // Published TAFs

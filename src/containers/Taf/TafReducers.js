@@ -1,6 +1,10 @@
 import produce from 'immer';
 import axios from 'axios';
 import moment from 'moment';
+import { arrayMove } from 'react-sortable-hoc';
+import setNestedProperty from 'lodash.set';
+import getNestedProperty from 'lodash.get';
+import removeNestedProperty from 'lodash.unset';
 import { ReadLocations } from '../../utils/admin';
 import { LOCAL_ACTION_TYPES, STATUSES, LIFECYCLE_STAGE_NAMES, getExample, MODES } from './TafActions';
 import { TAF_TEMPLATES, TIMELABEL_FORMAT, TIMESTAMP_FORMAT } from '../../components/Taf/TafTemplates';
@@ -358,7 +362,12 @@ const cancelTaf = (event, container) => {
   console.warn('cancelTaf is not yet fully implemented');
 };
 
-const addTafRow = (event, rowIndex, container) => {
+/**
+ * Add a row to the TAF table
+ * @param {number} rowIndex The index at which the row should be inserted, if null the row is appended at the end
+ * @param {Element} container The container in which the TAF table should be altered
+ */
+const addTafRow = (rowIndex, container) => {
   const { state } = container;
   const { selectedTaf } = state;
   if (!selectedTaf || !Array.isArray(selectedTaf) || selectedTaf.length !== 1) {
@@ -372,7 +381,12 @@ const addTafRow = (event, rowIndex, container) => {
   }));
 };
 
-const removeTafRow = (event, rowIndex, container) => {
+/**
+ * Remove a row from the TAF table
+ * @param {number} rowIndex The index of the row that should be removed
+ * @param {Element} container The container in which the TAF table should be altered
+ */
+const removeTafRow = (rowIndex, container) => {
   const { state } = container;
   const { selectedTaf } = state;
   if (!selectedTaf || !Array.isArray(selectedTaf) || selectedTaf.length !== 1 || typeof rowIndex !== 'number') {
@@ -385,7 +399,69 @@ const removeTafRow = (event, rowIndex, container) => {
     // }
     draftState.selectedTaf[0].hasEdits = true;
   }));
-  console.warn('removeTafRow is not yet fully implemented');
+};
+
+/**
+ * Reorder a row of the TAF table
+ * @param {number} affectedIndex The index of the row that should be reordered
+ * @param {number} newIndexValue The new position of the row
+ * @param {Element} container The container in which the TAF table should be altered
+ */
+const reorderTafRow = (affectedIndex, newIndexValue, container) => {
+  const { state } = container;
+  const { selectedTaf } = state;
+  console.log('rTR', affectedIndex, newIndexValue);
+  if (!selectedTaf || !Array.isArray(selectedTaf) || selectedTaf.length !== 1 ||
+    typeof affectedIndex !== 'number' || typeof newIndexValue !== 'number') {
+    return;
+  }
+  container.setState(produce(state, draftState => {
+    const newRows = arrayMove(draftState.selectedTaf[0].tafData.changegroups, affectedIndex, newIndexValue);
+    draftState.selectedTaf[0].tafData.changegroups.length = 0;
+    draftState.selectedTaf[0].tafData.changegroups.push(...newRows);
+    draftState.selectedTaf[0].hasEdits = true;
+  }));
+};
+
+/**
+ * Updates the value(s) of the properties of the TAF
+ * @param {Array} valuesAtPaths An array with objects, each containing a propertyPath and propertyValue
+ * @param {Element} container The container in which the TAF table should be altered
+
+ */
+const updateTafFields = (valuesAtPaths, container) => {
+  const { state } = container;
+  const { selectedTaf } = state;
+  if (!selectedTaf || !Array.isArray(selectedTaf) || selectedTaf.length !== 1 ||
+    !Array.isArray(valuesAtPaths) || valuesAtPaths.length === 0) {
+    return;
+  }
+  container.setState(produce(state, draftState => {
+    const { selectedTaf } = draftState;
+    const draftTafData = selectedTaf[0].tafData;
+    valuesAtPaths.forEach((entry) => {
+      if (entry && typeof entry === 'object' && entry.hasOwnProperty('propertyPath') && entry.hasOwnProperty('propertyValue')) {
+        if (entry.deleteProperty === true) {
+          removeNestedProperty(draftTafData, entry.propertyPath);
+
+          // removeNestedProperty on an array leaves an empty array element
+          // Therefore, the array needs to be cleaned by this one neat trick
+
+          // If the last element is a number, then it is an index in an array, so we know we are dealing with an array
+          const lastPathElem = entry.propertyPath.pop();
+          if (!isNaN(lastPathElem)) {
+            // Retrieve the array and leave all items that evaluate truthy.
+            // this filters everything as null, undefined, 0, {}, false, "", etc...
+            const theArr = getNestedProperty(draftTafData, entry.propertyPath);
+            setNestedProperty(draftTafData, entry.propertyPath, theArr.filter(n => n));
+          }
+        } else {
+          setNestedProperty(draftTafData, entry.propertyPath, entry.propertyValue);
+        }
+        draftState.selectedTaf[0].hasEdits = true;
+      }
+    });
+  }));
 };
 
 /**
@@ -434,10 +510,16 @@ export default (localAction, container) => {
       cancelTaf(localAction.event, container);
       break;
     case LOCAL_ACTION_TYPES.ADD_TAF_ROW:
-      addTafRow(localAction.event, localAction.rowIndex, container);
+      addTafRow(localAction.rowIndex, container);
       break;
     case LOCAL_ACTION_TYPES.REMOVE_TAF_ROW:
-      removeTafRow(localAction.event, localAction.rowIndex, container);
+      removeTafRow(localAction.rowIndex, container);
+      break;
+    case LOCAL_ACTION_TYPES.REORDER_TAF_ROW:
+      reorderTafRow(localAction.affectedIndex, localAction.newIndexValue, container);
+      break;
+    case LOCAL_ACTION_TYPES.UPDATE_TAF_FIELDS:
+      updateTafFields(localAction.valuesAtPaths, container);
       break;
   }
 };

@@ -270,7 +270,7 @@ class TafTable extends Component {
 
         {editable
           ? <SortableTBody tafChangeGroups={taf.changegroups} inputRef={inputRef} focusedFieldName={focusedFieldName}
-            onSortEnd={onSortEnd} invalidFields={invalidFields.changegroup} />
+            onSortEnd={onSortEnd} invalidFields={invalidFields.changegroup} helperClass='TafStyle' />
           : <tbody>
             {taf.changegroups.map((tafChangeGroup, index) => {
               return <ChangeGroup key={`changegroups-${index}`} tafChangeGroup={tafChangeGroup} inputRef={inputRef}
