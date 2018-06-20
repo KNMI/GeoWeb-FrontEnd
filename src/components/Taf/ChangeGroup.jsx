@@ -96,7 +96,8 @@ class ChangeGroup extends Component {
         name: 'changegroups-' + index + '-removable',
         value: editable ? '\uf00d' : '', // the remove icon
         disabled: !editable,
-        isButton: true,
+        isButton: editable,
+        isSpan: !editable,
         classes: [ 'noselect' ]
       }
     );

@@ -8,7 +8,7 @@ import isEqual from 'lodash.isequal';
 import Panel from '../../components/Panel';
 import CollapseOmni from '../../components/CollapseOmni';
 import { CATEGORY_REFS, INITIAL_STATE, LOCAL_ACTIONS } from './SigmetActions';
-import { localDispatch as dispatch } from './SigmetReducers';
+import dispatch from './SigmetReducers';
 
 import ContainerHeader from '../../components/Sigmet/ContainerHeader';
 import SigmetsCategory from '../../components/Sigmet/SigmetsCategory';

@@ -3,4 +3,5 @@
 --require babel-register
 --require ignore-styles
 --require test/testSetup.js
+--timeout 2000
 src/**/*.spec.js
