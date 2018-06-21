@@ -689,7 +689,6 @@ class Taf extends Component {
     }
     const { tafData } = selectedTaf;
     const abilityCtAs = this.reduceAbilities(); // CtA = Call To Action
-
     let validationErrors = null;
     let validationSucceeded = false;
     if (this.state.validationReport) {
