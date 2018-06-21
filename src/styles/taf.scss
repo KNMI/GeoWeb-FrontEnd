@@ -62,11 +62,14 @@
     > .col > .row {
       min-height: fit-content;
     }
-
+    .uuid {
+      padding: 0.5rem;
+    }
     .TacView {
       padding: 0.5rem;
       font-size: 0.9rem;
       font-weight: lighter;
+      min-height:5rem;
 
       > div:first-child {
         flex-direction: column;
@@ -116,3 +119,4 @@
     }
   }
 }
+

@@ -27,11 +27,11 @@ export default class FeedBackSection extends PureComponent {
           </Row>
           : null
         }
-        {children.list
+        {children.list && children.list.props && children.list.props && children.list.props.children
           ? <Row>
             <Col>
               <ListGroup>
-                {(flatten(Object.values(children.list).filter(v => Array.isArray(v)))).map((value, index) => {
+                {(flatten(Object.values(children.list.props.children).filter(v => Array.isArray(v)))).map((value, index) => {
                   return (<ListGroupItem key={'errmessageno' + index} color={status}
                     style={{ borderColor: '#a94442' }}>{(index + 1)} - {value}</ListGroupItem>);
                 })}

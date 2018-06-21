@@ -10,15 +10,21 @@ export default class TafSelector extends PureComponent {
     const { selectableTafs, selectedTaf, onChange } = this.props;
     return <Row className='TafSelector'>
       <Col xs='auto'>TAF for</Col>
-      <Col xs='auto'>
-        <Typeahead labelKey={option => option.label.text}
+      <Col xs='6'>
+        <Typeahead
+          filterBy={(option, props) => {
+            return true;
+          }}
+          labelKey={option => option.label.text}
           options={selectableTafs} onChange={onChange}
           selected={selectedTaf || []} placeholder={'Select a TAF'}
           renderMenuItemChildren={(option, props, index) => {
             return <Row>
-              <Col xs='5'>{option.location}</Col>
-              <Col xs='5'>{option.label.time}</Col>
-              <Col xs='2'><Icon name={option.label.icon} /></Col>
+              <Col xs='1'><Icon name={option.label.icon} /></Col>
+              <Col xs='1'>{option.location}</Col>
+              <Col xs='1'>{option.label.time}</Col>
+              <Col xs='3'>{option.status}</Col>
+              <Col xs='6'>{option.uuid}</Col>
             </Row>;
           }}
           clearButton />
@@ -38,12 +44,14 @@ export default class TafSelector extends PureComponent {
 TafSelector.propTypes = {
   selectableTafs: PropTypes.arrayOf(PropTypes.shape({
     location: PropTypes.string,
+    uuid: PropTypes.string,
     timeLabel: PropTypes.string,
     timestamp: MomentPropTypes.momentObj,
     status: PropTypes.string
   })),
   selectedTaf: PropTypes.arrayOf(PropTypes.shape({
     location: PropTypes.string,
+    uuid: PropTypes.string,
     timeLabel: PropTypes.string,
     timestamp: MomentPropTypes.momentObj,
     status: PropTypes.string

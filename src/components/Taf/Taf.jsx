@@ -21,6 +21,7 @@ import TacView from './TacView';
 import axios from 'axios';
 import { debounce } from '../../utils/debounce';
 import { MODES, READ_ABILITIES, EDIT_ABILITIES, byEditAbilities, byReadAbilities, LIFECYCLE_STAGE_NAMES } from '../../containers/Taf/TafActions';
+import TafValidator from './TafValidator';
 const TMP = '◷';
 
 const MOVE_DIRECTION = Enum(
@@ -75,96 +76,38 @@ class Taf extends Component {
     this.register = [];
   };
 
-  /**
-   * Validates TAF input in two steps:
-   * 1) Check for fallback values
-   * 2) Server side validation
-   * @param  {object} tafAsObject The TAF JSON to validate
-   * @return {object} A report of the validation
-   */
   validateTaf (tafAsObject) {
-    const taf = cloneDeep(tafAsObject);
-    const fallbackPointers = [];
-    getJsonPointers(taf, (field) => field && field.hasOwnProperty('fallback'), fallbackPointers);
+    let stringifiedTafObject = JSON.stringify(tafAsObject);
+    if (this.validatedTafObject !== stringifiedTafObject) {
+      this.validatedTafObject = stringifiedTafObject;
+      const { dispatch, actions } = this.props;
 
-    const inputParsingReport = {};
-    const fallbackPointersLength = fallbackPointers.length;
-    if (fallbackPointersLength > 0) {
-      inputParsingReport.message = 'TAF is not valid';
-      inputParsingReport.succeeded = false;
-      for (let pointerIndex = 0; pointerIndex < fallbackPointersLength; pointerIndex++) {
-        if (!inputParsingReport.hasOwnProperty('errors')) {
-          inputParsingReport.errors = {};
-        }
-        if (!inputParsingReport.errors.hasOwnProperty(fallbackPointers[pointerIndex])) {
-          inputParsingReport.errors[fallbackPointers[pointerIndex]] = [];
-        }
-        const pointerParts = fallbackPointers[pointerIndex].split('/');
-        pointerParts.shift();
-        let message = 'The pattern of the input was not recognized.';
-        const fallbackedProperty = getNestedProperty(taf, pointerParts);
-        if (fallbackedProperty.hasOwnProperty('fallback') && fallbackedProperty.fallback.hasOwnProperty('message')) {
-          message = fallbackedProperty.fallback.message;
-        }
-        inputParsingReport.errors[fallbackPointers[pointerIndex]].push(message);
-        removeNestedProperty(taf, pointerParts);
-      }
-    } else {
-      inputParsingReport.message = 'TAF input is verified';
-      inputParsingReport.succeeded = true;
-    }
-
-    clearNullPointersAndAncestors(taf);
-    if (!getNestedProperty(taf, ['changegroups'])) {
-      setNestedProperty(taf, ['changegroups'], []);
-    }
-    // if (getNestedProperty(taf, ['metadata', 'issueTime']) === 'not yet issued') {
-    //   setNestedProperty(taf, ['metadata', 'issueTime'], moment.utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z');
-    // }
-
-    axios({
-      method: 'post',
-      url: this.props.urls.BACKEND_SERVER_URL + '/tafs/verify',
-      withCredentials: true,
-      data: JSON.stringify(taf),
-      headers: { 'Content-Type': 'application/json' }
-    }).then(
-      response => {
-        if (response.data) {
-          let responseJson = response.data;
-          if (responseJson.hasOwnProperty('errors') && typeof responseJson.errors === 'string') {
-            try {
-              responseJson.errors = JSON.parse(responseJson.errors);
-            } catch (exception) {
-              console.error('Unparseable errors data from response', exception);
+      TafValidator(this.props.urls.BACKEND_SERVER_URL, tafAsObject).then((validationReport) => {
+        this.setState({
+          validationReport: validationReport
+        }, () => {
+          let validationErrors = [];
+          let validationSucceeded = false;
+          let validationMessage = 'Unable to get validation report';
+          if (validationReport) {
+            if (validationReport.errors) {
+              validationErrors = validationReport.errors;
+            }
+            if (validationReport.message) {
+              validationMessage = validationReport.message;
+            }
+            if (validationReport.succeeded === true) {
+              validationSucceeded = true;
             }
           }
-          const aggregateReport = {
-            message: responseJson.message ? responseJson.message : (inputParsingReport.succeeded && responseJson.succeeded ? 'TAF input is verified' : 'TAF input is not valid'),
-            succeeded: inputParsingReport.succeeded && responseJson.succeeded,
-            errors: Object.assign({}, inputParsingReport.errors, responseJson.errors)
-          };
-          this.setState({
-            validationReport: aggregateReport
-          });
-        } else {
-          this.setState({
-            validationReport: inputParsingReport
-          });
-        }
-      }
-    ).catch(error => {
-      console.error(error);
-      const aggregateReport = {
-        message: 'TAF input is not valid',
-        subheading: '(Couldn\'t retrieve all validation details.)',
-        succeeded: false,
-        errors: inputParsingReport.errors
-      };
-      this.setState({
-        validationReport: aggregateReport
+
+          dispatch(actions.updateFeedbackAction(
+            validationMessage,
+            validationSucceeded?'info':'danger', null, validationErrors)
+          );
+        });
       });
-    });
+    }
   }
 
   /**
@@ -695,6 +638,7 @@ class Taf extends Component {
       case READ_ABILITIES.COPY['dataField']:
         return copiedTafRef === selectedTaf.tafData.metadata.uuid;
       case READ_ABILITIES.CORRECT['dataField']:
+        return (tafType === LIFECYCLE_STAGE_NAMES.CANCEL);
       case READ_ABILITIES.AMEND['dataField']:
       case READ_ABILITIES.CANCEL['dataField']:
         return !isInValidityPeriod || tafType === LIFECYCLE_STAGE_NAMES.CANCEL;
@@ -758,9 +702,11 @@ class Taf extends Component {
     }
 
     const series = this.extractScheduleInformation(tafData);
+
     return (
       <Row className='Taf'>
         <Col>
+          <Row><Col className='uuid'>{ tafData && tafData.metadata && tafData.metadata.uuid ? tafData.metadata.uuid : '-' }</Col></Row>
           <TacView taf={tafData} />
           <Row className='TafTable'>
             <Col>
@@ -781,19 +727,6 @@ class Taf extends Component {
           <TimeSchedule series={series}
             startMoment={moment.utc(tafData.metadata.validityStart)}
             endMoment={moment.utc(tafData.metadata.validityEnd)} />
-          {feedback
-            ? <FeedbackSection status={feedback.status ? feedback.status : 'info'}>
-              {feedback.title
-                ? <span data-field='title'>{feedback.title}</span>
-                : null
-              }
-              {feedback.subTitle
-                ? <span data-field='subTitle'>{feedback.subTitle}</span>
-                : null
-              }
-            </FeedbackSection>
-            : null
-          }
           <ActionSection>
             {abilityCtAs.map((ability) =>
               <Button key={`action-${ability.dataField}`}
@@ -804,6 +737,23 @@ class Taf extends Component {
               </Button>
             )}
           </ActionSection>
+          {feedback
+            ? <FeedbackSection status={feedback.status ? feedback.status : 'info'}>
+              {feedback.title
+                ? <span data-field='title'>{feedback.title}</span>
+                : null
+              }
+              {feedback.subTitle
+                ? <span data-field='subTitle'>{feedback.subTitle}</span>
+                : null
+              }
+              {feedback.list
+                ? <span data-field='list'>{feedback.list}</span>
+                : null
+              }
+            </FeedbackSection>
+            : null
+          }
         </Col>
       </Row>
     );

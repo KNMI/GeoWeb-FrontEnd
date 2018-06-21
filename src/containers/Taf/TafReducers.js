@@ -8,7 +8,7 @@ import removeNestedProperty from 'lodash.unset';
 import uuidv4 from 'uuid/v4';
 import { clearNullPointersAndAncestors } from '../../utils/json';
 import { ReadLocations } from '../../utils/admin';
-import { LOCAL_ACTION_TYPES, STATUSES, LIFECYCLE_STAGE_NAMES, getExample, MODES } from './TafActions';
+import { LOCAL_ACTION_TYPES, STATUSES, LIFECYCLE_STAGE_NAMES, MODES } from './TafActions';
 import { TAF_TEMPLATES, TIMELABEL_FORMAT, TIMESTAMP_FORMAT } from '../../components/Taf/TafTemplates';
 
 /**
@@ -135,6 +135,18 @@ const synchronizeSelectableTafs = (container) => {
   if (!urls || !urls.hasOwnProperty('BACKEND_SERVER_URL') || typeof urls.BACKEND_SERVER_URL !== 'string') {
     return;
   }
+
+  /* TODO: This is a fix in case no TAFS are present on the backend and when examples are not provided,
+    the list with selectable tags is otherwise never populated
+  */
+  updateSelectableTafs(container, [{
+    metadata:{
+      'status': 'concept',
+      'type': 'normal',
+      'location': 'EHAM'
+    }
+  }]);
+
   const tafResources = [
     { url: `${urls.BACKEND_SERVER_URL}/tafs?active=true`, status: STATUSES.PUBLISHED },
     { url: `${urls.BACKEND_SERVER_URL}/tafs?active=false&status=concept`, status: STATUSES.CONCEPT }
@@ -146,14 +158,14 @@ const synchronizeSelectableTafs = (container) => {
       withCredentials: true,
       responseType: 'json'
     }).then(response => {
-      const additionalResponse = tafResource.status === STATUSES.PUBLISHED
-        ? getExample(container.state.timestamps.current, container.state.locations[0], tafResource.status)
-        : getExample(container.state.timestamps.next, container.state.locations[2], tafResource.status);
-      response.data.ntafs += additionalResponse.data.ntafs;
       if (!Array.isArray(response.data.tafs)) {
         response.data.tafs = [];
       }
-      response.data.tafs.push(...additionalResponse.data.tafs);
+      // const additionalResponse = tafResource.status === STATUSES.PUBLISHED
+      //  ? getExample(container.state.timestamps.current, container.state.locations[0], tafResource.status)
+      //  : getExample(container.state.timestamps.next, container.state.locations[2], tafResource.status);
+      // response.data.ntafs += additionalResponse.data.ntafs;
+      // response.data.tafs.push(...additionalResponse.data.tafs);
       receivedTafsCallback(container, response.data);
     }).catch(error => {
       console.error('Couldn\'t retrieve TAFs', error);
@@ -183,10 +195,11 @@ const updateLocations = (container) => {
       container.setState(produce(container.state, draftState => {
         draftState.locations.length = 0;
         draftState.locations.push(...locationNames);
-      }));
-      if (shouldSync(container)) {
-        synchronizeSelectableTafs(container);
-      }
+      }), () => {
+        if (shouldSync(container)) {
+          synchronizeSelectableTafs(container);
+        }
+      });
     } else {
       console.error('Couldn\'t retrieve TAF locations');
     }
@@ -203,14 +216,16 @@ const updateTimestamps = (container) => {
   let TAFStartHour = now.hour();
   TAFStartHour = TAFStartHour - TAFStartHour % 6;
   const currentTafTimestamp = now.clone().hour(TAFStartHour).startOf('hour');
-  container.setState(produce(state, draftState => {
+  let data = produce(state, draftState => {
     draftState.timestamps.current = currentTafTimestamp;
     draftState.timestamps.next = currentTafTimestamp.clone().add(6, 'hour');
     draftState.timestamps.modified = now;
-  }));
-  if (shouldSync(container)) {
-    synchronizeSelectableTafs(container);
-  }
+  });
+  container.setState(data, () => {
+    if (shouldSync(container)) {
+      synchronizeSelectableTafs(container);
+    }
+  });
 };
 
 /**
@@ -243,11 +258,13 @@ const updateSelectableTafs = (container, tafs) => {
   const statusUpdatableTafs = tafs[0].metadata.status.toUpperCase();
   container.setState(produce(state, draftState => {
     const persistingTafs = draftState.selectableTafs.filter((selectable) => selectable.tafData.metadata.status.toUpperCase() !== statusUpdatableTafs);
-    draftState.selectableTafs.length = 0;
+    draftState.selectableTafs.length = 0; // TODO: Why not set to [] ?
     const { locations, timestamps } = draftState;
     tafs.filter(isTafSelectable(locations, timestamps)).forEach((incomingTaf) => {
       const selectableTaf = produce(TAF_TEMPLATES.SELECTABLE_TAF, (draftSelectable) => {
         draftSelectable.location = incomingTaf.metadata.location.toUpperCase();
+        draftSelectable.uuid = incomingTaf.metadata.uuid;
+        draftSelectable.status = incomingTaf.metadata.status + ' / ' + incomingTaf.metadata.type;
         draftSelectable.timestamp = moment.utc(incomingTaf.metadata.validityStart);
         draftSelectable.label.time = draftSelectable.timestamp.format(TIMELABEL_FORMAT);
         draftSelectable.label.text = `${draftSelectable.location} ${draftSelectable.label.time}`;
@@ -338,7 +355,6 @@ const selectTaf = (selection, container) => {
   if (isSameSelectableTaf(selection[0], state.selectedTaf)) {
     return;
   }
-
   container.setState(produce(state, draftState => {
     if (!Array.isArray(draftState.selectedTaf)) {
       draftState.selectedTaf = [];
@@ -391,10 +407,24 @@ const saveTaf = (event, container) => {
     headers: { 'Content-Type': 'application/json' }
   }).then(response => {
     updateFeedback(response.data.message, response.data.succeeded ? 'success' : 'danger', null, null, container);
+
     container.setState(produce(state, draftState => {
       draftState.mode = MODES.READ;
-    }));
-    synchronizeSelectableTafs(container);
+    }), () => {
+      synchronizeSelectableTafs(container);
+      /* TODO: I want to set the metadata status from NEW to CONCEPT.
+          or even better ,replace the current taf selection with the returned tafJSON */
+      try {
+        if (selectedTaf[0].tafData.metadata.status === STATUSES.NEW) {
+          container.setState(produce(state, draftState => {
+            draftState.selectedTaf[0].tafData.metadata.status = STATUSES.CONCEPT;
+            draftState.mode = MODES.READ;
+          }));
+        }
+      } catch (e) {
+        console.error('Unable to change selected tag status from new to concept', e);
+      }
+    });
   }).catch(error => {
     console.error('Couldn\'t save TAF', error);
     updateFeedback('Couldn\'t save TAF: an error occured while trying to save.',
@@ -440,8 +470,9 @@ const deleteTaf = (event, container) => {
     container.setState(produce(state, draftState => {
       draftState.mode = MODES.READ;
       draftState.selectedTaf.length = 0;
-    }));
-    synchronizeSelectableTafs(container);
+    }), () => {
+      synchronizeSelectableTafs(container);
+    });
   }).catch(error => {
     console.error('Couldn\'t delete TAF', error);
     updateFeedback('Couldn\'t delete TAF: an error occured while trying to delete.',
@@ -489,11 +520,13 @@ const pasteTaf = (event, container) => {
  */
 const publishTaf = (event, container) => {
   const { state } = container;
-  container.setState(produce(state, draftState => {
+  let data = produce(state, draftState => {
     draftState.selectedTaf[0].tafData.metadata.status = STATUSES.PUBLISHED;
     draftState.mode = MODES.READ;
-  }));
-  saveTaf(event, container);
+  });
+  container.setState(data, () => {
+    saveTaf(event, container);
+  });
 };
 
 /**
@@ -536,7 +569,15 @@ const correctTaf = (event, container) => {
  * @param {Element} container The container in which the cancel action was triggered
  */
 const cancelTaf = (event, container) => {
-  console.warn('cancelTaf is not yet fully implemented');
+  const { state } = container;
+  const correctionUuid = uuidv4();
+  container.setState(produce(state, draftState => {
+    draftState.selectedTaf[0].tafData.metadata.previousUuid = draftState.selectedTaf[0].tafData.metadata.uuid;
+    draftState.selectedTaf[0].tafData.metadata.uuid = correctionUuid;
+    draftState.selectedTaf[0].tafData.metadata.status = STATUSES.CONCEPT;
+    draftState.selectedTaf[0].tafData.metadata.type = LIFECYCLE_STAGE_NAMES.CANCEL;
+    draftState.mode = MODES.EDIT;
+  }));
 };
 
 /**
@@ -587,7 +628,7 @@ const removeTafRow = (rowIndex, container) => {
 const reorderTafRow = (affectedIndex, newIndexValue, container) => {
   const { state } = container;
   const { selectedTaf } = state;
-  console.log('rTR', affectedIndex, newIndexValue);
+  // console.log('rTR', affectedIndex, newIndexValue);
   if (!selectedTaf || !Array.isArray(selectedTaf) || selectedTaf.length !== 1 ||
     typeof affectedIndex !== 'number' || typeof newIndexValue !== 'number') {
     return;
