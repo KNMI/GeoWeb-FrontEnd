@@ -16,6 +16,14 @@ const OSM_NL_STYLE = {
   dimensions: []
 };
 
+const OPENSTREETS_NL_STYLE = {
+  name: 'OpenStreets_NL',
+  title: 'KNMI GeoWeb OpenStreets NL',
+  type: 'twms',
+  enabled: true,
+  dimensions: []
+};
+
 const ESRI_ARCGIS_CANVAS = {
   name: 'arcGisCanvas',
   title: 'ESRI ArcGIS canvas map',
