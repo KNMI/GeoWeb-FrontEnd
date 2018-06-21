@@ -39,11 +39,19 @@
          "tileServerType": "osm"
      }
     },
-    "OpenStreetMap_NL": {
+    "OpenStreets_NL": {
       "EPSG:3857": {
          "home": "https://s3.eu-central-1.amazonaws.com/knmi-basemaps/openstreetmapnl/",
-         "minLevel": 5,
+         "minLevel": 1,
          "maxLevel": 16,
+         "tileServerType": "osm"
+     }
+    },
+    "OpenStreetMap_NL": {
+      "EPSG:3857": {
+         "home": "https://s3.eu-central-1.amazonaws.com/knmi-basemaps/openstreetmapnl-carto/",
+         "minLevel": 1,
+         "maxLevel": 15,
          "tileServerType": "osm"
      }
     },
