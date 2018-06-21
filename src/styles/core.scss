@@ -6,6 +6,7 @@
 @import 'timeschedule';
 @import 'slider';
 @import 'taftable';
+@import 'taf';
 @import 'popover';
 @import 'datetime';
 @import 'layermanager';
@@ -180,6 +181,7 @@ button.btn.btn-sm, button.btn.btn-group-sm > .btn {
 
 .btn-primary.disabled, .btn-primary.disabled:hover {
   @extend .ux-interactive:disabled;
+  background-color: $ux-interactive-color;
 }
 
 .btn-outline-info {
@@ -574,7 +576,8 @@ main:fullscreen {
 }
 input[type=number]::-webkit-outer-spin-button,
 input[type=number]::-webkit-inner-spin-button {
-    -webkit-appearance: none;
+  -webkit-appearance: none;
+  appearance: none;
 }
 .Footer .datalayer.active {
   background-color: rgba(217,237,247, 0.6);

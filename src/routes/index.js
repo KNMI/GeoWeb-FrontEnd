@@ -1,6 +1,6 @@
 // We only need to import the modules necessary for initial render
 import React from 'react';
-import Async from 'react-code-splitting';
+// import Async from 'react-code-splitting';
 import BaseLayout from '../layouts/BaseLayout';
 import HeaderedLayout from '../layouts/HeaderedLayout';
 import SidebarredLayout from '../layouts/SidebarredLayout';
@@ -27,15 +27,26 @@ import TafExampleTafManagementPanel from '../components/Management/TafExampleTaf
 import TafLocationsManagementPanel from '../components/Management/TafLocationsManagementPanel';
 import SigmetParameterManagementPanel from '../components/Management/SigmetParameterManagementPanel';
 import LocationManagementPanel from '../components/Management/LocationManagementPanel';
-import TafsContainer from '../containers/TafsContainer';
-const SigmetManagementPanel = (props) => <Async load={import('../components/Management/SigmetManagementPanel')} componentProps={props} />;
-const TitleBarContainer = (props) => <Async load={import('../containers/TitleBarContainer')} componentProps={props} />;
-const MapActionsContainer = (props) => <Async load={import('../containers/MapActionsContainer')} componentProps={props} />;
-const LayerManagerPanel = (props) => <Async load={import('../components/LayerManagerPanel')} componentProps={props} />;
-const MapPanel = (props) => <Async load={import('../components/MapPanel')} componentProps={props} />;
-const SidebarContainer = (props) => <Async load={import('../containers/Management/SidebarContainer')} componentProps={props} />;
-const ManagementPanel = (props) => <Async load={import('../components/Management/ManagementPanel')} componentProps={props} />;
-const SigmetsContainer = (props) => <Async load={import('../containers/Sigmet/SigmetsContainer')} componentProps={props} />;
+import TafsContainer from '../containers/Taf/TafsContainer';
+
+/* Disable async loading, causes troubles with hmr */
+import SigmetManagementPanel from '../components/Management/SigmetManagementPanel';
+import TitleBarContainer from '../containers/TitleBarContainer';
+import MapActionsContainer from '../containers/MapActionsContainer';
+import LayerManagerPanel from '../components/LayerManagerPanel';
+import MapPanel from '../components/MapPanel';
+import SidebarContainer from '../containers/Management/SidebarContainer';
+import ManagementPanel from '../components/Management/ManagementPanel';
+import SigmetsContainer from '../containers/Sigmet/SigmetsContainer';
+
+// const SigmetManagementPanel = (props) => <Async load={import('../components/Management/SigmetManagementPanel')} componentProps={props} />;
+// const TitleBarContainer = (props) => <Async load={import('../containers/TitleBarContainer')} componentProps={props} />;
+// const MapActionsContainer = (props) => <Async load={import('../containers/MapActionsContainer')} componentProps={props} />;
+// const LayerManagerPanel = (props) => <Async load={import('../components/LayerManagerPanel')} componentProps={props} />;
+// const MapPanel = (props) => <Async load={import('../components/MapPanel')} componentProps={props} />;
+// const SidebarContainer = (props) => <Async load={import('../containers/Management/SidebarContainer')} componentProps={props} />;
+// const ManagementPanel = (props) => <Async load={import('../components/Management/ManagementPanel')} componentProps={props} />;
+// const SigmetsContainer = (props) => <Async load={import('../containers/Sigmet/SigmetsContainer')} componentProps={props} />;
 const mapStateToHeaderProps = state => ({
   title: 'header',
   user: state.userProperties,

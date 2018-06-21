@@ -28,6 +28,7 @@ div.TimeSchedule > div.col > div.row > div.col{
 }
 
 .TimeSchedule div.row .tick {
+  flex-direction: row;
   justify-content: center;
 }
 
@@ -75,6 +76,10 @@ div.TimeSchedule > div.col > div.row > div.col{
 .TimeSchedule .scheduleHighlight .col-auto i {
   margin: 0 0.1rem;
   margin-left: 0.3rem;
+}
+
+.TimeSchedule .scheduleHighlight.showPrefix.col {
+  flex-direction: row;
 }
 
 .TimeSchedule .scheduleHighlight {

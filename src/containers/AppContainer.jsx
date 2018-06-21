@@ -1,5 +1,5 @@
-import React, { Component } from 'react';
 import { hot, setConfig } from 'react-hot-loader';
+import React, { Component } from 'react';
 import { hashHistory, Router } from 'react-router';
 import { Provider } from 'react-redux';
 import PropTypes from 'prop-types';
@@ -32,4 +32,4 @@ AppContainer.propTypes = {
   routes : PropTypes.object.isRequired,
   store  : PropTypes.object.isRequired
 };
-export default hot(module)(AppContainer)
+export default hot(module)(AppContainer);

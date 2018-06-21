@@ -8,7 +8,7 @@ import SortableChangeGroup from './SortableChangeGroup';
 import { TAF_TEMPLATES, TAF_TYPES, PHENOMENON_TYPES, getPhenomenonType } from './TafTemplates';
 import getNestedProperty from 'lodash.get';
 import cloneDeep from 'lodash.clonedeep';
-import { tacToJsonForWind, tacToJsonForLocation, jsonToTacForLocation, tacToJsonForCavok, tacToJsonForVisibility, tacToJsonForWeather, tacToJsonForVerticalVisibility, tacToJsonForClouds,
+import { tacToJsonForWind, tacToJsonForCavok, tacToJsonForVisibility, tacToJsonForWeather, tacToJsonForVerticalVisibility, tacToJsonForClouds,
   jsonToTacForChangeType, tacToJsonForProbabilityAndChangeType, jsonToTacForProbability, tacToJsonForTimestamp, tacToJsonForPeriod } from './TafFieldsConverter';
 
 const SortableTBody = SortableContainer(({ tafChangeGroups, inputRef, focusedFieldName, invalidFields }) => {
@@ -124,7 +124,6 @@ class TafTable extends Component {
    * @param  {HTMLElement} element The (input-)element to update the value from
    */
   updateValue (element) {
-
     let name = element ? (element.name || element.props.name) : null;
     // Empty in this case means that val is an object which has keys, but for every key its value is null
     const isObjInArrayEmpty = (val, lastPathElem) => {
@@ -187,12 +186,6 @@ class TafTable extends Component {
       }
       if (!propertiesToUpdate[0].propertyValue) {
         switch (propertyTypeName) {
-          case 'location':
-            propertiesToUpdate[0].propertyPath.pop();
-            propertiesToUpdate[0].propertyPath.push('location');
-            const location = jsonToTacForLocation(getNestedProperty(this.props.taf, propertiesToUpdate[0].propertyPath), true);
-            propertiesToUpdate[0].propertyValue = tacToJsonForLocation(element.value, location, true);
-            break;
           case 'probability':
             propertiesToUpdate[0].propertyPath.pop();
             propertiesToUpdate[0].propertyPath.push('changeType');
@@ -277,7 +270,7 @@ class TafTable extends Component {
 
         {editable
           ? <SortableTBody tafChangeGroups={taf.changegroups} inputRef={inputRef} focusedFieldName={focusedFieldName}
-            onSortEnd={onSortEnd} invalidFields={invalidFields.changegroup} />
+            onSortEnd={onSortEnd} invalidFields={invalidFields.changegroup} helperClass='TafStyle' />
           : <tbody>
             {taf.changegroups.map((tafChangeGroup, index) => {
               return <ChangeGroup key={`changegroups-${index}`} tafChangeGroup={tafChangeGroup} inputRef={inputRef}

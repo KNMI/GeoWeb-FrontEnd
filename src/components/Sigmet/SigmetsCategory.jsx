@@ -3,7 +3,7 @@ import { Col, Row, Badge, Card, CardHeader, CardBlock } from 'reactstrap';
 import CollapseOmni from '../../components/CollapseOmni';
 import Icon from 'react-fa';
 import PropTypes from 'prop-types';
-import { SIGMET_MODES, CATEGORY_REFS, READ_ABILITIES, PUBLISHED_ABILITIES } from '../../containers/Sigmet/SigmetActions';
+import { SIGMET_MODES, CATEGORY_REFS, READ_ABILITIES } from '../../containers/Sigmet/SigmetActions';
 import SigmetEditMode from './SigmetEditMode';
 import SigmetReadMode from './SigmetReadMode';
 
@@ -122,8 +122,6 @@ SigmetsCategory.propTypes = {
   actions: PropTypes.shape({
     toggleCategoryAction: PropTypes.func
   }),
-  drawModeStart: PropTypes.string,
-  drawModeEnd: PropTypes.string,
   hasStartCoordinates: PropTypes.bool,
   hasEndCoordinates: PropTypes.bool,
   parameters: PropTypes.shape({

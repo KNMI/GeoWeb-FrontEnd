@@ -121,7 +121,7 @@ class TimeSchedule extends PureComponent {
     const intervalMinorBasis = 100 / numberOfMinorTickIntervals;
 
     return <Row className='TimeSchedule'>
-      <Col style={{ flex: 1, flexDirection: 'column' }}>
+      <Col>
         {series.map(serie => {
           let cumOffset = 0;
           let rowClasses = (serie.hasOwnProperty(STYLES) ? serie[STYLES].join(' ') : '') + ' ' + serie.label + ' groupRow';
@@ -223,11 +223,11 @@ class TimeSchedule extends PureComponent {
 }
 
 TimeSchedule.defaultProps = {
-  startMoment: moment().utc().subtract(12, 'hour'),
-  endMoment: moment().utc().add(12, 'hour'),
+  startMoment: moment.utc().subtract(12, 'hour'),
+  endMoment: moment.utc().add(12, 'hour'),
   majorTickInterval: moment.duration(6, 'hour'),
   minorTickInterval: moment.duration(1, 'hour'),
-  series: [ { label: 'default label', ranges: [ { start: moment().utc().subtract(6, 'hour'), end: moment().utc().add(6, 'hour'), value: 'default value', prefix: null, styles: [] } ] } ]
+  series: [ { label: 'default label', ranges: [ { start: moment.utc().subtract(6, 'hour'), end: moment.utc().add(6, 'hour'), value: 'default value', prefix: null, styles: [] } ] } ]
 };
 
 TimeSchedule.propTypes = {

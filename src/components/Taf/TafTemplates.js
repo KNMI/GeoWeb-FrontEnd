@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import MomentPropTypes from 'react-moment-proptypes';
 import cloneDeep from 'lodash.clonedeep';
 import Enum from 'es6-enum';
 
@@ -23,7 +24,9 @@ const TEMPLATES = {
   WIND: {
     direction: null, // number
     speed: null, // number
+    speedOperator: null, // string
     gusts: null, // number
+    gustsOperator: null, // string
     unit: null // string
   },
   TEMPERATURE: [{
@@ -36,8 +39,11 @@ const TEMPLATES = {
     status: null, // string
     type: null, // string
     uuid: null, // string
+    previousUuid: null, // string
     validityStart: null, // string
-    validityEnd: null // string
+    validityEnd: null, // string,
+    modified: null, // string
+    author: null
   }
 };
 
@@ -62,6 +68,17 @@ TEMPLATES.TAF = {
   changegroups: [
     cloneDeep(TEMPLATES.CHANGE_GROUP)
   ]
+};
+TEMPLATES.SELECTABLE_TAF = {
+  location: null, // string
+  timestamp: null, // moment
+  hasEdits: false, // boolean
+  label: {
+    time: null, // string
+    text: null, // string
+    icon: null // string
+  },
+  tafData: cloneDeep(TEMPLATES.TAF)
 };
 
 /**
@@ -129,8 +146,11 @@ const TYPES = {
     status: PropTypes.string,
     type: PropTypes.string,
     uuid: PropTypes.string,
+    previousUuid: PropTypes.string,
     validityStart: PropTypes.string,
-    validityEnd: PropTypes.string
+    validityEnd: PropTypes.string,
+    modified: PropTypes.string,
+    author: PropTypes.string
   })
 };
 TYPES.FORECAST = PropTypes.shape({
@@ -166,6 +186,17 @@ TYPES.TAF = PropTypes.shape({
   forecast: TYPES.FORECAST,
   metadata: TYPES.METADATA,
   changegroups: PropTypes.arrayOf(TYPES.CHANGE_GROUP)
+});
+TYPES.SELECTABLE_TAF = PropTypes.shape({
+  location: PropTypes.string,
+  timestamp: MomentPropTypes.momentObj,
+  hasEdits: PropTypes.bool,
+  label: PropTypes.shape({
+    time: PropTypes.string,
+    text: PropTypes.string,
+    icon: PropTypes.string
+  }),
+  tafData: TYPES.TAF
 });
 
 /**
@@ -269,6 +300,9 @@ const getPhenomenonLabel = (typeSymbol) => {
   }
 };
 
+const TIMESTAMP_FORMAT = ('YYYY-MM-DD[T]HH:mm:ss[Z]');
+const TIMELABEL_FORMAT = ('HH:mm');
+
 module.exports = {
   TAF_TEMPLATES: TEMPLATES,
   TAF_TYPES: TYPES,
@@ -279,5 +313,7 @@ module.exports = {
   PHENOMENON_TYPES: PHENOMENON_TYPES,
   PHENOMENON_TYPES_ORDER: PHENOMENON_TYPES_ORDER,
   getPhenomenonType: getPhenomenonType,
-  getPhenomenonLabel: getPhenomenonLabel
+  getPhenomenonLabel: getPhenomenonLabel,
+  TIMESTAMP_FORMAT: TIMESTAMP_FORMAT,
+  TIMELABEL_FORMAT: TIMELABEL_FORMAT
 };

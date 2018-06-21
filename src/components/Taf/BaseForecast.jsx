@@ -3,23 +3,15 @@ import PropTypes from 'prop-types';
 import { TAF_TEMPLATES, TAF_TYPES } from './TafTemplates';
 import TafCell from './TafCell';
 import cloneDeep from 'lodash.clonedeep';
-import { jsonToTacForPeriod, jsonToTacForLocation, jsonToTacForWind, jsonToTacForCavok, jsonToTacForVerticalVisibility, jsonToTacForVisibility, jsonToTacForWeather, jsonToTacForClouds } from './TafFieldsConverter';
-import moment from 'moment';
+import { jsonToTacForPeriod, jsonToTacForType, jsonToTacForIssue,
+  jsonToTacForWind, jsonToTacForCavok, jsonToTacForVerticalVisibility,
+  jsonToTacForVisibility, jsonToTacForWeather, jsonToTacForClouds } from './TafFieldsConverter';
 /*
   BaseForecast of TAF editor, it is the top row visible in the UI.
 */
 class BaseForecast extends Component {
   render () {
     const { tafMetadata, tafForecast, focusedFieldName, inputRef, editable, invalidFields } = this.props;
-    let issueTime = 'Not yet issued';
-    if (tafMetadata.hasOwnProperty('issueTime')) {
-      if (tafMetadata.issueTime !== 'not yet issued') {
-        const momentIssueTime = moment.utc(tafMetadata.issueTime);
-        if (momentIssueTime.isValid()) {
-          issueTime = momentIssueTime.format('DD/MM HH:mm [UTC]');
-        }
-      }
-    }
     const columns = [
       {
         name: 'sortable',
@@ -29,24 +21,26 @@ class BaseForecast extends Component {
       },
       {
         name: 'metadata-type',
-        value: tafMetadata.hasOwnProperty('type') ? tafMetadata.type || '' : '',
+        value: tafMetadata.hasOwnProperty('type') ? jsonToTacForType(tafMetadata.type) || '' : '',
         disabled: true,
         classes: ['TACnotEditable']
       },
       {
         name: 'metadata-location',
-        value: tafMetadata.hasOwnProperty('location') ? jsonToTacForLocation(tafMetadata.location, true) || '' : '',
-        disabled: !editable || (tafMetadata.type !== 'concept' && tafMetadata.type !== 'normal' && tafMetadata.type)
+        value: tafMetadata.hasOwnProperty('location') ? tafMetadata.location || '' : '',
+        disabled: true,
+        classes: ['TACnotEditable']
       },
       {
         name: 'metadata-issueTime',
-        value: issueTime,
+        value: tafMetadata.hasOwnProperty('issueTime') ? jsonToTacForIssue(tafMetadata.issueTime) || '' : 'not yet issued',
         disabled: true,
         classes: ['TACnotEditable']
       },
       {
         name: 'metadata-validity',
-        value: tafMetadata.hasOwnProperty('validityStart') && tafMetadata.hasOwnProperty('validityEnd') ? jsonToTacForPeriod(tafMetadata.validityStart, tafMetadata.validityEnd) || '' : '',
+        value: tafMetadata.hasOwnProperty('validityStart') && tafMetadata.hasOwnProperty('validityEnd')
+          ? jsonToTacForPeriod(tafMetadata.validityStart, tafMetadata.validityEnd) || '' : '',
         disabled: true,
         classes: ['TACnotEditable']
       },
@@ -105,7 +99,28 @@ class BaseForecast extends Component {
     );
     columns.forEach((column) => {
       column.autoFocus = column.name === focusedFieldName;
-      const isInvalid = invalidFields.includes(column.name);
+      // TODO: Verify frontend and remove if all OK
+      // const isInvalid = invalidFields.includes(column.name);
+      // column.invalid = isInvalid;
+      // if (isInvalid) {
+      //  column.classes.push('TACColumnError');
+      // }
+      let name = column.name;
+      if (name.endsWith('probability') || name.endsWith('change')) {
+        const nameParts = name.split('-');
+        nameParts.pop();
+        nameParts.push('changeType');
+        name = nameParts.join('-');
+      }
+      if (name.endsWith('validity')) {
+        const nameParts = name.split('-');
+        nameParts.pop();
+        nameParts.push('changeStart');
+        name = nameParts.join('-');
+      }
+      let isInvalid = invalidFields.findIndex((element) => {
+        return element.startsWith(name);
+      }) !== -1;
       column.invalid = isInvalid;
       if (isInvalid) {
         column.classes.push('TACColumnError');

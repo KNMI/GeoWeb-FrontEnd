@@ -62,7 +62,9 @@ describe('(Functions) TafFieldsConverter', () => {
     let result = jsonToTacForWind({
       direction: 200,
       speed: 15,
+      speedOperator: null,
       gusts: 25,
+      gustsOperator: null,
       unit: 'KT'
     });
     expect(result).to.eql('20015G25');
@@ -70,7 +72,9 @@ describe('(Functions) TafFieldsConverter', () => {
     result = jsonToTacForWind({
       direction: 230,
       speed: 10,
+      speedOperator: null,
       gusts: null,
+      gustsOperator: null,
       unit: 'KT'
     });
     expect(result).to.eql('23010');
@@ -78,15 +82,19 @@ describe('(Functions) TafFieldsConverter', () => {
     result = jsonToTacForWind({
       direction: 'VRB',
       speed: 12,
+      speedOperator: null,
       gusts: 10,
+      gustsOperator: null,
       unit: 'KT'
     });
     expect(result).to.eql('VRB12G10');
     // Overflow speed
     result = jsonToTacForWind({
       direction: 230,
-      speed: 'P99',
+      speed: 99,
+      speedOperator: 'above',
       gusts: null,
+      gustsOperator: null,
       unit: 'KT'
     });
     expect(result).to.eql('230P99');
@@ -94,7 +102,9 @@ describe('(Functions) TafFieldsConverter', () => {
     result = jsonToTacForWind({
       direction: 235,
       speed: 15,
+      speedOperator: null,
       gusts: null,
+      gustsOperator: null,
       unit: 'KT'
     });
     expect(result).to.eql('23515');
@@ -102,7 +112,9 @@ describe('(Functions) TafFieldsConverter', () => {
     result = jsonToTacForWind({
       direction: 235,
       speed: 15,
+      speedOperator: null,
       gusts: null,
+      gustsOperator: null,
       unit: 'MPS'
     });
     expect(result).to.eql('23515MPS');
@@ -110,7 +122,9 @@ describe('(Functions) TafFieldsConverter', () => {
     result = jsonToTacForWind({
       direction: 10,
       speed: 15,
+      speedOperator: null,
       gusts: 25,
+      gustsOperator: null,
       unit: 'KT'
     });
     expect(result).to.eql('01015G25');
@@ -118,7 +132,9 @@ describe('(Functions) TafFieldsConverter', () => {
     result = jsonToTacForWind({
       direction: 4,
       speed: 15,
+      speedOperator: null,
       gusts: 25,
+      gustsOperator: null,
       unit: 'KT'
     });
     expect(result).to.eql('00415G25');
@@ -126,7 +142,9 @@ describe('(Functions) TafFieldsConverter', () => {
     result = jsonToTacForWind({
       direction: 100,
       speed: 5,
+      speedOperator: null,
       gusts: 25,
+      gustsOperator: null,
       unit: 'KT'
     });
     expect(result).to.eql('10005G25');
@@ -134,7 +152,9 @@ describe('(Functions) TafFieldsConverter', () => {
     result = jsonToTacForWind({
       direction: 100,
       speed: 15,
+      speedOperator: null,
       gusts: 5,
+      gustsOperator: null,
       unit: 'KT'
     });
     expect(result).to.eql('10015G05');
@@ -142,7 +162,9 @@ describe('(Functions) TafFieldsConverter', () => {
     result = jsonToTacForWind({
       direction: 'test',
       speed: 15,
+      speedOperator: null,
       gusts: 5,
+      gustsOperator: null,
       unit: 'KT'
     });
     expect(result).to.eql(null);
@@ -430,7 +452,9 @@ describe('(Functions) TafFieldsConverter', () => {
     expect(result).to.eql({
       direction: 200,
       speed: 15,
+      speedOperator: null,
       gusts: 25,
+      gustsOperator: null,
       unit: 'KT'
     });
     // No gusts
@@ -438,7 +462,9 @@ describe('(Functions) TafFieldsConverter', () => {
     expect(result).to.eql({
       direction: 230,
       speed: 10,
+      speedOperator: null,
       gusts: null,
+      gustsOperator: null,
       unit: 'KT'
     });
     // Variable direction
@@ -446,7 +472,9 @@ describe('(Functions) TafFieldsConverter', () => {
     expect(result).to.eql({
       direction: 'VRB',
       speed: 12,
+      speedOperator: null,
       gusts: 10,
+      gustsOperator: null,
       unit: 'KT'
     });
     // Variable direction, lowercase
@@ -454,23 +482,29 @@ describe('(Functions) TafFieldsConverter', () => {
     expect(result).to.eql({
       direction: 'VRB',
       speed: 12,
+      speedOperator: null,
       gusts: 10,
+      gustsOperator: null,
       unit: 'KT'
     });
     // Overflow speed
     result = tacToJsonForWind('230P99');
     expect(result).to.eql({
       direction: 230,
-      speed: 'P99',
+      speed: 99,
+      speedOperator: 'above',
       gusts: null,
+      gustsOperator: null,
       unit: 'KT'
     });
     // Overflow speed, lowercase
     result = tacToJsonForWind('230p49');
     expect(result).to.eql({
       direction: 230,
-      speed: 'P49',
+      speed: 49,
+      speedOperator: 'above',
       gusts: null,
+      gustsOperator: null,
       unit: 'KT'
     });
     // 'Override' default unit
@@ -478,7 +512,9 @@ describe('(Functions) TafFieldsConverter', () => {
     expect(result).to.eql({
       direction: 235,
       speed: 15,
+      speedOperator: null,
       gusts: null,
+      gustsOperator: null,
       unit: 'KT'
     });
     // Override default unit
@@ -486,7 +522,9 @@ describe('(Functions) TafFieldsConverter', () => {
     expect(result).to.eql({
       direction: 235,
       speed: 15,
+      speedOperator: null,
       gusts: null,
+      gustsOperator: null,
       unit: 'MPS'
     });
     // Override default unit, lowercase
@@ -494,7 +532,9 @@ describe('(Functions) TafFieldsConverter', () => {
     expect(result).to.eql({
       direction: 235,
       speed: 15,
+      speedOperator: null,
       gusts: null,
+      gustsOperator: null,
       unit: 'MPS'
     });
     // Direction with one prefix zero
@@ -502,7 +542,9 @@ describe('(Functions) TafFieldsConverter', () => {
     expect(result).to.eql({
       direction: 10,
       speed: 15,
+      speedOperator: null,
       gusts: 25,
+      gustsOperator: null,
       unit: 'KT'
     });
     // Direction with two prefix zeros
@@ -510,7 +552,9 @@ describe('(Functions) TafFieldsConverter', () => {
     expect(result).to.eql({
       direction: 4,
       speed: 15,
+      speedOperator: null,
       gusts: 25,
+      gustsOperator: null,
       unit: 'KT'
     });
     // speed with one prefix zero
@@ -518,7 +562,9 @@ describe('(Functions) TafFieldsConverter', () => {
     expect(result).to.eql({
       direction: 100,
       speed: 5,
+      speedOperator: null,
       gusts: 25,
+      gustsOperator: null,
       unit: 'KT'
     });
     // speed with one prefix zero
@@ -526,7 +572,9 @@ describe('(Functions) TafFieldsConverter', () => {
     expect(result).to.eql({
       direction: 100,
       speed: 15,
+      speedOperator: null,
       gusts: 5,
+      gustsOperator: null,
       unit: 'KT'
     });
     // invalid direction
@@ -534,7 +582,9 @@ describe('(Functions) TafFieldsConverter', () => {
     expect(result).to.eql({
       direction: null,
       speed: null,
+      speedOperator: null,
       gusts: null,
+      gustsOperator: null,
       unit: null
     });
   });
