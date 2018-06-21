@@ -55,11 +55,7 @@ const hasSelectableTafEssentialCompareInfo = (taf) =>
  * @returns {boolean} Results in true when the TAFs are equal, false otherwise
  */
 const isSameSelectableTaf = (tafA, tafB) => {
-  const hasTafBEssentials = hasSelectableTafEssentialCompareInfo(tafB);
-  if (!hasSelectableTafEssentialCompareInfo(tafA)) {
-    return !hasTafBEssentials;
-  }
-  if (!hasTafBEssentials) {
+  if (!hasSelectableTafEssentialCompareInfo(tafA) || !hasSelectableTafEssentialCompareInfo(tafB)) {
     return false;
   }
   return tafA.timestamp.isSame(tafB.timestamp) && tafA.location.toUpperCase() === tafB.location.toUpperCase();
@@ -364,6 +360,8 @@ const selectTaf = (selection, container) => {
     if (selection[0].tafData && selection[0].tafData.metadata && selection[0].tafData.metadata.status &&
         selection[0].tafData.metadata.status === STATUSES.NEW) {
       draftState.mode = MODES.EDIT;
+    } else {
+      draftState.mode = MODES.READ;
     }
   }));
 };
@@ -628,7 +626,6 @@ const removeTafRow = (rowIndex, container) => {
 const reorderTafRow = (affectedIndex, newIndexValue, container) => {
   const { state } = container;
   const { selectedTaf } = state;
-  // console.log('rTR', affectedIndex, newIndexValue);
   if (!selectedTaf || !Array.isArray(selectedTaf) || selectedTaf.length !== 1 ||
     typeof affectedIndex !== 'number' || typeof newIndexValue !== 'number') {
     return;
