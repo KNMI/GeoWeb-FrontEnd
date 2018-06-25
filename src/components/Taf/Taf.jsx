@@ -638,10 +638,10 @@ class Taf extends Component {
       case READ_ABILITIES.COPY['dataField']:
         return copiedTafRef === selectedTaf.tafData.metadata.uuid;
       case READ_ABILITIES.CORRECT['dataField']:
-        return (tafType === LIFECYCLE_STAGE_NAMES.CANCEL);
+        return (tafType === LIFECYCLE_STAGE_NAMES.CANCELED);
       case READ_ABILITIES.AMEND['dataField']:
       case READ_ABILITIES.CANCEL['dataField']:
-        return !isInValidityPeriod || tafType === LIFECYCLE_STAGE_NAMES.CANCEL;
+        return !isInValidityPeriod || tafType === LIFECYCLE_STAGE_NAMES.CANCELED;
       default:
         return false;
     }
@@ -727,16 +727,6 @@ class Taf extends Component {
           <TimeSchedule series={series}
             startMoment={moment.utc(tafData.metadata.validityStart)}
             endMoment={moment.utc(tafData.metadata.validityEnd)} />
-          <ActionSection>
-            {abilityCtAs.map((ability) =>
-              <Button key={`action-${ability.dataField}`}
-                data-field={ability.dataField}
-                color='primary' disabled={ability.disabled}
-                onClick={(evt) => dispatch(actions[ability.action](evt))}>
-                {ability.label}
-              </Button>
-            )}
-          </ActionSection>
           {feedback
             ? <FeedbackSection status={feedback.status ? feedback.status : 'info'}>
               {feedback.title
@@ -754,6 +744,16 @@ class Taf extends Component {
             </FeedbackSection>
             : null
           }
+          <ActionSection>
+            {abilityCtAs.map((ability) =>
+              <Button key={`action-${ability.dataField}`}
+                data-field={ability.dataField}
+                color='primary' disabled={ability.disabled}
+                onClick={(evt) => dispatch(actions[ability.action](evt))}>
+                {ability.label}
+              </Button>
+            )}
+          </ActionSection>
         </Col>
       </Row>
     );

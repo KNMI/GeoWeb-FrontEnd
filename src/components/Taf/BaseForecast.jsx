@@ -99,12 +99,6 @@ class BaseForecast extends Component {
     );
     columns.forEach((column) => {
       column.autoFocus = column.name === focusedFieldName;
-      // TODO: Verify frontend and remove if all OK
-      // const isInvalid = invalidFields.includes(column.name);
-      // column.invalid = isInvalid;
-      // if (isInvalid) {
-      //  column.classes.push('TACColumnError');
-      // }
       let name = column.name;
       if (name.endsWith('probability') || name.endsWith('change')) {
         const nameParts = name.split('-');

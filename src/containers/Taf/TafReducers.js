@@ -575,7 +575,7 @@ const cancelTaf = (event, container) => {
     draftState.selectedTaf[0].tafData.metadata.previousUuid = draftState.selectedTaf[0].tafData.metadata.uuid;
     draftState.selectedTaf[0].tafData.metadata.uuid = correctionUuid;
     draftState.selectedTaf[0].tafData.metadata.status = STATUSES.CONCEPT;
-    draftState.selectedTaf[0].tafData.metadata.type = LIFECYCLE_STAGE_NAMES.CANCEL;
+    draftState.selectedTaf[0].tafData.metadata.type = LIFECYCLE_STAGE_NAMES.CANCELED;
     draftState.mode = MODES.EDIT;
   }));
 };
