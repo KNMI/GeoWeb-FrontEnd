@@ -239,22 +239,20 @@ class TafTable extends Component {
    */
   processValidation (validationReport) {
     const invalidFields = { base: [], changegroup: [] };
-    if (validationReport.hasOwnProperty('succeeded') && !validationReport.succeeded) {
-      if (validationReport.hasOwnProperty('errors') && validationReport.errors && typeof validationReport === 'object') {
-        Object.keys(validationReport.errors).map((pointer) => {
-          const pointerParts = pointer.split('/');
-          pointerParts.shift();
-          if (pointerParts[0] === 'forecast') {
-            invalidFields.base.push(pointerParts.join('-'));
-          } else if (pointerParts[0] === 'changegroups' && !isNaN(pointerParts[1])) {
-            const groupIndex = parseInt(pointerParts[1]);
-            if (!Array.isArray(invalidFields.changegroup[groupIndex])) {
-              invalidFields.changegroup[groupIndex] = [];
-            }
-            invalidFields.changegroup[groupIndex].push(pointerParts.join('-'));
+    if (validationReport && typeof validationReport === 'object') {
+      Object.keys(validationReport).map((pointer) => {
+        const pointerParts = pointer.split('/');
+        pointerParts.shift();
+        if (pointerParts[0] === 'forecast') {
+          invalidFields.base.push(pointerParts.join('-'));
+        } else if (pointerParts[0] === 'changegroups' && !isNaN(pointerParts[1])) {
+          const groupIndex = parseInt(pointerParts[1]);
+          if (!Array.isArray(invalidFields.changegroup[groupIndex])) {
+            invalidFields.changegroup[groupIndex] = [];
           }
-        });
-      }
+          invalidFields.changegroup[groupIndex].push(pointerParts.join('-'));
+        }
+      });
     }
     return invalidFields;
   }
@@ -296,11 +294,7 @@ TafTable.defaultProps = {
   onKeyDown: () => {},
   onFocus: () => {},
   onSortEnd: () => {},
-  validationReport: {
-    message: null,
-    succeeded: true,
-    errors: {}
-  }
+  validationReport: {}
 };
 
 TafTable.propTypes = {
@@ -314,11 +308,7 @@ TafTable.propTypes = {
   onClick: PropTypes.func,
   onFocus: PropTypes.func,
   onSortEnd: PropTypes.func,
-  validationReport: PropTypes.shape({
-    message: PropTypes.string,
-    succeeded: PropTypes.bool,
-    errors: PropTypes.object
-  })
+  validationReport: PropTypes.object
 };
 
 export default TafTable;

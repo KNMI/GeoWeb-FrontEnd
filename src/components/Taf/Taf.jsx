@@ -9,16 +9,11 @@ import {
   PHENOMENON_TYPES, PHENOMENON_TYPES_ORDER, getPhenomenonType, getPhenomenonLabel
 } from './TafTemplates';
 import cloneDeep from 'lodash.clonedeep';
-import setNestedProperty from 'lodash.set';
-import getNestedProperty from 'lodash.get';
-import removeNestedProperty from 'lodash.unset';
-import { getJsonPointers, clearNullPointersAndAncestors } from '../../utils/json';
 import moment from 'moment';
 import { Button, Row, Col } from 'reactstrap';
 import { jsonToTacForWind, jsonToTacForWeather, jsonToTacForClouds } from './TafFieldsConverter';
 import TafTable from './TafTable';
 import TacView from './TacView';
-import axios from 'axios';
 import { debounce } from '../../utils/debounce';
 import { MODES, READ_ABILITIES, EDIT_ABILITIES, byEditAbilities, byReadAbilities, LIFECYCLE_STAGE_NAMES } from '../../containers/Taf/TafActions';
 import TafValidator from './TafValidator';
@@ -64,9 +59,7 @@ class Taf extends Component {
     this.validateTaf = debounce(this.validateTaf.bind(this), 1250, false);
 
     const initialState = {
-      tafAsObject: props.selectedTaf.tafData,
       focusedFieldName: 'forecast-wind',
-      hasEdits: false,
       preset: {
         forPhenomenon: null,
         inWindow: null
@@ -83,29 +76,25 @@ class Taf extends Component {
       const { dispatch, actions } = this.props;
 
       TafValidator(this.props.urls.BACKEND_SERVER_URL, tafAsObject).then((validationReport) => {
-        this.setState({
-          validationReport: validationReport
-        }, () => {
-          let validationErrors = [];
-          let validationSucceeded = false;
-          let validationMessage = 'Unable to get validation report';
-          if (validationReport) {
-            if (validationReport.errors) {
-              validationErrors = validationReport.errors;
-            }
-            if (validationReport.message) {
-              validationMessage = validationReport.message;
-            }
-            if (validationReport.succeeded === true) {
-              validationSucceeded = true;
-            }
+        let validationErrors = [];
+        let validationSucceeded = false;
+        let validationMessage = 'Unable to get validation report';
+        if (validationReport) {
+          if (validationReport.errors) {
+            validationErrors = validationReport.errors;
           }
+          if (validationReport.message) {
+            validationMessage = validationReport.message;
+          }
+          if (validationReport.succeeded === true) {
+            validationSucceeded = true;
+          }
+        }
 
-          dispatch(actions.updateFeedbackAction(
-            validationMessage,
-            validationSucceeded?'info':'danger', null, validationErrors)
-          );
-        });
+        dispatch(actions.updateFeedbackAction(
+          validationMessage,
+          validationSucceeded ? 'info' : 'danger', null, validationErrors)
+        );
       });
     }
   }
@@ -607,12 +596,12 @@ class Taf extends Component {
           }
         }
       }
-      this.validateTaf(this.state.tafAsObject);
+      this.validateTaf(this.props.selectedTaf.tafData);
     }
   }
 
   componentWillReceiveProps (nextProps) {
-    if (!this.state.hasEdits && nextProps.selectedTaf) {
+    if (nextProps.selectedTaf) {
       this.validateTaf(nextProps.selectedTaf.tafData);
     }
   }
@@ -658,8 +647,8 @@ class Taf extends Component {
       !selectedTaf.tafData.metadata.status || !selectedTaf.tafData.metadata.type) {
       return abilitiesCtAs;
     }
-    const selectedStatus = selectedTaf.tafData.metadata.status.toUpperCase();
-    const selectedType = selectedTaf.tafData.metadata.type.toUpperCase();
+    const selectedStatus = selectedTaf.tafData.metadata.status.toLowerCase();
+    const selectedType = selectedTaf.tafData.metadata.type.toLowerCase();
     if (!selectedStatus || !selectedType || !mode) {
       return abilitiesCtAs;
     }
@@ -689,18 +678,6 @@ class Taf extends Component {
     }
     const { tafData } = selectedTaf;
     const abilityCtAs = this.reduceAbilities(); // CtA = Call To Action
-
-    let validationErrors = null;
-    let validationSucceeded = false;
-    if (this.state.validationReport) {
-      if (this.state.validationReport.errors) {
-        validationErrors = this.state.validationReport.errors;
-      }
-      if (this.state.validationReport.succeeded === true) {
-        validationSucceeded = true;
-      }
-    }
-
     const series = this.extractScheduleInformation(tafData);
 
     return (
@@ -711,7 +688,7 @@ class Taf extends Component {
           <Row className='TafTable'>
             <Col>
               <TafTable
-                validationReport={this.state.validationReport}
+                validationReport={feedback && feedback.list}
                 taf={tafData}
                 focusedFieldName={this.state.focusedFieldName}
                 inputRef={this.registerElement}

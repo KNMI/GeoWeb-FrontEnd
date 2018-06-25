@@ -2,8 +2,8 @@ import React, { PureComponent } from 'react';
 import { Row, Col, Alert } from 'reactstrap';
 import { Typeahead } from 'react-bootstrap-typeahead';
 import { Icon } from 'react-fa';
+import { TAF_TYPES } from './TafTemplates';
 import PropTypes from 'prop-types';
-import MomentPropTypes from 'react-moment-proptypes';
 
 export default class TafSelector extends PureComponent {
   render () {
@@ -23,7 +23,7 @@ export default class TafSelector extends PureComponent {
               <Col xs='1'><Icon name={option.label.icon} /></Col>
               <Col xs='1'>{option.location}</Col>
               <Col xs='1'>{option.label.time}</Col>
-              <Col xs='3'>{option.status}</Col>
+              <Col xs='3'>{option.label.status}</Col>
               <Col xs='6'>{option.uuid}</Col>
             </Row>;
           }}
@@ -42,19 +42,7 @@ export default class TafSelector extends PureComponent {
 }
 
 TafSelector.propTypes = {
-  selectableTafs: PropTypes.arrayOf(PropTypes.shape({
-    location: PropTypes.string,
-    uuid: PropTypes.string,
-    timeLabel: PropTypes.string,
-    timestamp: MomentPropTypes.momentObj,
-    status: PropTypes.string
-  })),
-  selectedTaf: PropTypes.arrayOf(PropTypes.shape({
-    location: PropTypes.string,
-    uuid: PropTypes.string,
-    timeLabel: PropTypes.string,
-    timestamp: MomentPropTypes.momentObj,
-    status: PropTypes.string
-  })),
+  selectableTafs: PropTypes.arrayOf(TAF_TYPES.SELECTABLE_TAF),
+  selectedTaf: PropTypes.arrayOf(TAF_TYPES.SELECTABLE_TAF),
   onChange: PropTypes.func
 };

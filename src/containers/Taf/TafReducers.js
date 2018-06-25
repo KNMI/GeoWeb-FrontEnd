@@ -5,7 +5,6 @@ import { arrayMove } from 'react-sortable-hoc';
 import setNestedProperty from 'lodash.set';
 import getNestedProperty from 'lodash.get';
 import removeNestedProperty from 'lodash.unset';
-import uuidv4 from 'uuid/v4';
 import { clearNullPointersAndAncestors } from '../../utils/json';
 import { ReadLocations } from '../../utils/admin';
 import { LOCAL_ACTION_TYPES, STATUSES, LIFECYCLE_STAGE_NAMES, MODES } from './TafActions';
@@ -46,7 +45,7 @@ const createSpaceTimeCombinations = (locations, timestamps) => {
  * @param {object} taf The selectable TAF to check
  */
 const hasSelectableTafEssentialCompareInfo = (taf) =>
-  taf && taf.timestamp && taf.location && moment.isMoment(taf.timestamp) && typeof taf.location === 'string';
+  taf && (taf.timestamp && taf.location && moment.isMoment(taf.timestamp) && typeof taf.location === 'string');
 
 /**
  * Comparator for selectable TAFs
@@ -62,7 +61,16 @@ const isSameSelectableTaf = (tafA, tafB) => {
   if (!hasTafBEssentials) {
     return false;
   }
-  return tafA.timestamp.isSame(tafB.timestamp) && tafA.location.toUpperCase() === tafB.location.toUpperCase();
+  if (tafA.hasOwnProperty('uuid') && tafB.hasOwnProperty('uuid') && tafA.uuid && tafB.uuid) {
+    return tafA.uuid === tafB.uuid;
+  }
+  if (tafA.timestamp.isSame(tafB.timestamp) && tafA.location.toUpperCase() === tafB.location.toUpperCase()) {
+    if (tafA.tafData.metadata.type && tafB.tafData.metadata.type) {
+      return tafA.tafData.metadata.type === tafB.tafData.metadata.type;
+    } else {
+      return true;
+    }
+  }
 };
 
 /**
@@ -77,19 +85,6 @@ const isTafSelectable = (locations, timestamps) => (taf) =>
   locations.includes(taf.metadata.location.toUpperCase());
 
 /**
- * Callback to handle succesfull receiving of TAFs
- * @param {Element} container The container as context to pass through
- * @param {object} data The response data with received TAFs
- */
-const receivedTafsCallback = (container, data) => {
-  if (data && data.ntafs && !isNaN(data.ntafs) &&
-    Number.isInteger(data.ntafs) && data.ntafs > 0 &&
-    data.tafs && Array.isArray(data.tafs)) {
-    updateSelectableTafs(container, data.tafs);
-  }
-};
-
-/**
  * Determines if the available timestamps and locations don't match the selectable TAFs for a TAF-container
  * @param {Element} container The container to determine synchronisation necessity for
  * @returns {boolean} True when the available Tafs are out of sync with timestamps / locations
@@ -101,12 +96,11 @@ const shouldSync = (container) => {
     timestamps.hasOwnProperty('next') && timestamps.next instanceof moment;
   const hasLocations = locations && Array.isArray(locations) && locations.length > 0;
   const hasSelectableTafs = selectableTafs && Array.isArray(selectableTafs) && selectableTafs.length > 0;
-  if (!hasSelectableTafs) {
-    return true;
-  }
-
   if (!hasTimestamps || !hasLocations) {
     return false;
+  }
+  if (!hasSelectableTafs) {
+    return true;
   }
 
   const spacetimeCombinations = createSpaceTimeCombinations(locations, timestamps);
@@ -136,17 +130,6 @@ const synchronizeSelectableTafs = (container) => {
     return;
   }
 
-  /* TODO: This is a fix in case no TAFS are present on the backend and when examples are not provided,
-    the list with selectable tags is otherwise never populated
-  */
-  updateSelectableTafs(container, [{
-    metadata:{
-      'status': 'concept',
-      'type': 'normal',
-      'location': 'EHAM'
-    }
-  }]);
-
   const tafResources = [
     { url: `${urls.BACKEND_SERVER_URL}/tafs?active=true`, status: STATUSES.PUBLISHED },
     { url: `${urls.BACKEND_SERVER_URL}/tafs?active=false&status=concept`, status: STATUSES.CONCEPT }
@@ -158,15 +141,12 @@ const synchronizeSelectableTafs = (container) => {
       withCredentials: true,
       responseType: 'json'
     }).then(response => {
-      if (!Array.isArray(response.data.tafs)) {
-        response.data.tafs = [];
+      if (response.data && Number.isInteger(response.data.ntafs)) {
+        if (!Array.isArray(response.data.tafs)) {
+          response.data.tafs = [];
+        }
+        updateSelectableTafs(container, response.data.tafs);
       }
-      // const additionalResponse = tafResource.status === STATUSES.PUBLISHED
-      //  ? getExample(container.state.timestamps.current, container.state.locations[0], tafResource.status)
-      //  : getExample(container.state.timestamps.next, container.state.locations[2], tafResource.status);
-      // response.data.ntafs += additionalResponse.data.ntafs;
-      // response.data.tafs.push(...additionalResponse.data.tafs);
-      receivedTafsCallback(container, response.data);
     }).catch(error => {
       console.error('Couldn\'t retrieve TAFs', error);
     });
@@ -216,12 +196,11 @@ const updateTimestamps = (container) => {
   let TAFStartHour = now.hour();
   TAFStartHour = TAFStartHour - TAFStartHour % 6;
   const currentTafTimestamp = now.clone().hour(TAFStartHour).startOf('hour');
-  let data = produce(state, draftState => {
+  container.setState(produce(state, draftState => {
     draftState.timestamps.current = currentTafTimestamp;
     draftState.timestamps.next = currentTafTimestamp.clone().add(6, 'hour');
     draftState.timestamps.modified = now;
-  });
-  container.setState(data, () => {
+  }), () => {
     if (shouldSync(container)) {
       synchronizeSelectableTafs(container);
     }
@@ -234,64 +213,87 @@ const updateTimestamps = (container) => {
  * @param {string} status The status for the feedback
  * @param {string} subTitle The subtitle for the feedback
  * @param {array} list The list of messages
+ * @param {Element} container The container to update the feedback for
+ * @param {boolean} shouldControlState Whether or not the state should be altered by this method
+ * @returns {object} If shouldControlState is false, returns the new feedback state, otherwise null
  */
-const updateFeedback = (title, status, subTitle, list, container) => {
+const updateFeedback = (title, status, subTitle, list, container, shouldControlState = true) => {
   const { state } = container;
-  container.setState(produce(state, draftState => {
+  const newState = produce(state, draftState => {
     draftState.feedback = {
       title: title,
       status: status,
       subTitle: subTitle,
       list: list
     };
-  }));
+  });
+  if (shouldControlState) {
+    container.setState(newState);
+  } else {
+    return newState;
+  }
+};
+
+/**
+ * Creates a selectable TAF object out of a regular TAF object
+ * @param {object} tafData The TAF object to wrap
+ * @returns A selectable TAF corresponding to the incoming TAF
+ */
+const wrapIntoSelectableTaf = (tafData) => {
+  return produce(TAF_TEMPLATES.SELECTABLE_TAF, (draftSelectable) => {
+    draftSelectable.location = tafData.metadata.location.toUpperCase();
+    draftSelectable.uuid = tafData.metadata.uuid;
+    draftSelectable.timestamp = moment.utc(tafData.metadata.validityStart);
+    draftSelectable.label.time = draftSelectable.timestamp.format(TIMELABEL_FORMAT);
+    draftSelectable.label.text = `${draftSelectable.location} ${draftSelectable.label.time}`;
+    draftSelectable.label.status = `${tafData.metadata.status} / ${tafData.metadata.type}`;
+    let iconName = 'folder-open-o';
+    if (tafData.metadata.status && typeof tafData.metadata.status === 'string') {
+      const tafStatus = tafData.metadata.status.toLowerCase();
+      switch (tafStatus) {
+        case STATUSES.PUBLISHED:
+          iconName = 'folder-open';
+          break;
+        case STATUSES.CONCEPT:
+          break;
+        default:
+          break;
+      }
+    }
+    draftSelectable.label.icon = iconName;
+    Object.entries(draftSelectable.tafData.metadata).forEach((entry) => {
+      if (tafData.metadata.hasOwnProperty(entry[0])) {
+        draftSelectable.tafData.metadata[entry[0]] = tafData.metadata[entry[0]];
+      }
+    });
+    draftSelectable.tafData.forecast = tafData.forecast;
+    draftSelectable.tafData.changegroups.length = 0;
+    draftSelectable.tafData.changegroups.push(...tafData.changegroups);
+  });
 };
 
 /**
  * Once loaded, this method processes the existing TAFs into the selectable TAFs list
  * @param {Element} container The container to update the selectable TAFs for
- * @param {*} tafs
+ * @param {Array} tafs The TAFs to update the list selectable TAFs with
  */
 const updateSelectableTafs = (container, tafs) => {
   const { state } = container;
+  const isTafsArray = (Array.isArray(tafs));
+  if (!isTafsArray) {
+    return;
+  }
   // currently TAFs are retrieved in several calls, by status
-  const statusUpdatableTafs = tafs[0].metadata.status.toUpperCase();
+  let statusUpdatableTafs;
+  if (tafs.length > 0) {
+    statusUpdatableTafs = tafs[0].metadata.status.toLowerCase();
+  }
   container.setState(produce(state, draftState => {
-    const persistingTafs = draftState.selectableTafs.filter((selectable) => selectable.tafData.metadata.status.toUpperCase() !== statusUpdatableTafs);
-    draftState.selectableTafs.length = 0; // TODO: Why not set to [] ?
+    const persistingTafs = draftState.selectableTafs.filter((selectable) => selectable.tafData.metadata.status.toLowerCase() !== statusUpdatableTafs);
+    draftState.selectableTafs.length = 0;
     const { locations, timestamps } = draftState;
     tafs.filter(isTafSelectable(locations, timestamps)).forEach((incomingTaf) => {
-      const selectableTaf = produce(TAF_TEMPLATES.SELECTABLE_TAF, (draftSelectable) => {
-        draftSelectable.location = incomingTaf.metadata.location.toUpperCase();
-        draftSelectable.uuid = incomingTaf.metadata.uuid;
-        draftSelectable.status = incomingTaf.metadata.status + ' / ' + incomingTaf.metadata.type;
-        draftSelectable.timestamp = moment.utc(incomingTaf.metadata.validityStart);
-        draftSelectable.label.time = draftSelectable.timestamp.format(TIMELABEL_FORMAT);
-        draftSelectable.label.text = `${draftSelectable.location} ${draftSelectable.label.time}`;
-        let iconName = 'folder-open-o';
-        if (incomingTaf.metadata.status && typeof incomingTaf.metadata.status === 'string') {
-          const tafStatus = incomingTaf.metadata.status.toUpperCase();
-          switch (tafStatus) {
-            case STATUSES.PUBLISHED:
-              iconName = 'folder-open';
-              break;
-            case STATUSES.CONCEPT:
-              break;
-            default:
-              break;
-          }
-        }
-        draftSelectable.label.icon = iconName;
-        Object.entries(draftSelectable.tafData.metadata).forEach((entry) => {
-          if (incomingTaf.metadata.hasOwnProperty(entry[0])) {
-            draftSelectable.tafData.metadata[entry[0]] = incomingTaf.metadata[entry[0]];
-          }
-        });
-        draftSelectable.tafData.forecast = incomingTaf.forecast;
-        draftSelectable.tafData.changegroups.length = 0;
-        draftSelectable.tafData.changegroups.push(...incomingTaf.changegroups);
-      });
-      draftState.selectableTafs.push(selectableTaf);
+      draftState.selectableTafs.push(wrapIntoSelectableTaf(incomingTaf));
     });
     draftState.selectableTafs.push(...persistingTafs);
     const spacetimeCombinations = createSpaceTimeCombinations(locations, timestamps);
@@ -304,6 +306,7 @@ const updateSelectableTafs = (container, tafs) => {
           draftSelectable.timestamp = combination.timestamp;
           draftSelectable.label.time = combination.timestamp.format(TIMELABEL_FORMAT);
           draftSelectable.label.text = `${combination.location} ${draftSelectable.label.time}`;
+          draftSelectable.label.status = `${STATUSES.NEW} / ${LIFECYCLE_STAGE_NAMES.NORMAL}`;
           draftSelectable.label.icon = 'star-o';
           draftSelectable.tafData.metadata.location = combination.location;
           draftSelectable.tafData.metadata.validityStart = combination.timestamp.format(TIMESTAMP_FORMAT);
@@ -321,6 +324,14 @@ const updateSelectableTafs = (container, tafs) => {
       }
       return byLocation;
     });
+    // Update selectedTaf
+    if (draftState.selectedTaf && Array.isArray(draftState.selectedTaf) && draftState.selectedTaf.length > 0) {
+      const newDataSelectedTaf = draftState.selectableTafs.find((selectableTaf) => isSameSelectableTaf(selectableTaf, draftState.selectedTaf[0]));
+      draftState.selectedTaf.length = 0;
+      if (newDataSelectedTaf) {
+        draftState.selectedTaf.push(newDataSelectedTaf);
+      }
+    }
   }));
 };
 
@@ -332,27 +343,23 @@ const updateSelectableTafs = (container, tafs) => {
 const selectTaf = (selection, container) => {
   const { state } = container;
   const { selectedTaf } = state;
-  if (!selection || !Array.isArray(selection)) {
+  if (!Array.isArray(selection)) {
     return;
   }
-  const hasPreviousSelection = selectedTaf && Array.isArray(selectedTaf) && selectedTaf.length > 0;
+  const hasPreviousSelection = Array.isArray(selectedTaf) && selectedTaf.length > 0;
   if (selection.length === 0) {
     if (!hasPreviousSelection) {
       return;
     } else {
       container.setState(produce(state, draftState => {
-        if (Array.isArray(draftState.selectedTaf)) {
-          draftState.selectedTaf.length = 0;
-        } else {
-          draftState.selectedTaf = [];
-        }
+        draftState.selectedTaf.length = 0;
         draftState.mode = MODES.READ;
       }));
       return;
     }
   }
 
-  if (isSameSelectableTaf(selection[0], state.selectedTaf)) {
+  if (hasPreviousSelection && isSameSelectableTaf(selection[0], state.selectedTaf[0])) {
     return;
   }
   container.setState(produce(state, draftState => {
@@ -388,47 +395,56 @@ const saveTaf = (event, container) => {
   if (!selectedTaf || !Array.isArray(selectedTaf) || selectedTaf.length !== 1 || !BACKEND_SERVER_URL) {
     return;
   }
-  const newTafState = produce(selectedTaf[0].tafData, draftTaf => {
-    clearNullPointersAndAncestors(draftTaf);
-    if (!getNestedProperty(draftTaf, ['changegroups'])) {
-      setNestedProperty(draftTaf, ['changegroups'], []);
+  container.setState(produce(state, draftState => {
+    if (draftState.selectedTaf[0].tafData.metadata.status === STATUSES.NEW) {
+      draftState.selectedTaf[0].tafData.metadata.status = STATUSES.CONCEPT;
     }
-    if (draftTaf.metadata.status === STATUSES.NEW) {
-      draftTaf.metadata.status = STATUSES.CONCEPT;
-    }
-    draftTaf.metadata.status = draftTaf.metadata.status.toLowerCase();
-    draftTaf.metadata.type = draftTaf.metadata.type.toLowerCase();
-  });
-  axios({
-    method: 'post',
-    url: `${BACKEND_SERVER_URL}/tafs`,
-    withCredentials: true,
-    data: JSON.stringify(newTafState),
-    headers: { 'Content-Type': 'application/json' }
-  }).then(response => {
-    updateFeedback(response.data.message, response.data.succeeded ? 'success' : 'danger', null, null, container);
-
-    container.setState(produce(state, draftState => {
-      draftState.mode = MODES.READ;
-    }), () => {
-      synchronizeSelectableTafs(container);
-      /* TODO: I want to set the metadata status from NEW to CONCEPT.
-          or even better ,replace the current taf selection with the returned tafJSON */
-      try {
-        if (selectedTaf[0].tafData.metadata.status === STATUSES.NEW) {
-          container.setState(produce(state, draftState => {
-            draftState.selectedTaf[0].tafData.metadata.status = STATUSES.CONCEPT;
-            draftState.mode = MODES.READ;
-          }));
-        }
-      } catch (e) {
-        console.error('Unable to change selected tag status from new to concept', e);
+    draftState.mode = MODES.READ;
+  }), () => {
+    const strippedTafData = produce(container.state.selectedTaf[0].tafData, draftTaf => {
+      clearNullPointersAndAncestors(draftTaf);
+      if (!getNestedProperty(draftTaf, ['changegroups'])) {
+        setNestedProperty(draftTaf, ['changegroups'], []);
       }
     });
-  }).catch(error => {
-    console.error('Couldn\'t save TAF', error);
-    updateFeedback('Couldn\'t save TAF: an error occured while trying to save.',
-      'danger', null, null, container);
+    axios({
+      method: 'post',
+      url: `${BACKEND_SERVER_URL}/tafs`,
+      withCredentials: true,
+      data: JSON.stringify(strippedTafData),
+      headers: { 'Content-Type': 'application/json' }
+    }).then(response => {
+      synchronizeSelectableTafs(container);
+      // updateFeedback(response.data.message, response.data.succeeded ? 'success' : 'danger', null, null, container);
+
+      // container.setState(produce(state, draftState => {
+      //   draftState.mode = MODES.READ;
+      // }), () => {
+      //   synchronizeSelectableTafs(container);
+      //   /* TODO: I want to set the metadata status from NEW to CONCEPT.
+      //       or even better ,replace the current taf selection with the returned tafJSON */
+      //   try {
+      //     if (selectedTaf[0].tafData.metadata.status === STATUSES.NEW) {
+      //       container.setState(produce(state, draftState => {
+      //         draftState.selectedTaf[0].tafData.metadata.status = STATUSES.CONCEPT;
+      //         draftState.mode = MODES.READ;
+      //       }));
+      //     }
+      //   } catch (e) {
+      //     console.error('Unable to change selected tag status from new to concept', e);
+      //   }
+      // });
+    }).catch(error => {
+      console.error('Couldn\'t save TAF', error);
+      updateFeedback('Couldn\'t save TAF: an error occured while trying to save.',
+        'danger', null, null, container);
+      // container.setState(produce(state, draftState => {
+      //   if (!draftState.selectedTaf[0].tafData.metadata.uuid) {
+      //     draftState.selectedTaf[0].tafData.metadata.status = STATUSES.NEW;
+      //   }
+      //   draftState.mode = MODES.EDIT;
+      // })
+    });
   });
 };
 
@@ -466,13 +482,14 @@ const deleteTaf = (event, container) => {
     withCredentials: true,
     responseType: 'json'
   }).then(response => {
-    updateFeedback(response.data, 'success', null, null, container);
-    container.setState(produce(state, draftState => {
-      draftState.mode = MODES.READ;
-      draftState.selectedTaf.length = 0;
-    }), () => {
-      synchronizeSelectableTafs(container);
-    });
+    //   synchronizeSelectableTafs(container);
+    // updateFeedback(response.data, 'success', null, null, container);
+    // container.setState(produce(state, draftState => {
+    //   draftState.mode = MODES.READ;
+    //   draftState.selectedTaf.length = 0;
+    // }), () => {
+    //   synchronizeSelectableTafs(container);
+    // });
   }).catch(error => {
     console.error('Couldn\'t delete TAF', error);
     updateFeedback('Couldn\'t delete TAF: an error occured while trying to delete.',
@@ -520,11 +537,10 @@ const pasteTaf = (event, container) => {
  */
 const publishTaf = (event, container) => {
   const { state } = container;
-  let data = produce(state, draftState => {
+  container.setState(produce(state, draftState => {
     draftState.selectedTaf[0].tafData.metadata.status = STATUSES.PUBLISHED;
     draftState.mode = MODES.READ;
-  });
-  container.setState(data, () => {
+  }), () => {
     saveTaf(event, container);
   });
 };
@@ -536,10 +552,9 @@ const publishTaf = (event, container) => {
  */
 const amendTaf = (event, container) => {
   const { state } = container;
-  const correctionUuid = uuidv4();
   container.setState(produce(state, draftState => {
     draftState.selectedTaf[0].tafData.metadata.previousUuid = draftState.selectedTaf[0].tafData.metadata.uuid;
-    draftState.selectedTaf[0].tafData.metadata.uuid = correctionUuid;
+    draftState.selectedTaf[0].tafData.metadata.uuid = null;
     draftState.selectedTaf[0].tafData.metadata.status = STATUSES.CONCEPT;
     draftState.selectedTaf[0].tafData.metadata.type = LIFECYCLE_STAGE_NAMES.AMENDMENT;
     draftState.mode = MODES.EDIT;
@@ -553,10 +568,9 @@ const amendTaf = (event, container) => {
  */
 const correctTaf = (event, container) => {
   const { state } = container;
-  const correctionUuid = uuidv4();
   container.setState(produce(state, draftState => {
     draftState.selectedTaf[0].tafData.metadata.previousUuid = draftState.selectedTaf[0].tafData.metadata.uuid;
-    draftState.selectedTaf[0].tafData.metadata.uuid = correctionUuid;
+    draftState.selectedTaf[0].tafData.metadata.uuid = null;
     draftState.selectedTaf[0].tafData.metadata.status = STATUSES.CONCEPT;
     draftState.selectedTaf[0].tafData.metadata.type = LIFECYCLE_STAGE_NAMES.CORRECTION;
     draftState.mode = MODES.EDIT;
@@ -570,10 +584,9 @@ const correctTaf = (event, container) => {
  */
 const cancelTaf = (event, container) => {
   const { state } = container;
-  const correctionUuid = uuidv4();
   container.setState(produce(state, draftState => {
     draftState.selectedTaf[0].tafData.metadata.previousUuid = draftState.selectedTaf[0].tafData.metadata.uuid;
-    draftState.selectedTaf[0].tafData.metadata.uuid = correctionUuid;
+    draftState.selectedTaf[0].tafData.metadata.uuid = null;
     draftState.selectedTaf[0].tafData.metadata.status = STATUSES.CONCEPT;
     draftState.selectedTaf[0].tafData.metadata.type = LIFECYCLE_STAGE_NAMES.CANCELED;
     draftState.mode = MODES.EDIT;

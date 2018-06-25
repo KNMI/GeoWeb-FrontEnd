@@ -138,18 +138,18 @@ export const byReadAbilities = (abilityA, abilityB) => {
 };
 
 export const STATUSES = {
-  PUBLISHED: 'PUBLISHED',
-  CONCEPT: 'CONCEPT',
-  NEW: 'NEW'
+  PUBLISHED: 'published',
+  CONCEPT: 'concept',
+  NEW: 'new'
 };
 
 export const LIFECYCLE_STAGE_NAMES = {
-  NORMAL: 'NORMAL',
-  AMENDMENT: 'AMENDMENT',
-  CORRECTION: 'CORRECTION',
-  RETARDED: 'RETARDED',
-  CANCELED: 'CANCELED',
-  MISSING: 'MISSING'
+  NORMAL: 'normal',
+  AMENDMENT: 'amendment',
+  CORRECTION: 'correction',
+  RETARDED: 'retarded',
+  CANCELED: 'canceled',
+  MISSING: 'missing'
 };
 
 export const LIFECYCLE_STAGES = [
