@@ -24,7 +24,7 @@ export const LOCAL_ACTION_TYPES = {
 export const LOCAL_ACTIONS = {
   updateLocationsAction: () => ({ type: LOCAL_ACTION_TYPES.UPDATE_LOCATIONS }),
   updateTimestampsAction: () => ({ type: LOCAL_ACTION_TYPES.UPDATE_TIMESTAMPS }),
-  updateFeedbackAction: (title, status, subTitle, list) => ({ type: LOCAL_ACTION_TYPES.UPDATE_FEEDBACK, title: title, status: status, subTitle: subTitle, list: list }),
+  updateFeedbackAction: (title, status, category, subTitle, list) => ({ type: LOCAL_ACTION_TYPES.UPDATE_FEEDBACK, title: title, status: status, category: category, subTitle: subTitle, list: list }),
   selectTafAction: (tafSelection) => ({ type: LOCAL_ACTION_TYPES.SELECT_TAF, selection: tafSelection }),
   discardTafAction: (evt) => ({ type: LOCAL_ACTION_TYPES.DISCARD_TAF, event: evt }),
   saveTafAction: (evt) => ({ type: LOCAL_ACTION_TYPES.SAVE_TAF, event: evt }),
@@ -125,8 +125,8 @@ export const READ_ABILITIES = {
 
 const READ_ABILITIES_ORDER = [
   READ_ABILITIES.DELETE['dataField'],
-  READ_ABILITIES.EDIT['dataField'],
   READ_ABILITIES.COPY['dataField'],
+  READ_ABILITIES.EDIT['dataField'],
   READ_ABILITIES.CANCEL['dataField'],
   READ_ABILITIES.CORRECT['dataField'],
   READ_ABILITIES.AMEND['dataField'],
@@ -161,13 +161,24 @@ export const LIFECYCLE_STAGES = [
   { stage: LIFECYCLE_STAGE_NAMES.MISSING, label: 'NIL' }
 ];
 
+export const FEEDBACK_STATUSES = {
+  INFO: 'info',
+  SUCCESS: 'success',
+  ERROR: 'danger'
+};
+
+export const FEEDBACK_CATEGORIES = {
+  VALIDATION: 'validation',
+  LIFECYCLE: 'lifecycle'
+};
+
 const STATE = {
   locations: [],
   timestamps: {},
   selectableTafs: [],
   selectedTaf: null,
   copiedTafRef: null,
-  feedback: null,
+  feedback: {},
   mode: MODES.READ,
   abilitiesPerStatus: [
     {
@@ -184,6 +195,9 @@ const STATE = {
     }
   ]
 };
+STATE.feedback[FEEDBACK_CATEGORIES.VALIDATION] = null;
+STATE.feedback[FEEDBACK_CATEGORIES.LIFECYCLE] = null;
+
 // New TAFs
 STATE.abilitiesPerStatus[0].abilities[MODES.READ] = {};
 STATE.abilitiesPerStatus[0].abilities[MODES.READ][READ_ABILITIES.DELETE.check] = false;

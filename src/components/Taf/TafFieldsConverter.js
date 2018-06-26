@@ -77,7 +77,7 @@ const getMapValue = (name, mapToUse, allCaps = false) => {
 const jsonToTacForType = (typeAsJson, useFallback = false) => {
   let result = null;
   if (typeAsJson && typeof typeAsJson === 'string') {
-    const matchedOption = LIFECYCLE_STAGES.find((option) => option.stage === typeAsJson.toUpperCase());
+    const matchedOption = LIFECYCLE_STAGES.find((option) => option.stage === typeAsJson.toLowerCase());
     if (matchedOption) {
       result = matchedOption.label;
     }

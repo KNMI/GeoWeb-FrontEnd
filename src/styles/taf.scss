@@ -13,9 +13,10 @@
     border-bottom: 0.05rem solid #d4f0ff;
     background-color: #e9f8ff;
     border-radius: 0.2rem 0.2rem 0 0;
+    min-height: 2.8rem;
 
     > div:first-of-type {
-      padding-top: 0.2rem;
+      padding-top: 0.25rem;
       margin-right: 0.5rem;
     }
 
@@ -32,6 +33,9 @@
 
     ul {
       min-width: 100%;
+      span.fa {
+        padding-top: 0.2rem;
+      }
 
       li a {
         display: flex;
@@ -111,6 +115,7 @@
 
       .alert {
         margin: 0;
+        padding: 0.5rem;
       }
 
       .alert-heading {

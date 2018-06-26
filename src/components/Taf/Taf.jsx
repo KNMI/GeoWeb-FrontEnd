@@ -15,7 +15,10 @@ import { jsonToTacForWind, jsonToTacForWeather, jsonToTacForClouds } from './Taf
 import TafTable from './TafTable';
 import TacView from './TacView';
 import { debounce } from '../../utils/debounce';
-import { MODES, READ_ABILITIES, EDIT_ABILITIES, byEditAbilities, byReadAbilities, LIFECYCLE_STAGE_NAMES } from '../../containers/Taf/TafActions';
+import {
+  MODES, READ_ABILITIES, EDIT_ABILITIES, byEditAbilities, byReadAbilities, LIFECYCLE_STAGE_NAMES,
+  FEEDBACK_STATUSES, FEEDBACK_CATEGORIES
+} from '../../containers/Taf/TafActions';
 import TafValidator from './TafValidator';
 const TMP = '◷';
 
@@ -93,7 +96,7 @@ class Taf extends Component {
 
         dispatch(actions.updateFeedbackAction(
           validationMessage,
-          validationSucceeded ? 'info' : 'danger', null, validationErrors)
+          validationSucceeded ? FEEDBACK_STATUSES.SUCCESS : FEEDBACK_STATUSES.ERROR, FEEDBACK_CATEGORIES.VALIDATION, null, validationErrors)
         );
       });
     }
@@ -614,7 +617,8 @@ class Taf extends Component {
    * @returns {boolean} Whether or not is should be disabled
    */
   getDisabledFlag (abilityRef, tafType, isInValidityPeriod) {
-    const { selectedTaf, copiedTafRef } = this.props;
+    const { selectedTaf, copiedTafRef, feedback } = this.props;
+    const validationFeedback = feedback && feedback[FEEDBACK_CATEGORIES.VALIDATION];
     if (!abilityRef || !selectedTaf) {
       return false;
     }
@@ -626,6 +630,8 @@ class Taf extends Component {
         return !copiedTafRef;
       case READ_ABILITIES.COPY['dataField']:
         return copiedTafRef === selectedTaf.tafData.metadata.uuid;
+      case READ_ABILITIES.PUBLISH['dataField']:
+        return !validationFeedback || validationFeedback.status === FEEDBACK_STATUSES.ERROR;
       case READ_ABILITIES.CORRECT['dataField']:
         return (tafType === LIFECYCLE_STAGE_NAMES.CANCELED);
       case READ_ABILITIES.AMEND['dataField']:
@@ -677,13 +683,14 @@ class Taf extends Component {
       return null;
     }
     const { tafData } = selectedTaf;
+    const validationFeedback = feedback && feedback[FEEDBACK_CATEGORIES.VALIDATION];
+    const lifecycleFeedback = feedback && feedback[FEEDBACK_CATEGORIES.LIFECYCLE];
     const abilityCtAs = this.reduceAbilities(); // CtA = Call To Action
     const series = this.extractScheduleInformation(tafData);
 
     return (
       <Row className='Taf'>
         <Col>
-          <Row><Col className='uuid'>{ tafData && tafData.metadata && tafData.metadata.uuid ? tafData.metadata.uuid : '-' }</Col></Row>
           <TacView taf={tafData} />
           <Row className='TafTable'>
             <Col>
@@ -704,18 +711,31 @@ class Taf extends Component {
           <TimeSchedule series={series}
             startMoment={moment.utc(tafData.metadata.validityStart)}
             endMoment={moment.utc(tafData.metadata.validityEnd)} />
-          {feedback
-            ? <FeedbackSection status={feedback.status ? feedback.status : 'info'}>
-              {feedback.title
-                ? <span data-field='title'>{feedback.title}</span>
+          {validationFeedback && mode === MODES.EDIT
+            ? <FeedbackSection status={validationFeedback.status ? validationFeedback.status : FEEDBACK_STATUSES.INFO} category={FEEDBACK_CATEGORIES.VALIDATION}>
+              {validationFeedback.title
+                ? <span data-field='title'>{validationFeedback.title}</span>
                 : null
               }
-              {feedback.subTitle
-                ? <span data-field='subTitle'>{feedback.subTitle}</span>
+              {validationFeedback.subTitle
+                ? <span data-field='subTitle'>{validationFeedback.subTitle}</span>
                 : null
               }
-              {feedback.list
-                ? <span data-field='list'>{feedback.list}</span>
+              {validationFeedback.list
+                ? <span data-field='list'>{validationFeedback.list}</span>
+                : null
+              }
+            </FeedbackSection>
+            : null
+          }
+          {lifecycleFeedback
+            ? <FeedbackSection status={lifecycleFeedback.status ? lifecycleFeedback.status : FEEDBACK_STATUSES.INFO} category={FEEDBACK_CATEGORIES.LIFECYCLE}>
+              {lifecycleFeedback.title
+                ? <span data-field='title'>{lifecycleFeedback.title}</span>
+                : null
+              }
+              {lifecycleFeedback.subTitle
+                ? <span data-field='subTitle'>{lifecycleFeedback.subTitle}</span>
                 : null
               }
             </FeedbackSection>
