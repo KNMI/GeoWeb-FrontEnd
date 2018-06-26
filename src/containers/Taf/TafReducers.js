@@ -539,6 +539,7 @@ const publishTaf = (event, container) => {
   const { state } = container;
   container.setState(produce(state, draftState => {
     draftState.selectedTaf[0].tafData.metadata.status = STATUSES.PUBLISHED;
+    draftState.selectedTaf[0].tafData.metadata.type = LIFECYCLE_STAGE_NAMES.NORMAL;
     draftState.mode = MODES.READ;
   }), () => {
     saveTaf(event, container);
@@ -552,9 +553,13 @@ const publishTaf = (event, container) => {
  */
 const amendTaf = (event, container) => {
   const { state } = container;
+  if (container.state.selectedTaf[0].tafData.metadata.status !== STATUSES.PUBLISHED) {
+    return;
+  }
   container.setState(produce(state, draftState => {
     draftState.selectedTaf[0].tafData.metadata.previousUuid = draftState.selectedTaf[0].tafData.metadata.uuid;
     draftState.selectedTaf[0].tafData.metadata.uuid = null;
+    draftState.selectedTaf[0].uuid = null;
     draftState.selectedTaf[0].tafData.metadata.status = STATUSES.CONCEPT;
     draftState.selectedTaf[0].tafData.metadata.type = LIFECYCLE_STAGE_NAMES.AMENDMENT;
     draftState.mode = MODES.EDIT;
@@ -568,9 +573,13 @@ const amendTaf = (event, container) => {
  */
 const correctTaf = (event, container) => {
   const { state } = container;
+  if (container.state.selectedTaf[0].tafData.metadata.status !== STATUSES.PUBLISHED) {
+    return;
+  }
   container.setState(produce(state, draftState => {
     draftState.selectedTaf[0].tafData.metadata.previousUuid = draftState.selectedTaf[0].tafData.metadata.uuid;
     draftState.selectedTaf[0].tafData.metadata.uuid = null;
+    draftState.selectedTaf[0].uuid = null;
     draftState.selectedTaf[0].tafData.metadata.status = STATUSES.CONCEPT;
     draftState.selectedTaf[0].tafData.metadata.type = LIFECYCLE_STAGE_NAMES.CORRECTION;
     draftState.mode = MODES.EDIT;
@@ -584,12 +593,18 @@ const correctTaf = (event, container) => {
  */
 const cancelTaf = (event, container) => {
   const { state } = container;
+  if (container.state.selectedTaf[0].tafData.metadata.status !== STATUSES.PUBLISHED) {
+    return;
+  }
   container.setState(produce(state, draftState => {
     draftState.selectedTaf[0].tafData.metadata.previousUuid = draftState.selectedTaf[0].tafData.metadata.uuid;
     draftState.selectedTaf[0].tafData.metadata.uuid = null;
+    draftState.selectedTaf[0].uuid = null;
     draftState.selectedTaf[0].tafData.metadata.status = STATUSES.CONCEPT;
     draftState.selectedTaf[0].tafData.metadata.type = LIFECYCLE_STAGE_NAMES.CANCELED;
-    draftState.mode = MODES.EDIT;
+    draftState.selectedTaf[0].tafData.changegroups.length = 0;
+    draftState.selectedTaf[0].tafData.forecast = null;
+    draftState.mode = MODES.READ;
   }));
 };
 

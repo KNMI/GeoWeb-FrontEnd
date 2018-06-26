@@ -617,7 +617,7 @@ class Taf extends Component {
    * @returns {boolean} Whether or not is should be disabled
    */
   getDisabledFlag (abilityRef, tafType, isInValidityPeriod) {
-    const { selectedTaf, copiedTafRef, feedback } = this.props;
+    const { selectedTaf, copiedTafRef, feedback, selectableTafs } = this.props;
     const validationFeedback = feedback && feedback[FEEDBACK_CATEGORIES.VALIDATION];
     if (!abilityRef || !selectedTaf) {
       return false;
@@ -633,7 +633,7 @@ class Taf extends Component {
       case READ_ABILITIES.PUBLISH['dataField']:
         return !validationFeedback || validationFeedback.status === FEEDBACK_STATUSES.ERROR;
       case READ_ABILITIES.CORRECT['dataField']:
-        return (tafType === LIFECYCLE_STAGE_NAMES.CANCELED);
+        return tafType === LIFECYCLE_STAGE_NAMES.CANCELED;
       case READ_ABILITIES.AMEND['dataField']:
       case READ_ABILITIES.CANCEL['dataField']:
         return !isInValidityPeriod || tafType === LIFECYCLE_STAGE_NAMES.CANCELED;
