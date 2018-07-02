@@ -1,8 +1,7 @@
-import { TIMESTAMP_FORMAT } from '../../components/Taf/TafTemplates';
-
 export const LOCAL_ACTION_TYPES = {
   UPDATE_LOCATIONS: 'UPDATE_LOCATIONS',
   UPDATE_TIMESTAMPS: 'UPDATE_TIMESTAMPS',
+  UPDATE_TAFS: 'UPDATE_TAFS',
   UPDATE_FEEDBACK: 'UPDATE_FEEDBACK',
   SELECT_TAF: 'SELECT_TAF',
   DISCARD_TAF: 'DISCARD_TAF',
@@ -24,6 +23,7 @@ export const LOCAL_ACTION_TYPES = {
 export const LOCAL_ACTIONS = {
   updateLocationsAction: () => ({ type: LOCAL_ACTION_TYPES.UPDATE_LOCATIONS }),
   updateTimestampsAction: () => ({ type: LOCAL_ACTION_TYPES.UPDATE_TIMESTAMPS }),
+  updateTafsAction: () => ({ type: LOCAL_ACTION_TYPES.UPDATE_TAFS }),
   updateFeedbackAction: (title, status, category, subTitle, list) => ({ type: LOCAL_ACTION_TYPES.UPDATE_FEEDBACK, title: title, status: status, category: category, subTitle: subTitle, list: list }),
   selectTafAction: (tafSelection) => ({ type: LOCAL_ACTION_TYPES.SELECT_TAF, selection: tafSelection }),
   discardTafAction: (evt) => ({ type: LOCAL_ACTION_TYPES.DISCARD_TAF, event: evt }),
@@ -238,102 +238,3 @@ STATE.abilitiesPerStatus[2].abilities[MODES.READ][READ_ABILITIES.PUBLISH.check] 
 STATE.abilitiesPerStatus[2].abilities[MODES.EDIT] = {};
 
 export const INITIAL_STATE = STATE;
-
-/** Gets example data
- * @param {moment} start The start of the validity
- * @param {string} location The location code
- * @param {string} status The status code
- * @returns Response data
- */
-export const getExample = (start, location, status) => ({
-  data: {
-    ntafs: 1,
-    tafs: [
-      {
-        'metadata': {
-          'issueTime': status === STATUSES.PUBLISHED ? start.clone().subtract(1, 'hour').format(TIMESTAMP_FORMAT) : null,
-          'validityStart': start.format(TIMESTAMP_FORMAT),
-          'validityEnd': start.clone().add(30, 'hour').format(TIMESTAMP_FORMAT),
-          'status': status,
-          'type': 'normal',
-          'location': location,
-          'modified': start.clone().subtract(1, 'hour').format(TIMESTAMP_FORMAT),
-          'author': 'Met1'
-        },
-        'forecast': {
-          'wind': {
-            'direction': 200,
-            'speed': 15,
-            'gusts': 25,
-            'unit': 'KT'
-          },
-          'caVOK': true
-        },
-        'changegroups': [{
-          'changeType': 'BECMG',
-          'changeStart': start.clone().add(2, 'hour').format(TIMESTAMP_FORMAT),
-          'changeEnd': start.clone().add(7, 'hour').format(TIMESTAMP_FORMAT),
-          'forecast': {
-            'weather': [],
-            'clouds': [{
-              'amount': 'SCT',
-              'height': 20,
-              'mod': null
-            }],
-            'visibility': {
-              'value': 9000,
-              'unit': 'M'
-            },
-            'wind': {
-              'direction': 220,
-              'speed': 17,
-              'gusts': 27,
-              'unit': 'KT'
-            }
-          }
-        }, {
-          'changeType': 'PROB30 TEMPO',
-          'changeStart': start.clone().add(9, 'hour').format(TIMESTAMP_FORMAT),
-          'changeEnd': start.clone().add(11, 'hour').format(TIMESTAMP_FORMAT),
-          'forecast': {
-            'weather': [{
-              'qualifier': 'moderate',
-              'descriptor': 'thunderstorm',
-              'phenomena': ['rain']
-            }],
-            'clouds': [{
-              'amount': 'BKN',
-              'height': 15,
-              'mod': 'CB'
-            }, {
-              'amount': 'OVC',
-              'height': 20,
-              'mod': null
-            }],
-            'visibility': {
-              'value': 3000,
-              'unit': 'M'
-            },
-            'wind': {
-              'direction': 'VRB',
-              'speed': 25,
-              'gusts': 38,
-              'unit': 'KT'
-            }
-          }
-        }, {
-          'changeType': 'TEMPO',
-          'changeStart': start.clone().add(12, 'hour').format(TIMESTAMP_FORMAT),
-          'changeEnd': start.clone().add(16, 'hour').format(TIMESTAMP_FORMAT),
-          'forecast': {
-            'weather': [{
-              'qualifier': 'moderate',
-              'descriptor': 'freezing',
-              'phenomena': ['fog']
-            }]
-          }
-        }]
-      }
-    ]
-  }
-});

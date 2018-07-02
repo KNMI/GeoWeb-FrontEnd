@@ -93,7 +93,7 @@
   "author": "KNMI, based on work by David Zukowski <david@zuko.me> (http://zuko.me)",
   "license": "MIT",
   "dependencies": {
-    "availity-reactstrap-validation": "^2.0.2",
+    "availity-reactstrap-validation": "^1.4.3",
     "axios": "^0.18.0",
     "bootstrap": "4.0.0-alpha.6",
     "classnames": "^2.2.6",
@@ -108,6 +108,7 @@
     "lodash.clonedeep": "^4.5.0",
     "lodash.escaperegexp": "^4.1.2",
     "lodash.get": "^4.4.2",
+    "lodash.has": "^4.5.2",
     "lodash.isempty": "^4.4.0",
     "lodash.isequal": "^4.5.0",
     "lodash.omit": "^4.5.0",

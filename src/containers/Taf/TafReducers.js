@@ -5,7 +5,7 @@ import { arrayMove } from 'react-sortable-hoc';
 import setNestedProperty from 'lodash.set';
 import getNestedProperty from 'lodash.get';
 import removeNestedProperty from 'lodash.unset';
-import { clearNullPointersAndAncestors } from '../../utils/json';
+import { clearNullPointersAndAncestors, mergeInTemplate } from '../../utils/json';
 import { ReadLocations } from '../../utils/admin';
 import { LOCAL_ACTION_TYPES, STATUSES, LIFECYCLE_STAGE_NAMES, MODES, FEEDBACK_CATEGORIES, FEEDBACK_STATUSES } from './TafActions';
 import { TAF_TEMPLATES, TIMELABEL_FORMAT, TIMESTAMP_FORMAT } from '../../components/Taf/TafTemplates';
@@ -270,9 +270,13 @@ const wrapIntoSelectableTaf = (tafData) => {
         draftSelectable.tafData.metadata[entry[0]] = tafData.metadata[entry[0]];
       }
     });
-    draftSelectable.tafData.forecast = tafData.forecast;
+    draftSelectable.tafData.forecast = mergeInTemplate(tafData.forecast, 'FORECAST', TAF_TEMPLATES);
     draftSelectable.tafData.changegroups.length = 0;
-    draftSelectable.tafData.changegroups.push(...tafData.changegroups);
+    if (Array.isArray(tafData.changegroups)) {
+      tafData.changegroups.forEach((changeGroup) => {
+        draftSelectable.tafData.changegroups.push(mergeInTemplate(changeGroup, 'CHANGE_GROUP', TAF_TEMPLATES));
+      });
+    }
   });
 };
 
@@ -723,6 +727,9 @@ export default (localAction, container) => {
       break;
     case LOCAL_ACTION_TYPES.UPDATE_TIMESTAMPS:
       updateTimestamps(container);
+      break;
+    case LOCAL_ACTION_TYPES.UPDATE_TAFS:
+      synchronizeSelectableTafs(container);
       break;
     case LOCAL_ACTION_TYPES.UPDATE_FEEDBACK:
       updateFeedback(localAction.title, localAction.status, localAction.category, localAction.subTitle, localAction.list, container);
