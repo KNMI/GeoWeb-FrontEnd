@@ -1,5 +1,5 @@
 import dispatch from './TafReducers';
-import { LOCAL_ACTIONS } from './TafActions';
+import { LOCAL_ACTIONS, FEEDBACK_CATEGORIES, FEEDBACK_STATUSES, MODES } from './TafActions';
 import { TIMESTAMP_FORMAT } from '../../components/Taf/TafTemplates';
 
 import moment from 'moment';
@@ -33,9 +33,9 @@ describe('(Reducer) TafReducers', () => {
     };
     dispatch(LOCAL_ACTIONS.updateTimestampsAction(), container);
     expect(container.state).to.be.a('object');
-    expect(container.state.timestamps).to.to.have.property('current');
+    expect(container.state.timestamps).to.have.property('current');
     expect(moment.isMoment(container.state.timestamps.current)).to.eql(true);
-    expect(container.state.timestamps).to.to.have.property('next');
+    expect(container.state.timestamps).to.have.property('next');
     expect(moment.isMoment(container.state.timestamps.next)).to.eql(true);
   });
   it('should handle updateLocationsAction', (done) => {
@@ -99,10 +99,57 @@ describe('(Reducer) TafReducers', () => {
     };
     dispatch(LOCAL_ACTIONS.updateTimestampsAction(), container);
     expect(container.state).to.be.a('object');
-    expect(container.state.timestamps).to.to.have.property('current');
+    expect(container.state.timestamps).to.have.property('current');
     expect(moment.isMoment(container.state.timestamps.current)).to.eql(true);
-    expect(container.state.timestamps).to.to.have.property('next');
+    expect(container.state.timestamps).to.have.property('next');
     expect(moment.isMoment(container.state.timestamps.next)).to.eql(true);
+  });
+  it('should handle editTaf', () => {
+    const container = {
+      props: {
+        urls: {
+          BACKEND_SERVER_URL: 'http://localhost'
+        }
+      },
+      state: {
+        mode: MODES.EDIT
+      }
+    };
+    container.setState = (partialState) => {
+      Object.entries(partialState).forEach((entry) => {
+        container.state[entry[0]] = entry[1];
+      });
+    };
+    dispatch(LOCAL_ACTIONS.editTafAction(), container);
+    expect(container.state).to.be.a('object');
+    expect(container.state).to.have.property('mode', MODES.EDIT);
+  });
+  it('should handle discardTaf', () => {
+    const container = {
+      props: {
+        urls: {
+          BACKEND_SERVER_URL: 'http://localhost'
+        }
+      },
+      state: {
+        mode: MODES.EDIT,
+        selectedTaf: [{
+          tafData: {
+            prop: 'test'
+          }
+        }]
+      }
+    };
+    container.setState = (partialState) => {
+      Object.entries(partialState).forEach((entry) => {
+        container.state[entry[0]] = entry[1];
+      });
+    };
+    dispatch(LOCAL_ACTIONS.discardTafAction(), container);
+    expect(container.state).to.be.a('object');
+    expect(container.state).to.have.property('mode', MODES.READ);
+    expect(container.state).to.have.property('selectedTaf');
+    expect(container.state.selectedTaf).to.eql([]);
   });
   it('should handle updateTAFs, when no TAFs are responded', (done) => {
     const now = moment.utc();
@@ -447,6 +494,401 @@ describe('(Reducer) TafReducers', () => {
         });
         done();
       }).catch(done);
+    });
+  });
+  it('should handle copyTaf', () => {
+    const container = {
+      props: {
+        urls: {
+          BACKEND_SERVER_URL: 'localhost'
+        }
+      },
+      state: {
+        timestamps: {},
+        locations: ['EHAM'],
+        selectableTafs: [{
+          location: 'EHAM',
+          timestamp: moment.utc(),
+          label: {
+            time: '12:00',
+            text: 'EHAM 12:00',
+            icon: 'test'
+          },
+          uuid: 'test-uuid',
+          tafData: {}
+        }],
+        selectedTaf: [{
+          location: 'EHAM',
+          timestamp: moment.utc(),
+          label: {
+            time: '12:00',
+            text: 'EHAM 12:00',
+            icon: 'test'
+          },
+          uuid: 'test-uuid',
+          tafData: {
+            metadata: {
+              uuid: 'test-uuid'
+            }
+          }
+        }],
+        copiedTafRef: null
+      }
+    };
+    container.setState = (partialState) => {
+      Object.entries(partialState).forEach((entry) => {
+        container.state[entry[0]] = entry[1];
+      });
+    };
+    dispatch(LOCAL_ACTIONS.copyTafAction(), container);
+    expect(container.state).to.be.a('object');
+    expect(container.state).to.have.property('copiedTafRef', 'test-uuid');
+  });
+  it('should handle pasteTaf', () => {
+    const now = moment.utc();
+    const taf = {
+      location: 'EHAM',
+      timestamp: moment.utc(),
+      label: {
+        time: '12:00',
+        text: 'EHAM 12:00',
+        icon: 'test'
+      },
+      uuid: 'test-uuid',
+      tafData: {
+        changegroups: [{
+          forecast: {
+            clouds: [
+              {
+                amount: 'BKN',
+                height: 20
+              },
+              null,
+              {
+                height: 30,
+                mod: 'CB'
+              }
+            ]
+          }
+        }],
+        forecast: {},
+        metadata: {
+          location: 'EHAM',
+          status: 'concept',
+          type: 'normal',
+          uuid: 'test-uuid',
+          validityStart: now.clone().startOf('hour').format(TIMESTAMP_FORMAT),
+          validityEnd: now.clone().startOf('hour').add(30, 'hour').format(TIMESTAMP_FORMAT)
+        }
+      }
+    };
+    const container = {
+      props: {
+        urls: {
+          BACKEND_SERVER_URL: 'localhost'
+        }
+      },
+      state: {
+        timestamps: {},
+        locations: ['EHAM'],
+        selectableTafs: [taf],
+        selectedTaf: [{
+          hasEdits: false,
+          tafData: {
+            changegroups: [{ a: 'b' }]
+          }
+        }],
+        copiedTafRef: 'test-uuid'
+      }
+    };
+    container.setState = (partialState) => {
+      Object.entries(partialState).forEach((entry) => {
+        container.state[entry[0]] = entry[1];
+      });
+    };
+    dispatch(LOCAL_ACTIONS.pasteTafAction(), container);
+    expect(container.state).to.be.a('object');
+    expect(container.state).to.have.property('copiedTafRef', null);
+    expect(container.state).to.have.property('selectedTaf');
+    expect(container.state.selectedTaf).to.be.a('array');
+    expect(container.state.selectedTaf[0]).to.have.property('hasEdits', true);
+    expect(container.state.selectedTaf[0]).to.have.property('tafData');
+    expect(container.state.selectedTaf[0].tafData.forecast).to.eql(taf.tafData.forecast);
+    expect(container.state.selectedTaf[0].tafData.changegroups).to.eql(taf.tafData.changegroups);
+  });
+  it('should handle selectTaf', () => {
+    const now = moment.utc();
+    const taf = {
+      location: 'EHAM',
+      timestamp: moment.utc(),
+      label: {
+        time: '12:00',
+        text: 'EHAM 12:00',
+        icon: 'test'
+      },
+      uuid: 'test-uuid',
+      tafData: {
+        changegroups: [{
+          forecast: {
+            clouds: [
+              {
+                amount: 'BKN',
+                height: 20
+              },
+              null,
+              {
+                height: 30,
+                mod: 'CB'
+              }
+            ]
+          }
+        }],
+        forecast: { },
+        metadata: {
+          location: 'EHAM',
+          status: 'concept',
+          type: 'normal',
+          validityStart: now.clone().startOf('hour').format(TIMESTAMP_FORMAT),
+          validityEnd: now.clone().startOf('hour').add(30, 'hour').format(TIMESTAMP_FORMAT)
+        }
+      }
+    };
+    const container = {
+      props: {
+        urls: {
+          BACKEND_SERVER_URL: 'localhost'
+        }
+      },
+      state: {
+        timestamps: {},
+        locations: ['EHAM'],
+        selectableTafs: [taf],
+        selectedTaf: []
+      }
+    };
+    container.setState = (partialState) => {
+      Object.entries(partialState).forEach((entry) => {
+        container.state[entry[0]] = entry[1];
+      });
+    };
+    dispatch(LOCAL_ACTIONS.selectTafAction([taf]), container);
+    expect(container.state).to.be.a('object');
+    expect(container.state).to.have.property('selectedTaf');
+    expect(container.state.selectedTaf).to.eql([taf]);
+  });
+  it('should handle selectTaf when same TAF is selected', () => {
+    const now = moment.utc();
+    const taf = {
+      location: 'EHAM',
+      timestamp: moment.utc(),
+      label: {
+        time: '12:00',
+        text: 'EHAM 12:00',
+        icon: 'test'
+      },
+      uuid: 'test-uuid',
+      tafData: {
+        changegroups: [{
+          forecast: {
+            clouds: [
+              {
+                amount: 'BKN',
+                height: 20
+              },
+              null,
+              {
+                height: 30,
+                mod: 'CB'
+              }
+            ]
+          }
+        }],
+        forecast: {},
+        metadata: {
+          location: 'EHAM',
+          status: 'concept',
+          type: 'normal',
+          validityStart: now.clone().startOf('hour').format(TIMESTAMP_FORMAT),
+          validityEnd: now.clone().startOf('hour').add(30, 'hour').format(TIMESTAMP_FORMAT)
+        }
+      }
+    };
+    const container = {
+      props: {
+        urls: {
+          BACKEND_SERVER_URL: 'localhost'
+        }
+      },
+      state: {
+        timestamps: {},
+        locations: ['EHAM'],
+        selectableTafs: [taf],
+        selectedTaf: [taf]
+      }
+    };
+    container.setState = (partialState) => {
+      Object.entries(partialState).forEach((entry) => {
+        container.state[entry[0]] = entry[1];
+      });
+    };
+    dispatch(LOCAL_ACTIONS.selectTafAction([taf]), container);
+    expect(container.state).to.be.a('object');
+    expect(container.state).to.have.property('selectedTaf');
+    expect(container.state.selectedTaf).to.eql([taf]);
+  });
+  it('should handle selectTaf when no selection is given', () => {
+    const now = moment.utc();
+    const taf = {
+      location: 'EHAM',
+      timestamp: moment.utc(),
+      label: {
+        time: '12:00',
+        text: 'EHAM 12:00',
+        icon: 'test'
+      },
+      uuid: 'test-uuid',
+      tafData: {
+        changegroups: [{
+          forecast: {
+            clouds: [
+              {
+                amount: 'BKN',
+                height: 20
+              },
+              null,
+              {
+                height: 30,
+                mod: 'CB'
+              }
+            ]
+          }
+        }],
+        forecast: {},
+        metadata: {
+          location: 'EHAM',
+          status: 'concept',
+          type: 'normal',
+          validityStart: now.clone().startOf('hour').format(TIMESTAMP_FORMAT),
+          validityEnd: now.clone().startOf('hour').add(30, 'hour').format(TIMESTAMP_FORMAT)
+        }
+      }
+    };
+    const container = {
+      props: {
+        urls: {
+          BACKEND_SERVER_URL: 'localhost'
+        }
+      },
+      state: {
+        timestamps: {},
+        locations: ['EHAM'],
+        selectableTafs: [taf],
+        selectedTaf: [taf],
+        feedback: {},
+        mode: MODES.EDIT
+      }
+    };
+    container.setState = (partialState) => {
+      Object.entries(partialState).forEach((entry) => {
+        container.state[entry[0]] = entry[1];
+      });
+    };
+    dispatch(LOCAL_ACTIONS.selectTafAction([]), container);
+    expect(container.state).to.be.a('object');
+    expect(container.state).to.have.property('selectedTaf');
+    expect(container.state.selectedTaf).to.eql([]);
+  });
+  it('should handle selectTaf when selection is not an array', () => {
+    const now = moment.utc();
+    const taf = {
+      location: 'EHAM',
+      timestamp: moment.utc(),
+      label: {
+        time: '12:00',
+        text: 'EHAM 12:00',
+        icon: 'test'
+      },
+      uuid: 'test-uuid',
+      tafData: {
+        changegroups: [{
+          forecast: {
+            clouds: [
+              {
+                amount: 'BKN',
+                height: 20
+              },
+              null,
+              {
+                height: 30,
+                mod: 'CB'
+              }
+            ]
+          }
+        }],
+        forecast: {},
+        metadata: {
+          location: 'EHAM',
+          status: 'concept',
+          type: 'normal',
+          validityStart: now.clone().startOf('hour').format(TIMESTAMP_FORMAT),
+          validityEnd: now.clone().startOf('hour').add(30, 'hour').format(TIMESTAMP_FORMAT)
+        }
+      }
+    };
+    const container = {
+      props: {
+        urls: {
+          BACKEND_SERVER_URL: 'localhost'
+        }
+      },
+      state: {
+        timestamps: {},
+        locations: ['EHAM'],
+        selectableTafs: [taf],
+        selectedTaf: [taf],
+        feedback: {},
+        mode: MODES.EDIT
+      }
+    };
+    container.setState = (partialState) => {
+      Object.entries(partialState).forEach((entry) => {
+        container.state[entry[0]] = entry[1];
+      });
+    };
+    dispatch(LOCAL_ACTIONS.selectTafAction(null), container);
+    expect(container.state).to.be.a('object');
+    expect(container.state).to.have.property('selectedTaf');
+    expect(container.state.selectedTaf).to.eql([taf]);
+  });
+  it('should handle updateFeedback', () => {
+    const container = {
+      props: {
+        urls: {
+          BACKEND_SERVER_URL: 'localhost'
+        }
+      },
+      state: {
+        timestamps: {},
+        locations: ['EHAM'],
+        selectableTafs: [],
+        selectedTaf: [],
+        feedback: {}
+      }
+    };
+    container.setState = (partialState) => {
+      Object.entries(partialState).forEach((entry) => {
+        container.state[entry[0]] = entry[1];
+      });
+    };
+    dispatch(LOCAL_ACTIONS.updateFeedbackAction('TitleTest', FEEDBACK_STATUSES.ERROR, FEEDBACK_CATEGORIES.LIFECYCLE, null, null), container);
+    expect(container.state).to.be.a('object');
+    expect(container.state).to.have.property('feedback');
+    expect(container.state.feedback).to.have.property(FEEDBACK_CATEGORIES.LIFECYCLE);
+    expect(container.state.feedback[FEEDBACK_CATEGORIES.LIFECYCLE]).to.eql({
+      title: 'TitleTest',
+      status: FEEDBACK_STATUSES.ERROR,
+      subTitle: null,
+      list: null
     });
   });
 });

@@ -76,12 +76,23 @@ class Taf extends Component {
     let stringifiedTafObject = JSON.stringify(tafAsObject);
     if (this.validatedTafObject !== stringifiedTafObject) {
       this.validatedTafObject = stringifiedTafObject;
-      const { dispatch, actions } = this.props;
+      const { dispatch, actions, urls } = this.props;
+      let validationMessage = 'Unable to get validation report';
+      if (!actions) {
+        console.error(validationMessage);
+        return;
+      }
+      if (!urls) {
+        dispatch(actions.updateFeedbackAction(
+          validationMessage,
+          FEEDBACK_STATUSES.ERROR, FEEDBACK_CATEGORIES.VALIDATION, null, null)
+        );
+        return;
+      }
 
-      TafValidator(this.props.urls.BACKEND_SERVER_URL, tafAsObject).then((validationReport) => {
+      TafValidator(urls.BACKEND_SERVER_URL, tafAsObject).then((validationReport) => {
         let validationErrors = [];
         let validationSucceeded = false;
-        let validationMessage = 'Unable to get validation report';
         if (validationReport) {
           if (validationReport.errors) {
             validationErrors = validationReport.errors;
@@ -609,6 +620,13 @@ class Taf extends Component {
     }
   }
 
+  componentDidMount () {
+    const { selectedTaf } = this.props;
+    if (selectedTaf) {
+      this.validateTaf(selectedTaf.tafData);
+    }
+  }
+
   /**
    * Add disabled flag to abilities
    * @param {object} ability The ability to provide the flag for
@@ -617,7 +635,7 @@ class Taf extends Component {
    * @returns {boolean} Whether or not is should be disabled
    */
   getDisabledFlag (abilityRef, tafType, isInValidityPeriod) {
-    const { selectedTaf, copiedTafRef, feedback, selectableTafs } = this.props;
+    const { selectedTaf, copiedTafRef, feedback, hasFollowUp } = this.props;
     const validationFeedback = feedback && feedback[FEEDBACK_CATEGORIES.VALIDATION];
     if (!abilityRef || !selectedTaf) {
       return false;
@@ -633,8 +651,9 @@ class Taf extends Component {
       case READ_ABILITIES.PUBLISH['dataField']:
         return !validationFeedback || validationFeedback.status === FEEDBACK_STATUSES.ERROR;
       case READ_ABILITIES.CORRECT['dataField']:
-        return tafType === LIFECYCLE_STAGE_NAMES.CANCELED;
+        return tafType === LIFECYCLE_STAGE_NAMES.CANCELED || hasFollowUp;
       case READ_ABILITIES.AMEND['dataField']:
+        return !isInValidityPeriod || tafType === LIFECYCLE_STAGE_NAMES.CANCELED || hasFollowUp;
       case READ_ABILITIES.CANCEL['dataField']:
         return !isInValidityPeriod || tafType === LIFECYCLE_STAGE_NAMES.CANCELED;
       default:
@@ -673,6 +692,11 @@ class Taf extends Component {
         abilitiesCtAs.push(ability);
       }
     });
+    if (selectedType === LIFECYCLE_STAGE_NAMES.CANCELED) {
+      abilitiesCtAs.length = 0;
+      abilitiesCtAs.push(EDIT_ABILITIES.DISCARD);
+      abilitiesCtAs.push(READ_ABILITIES.PUBLISH);
+    }
     abilitiesCtAs.sort(byAbilities);
     return abilitiesCtAs;
   }
@@ -684,9 +708,11 @@ class Taf extends Component {
     }
     const { tafData } = selectedTaf;
     const validationFeedback = feedback && feedback[FEEDBACK_CATEGORIES.VALIDATION];
-    const lifecycleFeedback = feedback && feedback[FEEDBACK_CATEGORIES.LIFECYCLE];
     const abilityCtAs = this.reduceAbilities(); // CtA = Call To Action
     const series = this.extractScheduleInformation(tafData);
+
+    const isCancel = selectedTaf && selectedTaf.tafData && selectedTaf.tafData.metadata && selectedTaf.tafData.metadata.type &&
+      selectedTaf.tafData.metadata.type.toLowerCase() === LIFECYCLE_STAGE_NAMES.CANCELED;
 
     return (
       <Row className='Taf'>
@@ -708,9 +734,12 @@ class Taf extends Component {
                 editable={mode === MODES.EDIT} />
             </Col>
           </Row>
-          <TimeSchedule series={series}
-            startMoment={moment.utc(tafData.metadata.validityStart)}
-            endMoment={moment.utc(tafData.metadata.validityEnd)} />
+          {!isCancel
+            ? <TimeSchedule series={series}
+              startMoment={moment.utc(tafData.metadata.validityStart)}
+              endMoment={moment.utc(tafData.metadata.validityEnd)} />
+            : null
+          }
           {validationFeedback && mode === MODES.EDIT
             ? <FeedbackSection status={validationFeedback.status ? validationFeedback.status : FEEDBACK_STATUSES.INFO} category={FEEDBACK_CATEGORIES.VALIDATION}>
               {validationFeedback.title
@@ -723,19 +752,6 @@ class Taf extends Component {
               }
               {validationFeedback.list
                 ? <span data-field='list'>{validationFeedback.list}</span>
-                : null
-              }
-            </FeedbackSection>
-            : null
-          }
-          {lifecycleFeedback
-            ? <FeedbackSection status={lifecycleFeedback.status ? lifecycleFeedback.status : FEEDBACK_STATUSES.INFO} category={FEEDBACK_CATEGORIES.LIFECYCLE}>
-              {lifecycleFeedback.title
-                ? <span data-field='title'>{lifecycleFeedback.title}</span>
-                : null
-              }
-              {lifecycleFeedback.subTitle
-                ? <span data-field='subTitle'>{lifecycleFeedback.subTitle}</span>
                 : null
               }
             </FeedbackSection>
@@ -776,6 +792,7 @@ Taf.propTypes = {
   feedback: PropTypes.shape({
     message: PropTypes.string
   }),
+  hasFollowUp: PropTypes.bool,
   dispatch: PropTypes.func,
   actions: PropTypes.shape({
     discardTafAction: PropTypes.func,

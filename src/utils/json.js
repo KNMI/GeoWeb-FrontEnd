@@ -22,7 +22,6 @@ const mergeInTemplate = (incomingValues, parentName, templates) => {
     (!Array.isArray(field) && (typeof field !== 'object' || field.constructor !== Object)), incomingPointers);
   return produce(templates[parentName], draftState => {
     incomingPointers.forEach((pointer) => {
-      console.log('pointer', pointer);
       const pathParts = pointer.split('/');
       pathParts.shift();
       if (hasNestedProperty(draftState, pathParts)) {
@@ -58,7 +57,6 @@ const mergeInTemplate = (incomingValues, parentName, templates) => {
             if (typeof templateForArray === 'undefined') {
               templateForArray = templates[affectedName.toUpperCase()];
             }
-            console.log('aO', additionalOccurrences, affectedName, templateForArray);
             if (additionalOccurrences > 0 && Array.isArray(templateForArray) && templateForArray.length > 0) {
               affectedArray.push(...Array(additionalOccurrences).fill(cloneDeep(templateForArray[0])));
             }

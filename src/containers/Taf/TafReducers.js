@@ -236,6 +236,11 @@ const updateFeedback = (title, status, category, subTitle, list, container, call
       list: list
     };
   }), () => callback(container));
+  if (category === FEEDBACK_CATEGORIES.LIFECYCLE) {
+    setTimeout(() => container.setState(produce(state, draftState => {
+      draftState.feedback[category] = null;
+    })), 5000);
+  }
 };
 
 /**
@@ -271,8 +276,8 @@ const wrapIntoSelectableTaf = (tafData) => {
       }
     });
     draftSelectable.tafData.forecast = mergeInTemplate(tafData.forecast, 'FORECAST', TAF_TEMPLATES);
-    draftSelectable.tafData.changegroups.length = 0;
-    if (Array.isArray(tafData.changegroups)) {
+    if (Array.isArray(tafData.changegroups) && tafData.changegroups.length > 0) {
+      draftSelectable.tafData.changegroups.length = 0;
       tafData.changegroups.forEach((changeGroup) => {
         draftSelectable.tafData.changegroups.push(mergeInTemplate(changeGroup, 'CHANGE_GROUP', TAF_TEMPLATES));
       });
@@ -416,9 +421,17 @@ const saveTaf = (event, container) => {
   }), () => {
     const strippedTafData = produce(container.state.selectedTaf[0].tafData, draftTaf => {
       clearNullPointersAndAncestors(draftTaf);
-      if (!getNestedProperty(draftTaf, ['changegroups'])) {
-        setNestedProperty(draftTaf, ['changegroups'], []);
+      if (typeof draftTaf.forecast === 'undefined') {
+        draftTaf.forecast = {};
       }
+      if (typeof draftTaf.changegroups === 'undefined') {
+        draftTaf.changegroups = [];
+      }
+      draftTaf.changegroups.forEach((changegroup) => {
+        if (typeof changegroup.forecast === 'undefined') {
+          changegroup.forecast = {};
+        }
+      });
     });
     axios({
       method: 'post',
@@ -527,6 +540,7 @@ const pasteTaf = (event, container) => {
   container.setState(produce(state, draftState => {
     draftState.selectedTaf[0].tafData.forecast = copiedTaf.tafData.forecast;
     if (copiedTaf.tafData.changegroups.length > 0) {
+      draftState.selectedTaf[0].tafData.changegroups.length = 0;
       draftState.selectedTaf[0].tafData.changegroups.push(...copiedTaf.tafData.changegroups);
     }
     draftState.copiedTafRef = null;
@@ -607,7 +621,7 @@ const cancelTaf = (event, container) => {
     draftState.selectedTaf[0].tafData.metadata.status = STATUSES.CONCEPT;
     draftState.selectedTaf[0].tafData.metadata.type = LIFECYCLE_STAGE_NAMES.CANCELED;
     draftState.selectedTaf[0].tafData.changegroups.length = 0;
-    draftState.selectedTaf[0].tafData.forecast = null;
+    draftState.selectedTaf[0].tafData.forecast = {};
     draftState.mode = MODES.READ;
   }));
 };

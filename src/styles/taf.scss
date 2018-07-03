@@ -104,23 +104,19 @@
         margin-right: 0.33rem;
       }
     }
-
-    .TafFeedbackSection {
+  }
+  .TafFeedbackSection {
+    padding: 0.5rem;
+    padding-top: 0.33rem;
+    span {
+      max-width: unset;
+    }
+    .alert {
+      margin: 0;
       padding: 0.5rem;
-      padding-top: 0.33rem;
-
-      span {
-        max-width: unset;
-      }
-
-      .alert {
-        margin: 0;
-        padding: 0.5rem;
-      }
-
-      .alert-heading {
-        font-size: 1.2rem;
-      }
+    }
+    .alert-heading {
+      font-size: 1.2rem;
     }
   }
 }

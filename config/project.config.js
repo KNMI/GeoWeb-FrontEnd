@@ -59,8 +59,6 @@ const config = {
     'prop-types',
     'rc-slider',
     'react',
-    'react-addons-css-transition-group',
-    'react-addons-transition-group',
     'react-bootstrap-typeahead',
     'react-copy-to-clipboard',
     'react-dom',
