@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Col } from 'reactstrap';
+import { Row, Col } from 'reactstrap';
 import PropTypes from 'prop-types';
 import produce from 'immer';
 import Panel from '../../components/Panel';
@@ -54,7 +54,7 @@ export default class TafsContainer extends Component {
                   : null
                 }
               </FeedbackSection>
-              : null
+              : <Row className='TafFeedbackSection empty' />
             }
           </Col>
         </Panel>
