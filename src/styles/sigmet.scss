@@ -252,7 +252,7 @@
       padding-top: 0.2rem;
       font-size: inherit;
       font-family: inherit;
-      color: #666666;
+      color: #666;
     }
 
     .label:first-of-type {
@@ -269,7 +269,10 @@
   }
 
   .required {
-    padding-left: 0.33rem;
+    margin-left: -0.9rem;
+    padding-top: 0.33rem;
+    color: #888;
+    z-index: 100;
   }
 
   .required:after {

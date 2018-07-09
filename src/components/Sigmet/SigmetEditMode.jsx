@@ -105,6 +105,7 @@ class SigmetEditMode extends PureComponent {
             options={availablePhenomena} placeholder={'Select phenomenon'}
             onChange={(selectedValues) => dispatch(actions.updateSigmetAction(uuid, 'phenomenon', selectedValues))}
             selected={selectedPhenomenon ? [selectedPhenomenon] : []}
+            className={!selectedPhenomenon ? 'missing' : null}
             clearButton />
           <SwitchButton id='obs_or_fcst'
             labelLeft='Observed'

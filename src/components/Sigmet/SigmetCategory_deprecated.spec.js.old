@@ -181,7 +181,7 @@ describe('(Container) SigmetCategory', () => {
     };
     let result;
     moxios.wait(() => {
-      const request = moxios.stubRequest(`${BACKEND_SERVER_URL}/sigmet/getsigmetlist?active=false`);
+      const request = moxios.stubRequest(`${BACKEND_SERVER_URL}/sigmets?active=false`);
       request.respondWith({
         status: 200,
         response: sigmets

@@ -1,7 +1,7 @@
 import produce from 'immer';
 import moment from 'moment';
 import { SIGMET_TEMPLATES, UNITS, UNITS_ALT, MODES_LVL } from '../../components/Sigmet/SigmetTemplates';
-import { SIGMET_MODES, LOCAL_ACTION_TYPES, CATEGORY_REFS } from './SigmetActions';
+import { SIGMET_MODES, LOCAL_ACTION_TYPES, CATEGORY_REFS, STATUSES } from './SigmetActions';
 import { clearNullPointersAndAncestors } from '../../utils/json';
 import axios from 'axios';
 import { notify } from 'reapop';
@@ -117,7 +117,7 @@ const updateFir = (firName, container) => {
   }
   if (trimmedFirname && !Object.keys(container.state.firs).includes(trimmedFirname)) {
     const { BACKEND_SERVER_URL } = container.props.urls;
-    axios.get(`${BACKEND_SERVER_URL}/sigmet/getfir`, {
+    axios.get(`${BACKEND_SERVER_URL}/sigmets/getfir`, {
       withCredentials: true,
       params: {
         name: trimmedFirname
@@ -390,7 +390,7 @@ const createFirIntersection = (featureId, geojson, container) => {
   if (intersectionData && intersectionFeature) {
     axios({
       method: 'post',
-      url: `${urls.BACKEND_SERVER_URL}/sigmet/sigmetintersections`,
+      url: `${urls.BACKEND_SERVER_URL}/sigmets/sigmetintersections`,
       withCredentials: true,
       responseType: 'json',
       data: intersectionData
@@ -479,7 +479,7 @@ const saveSigmet = (event, uuid, container) => {
 
   axios({
     method: 'post',
-    url: `${urls.BACKEND_SERVER_URL}/sigmet/storesigmet`,
+    url: `${urls.BACKEND_SERVER_URL}/sigmets`,
     withCredentials: true,
     responseType: 'json',
     data: complementedSigmet
@@ -529,22 +529,12 @@ const copySigmet = (event, uuid, container) => {
 };
 
 const publishSigmet = (event, uuid, container) => {
-  const { urls } = container.props;
-
-  axios({
-    method: 'get',
-    url: `${urls.BACKEND_SERVER_URL}/sigmet/publishsigmet`,
-    withCredentials: true,
-    responseType: 'json',
-    params: {
-      uuid: uuid
+  container.setState(produce(container.state, draftState => {
+    const indices = findCategoryAndSigmetIndex(uuid, draftState);
+    if (indices.categoryIndex !== -1 && indices.sigmetIndex !== -1) {
+      draftState.categories[indices.categoryIndex].sigmets[indices.sigmetIndex].status = STATUSES.PUBLISHED;
     }
-  }).then((response) => {
-    console.log('Published: ', response.data);
-  }).catch((error) => {
-    console.error(error);
-  });
-
+  }), () => saveSigmet(event, uuid, container));
   // console.warn('publishSigmet is not yet implemented');
 };
 
@@ -554,7 +544,7 @@ const showTAC = (event, uuid, container) => {
 
   axios({
     method: 'get',
-    url: `${urls.BACKEND_SERVER_URL}/sigmet/${uuid}`,
+    url: `${urls.BACKEND_SERVER_URL}/sigmets/${uuid}`,
     withCredentials: true,
     responseType: 'text/plain',
     headers: {
@@ -573,11 +563,17 @@ const showIWXXM = (event, uuid, container) => {
   event.preventDefault();
   const { urls } = container.props;
 
-  window.open(`${urls.BACKEND_SERVER_URL}/sigmet/${uuid}`);
+  window.open(`${urls.BACKEND_SERVER_URL}/sigmets/${uuid}`);
 };
 
 const cancelSigmet = (event, uuid, container) => {
-  console.warn('cancelSigmet is not yet implemented');
+  container.setState(produce(container.state, draftState => {
+    const indices = findCategoryAndSigmetIndex(uuid, draftState);
+    if (indices.categoryIndex !== -1 && indices.sigmetIndex !== -1) {
+      draftState.categories[indices.categoryIndex].sigmets[indices.sigmetIndex].status = STATUSES.CANCELED;
+    }
+  }), () => saveSigmet(event, uuid, container));
+  // console.warn('cancelSigmet is not yet implemented');
 };
 
 const setSigmetDrawing = (uuid, container) => {

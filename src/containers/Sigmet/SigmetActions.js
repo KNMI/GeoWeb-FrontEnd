@@ -57,6 +57,12 @@ export const SIGMET_MODES = {
   READ: 'READ'
 };
 
+export const STATUSES = {
+  PUBLISHED: 'published',
+  CONCEPT: 'concept',
+  CANCELED: 'canceled'
+};
+
 export const EDIT_ABILITIES = {
   CLEAR: {
     'dataField': 'clear',

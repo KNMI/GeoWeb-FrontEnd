@@ -41,12 +41,12 @@ class SigmetsContainer extends Component {
   };
 
   retrieveSigmets () {
-    const endpoint = `${this.props.urls.BACKEND_SERVER_URL}/sigmet/getsigmetlist`;
+    const endpoint = `${this.props.urls.BACKEND_SERVER_URL}/sigmets`;
 
     let sigmets = [
       { ref: CATEGORY_REFS.ACTIVE_SIGMETS, urlSuffix: '?active=true' },
-      { ref: CATEGORY_REFS.CONCEPT_SIGMETS, urlSuffix: '?active=false&status=PRODUCTION' },
-      { ref: CATEGORY_REFS.ARCHIVED_SIGMETS, urlSuffix: '?active=false&status=CANCELLED' }
+      { ref: CATEGORY_REFS.CONCEPT_SIGMETS, urlSuffix: '?active=false&status=concept' },
+      { ref: CATEGORY_REFS.ARCHIVED_SIGMETS, urlSuffix: '?active=false&status=canceled' }
     ];
     sigmets.forEach((sigmet) => {
       axios({
@@ -74,7 +74,7 @@ class SigmetsContainer extends Component {
   }
 
   retrieveParameters () {
-    const endpoint = `${this.props.urls.BACKEND_SERVER_URL}/sigmet/getsigmetparameters`;
+    const endpoint = `${this.props.urls.BACKEND_SERVER_URL}/sigmets/getsigmetparameters`;
 
     axios({
       method: 'get',
@@ -98,7 +98,7 @@ class SigmetsContainer extends Component {
   }
 
   retrievePhenomena () {
-    const endpoint = `${this.props.urls.BACKEND_SERVER_URL}/sigmet/getsigmetphenomena`;
+    const endpoint = `${this.props.urls.BACKEND_SERVER_URL}/sigmets/getsigmetphenomena`;
 
     axios({
       method: 'get',

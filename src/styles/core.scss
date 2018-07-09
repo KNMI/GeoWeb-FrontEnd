@@ -235,6 +235,10 @@ button.btn.btn-sm, button.btn.btn-group-sm > .btn {
   border-color: $ux-interactive-color-checked;
 }
 
+.missing .form-control.rbt-input {
+  border-color: red;
+}
+
 .form-control:disabled, .rbt-input-hint-container[disabled] {
   cursor: not-allowed;
   background-color: #e8eaec;
