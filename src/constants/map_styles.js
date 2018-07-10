@@ -1,16 +1,106 @@
 /* maps with type twms are mapped to basemaps.json which is used by ADAGUC WebMapJS TileRenderer */
 
-const OSM_STYLE = {
-  name: 'OSM',
-  title: 'OpenStreetMap Service',
+const KNMI_NATURALEARTH2 = {
+  name: 'NaturalEarth2',
+  title: 'KNMI Natural Earth Map',
   type: 'twms',
   enabled: true,
   dimensions: []
 };
 
-const OSM_NL_STYLE = {
+const MWS_STYLE = {
+  service: 'http://geoservices.knmi.nl/cgi-bin/worldmaps.cgi?',
+  name: 'mwsmap',
+  transparent: true,
+  title: 'KNMI MWS map',
+  format: 'image/png',
+  enabled: true,
+  dimensions: []
+};
+
+const WORLDMAP_LIGHT_GREY_CANVAS = {
+  name: 'WorldMap_Light_Grey_Canvas',
+  title: 'KNMI GeoWeb WorldMap Light Grey Canvas',
+  type: 'twms',
+  enabled: true,
+  dimensions: []
+};
+
+const OPENSTREETMAP_NL = {
   name: 'OpenStreetMap_NL',
   title: 'KNMI GeoWeb OpenStreetMap NL',
+  type: 'twms',
+  enabled: true,
+  dimensions: []
+};
+
+const OPENSTREETS_NL = {
+  name: 'OpenStreets_NL',
+  title: 'KNMI GeoWeb OpenStreets NL',
+  type: 'twms',
+  enabled: true,
+  dimensions: []
+};
+
+const POSITRON_NL = {
+  name: 'Positron_NL',
+  title: 'KNMI GeoWeb Positron NL',
+  type: 'twms',
+  enabled: true,
+  dimensions: []
+};
+
+const POSITRON_NL_NOLABELS = {
+  name: 'Positron_NL_NoLabels',
+  title: 'KNMI GeoWeb Positron NL No Labels',
+  type: 'twms',
+  enabled: true,
+  dimensions: []
+};
+
+const KLOKANTECH_BASIC_NL = {
+  name: 'Klokantech_Basic_NL',
+  title: 'KNMI GeoWeb Klokantech Basic NL',
+  type: 'twms',
+  enabled: true,
+  dimensions: []
+};
+
+const KLOKANTECH_BASIC_NL_NOLABELS = {
+  name: 'Klokantech_Basic_NL_NoLabels',
+  title: 'KNMI GeoWeb Klokantech Basic NL No Labels',
+  type: 'twms',
+  enabled: true,
+  dimensions: []
+};
+
+const OSM_BLOSSOM_NL = {
+  name: 'OSM_Blossom_NL',
+  title: 'KNMI GeoWeb OSM Blossom NL',
+  type: 'twms',
+  enabled: true,
+  dimensions: []
+};
+
+const WORLDMAP = {
+  name: 'WORLDMAP',
+  title: 'KNMI GeoWeb WORLDMAP',
+  type: 'twms',
+  enabled: true,
+  dimensions: []
+};
+
+const OSM_ANTARCTICA = {
+  name: 'OSM_Antarctica',
+  title: 'KNMI GeoWeb OSM Antarctica',
+  type: 'twms',
+  enabled: true,
+  dimensions: []
+};
+
+const OPENSTREETMAP_SERVICE = {
+  name: 'OpenStreetMap_Service',
+  title: 'OpenStreetMap Service',
   type: 'twms',
   enabled: true,
   dimensions: []
@@ -48,55 +138,4 @@ const ESRI_ARCGIS_OCEAN = {
   dimensions: []
 };
 
-const KNMI_NATURALEARTH2 = {
-  name: 'NaturalEarth2',
-  title: 'KNMI Natural Earth Map',
-  type: 'twms',
-  enabled: true,
-  dimensions: []
-};
-
-const MWS_STYLE = {
-  service: 'http://geoservices.knmi.nl/cgi-bin/worldmaps.cgi?',
-  name: 'mwsmap',
-  transparent: true,
-  title: 'KNMI MWS map',
-  format: 'image/png',
-  enabled: true,
-  dimensions: []
-};
-
-const INGMAPPING_WORLDMAP = {
-  title:'KNMI GeoWeb WorldMap',
-  name:'WorldMap',
-  type: 'twms',
-  enabled:true
-};
-const INGMAPPING_WORLDMAP_LIGHT = {
-  title:'KNMI GeoWeb WorldMap Light',
-  name:'WorldMap_Light',
-  type: 'twms',
-  enabled:true
-};
-const INGMAPPING_WORLDMAP_CANVAS = {
-  title:'KNMI GeoWeb WorldMap Canvas',
-  name:'WorldMap_Canvas',
-  type: 'twms',
-  enabled:true
-};
-const INGMAPPING_WORLDMAP_GREYCANVAS = {
-  title:'KNMI GeoWeb WorldMap Grey Canvas',
-  name:'WorldMap_GreyCanvas',
-  type: 'twms',
-  enabled:true
-};
-const INGMAPPING_WORLDMAP_LIGHT_GRAY_CANVAS = {
-  title:'KNMI GeoWeb WorldMap Light Grey Canvas',
-  name:'WorldMap_LightGreyCanvas',
-  type: 'twms',
-  enabled:true
-};
-
-export const MAP_STYLES = [OSM_STYLE, KNMI_NATURALEARTH2, MWS_STYLE, INGMAPPING_WORLDMAP,
-  INGMAPPING_WORLDMAP_LIGHT, INGMAPPING_WORLDMAP_CANVAS, INGMAPPING_WORLDMAP_GREYCANVAS,
-  INGMAPPING_WORLDMAP_LIGHT_GRAY_CANVAS, OSM_NL_STYLE, ESRI_ARCGIS_CANVAS, ESRI_ARCGIS_TOPO, ESRI_ARCGIS_SAT, ESRI_ARCGIS_OCEAN];
+export const MAP_STYLES = [KNMI_NATURALEARTH2, MWS_STYLE, WORLDMAP_LIGHT_GREY_CANVAS, OPENSTREETMAP_NL, OPENSTREETS_NL, POSITRON_NL, POSITRON_NL_NOLABELS, KLOKANTECH_BASIC_NL, KLOKANTECH_BASIC_NL_NOLABELS, OSM_BLOSSOM_NL, WORLDMAP, OSM_ANTARCTICA, OPENSTREETMAP_SERVICE, ESRI_ARCGIS_CANVAS, ESRI_ARCGIS_TOPO, ESRI_ARCGIS_SAT, ESRI_ARCGIS_OCEAN];
