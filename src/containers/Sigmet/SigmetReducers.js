@@ -12,6 +12,13 @@ const WARN_MSG = {
   PREREQUISITES_NOT_MET: 'Not all prerequisites are met yet:'
 };
 
+const ERROR_MSG = {
+  RETRIEVE_SIGMETS: 'Could not retrieve SIGMETs:',
+  RETRIEVE_PARAMS: 'Could not retrieve SIGMET parameters',
+  RETRIEVE_PHENOMENA: 'Could not retrieve SIGMET phenomena',
+  FEATURE_ID_MISMATCH: 'GeoJson: the %s feature has a mutated id'
+};
+
 /**
 * Generate a 'next-half-hour-rounded now Moment object
 * @return {moment} Moment-object with the current now in UTC rounded to the next half hour
@@ -49,10 +56,60 @@ const updateCategory = (ref, sigmets, container) => {
   }));
 };
 
+const retrieveParameters = (container) => {
+  const { urls } = container.props;
+  const endpoint = `${urls.BACKEND_SERVER_URL}/sigmets/getsigmetparameters`;
+
+  axios({
+    method: 'get',
+    url: endpoint,
+    withCredentials: true,
+    responseType: 'json'
+  }).then(response => {
+    receivedParametersCallback(response, container);
+  }).catch(error => {
+    console.error(ERROR_MSG.RETRIEVE_PARAMS, error);
+  });
+};
+
+const receivedParametersCallback = (response, container) => {
+  if (response.status === 200 && response.data) {
+    updateParameters(response.data, container);
+    addSigmet(CATEGORY_REFS.ADD_SIGMET, container);
+  } else {
+    console.error(ERROR_MSG.RETRIEVE_PARAMS, response.status, response.data);
+  }
+};
+
 const updateParameters = (parameters, container) => {
   container.setState(produce(container.state, draftState => {
     Object.assign(draftState.parameters, parameters);
   }));
+};
+
+const retrievePhenomena = (container) => {
+  const { urls } = container.props;
+  const endpoint = `${urls.BACKEND_SERVER_URL}/sigmets/getsigmetphenomena`;
+
+  axios({
+    method: 'get',
+    url: endpoint,
+    withCredentials: true,
+    responseType: 'json'
+  }).then(response => {
+    receivedPhenomenaCallback(response, container);
+  }).catch(error => {
+    console.error(ERROR_MSG.RETRIEVE_PHENOMENA, error);
+  });
+};
+
+const receivedPhenomenaCallback = (response, container) => {
+  if (response.status === 200 && response.data) {
+    updatePhenomena(response.data, container);
+    addSigmet(CATEGORY_REFS.ADD_SIGMET, container);
+  } else {
+    console.error(ERROR_MSG.RETRIEVE_PARAMS, response.status, response.data);
+  }
 };
 
 const updatePhenomena = (phenomena, container) => {
@@ -95,6 +152,40 @@ const updatePhenomena = (phenomena, container) => {
       });
     }
   }));
+};
+
+const retrieveSigmets = (container) => {
+  const { urls } = container.props;
+  const endpoint = `${urls.BACKEND_SERVER_URL}/sigmets`;
+
+  let sigmets = [
+    { ref: CATEGORY_REFS.ACTIVE_SIGMETS, urlSuffix: '?active=true' },
+    { ref: CATEGORY_REFS.CONCEPT_SIGMETS, urlSuffix: `?active=false&status=${STATUSES.CONCEPT}` },
+    { ref: CATEGORY_REFS.ARCHIVED_SIGMETS, urlSuffix: `?active=false&status=${STATUSES.CANCELED}` }
+  ];
+  sigmets.forEach((sigmet) => {
+    axios({
+      method: 'get',
+      url: `${endpoint}${sigmet.urlSuffix}`,
+      withCredentials: true,
+      responseType: 'json'
+    }).then(response => {
+      receivedSigmetsCallback(sigmet.ref, response, container);
+    }).catch(error => {
+      console.error(ERROR_MSG.RETRIEVE_SIGMETS, sigmet.ref, error);
+    });
+  });
+};
+
+const receivedSigmetsCallback = (ref, response, container) => {
+  if (response.status === 200 && response.data) {
+    if (response.data.nsigmets === 0 || !response.data.sigmets) {
+      response.data.sigmets = [];
+    }
+    updateCategory(ref, response.data.sigmets, container);
+  } else {
+    console.error(ERROR_MSG.RETRIEVE_SIGMETS, ref, response.status, response.data);
+  }
 };
 
 const focusSigmet = (evt, uuid, container) => {
@@ -608,14 +699,14 @@ export default (localAction, container) => {
     case LOCAL_ACTION_TYPES.TOGGLE_CATEGORY:
       toggleCategory(localAction.event, localAction.ref, container);
       break;
-    case LOCAL_ACTION_TYPES.UPDATE_CATEGORY:
-      updateCategory(localAction.ref, localAction.sigmets, container);
+    case LOCAL_ACTION_TYPES.RETRIEVE_PARAMETERS:
+      retrieveParameters(container);
       break;
-    case LOCAL_ACTION_TYPES.UPDATE_PARAMETERS:
-      updateParameters(localAction.parameters, container);
+    case LOCAL_ACTION_TYPES.RETRIEVE_PHENOMENA:
+      retrievePhenomena(container);
       break;
-    case LOCAL_ACTION_TYPES.UPDATE_PHENOMENA:
-      updatePhenomena(localAction.phenomena, container);
+    case LOCAL_ACTION_TYPES.RETRIEVE_SIGMETS:
+      retrieveSigmets(container);
       break;
     case LOCAL_ACTION_TYPES.FOCUS_SIGMET:
       focusSigmet(localAction.event, localAction.uuid, container);
