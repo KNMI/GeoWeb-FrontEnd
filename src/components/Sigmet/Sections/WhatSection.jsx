@@ -18,8 +18,10 @@ export default class WhatSection extends PureComponent {
           </Col>
           <Col xs='9'>
             {children.phenomenon}
-            <span className={children.phenomenon && children.phenomenon.props.selected &&
-              children.phenomenon.props.selected.length > 0 ? 'required' : 'required missing'} />
+            {children.phenomenon && children.phenomenon.props.selected
+              ? <span className={children.phenomenon.props.selected.length > 0 ? 'required' : 'required missing'} />
+              : null
+            }
           </Col>
         </Row>
         <Row>

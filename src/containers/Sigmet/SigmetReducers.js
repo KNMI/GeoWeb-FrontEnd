@@ -54,6 +54,9 @@ const updateCategory = (ref, sigmets, container) => {
       draftState.categories[categoryIndex].sigmets.push(...sigmets);
     }
   }));
+  // TODO select current sigmet
+  // TODO clear new Sigmet form
+  // TODO set mode to READ
 };
 
 const retrieveParameters = (container) => {
@@ -273,6 +276,7 @@ const getEmptySigmet = (container) => produce(SIGMET_TEMPLATES.SIGMET, draftSigm
   draftSigmet.validdate = getRoundedNow().format();
   draftSigmet.validdate_end = getRoundedNow().add(container.state.parameters.maxhoursofvalidity, 'hour').format();
   draftSigmet.location_indicator_mwo = container.state.parameters.location_indicator_wmo;
+  draftSigmet.status = STATUSES.CONCEPT;
   draftSigmet.levelinfo.mode = MODES_LVL.AT;
   draftSigmet.levelinfo.levels[0].unit = UNITS.FL;
   draftSigmet.levelinfo.levels.push(cloneDeep(SIGMET_TEMPLATES.LEVEL));
@@ -282,7 +286,6 @@ const getEmptySigmet = (container) => produce(SIGMET_TEMPLATES.SIGMET, draftSigm
     draftSigmet.firname = container.state.parameters.firareas[0].firname;
     updateFir(draftSigmet.firname, container);
   }
-  draftSigmet.mode = SIGMET_MODES.EDIT;
   draftSigmet.change = container.state.parameters.change;
   container.props.dispatch(container.props.drawActions.setGeoJSON(initialGeoJson()));
 });
@@ -576,20 +579,14 @@ const saveSigmet = (event, uuid, container) => {
     data: complementedSigmet
   }).then(response => {
     dispatch(notify({
-      title: 'Sigmet Saved',
+      title: 'Sigmet saved',
       message: 'Sigmet ' + response.data.uuid + ' was successfully saved',
       status: 'success',
       position: 'bl',
       dismissible: true,
       dismissAfter: 3000
     }));
-
-    // Create new edit sigmet
-    container.setState(produce(container.state, draftState => {
-      draftState.focussedSigmet = getEmptySigmet(container);
-    }));
-    // reload concepts
-    container.retrieveSigmets();
+    retrieveSigmets(container);
   }).catch(error => {
     console.error(`Could not save Sigmet identified by ${uuid}`, error);
     dispatch(notify({
@@ -601,7 +598,6 @@ const saveSigmet = (event, uuid, container) => {
       dismissAfter: 3000
     }));
   });
-  console.warn('saveSigmet is not yet implemented');
 };
 
 const editSigmet = (event, uuid, container) => {
@@ -626,7 +622,6 @@ const publishSigmet = (event, uuid, container) => {
       draftState.categories[indices.categoryIndex].sigmets[indices.sigmetIndex].status = STATUSES.PUBLISHED;
     }
   }), () => saveSigmet(event, uuid, container));
-  // console.warn('publishSigmet is not yet implemented');
 };
 
 const showTAC = (event, uuid, container) => {
@@ -664,7 +659,6 @@ const cancelSigmet = (event, uuid, container) => {
       draftState.categories[indices.categoryIndex].sigmets[indices.sigmetIndex].status = STATUSES.CANCELED;
     }
   }), () => saveSigmet(event, uuid, container));
-  // console.warn('cancelSigmet is not yet implemented');
 };
 
 const setSigmetDrawing = (uuid, container) => {
