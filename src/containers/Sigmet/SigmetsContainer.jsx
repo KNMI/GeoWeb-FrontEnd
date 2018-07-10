@@ -2,12 +2,11 @@ import React, { Component } from 'react';
 import { Col } from 'reactstrap';
 import PropTypes from 'prop-types';
 import produce from 'immer';
-import axios from 'axios';
 import isEqual from 'lodash.isequal';
 
 import Panel from '../../components/Panel';
 import CollapseOmni from '../../components/CollapseOmni';
-import { CATEGORY_REFS, INITIAL_STATE, LOCAL_ACTIONS, STATUSES } from './SigmetActions';
+import { CATEGORY_REFS, INITIAL_STATE, LOCAL_ACTIONS } from './SigmetActions';
 import dispatch from './SigmetReducers';
 
 import ContainerHeader from '../../components/Sigmet/ContainerHeader';
@@ -15,9 +14,6 @@ import SigmetsCategory from '../../components/Sigmet/SigmetsCategory';
 import MinifiedCategory from '../../components/Sigmet/MinifiedCategory';
 
 const ERROR_MSG = {
-  RETRIEVE_SIGMETS: 'Could not retrieve SIGMETs:',
-  RETRIEVE_PARAMS: 'Could not retrieve SIGMET parameters',
-  RETRIEVE_PHENOMENA: 'Could not retrieve SIGMET phenomena',
   FEATURE_ID_MISMATCH: 'GeoJson: the %s feature has a mutated id'
 };
 
@@ -127,9 +123,6 @@ class SigmetsContainer extends Component {
 }
 
 SigmetsContainer.propTypes = {
-  urls: PropTypes.shape({
-    BACKEND_SERVER_URL: PropTypes.string
-  }),
   drawProperties: PropTypes.shape({
     adagucMapDraw: PropTypes.shape({
       geojson: PropTypes.shape({
