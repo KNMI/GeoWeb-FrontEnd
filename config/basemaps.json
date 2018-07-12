@@ -29,6 +29,9 @@
          "home": "https://s3.eu-central-1.amazonaws.com/knmi-basemaps/OpenStreets_NL/EPSG28992/",
          "minLevel": 0,
          "maxLevel": 16,
+         "origX": -3000000,
+         "origY": 3000000,
+         "resolution" : 23437.5,
          "tileServerType": "osm",
          "copyRight": "Natural Earth II | Ingmapping"
      }
@@ -141,6 +144,9 @@
          "home": "https://s3.eu-central-1.amazonaws.com/knmi-basemaps/OSM_Antarctica/EPSG3412/",
          "minLevel": 1,
          "maxLevel": 7,
+         "origX": -3000000,
+         "origY": 3000000,
+         "resolution" : 23437.5,
          "tileServerType": "osm",
          "copyRight": "OpenStreetMap - contributors | Ingmapping"
      }
