@@ -721,7 +721,7 @@ class Taf extends Component {
           <Row className='TafTable'>
             <Col>
               <TafTable
-                validationReport={feedback && feedback.list}
+                validationReport={validationFeedback && validationFeedback.list}
                 taf={tafData}
                 focusedFieldName={this.state.focusedFieldName}
                 inputRef={this.registerElement}
