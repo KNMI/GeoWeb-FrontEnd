@@ -237,7 +237,7 @@ const updateFeedback = (title, status, category, subTitle, list, container, call
     };
   }), () => callback(container));
   if (category === FEEDBACK_CATEGORIES.LIFECYCLE) {
-    setTimeout(() => container.setState(produce(state, draftState => {
+    setTimeout(() => container.setState(produce(container.state, draftState => {
       draftState.feedback[category] = null;
     })), 5000);
   }
