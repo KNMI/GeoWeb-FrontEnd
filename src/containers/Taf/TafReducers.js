@@ -340,7 +340,8 @@ const updateSelectableTafs = (container, tafs, status) => {
       return byLocation;
     });
     // Update selectedTaf
-    if (draftState.selectedTaf && Array.isArray(draftState.selectedTaf) && draftState.selectedTaf.length > 0) {
+    if (draftState.selectedTaf && Array.isArray(draftState.selectedTaf) &&
+        draftState.selectedTaf.length > 0 && draftState.selectedTaf[0].metadata.status === status) {
       const newDataSelectedTaf = draftState.selectableTafs.find((selectableTaf) => isSameSelectableTaf(selectableTaf, draftState.selectedTaf[0]));
       draftState.selectedTaf.length = 0;
       if (newDataSelectedTaf) {
@@ -556,7 +557,6 @@ const publishTaf = (event, container) => {
   const { state } = container;
   container.setState(produce(state, draftState => {
     draftState.selectedTaf[0].tafData.metadata.status = STATUSES.PUBLISHED;
-    draftState.selectedTaf[0].tafData.metadata.type = LIFECYCLE_STAGE_NAMES.NORMAL;
     draftState.mode = MODES.READ;
   }), () => {
     saveTaf(event, container);
