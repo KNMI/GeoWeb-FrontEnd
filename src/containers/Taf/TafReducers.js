@@ -138,7 +138,7 @@ const synchronizeSelectableTafs = (container) => {
 
   const tafResources = [
     { url: `${urls.BACKEND_SERVER_URL}/tafs?active=true`, status: STATUSES.PUBLISHED },
-    { url: `${urls.BACKEND_SERVER_URL}/tafs?active=false&status=concept`, status: STATUSES.CONCEPT }
+    { url: `${urls.BACKEND_SERVER_URL}/tafs?active=false&status=${STATUSES.CONCEPT}`, status: STATUSES.CONCEPT }
   ];
   tafResources.forEach((tafResource) => {
     axios({
@@ -151,7 +151,7 @@ const synchronizeSelectableTafs = (container) => {
         if (!Array.isArray(response.data.tafs)) {
           response.data.tafs = [];
         }
-        updateSelectableTafs(container, response.data.tafs);
+        updateSelectableTafs(container, response.data.tafs, tafResource.status);
       }
     }).catch(error => {
       console.error('Couldn\'t retrieve TAFs', error);
@@ -289,19 +289,18 @@ const wrapIntoSelectableTaf = (tafData) => {
  * Once loaded, this method processes the existing TAFs into the selectable TAFs list
  * @param {Element} container The container to update the selectable TAFs for
  * @param {Array} tafs The TAFs to update the list selectable TAFs with
+ * @param {string} status The status of the TAFs to update
  */
-const updateSelectableTafs = (container, tafs) => {
+const updateSelectableTafs = (container, tafs, status) => {
   const { state } = container;
-  const isTafsArray = (Array.isArray(tafs));
-  if (!isTafsArray) {
-    return;
+  if (!Array.isArray(tafs)) {
+    if (tafs === null) {
+      tafs = [];
+    } else {
+      return;
+    }
   }
-  // currently TAFs are retrieved in several calls, by status
-  let statusUpdatableTafs;
-  if (tafs.length > 0) {
-    statusUpdatableTafs = tafs[0].metadata.status.toLowerCase();
-  }
-  const byDifferentStatus = (selectable) => selectable.tafData.metadata.status.toLowerCase() !== statusUpdatableTafs &&
+  const byDifferentStatus = (selectable) => selectable.tafData.metadata.status.toLowerCase() !== status &&
     selectable.tafData.metadata.status.toLowerCase() !== STATUSES.NEW;
 
   container.setState(produce(state, draftState => {
