@@ -129,7 +129,7 @@
          "copyRight": "Natural Earth II | Ingmapping"
      },
      "EPSG:3575": {
-         "home": "https://s3.eu-central-1.amazonaws.com/knmi-basemaps/WorldMap/EPSG3857/",
+         "home": "https://s3.eu-central-1.amazonaws.com/knmi-basemaps/WorldMap/EPSG3575/",
          "minLevel": 5,
          "maxLevel": 9,
          "tileServerType": "osm",
