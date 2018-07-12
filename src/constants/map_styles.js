@@ -84,7 +84,7 @@ const OSM_BLOSSOM_NL = {
 
 const WORLDMAP = {
   name: 'WORLDMAP',
-  title: 'KNMI GeoWeb WORLDMAP',
+  title: 'KNMI GeoWeb WorldMap',
   type: 'twms',
   enabled: true,
   dimensions: []
