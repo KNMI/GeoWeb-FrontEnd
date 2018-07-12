@@ -72,10 +72,12 @@ TEMPLATES.TAF = {
 TEMPLATES.SELECTABLE_TAF = {
   location: null, // string
   timestamp: null, // moment
+  uuid: null, // moment
   hasEdits: false, // boolean
   label: {
     time: null, // string
     text: null, // string
+    status: null, // string
     icon: null // string
   },
   tafData: cloneDeep(TEMPLATES.TAF)
@@ -190,10 +192,12 @@ TYPES.TAF = PropTypes.shape({
 TYPES.SELECTABLE_TAF = PropTypes.shape({
   location: PropTypes.string,
   timestamp: MomentPropTypes.momentObj,
+  uuid: PropTypes.string,
   hasEdits: PropTypes.bool,
   label: PropTypes.shape({
     time: PropTypes.string,
     text: PropTypes.string,
+    status: PropTypes.string,
     icon: PropTypes.string
   }),
   tafData: TYPES.TAF

@@ -9,11 +9,18 @@
 }
 
 .TafStyle th {
-  background-color: #5cb85c;
+  background-color: #70cc70;
   color: white;
   white-space: nowrap;
   text-align:center;
   font-weight: bold;
+}
+
+.TafStyle th:first-of-type {
+  border-radius: 0.15rem 0 0 0.15rem;
+}
+.TafStyle th:last-of-type {
+  border-radius: 0 0.15rem 0.15rem 0;
 }
 
 .TafStyle td {

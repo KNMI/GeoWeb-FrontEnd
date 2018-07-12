@@ -9,18 +9,16 @@ import {
   PHENOMENON_TYPES, PHENOMENON_TYPES_ORDER, getPhenomenonType, getPhenomenonLabel
 } from './TafTemplates';
 import cloneDeep from 'lodash.clonedeep';
-import setNestedProperty from 'lodash.set';
-import getNestedProperty from 'lodash.get';
-import removeNestedProperty from 'lodash.unset';
-import { getJsonPointers, clearNullPointersAndAncestors } from '../../utils/json';
 import moment from 'moment';
 import { Button, Row, Col } from 'reactstrap';
 import { jsonToTacForWind, jsonToTacForWeather, jsonToTacForClouds } from './TafFieldsConverter';
 import TafTable from './TafTable';
 import TacView from './TacView';
-import axios from 'axios';
 import { debounce } from '../../utils/debounce';
-import { MODES, READ_ABILITIES, EDIT_ABILITIES, byEditAbilities, byReadAbilities, LIFECYCLE_STAGE_NAMES } from '../../containers/Taf/TafActions';
+import {
+  MODES, READ_ABILITIES, EDIT_ABILITIES, byEditAbilities, byReadAbilities, LIFECYCLE_STAGE_NAMES,
+  FEEDBACK_STATUSES, FEEDBACK_CATEGORIES
+} from '../../containers/Taf/TafActions';
 import TafValidator from './TafValidator';
 const TMP = '◷';
 
@@ -64,9 +62,7 @@ class Taf extends Component {
     this.validateTaf = debounce(this.validateTaf.bind(this), 1250, false);
 
     const initialState = {
-      tafAsObject: props.selectedTaf.tafData,
       focusedFieldName: 'forecast-wind',
-      hasEdits: false,
       preset: {
         forPhenomenon: null,
         inWindow: null
@@ -80,32 +76,39 @@ class Taf extends Component {
     let stringifiedTafObject = JSON.stringify(tafAsObject);
     if (this.validatedTafObject !== stringifiedTafObject) {
       this.validatedTafObject = stringifiedTafObject;
-      const { dispatch, actions } = this.props;
+      const { dispatch, actions, urls } = this.props;
+      let validationMessage = 'Unable to get validation report';
+      if (!actions) {
+        console.error(validationMessage);
+        return;
+      }
+      if (!urls) {
+        dispatch(actions.updateFeedbackAction(
+          validationMessage,
+          FEEDBACK_STATUSES.ERROR, FEEDBACK_CATEGORIES.VALIDATION, null, null)
+        );
+        return;
+      }
 
-      TafValidator(this.props.urls.BACKEND_SERVER_URL, tafAsObject).then((validationReport) => {
-        this.setState({
-          validationReport: validationReport
-        }, () => {
-          let validationErrors = [];
-          let validationSucceeded = false;
-          let validationMessage = 'Unable to get validation report';
-          if (validationReport) {
-            if (validationReport.errors) {
-              validationErrors = validationReport.errors;
-            }
-            if (validationReport.message) {
-              validationMessage = validationReport.message;
-            }
-            if (validationReport.succeeded === true) {
-              validationSucceeded = true;
-            }
+      TafValidator(urls.BACKEND_SERVER_URL, tafAsObject).then((validationReport) => {
+        let validationErrors = [];
+        let validationSucceeded = false;
+        if (validationReport) {
+          if (validationReport.errors) {
+            validationErrors = validationReport.errors;
           }
+          if (validationReport.message) {
+            validationMessage = validationReport.message;
+          }
+          if (validationReport.succeeded === true) {
+            validationSucceeded = true;
+          }
+        }
 
-          dispatch(actions.updateFeedbackAction(
-            validationMessage,
-            validationSucceeded?'info':'danger', null, validationErrors)
-          );
-        });
+        dispatch(actions.updateFeedbackAction(
+          validationMessage,
+          validationSucceeded ? FEEDBACK_STATUSES.SUCCESS : FEEDBACK_STATUSES.ERROR, FEEDBACK_CATEGORIES.VALIDATION, null, validationErrors)
+        );
       });
     }
   }
@@ -607,13 +610,20 @@ class Taf extends Component {
           }
         }
       }
-      this.validateTaf(this.state.tafAsObject);
+      this.validateTaf(this.props.selectedTaf.tafData);
     }
   }
 
   componentWillReceiveProps (nextProps) {
-    if (!this.state.hasEdits && nextProps.selectedTaf) {
+    if (nextProps.selectedTaf) {
       this.validateTaf(nextProps.selectedTaf.tafData);
+    }
+  }
+
+  componentDidMount () {
+    const { selectedTaf } = this.props;
+    if (selectedTaf) {
+      this.validateTaf(selectedTaf.tafData);
     }
   }
 
@@ -625,7 +635,8 @@ class Taf extends Component {
    * @returns {boolean} Whether or not is should be disabled
    */
   getDisabledFlag (abilityRef, tafType, isInValidityPeriod) {
-    const { selectedTaf, copiedTafRef } = this.props;
+    const { selectedTaf, copiedTafRef, feedback, hasFollowUp } = this.props;
+    const validationFeedback = feedback && feedback[FEEDBACK_CATEGORIES.VALIDATION];
     if (!abilityRef || !selectedTaf) {
       return false;
     }
@@ -637,11 +648,14 @@ class Taf extends Component {
         return !copiedTafRef;
       case READ_ABILITIES.COPY['dataField']:
         return copiedTafRef === selectedTaf.tafData.metadata.uuid;
+      case READ_ABILITIES.PUBLISH['dataField']:
+        return !validationFeedback || validationFeedback.status === FEEDBACK_STATUSES.ERROR;
       case READ_ABILITIES.CORRECT['dataField']:
-        return (tafType === LIFECYCLE_STAGE_NAMES.CANCEL);
+        return tafType === LIFECYCLE_STAGE_NAMES.CANCELED || hasFollowUp;
       case READ_ABILITIES.AMEND['dataField']:
+        return !isInValidityPeriod || tafType === LIFECYCLE_STAGE_NAMES.CANCELED || hasFollowUp;
       case READ_ABILITIES.CANCEL['dataField']:
-        return !isInValidityPeriod || tafType === LIFECYCLE_STAGE_NAMES.CANCEL;
+        return !isInValidityPeriod || tafType === LIFECYCLE_STAGE_NAMES.CANCELED;
       default:
         return false;
     }
@@ -658,8 +672,8 @@ class Taf extends Component {
       !selectedTaf.tafData.metadata.status || !selectedTaf.tafData.metadata.type) {
       return abilitiesCtAs;
     }
-    const selectedStatus = selectedTaf.tafData.metadata.status.toUpperCase();
-    const selectedType = selectedTaf.tafData.metadata.type.toUpperCase();
+    const selectedStatus = selectedTaf.tafData.metadata.status.toLowerCase();
+    const selectedType = selectedTaf.tafData.metadata.type.toLowerCase();
     if (!selectedStatus || !selectedType || !mode) {
       return abilitiesCtAs;
     }
@@ -678,6 +692,11 @@ class Taf extends Component {
         abilitiesCtAs.push(ability);
       }
     });
+    if (selectedType === LIFECYCLE_STAGE_NAMES.CANCELED) {
+      abilitiesCtAs.length = 0;
+      abilitiesCtAs.push(EDIT_ABILITIES.DISCARD);
+      abilitiesCtAs.push(READ_ABILITIES.PUBLISH);
+    }
     abilitiesCtAs.sort(byAbilities);
     return abilitiesCtAs;
   }
@@ -688,29 +707,21 @@ class Taf extends Component {
       return null;
     }
     const { tafData } = selectedTaf;
+    const validationFeedback = feedback && feedback[FEEDBACK_CATEGORIES.VALIDATION];
     const abilityCtAs = this.reduceAbilities(); // CtA = Call To Action
-    let validationErrors = null;
-    let validationSucceeded = false;
-    if (this.state.validationReport) {
-      if (this.state.validationReport.errors) {
-        validationErrors = this.state.validationReport.errors;
-      }
-      if (this.state.validationReport.succeeded === true) {
-        validationSucceeded = true;
-      }
-    }
-
     const series = this.extractScheduleInformation(tafData);
+
+    const isCancel = selectedTaf && selectedTaf.tafData && selectedTaf.tafData.metadata && selectedTaf.tafData.metadata.type &&
+      selectedTaf.tafData.metadata.type.toLowerCase() === LIFECYCLE_STAGE_NAMES.CANCELED;
 
     return (
       <Row className='Taf'>
         <Col>
-          <Row><Col className='uuid'>{ tafData && tafData.metadata && tafData.metadata.uuid ? tafData.metadata.uuid : '-' }</Col></Row>
           <TacView taf={tafData} />
           <Row className='TafTable'>
             <Col>
               <TafTable
-                validationReport={this.state.validationReport}
+                validationReport={validationFeedback && validationFeedback.list}
                 taf={tafData}
                 focusedFieldName={this.state.focusedFieldName}
                 inputRef={this.registerElement}
@@ -723,9 +734,29 @@ class Taf extends Component {
                 editable={mode === MODES.EDIT} />
             </Col>
           </Row>
-          <TimeSchedule series={series}
-            startMoment={moment.utc(tafData.metadata.validityStart)}
-            endMoment={moment.utc(tafData.metadata.validityEnd)} />
+          {!isCancel
+            ? <TimeSchedule series={series}
+              startMoment={moment.utc(tafData.metadata.validityStart)}
+              endMoment={moment.utc(tafData.metadata.validityEnd)} />
+            : null
+          }
+          {validationFeedback && mode === MODES.EDIT
+            ? <FeedbackSection status={validationFeedback.status ? validationFeedback.status : FEEDBACK_STATUSES.INFO} category={FEEDBACK_CATEGORIES.VALIDATION}>
+              {validationFeedback.title
+                ? <span data-field='title'>{validationFeedback.title}</span>
+                : null
+              }
+              {validationFeedback.subTitle
+                ? <span data-field='subTitle'>{validationFeedback.subTitle}</span>
+                : null
+              }
+              {validationFeedback.list
+                ? <span data-field='list'>{validationFeedback.list}</span>
+                : null
+              }
+            </FeedbackSection>
+            : null
+          }
           <ActionSection>
             {abilityCtAs.map((ability) =>
               <Button key={`action-${ability.dataField}`}
@@ -736,23 +767,6 @@ class Taf extends Component {
               </Button>
             )}
           </ActionSection>
-          {feedback
-            ? <FeedbackSection status={feedback.status ? feedback.status : 'info'}>
-              {feedback.title
-                ? <span data-field='title'>{feedback.title}</span>
-                : null
-              }
-              {feedback.subTitle
-                ? <span data-field='subTitle'>{feedback.subTitle}</span>
-                : null
-              }
-              {feedback.list
-                ? <span data-field='list'>{feedback.list}</span>
-                : null
-              }
-            </FeedbackSection>
-            : null
-          }
         </Col>
       </Row>
     );
@@ -778,6 +792,7 @@ Taf.propTypes = {
   feedback: PropTypes.shape({
     message: PropTypes.string
   }),
+  hasFollowUp: PropTypes.bool,
   dispatch: PropTypes.func,
   actions: PropTypes.shape({
     discardTafAction: PropTypes.func,

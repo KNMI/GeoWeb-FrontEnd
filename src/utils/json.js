@@ -1,26 +1,101 @@
+import produce from 'immer';
 import getNestedProperty from 'lodash.get';
+import setNestedProperty from 'lodash.set';
+import hasNestedProperty from 'lodash.has';
+import cloneDeep from 'lodash.clonedeep';
 import removeNestedProperty from 'lodash.unset';
 
 /**
+ * Merges the values into (nested) templates
+ * @param {any} incomingValues The object with values to merge into templates, same hierarchy as template
+ * @param {string} parentName The property name of the top level incomingValues entity
+ * @param {object} templates A map of templates, with keys equal to the property names
+ * @returns {any} The template with the incoming values merged or null
+ */
+const mergeInTemplate = (incomingValues, parentName, templates) => {
+  if (!templates || !templates.hasOwnProperty(parentName)) {
+    return null;
+  }
+  const incomingPointers = [];
+  getJsonPointers(incomingValues, (field) =>
+    field === null ||
+    (!Array.isArray(field) && (typeof field !== 'object' || field.constructor !== Object)), incomingPointers);
+  return produce(templates[parentName], draftState => {
+    incomingPointers.forEach((pointer) => {
+      const pathParts = pointer.split('/');
+      pathParts.shift();
+      if (hasNestedProperty(draftState, pathParts)) {
+        const templateValue = getNestedProperty(draftState, pathParts);
+        const nextValue = getNestedProperty(incomingValues, pathParts);
+        // check for allowed type changes
+        if (templateValue === null ||
+          (!Array.isArray(templateValue) && (typeof templateValue !== 'object' || templateValue.constructor !== Object) &&
+          typeof templateValue === typeof nextValue)) {
+          setNestedProperty(draftState, pathParts, nextValue);
+        }
+      } else {
+        const numericIndices = [];
+        pathParts.forEach((part, partIndex) => {
+          if (!isNaN(part)) {
+            numericIndices.push(partIndex);
+          }
+        });
+        if (!numericIndices) {
+          return;
+        }
+        numericIndices.sort();
+        numericIndices.forEach((numericIndex) => {
+          let affectedArray = getNestedProperty(draftState, pathParts.slice(0, numericIndex));
+          let affectedName = pathParts[numericIndex - 1];
+          if (numericIndex === 0) {
+            affectedArray = draftState;
+            affectedName = parentName;
+          }
+          if (Array.isArray(affectedArray) && affectedArray.length > 0) {
+            const additionalOccurrences = parseInt(pathParts[numericIndex]) + 1 - affectedArray.length;
+            let templateForArray = templates[affectedName];
+            if (typeof templateForArray === 'undefined') {
+              templateForArray = templates[affectedName.toUpperCase()];
+            }
+            if (additionalOccurrences > 0 && Array.isArray(templateForArray) && templateForArray.length > 0) {
+              affectedArray.push(...Array(additionalOccurrences).fill(cloneDeep(templateForArray[0])));
+            }
+            if (hasNestedProperty(affectedArray, pathParts.slice(numericIndex))) {
+              const templateValue = getNestedProperty(affectedArray, pathParts.slice(numericIndex));
+              const nextValue = getNestedProperty(incomingValues, pathParts);
+              // check for allowed type changes
+              if (templateValue === null ||
+                (!Array.isArray(templateValue) && (typeof templateValue !== 'object' || templateValue.constructor !== Object) &&
+                  typeof templateValue === typeof nextValue)) {
+                setNestedProperty(draftState, pathParts, nextValue);
+              }
+            }
+          }
+        });
+      }
+    });
+  });
+};
+
+/**
  * Upwards recursively remove empty properties
- * @param  {Object} objectToClear The object to cleanse
- * @param  {Array} pathParts Array of JSON-path-elements
+ * @param {Object} objectToClear The object to cleanse
+ * @param {Array} pathParts Array of JSON-path-elements
  */
 const clearRecursive = (objectToClear, pathParts) => {
   pathParts.pop();
   const parent = getNestedProperty(objectToClear, pathParts);
   // Check for empty sibling arrays / objects
-  if (Array.isArray(parent) && parent.length === 0) {
-    const length = parent.length;
-    for (let index = 0; index < length; index++) {
-      if (!parent[index] ||
-        (Array.isArray(parent[index]) && parent[index].length === 0) ||
-        (typeof parent[index] === 'object' && Object.indexs(parent[index]).length === 0)) {
+  if (Array.isArray(parent) && parent.length !== 0) {
+    parent.forEach((child, index) => {
+      if ((!child) ||
+        (Array.isArray(child) && child.length === 0) ||
+        (typeof child === 'object' && Object.keys(child).length === 0)) {
         pathParts.push(index);
         removeNestedProperty(objectToClear, pathParts);
         pathParts.pop();
       }
-    }
+    });
   } else if (parent && typeof parent === 'object') {
     Object.entries(parent).forEach(([key, value]) => {
       if ((!value && value !== 0) ||
@@ -50,27 +125,23 @@ const getJsonPointers = (collection, predicate, accumulator, parentName = '') =>
   accumulator = accumulator || [];
   const propertyList = [];
   if (Array.isArray(collection)) {
-    const length = collection.length;
-    for (let arrIndex = 0; arrIndex < length; arrIndex++) {
-      propertyList.push(arrIndex);
-    }
+    collection.forEach((item, index) => {
+      propertyList.push(index);
+    });
   } else if (collection && typeof collection === 'object') {
     for (let property in collection) {
       propertyList.push(property);
     }
   }
-  const listLength = propertyList.length;
-  for (let listIndex = 0; listIndex < listLength; listIndex++) {
-    const property = propertyList[listIndex];
+  propertyList.forEach((property) => {
     const myAccum = [];
     if (getJsonPointers(collection[property], predicate, myAccum, property) === true) {
       myAccum.push(property);
     }
-    const length = myAccum.length;
-    for (let accumIndex = 0; accumIndex < length; accumIndex++) {
-      accumulator.push(parentName + '/' + myAccum[accumIndex]);
-    }
-  }
+    myAccum.forEach((item) => {
+      accumulator.push(parentName + '/' + item);
+    });
+  });
   return predicate(collection) || accumulator;
 };
 
@@ -81,17 +152,17 @@ const getJsonPointers = (collection, predicate, accumulator, parentName = '') =>
 const clearNullPointersAndAncestors = (objectToClear) => {
   const nullPointers = [];
   getJsonPointers(objectToClear, (field) => field === null, nullPointers);
-  const nullPointersLength = nullPointers.length;
-  for (let pointerIndex = 0; pointerIndex < nullPointersLength; pointerIndex++) {
-    const pathParts = nullPointers[pointerIndex].split('/');
+  nullPointers.forEach((nullPointer) => {
+    const pathParts = nullPointer.split('/');
     pathParts.shift();
     removeNestedProperty(objectToClear, pathParts);
     clearRecursive(objectToClear, pathParts);
-  }
+  });
 };
 
 module.exports = {
   getJsonPointers: getJsonPointers,
   clearRecursive: clearRecursive,
+  mergeInTemplate: mergeInTemplate,
   clearNullPointersAndAncestors: clearNullPointersAndAncestors
 };

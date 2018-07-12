@@ -1,8 +1,7 @@
-import { TIMESTAMP_FORMAT } from '../../components/Taf/TafTemplates';
-
 export const LOCAL_ACTION_TYPES = {
   UPDATE_LOCATIONS: 'UPDATE_LOCATIONS',
   UPDATE_TIMESTAMPS: 'UPDATE_TIMESTAMPS',
+  UPDATE_TAFS: 'UPDATE_TAFS',
   UPDATE_FEEDBACK: 'UPDATE_FEEDBACK',
   SELECT_TAF: 'SELECT_TAF',
   DISCARD_TAF: 'DISCARD_TAF',
@@ -24,7 +23,8 @@ export const LOCAL_ACTION_TYPES = {
 export const LOCAL_ACTIONS = {
   updateLocationsAction: () => ({ type: LOCAL_ACTION_TYPES.UPDATE_LOCATIONS }),
   updateTimestampsAction: () => ({ type: LOCAL_ACTION_TYPES.UPDATE_TIMESTAMPS }),
-  updateFeedbackAction: (title, status, subTitle, list) => ({ type: LOCAL_ACTION_TYPES.UPDATE_FEEDBACK, title: title, status: status, subTitle: subTitle, list: list }),
+  updateTafsAction: () => ({ type: LOCAL_ACTION_TYPES.UPDATE_TAFS }),
+  updateFeedbackAction: (title, status, category, subTitle, list) => ({ type: LOCAL_ACTION_TYPES.UPDATE_FEEDBACK, title: title, status: status, category: category, subTitle: subTitle, list: list }),
   selectTafAction: (tafSelection) => ({ type: LOCAL_ACTION_TYPES.SELECT_TAF, selection: tafSelection }),
   discardTafAction: (evt) => ({ type: LOCAL_ACTION_TYPES.DISCARD_TAF, event: evt }),
   saveTafAction: (evt) => ({ type: LOCAL_ACTION_TYPES.SAVE_TAF, event: evt }),
@@ -125,8 +125,8 @@ export const READ_ABILITIES = {
 
 const READ_ABILITIES_ORDER = [
   READ_ABILITIES.DELETE['dataField'],
-  READ_ABILITIES.EDIT['dataField'],
   READ_ABILITIES.COPY['dataField'],
+  READ_ABILITIES.EDIT['dataField'],
   READ_ABILITIES.CANCEL['dataField'],
   READ_ABILITIES.CORRECT['dataField'],
   READ_ABILITIES.AMEND['dataField'],
@@ -138,18 +138,18 @@ export const byReadAbilities = (abilityA, abilityB) => {
 };
 
 export const STATUSES = {
-  PUBLISHED: 'PUBLISHED',
-  CONCEPT: 'CONCEPT',
-  NEW: 'NEW'
+  PUBLISHED: 'published',
+  CONCEPT: 'concept',
+  NEW: 'new'
 };
 
 export const LIFECYCLE_STAGE_NAMES = {
-  NORMAL: 'NORMAL',
-  AMENDMENT: 'AMENDMENT',
-  CORRECTION: 'CORRECTION',
-  RETARDED: 'RETARDED',
-  CANCEL: 'CANCELED',
-  MISSING: 'MISSING'
+  NORMAL: 'normal',
+  AMENDMENT: 'amendment',
+  CORRECTION: 'correction',
+  RETARDED: 'retarded',
+  CANCELED: 'canceled',
+  MISSING: 'missing'
 };
 
 export const LIFECYCLE_STAGES = [
@@ -157,9 +157,20 @@ export const LIFECYCLE_STAGES = [
   { stage: LIFECYCLE_STAGE_NAMES.AMENDMENT, label: 'AMD' },
   { stage: LIFECYCLE_STAGE_NAMES.CORRECTION, label: 'COR' },
   { stage: LIFECYCLE_STAGE_NAMES.RETARDED, label: 'RTD' },
-  { stage: LIFECYCLE_STAGE_NAMES.CANCEL, label: 'CNL' },
+  { stage: LIFECYCLE_STAGE_NAMES.CANCELED, label: 'CNL' },
   { stage: LIFECYCLE_STAGE_NAMES.MISSING, label: 'NIL' }
 ];
+
+export const FEEDBACK_STATUSES = {
+  INFO: 'info',
+  SUCCESS: 'success',
+  ERROR: 'danger'
+};
+
+export const FEEDBACK_CATEGORIES = {
+  VALIDATION: 'validation',
+  LIFECYCLE: 'lifecycle'
+};
 
 const STATE = {
   locations: [],
@@ -167,7 +178,7 @@ const STATE = {
   selectableTafs: [],
   selectedTaf: null,
   copiedTafRef: null,
-  feedback: null,
+  feedback: {},
   mode: MODES.READ,
   abilitiesPerStatus: [
     {
@@ -184,6 +195,9 @@ const STATE = {
     }
   ]
 };
+STATE.feedback[FEEDBACK_CATEGORIES.VALIDATION] = null;
+STATE.feedback[FEEDBACK_CATEGORIES.LIFECYCLE] = null;
+
 // New TAFs
 STATE.abilitiesPerStatus[0].abilities[MODES.READ] = {};
 STATE.abilitiesPerStatus[0].abilities[MODES.READ][READ_ABILITIES.DELETE.check] = false;
@@ -224,102 +238,3 @@ STATE.abilitiesPerStatus[2].abilities[MODES.READ][READ_ABILITIES.PUBLISH.check] 
 STATE.abilitiesPerStatus[2].abilities[MODES.EDIT] = {};
 
 export const INITIAL_STATE = STATE;
-
-/** Gets example data
- * @param {moment} start The start of the validity
- * @param {string} location The location code
- * @param {string} status The status code
- * @returns Response data
- */
-export const getExample = (start, location, status) => ({
-  data: {
-    ntafs: 1,
-    tafs: [
-      {
-        'metadata': {
-          'issueTime': status === STATUSES.PUBLISHED ? start.clone().subtract(1, 'hour').format(TIMESTAMP_FORMAT) : null,
-          'validityStart': start.format(TIMESTAMP_FORMAT),
-          'validityEnd': start.clone().add(30, 'hour').format(TIMESTAMP_FORMAT),
-          'status': status,
-          'type': 'normal',
-          'location': location,
-          'modified': start.clone().subtract(1, 'hour').format(TIMESTAMP_FORMAT),
-          'author': 'Met1'
-        },
-        'forecast': {
-          'wind': {
-            'direction': 200,
-            'speed': 15,
-            'gusts': 25,
-            'unit': 'KT'
-          },
-          'caVOK': true
-        },
-        'changegroups': [{
-          'changeType': 'BECMG',
-          'changeStart': start.clone().add(2, 'hour').format(TIMESTAMP_FORMAT),
-          'changeEnd': start.clone().add(7, 'hour').format(TIMESTAMP_FORMAT),
-          'forecast': {
-            'weather': [],
-            'clouds': [{
-              'amount': 'SCT',
-              'height': 20,
-              'mod': null
-            }],
-            'visibility': {
-              'value': 9000,
-              'unit': 'M'
-            },
-            'wind': {
-              'direction': 220,
-              'speed': 17,
-              'gusts': 27,
-              'unit': 'KT'
-            }
-          }
-        }, {
-          'changeType': 'PROB30 TEMPO',
-          'changeStart': start.clone().add(9, 'hour').format(TIMESTAMP_FORMAT),
-          'changeEnd': start.clone().add(11, 'hour').format(TIMESTAMP_FORMAT),
-          'forecast': {
-            'weather': [{
-              'qualifier': 'moderate',
-              'descriptor': 'thunderstorm',
-              'phenomena': ['rain']
-            }],
-            'clouds': [{
-              'amount': 'BKN',
-              'height': 15,
-              'mod': 'CB'
-            }, {
-              'amount': 'OVC',
-              'height': 20,
-              'mod': null
-            }],
-            'visibility': {
-              'value': 3000,
-              'unit': 'M'
-            },
-            'wind': {
-              'direction': 'VRB',
-              'speed': 25,
-              'gusts': 38,
-              'unit': 'KT'
-            }
-          }
-        }, {
-          'changeType': 'TEMPO',
-          'changeStart': start.clone().add(12, 'hour').format(TIMESTAMP_FORMAT),
-          'changeEnd': start.clone().add(16, 'hour').format(TIMESTAMP_FORMAT),
-          'forecast': {
-            'weather': [{
-              'qualifier': 'moderate',
-              'descriptor': 'freezing',
-              'phenomena': ['fog']
-            }]
-          }
-        }]
-      }
-    ]
-  }
-});

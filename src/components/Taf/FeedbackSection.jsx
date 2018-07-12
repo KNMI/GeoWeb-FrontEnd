@@ -15,9 +15,9 @@ export default class FeedBackSection extends PureComponent {
       (a, b) => a.concat(Array.isArray(b) ? flatten(b) : b), []
     );
     return <Row className='TafFeedbackSection'>
-      <Alert color={status} className='TafFeedbackSection col'>
+      <Alert color={status} className='col'>
         <Row className='alert-heading'>
-          <Col>{children.title}</Col>
+          <Col>{children.title || 'No title provided'}</Col>
         </Row>
         {children.subTitle
           ? <Row>

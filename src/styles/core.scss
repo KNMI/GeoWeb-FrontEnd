@@ -235,7 +235,7 @@ button.btn.btn-sm, button.btn.btn-group-sm > .btn {
   border-color: $ux-interactive-color-checked;
 }
 
-.form-control:disabled, .rbt.form-control[disabled], .rbt-input.form-control[disabled] {
+.form-control:disabled, .rbt-input-hint-container[disabled] {
   cursor: not-allowed;
   background-color: #e8eaec;
 }
@@ -248,8 +248,16 @@ button.btn.btn-sm, button.btn.btn-group-sm > .btn {
   width: 100%;
 }
 
-.form-control .rbt-input-wrapper, .form-control .rbt-input-wrapper div {
+.rbt-input-hint-container {
   width: 100%;
+}
+
+.rbt-input-hint {
+  padding-top: 0.3rem!important;
+}
+
+.rbt-aux {
+  margin-left: -1.8rem;
 }
 
 .navbar img.logo {

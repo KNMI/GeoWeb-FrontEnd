@@ -2,29 +2,37 @@ import React, { PureComponent } from 'react';
 import { Row, Col, Alert } from 'reactstrap';
 import { Typeahead } from 'react-bootstrap-typeahead';
 import { Icon } from 'react-fa';
+import { TAF_TYPES } from './TafTemplates';
 import PropTypes from 'prop-types';
-import MomentPropTypes from 'react-moment-proptypes';
 
 export default class TafSelector extends PureComponent {
+  constructor (props) {
+    super(props);
+    this.equalsLocationOrTime = this.equalsLocationOrTime.bind(this);
+  }
+
+  equalsLocationOrTime (option, props) {
+    return option.location.toUpperCase().indexOf(props.text.toUpperCase()) !== -1 ||
+      option.label.time.indexOf(props.text) !== -1 ||
+      option.label.status.toLowerCase().indexOf(props.text.toLowerCase()) !== -1;
+  }
+
   render () {
     const { selectableTafs, selectedTaf, onChange } = this.props;
     return <Row className='TafSelector'>
       <Col xs='auto'>TAF for</Col>
-      <Col xs='6'>
+      <Col xs='3'>
         <Typeahead
-          filterBy={(option, props) => {
-            return true;
-          }}
-          labelKey={option => option.label.text}
-          options={selectableTafs} onChange={onChange}
+          filterBy={this.equalsLocationOrTime}
+          labelKey={option => `${option.label.text} ${option.label.status}`}
+          options={selectableTafs} onChange={onChange} onFocus={() => onChange([])}
           selected={selectedTaf || []} placeholder={'Select a TAF'}
           renderMenuItemChildren={(option, props, index) => {
             return <Row>
               <Col xs='1'><Icon name={option.label.icon} /></Col>
-              <Col xs='1'>{option.location}</Col>
-              <Col xs='1'>{option.label.time}</Col>
-              <Col xs='3'>{option.status}</Col>
-              <Col xs='6'>{option.uuid}</Col>
+              <Col xs='2'>{option.location}</Col>
+              <Col xs='2'>{option.label.time}</Col>
+              <Col xs='7'>{option.label.status}</Col>
             </Row>;
           }}
           clearButton />
@@ -42,19 +50,7 @@ export default class TafSelector extends PureComponent {
 }
 
 TafSelector.propTypes = {
-  selectableTafs: PropTypes.arrayOf(PropTypes.shape({
-    location: PropTypes.string,
-    uuid: PropTypes.string,
-    timeLabel: PropTypes.string,
-    timestamp: MomentPropTypes.momentObj,
-    status: PropTypes.string
-  })),
-  selectedTaf: PropTypes.arrayOf(PropTypes.shape({
-    location: PropTypes.string,
-    uuid: PropTypes.string,
-    timeLabel: PropTypes.string,
-    timestamp: MomentPropTypes.momentObj,
-    status: PropTypes.string
-  })),
+  selectableTafs: PropTypes.arrayOf(TAF_TYPES.SELECTABLE_TAF),
+  selectedTaf: PropTypes.arrayOf(TAF_TYPES.SELECTABLE_TAF),
   onChange: PropTypes.func
 };

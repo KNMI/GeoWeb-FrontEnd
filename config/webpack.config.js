@@ -9,7 +9,8 @@ const __PROD__ = project.globals.__PROD__;
 debug('Creating awesome webpack configuration.');
 const webpackConfig = {
   devServer: {
-    historyApiFallback: true
+    historyApiFallback: true,
+    watchContentBase: true
   },
   name: 'client',
   target: 'web',
@@ -22,7 +23,13 @@ const webpackConfig = {
     extensions: ['.js', '.jsx', '.json'],
     enforceExtension: false
   },
-  module: {}
+  module: {},
+  watch: true,
+  watchOptions: {
+    aggregateTimeout: 300,
+    poll: 1000,
+    ignored: ['node_modules', 'src/**/*.spec.js']
+  }
 };
 // ------------------------------------
 // Entry Points

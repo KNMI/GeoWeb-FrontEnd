@@ -61,7 +61,6 @@ const TafValidator = (BACKEND_SERVER_URL, tafAsObject) => {
       delete taf.metadata.status;
     }
 
-
     axios({
       method: 'post',
       url: BACKEND_SERVER_URL + '/tafs/verify',
