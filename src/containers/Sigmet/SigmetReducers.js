@@ -54,9 +54,6 @@ const updateCategory = (ref, sigmets, container) => {
       draftState.categories[categoryIndex].sigmets.push(...sigmets);
     }
   }));
-  // TODO select current sigmet
-  // TODO clear new Sigmet form
-  // TODO set mode to READ
 };
 
 const retrieveParameters = (container) => {
@@ -587,6 +584,9 @@ const saveSigmet = (event, uuid, container) => {
       dismissAfter: 3000
     }));
     retrieveSigmets(container);
+    // TODO select current sigmet
+    // TODO clear new Sigmet form
+    // TODO set mode to READ
   }).catch(error => {
     console.error(`Could not save Sigmet identified by ${uuid}`, error);
     dispatch(notify({
