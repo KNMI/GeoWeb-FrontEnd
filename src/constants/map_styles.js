@@ -83,7 +83,7 @@ const OSM_BLOSSOM_NL = {
 };
 
 const WORLDMAP = {
-  name: 'WORLDMAP',
+  name: 'WorldMap',
   title: 'KNMI GeoWeb WorldMap',
   type: 'twms',
   enabled: true,
