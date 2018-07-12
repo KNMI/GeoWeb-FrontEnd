@@ -341,7 +341,7 @@ const updateSelectableTafs = (container, tafs, status) => {
     });
     // Update selectedTaf
     if (draftState.selectedTaf && Array.isArray(draftState.selectedTaf) &&
-        draftState.selectedTaf.length > 0 && draftState.selectedTaf[0].metadata.status === status) {
+        draftState.selectedTaf.length > 0 && draftState.selectedTaf[0].tafData.metadata.status === status) {
       const newDataSelectedTaf = draftState.selectableTafs.find((selectableTaf) => isSameSelectableTaf(selectableTaf, draftState.selectedTaf[0]));
       draftState.selectedTaf.length = 0;
       if (newDataSelectedTaf) {
