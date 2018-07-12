@@ -1,7 +1,7 @@
 {
     "WorldMap_Light_Grey_Canvas": {
       "EPSG:3857": {
-         "home": "https://s3.eu-central-1.amazonaws.com/knmi-basemaps/WorldMap_Light_Grey_Canvas/EPSG3857",
+         "home": "https://s3.eu-central-1.amazonaws.com/knmi-basemaps/WorldMap_Light_Grey_Canvas/EPSG3857/",
          "minLevel": 0,
          "maxLevel": 9,
          "tileServerType": "osm",
