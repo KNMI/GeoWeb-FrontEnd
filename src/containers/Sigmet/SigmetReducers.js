@@ -584,7 +584,7 @@ const saveSigmet = (event, uuid, container) => {
       dismissAfter: 3000
     }));
     retrieveSigmets(container);
-    // TODO select current sigmet
+    // TODO find and select current sigmet?
     // TODO clear new Sigmet form
     // TODO set mode to READ
   }).catch(error => {
