@@ -20,7 +20,7 @@ const MWS_STYLE = {
 
 const WORLDMAP_LIGHT_GREY_CANVAS = {
   name: 'WorldMap_Light_Grey_Canvas',
-  title: 'KNMI GeoWeb WorldMap Light Grey Canvas',
+  title: 'KNMI GeoWeb WorldMap Light Grey Canvas (Mercator)',
   type: 'twms',
   enabled: true,
   dimensions: []
@@ -28,7 +28,7 @@ const WORLDMAP_LIGHT_GREY_CANVAS = {
 
 const OPENSTREETMAP_NL = {
   name: 'OpenStreetMap_NL',
-  title: 'KNMI GeoWeb OpenStreetMap NL',
+  title: 'KNMI GeoWeb OpenStreetMap NL (Mercator)',
   type: 'twms',
   enabled: true,
   dimensions: []
@@ -36,7 +36,7 @@ const OPENSTREETMAP_NL = {
 
 const OPENSTREETS_NL = {
   name: 'OpenStreets_NL',
-  title: 'KNMI GeoWeb OpenStreets NL',
+  title: 'KNMI GeoWeb OpenStreets NL  (Mercator / RD)',
   type: 'twms',
   enabled: true,
   dimensions: []
@@ -44,7 +44,7 @@ const OPENSTREETS_NL = {
 
 const POSITRON_NL = {
   name: 'Positron_NL',
-  title: 'KNMI GeoWeb Positron NL',
+  title: 'KNMI GeoWeb Positron NL (Mercator)',
   type: 'twms',
   enabled: true,
   dimensions: []
@@ -52,7 +52,7 @@ const POSITRON_NL = {
 
 const POSITRON_NL_NOLABELS = {
   name: 'Positron_NL_NoLabels',
-  title: 'KNMI GeoWeb Positron NL No Labels',
+  title: 'KNMI GeoWeb Positron NL No Labels (Mercator)',
   type: 'twms',
   enabled: true,
   dimensions: []
@@ -60,7 +60,7 @@ const POSITRON_NL_NOLABELS = {
 
 const KLOKANTECH_BASIC_NL = {
   name: 'Klokantech_Basic_NL',
-  title: 'KNMI GeoWeb Klokantech Basic NL',
+  title: 'KNMI GeoWeb Klokantech Basic NL (Mercator)',
   type: 'twms',
   enabled: true,
   dimensions: []
@@ -68,7 +68,7 @@ const KLOKANTECH_BASIC_NL = {
 
 const KLOKANTECH_BASIC_NL_NOLABELS = {
   name: 'Klokantech_Basic_NL_NoLabels',
-  title: 'KNMI GeoWeb Klokantech Basic NL No Labels',
+  title: 'KNMI GeoWeb Klokantech Basic NL No Labels (Mercator)',
   type: 'twms',
   enabled: true,
   dimensions: []
@@ -76,7 +76,7 @@ const KLOKANTECH_BASIC_NL_NOLABELS = {
 
 const OSM_BLOSSOM_NL = {
   name: 'OSM_Blossom_NL',
-  title: 'KNMI GeoWeb OSM Blossom NL',
+  title: 'KNMI GeoWeb OSM Blossom NL (Mercator)',
   type: 'twms',
   enabled: true,
   dimensions: []
@@ -92,7 +92,7 @@ const WORLDMAP = {
 
 const OSM_ANTARCTICA = {
   name: 'OSM_Antarctica',
-  title: 'KNMI GeoWeb OSM Antarctica',
+  title: 'KNMI GeoWeb OSM Antarctica (EPSG:3412)',
   type: 'twms',
   enabled: true,
   dimensions: []
@@ -100,7 +100,7 @@ const OSM_ANTARCTICA = {
 
 const OPENSTREETMAP_SERVICE = {
   name: 'OpenStreetMap_Service',
-  title: 'OpenStreetMap Service',
+  title: 'OSM OpenStreetMap (Mercator)',
   type: 'twms',
   enabled: true,
   dimensions: []
@@ -108,7 +108,7 @@ const OPENSTREETMAP_SERVICE = {
 
 const ESRI_ARCGIS_CANVAS = {
   name: 'arcGisCanvas',
-  title: 'ESRI ArcGIS canvas map',
+  title: 'ESRI ArcGIS canvas map (Mercator)',
   type: 'twms',
   enabled: true,
   dimensions: []
@@ -116,7 +116,7 @@ const ESRI_ARCGIS_CANVAS = {
 
 const ESRI_ARCGIS_TOPO = {
   name: 'arcGisTopo',
-  title: 'ESRI ArcGIS topgraphical map',
+  title: 'ESRI ArcGIS topgraphical map (Mercator)',
   type: 'twms',
   enabled: true,
   dimensions: []
@@ -124,7 +124,7 @@ const ESRI_ARCGIS_TOPO = {
 
 const ESRI_ARCGIS_SAT = {
   name: 'arcGisSat',
-  title: 'ESRI ArcGIS satellite map',
+  title: 'ESRI ArcGIS satellite map (Mercator/LatLon)',
   type: 'twms',
   enabled: true,
   dimensions: []
@@ -132,10 +132,12 @@ const ESRI_ARCGIS_SAT = {
 
 const ESRI_ARCGIS_OCEAN = {
   name: 'arcGisOceanBaseMap',
-  title: 'ESRI ArcGIS ocean map',
+  title: 'ESRI ArcGIS ocean map (Mercator)',
   type: 'twms',
   enabled: true,
   dimensions: []
 };
 
-export const MAP_STYLES = [OPENSTREETMAP_SERVICE, KNMI_NATURALEARTH2, MWS_STYLE, WORLDMAP_LIGHT_GREY_CANVAS, OPENSTREETMAP_NL, OPENSTREETS_NL, POSITRON_NL, POSITRON_NL_NOLABELS, KLOKANTECH_BASIC_NL, KLOKANTECH_BASIC_NL_NOLABELS, OSM_BLOSSOM_NL, WORLDMAP, OSM_ANTARCTICA, ESRI_ARCGIS_CANVAS, ESRI_ARCGIS_TOPO, ESRI_ARCGIS_SAT, ESRI_ARCGIS_OCEAN];
+export const MAP_STYLES = [WORLDMAP, POSITRON_NL, POSITRON_NL_NOLABELS, OPENSTREETMAP_SERVICE, KNMI_NATURALEARTH2, MWS_STYLE, OPENSTREETS_NL,
+  OSM_BLOSSOM_NL, OPENSTREETMAP_NL, WORLDMAP_LIGHT_GREY_CANVAS, KLOKANTECH_BASIC_NL,
+  KLOKANTECH_BASIC_NL_NOLABELS, OSM_ANTARCTICA, ESRI_ARCGIS_CANVAS, ESRI_ARCGIS_TOPO, ESRI_ARCGIS_SAT, ESRI_ARCGIS_OCEAN];

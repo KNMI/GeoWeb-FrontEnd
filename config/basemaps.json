@@ -29,9 +29,6 @@
          "home": "https://s3.eu-central-1.amazonaws.com/knmi-basemaps/OpenStreets_NL/EPSG28992/",
          "minLevel": 0,
          "maxLevel": 16,
-         "origX": -3000000,
-         "origY": 3000000,
-         "resolution" : 23437.5,
          "tileServerType": "osm",
          "copyRight": "Natural Earth II | Ingmapping"
      }
@@ -89,10 +86,13 @@
          "tileServerType": "osm",
          "copyRight": "Natural Earth II | Ingmapping"
      },
-     "EPSG:4326": {
+     "TODO__EPSG:4326": {
          "home": "https://s3.eu-central-1.amazonaws.com/knmi-basemaps/WorldMap/EPSG4326/",
          "minLevel": 0,
          "maxLevel": 9,
+         "origX": -180,
+         "origY": 90,
+         "resolution": 1.422222,
          "tileServerType": "osm",
          "copyRight": "Natural Earth II | Ingmapping"
      },
