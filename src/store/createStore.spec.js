@@ -86,9 +86,9 @@ describe('(Store) createStore', () => {
       const adagucProps = store.getState().adagucProperties;
       expect(adagucProps.mapCreated).to.equal(false);
     });
-    it('ADAGUC should be initialized with OpenStreetMap style', () => {
+    it('ADAGUC should be initialized with KNMI GeoWeb WorldMap style', () => {
       const adagucProps = store.getState().adagucProperties;
-      expect(adagucProps.mapType.title).to.equal('OpenStreetMap Service');
+      expect(adagucProps.mapType.title).to.equal('KNMI GeoWeb WorldMap');
     });
     it('ADAGUC should be initialized with Mercator (EPSG:3857) projection', () => {
       const adagucProps = store.getState().adagucProperties;
