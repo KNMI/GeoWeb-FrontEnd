@@ -511,7 +511,11 @@ const clearSigmet = (event, uuid, container) => {
 };
 
 const discardSigmet = (event, uuid, container) => {
-  console.warn('discardSigmet is not yet implemented');
+  retrieveSigmets(container, () => {
+    container.setState(produce(container.state, draftState => {
+      draftState.focussedSigmet.mode = SIGMET_MODES.READ;
+    }));
+  });
 };
 
 const saveSigmet = (event, uuid, container) => {

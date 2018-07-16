@@ -56,8 +56,8 @@ class SigmetEditMode extends PureComponent {
       phenomenon, isObserved, obsFcTime, validdate, validdateEnd, locationIndicatorIcao } = this.props;
     const selectedPhenomenon = availablePhenomena.filter((ph) => ph.code === phenomenon).shift();
     const selectedFir = availableFirs.filter((fir) => fir.location_indicator_icao === locationIndicatorIcao).shift();
-    const selectedChange = change ? CHANGES.filter((c) => c.shortName === change.shortName).shift() : null;
-    const selectedDirection = movement && movement.dir ? DIRECTIONS.filter((c) => c.shortName === movement.dir).shift() : null;
+    const selectedChange = change ? CHANGES.filter((chg) => chg.shortName === change).shift() : null;
+    const selectedDirection = movement && movement.dir ? DIRECTIONS.filter((dir) => dir.shortName === movement.dir).shift() : null;
     const isLevelBetween = [MODES_LVL.BETW, MODES_LVL.BETW_SFC].includes(levelinfo.mode);
     const isLevelTops = [MODES_LVL.TOPS, MODES_LVL.TOPS_ABV, MODES_LVL.TOPS_BLW].includes(levelinfo.mode);
     const isLevelAbove = [MODES_LVL.ABV, MODES_LVL.TOPS_ABV].includes(levelinfo.mode);
@@ -282,7 +282,7 @@ class SigmetEditMode extends PureComponent {
             clearButton />
           <InputGroup data-field='speed'>
             <Input onChange={(evt) => dispatch(actions.updateSigmetAction(uuid, 'movement', { ...movement, speed: parseInt(evt.target.value) }))}
-              defaultValue='0'
+              value={(!movement || !movement.speed) ? '' : movement.speed}
               type='number' disabled={!movement || movement.stationary || useGeometryForEnd}
               step='1' />
             <InputGroupAddon>KT</InputGroupAddon>
@@ -309,7 +309,7 @@ class SigmetEditMode extends PureComponent {
         <ChangeSection>
           <Typeahead filterBy={['shortName', 'longName']} labelKey='longName' data-field='change'
             options={CHANGES} placeholder={'Select change'}
-            onChange={(selectedValues) => dispatch(actions.updateSigmetAction(uuid, 'change', selectedValues[0].shortName))}
+            onChange={(selectedValues) => dispatch(actions.updateSigmetAction(uuid, 'change', selectedValues.length > 0 ? selectedValues[0].shortName : null))}
             selected={selectedChange ? [selectedChange] : []}
             clearButton />
         </ChangeSection>
