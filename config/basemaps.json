@@ -1,50 +1,154 @@
 {
-    "WorldMap": {
+    "WorldMap_Light_Grey_Canvas": {
       "EPSG:3857": {
-        "home": "https://tileserver.ingmapping.com/worldmap/",
-        "minLevel": 1,
-        "maxLevel": 6,
-        "tileServerType": "osm"
-      }
-    },
-    "WorldMap_Light": {
-      "EPSG:3857": {
-        "home": "https://tileserver.ingmapping.com/worldmap_light/",
-        "minLevel": 1,
-        "maxLevel": 6,
-        "tileServerType": "osm"
-      }
-    },
-    "WorldMap_Canvas": {
-      "EPSG:3857": {
-         "home": "https://tileserver.ingmapping.com/worldmap_canvas/",
-         "minLevel": 1,
-         "maxLevel": 6,
-         "tileServerType": "osm"
-      }
-    },
-    "WorldMap_GreyCanvas": {
-      "EPSG:3857": {
-        "home": "https://tileserver.ingmapping.com/worldmap_greycanvas/",
-        "minLevel": 1,
-        "maxLevel": 6,
-        "tileServerType": "osm"
-      }
-    },
-    "WorldMap_LightGreyCanvas": {
-      "EPSG:3857": {
-         "home": "https://s3.eu-central-1.amazonaws.com/knmi-basemaps/WorldMapLightGreyCanvas/",
-         "minLevel": 1,
+         "home": "https://s3.eu-central-1.amazonaws.com/knmi-basemaps/WorldMap_Light_Grey_Canvas/EPSG3857/",
+         "minLevel": 0,
          "maxLevel": 9,
-         "tileServerType": "osm"
+         "tileServerType": "osm",
+         "copyRight": "Natural Earth II | Ingmapping"
      }
     },
     "OpenStreetMap_NL": {
       "EPSG:3857": {
-         "home": "https://s3.eu-central-1.amazonaws.com/knmi-basemaps/openstreetmapnl/",
-         "minLevel": 5,
+         "home": "https://s3.eu-central-1.amazonaws.com/knmi-basemaps/OpenStreetMap_NL/EPSG3857/",
+         "minLevel": 0,
          "maxLevel": 16,
-         "tileServerType": "osm"
+         "tileServerType": "osm",
+         "copyRight": "OpenStreetMap - contributors | Ingmapping"
+     }
+    },
+    "OpenStreets_NL": {
+      "EPSG:3857": {
+         "home": "https://s3.eu-central-1.amazonaws.com/knmi-basemaps/OpenStreets_NL/EPSG3857/",
+         "minLevel": 0,
+         "maxLevel": 16,
+         "tileServerType": "osm",
+         "copyRight": "OpenStreetMap - contributors | Ingmapping"
+     },
+     "EPSG:28992": {
+         "home": "https://s3.eu-central-1.amazonaws.com/knmi-basemaps/OpenStreets_NL/EPSG28992/",
+         "minLevel": 0,
+         "maxLevel": 16,
+         "tileServerType": "osm",
+         "copyRight": "Natural Earth II | Ingmapping"
+     }
+    },
+    "Positron_NL": {
+      "EPSG:3857": {
+         "home": "https://s3.eu-central-1.amazonaws.com/knmi-basemaps/Positron_NL/EPSG3857/",
+         "minLevel": 0,
+         "maxLevel": 14,
+         "tileServerType": "osm",
+         "copyRight": "OpenStreetMap - contributors | OpenMapTiles | Ingmapping"
+     }
+    },
+    "Positron_NL_NoLabels": {
+      "EPSG:3857": {
+         "home": "https://s3.eu-central-1.amazonaws.com/knmi-basemaps/Positron_NL_NoLabels/EPSG3857/",
+         "minLevel": 0,
+         "maxLevel": 14,
+         "tileServerType": "osm",
+         "copyRight": "OpenStreetMap - contributors | OpenMapTiles | Ingmapping"
+     }
+    },
+    "Klokantech_Basic_NL": {
+      "EPSG:3857": {
+         "home": "https://s3.eu-central-1.amazonaws.com/knmi-basemaps/Klokantech_Basic_NL/EPSG3857/",
+         "minLevel": 0,
+         "maxLevel": 14,
+         "tileServerType": "osm",
+         "copyRight": "OpenStreetMap - contributors | OpenMapTiles | Ingmapping"
+     }
+    },
+    "Klokantech_Basic_NL_NoLabels": {
+      "EPSG:3857": {
+         "home": "https://s3.eu-central-1.amazonaws.com/knmi-basemaps/Klokantech_Basic_NL_NoLabels/EPSG3857/",
+         "minLevel": 0,
+         "maxLevel": 14,
+         "tileServerType": "osm",
+         "copyRight": "OpenStreetMap - contributors | OpenMapTiles | Ingmapping"
+     }
+    },
+    "OSM_Blossom_NL": {
+      "EPSG:3857": {
+         "home": "https://s3.eu-central-1.amazonaws.com/knmi-basemaps/OSM_Blossom_NL/EPSG3857/",
+         "minLevel": 0,
+         "maxLevel": 16,
+         "tileServerType": "osm",
+         "copyRight": "OpenStreetMap - contributors | Ingmapping"
+     }
+    },
+    "WorldMap": {
+      "EPSG:3857": {
+         "home": "https://s3.eu-central-1.amazonaws.com/knmi-basemaps/WorldMap/EPSG3857/",
+         "minLevel": 0,
+         "maxLevel": 9,
+         "tileServerType": "osm",
+         "copyRight": "Natural Earth II | Ingmapping"
+     },
+     "TODO__EPSG:4326": {
+         "home": "https://s3.eu-central-1.amazonaws.com/knmi-basemaps/WorldMap/EPSG4326/",
+         "minLevel": 0,
+         "maxLevel": 9,
+         "origX": -180,
+         "origY": 90,
+         "resolution": 1.422222,
+         "tileServerType": "osm",
+         "copyRight": "Natural Earth II | Ingmapping"
+     },
+     "EPSG:3411": {
+         "home": "https://s3.eu-central-1.amazonaws.com/knmi-basemaps/WorldMap/EPSG3411/",
+         "minLevel": 3,
+         "maxLevel": 9,
+         "tileServerType": "osm",
+         "copyRight": "Natural Earth II | Ingmapping"
+     },
+     "EPSG:28992": {
+         "home": "https://s3.eu-central-1.amazonaws.com/knmi-basemaps/WorldMap/EPSG28992/",
+         "minLevel": 5,
+         "maxLevel": 9,
+         "tileServerType": "osm",
+         "copyRight": "Natural Earth II | Ingmapping"
+     },
+     "EPSG:3412": {
+         "home": "https://s3.eu-central-1.amazonaws.com/knmi-basemaps/WorldMap/EPSG3412/",
+         "minLevel": 3,
+         "maxLevel": 9,
+         "tileServerType": "osm",
+         "copyRight": "Natural Earth II | Ingmapping"
+     },
+     "EPSG:32661": {
+         "home": "https://s3.eu-central-1.amazonaws.com/knmi-basemaps/WorldMap/EPSG32661/",
+         "minLevel": 4,
+         "maxLevel": 9,
+         "tileServerType": "osm",
+         "copyRight": "Natural Earth II | Ingmapping"
+     },
+     "EPSG:54030": {
+         "home": "https://s3.eu-central-1.amazonaws.com/knmi-basemaps/WorldMap/EPSG54030/",
+         "minLevel": 3,
+         "maxLevel": 9,
+         "tileServerType": "osm",
+         "copyRight": "Natural Earth II | Ingmapping"
+     },
+     "EPSG:3575": {
+         "home": "https://s3.eu-central-1.amazonaws.com/knmi-basemaps/WorldMap/EPSG3575/",
+         "minLevel": 5,
+         "maxLevel": 9,
+         "tileServerType": "osm",
+         "copyRight": "Natural Earth II | Ingmapping"
+     }
+    },
+    "OSM_Antarctica": {
+      "EPSG:3412": {
+         "home": "https://s3.eu-central-1.amazonaws.com/knmi-basemaps/OSM_Antarctica/EPSG3412/",
+         "minLevel": 1,
+         "maxLevel": 7,
+         "origX": -3000000,
+         "origY": 3000000,
+         "resolution" : 23437.5,
+         "tileServerType": "osm",
+         "copyRight": "OpenStreetMap - contributors | Ingmapping"
      }
     },
     "arcGisCanvas": {
@@ -54,7 +158,7 @@
             "minLevel": 1,
             "maxLevel": 16,
             "tileServerType": "arcgisonline",
-            "copyRight": "Basemap copyright: 2013 Esri, DeLorme, NAVTEQ"
+            "copyRight": "Basemap copyright: 2013 ESRI, DeLorme, NAVTEQ"
         },
         "EPSG:28992": {
             "home": "//services.arcgisonline.com/arcgis/rest/services/Basiskaarten/Canvas/MapServer/tile/",
@@ -64,7 +168,7 @@
             "origY": 903401.92,
             "resolution": 3440.64,
             "tileServerType": "arcgisonline",
-            "copyRight": "Basiskaart bronnen: Esri Nederland, Esri, Kadaster, CBS en Rijkswaterstaat"
+            "copyRight": "Basiskaart bronnen: ESRI Nederland, ESRI, Kadaster, CBS en Rijkswaterstaat"
         }
     },
     "arcGisTopo": {
@@ -74,7 +178,7 @@
             "minLevel": 1,
             "maxLevel": 19,
             "tileServerType": "arcgisonline",
-            "copyRight": "Basemap sources: Esri, DeLorme, NAVTEQ, TomTom, Intermap, increment P Corp., GEBCO, USGS, FAO, NPS, NRCAN, GeoBase, IGN, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), and the GIS User Community"
+            "copyRight": "Basemap sources: ESRI, DeLorme, NAVTEQ, TomTom, Intermap, increment P Corp., GEBCO, USGS, FAO, NPS, NRCAN, GeoBase, IGN, Kadaster NL, Ordnance Survey, ESRI Japan, METI, ESRI China (Hong Kong), and the GIS User Community"
         },
         "EPSG:28992": {
             "home": "//services.arcgisonline.com/arcgis/rest/services/Basiskaarten/Topo/MapServer/tile/",
@@ -84,7 +188,7 @@
             "origY": 903401.92,
             "resolution": 3440.64,
             "tileServerType": "arcgisonline",
-            "copyRight": "Basiskaart bronnen: Esri Nederland, Esri, Kadaster, CBS, Min VROM, Rijkswaterstaat en gemeenten: Rotterdam, Breda, Tilburg"
+            "copyRight": "Basiskaart bronnen: ESRI Nederland, ESRI, Kadaster, CBS, Min VROM, Rijkswaterstaat en gemeenten: Rotterdam, Breda, Tilburg"
         }
     },
     "arcGisOceanBaseMap": {
@@ -94,7 +198,7 @@
         "minLevel": 1,
         "maxLevel": 19,
         "tileServerType": "arcgisonline",
-        "copyRight": "Basemap sources: Esri, GEBCO, NOAA, National Geographic, DeLorme, NAVTEQ, Geonames.org, and other contributors"
+        "copyRight": "Basemap sources: ESRI, GEBCO, NOAA, National Geographic, DeLorme, NAVTEQ, Geonames.org, and other contributors"
       }
     },
     "arcGisSat": {
@@ -107,22 +211,25 @@
             "origX": -180,
             "origY": 90,
             "resolution": 0.3515625,
-            "tileSize": 512
+            "tileSize": 512,
+            "copyRight": "ESRI"
         },
         "EPSG:3857": {
             "home": "//services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/",
             "minLevel": 1,
             "maxLevel": 18,
-            "tileServerType": "arcgisonline"
+            "tileServerType": "arcgisonline",
+            "copyRight": "ESRI"
         }
     },
-    "OSM": {
-        "title":"Open street map",
+    "OpenStreetMap_Service": {
+        "title":"OpenStreetMap Service",
         "EPSG:3857": {
             "home": "//b.tile.openstreetmap.org/",
             "minLevel": 1,
             "maxLevel": 16,
-            "tileServerType": "osm"
+            "tileServerType": "osm",
+            "copyRight": "OpenStreetMap - contributors"
         },
         "EPSG:28992": {
             "home": "//services.arcgisonline.com/ArcGIS/rest/services/Basiskaarten/PDOK_BRT/MapServer/tile/",
