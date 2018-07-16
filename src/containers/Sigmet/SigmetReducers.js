@@ -6,7 +6,7 @@ import { clearNullPointersAndAncestors } from '../../utils/json';
 import axios from 'axios';
 import { notify } from 'reapop';
 import cloneDeep from 'lodash.clonedeep';
-const uuidv4 = require('uuid/v4');
+import uuidv4 from 'uuid/v4';
 
 const WARN_MSG = {
   PREREQUISITES_NOT_MET: 'Not all prerequisites are met yet:'
@@ -28,32 +28,37 @@ const getRoundedNow = () => {
 };
 
 const toggleContainer = (evt, container) => {
-  evt.preventDefault();
+  if (evt) {
+    evt.preventDefault();
+  }
   container.setState(produce(container.state, draftState => {
     draftState.isContainerOpen = !draftState.isContainerOpen;
   }));
 };
 
 const toggleCategory = (evt, ref, container) => {
-  evt.preventDefault();
+  if (evt) {
+    evt.preventDefault();
+  }
   container.setState(produce(container.state, draftState => {
     if (ref === CATEGORY_REFS.ADD_SIGMET && ref !== draftState.focussedCategoryRef) {
       draftState.focussedSigmet.mode = SIGMET_MODES.EDIT;
+      draftState.focussedSigmet.uuid = null;
     }
     draftState.focussedCategoryRef = (draftState.focussedCategoryRef === ref)
-      ? ''
+      ? null
       : ref;
-  }));
+  })/* , () => setSigmetDrawing(container.state.focussedSigmet.uuid, container) */);
 };
 
-const updateCategory = (ref, sigmets, container) => {
+const updateCategory = (ref, sigmets, container, callback = () => {}) => {
   container.setState(produce(container.state, draftState => {
     const categoryIndex = draftState.categories.findIndex((category) => category.ref === ref);
     if (!isNaN(categoryIndex) && categoryIndex >= 0) {
       draftState.categories[categoryIndex].sigmets.length = 0;
       draftState.categories[categoryIndex].sigmets.push(...sigmets);
     }
-  }));
+  }), callback);
 };
 
 const retrieveParameters = (container) => {
@@ -154,7 +159,7 @@ const updatePhenomena = (phenomena, container) => {
   }));
 };
 
-const retrieveSigmets = (container) => {
+const retrieveSigmets = (container, callback = () => {}) => {
   const { urls } = container.props;
   const endpoint = `${urls.BACKEND_SERVER_URL}/sigmets`;
 
@@ -170,34 +175,32 @@ const retrieveSigmets = (container) => {
       withCredentials: true,
       responseType: 'json'
     }).then(response => {
-      receivedSigmetsCallback(sigmet.ref, response, container);
+      receivedSigmetsCallback(sigmet.ref, response, container, callback);
     }).catch(error => {
       console.error(ERROR_MSG.RETRIEVE_SIGMETS, sigmet.ref, error);
     });
   });
 };
 
-const receivedSigmetsCallback = (ref, response, container) => {
+const receivedSigmetsCallback = (ref, response, container, callback) => {
   if (response.status === 200 && response.data) {
     if (response.data.nsigmets === 0 || !response.data.sigmets) {
       response.data.sigmets = [];
     }
-    updateCategory(ref, response.data.sigmets, container);
+    updateCategory(ref, response.data.sigmets, container, callback);
   } else {
     console.error(ERROR_MSG.RETRIEVE_SIGMETS, ref, response.status, response.data);
   }
 };
 
 const focusSigmet = (evt, uuid, container) => {
-  evt.preventDefault();
+  if (evt) {
+    evt.preventDefault();
+  }
   container.setState(produce(container.state, draftState => {
-    if (draftState.focussedSigmet.mode === SIGMET_MODES.EDIT) {
-      console.warn('focusSigmet: switching the focus while in edit mode is not yet implemented (otherwise it will unintentionally discard changes)');
-    } else {
-      draftState.focussedSigmet.uuid = uuid;
-      draftState.focussedSigmet.mode = SIGMET_MODES.READ;
-    }
-  }));
+    draftState.focussedSigmet.uuid = uuid;
+    draftState.focussedSigmet.mode = SIGMET_MODES.READ;
+  }), () => setSigmetDrawing(uuid, container));
 };
 
 const updateFir = (firName, container) => {
@@ -505,7 +508,6 @@ const modifyFocussedSigmet = (dataField, value, container) => {
 
 const clearSigmet = (event, uuid, container) => {
   addSigmet(container.state.focussedCategoryRef, container);
-  console.warn('clearSigmet is not yet fully implemented');
 };
 
 const discardSigmet = (event, uuid, container) => {
@@ -583,10 +585,21 @@ const saveSigmet = (event, uuid, container) => {
       dismissible: true,
       dismissAfter: 3000
     }));
-    retrieveSigmets(container);
-    // TODO find and select current sigmet?
-    // TODO clear new Sigmet form
-    // TODO set mode to READ
+    retrieveSigmets(container, () => {
+      // Set mode to READ, set focus of category and Sigmet, and clear new Sigmet
+      container.setState(produce(container.state, draftState => {
+        draftState.focussedSigmet.mode = SIGMET_MODES.READ;
+        const indices = findCategoryAndSigmetIndex(response.data.uuid, draftState);
+        if (indices.categoryIndex !== -1 && indices.sigmetIndex !== -1) {
+          const catRef = draftState.categories[indices.categoryIndex].ref;
+          if (catRef && catRef !== draftState.focussedCategoryRef) {
+            draftState.focussedCategoryRef = catRef;
+          }
+          draftState.focussedSigmet.uuid = response.data.uuid;
+        }
+        addSigmet(CATEGORY_REFS.ADD_SIGMET, container);
+      }));
+    });
   }).catch(error => {
     console.error(`Could not save Sigmet identified by ${uuid}`, error);
     dispatch(notify({
@@ -611,8 +624,60 @@ const deleteSigmet = (event, uuid, container) => {
   console.warn('deleteSigmet is not yet implemented');
 };
 
+/**
+ * Copy Sigmet information
+ * @param {object} event The event that triggered copying
+ * @param {string} uuid The identifier for the Sigmet to copy
+ * @param {Element} container The container in which the copy action was triggered
+ */
 const copySigmet = (event, uuid, container) => {
-  console.warn('copySigmet is not yet implemented');
+  const { state } = container;
+  const indices = findCategoryAndSigmetIndex(uuid, state);
+  if (indices.categoryIndex !== -1 && indices.sigmetIndex !== -1) {
+    container.setState(produce(state, draftState => {
+      draftState.copiedSigmetRef = uuid;
+    }));
+  }
+};
+
+/**
+ * Paste Sigmet information
+ * @param {object} event The event that triggered pasting
+ * @param {Element} container The container in which the paste action was triggered
+ */
+const pasteSigmet = (event, container) => {
+  const { state } = container;
+  const indicesCopiedSigmet = findCategoryAndSigmetIndex(state.copiedSigmetRef, state);
+  const indicesCurrentSigmet = findCategoryAndSigmetIndex(state.focussedSigmet.uuid, state);
+  if (indicesCopiedSigmet.categoryIndex !== -1 && indicesCopiedSigmet.sigmetIndex !== -1 &&
+      indicesCurrentSigmet.categoryIndex !== -1 && indicesCurrentSigmet.sigmetIndex !== -1) {
+    const copiedSigmet = state.categories[indicesCopiedSigmet.categoryIndex].sigmets[indicesCopiedSigmet.sigmetIndex];
+    if (!copiedSigmet && state.categories[indicesCurrentSigmet.categoryIndex].ref !== CATEGORY_REFS.ADD_SIGMET) {
+      return;
+    }
+    const propertiesToCopy = [
+      'phenomenon',
+      'obs_or_forecast',
+      'geojson',
+      'levelinfo',
+      'firname',
+      'validdate',
+      'validdate_end',
+      'change',
+      'movement',
+      'forecast_position_time',
+      'location_indicator_icao',
+      'location_indicator_mwo'
+    ];
+    container.setState(produce(state, draftState => {
+      propertiesToCopy.forEach((property) => {
+        if (copiedSigmet.hasOwnProperty(property) && copiedSigmet[property] !== null && typeof copiedSigmet[property] !== 'undefined') {
+          draftState.categories[indicesCurrentSigmet.categoryIndex].sigmets[indicesCurrentSigmet.sigmetIndex][property] = copiedSigmet[property];
+        }
+      });
+      draftState.copiedSigmetRef = null;
+    }));
+  }
 };
 
 const publishSigmet = (event, uuid, container) => {
@@ -731,6 +796,9 @@ export default (localAction, container) => {
       break;
     case LOCAL_ACTION_TYPES.COPY_SIGMET:
       copySigmet(localAction.event, localAction.uuid, container);
+      break;
+    case LOCAL_ACTION_TYPES.PASTE_SIGMET:
+      pasteSigmet(localAction.event, container);
       break;
     case LOCAL_ACTION_TYPES.PUBLISH_SIGMET:
       publishSigmet(localAction.event, localAction.uuid, container);

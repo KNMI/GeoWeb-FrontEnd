@@ -66,9 +66,6 @@ class SigmetsCategory extends PureComponent {
                           hasEndCoordinates={this.props.hasEndCoordinates}
                           availableFirs={parameters.firareas} />;
                       }
-                      if (focussedSigmet.uuid === sigmet.uuid && focussedSigmet.mode === SIGMET_MODES.READ) {
-                        dispatch(actions.setSigmetDrawing(focussedSigmet.uuid));
-                      }
                       return <SigmetReadMode key={sigmet.uuid}
                         dispatch={dispatch}
                         actions={actions}
