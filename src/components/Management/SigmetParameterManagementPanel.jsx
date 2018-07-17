@@ -9,7 +9,7 @@ import PropTypes from 'prop-types';
 
 export default class SigmetParameterManagementPanel extends React.Component {
   componentWillMount () {
-    axios.get(this.props.urls.BACKEND_SERVER_URL + '/sigmet/getsigmetparameters').then((res) => {
+    axios.get(this.props.urls.BACKEND_SERVER_URL + '/sigmets/getsigmetparameters').then((res) => {
       this.sigmetParameters = res.data;
       this.setState({ sigmetParameters: this.sigmetParameters });
     }).catch((e) => console.error('Fetching parameters failed: ', e));
@@ -118,8 +118,8 @@ class SigmetCard extends React.Component {
   render () {
     const { title, firdata, value, i, deleteFirArea, fir } = this.props;
     return (!fir
-    ? <Col><ParameterCard i={i} title={title} value={value} /></Col>
-    : <Col><FirCard i={i} title={title} areapreset={firdata.areapreset} icao={firdata.location_indicator_icao} deleteFirArea={deleteFirArea} /></Col>);
+      ? <Col><ParameterCard i={i} title={title} value={value} /></Col>
+      : <Col><FirCard i={i} title={title} areapreset={firdata.areapreset} icao={firdata.location_indicator_icao} deleteFirArea={deleteFirArea} /></Col>);
   }
 }
 SigmetCard.propTypes = {
