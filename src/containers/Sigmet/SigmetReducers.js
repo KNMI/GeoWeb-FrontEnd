@@ -64,7 +64,6 @@ const updateCategory = (ref, sigmets, container, callback = () => {}) => {
 const retrieveParameters = (container) => {
   const { urls } = container.props;
   const endpoint = `${urls.BACKEND_SERVER_URL}/sigmets/getsigmetparameters`;
-
   axios({
     method: 'get',
     url: endpoint,
@@ -295,7 +294,7 @@ const addSigmet = (ref, container) => {
     const newSigmet = getEmptySigmet(container);
     container.setState(produce(container.state, draftState => {
       const categoryIndex = draftState.categories.findIndex((category) => category.ref === ref);
-      if (!isNaN(categoryIndex) && categoryIndex > 0) {
+      if (!isNaN(categoryIndex) && categoryIndex !== -1) {
         if (ref === CATEGORY_REFS.ADD_SIGMET) {
           draftState.categories[categoryIndex].sigmets.length = 0; // ensures always just one new sigmet
         }

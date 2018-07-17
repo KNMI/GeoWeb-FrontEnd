@@ -5,7 +5,7 @@ import { TIMESTAMP_FORMAT } from '../../components/Taf/TafTemplates';
 import moment from 'moment';
 import moxios from 'moxios';
 
-describe('(Reducer) TafReducers', () => {
+describe('(Reducer) Taf/TafReducers', () => {
   beforeEach(() => {
     moxios.install();
   });
