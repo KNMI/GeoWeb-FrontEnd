@@ -506,14 +506,33 @@ const modifyFocussedSigmet = (dataField, value, container) => {
 };
 
 const clearSigmet = (event, uuid, container) => {
+  const { dispatch } = container.props;
   addSigmet(container.state.focussedCategoryRef, container);
+  dispatch(notify({
+    title: 'Sigmet cleared',
+    message: 'The input on this Sigmet has been cleared successfully',
+    status: 'success',
+    position: 'bl',
+    dismissible: true,
+    dismissAfter: 3000
+  }));
 };
 
 const discardSigmet = (event, uuid, container) => {
+  const { dispatch } = container.props;
   retrieveSigmets(container, () => {
     container.setState(produce(container.state, draftState => {
       draftState.focussedSigmet.mode = SIGMET_MODES.READ;
-    }));
+    }), () =>
+      dispatch(notify({
+        title: 'Changes discarded',
+        message: 'The changes are successfully discarded',
+        status: 'success',
+        position: 'bl',
+        dismissible: true,
+        dismissAfter: 3000
+      }))
+    );
   });
 };
 
@@ -690,11 +709,19 @@ const deleteSigmet = (event, uuid, container) => {
  */
 const copySigmet = (event, uuid, container) => {
   const { state } = container;
+  const { dispatch } = container.props;
   const indices = findCategoryAndSigmetIndex(uuid, state);
   if (indices.categoryIndex !== -1 && indices.sigmetIndex !== -1) {
     container.setState(produce(state, draftState => {
       draftState.copiedSigmetRef = uuid;
-    }));
+    }), () => dispatch(notify({
+      title: 'Sigmet copied',
+      message: 'The properties of this Sigmet have been copied successfully',
+      status: 'success',
+      position: 'bl',
+      dismissible: true,
+      dismissAfter: 3000
+    })));
   }
 };
 
@@ -705,6 +732,7 @@ const copySigmet = (event, uuid, container) => {
  */
 const pasteSigmet = (event, container) => {
   const { state } = container;
+  const { dispatch } = container.props;
   const indicesCopiedSigmet = findCategoryAndSigmetIndex(state.copiedSigmetRef, state);
   const indicesCurrentSigmet = findCategoryAndSigmetIndex(state.focussedSigmet.uuid, state);
   if (indicesCopiedSigmet.categoryIndex !== -1 && indicesCopiedSigmet.sigmetIndex !== -1 &&
@@ -734,7 +762,14 @@ const pasteSigmet = (event, container) => {
         }
       });
       draftState.copiedSigmetRef = null;
-    }));
+    }), () => dispatch(notify({
+      title: 'Sigmet pasted',
+      message: 'The copied properties have been pasted successfully into the current Sigmet',
+      status: 'success',
+      position: 'bl',
+      dismissible: true,
+      dismissAfter: 3000
+    })));
   }
 };
 
