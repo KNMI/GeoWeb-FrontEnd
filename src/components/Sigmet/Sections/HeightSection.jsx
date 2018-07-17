@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { Row, Col } from 'reactstrap';
+import { Row, Col, Badge } from 'reactstrap';
 import PropTypes from 'prop-types';
 export default class HeightSection extends PureComponent {
   render () {
@@ -16,7 +16,10 @@ export default class HeightSection extends PureComponent {
 
     return (
       <Row className='Level'>
-        <Col xs={{ offset: 3, size: 3 }}>
+        <Col xs={{ size: 2, offset: 1 }}>
+          <Badge>Levels</Badge>
+        </Col>
+        <Col xs='3'>
           {children.level}
         </Col>
         <Col xs='auto' />

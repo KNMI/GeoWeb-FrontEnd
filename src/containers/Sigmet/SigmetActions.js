@@ -1,9 +1,9 @@
 export const LOCAL_ACTION_TYPES = {
   TOGGLE_CONTAINER: 'TOGGLE_CONTAINER',
   TOGGLE_CATEGORY: 'TOGGLE_CATEGORY',
-  UPDATE_CATEGORY: 'UPDATE_CATEGORY',
-  UPDATE_PARAMETERS: 'UPDATE_PARAMETERS',
-  UPDATE_PHENOMENA: 'UPDATE_PHENOMENA',
+  RETRIEVE_PARAMETERS: 'RETRIEVE_PARAMETERS',
+  RETRIEVE_PHENOMENA: 'RETRIEVE_PHENOMENA',
+  RETRIEVE_SIGMETS: 'RETRIEVE_SIGMETS',
   FOCUS_SIGMET: 'FOCUS_SIGMET',
   ADD_SIGMET: 'ADD_SIGMET',
   UPDATE_SIGMET: 'UPDATE_SIGMET',
@@ -14,6 +14,7 @@ export const LOCAL_ACTION_TYPES = {
   EDIT_SIGMET: 'EDIT_SIGMET',
   DELETE_SIGMET: 'DELETE_SIGMET',
   COPY_SIGMET: 'COPY_SIGMET',
+  PASTE_SIGMET: 'PASTE_SIGMET',
   PUBLISH_SIGMET: 'PUBLISH_SIGMET',
   CANCEL_SIGMET: 'CANCEL_SIGMET',
   DRAW_SIGMET: 'DRAW_SIGMET',
@@ -28,9 +29,9 @@ export const LOCAL_ACTION_TYPES = {
 export const LOCAL_ACTIONS = {
   toggleContainerAction: (evt) => ({ type: LOCAL_ACTION_TYPES.TOGGLE_CONTAINER, event: evt }),
   toggleCategoryAction: (evt, ref) => ({ type: LOCAL_ACTION_TYPES.TOGGLE_CATEGORY, event: evt, ref: ref }),
-  updateCategoryAction: (ref, sigmets) => ({ type: LOCAL_ACTION_TYPES.UPDATE_CATEGORY, ref: ref, sigmets: sigmets }),
-  updateParametersAction: (parameters) => ({ type: LOCAL_ACTION_TYPES.UPDATE_PARAMETERS, parameters: parameters }),
-  updatePhenomenaAction: (phenomena) => ({ type: LOCAL_ACTION_TYPES.UPDATE_PHENOMENA, phenomena: phenomena }),
+  retrieveParametersAction: () => ({ type: LOCAL_ACTION_TYPES.RETRIEVE_PARAMETERS }),
+  retrievePhenomenaAction: () => ({ type: LOCAL_ACTION_TYPES.RETRIEVE_PHENOMENA }),
+  retrieveSigmetsAction: () => ({ type: LOCAL_ACTION_TYPES.RETRIEVE_SIGMETS }),
   focusSigmetAction: (evt, uuid) => ({ type: LOCAL_ACTION_TYPES.FOCUS_SIGMET, event: evt, uuid: uuid }),
   addSigmetAction: (ref) => ({ type: LOCAL_ACTION_TYPES.ADD_SIGMET, ref: ref }),
   updateSigmetAction: (uuid, dataField, value) => ({ type: LOCAL_ACTION_TYPES.UPDATE_SIGMET, uuid: uuid, dataField: dataField, value: value }),
@@ -41,6 +42,7 @@ export const LOCAL_ACTIONS = {
   editSigmetAction: (evt, uuid) => ({ type: LOCAL_ACTION_TYPES.EDIT_SIGMET, event: evt, uuid: uuid }),
   deleteSigmetAction: (evt, uuid) => ({ type: LOCAL_ACTION_TYPES.DELETE_SIGMET, event: evt, uuid: uuid }),
   copySigmetAction: (evt, uuid) => ({ type: LOCAL_ACTION_TYPES.COPY_SIGMET, event: evt, uuid: uuid }),
+  pasteSigmetAction: (evt) => ({ type: LOCAL_ACTION_TYPES.PASTE_SIGMET, event: evt }),
   publishSigmetAction: (evt, uuid) => ({ type: LOCAL_ACTION_TYPES.PUBLISH_SIGMET, event: evt, uuid: uuid }),
   cancelSigmetAction: (evt, uuid) => ({ type: LOCAL_ACTION_TYPES.CANCEL_SIGMET, event: evt, uuid: uuid }),
   drawAction: (evt, uuid, action, featureFunction) => ({ type: LOCAL_ACTION_TYPES.DRAW_SIGMET, uuid: uuid, event: evt, action: action, featureFunction: featureFunction }),
@@ -57,6 +59,12 @@ export const SIGMET_MODES = {
   READ: 'READ'
 };
 
+export const STATUSES = {
+  PUBLISHED: 'published',
+  CONCEPT: 'concept',
+  CANCELED: 'canceled'
+};
+
 export const EDIT_ABILITIES = {
   CLEAR: {
     'dataField': 'clear',
@@ -70,6 +78,12 @@ export const EDIT_ABILITIES = {
     'check': 'isDiscardable',
     'action': 'discardSigmetAction'
   },
+  PASTE: {
+    'dataField': 'paste',
+    'label': 'Paste',
+    'check': 'isPastable',
+    'action': 'pasteSigmetAction'
+  },
   SAVE: {
     'dataField': 'save',
     'label': 'Save',
@@ -81,6 +95,7 @@ export const EDIT_ABILITIES = {
 const EDIT_ABILITIES_ORDER = [
   EDIT_ABILITIES.CLEAR['dataField'],
   EDIT_ABILITIES.DISCARD['dataField'],
+  EDIT_ABILITIES.PASTE['dataField'],
   EDIT_ABILITIES.SAVE['dataField']
 ];
 
@@ -193,6 +208,7 @@ const STATE = {
     drawModeStart: null,
     drawModeEnd: null
   },
+  copiedSigmetRef: null,
   isContainerOpen: true
 };
 
@@ -236,6 +252,7 @@ STATE.categories[2].abilities[SIGMET_MODES.READ][READ_ABILITIES.PUBLISH.check] =
 STATE.categories[2].abilities[SIGMET_MODES.EDIT] = {};
 STATE.categories[2].abilities[SIGMET_MODES.EDIT][EDIT_ABILITIES.CLEAR.check] = true;
 STATE.categories[2].abilities[SIGMET_MODES.EDIT][EDIT_ABILITIES.DISCARD.check] = false;
+STATE.categories[2].abilities[SIGMET_MODES.EDIT][EDIT_ABILITIES.PASTE.check] = true;
 STATE.categories[2].abilities[SIGMET_MODES.EDIT][EDIT_ABILITIES.SAVE.check] = true;
 
 // archived-sigmets

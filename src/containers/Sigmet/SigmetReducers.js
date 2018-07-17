@@ -1,15 +1,22 @@
 import produce from 'immer';
 import moment from 'moment';
 import { SIGMET_TEMPLATES, UNITS, UNITS_ALT, MODES_LVL } from '../../components/Sigmet/SigmetTemplates';
-import { SIGMET_MODES, LOCAL_ACTION_TYPES, CATEGORY_REFS } from './SigmetActions';
+import { SIGMET_MODES, LOCAL_ACTION_TYPES, CATEGORY_REFS, STATUSES } from './SigmetActions';
 import { clearNullPointersAndAncestors } from '../../utils/json';
 import axios from 'axios';
 import { notify } from 'reapop';
 import cloneDeep from 'lodash.clonedeep';
-const uuidv4 = require('uuid/v4');
+import uuidv4 from 'uuid/v4';
 
 const WARN_MSG = {
   PREREQUISITES_NOT_MET: 'Not all prerequisites are met yet:'
+};
+
+const ERROR_MSG = {
+  RETRIEVE_SIGMETS: 'Could not retrieve SIGMETs:',
+  RETRIEVE_PARAMS: 'Could not retrieve SIGMET parameters',
+  RETRIEVE_PHENOMENA: 'Could not retrieve SIGMET phenomena',
+  FEATURE_ID_MISMATCH: 'GeoJson: the %s feature has a mutated id'
 };
 
 /**
@@ -21,38 +28,92 @@ const getRoundedNow = () => {
 };
 
 const toggleContainer = (evt, container) => {
-  evt.preventDefault();
+  if (evt) {
+    evt.preventDefault();
+  }
   container.setState(produce(container.state, draftState => {
     draftState.isContainerOpen = !draftState.isContainerOpen;
   }));
 };
 
 const toggleCategory = (evt, ref, container) => {
-  evt.preventDefault();
+  if (evt) {
+    evt.preventDefault();
+  }
   container.setState(produce(container.state, draftState => {
     if (ref === CATEGORY_REFS.ADD_SIGMET && ref !== draftState.focussedCategoryRef) {
       draftState.focussedSigmet.mode = SIGMET_MODES.EDIT;
+      draftState.focussedSigmet.uuid = null;
     }
     draftState.focussedCategoryRef = (draftState.focussedCategoryRef === ref)
-      ? ''
+      ? null
       : ref;
-  }));
+  })/* , () => setSigmetDrawing(container.state.focussedSigmet.uuid, container) */);
 };
 
-const updateCategory = (ref, sigmets, container) => {
+const updateCategory = (ref, sigmets, container, callback = () => {}) => {
   container.setState(produce(container.state, draftState => {
     const categoryIndex = draftState.categories.findIndex((category) => category.ref === ref);
     if (!isNaN(categoryIndex) && categoryIndex >= 0) {
       draftState.categories[categoryIndex].sigmets.length = 0;
       draftState.categories[categoryIndex].sigmets.push(...sigmets);
     }
-  }));
+  }), callback);
+};
+
+const retrieveParameters = (container) => {
+  const { urls } = container.props;
+  const endpoint = `${urls.BACKEND_SERVER_URL}/sigmets/getsigmetparameters`;
+  axios({
+    method: 'get',
+    url: endpoint,
+    withCredentials: true,
+    responseType: 'json'
+  }).then(response => {
+    receivedParametersCallback(response, container);
+  }).catch(error => {
+    console.error(ERROR_MSG.RETRIEVE_PARAMS, error);
+  });
+};
+
+const receivedParametersCallback = (response, container) => {
+  if (response.status === 200 && response.data) {
+    updateParameters(response.data, container);
+    addSigmet(CATEGORY_REFS.ADD_SIGMET, container);
+  } else {
+    console.error(ERROR_MSG.RETRIEVE_PARAMS, response.status, response.data);
+  }
 };
 
 const updateParameters = (parameters, container) => {
   container.setState(produce(container.state, draftState => {
     Object.assign(draftState.parameters, parameters);
   }));
+};
+
+const retrievePhenomena = (container) => {
+  const { urls } = container.props;
+  const endpoint = `${urls.BACKEND_SERVER_URL}/sigmets/getsigmetphenomena`;
+
+  axios({
+    method: 'get',
+    url: endpoint,
+    withCredentials: true,
+    responseType: 'json'
+  }).then(response => {
+    receivedPhenomenaCallback(response, container);
+  }).catch(error => {
+    console.error(ERROR_MSG.RETRIEVE_PHENOMENA, error);
+  });
+};
+
+const receivedPhenomenaCallback = (response, container) => {
+  if (response.status === 200 && response.data) {
+    updatePhenomena(response.data, container);
+    addSigmet(CATEGORY_REFS.ADD_SIGMET, container);
+  } else {
+    console.error(ERROR_MSG.RETRIEVE_PARAMS, response.status, response.data);
+  }
 };
 
 const updatePhenomena = (phenomena, container) => {
@@ -97,16 +158,48 @@ const updatePhenomena = (phenomena, container) => {
   }));
 };
 
-const focusSigmet = (evt, uuid, container) => {
-  evt.preventDefault();
-  container.setState(produce(container.state, draftState => {
-    if (draftState.focussedSigmet.mode === SIGMET_MODES.EDIT) {
-      console.warn('focusSigmet: switching the focus while in edit mode is not yet implemented (otherwise it will unintentionally discard changes)');
-    } else {
-      draftState.focussedSigmet.uuid = uuid;
-      draftState.focussedSigmet.mode = SIGMET_MODES.READ;
+const retrieveSigmets = (container, callback = () => {}) => {
+  const { urls } = container.props;
+  const endpoint = `${urls.BACKEND_SERVER_URL}/sigmets`;
+
+  let sigmets = [
+    { ref: CATEGORY_REFS.ACTIVE_SIGMETS, urlSuffix: '?active=true' },
+    { ref: CATEGORY_REFS.CONCEPT_SIGMETS, urlSuffix: `?active=false&status=${STATUSES.CONCEPT}` },
+    { ref: CATEGORY_REFS.ARCHIVED_SIGMETS, urlSuffix: `?active=false&status=${STATUSES.CANCELED}` }
+  ];
+  sigmets.forEach((sigmet) => {
+    axios({
+      method: 'get',
+      url: `${endpoint}${sigmet.urlSuffix}`,
+      withCredentials: true,
+      responseType: 'json'
+    }).then(response => {
+      receivedSigmetsCallback(sigmet.ref, response, container, callback);
+    }).catch(error => {
+      console.error(ERROR_MSG.RETRIEVE_SIGMETS, sigmet.ref, error);
+    });
+  });
+};
+
+const receivedSigmetsCallback = (ref, response, container, callback) => {
+  if (response.status === 200 && response.data) {
+    if (response.data.nsigmets === 0 || !response.data.sigmets) {
+      response.data.sigmets = [];
     }
-  }));
+    updateCategory(ref, response.data.sigmets, container, callback);
+  } else {
+    console.error(ERROR_MSG.RETRIEVE_SIGMETS, ref, response.status, response.data);
+  }
+};
+
+const focusSigmet = (evt, uuid, container) => {
+  if (evt) {
+    evt.preventDefault();
+  }
+  container.setState(produce(container.state, draftState => {
+    draftState.focussedSigmet.uuid = uuid;
+    draftState.focussedSigmet.mode = SIGMET_MODES.READ;
+  }), () => setSigmetDrawing(uuid, container));
 };
 
 const updateFir = (firName, container) => {
@@ -117,7 +210,7 @@ const updateFir = (firName, container) => {
   }
   if (trimmedFirname && !Object.keys(container.state.firs).includes(trimmedFirname)) {
     const { BACKEND_SERVER_URL } = container.props.urls;
-    axios.get(`${BACKEND_SERVER_URL}/sigmet/getfir`, {
+    axios.get(`${BACKEND_SERVER_URL}/sigmets/getfir`, {
       withCredentials: true,
       params: {
         name: trimmedFirname
@@ -182,6 +275,7 @@ const getEmptySigmet = (container) => produce(SIGMET_TEMPLATES.SIGMET, draftSigm
   draftSigmet.validdate = getRoundedNow().format();
   draftSigmet.validdate_end = getRoundedNow().add(container.state.parameters.maxhoursofvalidity, 'hour').format();
   draftSigmet.location_indicator_mwo = container.state.parameters.location_indicator_wmo;
+  draftSigmet.status = STATUSES.CONCEPT;
   draftSigmet.levelinfo.mode = MODES_LVL.AT;
   draftSigmet.levelinfo.levels[0].unit = UNITS.FL;
   draftSigmet.levelinfo.levels.push(cloneDeep(SIGMET_TEMPLATES.LEVEL));
@@ -191,7 +285,6 @@ const getEmptySigmet = (container) => produce(SIGMET_TEMPLATES.SIGMET, draftSigm
     draftSigmet.firname = container.state.parameters.firareas[0].firname;
     updateFir(draftSigmet.firname, container);
   }
-  draftSigmet.mode = SIGMET_MODES.EDIT;
   draftSigmet.change = container.state.parameters.change;
   container.props.dispatch(container.props.drawActions.setGeoJSON(initialGeoJson()));
 });
@@ -201,7 +294,7 @@ const addSigmet = (ref, container) => {
     const newSigmet = getEmptySigmet(container);
     container.setState(produce(container.state, draftState => {
       const categoryIndex = draftState.categories.findIndex((category) => category.ref === ref);
-      if (!isNaN(categoryIndex) && categoryIndex > 0) {
+      if (!isNaN(categoryIndex) && categoryIndex !== -1) {
         if (ref === CATEGORY_REFS.ADD_SIGMET) {
           draftState.categories[categoryIndex].sigmets.length = 0; // ensures always just one new sigmet
         }
@@ -390,7 +483,7 @@ const createFirIntersection = (featureId, geojson, container) => {
   if (intersectionData && intersectionFeature) {
     axios({
       method: 'post',
-      url: `${urls.BACKEND_SERVER_URL}/sigmet/sigmetintersections`,
+      url: `${urls.BACKEND_SERVER_URL}/sigmets/sigmetintersections`,
       withCredentials: true,
       responseType: 'json',
       data: intersectionData
@@ -413,12 +506,34 @@ const modifyFocussedSigmet = (dataField, value, container) => {
 };
 
 const clearSigmet = (event, uuid, container) => {
+  const { dispatch } = container.props;
   addSigmet(container.state.focussedCategoryRef, container);
-  console.warn('clearSigmet is not yet fully implemented');
+  dispatch(notify({
+    title: 'Sigmet cleared',
+    message: 'The input on this Sigmet has been cleared successfully',
+    status: 'success',
+    position: 'bl',
+    dismissible: true,
+    dismissAfter: 3000
+  }));
 };
 
 const discardSigmet = (event, uuid, container) => {
-  console.warn('discardSigmet is not yet implemented');
+  const { dispatch } = container.props;
+  retrieveSigmets(container, () => {
+    container.setState(produce(container.state, draftState => {
+      draftState.focussedSigmet.mode = SIGMET_MODES.READ;
+    }), () =>
+      dispatch(notify({
+        title: 'Changes discarded',
+        message: 'The changes are successfully discarded',
+        status: 'success',
+        position: 'bl',
+        dismissible: true,
+        dismissAfter: 3000
+      }))
+    );
+  });
 };
 
 const saveSigmet = (event, uuid, container) => {
@@ -479,26 +594,34 @@ const saveSigmet = (event, uuid, container) => {
 
   axios({
     method: 'post',
-    url: `${urls.BACKEND_SERVER_URL}/sigmet/storesigmet`,
+    url: `${urls.BACKEND_SERVER_URL}/sigmets`,
     withCredentials: true,
     responseType: 'json',
     data: complementedSigmet
   }).then(response => {
     dispatch(notify({
-      title: 'Sigmet Saved',
+      title: 'Sigmet saved',
       message: 'Sigmet ' + response.data.uuid + ' was successfully saved',
       status: 'success',
       position: 'bl',
       dismissible: true,
       dismissAfter: 3000
     }));
-
-    // Create new edit sigmet
-    container.setState(produce(container.state, draftState => {
-      draftState.focussedSigmet = getEmptySigmet(container);
-    }));
-    // reload concepts
-    container.retrieveSigmets();
+    retrieveSigmets(container, () => {
+      // Set mode to READ, set focus of category and Sigmet, and clear new Sigmet
+      container.setState(produce(container.state, draftState => {
+        draftState.focussedSigmet.mode = SIGMET_MODES.READ;
+        const indices = findCategoryAndSigmetIndex(response.data.uuid, draftState);
+        if (indices.categoryIndex !== -1 && indices.sigmetIndex !== -1) {
+          const catRef = draftState.categories[indices.categoryIndex].ref;
+          if (catRef && catRef !== draftState.focussedCategoryRef) {
+            draftState.focussedCategoryRef = catRef;
+          }
+          draftState.focussedSigmet.uuid = response.data.uuid;
+        }
+        addSigmet(CATEGORY_REFS.ADD_SIGMET, container);
+      }));
+    });
   }).catch(error => {
     console.error(`Could not save Sigmet identified by ${uuid}`, error);
     dispatch(notify({
@@ -510,7 +633,6 @@ const saveSigmet = (event, uuid, container) => {
       dismissAfter: 3000
     }));
   });
-  console.warn('saveSigmet is not yet implemented');
 };
 
 const editSigmet = (event, uuid, container) => {
@@ -520,32 +642,144 @@ const editSigmet = (event, uuid, container) => {
   }));
 };
 
+/**
+* Deleting Sigmet from backend
+* @param {object} event The event that triggered deleting
+* @param {string} uuid The identifier of the Sigmet to be deleted
+* @param {Element} container The container in which the delete action was triggered
+*/
 const deleteSigmet = (event, uuid, container) => {
-  console.warn('deleteSigmet is not yet implemented');
+  const { state, props } = container;
+  const { dispatch } = props;
+  const { BACKEND_SERVER_URL } = props.urls;
+  if (!uuid || !BACKEND_SERVER_URL) {
+    return;
+  }
+  const indices = findCategoryAndSigmetIndex(uuid, state);
+  if (indices.categoryIndex !== -1 && indices.sigmetIndex !== -1 &&
+      state.categories[indices.categoryIndex].sigmets[indices.sigmetIndex].status === STATUSES.CONCEPT) {
+    axios({
+      method: 'delete',
+      url: `${BACKEND_SERVER_URL}/sigmets/${uuid}`,
+      withCredentials: true,
+      responseType: 'json'
+    }).then(response => {
+      dispatch(notify({
+        title: 'Sigmet deleted',
+        message: 'Sigmet ' + response.data.uuid + ' was successfully deleted',
+        status: 'success',
+        position: 'bl',
+        dismissible: true,
+        dismissAfter: 3000
+      }));
+      retrieveSigmets(container, () => {
+        // Set mode to READ, set focus of category and Sigmet, and clear new Sigmet
+        container.setState(produce(container.state, draftState => {
+          draftState.focussedSigmet.mode = SIGMET_MODES.READ;
+          const indices = findCategoryAndSigmetIndex(response.data.uuid, draftState);
+          if (indices.categoryIndex !== -1 && indices.sigmetIndex !== -1) {
+            const catRef = draftState.categories[indices.categoryIndex].ref;
+            if (catRef && catRef !== draftState.focussedCategoryRef) {
+              draftState.focussedCategoryRef = catRef;
+            }
+            draftState.focussedSigmet.uuid = response.data.uuid;
+          }
+          addSigmet(CATEGORY_REFS.ADD_SIGMET, container);
+        }));
+      });
+    }).catch(error => {
+      console.error('Couldn\'t delete Sigmet', error);
+      dispatch(notify({
+        title: 'Error',
+        message: `An error occurred while deleting the Sigmet: ${error.response.data.error}`,
+        status: 'error',
+        position: 'bl',
+        dismissible: true,
+        dismissAfter: 3000
+      }));
+    });
+  }
 };
 
+/**
+ * Copy Sigmet information
+ * @param {object} event The event that triggered copying
+ * @param {string} uuid The identifier for the Sigmet to copy
+ * @param {Element} container The container in which the copy action was triggered
+ */
 const copySigmet = (event, uuid, container) => {
-  console.warn('copySigmet is not yet implemented');
+  const { state } = container;
+  const { dispatch } = container.props;
+  const indices = findCategoryAndSigmetIndex(uuid, state);
+  if (indices.categoryIndex !== -1 && indices.sigmetIndex !== -1) {
+    container.setState(produce(state, draftState => {
+      draftState.copiedSigmetRef = uuid;
+    }), () => dispatch(notify({
+      title: 'Sigmet copied',
+      message: 'The properties of this Sigmet have been copied successfully',
+      status: 'success',
+      position: 'bl',
+      dismissible: true,
+      dismissAfter: 3000
+    })));
+  }
+};
+
+/**
+ * Paste Sigmet information
+ * @param {object} event The event that triggered pasting
+ * @param {Element} container The container in which the paste action was triggered
+ */
+const pasteSigmet = (event, container) => {
+  const { state } = container;
+  const { dispatch } = container.props;
+  const indicesCopiedSigmet = findCategoryAndSigmetIndex(state.copiedSigmetRef, state);
+  const indicesCurrentSigmet = findCategoryAndSigmetIndex(state.focussedSigmet.uuid, state);
+  if (indicesCopiedSigmet.categoryIndex !== -1 && indicesCopiedSigmet.sigmetIndex !== -1 &&
+      indicesCurrentSigmet.categoryIndex !== -1 && indicesCurrentSigmet.sigmetIndex !== -1) {
+    const copiedSigmet = state.categories[indicesCopiedSigmet.categoryIndex].sigmets[indicesCopiedSigmet.sigmetIndex];
+    if (!copiedSigmet && state.categories[indicesCurrentSigmet.categoryIndex].ref !== CATEGORY_REFS.ADD_SIGMET) {
+      return;
+    }
+    const propertiesToCopy = [
+      'phenomenon',
+      'obs_or_forecast',
+      'geojson',
+      'levelinfo',
+      'firname',
+      'validdate',
+      'validdate_end',
+      'change',
+      'movement',
+      'forecast_position_time',
+      'location_indicator_icao',
+      'location_indicator_mwo'
+    ];
+    container.setState(produce(state, draftState => {
+      propertiesToCopy.forEach((property) => {
+        if (copiedSigmet.hasOwnProperty(property) && copiedSigmet[property] !== null && typeof copiedSigmet[property] !== 'undefined') {
+          draftState.categories[indicesCurrentSigmet.categoryIndex].sigmets[indicesCurrentSigmet.sigmetIndex][property] = copiedSigmet[property];
+        }
+      });
+      draftState.copiedSigmetRef = null;
+    }), () => dispatch(notify({
+      title: 'Sigmet pasted',
+      message: 'The copied properties have been pasted successfully into the current Sigmet',
+      status: 'success',
+      position: 'bl',
+      dismissible: true,
+      dismissAfter: 3000
+    })));
+  }
 };
 
 const publishSigmet = (event, uuid, container) => {
-  const { urls } = container.props;
-
-  axios({
-    method: 'get',
-    url: `${urls.BACKEND_SERVER_URL}/sigmet/publishsigmet`,
-    withCredentials: true,
-    responseType: 'json',
-    params: {
-      uuid: uuid
+  container.setState(produce(container.state, draftState => {
+    const indices = findCategoryAndSigmetIndex(uuid, draftState);
+    if (indices.categoryIndex !== -1 && indices.sigmetIndex !== -1) {
+      draftState.categories[indices.categoryIndex].sigmets[indices.sigmetIndex].status = STATUSES.PUBLISHED;
     }
-  }).then((response) => {
-    console.log('Published: ', response.data);
-  }).catch((error) => {
-    console.error(error);
-  });
-
-  // console.warn('publishSigmet is not yet implemented');
+  }), () => saveSigmet(event, uuid, container));
 };
 
 const showTAC = (event, uuid, container) => {
@@ -554,7 +788,7 @@ const showTAC = (event, uuid, container) => {
 
   axios({
     method: 'get',
-    url: `${urls.BACKEND_SERVER_URL}/sigmet/${uuid}`,
+    url: `${urls.BACKEND_SERVER_URL}/sigmets/${uuid}`,
     withCredentials: true,
     responseType: 'text/plain',
     headers: {
@@ -573,11 +807,16 @@ const showIWXXM = (event, uuid, container) => {
   event.preventDefault();
   const { urls } = container.props;
 
-  window.open(`${urls.BACKEND_SERVER_URL}/sigmet/${uuid}`);
+  window.open(`${urls.BACKEND_SERVER_URL}/sigmets/${uuid}`);
 };
 
 const cancelSigmet = (event, uuid, container) => {
-  console.warn('cancelSigmet is not yet implemented');
+  container.setState(produce(container.state, draftState => {
+    const indices = findCategoryAndSigmetIndex(uuid, draftState);
+    if (indices.categoryIndex !== -1 && indices.sigmetIndex !== -1) {
+      draftState.categories[indices.categoryIndex].sigmets[indices.sigmetIndex].status = STATUSES.CANCELED;
+    }
+  }), () => saveSigmet(event, uuid, container));
 };
 
 const setSigmetDrawing = (uuid, container) => {
@@ -612,14 +851,14 @@ export default (localAction, container) => {
     case LOCAL_ACTION_TYPES.TOGGLE_CATEGORY:
       toggleCategory(localAction.event, localAction.ref, container);
       break;
-    case LOCAL_ACTION_TYPES.UPDATE_CATEGORY:
-      updateCategory(localAction.ref, localAction.sigmets, container);
+    case LOCAL_ACTION_TYPES.RETRIEVE_PARAMETERS:
+      retrieveParameters(container);
       break;
-    case LOCAL_ACTION_TYPES.UPDATE_PARAMETERS:
-      updateParameters(localAction.parameters, container);
+    case LOCAL_ACTION_TYPES.RETRIEVE_PHENOMENA:
+      retrievePhenomena(container);
       break;
-    case LOCAL_ACTION_TYPES.UPDATE_PHENOMENA:
-      updatePhenomena(localAction.phenomena, container);
+    case LOCAL_ACTION_TYPES.RETRIEVE_SIGMETS:
+      retrieveSigmets(container);
       break;
     case LOCAL_ACTION_TYPES.FOCUS_SIGMET:
       focusSigmet(localAction.event, localAction.uuid, container);
@@ -650,6 +889,9 @@ export default (localAction, container) => {
       break;
     case LOCAL_ACTION_TYPES.COPY_SIGMET:
       copySigmet(localAction.event, localAction.uuid, container);
+      break;
+    case LOCAL_ACTION_TYPES.PASTE_SIGMET:
+      pasteSigmet(localAction.event, container);
       break;
     case LOCAL_ACTION_TYPES.PUBLISH_SIGMET:
       publishSigmet(localAction.event, localAction.uuid, container);

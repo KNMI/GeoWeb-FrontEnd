@@ -3,6 +3,7 @@ import { default as MapPanel } from './MapPanel';
 import { shallow, mount } from 'enzyme';
 import sinon from 'sinon';
 import { Row } from 'reactstrap';
+import moxios from 'moxios';
 const baselayer = {
   service: 'http://geoservices.knmi.nl/cgi-bin/bgmaps.cgi?',
   name: 'streetmap',
@@ -96,6 +97,12 @@ const emptyDispatch = () => { /* intentionally left blank */ };
 const emptyActions = { /* intentionally left blank */ };
 
 describe('(Component) MapPanel', () => {
+  beforeEach(() => {
+    moxios.install();
+  });
+  afterEach(() => {
+    moxios.uninstall();
+  });
   before(() => {
     const emptyFunc = () => null;
     class LocalStorageMock {
@@ -160,7 +167,7 @@ describe('(Component) MapPanel', () => {
       stopAnimating: emptyFunc
     });
   });
-  it('Renders a Row', () => {
+  it('Renders a Row', (done) => {
     const _component = shallow(<MapPanel
       urls={{ BACKEND_SERVER_URL: 'http://localhost:8080' }}
       adagucProperties={state.adagucProperties}
@@ -169,10 +176,19 @@ describe('(Component) MapPanel', () => {
       panelsProperties={state.panelsProperties}
       dispatch={emptyDispatch}
       actions={emptyActions} />);
-    expect(_component.type()).to.eql(Row);
+    moxios.wait(() => {
+      const request = moxios.requests.mostRecent();
+      request.respondWith({
+        status: 200,
+        response: { personal_urls: [] }
+      }).then(() => {
+        expect(_component.type()).to.eql(Row);
+        done();
+      }).catch(done);
+    });
   });
 
-  it('Renders a single adaguc component', () => {
+  it('Renders a single adaguc component', (done) => {
     const _component = mount(<MapPanel
       urls={{ BACKEND_SERVER_URL: 'http://localhost:8080' }}
       adagucActions={state.adagucActions}
@@ -183,6 +199,15 @@ describe('(Component) MapPanel', () => {
       panelsActions={state.panelsActions}
       dispatch={emptyDispatch}
       actions={emptyActions} />);
-    expect(_component.type()).to.eql(MapPanel);
+    moxios.wait(() => {
+      const request = moxios.requests.mostRecent();
+      request.respondWith({
+        status: 200,
+        response: { personal_urls: [] }
+      }).then(() => {
+        expect(_component.type()).to.eql(MapPanel);
+        done();
+      }).catch(done);
+    });
   });
 });
