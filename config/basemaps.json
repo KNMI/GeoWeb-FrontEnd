@@ -37,7 +37,7 @@
       "EPSG:3857": {
          "home": "https://s3.eu-central-1.amazonaws.com/knmi-basemaps/Positron_NL/EPSG3857/",
          "minLevel": 0,
-         "maxLevel": 14,
+         "maxLevel": 16,
          "tileServerType": "osm",
          "copyRight": "OpenStreetMap - contributors | OpenMapTiles | Ingmapping"
      }
@@ -46,7 +46,7 @@
       "EPSG:3857": {
          "home": "https://s3.eu-central-1.amazonaws.com/knmi-basemaps/Positron_NL_NoLabels/EPSG3857/",
          "minLevel": 0,
-         "maxLevel": 14,
+         "maxLevel": 16,
          "tileServerType": "osm",
          "copyRight": "OpenStreetMap - contributors | OpenMapTiles | Ingmapping"
      }
@@ -55,7 +55,7 @@
       "EPSG:3857": {
          "home": "https://s3.eu-central-1.amazonaws.com/knmi-basemaps/Klokantech_Basic_NL/EPSG3857/",
          "minLevel": 0,
-         "maxLevel": 14,
+         "maxLevel": 16,
          "tileServerType": "osm",
          "copyRight": "OpenStreetMap - contributors | OpenMapTiles | Ingmapping"
      }
@@ -64,7 +64,7 @@
       "EPSG:3857": {
          "home": "https://s3.eu-central-1.amazonaws.com/knmi-basemaps/Klokantech_Basic_NL_NoLabels/EPSG3857/",
          "minLevel": 0,
-         "maxLevel": 14,
+         "maxLevel": 16,
          "tileServerType": "osm",
          "copyRight": "OpenStreetMap - contributors | OpenMapTiles | Ingmapping"
      }
