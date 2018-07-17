@@ -623,8 +623,63 @@ const editSigmet = (event, uuid, container) => {
   }));
 };
 
+/**
+* Deleting Sigmet from backend
+* @param {object} event The event that triggered deleting
+* @param {string} uuid The identifier of the Sigmet to be deleted
+* @param {Element} container The container in which the delete action was triggered
+*/
 const deleteSigmet = (event, uuid, container) => {
-  console.warn('deleteSigmet is not yet implemented');
+  const { state, props } = container;
+  const { dispatch } = props;
+  const { BACKEND_SERVER_URL } = props.urls;
+  if (!uuid || !BACKEND_SERVER_URL) {
+    return;
+  }
+  const indices = findCategoryAndSigmetIndex(uuid, state);
+  if (indices.categoryIndex !== -1 && indices.sigmetIndex !== -1 &&
+      state.categories[indices.categoryIndex].sigmets[indices.sigmetIndex].status === STATUSES.CONCEPT) {
+    axios({
+      method: 'delete',
+      url: `${BACKEND_SERVER_URL}/sigmets/${uuid}`,
+      withCredentials: true,
+      responseType: 'json'
+    }).then(response => {
+      dispatch(notify({
+        title: 'Sigmet deleted',
+        message: 'Sigmet ' + response.data.uuid + ' was successfully deleted',
+        status: 'success',
+        position: 'bl',
+        dismissible: true,
+        dismissAfter: 3000
+      }));
+      retrieveSigmets(container, () => {
+        // Set mode to READ, set focus of category and Sigmet, and clear new Sigmet
+        container.setState(produce(container.state, draftState => {
+          draftState.focussedSigmet.mode = SIGMET_MODES.READ;
+          const indices = findCategoryAndSigmetIndex(response.data.uuid, draftState);
+          if (indices.categoryIndex !== -1 && indices.sigmetIndex !== -1) {
+            const catRef = draftState.categories[indices.categoryIndex].ref;
+            if (catRef && catRef !== draftState.focussedCategoryRef) {
+              draftState.focussedCategoryRef = catRef;
+            }
+            draftState.focussedSigmet.uuid = response.data.uuid;
+          }
+          addSigmet(CATEGORY_REFS.ADD_SIGMET, container);
+        }));
+      });
+    }).catch(error => {
+      console.error('Couldn\'t delete Sigmet', error);
+      dispatch(notify({
+        title: 'Error',
+        message: `An error occurred while deleting the Sigmet: ${error.response.data.error}`,
+        status: 'error',
+        position: 'bl',
+        dismissible: true,
+        dismissAfter: 3000
+      }));
+    });
+  }
 };
 
 /**
