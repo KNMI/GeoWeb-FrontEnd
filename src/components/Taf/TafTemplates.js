@@ -7,6 +7,7 @@ import Enum from 'es6-enum';
  * TEMPLATES
  */
 const TEMPLATES = {
+  PHENOMENA: [null], // string values
   CLOUDS: [{
     amount: null, // string
     height: null, // number
@@ -16,11 +17,6 @@ const TEMPLATES = {
     unit: null, // string
     value: null // number
   },
-  WEATHER: [{
-    qualifier: null, // string
-    descriptor: null, // string
-    phenomena: [] // string values
-  }],
   WIND: {
     direction: null, // number
     speed: null, // number
@@ -46,6 +42,12 @@ const TEMPLATES = {
     author: null
   }
 };
+
+TEMPLATES.WEATHER = [{
+  qualifier: null, // string
+  descriptor: null, // string
+  phenomena: cloneDeep(TEMPLATES.PHENOMENA) // string values
+}];
 
 TEMPLATES.FORECAST = {
   caVOK: false,

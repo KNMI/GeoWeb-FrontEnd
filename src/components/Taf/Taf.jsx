@@ -195,7 +195,7 @@ class Taf extends Component {
    */
   serializeWeatherArray (value) {
     if (Array.isArray(value) && value.length > 0 && value[0] && typeof value[0] === 'object' &&
-      value[0].hasOwnProperty('phenomena') && Array.isArray(value[0].phenomena) && value[0].phenomena.length > 0) {
+      value[0].hasOwnProperty('phenomena') && Array.isArray(value[0].phenomena) && value[0].phenomena.length > 0 && value[0].phenomena[0] !== null) {
       return value.map((weather, index) => {
         return jsonToTacForWeather(weather);
       }).join(', ');
