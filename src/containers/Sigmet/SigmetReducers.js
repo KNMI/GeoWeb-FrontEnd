@@ -2,7 +2,7 @@ import produce from 'immer';
 import moment from 'moment';
 import { SIGMET_TEMPLATES, UNITS, UNITS_ALT, MODES_LVL } from '../../components/Sigmet/SigmetTemplates';
 import { SIGMET_MODES, LOCAL_ACTION_TYPES, CATEGORY_REFS, STATUSES } from './SigmetActions';
-import { clearNullPointersAndAncestors } from '../../utils/json';
+import { clearNullPointersAndAncestors, mergeInTemplate } from '../../utils/json';
 import axios from 'axios';
 import { notify } from 'reapop';
 import cloneDeep from 'lodash.clonedeep';
@@ -56,7 +56,9 @@ const updateCategory = (ref, sigmets, container, callback = () => {}) => {
     const categoryIndex = draftState.categories.findIndex((category) => category.ref === ref);
     if (!isNaN(categoryIndex) && categoryIndex >= 0) {
       draftState.categories[categoryIndex].sigmets.length = 0;
-      draftState.categories[categoryIndex].sigmets.push(...sigmets);
+      sigmets.forEach((incomingSigmet) => {
+        draftState.categories[categoryIndex].sigmets.push(mergeInTemplate(incomingSigmet, 'SIGMET', SIGMET_TEMPLATES));
+      });
     }
   }), callback);
 };
@@ -520,19 +522,18 @@ const clearSigmet = (event, uuid, container) => {
 
 const discardSigmet = (event, uuid, container) => {
   const { dispatch } = container.props;
+  dispatch(notify({
+    title: 'Changes discarded',
+    message: 'The changes are successfully discarded',
+    status: 'success',
+    position: 'bl',
+    dismissible: true,
+    dismissAfter: 3000
+  }));
   retrieveSigmets(container, () => {
     container.setState(produce(container.state, draftState => {
       draftState.focussedSigmet.mode = SIGMET_MODES.READ;
-    }), () =>
-      dispatch(notify({
-        title: 'Changes discarded',
-        message: 'The changes are successfully discarded',
-        status: 'success',
-        position: 'bl',
-        dismissible: true,
-        dismissAfter: 3000
-      }))
-    );
+    }));
   });
 };
 
@@ -564,6 +565,9 @@ const saveSigmet = (event, uuid, container) => {
     const origStationary = cloneDeep(draftState.movement.stationary);
     const origObs = cloneDeep(draftState.obs_or_forecast);
     clearNullPointersAndAncestors(draftState);
+    if (!draftState.hasOwnProperty('movement')) {
+      draftState.movement = {};
+    }
     draftState.movement.stationary = origStationary;
     draftState.obs_or_forecast = origObs;
     draftState.geojson.features.length = 0;

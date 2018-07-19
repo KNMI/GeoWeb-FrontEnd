@@ -24,7 +24,7 @@ const TEMPLATES = {
     },
     geometry: {
       type: null, // string
-      coordinates: [[]] // array (lines) of array (lines) of array (coordinates) of number values
+      coordinates: [[null]] // array (lines) of array (lines) of array (coordinates) of number values
     }
   },
   LEVEL: {

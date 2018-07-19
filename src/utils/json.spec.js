@@ -140,4 +140,82 @@ describe('(Utils) json', () => {
       ] }
     ]);
   });
+  it('should merge directly nested array-objects', () => {
+    const incoming = [
+      [{ a: 1, c: 2 }, { b:3 }]
+    ];
+    const template = {
+      test: [
+        [{ a: null, b: null }]
+      ]
+    };
+    let result = mergeInTemplate(incoming, 'test', template);
+    expect(template).to.eql({
+      test: [
+        [{ a: null, b: null }]
+      ]
+    });
+    expect(result).to.eql([
+      [{ a: 1, b: null }, { a: null, b: 3 }]
+    ]);
+  });
+  it('should merge deep nested array-objects', () => {
+    let incoming = [
+      [[[{ a: 1, c: 2 }, { b: 3 }]]]
+    ];
+    let template = {
+      test: [
+        [[[{ a: null, b: null }]]]
+      ]
+    };
+    let result = mergeInTemplate(incoming, 'test', template);
+    expect(template).to.eql({
+      test: [
+        [[[{ a: null, b: null }]]]
+      ]
+    });
+    expect(result).to.eql([
+      [[[{ a: 1, b: null }, { a: null, b: 3 }]]]
+    ]);
+
+    incoming = {
+      d: [[[{ a: 1, c: 2 }, { b: 3 }]]]
+    };
+    template = {
+      d: [[[{ a: null, b: null }]]]
+    };
+    template.test = {
+      d: template.d
+    };
+    result = mergeInTemplate(incoming, 'test', template);
+    expect(template).to.eql({
+      d: [[[{ a: null, b: null }]]],
+      test: {
+        d: [[[{ a: null, b: null }]]]
+      }
+    });
+    expect(result).to.eql({
+      d: [[[{ a: 1, b: null }, { a: null, b: 3 }]]]
+    });
+
+    incoming = [{
+      d: [[[{ a: 1, c: 2 }, { b: 3 }]]]
+    }];
+    template = {
+      d: [[[{ a: null, b: null }]]]
+    };
+    template.test = [{
+      d: template.d
+    }];
+    result = mergeInTemplate(incoming, 'test', template);
+    expect(template).to.eql({
+      d: [[[{ a: null, b: null }]]],
+      test: [{
+        d: [[[{ a: null, b: null }]]]
+      }]
+    });
+    expect(result).to.eql([{
+      d: [[[{ a: 1, b: null }, { a: null, b: 3 }]]]
+    }]);
+  });
 });

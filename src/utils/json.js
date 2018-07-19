@@ -22,6 +22,7 @@ const mergeInTemplate = (incomingValues, parentName, templates) => {
     (!Array.isArray(field) && (typeof field !== 'object' || field.constructor !== Object)), incomingPointers);
   return produce(templates[parentName], draftState => {
     incomingPointers.forEach((pointer) => {
+      // console.log('Pointer', pointer);
       const pathParts = pointer.split('/');
       pathParts.shift();
       if (hasNestedProperty(draftState, pathParts)) {
@@ -34,41 +35,64 @@ const mergeInTemplate = (incomingValues, parentName, templates) => {
           setNestedProperty(draftState, pathParts, nextValue);
         }
       } else {
+        // deal with possible item additions for an intermediate array in the data structure
         const numericIndices = [];
         pathParts.forEach((part, partIndex) => {
           if (!isNaN(part)) {
             numericIndices.push(partIndex);
           }
         });
-        if (!numericIndices) {
+        if (!numericIndices || !Array.isArray(numericIndices) || numericIndices.length === 0) {
           return;
         }
-        numericIndices.sort();
-        numericIndices.forEach((numericIndex) => {
-          let affectedArray = getNestedProperty(draftState, pathParts.slice(0, numericIndex));
-          let affectedName = pathParts[numericIndex - 1];
-          if (numericIndex === 0) {
-            affectedArray = draftState;
-            affectedName = parentName;
+        numericIndices.sort((a, b) => a - b);
+        // console.log('indices', numericIndices);
+        numericIndices.forEach((numericIndex, indexIndex) => {
+          let affectedArray = draftState;
+          let affectedName = parentName;
+          if (numericIndex > 0) {
+            affectedArray = getNestedProperty(draftState, pathParts.slice(0, numericIndex));
+            affectedName = pathParts[numericIndex - 1];
           }
-          if (Array.isArray(affectedArray) && affectedArray.length > 0) {
-            const additionalOccurrences = parseInt(pathParts[numericIndex]) + 1 - affectedArray.length;
-            let templateForArray = templates[affectedName];
-            if (typeof templateForArray === 'undefined') {
-              templateForArray = templates[affectedName.toUpperCase()];
+          if (!Array.isArray(affectedArray) || affectedArray.length === 0) {
+            return;
+          }
+          const additionalOccurrences = parseInt(pathParts[numericIndex]) + 1 - affectedArray.length;
+          if (additionalOccurrences < 1) {
+            return;
+          }
+
+          let templateForArray = templates[affectedName];
+          if (typeof templateForArray === 'undefined') {
+            // fallback for uppercase property name
+            templateForArray = templates[affectedName.toUpperCase()];
+          }
+          if (typeof templateForArray === 'undefined' && !isNaN(affectedName)) {
+            // fallback for nested arrays
+            const reversedNumericIndices = numericIndices.slice(0, indexIndex + 1).reverse();
+            const previousReversedIndex = reversedNumericIndices.find((reversedNumericIndex, reversedIndexIndex) =>
+              reversedNumericIndices[reversedIndexIndex] - reversedNumericIndices[reversedIndexIndex + 1] > 1);
+            let firstNonNumericIndex = previousReversedIndex ? previousReversedIndex - 1 : -1;
+            if (firstNonNumericIndex === -1) {
+              affectedName = parentName;
+            } else {
+              affectedName = pathParts[firstNonNumericIndex];
             }
-            if (additionalOccurrences > 0 && Array.isArray(templateForArray) && templateForArray.length > 0) {
-              affectedArray.push(...Array(additionalOccurrences).fill(cloneDeep(templateForArray[0])));
-            }
-            if (hasNestedProperty(affectedArray, pathParts.slice(numericIndex))) {
-              const templateValue = getNestedProperty(affectedArray, pathParts.slice(numericIndex));
-              const nextValue = getNestedProperty(incomingValues, pathParts);
-              // check for allowed type changes
-              if (templateValue === null ||
+            templateForArray = getNestedProperty(templates[affectedName], pathParts.slice(firstNonNumericIndex + 1, numericIndex));
+          }
+          // console.log('name', affectedName, templateForArray);
+          // console.log('additional', additionalOccurrences);
+          if (Array.isArray(templateForArray) && templateForArray.length > 0) {
+            affectedArray.push(...Array(additionalOccurrences).fill(cloneDeep(templateForArray[0])));
+          }
+          if (hasNestedProperty(affectedArray, pathParts.slice(numericIndex))) {
+            const templateValue = getNestedProperty(affectedArray, pathParts.slice(numericIndex));
+            const nextValue = getNestedProperty(incomingValues, pathParts);
+            // check for allowed type changes
+            if (templateValue === null ||
                 (!Array.isArray(templateValue) && (typeof templateValue !== 'object' || templateValue.constructor !== Object) &&
                   typeof templateValue === typeof nextValue)) {
-                setNestedProperty(draftState, pathParts, nextValue);
-              }
+              setNestedProperty(draftState, pathParts, nextValue);
             }
           }
         });
