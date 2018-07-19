@@ -666,7 +666,7 @@ const deleteSigmet = (event, uuid, container) => {
     }).then(response => {
       dispatch(notify({
         title: 'Sigmet deleted',
-        message: 'Sigmet ' + response.data.uuid + ' was successfully deleted',
+        message: `Sigmet ${uuid} was successfully deleted`,
         status: 'success',
         position: 'bl',
         dismissible: true,
@@ -676,13 +676,12 @@ const deleteSigmet = (event, uuid, container) => {
         // Set mode to READ, set focus of category and Sigmet, and clear new Sigmet
         container.setState(produce(container.state, draftState => {
           draftState.focussedSigmet.mode = SIGMET_MODES.READ;
-          const indices = findCategoryAndSigmetIndex(response.data.uuid, draftState);
-          if (indices.categoryIndex !== -1 && indices.sigmetIndex !== -1) {
+          const indices = findCategoryAndSigmetIndex(uuid, draftState);
+          if (indices.categoryIndex !== -1) {
             const catRef = draftState.categories[indices.categoryIndex].ref;
             if (catRef && catRef !== draftState.focussedCategoryRef) {
               draftState.focussedCategoryRef = catRef;
             }
-            draftState.focussedSigmet.uuid = response.data.uuid;
           }
           addSigmet(CATEGORY_REFS.ADD_SIGMET, container);
         }));
