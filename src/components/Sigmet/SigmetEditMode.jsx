@@ -89,6 +89,7 @@ class SigmetEditMode extends PureComponent {
         icon: 'trash'
       }
     ];
+    console.log('DrMo', this.props.drawModeStart, this.props.drawModeEnd);
     const abilityCtAs = []; // CtA = Call to Action
     if (focus) {
       Object.values(EDIT_ABILITIES).map((ability) => {
@@ -103,6 +104,7 @@ class SigmetEditMode extends PureComponent {
         <WhatSection>
           <Typeahead filterBy={['name', 'code']} labelKey='name' data-field='phenomenon'
             options={availablePhenomena} placeholder={'Select phenomenon'}
+            onFocus={() => dispatch(actions.updateSigmetAction(uuid, 'phenomenon', []))}
             onChange={(selectedValues) => dispatch(actions.updateSigmetAction(uuid, 'phenomenon', selectedValues))}
             selected={selectedPhenomenon ? [selectedPhenomenon] : []}
             className={!selectedPhenomenon ? 'missing' : null}
@@ -137,7 +139,13 @@ class SigmetEditMode extends PureComponent {
 
         <FirSection>
           <Typeahead filterBy={['firname', 'location_indicator_icao']} labelKey='firname' data-field='firname'
-            options={availableFirs} onChange={(firList) => {
+            options={availableFirs}
+            onFocus={() => {
+              dispatch(actions.updateSigmetAction(uuid, 'firname', null))
+              dispatch(actions.updateSigmetAction(uuid, 'location_indicator_icao', null));
+              dispatch(actions.updateFir(null));
+            }}
+            onChange={(firList) => {
               let firname = null;
               let locationIndicatorIcao = null;
               if (firList.length === 1) {
@@ -277,6 +285,7 @@ class SigmetEditMode extends PureComponent {
             action={(evt) => { dispatch(actions.modifyFocussedSigmet('useGeometryForEnd', evt.target.checked)); }} />
           <Typeahead filterBy={['shortName', 'longName']} labelKey='longName' data-field='direction'
             options={DIRECTIONS} placeholder={'Set direction'} disabled={!movement || movement.stationary || useGeometryForEnd}
+            onFocus={() => dispatch(actions.updateSigmetAction(uuid, 'movement', { ...movement, dir: null }))}
             onChange={(selectedval) => dispatch(actions.updateSigmetAction(uuid, 'movement', { ...movement, dir: selectedval[0].shortName }))}
             selected={selectedDirection ? [selectedDirection] : []}
             clearButton />
@@ -309,6 +318,7 @@ class SigmetEditMode extends PureComponent {
         <ChangeSection>
           <Typeahead filterBy={['shortName', 'longName']} labelKey='longName' data-field='change'
             options={CHANGES} placeholder={'Select change'}
+            onFocus={() => dispatch(actions.updateSigmetAction(uuid, 'change', null))}
             onChange={(selectedValues) => dispatch(actions.updateSigmetAction(uuid, 'change', selectedValues.length > 0 ? selectedValues[0].shortName : null))}
             selected={selectedChange ? [selectedChange] : []}
             clearButton />

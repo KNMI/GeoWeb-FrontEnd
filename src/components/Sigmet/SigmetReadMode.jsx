@@ -112,7 +112,10 @@ class SigmetReadMode extends PureComponent {
         </ChangeSection>
 
         <IssueSection>
-          <Moment format={DATE_TIME_FORMAT} date={issuedate} data-field='issuedate' />
+          {issuedate
+            ? <Moment format={DATE_TIME_FORMAT} date={issuedate} data-field='issuedate' />
+            : <span data-field='issuedate'>(Not yet issued)</span>
+          }
           <span data-field='issueLocation'>{locationIndicatorMwo}</span>
           <span data-field='sequence'>{sequence < 1 ? '(Not yet issued)' : sequence}</span>
         </IssueSection>
