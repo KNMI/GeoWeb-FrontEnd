@@ -267,7 +267,20 @@ describe('(Reducer) Sigmet/SigmetReducers', () => {
           { ref: CATEGORY_REFS.CONCEPT_SIGMETS, sigmets: [] },
           { ref: CATEGORY_REFS.ADD_SIGMET, sigmets: [] },
           { ref: CATEGORY_REFS.ARCHIVED_SIGMETS, sigmets: [] }
-        ]
+        ],
+
+        phenomena: [{
+          'code': 'OBSC_TSGR',
+          'layerpreset': 'sigmet_layer_TS',
+          'name': 'Obscured thunderstorm with hail'
+        }],
+        parameters: {
+          'maxhoursofvalidity': 4.0,
+          'hoursbeforevalidity': 4.0,
+          'firareas': [{ 'location_indicator_icao': 'EHAA', 'firname': 'FIR AMSTERDAM', 'areapreset': 'NL_FIR' }],
+          'location_indicator_wmo': 'EHDB'
+        },
+        firs: {}
       }
     };
     container.setState = (partialState) => {

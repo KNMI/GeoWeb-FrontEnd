@@ -89,7 +89,6 @@ class SigmetEditMode extends PureComponent {
         icon: 'trash'
       }
     ];
-    console.log('DrMo', this.props.drawModeStart, this.props.drawModeEnd);
     const abilityCtAs = []; // CtA = Call to Action
     if (focus) {
       Object.values(EDIT_ABILITIES).map((ability) => {
