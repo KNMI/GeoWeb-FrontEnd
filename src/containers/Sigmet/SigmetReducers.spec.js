@@ -1,6 +1,6 @@
 import dispatch from './SigmetReducers';
 import { LOCAL_ACTIONS, CATEGORY_REFS, SIGMET_MODES } from './SigmetActions';
-// import produce from 'immer';
+import produce from 'immer';
 import moxios from 'moxios';
 
 describe('(Reducer) Sigmet/SigmetReducers', () => {
@@ -230,7 +230,7 @@ describe('(Reducer) Sigmet/SigmetReducers', () => {
       },
       'phenomenon': 'SQL_TSGR',
       'obs_or_forecast': { 'obs': true },
-      'levelinfo': { 'levels': [{ 'value': 0, 'unit': 'FL' }, { 'value': 0, 'unit': 'FL' }], 'mode': 'AT' },
+      'levelinfo': { 'levels': [{ 'value': 0, 'unit': 'FL' }, { 'value': 1, 'unit': 'M' }], 'mode': 'AT' },
       'movement': { 'stationary': true },
       'change': 'WKN',
       'validdate': '2018-07-16T16:00:00Z',
@@ -245,16 +245,16 @@ describe('(Reducer) Sigmet/SigmetReducers', () => {
     const sigmetsResponse = {
       'sigmets': [sigmet]
     };
-    // const resultSigmet = produce(sigmet, draftState => {
-    //   draftState.geojson.features[0].properties.relatesTo = null;
-    //   draftState.geojson.features[0].properties.stroke = null;
-    //   draftState.geojson.features[0].properties['stroke-opacity'] = null;
-    //   draftState.forecast_position_time = null;
-    //   draftState.issuedate = null;
-    //   draftState.movement.dir = null;
-    //   draftState.movement.speed = null;
-    //   draftState.obs_or_forecast.obsFcTime = null;
-    // });
+    const resultSigmet = produce(sigmet, draftState => {
+      draftState.geojson.features[0].properties.relatesTo = null;
+      draftState.geojson.features[0].properties.stroke = null;
+      draftState.geojson.features[0].properties['stroke-opacity'] = null;
+      draftState.forecast_position_time = null;
+      draftState.issuedate = null;
+      draftState.movement.dir = null;
+      draftState.movement.speed = null;
+      draftState.obs_or_forecast.obsFcTime = null;
+    });
     const container = {
       props: {
         urls: {
@@ -287,7 +287,7 @@ describe('(Reducer) Sigmet/SigmetReducers', () => {
         expect(container.state.categories).to.be.a('array');
         expect(container.state.categories).to.have.length(4);
         expect(container.state.categories[3]).to.have.property('sigmets');
-        // expect(container.state.categories[3].sigmets).to.eql([resultSigmet]);
+        expect(container.state.categories[3].sigmets).to.eql([resultSigmet]);
         done();
       }).catch(done);
     });
