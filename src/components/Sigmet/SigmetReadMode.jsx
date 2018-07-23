@@ -3,7 +3,7 @@ import { Button, Col } from 'reactstrap';
 import Moment from 'react-moment';
 import PropTypes from 'prop-types';
 import { READ_ABILITIES, byReadAbilities } from '../../containers/Sigmet/SigmetActions';
-import { UNITS_ALT, DIRECTIONS, CHANGES, MODES_LVL } from './SigmetTemplates';
+import { UNITS, UNITS_ALT, DIRECTIONS, CHANGES, MODES_LVL } from './SigmetTemplates';
 
 import WhatSection from './Sections/WhatSection';
 import ValiditySection from './Sections/ValiditySection';
@@ -27,8 +27,8 @@ class SigmetReadMode extends PureComponent {
     }
     const level0 = levelinfo.levels[0];
     const level1 = levelinfo.levels[1];
-    const is0FL = level0.unit === UNITS_ALT.FL;
-    const is1FL = level1.unit === UNITS_ALT.FL;
+    const is0FL = level0.unit === UNITS.FL;
+    const is1FL = level1.unit === UNITS.FL;
     const unit0Label = this.getUnitLabel(level0.unit);
     const unit1Label = this.getUnitLabel(level1.unit);
     switch (levelinfo.mode) {
@@ -63,6 +63,8 @@ class SigmetReadMode extends PureComponent {
       });
       abilityCtAs.sort(byReadAbilities);
     }
+    const selectedDirection = movement && DIRECTIONS.find((obj) => obj.shortName === movement.dir);
+    const directionLongName = selectedDirection ? selectedDirection.longName : null;
     return <Button tag='div' className={`Sigmet row${focus ? ' focus' : ''}`} onClick={!focus ? (evt) => dispatch(actions.focusSigmetAction(evt, uuid)) : null}>
       <Col>
         <WhatSection>
@@ -98,7 +100,7 @@ class SigmetReadMode extends PureComponent {
           ? <ProgressSection>
             <span data-field='movement'>Moving</span>
             <span data-field='speed'>{movement.speed}KT</span>
-            <span data-field='direction'>{movement && DIRECTIONS.find((obj) => obj.shortName === movement.dir).longName}</span>
+            <span data-field='direction'>{directionLongName}</span>
           </ProgressSection>
           : <ProgressSection>
             <span data-field='movement'>{movement && movement.stationary ? 'Stationary' : 'Movement is defined by area'}</span>
