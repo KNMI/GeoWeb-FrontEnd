@@ -53,7 +53,7 @@ class SigmetEditMode extends PureComponent {
   render () {
     const { dispatch, actions, abilities, availablePhenomena, useGeometryForEnd,
       availableFirs, levelinfo, movement, focus, uuid, locationIndicatorMwo, change,
-      phenomenon, isObserved, obsFcTime, validdate, validdateEnd, locationIndicatorIcao } = this.props;
+      phenomenon, isObserved, obsFcTime, validdate, maxHoursInAdvance, maxHoursDuration, validdateEnd, locationIndicatorIcao } = this.props;
     const selectedPhenomenon = availablePhenomena.filter((ph) => ph.code === phenomenon).shift();
     const selectedFir = availableFirs.filter((fir) => fir.location_indicator_icao === locationIndicatorIcao).shift();
     const selectedChange = change ? CHANGES.filter((chg) => chg.shortName === change).shift() : null;
@@ -89,6 +89,7 @@ class SigmetEditMode extends PureComponent {
         icon: 'trash'
       }
     ];
+    const now = moment.utc();
     const abilityCtAs = []; // CtA = Call to Action
     if (focus) {
       Object.values(EDIT_ABILITIES).map((ability) => {
@@ -117,22 +118,49 @@ class SigmetEditMode extends PureComponent {
             action={(evt) => dispatch(actions.updateSigmetAction(uuid, 'obs_or_forecast', { obs: !evt.target.checked, obsFcTime: obsFcTime }))} />
           <DateTimePicker dateFormat={DATE_FORMAT} timeFormat={TIME_FORMAT} utc data-field='obsFcTime'
             viewMode='time'
-            value={obsFcTime ? moment.utc(obsFcTime) : moment.utc()}
-            onChange={(time) => dispatch(actions.updateSigmetAction(uuid, 'obs_or_forecast', { obs: isObserved, obsFcTime: time.format(DATETIME_FORMAT) }))}
-
+            value={obsFcTime ? moment.utc(obsFcTime) : null}
+            onChange={(time) => dispatch(actions.updateSigmetAction(uuid, 'obs_or_forecast',
+              { obs: isObserved, obsFcTime: moment.isMoment(time) ? time.format(DATETIME_FORMAT) : null }))}
+            onFocus={(evt) => dispatch(actions.updateSigmetAction(uuid, 'obs_or_forecast', { obs: isObserved, obsFcTime: now.format(DATETIME_FORMAT) }))}
+            isValidDate={(curr, selected) => curr.isAfter(now.clone().subtract(1, 'day')) &&
+              curr.isBefore(now.clone().add(maxHoursInAdvance + maxHoursDuration, 'hour'))}
+            timeConstraints={{
+              hours: {
+                min: now.hour() - 1,
+                max: (now.hour() + maxHoursInAdvance + maxHoursDuration)
+              }
+            }}
           />
         </WhatSection>
 
         <ValiditySection>
           <DateTimePicker dateFormat={DATE_FORMAT} timeFormat={TIME_FORMAT} utc data-field='validdate'
             viewMode='time'
-            value={validdate ? moment.utc(validdate) : moment.utc()}
-            onChange={(time) => dispatch(actions.updateSigmetAction(uuid, 'validdate', time.format(DATETIME_FORMAT)))}
+            value={validdate ? moment.utc(validdate) : now}
+            onChange={(time) => dispatch(actions.updateSigmetAction(uuid, 'validdate',
+              moment.isMoment(time) ? time.format(DATETIME_FORMAT) : null))}
+            isValidDate={(curr, selected) => curr.isAfter(now.clone().subtract(1, 'day')) &&
+              curr.isBefore(now.clone().add(maxHoursInAdvance, 'hour'))}
+            timeConstraints={{
+              hours: {
+                min: now.hour(),
+                max: (now.hour() + maxHoursInAdvance)
+              }
+            }}
           />
           <DateTimePicker dateFormat={DATE_FORMAT} timeFormat={TIME_FORMAT} utc data-field='validdate_end'
             viewMode='time'
-            value={validdateEnd ? moment.utc(validdateEnd) : moment.utc()}
-            onChange={(time) => dispatch(actions.updateSigmetAction(uuid, 'validdate_end', time.format(DATETIME_FORMAT)))}
+            value={validdateEnd ? moment.utc(validdateEnd) : now}
+            onChange={(time) => dispatch(actions.updateSigmetAction(uuid, 'validdate_end',
+              moment.isMoment(time) ? time.format(DATETIME_FORMAT) : null))}
+            isValidDate={(curr, selected) => curr.isAfter(moment.utc(validdate)) &&
+              curr.isBefore(moment.utc(validdate).clone().add(maxHoursDuration, 'hour'))}
+            timeConstraints={{
+              hours: {
+                min: moment.utc(validdate).hour(),
+                max: (moment.utc(validdate).hour() + maxHoursDuration)
+              }
+            }}
           />
         </ValiditySection>
 
@@ -374,6 +402,8 @@ SigmetEditMode.propTypes = {
   change: PropTypes.string,
   validdate: PropTypes.string,
   validdateEnd: PropTypes.string,
+  maxHoursDuration: PropTypes.number,
+  maxHoursInAdvance: PropTypes.number,
   locationIndicatorIcao: PropTypes.string
 };
 
