@@ -5,10 +5,12 @@ import {
 import { Typeahead } from 'react-bootstrap-typeahead';
 import SwitchButton from 'lyef-switch-button';
 import DateTimePicker from 'react-datetime';
+import produce from 'immer';
 import moment from 'moment';
 import PropTypes from 'prop-types';
 import { EDIT_ABILITIES, byEditAbilities } from '../../containers/Sigmet/SigmetActions';
 import Icon from 'react-fa';
+import RadioGroup from '../RadioGroup';
 import WhatSection from './Sections/WhatSection';
 import ValiditySection from './Sections/ValiditySection';
 import ActionSection from './Sections/ActionSection';
@@ -19,7 +21,8 @@ import MovementSection from './Sections/MovementSection';
 import IssueSection from './Sections/IssueSection';
 import ChangeSection from './Sections/ChangeSection';
 import HeightsSection from './Sections/HeightsSection';
-import { DIRECTIONS, UNITS_ALT, MODES_LVL, CHANGES, SIGMET_TYPES } from './SigmetTemplates';
+import { DIRECTIONS, UNITS_ALT, MODES_LVL, MODES_LVL_OPTIONS, CHANGES, SIGMET_TYPES } from './SigmetTemplates';
+import Switch from '../Switch';
 
 const DATE_FORMAT = 'DD MMM YYYY';
 const TIME_FORMAT = 'HH:mm UTC';
@@ -29,25 +32,102 @@ class SigmetEditMode extends PureComponent {
   constructor (props) {
     super(props);
     this.setMode = this.setMode.bind(this);
+    this.getMode = this.getMode.bind(this);
     this.getUnitLabel = this.getUnitLabel.bind(this);
+    this.isValidStartTimestamp = this.isValidStartTimestamp.bind(this);
+    this.isValidEndTimestamp = this.isValidEndTimestamp.bind(this);
+    this.isValidObsFcTimestamp = this.isValidObsFcTimestamp.bind(this);
   }
 
-  setMode (evt) {
-    const { dispatch, actions, uuid, levelinfo } = this.props;
-    const isLevelBetween = [MODES_LVL.BETW, MODES_LVL.BETW_SFC].includes(levelinfo.mode);
-    const isLevelTops = [MODES_LVL.TOPS, MODES_LVL.TOPS_ABV, MODES_LVL.TOPS_BLW].includes(levelinfo.mode);
-    const isLevelAbove = [MODES_LVL.ABV, MODES_LVL.TOPS_ABV].includes(levelinfo.mode);
-    const isNotLevelSurface = ![MODES_LVL.BETW_SFC].includes(levelinfo.mode);
-    dispatch(actions.updateSigmetLevelAction(uuid, 'mode', {
-      tops: evt.target.id === 'topsToggle' ? evt.target.checked : isLevelTops,
-      above: evt.target.id === 'atAboveToggle' ? evt.target.checked : isLevelAbove,
-      between: evt.target.id === 'betweenAtToggle' ? evt.target.checked : isLevelBetween,
-      notSurface: evt.target.id === 'sfcLevelToggle' ? evt.target.checked : isNotLevelSurface
-    }));
+  setMode (evt, selectedOption = null) {
+    const { dispatch, actions, uuid } = this.props;
+    const currentMode = this.getMode();
+    if (!evt || !evt.target) {
+      return;
+    }
+    let newMode = null;
+    if (evt.target.name === 'level-mode-toggle' && [MODES_LVL.BETW, MODES_LVL.AT, MODES_LVL.ABV, MODES_LVL.BLW].includes(selectedOption)) {
+      newMode = produce(currentMode, (draftState) => { draftState.extent = selectedOption; });
+    } else if (evt.target.id === 'topsToggle') {
+      newMode = produce(currentMode, (draftState) => { draftState.hasTops = !!evt.target.checked; });
+    } else if (evt.target.id === 'sfcLevelToggle') {
+      newMode = produce(currentMode, (draftState) => { draftState.hasSurface = !!evt.target.checked; });
+    }
+
+    if (newMode !== null) {
+      let result = null;
+      if (newMode.extent === MODES_LVL.BETW) {
+        result = newMode.hasSurface ? MODES_LVL.BETW_SFC : MODES_LVL.BETW;
+      } else if (!newMode.hasTops) {
+        result = newMode.extent;
+      } else {
+        switch (newMode.extent) {
+          case MODES_LVL.AT:
+            result = MODES_LVL.TOPS;
+            break;
+          case MODES_LVL.ABV:
+            result = MODES_LVL.TOPS_ABV;
+            break;
+          case MODES_LVL.BLW:
+            result = MODES_LVL.TOPS_BLW;
+            break;
+          default:
+            console.warn('Set level mode called with not supported extent:', newMode.extent);
+            return;
+        }
+      }
+      dispatch(actions.updateSigmetLevelAction(uuid, 'mode', result));
+    }
   };
+
+  getMode () {
+    const { levelinfo } = this.props;
+    const result = {
+      extent: MODES_LVL.AT,
+      hasTops: false,
+      hasSurface: false
+    };
+    if ([MODES_LVL.BETW, MODES_LVL.BETW_SFC].includes(levelinfo.mode)) {
+      result.extent = MODES_LVL.BETW;
+    }
+    if ([MODES_LVL.ABV, MODES_LVL.TOPS_ABV].includes(levelinfo.mode)) {
+      result.extent = MODES_LVL.ABV;
+    }
+    if ([MODES_LVL.BLW, MODES_LVL.TOPS_BLW].includes(levelinfo.mode)) {
+      result.extent = MODES_LVL.BLW;
+    }
+    if ([MODES_LVL.TOPS_BLW, MODES_LVL.TOPS, MODES_LVL.TOPS_ABV].includes(levelinfo.mode)) {
+      result.hasTops = true;
+    }
+    if ([MODES_LVL.BETW_SFC].includes(levelinfo.mode)) {
+      result.hasSurface = true;
+    }
+    return result;
+  }
 
   getUnitLabel (unitName) {
     return UNITS_ALT.find((unit) => unit.unit === unitName).label;
+  };
+
+  isValidStartTimestamp (timestamp) {
+    const { maxHoursInAdvance } = this.props;
+    const now = moment.utc();
+    return now.clone().subtract(1, 'day').isSameOrBefore(timestamp) &&
+      now.clone().add(maxHoursInAdvance, 'hour').isSameOrAfter(timestamp);
+  };
+
+  isValidEndTimestamp (timestamp) {
+    const { maxHoursDuration, validdate } = this.props;
+    const startTimeStamp = moment.utc(validdate);
+    return startTimeStamp.isSameOrBefore(timestamp) &&
+      startTimeStamp.clone().add(maxHoursDuration, 'hour').isSameOrAfter(timestamp);
+  };
+
+  isValidObsFcTimestamp (timestamp) {
+    const { maxHoursInAdvance, maxHoursDuration } = this.props;
+    const now = moment.utc();
+    return timestamp === null || (now.clone().subtract(1, 'day').isSameOrBefore(timestamp) &&
+      now.clone().add(maxHoursInAdvance + maxHoursDuration, 'hour').isSameOrAfter(timestamp));
   };
 
   render () {
@@ -58,7 +138,8 @@ class SigmetEditMode extends PureComponent {
     const selectedFir = availableFirs.filter((fir) => fir.location_indicator_icao === locationIndicatorIcao).shift();
     const selectedChange = change ? CHANGES.filter((chg) => chg.shortName === change).shift() : null;
     const selectedDirection = movement && movement.dir ? DIRECTIONS.filter((dir) => dir.shortName === movement.dir).shift() : null;
-    const isLevelBetween = [MODES_LVL.BETW, MODES_LVL.BETW_SFC].includes(levelinfo.mode);
+    const levelMode = this.getMode();
+    const isLevelBetween = levelMode.extent === MODES_LVL.BETW;
     const isLevelTops = [MODES_LVL.TOPS, MODES_LVL.TOPS_ABV, MODES_LVL.TOPS_BLW].includes(levelinfo.mode);
     const isLevelAbove = [MODES_LVL.ABV, MODES_LVL.TOPS_ABV].includes(levelinfo.mode);
     const isNotLevelSurface = ![MODES_LVL.BETW_SFC].includes(levelinfo.mode);
@@ -121,15 +202,22 @@ class SigmetEditMode extends PureComponent {
             value={obsFcTime ? moment.utc(obsFcTime) : null}
             onChange={(time) => dispatch(actions.updateSigmetAction(uuid, 'obs_or_forecast',
               { obs: isObserved, obsFcTime: moment.isMoment(time) ? time.format(DATETIME_FORMAT) : null }))}
-            onFocus={(evt) => dispatch(actions.updateSigmetAction(uuid, 'obs_or_forecast', { obs: isObserved, obsFcTime: now.format(DATETIME_FORMAT) }))}
-            isValidDate={(curr, selected) => curr.isAfter(now.clone().subtract(1, 'day')) &&
-              curr.isBefore(now.clone().add(maxHoursInAdvance + maxHoursDuration, 'hour'))}
+            onFocus={(evt) => obsFcTime ||
+              dispatch(actions.updateSigmetAction(uuid, 'obs_or_forecast', {
+                obs: isObserved,
+                obsFcTime: now.clone().startOf('minute').add(5 - now.minutes() % 5, 'minutes').format(DATETIME_FORMAT)
+              }))}
+            isValidDate={(curr, selected) => this.isValidObsFcTimestamp(curr)}
             timeConstraints={{
               hours: {
                 min: now.hour() - 1,
                 max: (now.hour() + maxHoursInAdvance + maxHoursDuration)
+              },
+              minutes: {
+                step: 5
               }
             }}
+            className={!this.isValidObsFcTimestamp(obsFcTime) ? 'missing' : null}
           />
         </WhatSection>
 
@@ -139,28 +227,34 @@ class SigmetEditMode extends PureComponent {
             value={validdate ? moment.utc(validdate) : now}
             onChange={(time) => dispatch(actions.updateSigmetAction(uuid, 'validdate',
               moment.isMoment(time) ? time.format(DATETIME_FORMAT) : null))}
-            isValidDate={(curr, selected) => curr.isAfter(now.clone().subtract(1, 'day')) &&
-              curr.isBefore(now.clone().add(maxHoursInAdvance, 'hour'))}
+            isValidDate={(curr, selected) => this.isValidStartTimestamp(curr)}
             timeConstraints={{
               hours: {
                 min: now.hour(),
                 max: (now.hour() + maxHoursInAdvance)
+              },
+              minutes: {
+                step: 5
               }
             }}
+            className={!this.isValidStartTimestamp(validdate) ? 'missing' : null}
           />
           <DateTimePicker dateFormat={DATE_FORMAT} timeFormat={TIME_FORMAT} utc data-field='validdate_end'
             viewMode='time'
             value={validdateEnd ? moment.utc(validdateEnd) : now}
             onChange={(time) => dispatch(actions.updateSigmetAction(uuid, 'validdate_end',
               moment.isMoment(time) ? time.format(DATETIME_FORMAT) : null))}
-            isValidDate={(curr, selected) => curr.isAfter(moment.utc(validdate)) &&
-              curr.isBefore(moment.utc(validdate).clone().add(maxHoursDuration, 'hour'))}
+            isValidDate={(curr, selected) => this.isValidEndTimestamp(curr)}
             timeConstraints={{
               hours: {
                 min: moment.utc(validdate).hour(),
                 max: (moment.utc(validdate).hour() + maxHoursDuration)
+              },
+              minutes: {
+                step: 5
               }
             }}
+            className={!this.isValidEndTimestamp(validdateEnd) ? 'missing' : null}
           />
         </ValiditySection>
 
@@ -184,6 +278,7 @@ class SigmetEditMode extends PureComponent {
               dispatch(actions.updateFir(firname));
             }}
             selected={selectedFir ? [selectedFir] : []} placeholder={'Select FIR'}
+            className={!selectedFir ? 'missing' : null}
             clearButton />
           <span data-field='location_indicator_icao'>{locationIndicatorIcao}</span>
         </FirSection>
@@ -206,13 +301,19 @@ class SigmetEditMode extends PureComponent {
         </DrawSection>
 
         <HeightsSection isLevelBetween={isLevelBetween}>
-          <SwitchButton id='betweenAtToggle'
-            labelLeft='At/Above'
-            labelRight='Between'
-            align='left'
-            data-field='between-at-toggle'
-            isChecked={isLevelBetween}
-            action={this.setMode} />
+          <RadioGroup
+            value={levelMode.extent}
+            options={MODES_LVL_OPTIONS}
+            onChange={this.setMode}
+            data-field='level-mode-toggle'
+          />
+          <Switch
+            value='on'
+            checkedOption={{ optionId: 'on', label: 'On' }}
+            unCheckedOption={{ optionId: 'off', label: 'Off' }}
+            onChange={() => console.log('Switched')}
+            data-field='test-switch'
+          />
           <FormGroup check data-field='tops-toggle' disabled={isLevelBetween}>
             <Label check>
               <Input type='checkbox' id='topsToggle' disabled={isLevelBetween} checked={isLevelTops}
@@ -220,15 +321,7 @@ class SigmetEditMode extends PureComponent {
               Tops
             </Label>
           </FormGroup>
-          <SwitchButton id='atAboveToggle'
-            labelLeft='At'
-            labelRight='Above'
-            align='left'
-            disabled={isLevelBetween}
-            data-field='at-above-toggle'
-            isChecked={isLevelAbove}
-            action={this.setMode} />
-
+          <span data-field='at-above-toggle'>{isLevelAbove ? 'TEST above' : 'TEST at'}</span>
           <InputGroup data-field='at-above-altitude'>
             <InputGroupButton>
               <ButtonDropdown toggle={() => null}>

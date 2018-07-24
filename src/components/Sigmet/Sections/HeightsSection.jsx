@@ -21,8 +21,11 @@ export default class HeightsSection extends PureComponent {
             <Col xs={{ size: 2, offset: 1 }}>
               <Badge>Levels</Badge>
             </Col>
-            <Col xs='9'>
-              {localChildren['between-at-toggle']}
+            <Col xs='6'>
+              {localChildren['level-mode-toggle']}
+            </Col>
+            <Col xs='3'>
+              {localChildren['test-switch']}
             </Col>
           </Row>
           <Row className={isLevelBetween ? 'disabled' : null}>

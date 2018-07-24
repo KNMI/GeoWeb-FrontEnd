@@ -181,6 +181,12 @@ const MODES_LVL = {
   TOPS_BLW: 'TOPS_BLW'
 };
 
+const MODES_LVL_OPTIONS = [
+  { optionId: MODES_LVL.AT, label: 'At', disabled: false },
+  { optionId: MODES_LVL.BETW, label: 'Between', disabled: false },
+  { optionId: MODES_LVL.ABV, label: 'Above', disabled: false }
+];
+
 module.exports = {
   SIGMET_TEMPLATES: TEMPLATES,
   SIGMET_TYPES: TYPES,
@@ -188,5 +194,6 @@ module.exports = {
   CHANGES: CHANGES,
   UNITS_ALT: UNITS_ALT,
   UNITS: UNITS,
-  MODES_LVL: MODES_LVL
+  MODES_LVL: MODES_LVL,
+  MODES_LVL_OPTIONS: MODES_LVL_OPTIONS
 };

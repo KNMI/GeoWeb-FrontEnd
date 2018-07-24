@@ -25,7 +25,7 @@ export default class ValiditySection extends PureComponent {
           <Col xs='9'>
             {children.validdate}
             {children.validdate && children.validdate.props.value
-              ? <span className={children.validdate.props.value.isValid() ? 'required' : 'required missing'} />
+              ? <span className={children.validdate.props.isValidDate(children.validdate.props.value) ? 'required' : 'required missing'} />
               : null
             }
           </Col>
@@ -37,7 +37,7 @@ export default class ValiditySection extends PureComponent {
           <Col xs='9'>
             {children.validdate_end}
             {children.validdate && children.validdate_end.props.value
-              ? <span className={children.validdate_end.props.value.isValid() ? 'required' : 'required missing'} />
+              ? <span className={children.validdate_end.props.isValidDate(children.validdate_end.props.value) ? 'required' : 'required missing'} />
               : null
             }
           </Col>

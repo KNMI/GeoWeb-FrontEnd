@@ -212,3 +212,7 @@ td.rdtYear:hover {
 .rdt input.form-control {
   padding: 0.2rem 0.75rem;
 }
+
+.rdt.missing input.form-control {
+  border-color: red;
+}

@@ -18,6 +18,10 @@ export default class FirSection extends PureComponent {
           </Col>
           <Col xs='9'>
             {children.firname}
+            {children.firname && children.firname.props.selected
+              ? <span className={children.firname.props.selected.length > 0 ? 'required' : 'required missing'} />
+              : null
+            }
           </Col>
         </Row>
         <Row>

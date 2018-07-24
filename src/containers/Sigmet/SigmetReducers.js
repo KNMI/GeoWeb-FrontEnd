@@ -369,13 +369,7 @@ const updateSigmetLevel = (uuid, dataField, context, container) => {
   let newLevelInfo = {};
   switch (dataField) {
     case 'mode':
-      if (context.between) {
-        newLevelInfo.mode = context.notSurface ? MODES_LVL.BETW : MODES_LVL.BETW_SFC;
-      } else if (context.tops) {
-        newLevelInfo.mode = context.above ? MODES_LVL.TOPS_ABV : MODES_LVL.TOPS;
-      } else {
-        newLevelInfo.mode = context.above ? MODES_LVL.ABV : MODES_LVL.AT;
-      }
+      newLevelInfo.mode = context;
       break;
     case 'unit':
       if (UNITS_ALT.includes(context.unit) && typeof context.isUpperLevel === 'boolean') {
