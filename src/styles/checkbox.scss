@@ -1,11 +1,11 @@
-.RadioGroup {
+.Checkbox {
   width: 100%;
   $base-color: #017daf;
   $base-inner-color: #fff;
   $hover-color: #8fd6ef;
   $disabled-color: #777;
   $disabled-inner-color: #eee;
-  $transition: background 0.4s;
+  $transition: background 0.4s, color 0.4s;
   input {
     display: none;
   }
@@ -13,7 +13,7 @@
     display: inherit;
     margin: 0;
   }
-  span:not(.radio) {
+  span:not(.checkbox) {
     display: inherit;
     line-height: 1.2;
     padding: 0.05rem 0 0 0!important;
@@ -22,59 +22,59 @@
     font-family: inherit;
     color: #666;
   }
-  span.radio {
+  span.checkbox {
     display: inherit;
     padding: 0!important;
     margin: 0;
     margin-left: 0.2rem;
     background: $base-color;
-    border-radius: 4rem;
+    border-radius: 0.2rem;
     height: 1.2rem;
     width:  1.2rem;
   }
-  span.radio::before {
+  span.checkbox::before {
     display: inherit;
     background: $base-inner-color;
-    border-radius: 3.75rem;
-    box-shadow: inset 0.06rem 0.06rem 0.06rem rgba(0, 0, 0, 0.3);
+    border-radius: 0.1rem;
+    box-shadow: inset 0.08rem 0.08rem 0.08rem rgba(0, 0, 0, 0.3);
     width: 0.95rem;
     height: 0.95rem;
     margin: 0.125rem;
     transition: $transition;
     content: "";
   }
-  span.radio::after {
+  span.checkbox::after {
     display: inherit;
-    background: $base-inner-color;
-    border-radius: 3rem;
-    box-shadow: inset 0.12rem 0.12rem 0.12rem rgba(255, 255, 255, 0.2);
-    width: 0.7rem;
-    height: 0.7rem;
-    margin: 0.25rem;
-    margin-left: -0.95rem;
+    font-family: FontAwesome;
+    color: $base-inner-color;
+    margin-left: -1.1rem;
+    margin-top: -0.1rem;
     transition: $transition;
-    content: "";
+    content: "\f00c";
   }
-  input:disabled ~ span.radio {
+  input:disabled ~ span.checkbox {
     background: $disabled-color;
   }
-  input:disabled ~ span.radio::after, input:disabled ~ span.radio::before {
+  input:disabled ~ span.checkbox::before {
     background: $disabled-inner-color;
   }
-  input:checked:disabled ~ span.radio::after {
-    background: $disabled-color;
+  input:disabled ~ span.checkbox::after {
+    color: $disabled-inner-color;
+  }
+  input:checked:disabled ~ span.checkbox::after {
+    color: $disabled-color;
   }
 
-  label:hover input:not(:checked):not(:disabled) ~ span {
+  label:hover input:not(:disabled) ~ span {
     cursor: pointer;
   }
-  label:hover input:not(:checked):disabled ~ span {
+  label:hover input:disabled ~ span {
     cursor: not-allowed;
   }
-  label:hover input:not(:checked):not(:disabled) + span.radio::after {
-    background: $hover-color;
+  label:hover input:not(:checked):not(:disabled) + span.checkbox::after {
+    color: $hover-color;
   }
-  input:checked + span.radio::after {
-    background: $base-color;
+  input:checked + span.checkbox::after {
+    color: $base-color;
   }
 }

@@ -8,11 +8,12 @@ export default class Switch extends PureComponent {
     const dataField = this.props['data-field'];
     return <Row className='Switch'>
       <Col xs='auto'>
-        <label>
+        <label className={disabled ? 'disabled' : null}>
           <span>{unCheckedOption.label}</span>
-          <input type='checkbox' name={dataField}
-            checked={checkedOption.optionId === value} onChange={(evt) => onChange(evt, checkedOption.optionId)}
-            disabled={disabled}
+          <input type='checkbox' data-field={dataField}
+            checked={checkedOption.optionId === value}
+            onChange={(evt) => onChange(evt, checkedOption.optionId === value ? unCheckedOption.optionId : checkedOption.optionId)}
+            disabled={disabled} value={value}
           />
           <span className='checkbox' />
           <span>{checkedOption.label}</span>
@@ -28,7 +29,7 @@ Switch.propTypes = {
   'data-field': PropTypes.string.isRequired,
   checkedOption: PropTypes.shape({
     optionId: PropTypes.string,
-    label: PropTypes.string
+    label: PropTypes.oneOfType([PropTypes.string, PropTypes.element])
   }),
   unCheckedOption: PropTypes.shape({
     optionId: PropTypes.string,

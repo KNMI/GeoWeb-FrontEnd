@@ -10,7 +10,7 @@ export default class RadioGroup extends PureComponent {
       {options.map((option) =>
         <Col xs='auto' key={`radioGroup-${option.optionId}`}>
           <label>
-            <input type='radio' name={dataField}
+            <input type='radio' name={dataField} data-field={dataField}
               checked={option.optionId === value} onChange={(evt) => onChange(evt, option.optionId)}
               disabled={disabled || option.disabled}
             />
