@@ -436,6 +436,7 @@ class SigmetEditMode extends PureComponent {
             onFocus={() => dispatch(actions.updateSigmetAction(uuid, 'change', null))}
             onChange={(selectedValues) => dispatch(actions.updateSigmetAction(uuid, 'change', selectedValues.length > 0 ? selectedValues[0].shortName : null))}
             selected={selectedChange ? [selectedChange] : []}
+            className={!selectedChange ? 'missing' : null}
             clearButton />
         </ChangeSection>
 
