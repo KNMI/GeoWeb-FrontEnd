@@ -12,6 +12,9 @@
 @import 'layermanager';
 @import 'managementpanel';
 @import 'sigmet';
+@import 'checkbox';
+@import 'radio';
+@import 'switch';
 $radius-size: 0.19rem;
 $shadow: 0.06rem 0.125rem 0.125rem rgba(0,0,0,0.3);
 $inverse-inactive-color: rgba(255, 255, 255, 0.7);
@@ -95,7 +98,7 @@ button.btn.btn-sm, button.btn.btn-group-sm > .btn {
   margin: 0;
 }
 
-.col, .col-1, .col-2, .col-3, .col-4, .col-6, .col-7, .col-8, .col-9, .col-10, .col-12 {
+.col, .col-1, .col-2, .col-3, .col-4, .col-5, .col-6, .col-7, .col-8, .col-9, .col-10, .col-12 {
   padding: 0;
 }
 

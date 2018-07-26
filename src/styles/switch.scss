@@ -1,0 +1,94 @@
+.Switch {
+  $base-color: #017daf;
+  $base-inner-color: #fff;
+  $hover-color: #8fd6ef;
+  $disabled-color: #777;
+  $disabled-inner-color: #eee;
+  $transition: background 0.4s, margin 0.4s;
+  width: 100%;
+  .col-auto {
+    max-width: 100%;
+  }
+  input {
+    display: none;
+  }
+  label {
+    display: inherit;
+    margin: 0;
+  }
+  span:not(.checkbox) {
+    display: inherit;
+    line-height: 1.2;
+    padding: 0.05rem 0 0 0!important;
+    margin: 0 0.2rem 0 0.33rem;
+    font-size: inherit;
+    font-family: inherit;
+    color: #666;
+  }
+  span:not(.checkbox):first-of-type {
+    margin: 0 0.33rem 0 0.2rem;
+  }
+  span.checkbox {
+    display: inherit;
+    padding: 0!important;
+    margin: 0;
+    background: $base-color;
+    border-radius: 4rem;
+    height: 1.3rem;
+    width:  2.6rem;
+    min-width: 2.6rem;
+  }
+  span.checkbox::before {
+    display: inherit;
+    box-sizing: border-box;
+    background: $base-inner-color;
+    border-radius: 3.75rem;
+    box-shadow: inset 0.06rem 0.06rem 0.06rem rgba(0, 0, 0, 0.3);
+    width: 2.35rem;
+    height: 1.05rem;
+    margin: 0.125rem;
+    transition: $transition;
+    content: "";
+  }
+  span.checkbox::after {
+    display: inherit;
+    background: $base-color;
+    border-radius: 3rem;
+    box-shadow: inset 0.12rem 0.12rem 0.12rem rgba(255, 255, 255, 0.2);
+    width: 0.8rem;
+    height: 0.8rem;
+    margin: 0.25rem;
+    margin-left: -2.35rem;
+    transition: $transition;
+    content: "";
+  }
+  input:disabled ~ span.checkbox, input:disabled ~ span.checkbox::after {
+    background: $disabled-color;
+  }
+  input:disabled ~ span.checkbox::after {
+    box-shadow: unset;
+  }
+  input:disabled ~ span.checkbox::before {
+    background: $disabled-inner-color;
+  }
+  label:not(.disabled):hover {
+    cursor: pointer;
+    input, span {
+      cursor: pointer;
+    }
+  }
+  label.disabled:hover {
+    cursor: not-allowed;
+    input, span {
+      cursor: not-allowed;
+    }
+  }
+  label:hover input:not(:disabled) + span.checkbox::before {
+    background: $hover-color;
+    border: 0.1rem solid $base-inner-color;
+    box-shadow: unset;
+  }
+  input:checked + span.checkbox::after {
+    margin-left: -1.05rem;
+  }
+}

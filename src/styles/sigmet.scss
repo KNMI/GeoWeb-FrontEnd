@@ -92,6 +92,13 @@
     border-top: 0.05rem solid #ccc;
   }
 
+  .Validity {
+    .row:nth-child(2) {
+      margin-top: 0.2rem;
+      margin-bottom: 0.1rem;
+    }
+  }
+
   .Draw {
     min-height: 3.685rem;
     padding-bottom: 0.33rem;
@@ -135,60 +142,76 @@
         }
       }
     }
-
+    > .col > .row:first-child {
+      margin-bottom: 0.2rem;
+    }
     .row:nth-child(2) {
       > div:nth-child(1) {
-        margin-top: 0.5rem;
-        .form-check {
+        margin-top: 0.6rem;
+        label {
+          padding: 0;
           margin: 0;
         }
       }
       > div:nth-child(2) {
-        padding-left: 1.27rem;
-        margin-top: 0.3rem;
-
-        .switch-button {
-          margin: auto;
-        }
-      }
-    }
-
-    .row:nth-child(3) {
-      margin-top: 0.33rem;
-
-      > div:nth-child(2) {
-        padding-left: 1.25rem;
-
-        .switch-button {
-          margin: auto;
-
-          label:first-of-type {
-            padding-top: 0.7rem;
-          }
-
-          .toggle-container {
-            padding-top: 0.5rem;
-          }
-
-          label:nth-of-type(2) {
-            padding-top: 0;
-          }
-        }
-      }
-
-      > div:not(:nth-child(2)) {
         margin-top: 0.5rem;
+        label {
+          width: 100%;
+          padding: 0;
+          padding-right: 0.4rem;
+          margin: 0;
+          text-align: right;
+        }
       }
-
       > div:nth-child(3) {
         padding-left: 0.2rem;
       }
     }
 
+    .row:nth-child(3) {
+      margin-top: 0.05rem;
+      > div:first-child {
+        margin-top: 0.6rem;
+        label {
+          margin: 0;
+          padding: 0;
+        }
+      }
+
+      > div:nth-child(2) {
+        .Switch label {
+          padding: 0;
+          > span:first-of-type, > span.checkbox {
+            margin-top: 0.7rem;
+          }
+          > span .label.input-group {
+            margin: 0;
+          }
+          > span:last-of-type {
+            margin-right: 0rem;
+          }
+        }
+      }
+    }
+
     .row:nth-child(4) {
+      margin-top: 0.05rem;
       > div:first-child {
         margin-top: 0.5rem;
+        padding-left: 0.3rem;
       }
+      > div:nth-child(2) {
+        padding-left: 0.2rem;
+      }
+    }
+  }
+
+  .Move {
+    .row:nth-child(3) {
+      padding-top: 0.2rem;
+    }
+    .row:nth-child(4) {
+      margin-top: 0.1rem;
     }
   }
 
@@ -243,29 +266,6 @@
 
   .btn-primary {
     padding: 0.5rem 0.7rem;
-  }
-
-
-  .switch-button {
-    label {
-      line-height: 1.2;
-      padding-top: 0.2rem;
-      font-size: inherit;
-      font-family: inherit;
-      color: #666;
-    }
-
-    .label:first-of-type {
-      margin: 0 0.5rem 0 0.1rem;
-    }
-
-    .label:nth-of-type(2) {
-      margin: 0 0.1rem 0 0.5rem;
-    }
-
-    .toggle {
-      margin-bottom: 0;
-    }
   }
 
   .required {

@@ -25,18 +25,20 @@ export default class MovementSection extends PureComponent {
             {children.movementType}
           </Col>
         </Row>
-        <Row>
+        <Row className={!this.props.useGeometryForEnd ? 'disabled' : null}>
           <Col>
             {children.drawbar}
           </Col>
         </Row>
-        <Row>
+        <Row className={this.props.useGeometryForEnd ? 'disabled' : null}>
           <Col xs={{ size: 2, offset: 1 }}>
             <Badge>Direction</Badge>
           </Col>
           <Col xs='9'>
             {children.direction}
           </Col>
+        </Row>
+        <Row className={this.props.useGeometryForEnd ? 'disabled' : null}>
           <Col xs={{ size: 2, offset: 1 }}>
             <Badge>Speed</Badge>
           </Col>
@@ -54,5 +56,6 @@ MovementSection.propTypes = {
     PropTypes.arrayOf(PropTypes.element),
     PropTypes.element
   ]),
-  disabled: PropTypes.bool
+  disabled: PropTypes.bool,
+  useGeometryForEnd: PropTypes.bool
 };

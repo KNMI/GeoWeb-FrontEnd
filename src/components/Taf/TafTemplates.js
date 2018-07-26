@@ -19,7 +19,7 @@ const TEMPLATES = {
   WEATHER: [{
     qualifier: null, // string
     descriptor: null, // string
-    phenomena: [] // string values
+    phenomena: [null] // string values
   }],
   WIND: {
     direction: null, // number

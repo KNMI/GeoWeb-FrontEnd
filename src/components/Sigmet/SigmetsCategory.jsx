@@ -64,7 +64,10 @@ class SigmetsCategory extends PureComponent {
                           drawModeEnd={focussedSigmet.drawModeEnd}
                           hasStartCoordinates={this.props.hasStartCoordinates}
                           hasEndCoordinates={this.props.hasEndCoordinates}
-                          availableFirs={parameters.firareas} />;
+                          availableFirs={parameters.firareas}
+                          maxHoursInAdvance={parameters.hoursbeforevalidity}
+                          maxHoursDuration={parameters.maxhoursofvalidity}
+                        />;
                       }
                       return <SigmetReadMode key={sigmet.uuid}
                         dispatch={dispatch}

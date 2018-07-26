@@ -34,41 +34,48 @@ const mergeInTemplate = (incomingValues, parentName, templates) => {
           setNestedProperty(draftState, pathParts, nextValue);
         }
       } else {
+        // deal with possible item additions for an intermediate array in the data structure
         const numericIndices = [];
         pathParts.forEach((part, partIndex) => {
           if (!isNaN(part)) {
             numericIndices.push(partIndex);
           }
         });
-        if (!numericIndices) {
+        if (!numericIndices || !Array.isArray(numericIndices) || numericIndices.length === 0) {
           return;
         }
-        numericIndices.sort();
+        numericIndices.sort((a, b) => a - b);
         numericIndices.forEach((numericIndex) => {
-          let affectedArray = getNestedProperty(draftState, pathParts.slice(0, numericIndex));
-          let affectedName = pathParts[numericIndex - 1];
-          if (numericIndex === 0) {
-            affectedArray = draftState;
-            affectedName = parentName;
+          let affectedArray = draftState;
+          let templateForArray = templates[parentName];
+          if (numericIndex > 0) {
+            affectedArray = getNestedProperty(draftState, pathParts.slice(0, numericIndex));
+            const templatePath = pathParts.slice(0, numericIndex);
+            numericIndices.forEach((otherNumericIndex) => {
+              if (otherNumericIndex < numericIndex && templatePath[otherNumericIndex] !== 0) {
+                templatePath[otherNumericIndex] = 0;
+              }
+            });
+            templateForArray = getNestedProperty(templates[parentName], templatePath);
           }
-          if (Array.isArray(affectedArray) && affectedArray.length > 0) {
-            const additionalOccurrences = parseInt(pathParts[numericIndex]) + 1 - affectedArray.length;
-            let templateForArray = templates[affectedName];
-            if (typeof templateForArray === 'undefined') {
-              templateForArray = templates[affectedName.toUpperCase()];
-            }
-            if (additionalOccurrences > 0 && Array.isArray(templateForArray) && templateForArray.length > 0) {
-              affectedArray.push(...Array(additionalOccurrences).fill(cloneDeep(templateForArray[0])));
-            }
-            if (hasNestedProperty(affectedArray, pathParts.slice(numericIndex))) {
-              const templateValue = getNestedProperty(affectedArray, pathParts.slice(numericIndex));
-              const nextValue = getNestedProperty(incomingValues, pathParts);
-              // check for allowed type changes
-              if (templateValue === null ||
+          if (!Array.isArray(affectedArray) || affectedArray.length === 0) {
+            return;
+          }
+          const additionalOccurrences = parseInt(pathParts[numericIndex]) + 1 - affectedArray.length;
+          if (additionalOccurrences < 1) {
+            return;
+          }
+          if (Array.isArray(templateForArray) && templateForArray.length > 0) {
+            affectedArray.push(...Array(additionalOccurrences).fill(cloneDeep(templateForArray[0])));
+          }
+          if (hasNestedProperty(affectedArray, pathParts.slice(numericIndex))) {
+            const templateValue = getNestedProperty(affectedArray, pathParts.slice(numericIndex));
+            const nextValue = getNestedProperty(incomingValues, pathParts);
+            // check for allowed type changes
+            if (templateValue === null ||
                 (!Array.isArray(templateValue) && (typeof templateValue !== 'object' || templateValue.constructor !== Object) &&
                   typeof templateValue === typeof nextValue)) {
-                setNestedProperty(draftState, pathParts, nextValue);
-              }
+              setNestedProperty(draftState, pathParts, nextValue);
             }
           }
         });

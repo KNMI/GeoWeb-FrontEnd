@@ -480,7 +480,7 @@ describe('(Reducer) Taf/TafReducers', () => {
             ],
             vertical_visibility: null,
             visibility: { unit: null, value: null },
-            weather: [{ descriptor: null, phenomena: [], qualifier: null }],
+            weather: [{ descriptor: null, phenomena: [null], qualifier: null }],
             wind: {
               direction: null,
               gusts: null,

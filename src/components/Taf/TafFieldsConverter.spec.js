@@ -722,7 +722,7 @@ describe('(Functions) TafFieldsConverter', () => {
     expect(result).to.eql({
       qualifier: 'moderate',
       descriptor: 'thunderstorm',
-      phenomena: []
+      phenomena: [null]
     });
     // One phenomenon only
     result = tacToJsonForWeather('SN');
