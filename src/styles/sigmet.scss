@@ -289,6 +289,10 @@
     color: #888;
     z-index: 100;
   }
+  .input-group + .required {
+    margin-left: -3.7rem;
+    padding-top: 0.6rem;
+  }
 
   .required:after {
     content: '*';

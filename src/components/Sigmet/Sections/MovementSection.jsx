@@ -36,6 +36,10 @@ export default class MovementSection extends PureComponent {
           </Col>
           <Col xs='9'>
             {children.direction}
+            {children.direction && children.direction.props.selected && !children.direction.props.disabled
+              ? <span className={children.direction.props.selected.length > 0 ? 'required' : 'required missing'} />
+              : null
+            }
           </Col>
         </Row>
         <Row className={this.props.disabled || this.props.useGeometryForEnd ? 'disabled' : null}>
@@ -44,6 +48,10 @@ export default class MovementSection extends PureComponent {
           </Col>
           <Col xs='9'>
             {children.speed}
+            {children.speed && children.speed.props && !children.speed.props.disabled
+              ? <span className={children.speed.props.className !== 'missing' ? 'required' : 'required missing'} />
+              : null
+            }
           </Col>
         </Row>
       </Col>

@@ -327,7 +327,7 @@ class SigmetEditMode extends PureComponent {
                 </DropdownMenu>
               </ButtonDropdown>
             </InputGroupButton>
-            <Input placeholder='Level' disabled={isLevelBetween} type='number'
+            <Input placeholder='Level' disabled={isLevelBetween} type='number' min='0' step='10'
               value={(isLevelBetween || !levelinfo.levels[0].value) ? '' : levelinfo.levels[0].value}
               onChange={(evt) => dispatch(actions.updateSigmetLevelAction(uuid, 'value', { value: evt.target.value, isUpperLevel: false }))} />
           </InputGroup>
@@ -349,7 +349,7 @@ class SigmetEditMode extends PureComponent {
                     </DropdownMenu>
                   </ButtonDropdown>
                 </InputGroupButton>
-                <Input placeholder='Level' disabled={!isLevelBetween || levelMode.hasSurface} type='number'
+                <Input placeholder='Level' disabled={!isLevelBetween || levelMode.hasSurface} type='number' min='0' step='10'
                   value={(!isLevelBetween || levelMode.hasSurface || !levelinfo.levels[0].value) ? '' : levelinfo.levels[0].value}
                   onChange={(evt) => dispatch(actions.updateSigmetLevelAction(uuid, 'value', { value: evt.target.value, isUpperLevel: false }))} />
               </InputGroup>
@@ -373,7 +373,7 @@ class SigmetEditMode extends PureComponent {
                 </DropdownMenu>
               </ButtonDropdown>
             </InputGroupButton>
-            <Input placeholder='Level' disabled={!isLevelBetween} type='number'
+            <Input placeholder='Level' disabled={!isLevelBetween} type='number' min='0' step='10'
               value={(!isLevelBetween || !levelinfo.levels[1].value) ? '' : levelinfo.levels[1].value}
               onChange={(evt) => dispatch(actions.updateSigmetLevelAction(uuid, 'value', { value: evt.target.value, isUpperLevel: true }))} />
           </InputGroup>
@@ -401,22 +401,29 @@ class SigmetEditMode extends PureComponent {
           <Typeahead filterBy={['shortName', 'longName']} labelKey='longName' data-field='direction'
             options={DIRECTIONS} placeholder={'Set direction'} disabled={!movement || movement.stationary || useGeometryForEnd}
             onFocus={() => dispatch(actions.updateSigmetAction(uuid, 'movement', { ...movement, dir: null }))}
-            onChange={(selectedval) => dispatch(actions.updateSigmetAction(uuid, 'movement', { ...movement, dir: selectedval[0].shortName }))}
+            onChange={(selectedval) =>
+              dispatch(actions.updateSigmetAction(uuid, 'movement', { ...movement, dir: selectedval.length > 0 ? selectedval[0].shortName : null }))}
             selected={selectedDirection ? [selectedDirection] : []}
-            clearButton />
-          <InputGroup data-field='speed'>
+            className={movement && !movement.stationary && !useGeometryForEnd && !selectedDirection ? 'missing' : null}
+            clearButton
+          />
+          <InputGroup data-field='speed' className={movement && !movement.stationary && !useGeometryForEnd && !movement.speed ? 'missing' : null}
+            disabled={!movement || movement.stationary || useGeometryForEnd}>
             <Input onChange={(evt) => dispatch(actions.updateSigmetAction(uuid, 'movement', { ...movement, speed: parseInt(evt.target.value) }))}
               value={(!movement || !movement.speed) ? '' : movement.speed}
               type='number' disabled={!movement || movement.stationary || useGeometryForEnd}
-              step='1' />
+              step='1' min='1'
+            />
             <InputGroupAddon>KT</InputGroupAddon>
           </InputGroup>
           <DrawSection data-field='drawbar'>
             {
               drawActions.map((actionItem, index) =>
                 <Button color='primary' key={actionItem.action + '_button'} data-field={actionItem.action + '_button'}
-                  active={actionItem.action === this.props.drawModeEnd} disabled={actionItem.disabled || !movement || movement.stationary || !useGeometryForEnd}
-                  id={actionItem.action + '_button'} title={actionItem.title} onClick={(evt) => dispatch(actions.drawAction(evt, uuid, actionItem.action, 'end'))}>
+                  active={actionItem.action === this.props.drawModeEnd}
+                  disabled={actionItem.disabled || !movement || movement.stationary || !useGeometryForEnd}
+                  id={actionItem.action + '_button'} title={actionItem.title}
+                  onClick={(evt) => dispatch(actions.drawAction(evt, uuid, actionItem.action, 'end'))}>
                   <Icon name={actionItem.icon} />
                 </Button>
               )
