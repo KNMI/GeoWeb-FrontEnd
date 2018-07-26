@@ -2,7 +2,7 @@
   $base-color: #017daf;
   $base-inner-color: #fff;
   $hover-color: #8fd6ef;
-  $disabled-color: #777;
+  $disabled-color: #999;
   $disabled-inner-color: #eee;
   $transition: background 0.4s, margin 0.4s;
   width: 100%;
@@ -70,6 +70,7 @@
   }
   input:disabled ~ span.checkbox::before {
     background: $disabled-inner-color;
+    box-shadow: unset;
   }
   label:not(.disabled):hover {
     cursor: pointer;

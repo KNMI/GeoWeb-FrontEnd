@@ -366,10 +366,36 @@ const updateSigmet = (uuid, dataField, value, container) => {
 };
 
 const updateSigmetLevel = (uuid, dataField, context, container) => {
+  const indices = findCategoryAndSigmetIndex(uuid, container.state);
+  if (indices.categoryIndex === -1 || indices.sigmetIndex === -1) {
+    return;
+  }
   let newLevelInfo = {};
   switch (dataField) {
     case 'mode':
       newLevelInfo.mode = context;
+      const betwModes = [MODES_LVL.BETW, MODES_LVL.BETW_SFC];
+      const prevLevelInfo = container.state.categories[indices.categoryIndex].sigmets[indices.sigmetIndex].levelinfo;
+      let modeCatChange = false;
+      if ((betwModes.includes(context) && !betwModes.includes(prevLevelInfo.mode)) ||
+          (!betwModes.includes(context) && betwModes.includes(prevLevelInfo.mode))) {
+        modeCatChange = true;
+      }
+      newLevelInfo = produce(SIGMET_TEMPLATES.LEVELINFO, (draftLevelInfo) => {
+        draftLevelInfo.mode = context;
+        draftLevelInfo.levels.length = 0;
+        [0, 1].forEach((index) => {
+          draftLevelInfo.levels.push(produce(SIGMET_TEMPLATES.LEVEL, (draftLevel) => {
+            if (modeCatChange !== true && prevLevelInfo.levels[index]) {
+              Object.entries(draftLevel).forEach((entry) => {
+                draftLevel[entry[0]] = prevLevelInfo.levels[index][entry[0]];
+              });
+            } else {
+              draftLevel.unit = UNITS.FL;
+            }
+          }));
+        });
+      });
       break;
     case 'unit':
       if (UNITS_ALT.includes(context.unit) && typeof context.isUpperLevel === 'boolean') {
@@ -388,23 +414,20 @@ const updateSigmetLevel = (uuid, dataField, context, container) => {
   }
   container.setState(produce(container.state, draftState => {
     if (Object.keys(newLevelInfo).length > 0) {
-      const indices = findCategoryAndSigmetIndex(uuid, draftState);
-      if (indices.categoryIndex !== -1 && indices.sigmetIndex !== -1) {
-        if (newLevelInfo.mode && typeof newLevelInfo.mode === 'string') {
-          draftState.categories[indices.categoryIndex].sigmets[indices.sigmetIndex]['levelinfo']['mode'] = newLevelInfo.mode;
-          if (newLevelInfo.mode !== MODES_LVL.BETW) {
-            draftState.categories[indices.categoryIndex].sigmets[indices.sigmetIndex]['levelinfo']['levels'][1].value = null;
+      if (newLevelInfo.mode && typeof newLevelInfo.mode === 'string') {
+        draftState.categories[indices.categoryIndex].sigmets[indices.sigmetIndex]['levelinfo']['mode'] = newLevelInfo.mode;
+        if (newLevelInfo.mode !== MODES_LVL.BETW) {
+          draftState.categories[indices.categoryIndex].sigmets[indices.sigmetIndex]['levelinfo']['levels'][1].value = null;
+        }
+      }
+      if (newLevelInfo.levels && Array.isArray(newLevelInfo.levels)) {
+        newLevelInfo.levels.map((level, index) => {
+          if (typeof level === 'object') {
+            Object.entries(level).map((entry) => {
+              draftState.categories[indices.categoryIndex].sigmets[indices.sigmetIndex]['levelinfo']['levels'][index][entry[0]] = entry[1];
+            });
           }
-        }
-        if (newLevelInfo.levels && Array.isArray(newLevelInfo.levels)) {
-          newLevelInfo.levels.map((level, index) => {
-            if (typeof level === 'object') {
-              Object.entries(level).map((entry) => {
-                draftState.categories[indices.categoryIndex].sigmets[indices.sigmetIndex]['levelinfo']['levels'][index][entry[0]] = entry[1];
-              });
-            }
-          });
-        }
+        });
       }
     }
   }));
@@ -526,6 +549,20 @@ const createFirIntersection = (featureId, geojson, container) => {
 const modifyFocussedSigmet = (dataField, value, container) => {
   container.setState(produce(container.state, draftState => {
     draftState.focussedSigmet[dataField] = value;
+    switch (dataField) {
+      case 'useGeometryForEnd': {
+        if (value === true) {
+          const indices = findCategoryAndSigmetIndex(draftState.focussedSigmet.uuid, draftState);
+          if (indices.categoryIndex !== -1 && indices.sigmetIndex !== -1) {
+            draftState.categories[indices.categoryIndex].sigmets[indices.sigmetIndex]['movement'] = produce(SIGMET_TEMPLATES.MOVEMENT,
+              movementDraftState => { movementDraftState.stationary = false; });
+          }
+        }
+        break;
+      }
+      default:
+        break;
+    }
   }));
 };
 

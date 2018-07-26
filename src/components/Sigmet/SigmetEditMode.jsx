@@ -1,9 +1,8 @@
 import React, { PureComponent } from 'react';
 import {
-  Button, Col, Alert, InputGroup, InputGroupAddon, Input, FormGroup, Label, InputGroupButton, ButtonDropdown,
+  Button, Col, Alert, InputGroup, InputGroupAddon, Input, InputGroupButton, ButtonDropdown,
   DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap';
 import { Typeahead } from 'react-bootstrap-typeahead';
-import SwitchButton from 'lyef-switch-button';
 import DateTimePicker from 'react-datetime';
 import produce from 'immer';
 import moment from 'moment';
@@ -23,7 +22,7 @@ import MovementSection from './Sections/MovementSection';
 import IssueSection from './Sections/IssueSection';
 import ChangeSection from './Sections/ChangeSection';
 import HeightsSection from './Sections/HeightsSection';
-import { DIRECTIONS, UNITS_ALT, MODES_LVL, MODES_LVL_OPTIONS, CHANGES, SIGMET_TYPES } from './SigmetTemplates';
+import { DIRECTIONS, UNITS_ALT, MODES_LVL, MODES_LVL_OPTIONS, CHANGES, SIGMET_TYPES, SIGMET_TEMPLATES } from './SigmetTemplates';
 
 const DATE_FORMAT = 'DD MMM YYYY';
 const TIME_FORMAT = 'HH:mm UTC';
@@ -261,7 +260,7 @@ class SigmetEditMode extends PureComponent {
           <Typeahead filterBy={['firname', 'location_indicator_icao']} labelKey='firname' data-field='firname'
             options={availableFirs}
             onFocus={() => {
-              dispatch(actions.updateSigmetAction(uuid, 'firname', null))
+              dispatch(actions.updateSigmetAction(uuid, 'firname', null));
               dispatch(actions.updateSigmetAction(uuid, 'location_indicator_icao', null));
               dispatch(actions.updateFir(null));
             }}
@@ -385,7 +384,7 @@ class SigmetEditMode extends PureComponent {
             value={movement && !movement.stationary ? 'mov' : 'stat'}
             checkedOption={{ optionId: 'mov', label: 'Move' }}
             unCheckedOption={{ optionId: 'stat', label: 'Stationary' }}
-            onChange={(evt) => dispatch(actions.updateSigmetAction(uuid, 'movement', { ...movement, stationary: !evt.target.checked }))}
+            onChange={(evt) => dispatch(actions.updateSigmetAction(uuid, 'movement', { ...SIGMET_TEMPLATES.MOVEMENT, stationary: !evt.target.checked }))}
             data-field='movement'
           />
         </ProgressSection>

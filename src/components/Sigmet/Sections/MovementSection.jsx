@@ -15,9 +15,9 @@ export default class MovementSection extends PureComponent {
       });
     }
 
-    return <Row className={this.props.disabled ? 'Move disabled' : 'Move'}>
+    return <Row className='Move'>
       <Col>
-        <Row>
+        <Row className={this.props.disabled ? 'disabled' : null}>
           <Col xs='3'>
             <Badge color='success'>Move</Badge>
           </Col>
@@ -30,7 +30,7 @@ export default class MovementSection extends PureComponent {
             {children.drawbar}
           </Col>
         </Row>
-        <Row className={this.props.useGeometryForEnd ? 'disabled' : null}>
+        <Row className={this.props.disabled || this.props.useGeometryForEnd ? 'disabled' : null}>
           <Col xs={{ size: 2, offset: 1 }}>
             <Badge>Direction</Badge>
           </Col>
@@ -38,7 +38,7 @@ export default class MovementSection extends PureComponent {
             {children.direction}
           </Col>
         </Row>
-        <Row className={this.props.useGeometryForEnd ? 'disabled' : null}>
+        <Row className={this.props.disabled || this.props.useGeometryForEnd ? 'disabled' : null}>
           <Col xs={{ size: 2, offset: 1 }}>
             <Badge>Speed</Badge>
           </Col>

@@ -233,14 +233,29 @@
   }
 
   .row.disabled {
-    background-color: #eee;
+    background-color: #f4f4f4;
+    box-shadow: inset 0.1rem 0.1rem 0.1rem rgba(175, 175, 175, 0.3);
+    border-radius: 0.2rem 0 0 0.2rem;
+  }
+  .row.disabled .row {
+    border-top: unset;
+  }
+  .disabled .form-control:disabled, .disabled .btn-secondary:disabled {
+    background: #f4f4f4;
+  }
+  .row.disabled ~ .disabled {
+    border-radius: unset;
+    box-shadow: inset 0.1rem 0 0.1rem rgba(175, 175, 175, 0.3);
   }
 
   label {
     padding-top: 0.2rem;
     font-size: inherit;
     font-family: inherit;
-    color: #666666;
+    color: #666;
+  }
+  .disabled label, .disabled span:not(.fa):not(.badge), .disabled input::placeholder, .disabled button.dropdown-toggle {
+    color: #999;
   }
 
   .badge {
