@@ -129,8 +129,54 @@ class SigmetEditMode extends PureComponent {
       now.clone().add(maxHoursInAdvance + maxHoursDuration, 'hour').isSameOrAfter(timestamp));
   };
 
+  /**
+* Add disabled flag to abilities
+* @param {object} ability The ability to provide the flag for
+* @param {boolean} isInValidityPeriod Whether or not the referred Sigmet is active
+* @param {string} selectedPhenomenon The phenomenon which is selected
+* @returns {boolean} Whether or not is should be disabled
+*/
+  getDisabledFlag (abilityRef, isInValidityPeriod, selectedPhenomenon) {
+    const { copiedSigmetRef, hasEdits } = this.props;
+    if (!abilityRef) {
+      return false;
+    }
+    switch (abilityRef) {
+      case EDIT_ABILITIES.PASTE['dataField']:
+        return !copiedSigmetRef;
+      case EDIT_ABILITIES.DISCARD['dataField']:
+        return !hasEdits;
+      case EDIT_ABILITIES.SAVE['dataField']:
+        return !hasEdits || !selectedPhenomenon;
+      default:
+        return false;
+    }
+  }
+
+  /**
+   * Reduce the available abilities for this specific Sigmet
+   * @param {string} selectedPhenomenon The selectedPhenomenon
+   * @returns {array} The remaining abilities for this specific Sigmet
+   */
+  reduceAbilities (selectedPhenomenon) {
+    const { abilities, validdate, validdateEnd } = this.props;
+    const abilitiesCtAs = []; // CtA = Call To Action
+    const now = moment.utc();
+    const isInValidityPeriod = !now.isBefore(validdate) && !now.isAfter(validdateEnd);
+    if (focus) {
+      Object.values(EDIT_ABILITIES).map((ability) => {
+        if (abilities[ability.check] === true) {
+          ability.disabled = this.getDisabledFlag(ability.dataField, isInValidityPeriod, selectedPhenomenon);
+          abilitiesCtAs.push(ability);
+        }
+      });
+      abilitiesCtAs.sort(byEditAbilities);
+    }
+    return abilitiesCtAs;
+  }
+
   render () {
-    const { dispatch, actions, abilities, availablePhenomena, useGeometryForEnd,
+    const { dispatch, actions, availablePhenomena, useGeometryForEnd,
       availableFirs, levelinfo, movement, focus, uuid, locationIndicatorMwo, change,
       phenomenon, isObserved, obsFcTime, validdate, maxHoursInAdvance, maxHoursDuration, validdateEnd, locationIndicatorIcao } = this.props;
     const selectedPhenomenon = availablePhenomena.filter((ph) => ph.code === phenomenon).shift();
@@ -169,15 +215,7 @@ class SigmetEditMode extends PureComponent {
       }
     ];
     const now = moment.utc();
-    const abilityCtAs = []; // CtA = Call to Action
-    if (focus) {
-      Object.values(EDIT_ABILITIES).map((ability) => {
-        if (abilities[ability.check] === true) {
-          abilityCtAs.push(ability);
-        }
-      });
-      abilityCtAs.sort(byEditAbilities);
-    }
+    const abilityCtAs = this.reduceAbilities(selectedPhenomenon); // CtA = Call To Action
     return <Button tag='div' className={`Sigmet row${focus ? ' focus' : ''}`} id={uuid} onClick={!focus ? (evt) => dispatch(actions.focusSigmetAction(evt, uuid)) : null}>
       <Col>
         <WhatSection>
@@ -464,6 +502,7 @@ class SigmetEditMode extends PureComponent {
             <Button key={`action-${ability.dataField}`}
               data-field={ability.dataField}
               color='primary'
+              disabled={ability.disabled}
               onClick={(evt) => dispatch(actions[ability.action](evt, uuid))}>
               {ability.label}
             </Button>
@@ -485,6 +524,8 @@ SigmetEditMode.propTypes = {
     saveSigmetAction: PropTypes.func
   }),
   abilities: PropTypes.shape(abilitiesPropTypes),
+  copiedSigmetRef: PropTypes.string,
+  hasEdits: PropTypes.bool,
   availablePhenomena: PropTypes.array,
   focus: PropTypes.bool,
   uuid: PropTypes.string,

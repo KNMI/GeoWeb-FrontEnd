@@ -107,6 +107,9 @@ class SigmetsContainer extends Component {
                     dispatch={this.localDispatch}
                     actions={LOCAL_ACTIONS}
                     phenomena={this.state.phenomena}
+                    tacs={this.state.tacs}
+                    copiedSigmetRef={this.state.copiedSigmetRef}
+                    hasEdits={this.state.focussedSigmet.hasEdits}
                     hasStartCoordinates={hasStartCoordinates}
                     hasEndCoordinates={hasEndCoordinates}
                     parameters={this.state.parameters} />

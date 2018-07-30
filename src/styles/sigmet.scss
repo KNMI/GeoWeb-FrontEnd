@@ -215,6 +215,14 @@
     }
   }
 
+  .Issue {
+    span.tac {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 27rem;
+    }
+  }
+
   .Action {
     border-top: 0.06rem solid #eee;
     padding-top: 0.33rem;

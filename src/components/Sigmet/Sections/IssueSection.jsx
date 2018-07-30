@@ -35,6 +35,14 @@ export default class IssueSection extends PureComponent {
             </Col>
           </Row>
           : null}
+        <Row>
+          <Col xs={{ size: 2, offset: 1 }}>
+            <Badge>TAC</Badge>
+          </Col>
+          <Col xs='9'>
+            {children.tac}
+          </Col>
+        </Row>
       </Col>
     </Row>;
   }

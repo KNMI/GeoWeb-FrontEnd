@@ -37,7 +37,7 @@ const toggleContainer = (evt, container) => {
 };
 
 const toggleCategory = (evt, ref, container) => {
-  const { dispatch, mapActions } = container.props;
+  const { dispatch, mapActions, drawActions } = container.props;
   if (evt) {
     evt.preventDefault();
   }
@@ -52,7 +52,11 @@ const toggleCategory = (evt, ref, container) => {
       : ref;
   }), () => {
     dispatch(mapActions.setMapMode('pan'));
-    setSigmetDrawing(null, container);
+    if (ref === CATEGORY_REFS.ADD_SIGMET) {
+      dispatch(drawActions.setGeoJSON(initialGeoJson()));
+    } else {
+      setSigmetDrawing(null, container);
+    }
   });
 };
 
@@ -75,6 +79,9 @@ const updateCategory = (ref, sigmets, container, callback = () => {}) => {
       sigmets.sort(byValidDate);
       sigmets.forEach((incomingSigmet) => {
         draftState.categories[categoryIndex].sigmets.push(mergeInTemplate(incomingSigmet, 'SIGMET', SIGMET_TEMPLATES));
+        if (incomingSigmet.uuid) {
+          retrieveTAC(incomingSigmet.uuid, container);
+        }
       });
     }
   }), callback);
@@ -98,7 +105,6 @@ const retrieveParameters = (container) => {
 const receivedParametersCallback = (response, container) => {
   if (response.status === 200 && response.data) {
     updateParameters(response.data, container);
-    addSigmet(CATEGORY_REFS.ADD_SIGMET, container);
   } else {
     console.error(ERROR_MSG.RETRIEVE_PARAMS, response.status, response.data);
   }
@@ -129,7 +135,6 @@ const retrievePhenomena = (container) => {
 const receivedPhenomenaCallback = (response, container) => {
   if (response.status === 200 && response.data) {
     updatePhenomena(response.data, container);
-    addSigmet(CATEGORY_REFS.ADD_SIGMET, container);
   } else {
     console.error(ERROR_MSG.RETRIEVE_PARAMS, response.status, response.data);
   }
@@ -360,6 +365,7 @@ const updateSigmet = (uuid, dataField, value, container) => {
           }
         }
         draftState.categories[indices.categoryIndex].sigmets[indices.sigmetIndex][dataField] = value;
+        draftState.focussedSigmet.hasEdits = true;
       }
     }
   }));
@@ -429,8 +435,18 @@ const updateSigmetLevel = (uuid, dataField, context, container) => {
           }
         });
       }
+      draftState.focussedSigmet.hasEdits = true;
     }
   }));
+};
+
+const clearRelatedIntersection = (featureId, features, dispatch, drawActions) => {
+  const relatedIntersection = features.find((feature) =>
+    feature.properties.featureFunction === 'intersection' && feature.properties.relatesTo === featureId
+  );
+  if (relatedIntersection) {
+    dispatch(drawActions.setFeature({ coordinates: [], selectionType: 'poly', featureId: relatedIntersection.id }));
+  }
 };
 
 const drawSigmet = (event, uuid, container, action, featureFunction) => {
@@ -449,18 +465,22 @@ const drawSigmet = (event, uuid, container, action, featureFunction) => {
     case 'select-point':
       dispatch(mapActions.setMapMode('draw'));
       dispatch(drawActions.setFeatureEditPoint());
+      dispatch(drawActions.setFeature({ coordinates: [], selectionType: 'point', featureId }));
+      clearRelatedIntersection(featureId, features, dispatch, drawActions);
       modifyFocussedSigmet(drawMode, action, container);
       break;
     case 'select-region':
       dispatch(mapActions.setMapMode('draw'));
       dispatch(drawActions.setFeatureEditBox());
       dispatch(drawActions.setFeature({ coordinates: [], selectionType: 'box', featureId }));
+      clearRelatedIntersection(featureId, features, dispatch, drawActions);
       modifyFocussedSigmet(drawMode, action, container);
       break;
     case 'select-shape':
       dispatch(mapActions.setMapMode('draw'));
       dispatch(drawActions.setFeatureEditPolygon());
       dispatch(drawActions.setFeature({ coordinates: [], selectionType: 'poly', featureId }));
+      clearRelatedIntersection(featureId, features, dispatch, drawActions);
       modifyFocussedSigmet(drawMode, action, container);
       break;
     case 'select-fir':
@@ -469,17 +489,13 @@ const drawSigmet = (event, uuid, container, action, featureFunction) => {
       dispatch(mapActions.setMapMode('pan'));
       dispatch(drawActions.setFeatureEditPolygon());
       dispatch(drawActions.setFeature({ coordinates, selectionType: 'poly', featureId }));
+      clearRelatedIntersection(featureId, features, dispatch, drawActions);
       modifyFocussedSigmet(drawMode, action, container);
       break;
     case 'delete-selection':
       dispatch(mapActions.setMapMode('pan'));
       dispatch(drawActions.setFeature({ coordinates: [], selectionType: 'poly', featureId }));
-      const relatedIntersection = features.find((feature) =>
-        feature.properties.featureFunction === 'intersection' && feature.properties.relatesTo === featureId
-      );
-      if (relatedIntersection) {
-        dispatch(drawActions.setFeature({ coordinates: [], selectionType: 'poly', featureId: relatedIntersection.id }));
-      }
+      clearRelatedIntersection(featureId, features, dispatch, drawActions);
       modifyFocussedSigmet(drawMode, null, container);
       break;
     default:
@@ -489,8 +505,9 @@ const drawSigmet = (event, uuid, container, action, featureFunction) => {
 };
 
 const complementFeatureCoordinates = (feature, container) => {
-  const result = { complemented: false, coordinates: cloneDeep(feature.geometry.coordinates) };
+  const result = { complemented: false, coordinates: [] };
   if (container.featureHasCoordinates(feature)) {
+    result.coordinates.push(...feature.geometry.coordinates);
     if (result.coordinates[0][0] !== result.coordinates[0][result.coordinates[0].length - 1]) {
       result.coordinates[0].push(result.coordinates[0][0]);
       result.complemented = true;
@@ -549,6 +566,7 @@ const createFirIntersection = (featureId, geojson, container) => {
 const modifyFocussedSigmet = (dataField, value, container) => {
   container.setState(produce(container.state, draftState => {
     draftState.focussedSigmet[dataField] = value;
+    draftState.focussedSigmet.hasEdits = true;
     switch (dataField) {
       case 'useGeometryForEnd': {
         if (value === true) {
@@ -568,6 +586,7 @@ const modifyFocussedSigmet = (dataField, value, container) => {
 
 const clearSigmet = (event, uuid, container) => {
   const { dispatch } = container.props;
+  event.stopPropagation();
   addSigmet(container.state.focussedCategoryRef, container);
   dispatch(notify({
     title: 'Sigmet cleared',
@@ -581,6 +600,7 @@ const clearSigmet = (event, uuid, container) => {
 
 const discardSigmet = (event, uuid, container) => {
   const { dispatch, mapActions } = container.props;
+  event.stopPropagation();
   dispatch(notify({
     title: 'Changes discarded',
     message: 'The changes are successfully discarded',
@@ -592,6 +612,7 @@ const discardSigmet = (event, uuid, container) => {
   retrieveSigmets(container, () => {
     container.setState(produce(container.state, draftState => {
       draftState.focussedSigmet.mode = SIGMET_MODES.READ;
+      draftState.focussedSigmet.hasEdits = false;
       dispatch(mapActions.setMapMode('pan'));
     }));
   });
@@ -599,15 +620,16 @@ const discardSigmet = (event, uuid, container) => {
 
 const saveSigmet = (event, uuid, container) => {
   const { drawProperties, urls, dispatch, mapActions } = container.props;
+  event.stopPropagation();
   event.preventDefault();
   if (container.state.focussedSigmet.uuid !== uuid) {
     return;
   }
-  const activeCategory = container.state.categories.find((category) => category.ref === container.state.focussedCategoryRef);
-  if (!activeCategory) {
+  const indices = findCategoryAndSigmetIndex(uuid, container.state);
+  if (indices.categoryIndex === -1 || indices.sigmetIndex === -1) {
     return;
   }
-  const affectedSigmet = activeCategory.sigmets.find((sigmet) => sigmet.uuid === uuid);
+  const affectedSigmet = container.state.categories[indices.categoryIndex].sigmets[indices.sigmetIndex];
   if (!affectedSigmet) {
     return;
   }
@@ -674,6 +696,7 @@ const saveSigmet = (event, uuid, container) => {
       // Set mode to READ, set focus of category and Sigmet, and clear new Sigmet
       container.setState(produce(container.state, draftState => {
         draftState.focussedSigmet.mode = SIGMET_MODES.READ;
+        draftState.focussedSigmet.hasEdits = false;
         const indices = findCategoryAndSigmetIndex(response.data.uuid, draftState);
         if (indices.categoryIndex !== -1 && indices.sigmetIndex !== -1) {
           const catRef = draftState.categories[indices.categoryIndex].ref;
@@ -702,6 +725,7 @@ const saveSigmet = (event, uuid, container) => {
 
 const editSigmet = (event, uuid, container) => {
   const { dispatch, mapActions } = container.props;
+  event.stopPropagation();
   container.setState(produce(container.state, draftState => {
     draftState.focussedSigmet.uuid = uuid;
     draftState.focussedSigmet.mode = SIGMET_MODES.EDIT;
@@ -716,7 +740,8 @@ const editSigmet = (event, uuid, container) => {
 */
 const deleteSigmet = (event, uuid, container) => {
   const { state, props } = container;
-  const { dispatch } = props;
+  const { dispatch, mapActions } = props;
+  event.stopPropagation();
   const { BACKEND_SERVER_URL } = props.urls;
   if (!uuid || !BACKEND_SERVER_URL) {
     return;
@@ -749,7 +774,10 @@ const deleteSigmet = (event, uuid, container) => {
               draftState.focussedCategoryRef = catRef;
             }
           }
-        }));
+        }), () => {
+          dispatch(mapActions.setMapMode('pan'));
+          setSigmetDrawing(null, container);
+        });
       });
     }).catch(error => {
       console.error('Couldn\'t delete Sigmet', error);
@@ -774,18 +802,21 @@ const deleteSigmet = (event, uuid, container) => {
 const copySigmet = (event, uuid, container) => {
   const { state } = container;
   const { dispatch } = container.props;
+  event.stopPropagation();
   const indices = findCategoryAndSigmetIndex(uuid, state);
   if (indices.categoryIndex !== -1 && indices.sigmetIndex !== -1) {
     container.setState(produce(state, draftState => {
       draftState.copiedSigmetRef = uuid;
-    }), () => dispatch(notify({
-      title: 'Sigmet copied',
-      message: 'The properties of this Sigmet have been copied successfully',
-      status: 'success',
-      position: 'bl',
-      dismissible: true,
-      dismissAfter: 3000
-    })));
+    }), () => {
+      dispatch(notify({
+        title: 'Sigmet copied',
+        message: 'The properties of this Sigmet have been copied successfully' + uuid,
+        status: 'success',
+        position: 'bl',
+        dismissible: true,
+        dismissAfter: 3000
+      }));
+    });
   }
 };
 
@@ -796,7 +827,8 @@ const copySigmet = (event, uuid, container) => {
  */
 const pasteSigmet = (event, container) => {
   const { state } = container;
-  const { dispatch } = container.props;
+  const { dispatch, drawActions } = container.props;
+  event.stopPropagation();
   const indicesCopiedSigmet = findCategoryAndSigmetIndex(state.copiedSigmetRef, state);
   const indicesCurrentSigmet = findCategoryAndSigmetIndex(state.focussedSigmet.uuid, state);
   if (indicesCopiedSigmet.categoryIndex !== -1 && indicesCopiedSigmet.sigmetIndex !== -1 &&
@@ -826,18 +858,22 @@ const pasteSigmet = (event, container) => {
         }
       });
       draftState.copiedSigmetRef = null;
-    }), () => dispatch(notify({
-      title: 'Sigmet pasted',
-      message: 'The copied properties have been pasted successfully into the current Sigmet',
-      status: 'success',
-      position: 'bl',
-      dismissible: true,
-      dismissAfter: 3000
-    })));
+    }), () => {
+      dispatch(drawActions.setGeoJSON(copiedSigmet.geojson));
+      dispatch(notify({
+        title: 'Sigmet pasted',
+        message: 'The copied properties have been pasted successfully into the current Sigmet',
+        status: 'success',
+        position: 'bl',
+        dismissible: true,
+        dismissAfter: 3000
+      }));
+    });
   }
 };
 
 const publishSigmet = (event, uuid, container) => {
+  event.stopPropagation();
   container.setState(produce(container.state, draftState => {
     const indices = findCategoryAndSigmetIndex(uuid, draftState);
     if (indices.categoryIndex !== -1 && indices.sigmetIndex !== -1) {
@@ -846,35 +882,37 @@ const publishSigmet = (event, uuid, container) => {
   }), () => saveSigmet(event, uuid, container));
 };
 
-const showTAC = (event, uuid, container) => {
-  event.preventDefault();
+const retrieveTAC = (uuid, container) => {
   const { urls } = container.props;
+
+  if (!uuid) {
+    return;
+  }
 
   axios({
     method: 'get',
     url: `${urls.BACKEND_SERVER_URL}/sigmets/${uuid}`,
     withCredentials: true,
-    responseType: 'text/plain',
+    responseType: 'text',
     headers: {
       'Accept': 'text/plain'
     }
-  }).then((res) => {
-    const tab = window.open('about:blank', '_blank');
-    tab.document.write(res.data); // where 'html' is a variable containing your HTML
-    tab.document.close(); // to finish loading the page
-
-    // window.open('data:text/plain,' + encodeURIComponent(res.data));
+  }).then((response) => {
+    const indexExisting = container.state.tacs.findIndex((tac) => tac.uuid === uuid);
+    container.setState(produce(container.state, draftState => {
+      if (indexExisting !== -1) {
+        draftState.tacs[indexExisting].code = response.data;
+      } else {
+        draftState.tacs.push({ uuid: uuid, code: response.data });
+      }
+    }));
+  }).catch(error => {
+    console.error('Couldn\'t retrieve TAC for Sigmet', error);
   });
 };
 
-const showIWXXM = (event, uuid, container) => {
-  event.preventDefault();
-  const { urls } = container.props;
-
-  window.open(`${urls.BACKEND_SERVER_URL}/sigmets/${uuid}`);
-};
-
 const cancelSigmet = (event, uuid, container) => {
+  event.stopPropagation();
   container.setState(produce(container.state, draftState => {
     const indices = findCategoryAndSigmetIndex(uuid, draftState);
     if (indices.categoryIndex !== -1 && indices.sigmetIndex !== -1) {
@@ -888,15 +926,11 @@ const setSigmetDrawing = (uuid, container) => {
   if (container.state.focussedSigmet.uuid !== uuid) {
     return;
   }
-  const activeCategory = container.state.categories.find((category) => category.ref === container.state.focussedCategoryRef);
-  if (!activeCategory) {
+  const indices = findCategoryAndSigmetIndex(uuid, container.state);
+  if (indices.categoryIndex === -1 || indices.sigmetIndex === -1) {
     return;
   }
-  const affectedSigmet = activeCategory.sigmets.find((sigmet) => sigmet.uuid === uuid);
-  if (!affectedSigmet) {
-    return;
-  }
-
+  const affectedSigmet = container.state.categories[indices.categoryIndex].sigmets[indices.sigmetIndex];
   dispatch(drawActions.setGeoJSON(affectedSigmet.geojson));
 };
 
@@ -974,12 +1008,6 @@ export default (localAction, container) => {
       break;
     case LOCAL_ACTION_TYPES.MODIFY_FOCUSSED_SIGMET:
       modifyFocussedSigmet(localAction.dataField, localAction.value, container);
-      break;
-    case LOCAL_ACTION_TYPES.SHOW_IWXXM:
-      showIWXXM(localAction.event, localAction.uuid, container);
-      break;
-    case LOCAL_ACTION_TYPES.SHOW_TAC:
-      showTAC(localAction.event, localAction.uuid, container);
       break;
     case LOCAL_ACTION_TYPES.SET_DRAWING:
       setSigmetDrawing(localAction.uuid, container);

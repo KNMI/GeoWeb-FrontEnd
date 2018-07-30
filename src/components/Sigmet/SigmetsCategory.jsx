@@ -9,7 +9,7 @@ import SigmetReadMode from './SigmetReadMode';
 
 class SigmetsCategory extends PureComponent {
   render () {
-    const { typeRef, title, icon, sigmets, focussedSigmet, isOpen, dispatch, actions, abilities, phenomena, parameters } = this.props;
+    const { typeRef, title, icon, sigmets, focussedSigmet, copiedSigmetRef, hasEdits, tacs, isOpen, dispatch, actions, abilities, phenomena, parameters } = this.props;
     const maxSize = 10000; // for now, arbitrairy big
     const itemLimit = 15;
     const isOpenable = (isOpen || (!isOpen && sigmets.length > 0));
@@ -44,6 +44,8 @@ class SigmetsCategory extends PureComponent {
                           dispatch={dispatch}
                           actions={actions}
                           abilities={abilities[SIGMET_MODES.EDIT]}
+                          copiedSigmetRef={copiedSigmetRef}
+                          hasEdits={hasEdits}
                           availablePhenomena={phenomena}
                           phenomenon={sigmet.phenomenon}
                           focus
@@ -73,8 +75,10 @@ class SigmetsCategory extends PureComponent {
                         dispatch={dispatch}
                         actions={actions}
                         abilities={abilities[SIGMET_MODES.READ]}
+                        copiedSigmetRef={copiedSigmetRef}
                         focus={focussedSigmet.uuid === sigmet.uuid}
                         uuid={sigmet.uuid}
+                        tac={tacs && tacs.find((tac) => tac.uuid === sigmet.uuid)}
                         obsFcTime={sigmet.obs_or_forecast ? sigmet.obs_or_forecast.obsFcTime : null}
                         phenomenon={sigmet.phenomenon}
                         isObserved={sigmet.obs_or_forecast ? sigmet.obs_or_forecast.obs : null}
@@ -87,7 +91,10 @@ class SigmetsCategory extends PureComponent {
                         locationIndicatorMwo={sigmet.location_indicator_mwo}
                         levelinfo={sigmet.levelinfo}
                         movement={sigmet.movement}
-                        change={sigmet.change} />;
+                        change={sigmet.change}
+                        maxHoursInAdvance={parameters.hoursbeforevalidity}
+                        maxHoursDuration={parameters.maxhoursofvalidity}
+                      />;
                     })}
                   </Col>
                 </Row>
@@ -116,6 +123,7 @@ SigmetsCategory.propTypes = {
     uuid: PropTypes.string,
     state: PropTypes.string
   }),
+  hasEdits: PropTypes.bool,
   isOpen: PropTypes.bool,
   abilities: PropTypes.shape(abilitiesPropTypes),
   dispatch: PropTypes.func,
@@ -126,7 +134,12 @@ SigmetsCategory.propTypes = {
   hasEndCoordinates: PropTypes.bool,
   parameters: PropTypes.shape({
     firareas: PropTypes.array
-  })
+  }),
+  tacs: PropTypes.arrayOf(PropTypes.shape({
+    uuid: PropTypes.string,
+    code: PropTypes.string
+  })),
+  copiedSigmetRef: PropTypes.string
 };
 
 export default SigmetsCategory;
