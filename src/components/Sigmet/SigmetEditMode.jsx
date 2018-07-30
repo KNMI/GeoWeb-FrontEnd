@@ -148,12 +148,12 @@ class SigmetEditMode extends PureComponent {
         icon: 'circle'
       }, */
       {
-        title: 'Select region',
+        title: 'Draw region',
         action: 'select-region',
         icon: 'retweet'
       },
       {
-        title: 'Select shape',
+        title: 'Draw shape',
         action: 'select-shape',
         icon: 'pencil'
       },
@@ -163,7 +163,7 @@ class SigmetEditMode extends PureComponent {
         icon: 'globe'
       },
       {
-        title: 'Delete selection',
+        title: 'Delete drawing',
         action: 'delete-selection',
         icon: 'trash'
       }
@@ -293,12 +293,12 @@ class SigmetEditMode extends PureComponent {
           }
           {!this.props.hasStartCoordinates
             ? <Alert data-field='drawing_alert' color='danger'>
-                Please use one of the selection tools above to indicate on the map where the phenomenon is {isObserved ? ' observed.' : ' expected to occur.'}
+                Please use one of the drawing tools above to indicate on the map where the phenomenon is {isObserved ? ' observed.' : ' expected to occur.'}
             </Alert>
             : null}
         </DrawSection>
 
-        <HeightsSection isLevelBetween={isLevelBetween}>
+        <HeightsSection isLevelBetween={isLevelBetween} hasSurface={levelMode.hasSurface}>
           <RadioGroup
             value={levelMode.extent}
             options={MODES_LVL_OPTIONS}
@@ -313,7 +313,9 @@ class SigmetEditMode extends PureComponent {
             disabled={isLevelBetween}
           />
           <label data-field='at-above-toggle'>{atOrAboveLabel}</label>
-          <InputGroup data-field='at-above-altitude'>
+          <InputGroup data-field='at-above-altitude'
+            className={!isLevelBetween && levelinfo && levelinfo.levels && levelinfo.levels[0] && !levelinfo.levels[0].value ? 'missing' : null}
+            disabled={isLevelBetween}>
             <InputGroupButton>
               <ButtonDropdown toggle={() => null}>
                 <DropdownToggle caret disabled={isLevelBetween}>
@@ -332,6 +334,8 @@ class SigmetEditMode extends PureComponent {
               onChange={(evt) => dispatch(actions.updateSigmetLevelAction(uuid, 'value', { value: evt.target.value, isUpperLevel: false }))} />
           </InputGroup>
           <Switch
+            className={isLevelBetween && !levelMode.hasSurface &&
+              levelinfo && levelinfo.levels && levelinfo.levels[0] && !levelinfo.levels[0].value ? 'missing' : null}
             value={levelMode.hasSurface ? 'sfc' : 'lvl'}
             checkedOption={{
               optionId: 'lvl',
@@ -359,7 +363,10 @@ class SigmetEditMode extends PureComponent {
             disabled={!isLevelBetween}
             data-field='between-lev-1'
           />
-          <InputGroup data-field='between-lev-2'>
+          <InputGroup
+            data-field='between-lev-2'
+            className={isLevelBetween && levelinfo && levelinfo.levels && levelinfo.levels[1] && !levelinfo.levels[1].value ? 'missing' : null}
+            disabled={!isLevelBetween}>
             <InputGroupButton>
               <ButtonDropdown toggle={() => null}>
                 <DropdownToggle caret disabled={!isLevelBetween}>
@@ -407,7 +414,7 @@ class SigmetEditMode extends PureComponent {
             className={movement && !movement.stationary && !useGeometryForEnd && !selectedDirection ? 'missing' : null}
             clearButton
           />
-          <InputGroup data-field='speed' className={movement && !movement.stationary && !useGeometryForEnd && !movement.speed ? 'missing' : null}
+          <InputGroup data-field='speed' className={movement && !movement.stationary && !useGeometryForEnd && !movement.speed ? 'unitAfter missing' : 'unitAfter'}
             disabled={!movement || movement.stationary || useGeometryForEnd}>
             <Input onChange={(evt) => dispatch(actions.updateSigmetAction(uuid, 'movement', { ...movement, speed: parseInt(evt.target.value) }))}
               value={(!movement || !movement.speed) ? '' : movement.speed}
@@ -431,7 +438,7 @@ class SigmetEditMode extends PureComponent {
 
             {movement && !movement.stationary && useGeometryForEnd && !this.props.hasEndCoordinates
               ? <Alert data-field='drawing_alert' color='danger'>
-                Please use one of the selection tools above to indicate on the map where the phenomenon is expected to be at the end of the valid period.
+                Please use one of the drawing tools above to indicate on the map where the phenomenon is expected to be at the end of the valid period.
               </Alert>
               : null}
           </DrawSection>

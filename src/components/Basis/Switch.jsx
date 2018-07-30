@@ -4,9 +4,9 @@ import PropTypes from 'prop-types';
 
 export default class Switch extends PureComponent {
   render () {
-    const { value, onChange, checkedOption, unCheckedOption, disabled } = this.props;
+    const { value, onChange, checkedOption, unCheckedOption, disabled, className } = this.props;
     const dataField = this.props['data-field'];
-    return <Row className='Switch'>
+    return <Row className={`Switch ${className}`}>
       <Col xs='auto'>
         <label className={disabled ? 'disabled' : null}>
           <span>{unCheckedOption.label}</span>
@@ -35,5 +35,6 @@ Switch.propTypes = {
     optionId: PropTypes.string,
     label: PropTypes.string
   }),
-  disabled: PropTypes.bool
+  disabled: PropTypes.bool,
+  className: PropTypes.string
 };

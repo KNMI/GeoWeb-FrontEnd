@@ -289,9 +289,12 @@
     color: #888;
     z-index: 100;
   }
-  .input-group + .required {
-    margin-left: -3.7rem;
+  .input-group + .required, .Switch + .required {
     padding-top: 0.6rem;
+  }
+
+  .input-group.unitAfter + .required {
+    margin-left: -3.7rem;
   }
 
   .required:after {

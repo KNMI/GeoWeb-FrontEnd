@@ -49,7 +49,7 @@ export default class MovementSection extends PureComponent {
           <Col xs='9'>
             {children.speed}
             {children.speed && children.speed.props && !children.speed.props.disabled
-              ? <span className={children.speed.props.className !== 'missing' ? 'required' : 'required missing'} />
+              ? <span className={children.speed.props.className.split(' ').includes('missing') ? 'required missing' : 'required'} />
               : null
             }
           </Col>

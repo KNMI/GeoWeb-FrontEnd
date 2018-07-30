@@ -4,9 +4,9 @@ import PropTypes from 'prop-types';
 
 export default class RadioGroup extends PureComponent {
   render () {
-    const { value, onChange, options, disabled } = this.props;
+    const { value, onChange, options, disabled, className } = this.props;
     const dataField = this.props['data-field'];
-    return <Row className='RadioGroup'>
+    return <Row className={`RadioGroup ${className}`}>
       {options.map((option) =>
         <Col xs='auto' key={`radioGroup-${option.optionId}`}>
           <label>
@@ -32,5 +32,6 @@ RadioGroup.propTypes = {
     label: PropTypes.string,
     disabled: PropTypes.bool
   })),
-  disabled: PropTypes.bool
+  disabled: PropTypes.bool,
+  className: PropTypes.string
 };

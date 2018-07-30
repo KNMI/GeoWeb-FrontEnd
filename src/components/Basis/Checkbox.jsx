@@ -4,9 +4,9 @@ import PropTypes from 'prop-types';
 
 export default class Checkbox extends PureComponent {
   render () {
-    const { value, onChange, option, disabled } = this.props;
+    const { value, onChange, option, disabled, className } = this.props;
     const dataField = this.props['data-field'];
-    return <Row className='Checkbox'>
+    return <Row className={`Checkbox ${className}`}>
       <Col xs='auto'>
         <label>
           <input type='checkbox' data-field={dataField}
@@ -31,5 +31,6 @@ Checkbox.propTypes = {
     label: PropTypes.string,
     disabled: PropTypes.bool
   }),
-  disabled: PropTypes.bool
+  disabled: PropTypes.bool,
+  className: PropTypes.string
 };
