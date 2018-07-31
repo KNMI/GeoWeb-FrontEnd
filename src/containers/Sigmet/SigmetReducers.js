@@ -224,13 +224,23 @@ const focusSigmet = (evt, uuid, container) => {
   if (evt.target.tagName === 'BUTTON') {
     return;
   }
+  let shouldClearDrawing = false;
   container.setState(produce(container.state, draftState => {
-    draftState.focussedSigmet.uuid = uuid;
+    if (draftState.focussedSigmet.uuid !== uuid) {
+      draftState.focussedSigmet.uuid = uuid;
+    } else {
+      draftState.focussedSigmet.uuid = null;
+      shouldClearDrawing = true
+    }
     draftState.focussedSigmet.mode = SIGMET_MODES.READ;
     draftState.focussedSigmet.drawMode = null;
   }), () => {
     dispatch(mapActions.setMapMode('pan'));
-    setSigmetDrawing(uuid, container);
+    if (shouldClearDrawing) {
+      setSigmetDrawing(null, container);
+    } else {
+      setSigmetDrawing(uuid, container);
+    }
   });
 };
 

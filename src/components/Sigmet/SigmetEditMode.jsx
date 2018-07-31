@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import {
-  Button, Col, Alert, InputGroup, InputGroupAddon, Input, InputGroupButton, ButtonDropdown,
+  Button, Col, InputGroup, InputGroupAddon, Input, InputGroupButton, ButtonDropdown,
   DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap';
 import { Typeahead } from 'react-bootstrap-typeahead';
 import DateTimePicker from 'react-datetime';
@@ -12,6 +12,7 @@ import Icon from 'react-fa';
 import Checkbox from '../Basis/Checkbox';
 import RadioGroup from '../Basis/RadioGroup';
 import Switch from '../Basis/Switch';
+import HeaderSection from './Sections/HeaderSection';
 import WhatSection from './Sections/WhatSection';
 import ValiditySection from './Sections/ValiditySection';
 import ActionSection from './Sections/ActionSection';
@@ -218,7 +219,7 @@ class SigmetEditMode extends PureComponent {
         disabled: isEndFeature ? !hasEndCoordinates : !hasStartCoordinates
       }
     ];
-    const messagePrefix = 'Please use one of these drawing tools to indicate on the map where the phenomenon is';
+    const messagePrefix = 'Use one of these drawing tools to indicate on the map where the phenomenon is';
     const drawMessage = (isEndDrawing) => !isEndDrawing
       ? !hasStartCoordinates
         ? `${messagePrefix} ${isObserved ? 'observed' : 'expected to occur'}.`
@@ -230,6 +231,7 @@ class SigmetEditMode extends PureComponent {
     const abilityCtAs = this.reduceAbilities(selectedPhenomenon); // CtA = Call To Action
     return <Button tag='div' className={`Sigmet row${focus ? ' focus' : ''}`} id={uuid} onClick={!focus ? (evt) => dispatch(actions.focusSigmetAction(evt, uuid)) : null}>
       <Col>
+        <HeaderSection />
         <WhatSection>
           <Typeahead filterBy={['name', 'code']} labelKey='name' data-field='phenomenon'
             options={availablePhenomena} placeholder={'Select phenomenon'}

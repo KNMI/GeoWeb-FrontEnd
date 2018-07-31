@@ -6,6 +6,7 @@ import PropTypes from 'prop-types';
 import { READ_ABILITIES, byReadAbilities } from '../../containers/Sigmet/SigmetActions';
 import { UNITS, UNITS_ALT, DIRECTIONS, CHANGES, MODES_LVL } from './SigmetTemplates';
 
+import HeaderSection from './Sections/HeaderSection';
 import WhatSection from './Sections/WhatSection';
 import ValiditySection from './Sections/ValiditySection';
 import ActionSection from './Sections/ActionSection';
@@ -118,8 +119,9 @@ class SigmetReadMode extends PureComponent {
     const abilityCtAs = this.reduceAbilities(); // CtA = Call To Action
     const selectedDirection = movement && DIRECTIONS.find((obj) => obj.shortName === movement.dir);
     const directionLongName = selectedDirection ? selectedDirection.longName : null;
-    return <Button tag='div' className={`Sigmet row${focus ? ' focus' : ''}`} onClick={!focus ? (evt) => dispatch(actions.focusSigmetAction(evt, uuid)) : null}>
+    return <Button tag='div' className={`Sigmet row${focus ? ' focus' : ''}`} onClick={(evt) => dispatch(actions.focusSigmetAction(evt, uuid))}>
       <Col>
+        <HeaderSection />
         <WhatSection>
           <span data-field='phenomenon'>{phenomenon}</span>
           <span data-field='obs_or_fcst'>{isObserved ? 'Observed' : 'Forecast'}</span>

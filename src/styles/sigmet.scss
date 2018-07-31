@@ -77,6 +77,10 @@
   padding: 0.19rem;
   line-height: 1.4;
 
+  .Header {
+    margin: 0.33rem 0;
+  }
+
   .What {
     .row:not(:first-of-type) {
       margin-top: 0.2rem;
@@ -173,7 +177,7 @@
         label {
           width: 100%;
           padding: 0;
-          padding-right: 0.4rem;
+          padding-right: 0.33rem;
           margin: 0;
           text-align: right;
         }
@@ -187,24 +191,22 @@
       margin-top: 0.05rem;
       > div:first-child {
         margin-top: 0.6rem;
-        label {
-          margin: 0;
-          padding: 0;
-        }
       }
 
       > div:nth-child(2) {
         .Switch label {
           padding: 0;
           > span:first-of-type, > span.checkbox {
-            margin-top: 0.7rem;
-            margin-left: 0.05rem;
+            margin-top: 0.8rem;
+          }
+          > span:first-of-type {
+            margin-left: 1.4rem;
           }
           > span .label.input-group {
             margin: 0;
           }
           > span:last-of-type {
-            margin-right: 0rem;
+            margin-right: 0;
           }
         }
       }
@@ -214,7 +216,13 @@
       margin-top: 0.05rem;
       > div:first-child {
         margin-top: 0.5rem;
-        padding-left: 0.3rem;
+        label {
+          width: 100%;
+          padding: 0;
+          padding-right: 0.33rem;
+          margin: 0;
+          text-align: right;
+        }
       }
       > div:nth-child(2) {
         padding-left: 0.2rem;
@@ -284,6 +292,7 @@
 
   .badge {
     padding: 0.25em 0.4em;
+    margin-right: 0.33rem;
     width: 100%;
     height: 1.2rem;
     border-width: 0.05rem;
@@ -338,20 +347,41 @@
   }
 }
 
+.accordion .Sigmet.btn.row.minified {
+  .row:nth-child(2) {
+    > div:nth-child(2) span {
+      margin: 0 0.33rem;
+    }
+  }
+  span.tac {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 27rem;
+  }
+}
+.accordion .Sigmet.btn.row.minified:not(:hover) {
+  opacity: 0.85;
+}
+
 .accordion .Sigmet.btn-secondary.focus {
-  background-color: #c5edff;
-  border-color: #aaa;
-  border-right-width: 0.1rem;
-  border-bottom-width: 0.1rem;
-  border-radius: 0.2rem;
-  box-shadow: none;
+  background: #fff;
+  border-color: #999;
+  border-width: 0.1rem 0.1rem 0.2rem 0.06rem;
+  border-radius: 0.3rem;
   cursor: default;
+  box-shadow: unset;
 }
 
 .accordion .Sigmet.btn-secondary:not(.focus) {
+  background: #eee;
   cursor: pointer;
 }
 
 .accordion .Sigmet.btn-secondary:not(.focus):hover {
-  background-color: #d5f4ff;
+  background-color: #f4f8ff;
+}
+.accordion .Sigmet.btn-secondary.focus:hover {
+  box-shadow: unset;
+  outline: unset;
+  border-width: 0.1rem 0.1rem 0.2rem 0.06rem;
 }

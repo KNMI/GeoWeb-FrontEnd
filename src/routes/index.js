@@ -189,9 +189,7 @@ export const createRoutes = (store) => {
           <Route path='sigmets' title='SIGMETs'>
             <Route component={SidebarredLayout} secondLeftSidebar={sigmet} leftSidebar={leftSidebar}>
               <Route component={FooteredLayout} footer={layerManager} >
-                <Route component={SidebarredLayout} rightSidebar={rightSidebar}>
-                  <IndexRoute component={map} />
-                </Route>
+                <IndexRoute component={map} />
               </Route>
             </Route>
           </Route>

@@ -6,6 +6,7 @@ import PropTypes from 'prop-types';
 import { SIGMET_MODES, CATEGORY_REFS, READ_ABILITIES } from '../../containers/Sigmet/SigmetActions';
 import SigmetEditMode from './SigmetEditMode';
 import SigmetReadMode from './SigmetReadMode';
+import SigmetMinifiedMode from './SigmetMinifiedMode';
 
 class SigmetsCategory extends PureComponent {
   render () {
@@ -38,40 +39,69 @@ class SigmetsCategory extends PureComponent {
                 <Row>
                   <Col className='btn-group-vertical'>
                     {sigmets.slice(0, itemLimit).map((sigmet, index) => {
-                      if (focussedSigmet.uuid === sigmet.uuid && focussedSigmet.mode === SIGMET_MODES.EDIT) {
-                        return <SigmetEditMode key={sigmet.uuid}
-                          useGeometryForEnd={focussedSigmet.useGeometryForEnd}
-                          dispatch={dispatch}
-                          actions={actions}
-                          abilities={abilities[SIGMET_MODES.EDIT]}
-                          copiedSigmetRef={copiedSigmetRef}
-                          hasEdits={hasEdits}
-                          availablePhenomena={phenomena}
-                          phenomenon={sigmet.phenomenon}
-                          focus
-                          uuid={sigmet.uuid}
-                          obsFcTime={sigmet.obs_or_forecast.obsFcTime}
-                          validdate={sigmet.validdate}
-                          validdateEnd={sigmet.validdate_end}
-                          issuedate={sigmet.issuedate}
-                          sequence={sigmet.sequence}
-                          firname={sigmet.firname}
-                          locationIndicatorIcao={sigmet.location_indicator_icao}
-                          locationIndicatorMwo={sigmet.location_indicator_mwo}
-                          levelinfo={sigmet.levelinfo}
-                          movement={sigmet.movement}
-                          change={sigmet.change}
-                          isObserved={sigmet.obs_or_forecast.obs}
-                          drawModeStart={focussedSigmet.drawModeStart}
-                          drawModeEnd={focussedSigmet.drawModeEnd}
-                          hasStartCoordinates={this.props.hasStartCoordinates}
-                          hasEndCoordinates={this.props.hasEndCoordinates}
-                          availableFirs={parameters.firareas}
-                          maxHoursInAdvance={parameters.hoursbeforevalidity}
-                          maxHoursDuration={parameters.maxhoursofvalidity}
-                        />;
+                      if (focussedSigmet.uuid === sigmet.uuid) {
+                        if (focussedSigmet.mode === SIGMET_MODES.EDIT) {
+                          return <SigmetEditMode key={sigmet.uuid}
+                            useGeometryForEnd={focussedSigmet.useGeometryForEnd}
+                            dispatch={dispatch}
+                            actions={actions}
+                            abilities={abilities[SIGMET_MODES.EDIT]}
+                            copiedSigmetRef={copiedSigmetRef}
+                            hasEdits={hasEdits}
+                            availablePhenomena={phenomena}
+                            phenomenon={sigmet.phenomenon}
+                            focus
+                            uuid={sigmet.uuid}
+                            obsFcTime={sigmet.obs_or_forecast.obsFcTime}
+                            validdate={sigmet.validdate}
+                            validdateEnd={sigmet.validdate_end}
+                            issuedate={sigmet.issuedate}
+                            sequence={sigmet.sequence}
+                            firname={sigmet.firname}
+                            locationIndicatorIcao={sigmet.location_indicator_icao}
+                            locationIndicatorMwo={sigmet.location_indicator_mwo}
+                            levelinfo={sigmet.levelinfo}
+                            movement={sigmet.movement}
+                            change={sigmet.change}
+                            isObserved={sigmet.obs_or_forecast.obs}
+                            drawModeStart={focussedSigmet.drawModeStart}
+                            drawModeEnd={focussedSigmet.drawModeEnd}
+                            hasStartCoordinates={this.props.hasStartCoordinates}
+                            hasEndCoordinates={this.props.hasEndCoordinates}
+                            availableFirs={parameters.firareas}
+                            maxHoursInAdvance={parameters.hoursbeforevalidity}
+                            maxHoursDuration={parameters.maxhoursofvalidity}
+                          />;
+                        } else {
+                          return <SigmetReadMode key={sigmet.uuid}
+                            dispatch={dispatch}
+                            actions={actions}
+                            abilities={abilities[SIGMET_MODES.READ]}
+                            copiedSigmetRef={copiedSigmetRef}
+                            focus={focussedSigmet.uuid === sigmet.uuid}
+                            uuid={sigmet.uuid}
+                            tac={tacs && tacs.find((tac) => tac.uuid === sigmet.uuid)}
+                            obsFcTime={sigmet.obs_or_forecast ? sigmet.obs_or_forecast.obsFcTime : null}
+                            phenomenon={sigmet.phenomenon}
+                            isObserved={sigmet.obs_or_forecast ? sigmet.obs_or_forecast.obs : null}
+                            validdate={sigmet.validdate}
+                            validdateEnd={sigmet.validdate_end}
+                            hasStartCoordinates={this.props.hasStartCoordinates}
+                            hasStartIntersectionCoordinates={this.props.hasStartIntersectionCoordinates}
+                            issuedate={sigmet.issuedate}
+                            sequence={sigmet.sequence}
+                            firname={sigmet.firname}
+                            locationIndicatorIcao={sigmet.location_indicator_icao}
+                            locationIndicatorMwo={sigmet.location_indicator_mwo}
+                            levelinfo={sigmet.levelinfo}
+                            movement={sigmet.movement}
+                            change={sigmet.change}
+                            maxHoursInAdvance={parameters.hoursbeforevalidity}
+                            maxHoursDuration={parameters.maxhoursofvalidity}
+                          />;
+                        }
                       }
-                      return <SigmetReadMode key={sigmet.uuid}
+                      return <SigmetMinifiedMode key={sigmet.uuid}
                         dispatch={dispatch}
                         actions={actions}
                         abilities={abilities[SIGMET_MODES.READ]}
