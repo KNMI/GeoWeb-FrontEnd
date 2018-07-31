@@ -58,14 +58,14 @@ class SigmetReadMode extends PureComponent {
    * @returns {boolean} Whether or not the basic values in this specific Sigmet are valid
    */
   isValid () {
-    const { validdate, validdateEnd, maxHoursInAdvance, maxHoursDuration } = this.props;
+    const { validdate, validdateEnd, maxHoursInAdvance, maxHoursDuration, hasStartCoordinates, hasStartIntersectionCoordinates } = this.props;
     const now = moment.utc();
     const startTimeStamp = moment.utc(validdate);
     const isStartValid = now.clone().subtract(1, 'day').isSameOrBefore(startTimeStamp) &&
       now.clone().add(maxHoursInAdvance, 'hour').isSameOrAfter(startTimeStamp);
     const isEndValid = startTimeStamp.isSameOrBefore(validdateEnd) &&
       startTimeStamp.clone().add(maxHoursDuration, 'hour').isSameOrAfter(validdateEnd);
-    return isStartValid && isEndValid;
+    return isStartValid && isEndValid && hasStartCoordinates && hasStartIntersectionCoordinates;
   };
 
   /**
@@ -236,7 +236,9 @@ SigmetReadMode.propTypes = {
   locationIndicatorMwo: PropTypes.string,
   firname: PropTypes.string,
   maxHoursInAdvance: PropTypes.number,
-  maxHoursDuration: PropTypes.number
+  maxHoursDuration: PropTypes.number,
+  hasStartCoordinates: PropTypes.bool,
+  hasStartIntersectionCoordinates: PropTypes.bool
 };
 
 export default SigmetReadMode;

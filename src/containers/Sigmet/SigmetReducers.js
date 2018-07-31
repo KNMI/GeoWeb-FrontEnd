@@ -105,6 +105,7 @@ const retrieveParameters = (container) => {
 const receivedParametersCallback = (response, container) => {
   if (response.status === 200 && response.data) {
     updateParameters(response.data, container);
+    addSigmet(CATEGORY_REFS.ADD_SIGMET, container);
   } else {
     console.error(ERROR_MSG.RETRIEVE_PARAMS, response.status, response.data);
   }
@@ -135,8 +136,9 @@ const retrievePhenomena = (container) => {
 const receivedPhenomenaCallback = (response, container) => {
   if (response.status === 200 && response.data) {
     updatePhenomena(response.data, container);
+    addSigmet(CATEGORY_REFS.ADD_SIGMET, container);
   } else {
-    console.error(ERROR_MSG.RETRIEVE_PARAMS, response.status, response.data);
+    console.error(ERROR_MSG.RETRIEVE_PHENOMENA, response.status, response.data);
   }
 };
 
@@ -227,6 +229,9 @@ const focusSigmet = (evt, uuid, container) => {
   const { dispatch, mapActions } = container.props;
   if (evt) {
     evt.preventDefault();
+  }
+  if (evt.target.tagName === 'BUTTON') {
+    return;
   }
   container.setState(produce(container.state, draftState => {
     draftState.focussedSigmet.uuid = uuid;
@@ -586,7 +591,6 @@ const modifyFocussedSigmet = (dataField, value, container) => {
 
 const clearSigmet = (event, uuid, container) => {
   const { dispatch } = container.props;
-  event.stopPropagation();
   addSigmet(container.state.focussedCategoryRef, container);
   dispatch(notify({
     title: 'Sigmet cleared',
@@ -600,7 +604,6 @@ const clearSigmet = (event, uuid, container) => {
 
 const discardSigmet = (event, uuid, container) => {
   const { dispatch, mapActions } = container.props;
-  event.stopPropagation();
   dispatch(notify({
     title: 'Changes discarded',
     message: 'The changes are successfully discarded',
@@ -620,7 +623,6 @@ const discardSigmet = (event, uuid, container) => {
 
 const saveSigmet = (event, uuid, container) => {
   const { drawProperties, urls, dispatch, mapActions } = container.props;
-  event.stopPropagation();
   event.preventDefault();
   if (container.state.focussedSigmet.uuid !== uuid) {
     return;
@@ -725,7 +727,6 @@ const saveSigmet = (event, uuid, container) => {
 
 const editSigmet = (event, uuid, container) => {
   const { dispatch, mapActions } = container.props;
-  event.stopPropagation();
   container.setState(produce(container.state, draftState => {
     draftState.focussedSigmet.uuid = uuid;
     draftState.focussedSigmet.mode = SIGMET_MODES.EDIT;
@@ -741,7 +742,6 @@ const editSigmet = (event, uuid, container) => {
 const deleteSigmet = (event, uuid, container) => {
   const { state, props } = container;
   const { dispatch, mapActions } = props;
-  event.stopPropagation();
   const { BACKEND_SERVER_URL } = props.urls;
   if (!uuid || !BACKEND_SERVER_URL) {
     return;
@@ -802,7 +802,6 @@ const deleteSigmet = (event, uuid, container) => {
 const copySigmet = (event, uuid, container) => {
   const { state } = container;
   const { dispatch } = container.props;
-  event.stopPropagation();
   const indices = findCategoryAndSigmetIndex(uuid, state);
   if (indices.categoryIndex !== -1 && indices.sigmetIndex !== -1) {
     container.setState(produce(state, draftState => {
@@ -828,7 +827,6 @@ const copySigmet = (event, uuid, container) => {
 const pasteSigmet = (event, container) => {
   const { state } = container;
   const { dispatch, drawActions } = container.props;
-  event.stopPropagation();
   const indicesCopiedSigmet = findCategoryAndSigmetIndex(state.copiedSigmetRef, state);
   const indicesCurrentSigmet = findCategoryAndSigmetIndex(state.focussedSigmet.uuid, state);
   if (indicesCopiedSigmet.categoryIndex !== -1 && indicesCopiedSigmet.sigmetIndex !== -1 &&
@@ -873,7 +871,6 @@ const pasteSigmet = (event, container) => {
 };
 
 const publishSigmet = (event, uuid, container) => {
-  event.stopPropagation();
   container.setState(produce(container.state, draftState => {
     const indices = findCategoryAndSigmetIndex(uuid, draftState);
     if (indices.categoryIndex !== -1 && indices.sigmetIndex !== -1) {
@@ -912,13 +909,18 @@ const retrieveTAC = (uuid, container) => {
 };
 
 const cancelSigmet = (event, uuid, container) => {
-  event.stopPropagation();
+  console.log('Cancel', uuid)
   container.setState(produce(container.state, draftState => {
     const indices = findCategoryAndSigmetIndex(uuid, draftState);
+    console.log('Indices', indices);
     if (indices.categoryIndex !== -1 && indices.sigmetIndex !== -1) {
       draftState.categories[indices.categoryIndex].sigmets[indices.sigmetIndex].status = STATUSES.CANCELED;
     }
-  }), () => saveSigmet(event, uuid, container));
+  }), () => {
+    const indices = findCategoryAndSigmetIndex(uuid, container.state);
+    console.log('Canceled?', uuid, indices, container.state.categories[indices.categoryIndex].sigmets[indices.sigmetIndex], STATUSES.CANCELED);
+    saveSigmet(event, uuid, container);
+  });
 };
 
 const setSigmetDrawing = (uuid, container) => {
