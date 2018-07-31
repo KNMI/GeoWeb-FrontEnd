@@ -382,7 +382,7 @@ class SigmetEditMode extends PureComponent {
           </InputGroup>
           <Switch
             className={isLevelBetween && !levelMode.hasSurface &&
-              levelinfo && levelinfo.levels && levelinfo.levels[0] && !levelinfo.levels[0].value ? 'missing' : null}
+              levelinfo && levelinfo.levels && levelinfo.levels[0] && !levelinfo.levels[0].value ? 'missing' : ''}
             value={levelMode.hasSurface ? 'sfc' : 'lvl'}
             checkedOption={{
               optionId: 'lvl',
