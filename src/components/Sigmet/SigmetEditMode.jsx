@@ -176,44 +176,56 @@ class SigmetEditMode extends PureComponent {
   }
 
   render () {
-    const { dispatch, actions, availablePhenomena, useGeometryForEnd,
+    const { dispatch, actions, availablePhenomena, useGeometryForEnd, hasStartCoordinates, hasEndCoordinates,
       availableFirs, levelinfo, movement, focus, uuid, locationIndicatorMwo, change,
       phenomenon, isObserved, obsFcTime, validdate, maxHoursInAdvance, maxHoursDuration, validdateEnd, locationIndicatorIcao } = this.props;
-    const selectedPhenomenon = availablePhenomena.filter((ph) => ph.code === phenomenon).shift();
-    const selectedFir = availableFirs.filter((fir) => fir.location_indicator_icao === locationIndicatorIcao).shift();
-    const selectedChange = change ? CHANGES.filter((chg) => chg.shortName === change).shift() : null;
-    const selectedDirection = movement && movement.dir ? DIRECTIONS.filter((dir) => dir.shortName === movement.dir).shift() : null;
+    const selectedPhenomenon = availablePhenomena.find((ph) => ph.code === phenomenon);
+    const selectedFir = availableFirs.find((fir) => fir.location_indicator_icao === locationIndicatorIcao);
+    const selectedChange = change ? CHANGES.find((chg) => chg.shortName === change) : null;
+    const selectedDirection = movement && movement.dir ? DIRECTIONS.find((dir) => dir.shortName === movement.dir) : null;
     const levelMode = this.getMode();
     const isLevelBetween = levelMode.extent === MODES_LVL.BETW;
     const atOrAboveOption = MODES_LVL_OPTIONS.find((option) => option.optionId === levelMode.extent && option.optionId !== MODES_LVL.BETW);
     const atOrAboveLabel = atOrAboveOption ? atOrAboveOption.label : '';
-    const drawActions = [
+    const drawActions = (isEndFeature = false) => [
       /* {
         title: 'Select point',
         action: 'select-point',
         icon: 'circle'
       }, */
       {
-        title: 'Draw region',
+        title: `Draw region${!selectedFir ? ' (select a FIR first)' : ''}`,
         action: 'select-region',
-        icon: 'retweet'
+        icon: 'retweet',
+        disabled: !selectedFir
       },
       {
-        title: 'Draw shape',
+        title: `Draw polygon${!selectedFir ? ' (select a FIR first)' : ''}`,
         action: 'select-shape',
-        icon: 'pencil'
+        icon: 'pencil',
+        disabled: !selectedFir
       },
       {
-        title: 'Select entire FIR',
+        title: `Draw contour for entire FIR${!selectedFir ? ' (select a FIR first)' : ''}`,
         action: 'select-fir',
-        icon: 'globe'
+        icon: 'globe',
+        disabled: !selectedFir
       },
       {
-        title: 'Delete drawing',
+        title: `Delete drawing${(isEndFeature ? hasEndCoordinates : hasStartCoordinates) ? '' : ' (nothing to delete)'}`,
         action: 'delete-selection',
-        icon: 'trash'
+        icon: 'trash',
+        disabled: isEndFeature ? !hasEndCoordinates : !hasStartCoordinates
       }
     ];
+    const messagePrefix = 'Please use one of these drawing tools to indicate on the map where the phenomenon is';
+    const drawMessage = (isEndDrawing) => !isEndDrawing
+      ? !hasStartCoordinates
+        ? `${messagePrefix} ${isObserved ? 'observed' : 'expected to occur'}.`
+        : ''
+      : !hasEndCoordinates
+        ? `${messagePrefix} expected to be at the end of the valid period.`
+        : '';
     const now = moment.utc();
     const abilityCtAs = this.reduceAbilities(selectedPhenomenon); // CtA = Call To Action
     return <Button tag='div' className={`Sigmet row${focus ? ' focus' : ''}`} id={uuid} onClick={!focus ? (evt) => dispatch(actions.focusSigmetAction(evt, uuid)) : null}>
@@ -319,9 +331,9 @@ class SigmetEditMode extends PureComponent {
           <span data-field='location_indicator_icao'>{locationIndicatorIcao}</span>
         </FirSection>
 
-        <DrawSection>
+        <DrawSection className={`required${hasStartCoordinates ? '' : ' missing'}`} title={drawMessage()}>
           {
-            drawActions.map((actionItem, index) =>
+            drawActions().map((actionItem, index) =>
               <Button color='primary' key={actionItem.action + '_button'} data-field={actionItem.action + '_button'}
                 active={actionItem.action === this.props.drawModeStart} disabled={actionItem.disabled || null}
                 id={actionItem.action + '_button'} title={actionItem.title} onClick={(evt) => dispatch(actions.drawAction(evt, uuid, actionItem.action, 'start'))}>
@@ -329,11 +341,6 @@ class SigmetEditMode extends PureComponent {
               </Button>
             )
           }
-          {!this.props.hasStartCoordinates
-            ? <Alert data-field='drawing_alert' color='danger'>
-                Please use one of the drawing tools above to indicate on the map where the phenomenon is {isObserved ? ' observed.' : ' expected to occur.'}
-            </Alert>
-            : null}
         </DrawSection>
 
         <HeightsSection isLevelBetween={isLevelBetween} hasSurface={levelMode.hasSurface}>
@@ -461,9 +468,10 @@ class SigmetEditMode extends PureComponent {
             />
             <InputGroupAddon>KT</InputGroupAddon>
           </InputGroup>
-          <DrawSection data-field='drawbar'>
+          <DrawSection data-field='drawbar' title={drawMessage(true)}
+            className={movement && !movement.stationary && useGeometryForEnd ? `required${hasStartCoordinates ? '' : ' missing'}` : ''}>
             {
-              drawActions.map((actionItem, index) =>
+              drawActions(true).map((actionItem, index) =>
                 <Button color='primary' key={actionItem.action + '_button'} data-field={actionItem.action + '_button'}
                   active={actionItem.action === this.props.drawModeEnd}
                   disabled={actionItem.disabled || !movement || movement.stationary || !useGeometryForEnd}
@@ -473,12 +481,6 @@ class SigmetEditMode extends PureComponent {
                 </Button>
               )
             }
-
-            {movement && !movement.stationary && useGeometryForEnd && !this.props.hasEndCoordinates
-              ? <Alert data-field='drawing_alert' color='danger'>
-                Please use one of the drawing tools above to indicate on the map where the phenomenon is expected to be at the end of the valid period.
-              </Alert>
-              : null}
           </DrawSection>
         </MovementSection>
 

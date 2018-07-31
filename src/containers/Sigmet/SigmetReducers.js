@@ -28,9 +28,6 @@ const getRoundedNow = () => {
 };
 
 const toggleContainer = (evt, container) => {
-  if (evt) {
-    evt.preventDefault();
-  }
   container.setState(produce(container.state, draftState => {
     draftState.isContainerOpen = !draftState.isContainerOpen;
   }));
@@ -38,9 +35,6 @@ const toggleContainer = (evt, container) => {
 
 const toggleCategory = (evt, ref, container) => {
   const { dispatch, mapActions, drawActions } = container.props;
-  if (evt) {
-    evt.preventDefault();
-  }
   container.setState(produce(container.state, draftState => {
     if (ref === CATEGORY_REFS.ADD_SIGMET && ref !== draftState.focussedCategoryRef) {
       draftState.focussedSigmet.mode = SIGMET_MODES.EDIT;
@@ -227,9 +221,6 @@ const receivedSigmetsCallback = (ref, response, container, callback) => {
 
 const focusSigmet = (evt, uuid, container) => {
   const { dispatch, mapActions } = container.props;
-  if (evt) {
-    evt.preventDefault();
-  }
   if (evt.target.tagName === 'BUTTON') {
     return;
   }
@@ -455,7 +446,6 @@ const clearRelatedIntersection = (featureId, features, dispatch, drawActions) =>
 };
 
 const drawSigmet = (event, uuid, container, action, featureFunction) => {
-  event.preventDefault();
   const { dispatch, mapActions, drawActions, drawProperties } = container.props;
   const features = drawProperties.adagucMapDraw.geojson.features;
   // Select relevant polygon to edit, this assumes there is ONE start and ONE end feature.
@@ -623,10 +613,6 @@ const discardSigmet = (event, uuid, container) => {
 
 const saveSigmet = (event, uuid, container) => {
   const { drawProperties, urls, dispatch, mapActions } = container.props;
-  event.preventDefault();
-  if (container.state.focussedSigmet.uuid !== uuid) {
-    return;
-  }
   const indices = findCategoryAndSigmetIndex(uuid, container.state);
   if (indices.categoryIndex === -1 || indices.sigmetIndex === -1) {
     return;
@@ -909,16 +895,12 @@ const retrieveTAC = (uuid, container) => {
 };
 
 const cancelSigmet = (event, uuid, container) => {
-  console.log('Cancel', uuid)
   container.setState(produce(container.state, draftState => {
     const indices = findCategoryAndSigmetIndex(uuid, draftState);
-    console.log('Indices', indices);
     if (indices.categoryIndex !== -1 && indices.sigmetIndex !== -1) {
       draftState.categories[indices.categoryIndex].sigmets[indices.sigmetIndex].status = STATUSES.CANCELED;
     }
   }), () => {
-    const indices = findCategoryAndSigmetIndex(uuid, container.state);
-    console.log('Canceled?', uuid, indices, container.state.categories[indices.categoryIndex].sigmets[indices.sigmetIndex], STATUSES.CANCELED);
     saveSigmet(event, uuid, container);
   });
 };
