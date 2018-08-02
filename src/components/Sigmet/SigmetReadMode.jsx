@@ -126,7 +126,7 @@ class SigmetReadMode extends PureComponent {
           <span data-field='phenomenon'>{phenomenon}</span>
           <span data-field='obs_or_fcst'>{isObserved ? 'Observed' : 'Forecast'}</span>
           {obsFcTime
-            ? <Moment format={DATE_TIME_FORMAT} date={obsFcTime} data-field='obsFcTime' />
+            ? <Moment format={DATE_TIME_FORMAT} date={obsFcTime} data-field='obsFcTime' utc />
             : <span data-field='obsFcTime'>
               {isObserved
                 ? '(no observation time provided)'
@@ -168,7 +168,7 @@ class SigmetReadMode extends PureComponent {
 
         <IssueSection>
           {issuedate
-            ? <Moment format={DATE_TIME_FORMAT} date={issuedate} data-field='issuedate' />
+            ? <Moment format={DATE_TIME_FORMAT} date={issuedate} data-field='issuedate' utc />
             : <span data-field='issuedate'>(not yet issued)</span>
           }
           <span data-field='issueLocation'>{locationIndicatorMwo}</span>
