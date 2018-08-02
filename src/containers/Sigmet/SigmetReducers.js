@@ -140,15 +140,17 @@ const updatePhenomena = (phenomena, container) => {
   const SEPARATOR = '_';
   container.setState(produce(container.state, draftState => {
     if (Array.isArray(phenomena)) {
-      phenomena.push({
-        phenomenon: {
-          layerpreset: null,
-          name: 'Volcanic Ash',
-          code: 'VA'
-        },
-        variants: [],
-        additions: []
-      });
+      if (process.env.NODE_ENV === 'development') {
+        phenomena.push({
+          phenomenon: {
+            layerpreset: null,
+            name: 'Volcanic Ash',
+            code: 'VA'
+          },
+          variants: [],
+          additions: []
+        });
+      }
       draftState.phenomena.length = 0;
       phenomena.forEach((item) => {
         if (item.variants.length === 0) {
