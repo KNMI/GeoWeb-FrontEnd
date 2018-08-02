@@ -359,21 +359,20 @@ const findCategoryAndSigmetIndex = (uuid, state) => {
 };
 
 const updateSigmet = (uuid, dataField, value, container) => {
-  container.setState(produce(container.state, draftState => {
-    if (dataField) {
-      const indices = findCategoryAndSigmetIndex(uuid, draftState);
-      if (indices.categoryIndex !== -1 && indices.sigmetIndex !== -1) {
-        if (dataField === 'phenomenon' && Array.isArray(value)) {
-          if (value.length === 0) {
-            value = '';
-          } else {
-            value = value[0].code;
-          }
-        }
-        draftState.categories[indices.categoryIndex].sigmets[indices.sigmetIndex][dataField] = value;
-        draftState.focussedSigmet.hasEdits = true;
-      }
+  const indices = findCategoryAndSigmetIndex(uuid, container.state);
+  if (!dataField || indices.categoryIndex === -1 || indices.sigmetIndex === -1) {
+    return;
+  }
+  if (dataField === 'phenomenon' && Array.isArray(value)) {
+    if (value.length === 0) {
+      value = '';
+    } else {
+      value = value[0].code;
     }
+  }
+  container.setState(produce(container.state, draftState => {
+    draftState.categories[indices.categoryIndex].sigmets[indices.sigmetIndex][dataField] = value;
+    draftState.focussedSigmet.hasEdits = true;
   }));
 };
 
@@ -569,24 +568,37 @@ const createFirIntersection = (featureId, geojson, container) => {
 };
 
 const modifyFocussedSigmet = (dataField, value, container) => {
-  container.setState(produce(container.state, draftState => {
+  const { state, props } = container;
+  const { drawProperties, dispatch, drawActions } = props;
+  const shouldCleanEndFeature = dataField === 'useGeometryForEnd' && value !== true;
+  container.setState(produce(state, draftState => {
     draftState.focussedSigmet[dataField] = value;
     draftState.focussedSigmet.hasEdits = true;
     switch (dataField) {
       case 'useGeometryForEnd': {
+        const indices = findCategoryAndSigmetIndex(draftState.focussedSigmet.uuid, draftState);
+        if (indices.categoryIndex === -1 || indices.sigmetIndex === -1) {
+          break;
+        }
         if (value === true) {
-          const indices = findCategoryAndSigmetIndex(draftState.focussedSigmet.uuid, draftState);
-          if (indices.categoryIndex !== -1 && indices.sigmetIndex !== -1) {
-            draftState.categories[indices.categoryIndex].sigmets[indices.sigmetIndex]['movement'] = produce(SIGMET_TEMPLATES.MOVEMENT,
-              movementDraftState => { movementDraftState.stationary = false; });
-          }
+          draftState.categories[indices.categoryIndex].sigmets[indices.sigmetIndex]['movement'] = produce(SIGMET_TEMPLATES.MOVEMENT,
+            movementDraftState => { movementDraftState.stationary = false; });
         }
         break;
       }
       default:
         break;
     }
-  }));
+  }), () => {
+    if (shouldCleanEndFeature === true) {
+      const features = cloneDeep(drawProperties.adagucMapDraw.geojson.features);
+      const endFeature = features.find((potentialEndFeature) => potentialEndFeature.properties.featureFunction === 'end');
+      if (endFeature && endFeature.id) {
+        dispatch(drawActions.setFeature({ coordinates: [], selectionType: 'poly', featureId: endFeature.id }));
+        clearRelatedIntersection(endFeature.id, features, dispatch, drawActions);
+      }
+    }
+  });
 };
 
 const clearSigmet = (event, uuid, container) => {
@@ -651,28 +663,6 @@ const saveSigmet = (event, uuid, container) => {
     draftState.obs_or_forecast = origObs;
     draftState.geojson.features.length = 0;
     draftState.geojson.features.push(...cleanedFeatures);
-    if (affectedSigmet.movement.stationary === true) {
-      draftState.movement = { stationary: true };
-    } else {
-      if (container.state.useGeometryForEnd) {
-        draftState.movement = { stationary: false };
-      } else {
-        const endGeometry = draftState.geojson.features.find((f) => f.properties.featureFunction === 'end');
-        if (endGeometry) {
-          const endGeometryUuid = endGeometry.uuid;
-          draftState.geojson.features = draftState.geojson.features.filter((f) => {
-            if (f.id === endGeometryUuid) {
-              return false;
-            }
-
-            if (f.properties && f.properties.relatesTo === endGeometryUuid) {
-              return false;
-            }
-            return true;
-          });
-        }
-      }
-    }
   });
 
   axios({

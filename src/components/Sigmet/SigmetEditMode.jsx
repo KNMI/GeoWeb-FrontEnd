@@ -448,7 +448,7 @@ class SigmetEditMode extends PureComponent {
             value={useGeometryForEnd ? 'geom' : 'dirsp'}
             checkedOption={{ optionId: 'geom', label: 'End location' }}
             unCheckedOption={{ optionId: 'dirsp', label: 'Direction & speed' }}
-            onChange={(evt) => { dispatch(actions.modifyFocussedSigmet('useGeometryForEnd', evt.target.checked)); }}
+            onChange={(evt) => { dispatch(actions.modifyFocussedSigmetAction('useGeometryForEnd', evt.target.checked)); }}
             disabled={movement && movement.stationary}
             data-field='movementType'
           />

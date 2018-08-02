@@ -58,11 +58,17 @@ class SigmetsContainer extends Component {
       const currentEndFeature = this.findFeatureByFunction('end');
       const nextStartFeature = this.findFeatureByFunction('start', nextProps);
       const nextEndFeature = this.findFeatureByFunction('end', nextProps);
-      if (!currentStartFeature || !nextStartFeature || currentStartFeature.id !== nextStartFeature.id) {
+      if (!currentStartFeature || !nextStartFeature) {
+        return;
+      }
+      if (currentStartFeature.id !== nextStartFeature.id) {
         console.warn(ERROR_MSG.FEATURE_ID_MISMATCH, 'start');
         return;
       }
-      if (!currentEndFeature || !nextEndFeature || currentEndFeature.id !== nextEndFeature.id) {
+      if (!currentEndFeature || !nextEndFeature) {
+        return;
+      }
+      if (currentEndFeature.id !== nextEndFeature.id) {
         console.warn(ERROR_MSG.FEATURE_ID_MISMATCH, 'end');
         return;
       }
