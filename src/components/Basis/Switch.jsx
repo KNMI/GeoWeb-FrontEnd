@@ -6,7 +6,7 @@ export default class Switch extends PureComponent {
   render () {
     const { value, onChange, checkedOption, unCheckedOption, disabled, className } = this.props;
     const dataField = this.props['data-field'];
-    return <Row className={className ? `Switch ${className}` : 'Switch'}>
+    return <Row className={`Switch${className ? ` ${className}` : ''}`}>
       <Col xs='auto'>
         <label className={disabled ? 'disabled' : null}>
           <span>{unCheckedOption.label}</span>
