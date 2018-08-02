@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 
 export default class DrawSection extends PureComponent {
   render () {
+    const { className, title } = this.props;
     const children = {};
     if (!Array.isArray(this.props.children)) {
       children[this.props.children.props['data-field']] = this.props.children;
@@ -15,16 +16,10 @@ export default class DrawSection extends PureComponent {
       });
     }
     const buttons = Object.entries(children).filter((child) => child[0].endsWith('_button'));
-    const alerts = Object.entries(children).filter((child) => child[0].endsWith('_alert'));
-    return <Row className='Draw'>
-      <Col xs={{ size: 9, offset: 3 }}>
+    return <Row className={`Draw${className ? ` ${className}` : ''}`} title={title}>
+      <Col xs={{ size: 8, offset: 3 }}>
         { buttons.map((button) =>
           button[1]
-        )}
-      </Col>
-      <Col xs='12'>
-        {alerts.map((alert) =>
-          alert[1]
         )}
       </Col>
     </Row>;
@@ -36,5 +31,7 @@ DrawSection.propTypes = {
     PropTypes.arrayOf(PropTypes.element),
     PropTypes.element,
     PropTypes.object
-  ]))
+  ])),
+  className: PropTypes.string,
+  title: PropTypes.string
 };

@@ -5,11 +5,15 @@ import PropTypes from 'prop-types';
 export default class IssueSection extends PureComponent {
   render () {
     const children = {};
-    this.props.children.map(child => {
-      if (child && child.props) {
-        children[child.props['data-field']] = child;
-      }
-    });
+    if (Array.isArray(this.props.children)) {
+      this.props.children.map(child => {
+        if (child && child.props) {
+          children[child.props['data-field']] = child;
+        }
+      });
+    } else {
+      children[this.props.children.props['data-field']] = this.props.children;
+    }
     return <Row className='Issue'>
       <Col>
         <Row>
@@ -35,11 +39,23 @@ export default class IssueSection extends PureComponent {
             </Col>
           </Row>
           : null}
+        <Row>
+          <Col xs={{ size: 2, offset: 1 }}>
+            <Badge>TAC</Badge>
+          </Col>
+          <Col xs='9'>
+            {children.tac}
+          </Col>
+        </Row>
       </Col>
     </Row>;
   }
 }
 
 IssueSection.propTypes = {
-  children: PropTypes.arrayOf(PropTypes.element)
+  children: PropTypes.oneOfType([
+    PropTypes.arrayOf(PropTypes.element),
+    PropTypes.element,
+    PropTypes.object
+  ])
 };

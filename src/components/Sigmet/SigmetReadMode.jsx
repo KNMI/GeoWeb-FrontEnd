@@ -1,10 +1,12 @@
 import React, { PureComponent } from 'react';
 import { Button, Col } from 'reactstrap';
 import Moment from 'react-moment';
+import moment from 'moment';
 import PropTypes from 'prop-types';
 import { READ_ABILITIES, byReadAbilities } from '../../containers/Sigmet/SigmetActions';
 import { UNITS, UNITS_ALT, DIRECTIONS, CHANGES, MODES_LVL } from './SigmetTemplates';
 
+import HeaderSection from './Sections/HeaderSection';
 import WhatSection from './Sections/WhatSection';
 import ValiditySection from './Sections/ValiditySection';
 import ActionSection from './Sections/ActionSection';
@@ -51,27 +53,80 @@ class SigmetReadMode extends PureComponent {
         return '';
     }
   }
-  render () {
-    const { dispatch, actions, abilities, focus, uuid, phenomenon, isObserved, obsFcTime, validdate, validdateEnd, firname, locationIndicatorIcao, issuedate,
-      locationIndicatorMwo, levelinfo, movement, change, sequence } = this.props;
-    const abilityCtAs = []; // CtA = Call To Action
+
+  /**
+   * Check whether or not the basic values for this specific Sigmet are valid
+   * @returns {boolean} Whether or not the basic values in this specific Sigmet are valid
+   */
+  isValid () {
+    const { validdate, validdateEnd, maxHoursInAdvance, maxHoursDuration, hasStartCoordinates, hasStartIntersectionCoordinates } = this.props;
+    const now = moment.utc();
+    const startTimeStamp = moment.utc(validdate);
+    const isStartValid = now.clone().subtract(1, 'day').isSameOrBefore(startTimeStamp) &&
+      now.clone().add(maxHoursInAdvance, 'hour').isSameOrAfter(startTimeStamp);
+    const isEndValid = startTimeStamp.isSameOrBefore(validdateEnd) &&
+      startTimeStamp.clone().add(maxHoursDuration, 'hour').isSameOrAfter(validdateEnd);
+    return isStartValid && isEndValid && hasStartCoordinates && hasStartIntersectionCoordinates;
+  };
+
+  /**
+  * Add disabled flag to abilities
+  * @param {object} ability The ability to provide the flag for
+  * @param {boolean} isInValidityPeriod Whether or not the referred Sigmet is active
+  * @returns {boolean} Whether or not is should be disabled
+  */
+  getDisabledFlag (abilityRef, isInValidityPeriod) {
+    const { uuid, copiedSigmetRef } = this.props;
+    if (!abilityRef) {
+      return false;
+    }
+    switch (abilityRef) {
+      case READ_ABILITIES.COPY['dataField']:
+        return copiedSigmetRef === uuid;
+      case READ_ABILITIES.PUBLISH['dataField']:
+        return !this.isValid();
+      case READ_ABILITIES.CANCEL['dataField']:
+        return !isInValidityPeriod;
+      default:
+        return false;
+    }
+  }
+
+  /**
+   * Reduce the available abilities for this specific Sigmet
+   * @returns {array} The remaining abilities for this specific Sigmet
+   */
+  reduceAbilities () {
+    const { abilities, validdate, validdateEnd } = this.props;
+    const abilitiesCtAs = []; // CtA = Call To Action
+    const now = moment.utc();
+    const isInValidityPeriod = !now.isBefore(validdate) && !now.isAfter(validdateEnd);
     if (focus) {
       Object.values(READ_ABILITIES).map((ability) => {
         if (abilities[ability.check] === true) {
-          abilityCtAs.push(ability);
+          ability.disabled = this.getDisabledFlag(ability.dataField, isInValidityPeriod);
+          abilitiesCtAs.push(ability);
         }
       });
-      abilityCtAs.sort(byReadAbilities);
+      abilitiesCtAs.sort(byReadAbilities);
     }
+    return abilitiesCtAs;
+  }
+
+  render () {
+    const { dispatch, actions, focus, uuid, phenomenon, isObserved, obsFcTime, validdate, validdateEnd, firname, locationIndicatorIcao, issuedate,
+      locationIndicatorMwo, levelinfo, movement, change, sequence, tac } = this.props;
+    const abilityCtAs = this.reduceAbilities(); // CtA = Call To Action
     const selectedDirection = movement && DIRECTIONS.find((obj) => obj.shortName === movement.dir);
     const directionLongName = selectedDirection ? selectedDirection.longName : null;
-    return <Button tag='div' className={`Sigmet row${focus ? ' focus' : ''}`} onClick={!focus ? (evt) => dispatch(actions.focusSigmetAction(evt, uuid)) : null}>
+    return <Button tag='div' className={`Sigmet row${focus ? ' focus' : ''}`} onClick={(evt) => dispatch(actions.focusSigmetAction(evt, uuid))}>
       <Col>
+        <HeaderSection />
         <WhatSection>
           <span data-field='phenomenon'>{phenomenon}</span>
           <span data-field='obs_or_fcst'>{isObserved ? 'Observed' : 'Forecast'}</span>
           {obsFcTime
-            ? <Moment format={DATE_TIME_FORMAT} date={obsFcTime} data-field='obsFcTime' />
+            ? <Moment format={DATE_TIME_FORMAT} date={obsFcTime} data-field='obsFcTime' utc />
             : <span data-field='obsFcTime'>
               {isObserved
                 ? '(no observation time provided)'
@@ -82,8 +137,8 @@ class SigmetReadMode extends PureComponent {
         </WhatSection>
 
         <ValiditySection>
-          <Moment format={DATE_TIME_FORMAT} date={validdate} data-field='validdate' />
-          <Moment format={DATE_TIME_FORMAT} date={validdateEnd} data-field='validdate_end' />
+          <Moment format={DATE_TIME_FORMAT} date={validdate} data-field='validdate' utc />
+          <Moment format={DATE_TIME_FORMAT} date={validdateEnd} data-field='validdate_end' utc />
         </ValiditySection>
 
         <FirSection>
@@ -113,11 +168,12 @@ class SigmetReadMode extends PureComponent {
 
         <IssueSection>
           {issuedate
-            ? <Moment format={DATE_TIME_FORMAT} date={issuedate} data-field='issuedate' />
-            : <span data-field='issuedate'>(Not yet issued)</span>
+            ? <Moment format={DATE_TIME_FORMAT} date={issuedate} data-field='issuedate' utc />
+            : <span data-field='issuedate'>(not yet issued)</span>
           }
           <span data-field='issueLocation'>{locationIndicatorMwo}</span>
-          <span data-field='sequence'>{sequence < 1 ? '(Not yet issued)' : sequence}</span>
+          <span data-field='sequence'>{sequence < 1 ? '(not yet issued)' : sequence}</span>
+          <span className='tac' data-field='tac' title={tac && tac.code}>{tac && tac.code}</span>
         </IssueSection>
 
         <ActionSection colSize={2}>
@@ -125,6 +181,7 @@ class SigmetReadMode extends PureComponent {
             <Button key={`action-${ability.dataField}`}
               data-field={ability.dataField}
               color='primary'
+              disabled={ability.disabled}
               onClick={(evt) => dispatch(actions[ability.action](evt, uuid))}>
               {ability.label}
             </Button>
@@ -152,6 +209,11 @@ SigmetReadMode.propTypes = {
   abilities: PropTypes.shape(abilitiesPropTypes),
   focus: PropTypes.bool,
   uuid: PropTypes.string,
+  tac: PropTypes.shape({
+    uuid: PropTypes.string,
+    code: PropTypes.string
+  }),
+  copiedSigmetRef: PropTypes.string,
   phenomenon: PropTypes.string,
   isObserved: PropTypes.bool,
   obsFcTime: PropTypes.string,
@@ -174,7 +236,11 @@ SigmetReadMode.propTypes = {
   sequence: PropTypes.number,
   locationIndicatorIcao: PropTypes.string,
   locationIndicatorMwo: PropTypes.string,
-  firname: PropTypes.string
+  firname: PropTypes.string,
+  maxHoursInAdvance: PropTypes.number,
+  maxHoursDuration: PropTypes.number,
+  hasStartCoordinates: PropTypes.bool,
+  hasStartIntersectionCoordinates: PropTypes.bool
 };
 
 export default SigmetReadMode;

@@ -1,9 +1,8 @@
 import React, { PureComponent } from 'react';
 import {
-  Button, Col, Alert, InputGroup, InputGroupAddon, Input, FormGroup, Label, InputGroupButton, ButtonDropdown,
+  Button, Col, InputGroup, InputGroupAddon, Input, InputGroupButton, ButtonDropdown,
   DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap';
 import { Typeahead } from 'react-bootstrap-typeahead';
-import SwitchButton from 'lyef-switch-button';
 import DateTimePicker from 'react-datetime';
 import produce from 'immer';
 import moment from 'moment';
@@ -13,6 +12,7 @@ import Icon from 'react-fa';
 import Checkbox from '../Basis/Checkbox';
 import RadioGroup from '../Basis/RadioGroup';
 import Switch from '../Basis/Switch';
+import HeaderSection from './Sections/HeaderSection';
 import WhatSection from './Sections/WhatSection';
 import ValiditySection from './Sections/ValiditySection';
 import ActionSection from './Sections/ActionSection';
@@ -23,7 +23,7 @@ import MovementSection from './Sections/MovementSection';
 import IssueSection from './Sections/IssueSection';
 import ChangeSection from './Sections/ChangeSection';
 import HeightsSection from './Sections/HeightsSection';
-import { DIRECTIONS, UNITS_ALT, MODES_LVL, MODES_LVL_OPTIONS, CHANGES, SIGMET_TYPES } from './SigmetTemplates';
+import { DIRECTIONS, UNITS_ALT, MODES_LVL, MODES_LVL_OPTIONS, CHANGES, SIGMET_TYPES, SIGMET_TEMPLATES } from './SigmetTemplates';
 
 const DATE_FORMAT = 'DD MMM YYYY';
 const TIME_FORMAT = 'HH:mm UTC';
@@ -112,7 +112,7 @@ class SigmetEditMode extends PureComponent {
   isValidStartTimestamp (timestamp) {
     const { maxHoursInAdvance } = this.props;
     const now = moment.utc();
-    return now.clone().subtract(1, 'day').isSameOrBefore(timestamp) &&
+    return now.clone().subtract(1, 'hour').isSameOrBefore(timestamp) &&
       now.clone().add(maxHoursInAdvance, 'hour').isSameOrAfter(timestamp);
   };
 
@@ -130,57 +130,108 @@ class SigmetEditMode extends PureComponent {
       now.clone().add(maxHoursInAdvance + maxHoursDuration, 'hour').isSameOrAfter(timestamp));
   };
 
+  /**
+* Add disabled flag to abilities
+* @param {object} ability The ability to provide the flag for
+* @param {boolean} isInValidityPeriod Whether or not the referred Sigmet is active
+* @param {string} selectedPhenomenon The phenomenon which is selected
+* @returns {boolean} Whether or not is should be disabled
+*/
+  getDisabledFlag (abilityRef, isInValidityPeriod, selectedPhenomenon) {
+    const { copiedSigmetRef, hasEdits } = this.props;
+    if (!abilityRef) {
+      return false;
+    }
+    switch (abilityRef) {
+      case EDIT_ABILITIES.PASTE['dataField']:
+        return !copiedSigmetRef;
+      case EDIT_ABILITIES.DISCARD['dataField']:
+        return !hasEdits;
+      case EDIT_ABILITIES.SAVE['dataField']:
+        return !hasEdits || !selectedPhenomenon;
+      default:
+        return false;
+    }
+  }
+
+  /**
+   * Reduce the available abilities for this specific Sigmet
+   * @param {string} selectedPhenomenon The selectedPhenomenon
+   * @returns {array} The remaining abilities for this specific Sigmet
+   */
+  reduceAbilities (selectedPhenomenon) {
+    const { abilities, validdate, validdateEnd } = this.props;
+    const abilitiesCtAs = []; // CtA = Call To Action
+    const now = moment.utc();
+    const isInValidityPeriod = !now.isBefore(validdate) && !now.isAfter(validdateEnd);
+    if (focus) {
+      Object.values(EDIT_ABILITIES).map((ability) => {
+        if (abilities[ability.check] === true) {
+          ability.disabled = this.getDisabledFlag(ability.dataField, isInValidityPeriod, selectedPhenomenon);
+          abilitiesCtAs.push(ability);
+        }
+      });
+      abilitiesCtAs.sort(byEditAbilities);
+    }
+    return abilitiesCtAs;
+  }
+
   render () {
-    const { dispatch, actions, abilities, availablePhenomena, useGeometryForEnd,
+    const { dispatch, actions, availablePhenomena, useGeometryForEnd, hasStartCoordinates, hasEndCoordinates,
       availableFirs, levelinfo, movement, focus, uuid, locationIndicatorMwo, change,
       phenomenon, isObserved, obsFcTime, validdate, maxHoursInAdvance, maxHoursDuration, validdateEnd, locationIndicatorIcao } = this.props;
-    const selectedPhenomenon = availablePhenomena.filter((ph) => ph.code === phenomenon).shift();
-    const selectedFir = availableFirs.filter((fir) => fir.location_indicator_icao === locationIndicatorIcao).shift();
-    const selectedChange = change ? CHANGES.filter((chg) => chg.shortName === change).shift() : null;
-    const selectedDirection = movement && movement.dir ? DIRECTIONS.filter((dir) => dir.shortName === movement.dir).shift() : null;
+    const selectedPhenomenon = availablePhenomena.find((ph) => ph.code === phenomenon);
+    const selectedFir = availableFirs.find((fir) => fir.location_indicator_icao === locationIndicatorIcao);
+    const selectedChange = change ? CHANGES.find((chg) => chg.shortName === change) : null;
+    const selectedDirection = movement && movement.dir ? DIRECTIONS.find((dir) => dir.shortName === movement.dir) : null;
     const levelMode = this.getMode();
     const isLevelBetween = levelMode.extent === MODES_LVL.BETW;
     const atOrAboveOption = MODES_LVL_OPTIONS.find((option) => option.optionId === levelMode.extent && option.optionId !== MODES_LVL.BETW);
     const atOrAboveLabel = atOrAboveOption ? atOrAboveOption.label : '';
-    const drawActions = [
+    const drawActions = (isEndFeature = false) => [
       /* {
         title: 'Select point',
         action: 'select-point',
         icon: 'circle'
       }, */
       {
-        title: 'Select region',
+        title: `Draw region${!selectedFir ? ' (select a FIR first)' : ''}`,
         action: 'select-region',
-        icon: 'retweet'
+        icon: 'retweet',
+        disabled: !selectedFir
       },
       {
-        title: 'Select shape',
+        title: `Draw polygon${!selectedFir ? ' (select a FIR first)' : ''}`,
         action: 'select-shape',
-        icon: 'pencil'
+        icon: 'pencil',
+        disabled: !selectedFir
       },
       {
-        title: 'Select entire FIR',
+        title: `Draw contour for entire FIR${!selectedFir ? ' (select a FIR first)' : ''}`,
         action: 'select-fir',
-        icon: 'globe'
+        icon: 'globe',
+        disabled: !selectedFir
       },
       {
-        title: 'Delete selection',
+        title: `Delete drawing${(isEndFeature ? hasEndCoordinates : hasStartCoordinates) ? '' : ' (nothing to delete)'}`,
         action: 'delete-selection',
-        icon: 'trash'
+        icon: 'trash',
+        disabled: isEndFeature ? !hasEndCoordinates : !hasStartCoordinates
       }
     ];
+    const messagePrefix = 'Use one of these drawing tools to indicate on the map where the phenomenon is';
+    const drawMessage = (isEndDrawing) => !isEndDrawing
+      ? !hasStartCoordinates
+        ? `${messagePrefix} ${isObserved ? 'observed' : 'expected to occur'}.`
+        : ''
+      : !hasEndCoordinates
+        ? `${messagePrefix} expected to be at the end of the valid period.`
+        : '';
     const now = moment.utc();
-    const abilityCtAs = []; // CtA = Call to Action
-    if (focus) {
-      Object.values(EDIT_ABILITIES).map((ability) => {
-        if (abilities[ability.check] === true) {
-          abilityCtAs.push(ability);
-        }
-      });
-      abilityCtAs.sort(byEditAbilities);
-    }
+    const abilityCtAs = this.reduceAbilities(selectedPhenomenon); // CtA = Call To Action
     return <Button tag='div' className={`Sigmet row${focus ? ' focus' : ''}`} id={uuid} onClick={!focus ? (evt) => dispatch(actions.focusSigmetAction(evt, uuid)) : null}>
       <Col>
+        <HeaderSection />
         <WhatSection>
           <Typeahead filterBy={['name', 'code']} labelKey='name' data-field='phenomenon'
             options={availablePhenomena} placeholder={'Select phenomenon'}
@@ -261,7 +312,7 @@ class SigmetEditMode extends PureComponent {
           <Typeahead filterBy={['firname', 'location_indicator_icao']} labelKey='firname' data-field='firname'
             options={availableFirs}
             onFocus={() => {
-              dispatch(actions.updateSigmetAction(uuid, 'firname', null))
+              dispatch(actions.updateSigmetAction(uuid, 'firname', null));
               dispatch(actions.updateSigmetAction(uuid, 'location_indicator_icao', null));
               dispatch(actions.updateFir(null));
             }}
@@ -282,9 +333,9 @@ class SigmetEditMode extends PureComponent {
           <span data-field='location_indicator_icao'>{locationIndicatorIcao}</span>
         </FirSection>
 
-        <DrawSection>
+        <DrawSection className={`required${hasStartCoordinates ? '' : ' missing'}`} title={drawMessage()}>
           {
-            drawActions.map((actionItem, index) =>
+            drawActions().map((actionItem, index) =>
               <Button color='primary' key={actionItem.action + '_button'} data-field={actionItem.action + '_button'}
                 active={actionItem.action === this.props.drawModeStart} disabled={actionItem.disabled || null}
                 id={actionItem.action + '_button'} title={actionItem.title} onClick={(evt) => dispatch(actions.drawAction(evt, uuid, actionItem.action, 'start'))}>
@@ -292,14 +343,9 @@ class SigmetEditMode extends PureComponent {
               </Button>
             )
           }
-          {!this.props.hasStartCoordinates
-            ? <Alert data-field='drawing_alert' color='danger'>
-                Please use one of the selection tools above to indicate on the map where the phenomenon is {isObserved ? ' observed.' : ' expected to occur.'}
-            </Alert>
-            : null}
         </DrawSection>
 
-        <HeightsSection isLevelBetween={isLevelBetween}>
+        <HeightsSection isLevelBetween={isLevelBetween} hasSurface={levelMode.hasSurface}>
           <RadioGroup
             value={levelMode.extent}
             options={MODES_LVL_OPTIONS}
@@ -314,7 +360,9 @@ class SigmetEditMode extends PureComponent {
             disabled={isLevelBetween}
           />
           <label data-field='at-above-toggle'>{atOrAboveLabel}</label>
-          <InputGroup data-field='at-above-altitude'>
+          <InputGroup data-field='at-above-altitude'
+            className={!isLevelBetween && levelinfo && levelinfo.levels && levelinfo.levels[0] && !levelinfo.levels[0].value ? 'missing' : null}
+            disabled={isLevelBetween}>
             <InputGroupButton>
               <ButtonDropdown toggle={() => null}>
                 <DropdownToggle caret disabled={isLevelBetween}>
@@ -328,11 +376,13 @@ class SigmetEditMode extends PureComponent {
                 </DropdownMenu>
               </ButtonDropdown>
             </InputGroupButton>
-            <Input placeholder='Level' disabled={isLevelBetween} type='number'
+            <Input placeholder='Level' disabled={isLevelBetween} type='number' min='0' step='10'
               value={(isLevelBetween || !levelinfo.levels[0].value) ? '' : levelinfo.levels[0].value}
               onChange={(evt) => dispatch(actions.updateSigmetLevelAction(uuid, 'value', { value: evt.target.value, isUpperLevel: false }))} />
           </InputGroup>
           <Switch
+            className={isLevelBetween && !levelMode.hasSurface &&
+              levelinfo && levelinfo.levels && levelinfo.levels[0] && !levelinfo.levels[0].value ? 'missing' : ''}
             value={levelMode.hasSurface ? 'sfc' : 'lvl'}
             checkedOption={{
               optionId: 'lvl',
@@ -350,7 +400,7 @@ class SigmetEditMode extends PureComponent {
                     </DropdownMenu>
                   </ButtonDropdown>
                 </InputGroupButton>
-                <Input placeholder='Level' disabled={!isLevelBetween || levelMode.hasSurface} type='number'
+                <Input placeholder='Level' disabled={!isLevelBetween || levelMode.hasSurface} type='number' min='0' step='10'
                   value={(!isLevelBetween || levelMode.hasSurface || !levelinfo.levels[0].value) ? '' : levelinfo.levels[0].value}
                   onChange={(evt) => dispatch(actions.updateSigmetLevelAction(uuid, 'value', { value: evt.target.value, isUpperLevel: false }))} />
               </InputGroup>
@@ -360,7 +410,10 @@ class SigmetEditMode extends PureComponent {
             disabled={!isLevelBetween}
             data-field='between-lev-1'
           />
-          <InputGroup data-field='between-lev-2'>
+          <InputGroup
+            data-field='between-lev-2'
+            className={isLevelBetween && levelinfo && levelinfo.levels && levelinfo.levels[1] && !levelinfo.levels[1].value ? 'missing' : null}
+            disabled={!isLevelBetween}>
             <InputGroupButton>
               <ButtonDropdown toggle={() => null}>
                 <DropdownToggle caret disabled={!isLevelBetween}>
@@ -374,7 +427,7 @@ class SigmetEditMode extends PureComponent {
                 </DropdownMenu>
               </ButtonDropdown>
             </InputGroupButton>
-            <Input placeholder='Level' disabled={!isLevelBetween} type='number'
+            <Input placeholder='Level' disabled={!isLevelBetween} type='number' min='0' step='10'
               value={(!isLevelBetween || !levelinfo.levels[1].value) ? '' : levelinfo.levels[1].value}
               onChange={(evt) => dispatch(actions.updateSigmetLevelAction(uuid, 'value', { value: evt.target.value, isUpperLevel: true }))} />
           </InputGroup>
@@ -385,7 +438,7 @@ class SigmetEditMode extends PureComponent {
             value={movement && !movement.stationary ? 'mov' : 'stat'}
             checkedOption={{ optionId: 'mov', label: 'Move' }}
             unCheckedOption={{ optionId: 'stat', label: 'Stationary' }}
-            onChange={(evt) => dispatch(actions.updateSigmetAction(uuid, 'movement', { ...movement, stationary: !evt.target.checked }))}
+            onChange={(evt) => dispatch(actions.updateSigmetAction(uuid, 'movement', { ...SIGMET_TEMPLATES.MOVEMENT, stationary: !evt.target.checked }))}
             data-field='movement'
           />
         </ProgressSection>
@@ -402,32 +455,34 @@ class SigmetEditMode extends PureComponent {
           <Typeahead filterBy={['shortName', 'longName']} labelKey='longName' data-field='direction'
             options={DIRECTIONS} placeholder={'Set direction'} disabled={!movement || movement.stationary || useGeometryForEnd}
             onFocus={() => dispatch(actions.updateSigmetAction(uuid, 'movement', { ...movement, dir: null }))}
-            onChange={(selectedval) => dispatch(actions.updateSigmetAction(uuid, 'movement', { ...movement, dir: selectedval[0].shortName }))}
+            onChange={(selectedval) =>
+              dispatch(actions.updateSigmetAction(uuid, 'movement', { ...movement, dir: selectedval.length > 0 ? selectedval[0].shortName : null }))}
             selected={selectedDirection ? [selectedDirection] : []}
-            clearButton />
-          <InputGroup data-field='speed'>
+            className={movement && !movement.stationary && !useGeometryForEnd && !selectedDirection ? 'missing' : null}
+            clearButton
+          />
+          <InputGroup data-field='speed' className={movement && !movement.stationary && !useGeometryForEnd && !movement.speed ? 'unitAfter missing' : 'unitAfter'}
+            disabled={!movement || movement.stationary || useGeometryForEnd}>
             <Input onChange={(evt) => dispatch(actions.updateSigmetAction(uuid, 'movement', { ...movement, speed: parseInt(evt.target.value) }))}
               value={(!movement || !movement.speed) ? '' : movement.speed}
               type='number' disabled={!movement || movement.stationary || useGeometryForEnd}
-              step='1' />
+              step='1' min='1'
+            />
             <InputGroupAddon>KT</InputGroupAddon>
           </InputGroup>
-          <DrawSection data-field='drawbar'>
+          <DrawSection data-field='drawbar' title={drawMessage(true)}
+            className={movement && !movement.stationary && useGeometryForEnd ? `required${hasStartCoordinates ? '' : ' missing'}` : ''}>
             {
-              drawActions.map((actionItem, index) =>
+              drawActions(true).map((actionItem, index) =>
                 <Button color='primary' key={actionItem.action + '_button'} data-field={actionItem.action + '_button'}
-                  active={actionItem.action === this.props.drawModeEnd} disabled={actionItem.disabled || !movement || movement.stationary || !useGeometryForEnd}
-                  id={actionItem.action + '_button'} title={actionItem.title} onClick={(evt) => dispatch(actions.drawAction(evt, uuid, actionItem.action, 'end'))}>
+                  active={actionItem.action === this.props.drawModeEnd}
+                  disabled={actionItem.disabled || !movement || movement.stationary || !useGeometryForEnd}
+                  id={actionItem.action + '_button'} title={actionItem.title}
+                  onClick={(evt) => dispatch(actions.drawAction(evt, uuid, actionItem.action, 'end'))}>
                   <Icon name={actionItem.icon} />
                 </Button>
               )
             }
-
-            {movement && !movement.stationary && useGeometryForEnd && !this.props.hasEndCoordinates
-              ? <Alert data-field='drawing_alert' color='danger'>
-                Please use one of the selection tools above to indicate on the map where the phenomenon is expected to be at the end of the valid period.
-              </Alert>
-              : null}
           </DrawSection>
         </MovementSection>
 
@@ -437,6 +492,7 @@ class SigmetEditMode extends PureComponent {
             onFocus={() => dispatch(actions.updateSigmetAction(uuid, 'change', null))}
             onChange={(selectedValues) => dispatch(actions.updateSigmetAction(uuid, 'change', selectedValues.length > 0 ? selectedValues[0].shortName : null))}
             selected={selectedChange ? [selectedChange] : []}
+            className={!selectedChange ? 'missing' : null}
             clearButton />
         </ChangeSection>
 
@@ -450,6 +506,7 @@ class SigmetEditMode extends PureComponent {
             <Button key={`action-${ability.dataField}`}
               data-field={ability.dataField}
               color='primary'
+              disabled={ability.disabled}
               onClick={(evt) => dispatch(actions[ability.action](evt, uuid))}>
               {ability.label}
             </Button>
@@ -471,6 +528,8 @@ SigmetEditMode.propTypes = {
     saveSigmetAction: PropTypes.func
   }),
   abilities: PropTypes.shape(abilitiesPropTypes),
+  copiedSigmetRef: PropTypes.string,
+  hasEdits: PropTypes.bool,
   availablePhenomena: PropTypes.array,
   focus: PropTypes.bool,
   uuid: PropTypes.string,

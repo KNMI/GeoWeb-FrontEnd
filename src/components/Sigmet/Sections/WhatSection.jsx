@@ -24,19 +24,25 @@ export default class WhatSection extends PureComponent {
             }
           </Col>
         </Row>
-        <Row>
-          <Col xs={{ size: 9, offset: 3 }}>
-            {children.obs_or_fcst}
-          </Col>
-        </Row>
-        <Row>
-          <Col xs={{ size: 2, offset: 1 }}>
-            <Badge>At</Badge>
-          </Col>
-          <Col xs='9'>
-            {children.obsFcTime}
-          </Col>
-        </Row>
+        {children.obs_or_fcst
+          ? <Row>
+            <Col xs={{ size: 9, offset: 3 }}>
+              {children.obs_or_fcst}
+            </Col>
+          </Row>
+          : null
+        }
+        {children.obsFcTime
+          ? <Row>
+            <Col xs={{ size: 2, offset: 1 }}>
+              <Badge>At</Badge>
+            </Col>
+            <Col xs='9'>
+              {children.obsFcTime}
+            </Col>
+          </Row>
+          : null
+        }
       </Col>
     </Row>;
   }

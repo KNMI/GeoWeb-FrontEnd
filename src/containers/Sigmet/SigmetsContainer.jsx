@@ -82,11 +82,14 @@ class SigmetsContainer extends Component {
   }
 
   render () {
-    const maxSize = 520;
+    const maxSize = 580;
     const header = <ContainerHeader isContainerOpen={this.state.isContainerOpen} dispatch={this.localDispatch} actions={LOCAL_ACTIONS} />;
     const startFeature = this.props.drawProperties.adagucMapDraw.geojson.features.find((feature) => feature.properties.featureFunction === 'start');
+    const startIntersectionFeature = this.props.drawProperties.adagucMapDraw.geojson.features.find((feature) =>
+      feature.properties.featureFunction === 'intersection' && feature.properties.relatesTo === startFeature.id);
     const endFeature = this.props.drawProperties.adagucMapDraw.geojson.features.find((feature) => feature.properties.featureFunction === 'end');
     const hasStartCoordinates = this.featureHasCoordinates(startFeature);
+    const hasStartIntersectionCoordinates = this.featureHasCoordinates(startIntersectionFeature);
     const hasEndCoordinates = this.featureHasCoordinates(endFeature);
 
     return (
@@ -107,7 +110,11 @@ class SigmetsContainer extends Component {
                     dispatch={this.localDispatch}
                     actions={LOCAL_ACTIONS}
                     phenomena={this.state.phenomena}
+                    tacs={this.state.tacs}
+                    copiedSigmetRef={this.state.copiedSigmetRef}
+                    hasEdits={this.state.focussedSigmet.hasEdits}
                     hasStartCoordinates={hasStartCoordinates}
+                    hasStartIntersectionCoordinates={hasStartIntersectionCoordinates}
                     hasEndCoordinates={hasEndCoordinates}
                     parameters={this.state.parameters} />
                   : <MinifiedCategory key={category.ref}

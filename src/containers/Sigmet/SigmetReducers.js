@@ -28,19 +28,13 @@ const getRoundedNow = () => {
 };
 
 const toggleContainer = (evt, container) => {
-  if (evt) {
-    evt.preventDefault();
-  }
   container.setState(produce(container.state, draftState => {
     draftState.isContainerOpen = !draftState.isContainerOpen;
   }));
 };
 
 const toggleCategory = (evt, ref, container) => {
-  const { dispatch, mapActions } = container.props;
-  if (evt) {
-    evt.preventDefault();
-  }
+  const { dispatch, mapActions, drawActions } = container.props;
   container.setState(produce(container.state, draftState => {
     if (ref === CATEGORY_REFS.ADD_SIGMET && ref !== draftState.focussedCategoryRef) {
       draftState.focussedSigmet.mode = SIGMET_MODES.EDIT;
@@ -52,7 +46,11 @@ const toggleCategory = (evt, ref, container) => {
       : ref;
   }), () => {
     dispatch(mapActions.setMapMode('pan'));
-    setSigmetDrawing(null, container);
+    if (ref === CATEGORY_REFS.ADD_SIGMET) {
+      dispatch(drawActions.setGeoJSON(initialGeoJson()));
+    } else {
+      setSigmetDrawing(null, container);
+    }
   });
 };
 
@@ -75,6 +73,9 @@ const updateCategory = (ref, sigmets, container, callback = () => {}) => {
       sigmets.sort(byValidDate);
       sigmets.forEach((incomingSigmet) => {
         draftState.categories[categoryIndex].sigmets.push(mergeInTemplate(incomingSigmet, 'SIGMET', SIGMET_TEMPLATES));
+        if (incomingSigmet.uuid) {
+          retrieveTAC(incomingSigmet.uuid, container);
+        }
       });
     }
   }), callback);
@@ -131,7 +132,7 @@ const receivedPhenomenaCallback = (response, container) => {
     updatePhenomena(response.data, container);
     addSigmet(CATEGORY_REFS.ADD_SIGMET, container);
   } else {
-    console.error(ERROR_MSG.RETRIEVE_PARAMS, response.status, response.data);
+    console.error(ERROR_MSG.RETRIEVE_PHENOMENA, response.status, response.data);
   }
 };
 
@@ -220,16 +221,26 @@ const receivedSigmetsCallback = (ref, response, container, callback) => {
 
 const focusSigmet = (evt, uuid, container) => {
   const { dispatch, mapActions } = container.props;
-  if (evt) {
-    evt.preventDefault();
+  if (evt.target.tagName === 'BUTTON') {
+    return;
   }
+  let shouldClearDrawing = false;
   container.setState(produce(container.state, draftState => {
-    draftState.focussedSigmet.uuid = uuid;
+    if (draftState.focussedSigmet.uuid !== uuid) {
+      draftState.focussedSigmet.uuid = uuid;
+    } else {
+      draftState.focussedSigmet.uuid = null;
+      shouldClearDrawing = true;
+    }
     draftState.focussedSigmet.mode = SIGMET_MODES.READ;
     draftState.focussedSigmet.drawMode = null;
   }), () => {
     dispatch(mapActions.setMapMode('pan'));
-    setSigmetDrawing(uuid, container);
+    if (shouldClearDrawing) {
+      setSigmetDrawing(null, container);
+    } else {
+      setSigmetDrawing(uuid, container);
+    }
   });
 };
 
@@ -360,16 +371,43 @@ const updateSigmet = (uuid, dataField, value, container) => {
           }
         }
         draftState.categories[indices.categoryIndex].sigmets[indices.sigmetIndex][dataField] = value;
+        draftState.focussedSigmet.hasEdits = true;
       }
     }
   }));
 };
 
 const updateSigmetLevel = (uuid, dataField, context, container) => {
+  const indices = findCategoryAndSigmetIndex(uuid, container.state);
+  if (indices.categoryIndex === -1 || indices.sigmetIndex === -1) {
+    return;
+  }
   let newLevelInfo = {};
   switch (dataField) {
     case 'mode':
       newLevelInfo.mode = context;
+      const betwModes = [MODES_LVL.BETW, MODES_LVL.BETW_SFC];
+      const prevLevelInfo = container.state.categories[indices.categoryIndex].sigmets[indices.sigmetIndex].levelinfo;
+      let modeCatChange = false;
+      if ((betwModes.includes(context) && !betwModes.includes(prevLevelInfo.mode)) ||
+          (!betwModes.includes(context) && betwModes.includes(prevLevelInfo.mode))) {
+        modeCatChange = true;
+      }
+      newLevelInfo = produce(SIGMET_TEMPLATES.LEVELINFO, (draftLevelInfo) => {
+        draftLevelInfo.mode = context;
+        draftLevelInfo.levels.length = 0;
+        [0, 1].forEach((index) => {
+          draftLevelInfo.levels.push(produce(SIGMET_TEMPLATES.LEVEL, (draftLevel) => {
+            if (modeCatChange !== true && prevLevelInfo.levels[index]) {
+              Object.entries(draftLevel).forEach((entry) => {
+                draftLevel[entry[0]] = prevLevelInfo.levels[index][entry[0]];
+              });
+            } else {
+              draftLevel.unit = UNITS.FL;
+            }
+          }));
+        });
+      });
       break;
     case 'unit':
       if (UNITS_ALT.includes(context.unit) && typeof context.isUpperLevel === 'boolean') {
@@ -388,30 +426,36 @@ const updateSigmetLevel = (uuid, dataField, context, container) => {
   }
   container.setState(produce(container.state, draftState => {
     if (Object.keys(newLevelInfo).length > 0) {
-      const indices = findCategoryAndSigmetIndex(uuid, draftState);
-      if (indices.categoryIndex !== -1 && indices.sigmetIndex !== -1) {
-        if (newLevelInfo.mode && typeof newLevelInfo.mode === 'string') {
-          draftState.categories[indices.categoryIndex].sigmets[indices.sigmetIndex]['levelinfo']['mode'] = newLevelInfo.mode;
-          if (newLevelInfo.mode !== MODES_LVL.BETW) {
-            draftState.categories[indices.categoryIndex].sigmets[indices.sigmetIndex]['levelinfo']['levels'][1].value = null;
-          }
-        }
-        if (newLevelInfo.levels && Array.isArray(newLevelInfo.levels)) {
-          newLevelInfo.levels.map((level, index) => {
-            if (typeof level === 'object') {
-              Object.entries(level).map((entry) => {
-                draftState.categories[indices.categoryIndex].sigmets[indices.sigmetIndex]['levelinfo']['levels'][index][entry[0]] = entry[1];
-              });
-            }
-          });
+      if (newLevelInfo.mode && typeof newLevelInfo.mode === 'string') {
+        draftState.categories[indices.categoryIndex].sigmets[indices.sigmetIndex]['levelinfo']['mode'] = newLevelInfo.mode;
+        if (newLevelInfo.mode !== MODES_LVL.BETW) {
+          draftState.categories[indices.categoryIndex].sigmets[indices.sigmetIndex]['levelinfo']['levels'][1].value = null;
         }
       }
+      if (newLevelInfo.levels && Array.isArray(newLevelInfo.levels)) {
+        newLevelInfo.levels.map((level, index) => {
+          if (typeof level === 'object') {
+            Object.entries(level).map((entry) => {
+              draftState.categories[indices.categoryIndex].sigmets[indices.sigmetIndex]['levelinfo']['levels'][index][entry[0]] = entry[1];
+            });
+          }
+        });
+      }
+      draftState.focussedSigmet.hasEdits = true;
     }
   }));
 };
 
+const clearRelatedIntersection = (featureId, features, dispatch, drawActions) => {
+  const relatedIntersection = features.find((feature) =>
+    feature.properties.featureFunction === 'intersection' && feature.properties.relatesTo === featureId
+  );
+  if (relatedIntersection) {
+    dispatch(drawActions.setFeature({ coordinates: [], selectionType: 'poly', featureId: relatedIntersection.id }));
+  }
+};
+
 const drawSigmet = (event, uuid, container, action, featureFunction) => {
-  event.preventDefault();
   const { dispatch, mapActions, drawActions, drawProperties } = container.props;
   const features = drawProperties.adagucMapDraw.geojson.features;
   // Select relevant polygon to edit, this assumes there is ONE start and ONE end feature.
@@ -426,18 +470,22 @@ const drawSigmet = (event, uuid, container, action, featureFunction) => {
     case 'select-point':
       dispatch(mapActions.setMapMode('draw'));
       dispatch(drawActions.setFeatureEditPoint());
+      dispatch(drawActions.setFeature({ coordinates: [], selectionType: 'point', featureId }));
+      clearRelatedIntersection(featureId, features, dispatch, drawActions);
       modifyFocussedSigmet(drawMode, action, container);
       break;
     case 'select-region':
       dispatch(mapActions.setMapMode('draw'));
       dispatch(drawActions.setFeatureEditBox());
       dispatch(drawActions.setFeature({ coordinates: [], selectionType: 'box', featureId }));
+      clearRelatedIntersection(featureId, features, dispatch, drawActions);
       modifyFocussedSigmet(drawMode, action, container);
       break;
     case 'select-shape':
       dispatch(mapActions.setMapMode('draw'));
       dispatch(drawActions.setFeatureEditPolygon());
       dispatch(drawActions.setFeature({ coordinates: [], selectionType: 'poly', featureId }));
+      clearRelatedIntersection(featureId, features, dispatch, drawActions);
       modifyFocussedSigmet(drawMode, action, container);
       break;
     case 'select-fir':
@@ -446,17 +494,13 @@ const drawSigmet = (event, uuid, container, action, featureFunction) => {
       dispatch(mapActions.setMapMode('pan'));
       dispatch(drawActions.setFeatureEditPolygon());
       dispatch(drawActions.setFeature({ coordinates, selectionType: 'poly', featureId }));
+      clearRelatedIntersection(featureId, features, dispatch, drawActions);
       modifyFocussedSigmet(drawMode, action, container);
       break;
     case 'delete-selection':
       dispatch(mapActions.setMapMode('pan'));
       dispatch(drawActions.setFeature({ coordinates: [], selectionType: 'poly', featureId }));
-      const relatedIntersection = features.find((feature) =>
-        feature.properties.featureFunction === 'intersection' && feature.properties.relatesTo === featureId
-      );
-      if (relatedIntersection) {
-        dispatch(drawActions.setFeature({ coordinates: [], selectionType: 'poly', featureId: relatedIntersection.id }));
-      }
+      clearRelatedIntersection(featureId, features, dispatch, drawActions);
       modifyFocussedSigmet(drawMode, null, container);
       break;
     default:
@@ -466,8 +510,9 @@ const drawSigmet = (event, uuid, container, action, featureFunction) => {
 };
 
 const complementFeatureCoordinates = (feature, container) => {
-  const result = { complemented: false, coordinates: cloneDeep(feature.geometry.coordinates) };
+  const result = { complemented: false, coordinates: [] };
   if (container.featureHasCoordinates(feature)) {
+    result.coordinates.push(...feature.geometry.coordinates);
     if (result.coordinates[0][0] !== result.coordinates[0][result.coordinates[0].length - 1]) {
       result.coordinates[0].push(result.coordinates[0][0]);
       result.complemented = true;
@@ -526,6 +571,21 @@ const createFirIntersection = (featureId, geojson, container) => {
 const modifyFocussedSigmet = (dataField, value, container) => {
   container.setState(produce(container.state, draftState => {
     draftState.focussedSigmet[dataField] = value;
+    draftState.focussedSigmet.hasEdits = true;
+    switch (dataField) {
+      case 'useGeometryForEnd': {
+        if (value === true) {
+          const indices = findCategoryAndSigmetIndex(draftState.focussedSigmet.uuid, draftState);
+          if (indices.categoryIndex !== -1 && indices.sigmetIndex !== -1) {
+            draftState.categories[indices.categoryIndex].sigmets[indices.sigmetIndex]['movement'] = produce(SIGMET_TEMPLATES.MOVEMENT,
+              movementDraftState => { movementDraftState.stationary = false; });
+          }
+        }
+        break;
+      }
+      default:
+        break;
+    }
   }));
 };
 
@@ -555,6 +615,7 @@ const discardSigmet = (event, uuid, container) => {
   retrieveSigmets(container, () => {
     container.setState(produce(container.state, draftState => {
       draftState.focussedSigmet.mode = SIGMET_MODES.READ;
+      draftState.focussedSigmet.hasEdits = false;
       dispatch(mapActions.setMapMode('pan'));
     }));
   });
@@ -562,15 +623,11 @@ const discardSigmet = (event, uuid, container) => {
 
 const saveSigmet = (event, uuid, container) => {
   const { drawProperties, urls, dispatch, mapActions } = container.props;
-  event.preventDefault();
-  if (container.state.focussedSigmet.uuid !== uuid) {
+  const indices = findCategoryAndSigmetIndex(uuid, container.state);
+  if (indices.categoryIndex === -1 || indices.sigmetIndex === -1) {
     return;
   }
-  const activeCategory = container.state.categories.find((category) => category.ref === container.state.focussedCategoryRef);
-  if (!activeCategory) {
-    return;
-  }
-  const affectedSigmet = activeCategory.sigmets.find((sigmet) => sigmet.uuid === uuid);
+  const affectedSigmet = container.state.categories[indices.categoryIndex].sigmets[indices.sigmetIndex];
   if (!affectedSigmet) {
     return;
   }
@@ -637,6 +694,7 @@ const saveSigmet = (event, uuid, container) => {
       // Set mode to READ, set focus of category and Sigmet, and clear new Sigmet
       container.setState(produce(container.state, draftState => {
         draftState.focussedSigmet.mode = SIGMET_MODES.READ;
+        draftState.focussedSigmet.hasEdits = false;
         const indices = findCategoryAndSigmetIndex(response.data.uuid, draftState);
         if (indices.categoryIndex !== -1 && indices.sigmetIndex !== -1) {
           const catRef = draftState.categories[indices.categoryIndex].ref;
@@ -679,7 +737,7 @@ const editSigmet = (event, uuid, container) => {
 */
 const deleteSigmet = (event, uuid, container) => {
   const { state, props } = container;
-  const { dispatch } = props;
+  const { dispatch, mapActions } = props;
   const { BACKEND_SERVER_URL } = props.urls;
   if (!uuid || !BACKEND_SERVER_URL) {
     return;
@@ -712,7 +770,10 @@ const deleteSigmet = (event, uuid, container) => {
               draftState.focussedCategoryRef = catRef;
             }
           }
-        }));
+        }), () => {
+          dispatch(mapActions.setMapMode('pan'));
+          setSigmetDrawing(null, container);
+        });
       });
     }).catch(error => {
       console.error('Couldn\'t delete Sigmet', error);
@@ -741,14 +802,16 @@ const copySigmet = (event, uuid, container) => {
   if (indices.categoryIndex !== -1 && indices.sigmetIndex !== -1) {
     container.setState(produce(state, draftState => {
       draftState.copiedSigmetRef = uuid;
-    }), () => dispatch(notify({
-      title: 'Sigmet copied',
-      message: 'The properties of this Sigmet have been copied successfully',
-      status: 'success',
-      position: 'bl',
-      dismissible: true,
-      dismissAfter: 3000
-    })));
+    }), () => {
+      dispatch(notify({
+        title: 'Sigmet copied',
+        message: 'The properties of this Sigmet have been copied successfully' + uuid,
+        status: 'success',
+        position: 'bl',
+        dismissible: true,
+        dismissAfter: 3000
+      }));
+    });
   }
 };
 
@@ -759,7 +822,7 @@ const copySigmet = (event, uuid, container) => {
  */
 const pasteSigmet = (event, container) => {
   const { state } = container;
-  const { dispatch } = container.props;
+  const { dispatch, drawActions } = container.props;
   const indicesCopiedSigmet = findCategoryAndSigmetIndex(state.copiedSigmetRef, state);
   const indicesCurrentSigmet = findCategoryAndSigmetIndex(state.focussedSigmet.uuid, state);
   if (indicesCopiedSigmet.categoryIndex !== -1 && indicesCopiedSigmet.sigmetIndex !== -1 &&
@@ -789,14 +852,17 @@ const pasteSigmet = (event, container) => {
         }
       });
       draftState.copiedSigmetRef = null;
-    }), () => dispatch(notify({
-      title: 'Sigmet pasted',
-      message: 'The copied properties have been pasted successfully into the current Sigmet',
-      status: 'success',
-      position: 'bl',
-      dismissible: true,
-      dismissAfter: 3000
-    })));
+    }), () => {
+      dispatch(drawActions.setGeoJSON(copiedSigmet.geojson));
+      dispatch(notify({
+        title: 'Sigmet pasted',
+        message: 'The copied properties have been pasted successfully into the current Sigmet',
+        status: 'success',
+        position: 'bl',
+        dismissible: true,
+        dismissAfter: 3000
+      }));
+    });
   }
 };
 
@@ -809,32 +875,33 @@ const publishSigmet = (event, uuid, container) => {
   }), () => saveSigmet(event, uuid, container));
 };
 
-const showTAC = (event, uuid, container) => {
-  event.preventDefault();
+const retrieveTAC = (uuid, container) => {
   const { urls } = container.props;
+
+  if (!uuid) {
+    return;
+  }
 
   axios({
     method: 'get',
     url: `${urls.BACKEND_SERVER_URL}/sigmets/${uuid}`,
     withCredentials: true,
-    responseType: 'text/plain',
+    responseType: 'text',
     headers: {
       'Accept': 'text/plain'
     }
-  }).then((res) => {
-    const tab = window.open('about:blank', '_blank');
-    tab.document.write(res.data); // where 'html' is a variable containing your HTML
-    tab.document.close(); // to finish loading the page
-
-    // window.open('data:text/plain,' + encodeURIComponent(res.data));
+  }).then((response) => {
+    const indexExisting = container.state.tacs.findIndex((tac) => tac.uuid === uuid);
+    container.setState(produce(container.state, draftState => {
+      if (indexExisting !== -1) {
+        draftState.tacs[indexExisting].code = response.data;
+      } else {
+        draftState.tacs.push({ uuid: uuid, code: response.data });
+      }
+    }));
+  }).catch(error => {
+    console.error('Couldn\'t retrieve TAC for Sigmet', error);
   });
-};
-
-const showIWXXM = (event, uuid, container) => {
-  event.preventDefault();
-  const { urls } = container.props;
-
-  window.open(`${urls.BACKEND_SERVER_URL}/sigmets/${uuid}`);
 };
 
 const cancelSigmet = (event, uuid, container) => {
@@ -843,7 +910,9 @@ const cancelSigmet = (event, uuid, container) => {
     if (indices.categoryIndex !== -1 && indices.sigmetIndex !== -1) {
       draftState.categories[indices.categoryIndex].sigmets[indices.sigmetIndex].status = STATUSES.CANCELED;
     }
-  }), () => saveSigmet(event, uuid, container));
+  }), () => {
+    saveSigmet(event, uuid, container);
+  });
 };
 
 const setSigmetDrawing = (uuid, container) => {
@@ -851,15 +920,11 @@ const setSigmetDrawing = (uuid, container) => {
   if (container.state.focussedSigmet.uuid !== uuid) {
     return;
   }
-  const activeCategory = container.state.categories.find((category) => category.ref === container.state.focussedCategoryRef);
-  if (!activeCategory) {
+  const indices = findCategoryAndSigmetIndex(uuid, container.state);
+  if (indices.categoryIndex === -1 || indices.sigmetIndex === -1) {
     return;
   }
-  const affectedSigmet = activeCategory.sigmets.find((sigmet) => sigmet.uuid === uuid);
-  if (!affectedSigmet) {
-    return;
-  }
-
+  const affectedSigmet = container.state.categories[indices.categoryIndex].sigmets[indices.sigmetIndex];
   dispatch(drawActions.setGeoJSON(affectedSigmet.geojson));
 };
 
@@ -937,12 +1002,6 @@ export default (localAction, container) => {
       break;
     case LOCAL_ACTION_TYPES.MODIFY_FOCUSSED_SIGMET:
       modifyFocussedSigmet(localAction.dataField, localAction.value, container);
-      break;
-    case LOCAL_ACTION_TYPES.SHOW_IWXXM:
-      showIWXXM(localAction.event, localAction.uuid, container);
-      break;
-    case LOCAL_ACTION_TYPES.SHOW_TAC:
-      showTAC(localAction.event, localAction.uuid, container);
       break;
     case LOCAL_ACTION_TYPES.SET_DRAWING:
       setSigmetDrawing(localAction.uuid, container);

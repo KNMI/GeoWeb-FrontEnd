@@ -3,7 +3,7 @@
   $base-color: #017daf;
   $base-inner-color: #fff;
   $hover-color: #8fd6ef;
-  $disabled-color: #777;
+  $disabled-color: #999;
   $disabled-inner-color: #eee;
   $transition: background 0.4s;
   input {
@@ -60,6 +60,7 @@
   }
   input:disabled ~ span.radio::after, input:disabled ~ span.radio::before {
     background: $disabled-inner-color;
+    box-shadow: unset;
   }
   input:checked:disabled ~ span.radio::after {
     background: $disabled-color;

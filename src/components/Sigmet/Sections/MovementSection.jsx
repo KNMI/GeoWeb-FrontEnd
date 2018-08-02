@@ -15,9 +15,9 @@ export default class MovementSection extends PureComponent {
       });
     }
 
-    return <Row className={this.props.disabled ? 'Move disabled' : 'Move'}>
+    return <Row className='Move'>
       <Col>
-        <Row>
+        <Row className={this.props.disabled ? 'disabled' : null}>
           <Col xs='3'>
             <Badge color='success'>Move</Badge>
           </Col>
@@ -30,20 +30,28 @@ export default class MovementSection extends PureComponent {
             {children.drawbar}
           </Col>
         </Row>
-        <Row className={this.props.useGeometryForEnd ? 'disabled' : null}>
+        <Row className={this.props.disabled || this.props.useGeometryForEnd ? 'disabled' : null}>
           <Col xs={{ size: 2, offset: 1 }}>
             <Badge>Direction</Badge>
           </Col>
           <Col xs='9'>
             {children.direction}
+            {children.direction && children.direction.props.selected && !children.direction.props.disabled
+              ? <span className={children.direction.props.selected.length > 0 ? 'required' : 'required missing'} />
+              : null
+            }
           </Col>
         </Row>
-        <Row className={this.props.useGeometryForEnd ? 'disabled' : null}>
+        <Row className={this.props.disabled || this.props.useGeometryForEnd ? 'disabled' : null}>
           <Col xs={{ size: 2, offset: 1 }}>
             <Badge>Speed</Badge>
           </Col>
           <Col xs='9'>
             {children.speed}
+            {children.speed && children.speed.props && !children.speed.props.disabled
+              ? <span className={children.speed.props.className.split(' ').includes('missing') ? 'required missing' : 'required'} />
+              : null
+            }
           </Col>
         </Row>
       </Col>

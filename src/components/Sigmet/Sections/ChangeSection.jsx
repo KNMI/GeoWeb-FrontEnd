@@ -22,6 +22,10 @@ export default class ChangeSection extends PureComponent {
           </Col>
           <Col xs='9'>
             {children.change}
+            {children.change && children.change.props.selected
+              ? <span className={children.change.props.selected.length > 0 ? 'required' : 'required missing'} />
+              : null
+            }
           </Col>
         </Row>
       </Col>
