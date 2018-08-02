@@ -48,7 +48,15 @@ class SigmetsCategory extends PureComponent {
                             abilities={abilities[SIGMET_MODES.EDIT]}
                             copiedSigmetRef={copiedSigmetRef}
                             hasEdits={hasEdits}
-                            availablePhenomena={phenomena}
+                            availablePhenomena={phenomena.slice().sort((phA, phB) => {
+                              const nameA = phA.name.toUpperCase();
+                              const nameB = phB.name.toUpperCase();
+                              return nameA < nameB
+                                ? -1
+                                : nameA > nameB
+                                  ? 1
+                                  : 0;
+                            })}
                             phenomenon={sigmet.phenomenon}
                             focus
                             uuid={sigmet.uuid}

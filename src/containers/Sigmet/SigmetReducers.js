@@ -140,6 +140,15 @@ const updatePhenomena = (phenomena, container) => {
   const SEPARATOR = '_';
   container.setState(produce(container.state, draftState => {
     if (Array.isArray(phenomena)) {
+      phenomena.push({
+        phenomenon: {
+          layerpreset: null,
+          name: 'Volcanic Ash',
+          code: 'VA'
+        },
+        variants: [],
+        additions: []
+      });
       draftState.phenomena.length = 0;
       phenomena.forEach((item) => {
         if (item.variants.length === 0) {
@@ -230,7 +239,7 @@ const focusSigmet = (evt, uuid, container) => {
       draftState.focussedSigmet.uuid = uuid;
     } else {
       draftState.focussedSigmet.uuid = null;
-      shouldClearDrawing = true
+      shouldClearDrawing = true;
     }
     draftState.focussedSigmet.mode = SIGMET_MODES.READ;
     draftState.focussedSigmet.drawMode = null;
