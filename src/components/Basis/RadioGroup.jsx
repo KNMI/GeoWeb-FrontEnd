@@ -6,7 +6,7 @@ export default class RadioGroup extends PureComponent {
   render () {
     const { value, onChange, options, disabled, className } = this.props;
     const dataField = this.props['data-field'];
-    return <Row className={`RadioGroup ${className}`}>
+    return <Row className={className ? `RadioGroup ${className}` : 'RadioGroup'}>
       {options.map((option) =>
         <Col xs='auto' key={`radioGroup-${option.optionId}`}>
           <label>

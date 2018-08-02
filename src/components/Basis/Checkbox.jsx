@@ -6,7 +6,7 @@ export default class Checkbox extends PureComponent {
   render () {
     const { value, onChange, option, disabled, className } = this.props;
     const dataField = this.props['data-field'];
-    return <Row className={`Checkbox ${className}`}>
+    return <Row className={className ? `Checkbox ${className}` : 'Checkbox'}>
       <Col xs='auto'>
         <label>
           <input type='checkbox' data-field={dataField}
