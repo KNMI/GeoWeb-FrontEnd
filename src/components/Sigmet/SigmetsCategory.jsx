@@ -9,6 +9,26 @@ import SigmetReadMode from './SigmetReadMode';
 import SigmetMinifiedMode from './SigmetMinifiedMode';
 
 class SigmetsCategory extends PureComponent {
+  byStart (sigA, sigB) {
+    const startA = sigA.hasOwnProperty('validdate') && sigA.validdate;
+    const startB = sigB.hasOwnProperty('validdate') && sigB.validdate;
+    if (startA) {
+      if (startB) {
+        if (startA < startB) {
+          return 1;
+        }
+        if (startB < startA) {
+          return -1;
+        }
+        return 0;
+      } else {
+        return 1;
+      }
+    } else if (startB) {
+      return -1;
+    }
+    return 0;
+  }
   render () {
     const { typeRef, title, icon, sigmets, focussedSigmet, copiedSigmetRef, hasEdits, tacs, isOpen, dispatch, actions, abilities, phenomena, parameters } = this.props;
     const maxSize = 10000; // for now, arbitrairy big
@@ -38,7 +58,7 @@ class SigmetsCategory extends PureComponent {
               <CardBlock>
                 <Row>
                   <Col className='btn-group-vertical'>
-                    {sigmets.slice(0, itemLimit).map((sigmet, index) => {
+                    {sigmets.slice(0, itemLimit).sort(this.byStart).map((sigmet, index) => {
                       if (focussedSigmet.uuid === sigmet.uuid) {
                         if (focussedSigmet.mode === SIGMET_MODES.EDIT) {
                           return <SigmetEditMode key={sigmet.uuid}

@@ -112,7 +112,7 @@ class SigmetEditMode extends PureComponent {
   isValidStartTimestamp (timestamp) {
     const { maxHoursInAdvance } = this.props;
     const now = moment.utc();
-    return now.clone().subtract(1, 'day').isSameOrBefore(timestamp) &&
+    return now.clone().subtract(1, 'hour').isSameOrBefore(timestamp) &&
       now.clone().add(maxHoursInAdvance, 'hour').isSameOrAfter(timestamp);
   };
 

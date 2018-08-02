@@ -230,7 +230,7 @@ const focusSigmet = (evt, uuid, container) => {
       draftState.focussedSigmet.uuid = uuid;
     } else {
       draftState.focussedSigmet.uuid = null;
-      shouldClearDrawing = true
+      shouldClearDrawing = true;
     }
     draftState.focussedSigmet.mode = SIGMET_MODES.READ;
     draftState.focussedSigmet.drawMode = null;
