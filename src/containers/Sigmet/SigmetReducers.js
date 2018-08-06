@@ -662,6 +662,7 @@ const discardSigmet = (event, uuid, container) => {
       draftState.focussedSigmet.mode = SIGMET_MODES.READ;
       draftState.focussedSigmet.hasEdits = false;
       dispatch(mapActions.setMapMode('pan'));
+      setSigmetDrawing(uuid, container);
     }));
   });
 };
@@ -749,7 +750,7 @@ const editSigmet = (event, uuid, container) => {
   container.setState(produce(container.state, draftState => {
     draftState.focussedSigmet.uuid = uuid;
     draftState.focussedSigmet.mode = SIGMET_MODES.EDIT;
-  }), () => dispatch(mapActions.setMapMode('draw')));
+  }), () => dispatch(mapActions.setMapMode('pan')));
 };
 
 /**
