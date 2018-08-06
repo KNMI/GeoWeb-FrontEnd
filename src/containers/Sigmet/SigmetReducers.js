@@ -312,7 +312,7 @@ const initialGeoJson = () => {
   const endId = uuidv4();
   draftState.features[0].id = startId;
   draftState.features[0].properties.featureFunction = 'start';
-  draftState.features[0].properties.selectionType = 'poly';
+  draftState.features[0].properties.selectionType = null;
   draftState.features[0].properties['fill-opacity'] = 0.2;
   draftState.features[0].properties.fill = '#0f0';
   draftState.features[0].properties['stroke-width'] = 0.8;
@@ -321,7 +321,7 @@ const initialGeoJson = () => {
   draftState.features[1].id = endId;
   draftState.features[1].properties.featureFunction = 'end';
   draftState.features[1].properties.relatesTo = startId;
-  draftState.features[1].properties.selectionType = 'poly';
+  draftState.features[1].properties.selectionType = null;
   draftState.features[1].properties['fill-opacity'] = 0.2;
   draftState.features[1].properties.fill = '#f00';
   draftState.features[1].properties['stroke-width'] = 0.8;
@@ -392,7 +392,10 @@ const findCategoryAndSigmetIndex = (uuid, state) => {
 };
 
 const updateSigmet = (uuid, dataField, value, container) => {
-  const indices = findCategoryAndSigmetIndex(uuid, container.state);
+  const { state, props } = container;
+  const { drawProperties, dispatch, drawActions } = props;
+  const shouldCleanEndFeature = dataField === 'movement' && value.hasOwnProperty('stationary') && value.stationary === true;
+  const indices = findCategoryAndSigmetIndex(uuid, state);
   if (!dataField || indices.categoryIndex === -1 || indices.sigmetIndex === -1) {
     return;
   }
@@ -403,10 +406,19 @@ const updateSigmet = (uuid, dataField, value, container) => {
       value = value[0].code;
     }
   }
-  container.setState(produce(container.state, draftState => {
+  container.setState(produce(state, draftState => {
     draftState.categories[indices.categoryIndex].sigmets[indices.sigmetIndex][dataField] = value;
     draftState.focussedSigmet.hasEdits = true;
-  }));
+  }), () => {
+    if (shouldCleanEndFeature === true) {
+      const features = cloneDeep(drawProperties.adagucMapDraw.geojson.features);
+      const endFeature = features.find((potentialEndFeature) => potentialEndFeature.properties.featureFunction === 'end');
+      if (endFeature && endFeature.id) {
+        dispatch(drawActions.setFeature({ coordinates: [], selectionType: 'poly', featureId: endFeature.id }));
+        clearRelatedIntersection(endFeature.id, features, dispatch, drawActions);
+      }
+    }
+  });
 };
 
 const updateSigmetLevel = (uuid, dataField, context, container) => {

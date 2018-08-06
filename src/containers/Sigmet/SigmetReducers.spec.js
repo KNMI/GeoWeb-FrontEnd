@@ -240,7 +240,8 @@ describe('(Reducer) Sigmet/SigmetReducers', () => {
       'location_indicator_mwo': 'EHDB',
       'uuid': '8918a112-5e75-4e74-983e-ce33b3b8d8a2',
       'status': 'concept',
-      'sequence': -1
+      'sequence': -1,
+      'cancels': null
     };
     const sigmetsResponse = {
       'sigmets': [sigmet]
@@ -311,6 +312,7 @@ describe('(Reducer) Sigmet/SigmetReducers', () => {
         expect(container.state.categories[3].sigmets[0]).to.have.property('uuid', resultSigmet.uuid);
         expect(container.state.categories[3].sigmets[0]).to.have.property('status', resultSigmet.status);
         expect(container.state.categories[3].sigmets[0]).to.have.property('sequence', resultSigmet.sequence);
+        expect(container.state.categories[3].sigmets[0]).to.have.property('cancels', resultSigmet.cancels);
         expect(container.state.categories[3].sigmets[0]).to.have.property('forecast_position_time', resultSigmet.forecast_position_time);
         expect(container.state.categories[3].sigmets[0]).to.have.property('issuedate', resultSigmet.issuedate);
         expect(container.state.categories[3].sigmets[0]).to.have.property('obs_or_forecast');
