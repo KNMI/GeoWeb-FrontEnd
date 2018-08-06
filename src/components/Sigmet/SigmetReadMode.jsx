@@ -97,13 +97,13 @@ class SigmetReadMode extends PureComponent {
    * @returns {array} The remaining abilities for this specific Sigmet
    */
   reduceAbilities () {
-    const { abilities, validdate, validdateEnd } = this.props;
+    const { abilities, validdate, validdateEnd, isCancel } = this.props;
     const abilitiesCtAs = []; // CtA = Call To Action
     const now = moment.utc();
     const isInValidityPeriod = !now.isBefore(validdate) && !now.isAfter(validdateEnd);
     if (focus) {
       Object.values(READ_ABILITIES).map((ability) => {
-        if (abilities[ability.check] === true) {
+        if (abilities[ability.check] === true && (ability.dataField !== 'cancel' || !isCancel)) {
           ability.disabled = this.getDisabledFlag(ability.dataField, isInValidityPeriod);
           abilitiesCtAs.push(ability);
         }
@@ -240,7 +240,8 @@ SigmetReadMode.propTypes = {
   maxHoursInAdvance: PropTypes.number,
   maxHoursDuration: PropTypes.number,
   hasStartCoordinates: PropTypes.bool,
-  hasStartIntersectionCoordinates: PropTypes.bool
+  hasStartIntersectionCoordinates: PropTypes.bool,
+  isCancel: PropTypes.bool
 };
 
 export default SigmetReadMode;

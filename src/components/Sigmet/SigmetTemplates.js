@@ -66,6 +66,7 @@ TEMPLATES.SIGMET = {
   uuid: null, // string
   sequence: null, // number
   status: null, // string
+  cancels: null, // number
   /* Metadata */
   location_indicator_icao: null, // string
   location_indicator_mwo: null // string
@@ -117,6 +118,7 @@ const TYPES = {
   UUID: PropTypes.string,
   SEQUENCE: PropTypes.number,
   STATUS: PropTypes.string,
+  CANCELS: PropTypes.number,
   LOCATION_INDICATOR_ICAO: PropTypes.string,
   LOCATION_INDICATOR_MWO: PropTypes.string
 };

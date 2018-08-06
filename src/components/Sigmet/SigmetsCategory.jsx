@@ -9,9 +9,11 @@ import SigmetReadMode from './SigmetReadMode';
 import SigmetMinifiedMode from './SigmetMinifiedMode';
 
 class SigmetsCategory extends PureComponent {
-  byStart (sigA, sigB) {
+  byStartAndSequence (sigA, sigB) {
     const startA = sigA.hasOwnProperty('validdate') && sigA.validdate;
     const startB = sigB.hasOwnProperty('validdate') && sigB.validdate;
+    const seqA = sigA.hasOwnProperty('sequence') && sigA.sequence;
+    const seqB = sigB.hasOwnProperty('sequence') && sigB.sequence;
     if (startA) {
       if (startB) {
         if (startA < startB) {
@@ -20,12 +22,18 @@ class SigmetsCategory extends PureComponent {
         if (startB < startA) {
           return -1;
         }
+        if (!isNaN(seqA) && !isNaN(seqB)) {
+          return seqA - seqB;
+        }
         return 0;
       } else {
         return 1;
       }
     } else if (startB) {
       return -1;
+    }
+    if (!isNaN(seqA) && !isNaN(seqB)) {
+      return seqA - seqB;
     }
     return 0;
   }
@@ -58,7 +66,7 @@ class SigmetsCategory extends PureComponent {
               <CardBlock>
                 <Row>
                   <Col className='btn-group-vertical'>
-                    {sigmets.slice(0, itemLimit).sort(this.byStart).map((sigmet, index) => {
+                    {sigmets.slice(0, itemLimit).sort(this.byStartAndSequence).map((sigmet, index) => {
                       if (focussedSigmet.uuid === sigmet.uuid) {
                         if (focussedSigmet.mode === SIGMET_MODES.EDIT) {
                           return <SigmetEditMode key={sigmet.uuid}
@@ -108,6 +116,7 @@ class SigmetsCategory extends PureComponent {
                             validdateEnd={sigmet.validdate_end}
                             hasStartCoordinates={this.props.hasStartCoordinates}
                             hasStartIntersectionCoordinates={this.props.hasStartIntersectionCoordinates}
+                            isCancel={sigmet.cancels !== null && !isNaN(sigmet.cancels)}
                             issuedate={sigmet.issuedate}
                             sequence={sigmet.sequence}
                             firname={sigmet.firname}
