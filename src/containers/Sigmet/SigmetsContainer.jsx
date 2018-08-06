@@ -40,7 +40,7 @@ class SigmetsContainer extends Component {
   featureHasCoordinates (feature) {
     if (feature && feature.geometry && feature.geometry.coordinates &&
       Array.isArray(feature.geometry.coordinates)) { // shapes
-      const coordinates = feature.geometry.coordinates;
+      const { coordinates } = feature.geometry;
       if (coordinates.length > 0 && Array.isArray(coordinates[0])) { // lines
         if (coordinates[0].length > 0 && Array.isArray(coordinates[0][0])) { // points
           if (coordinates[0][0].length === 2 && !isNaN(coordinates[0][0][0]) && !isNaN(coordinates[0][0][1])) { // lat-long coordinates
@@ -58,11 +58,17 @@ class SigmetsContainer extends Component {
       const currentEndFeature = this.findFeatureByFunction('end');
       const nextStartFeature = this.findFeatureByFunction('start', nextProps);
       const nextEndFeature = this.findFeatureByFunction('end', nextProps);
-      if (!currentStartFeature || !nextStartFeature || currentStartFeature.id !== nextStartFeature.id) {
+      if (!currentStartFeature || !nextStartFeature) {
+        return;
+      }
+      if (currentStartFeature.id !== nextStartFeature.id) {
         console.warn(ERROR_MSG.FEATURE_ID_MISMATCH, 'start');
         return;
       }
-      if (!currentEndFeature || !nextEndFeature || currentEndFeature.id !== nextEndFeature.id) {
+      if (!currentEndFeature || !nextEndFeature) {
+        return;
+      }
+      if (currentEndFeature.id !== nextEndFeature.id) {
         console.warn(ERROR_MSG.FEATURE_ID_MISMATCH, 'end');
         return;
       }
@@ -85,12 +91,12 @@ class SigmetsContainer extends Component {
     const maxSize = 580;
     const header = <ContainerHeader isContainerOpen={this.state.isContainerOpen} dispatch={this.localDispatch} actions={LOCAL_ACTIONS} />;
     const startFeature = this.props.drawProperties.adagucMapDraw.geojson.features.find((feature) => feature.properties.featureFunction === 'start');
-    const startIntersectionFeature = this.props.drawProperties.adagucMapDraw.geojson.features.find((feature) =>
-      feature.properties.featureFunction === 'intersection' && feature.properties.relatesTo === startFeature.id);
+    const startIntersectionFeature = startFeature ? this.props.drawProperties.adagucMapDraw.geojson.features.find((feature) =>
+      feature.properties.featureFunction === 'intersection' && feature.properties.relatesTo === startFeature.id) : null;
     const endFeature = this.props.drawProperties.adagucMapDraw.geojson.features.find((feature) => feature.properties.featureFunction === 'end');
-    const hasStartCoordinates = this.featureHasCoordinates(startFeature);
-    const hasStartIntersectionCoordinates = this.featureHasCoordinates(startIntersectionFeature);
-    const hasEndCoordinates = this.featureHasCoordinates(endFeature);
+    const hasStartCoordinates = startFeature ? this.featureHasCoordinates(startFeature) : false;
+    const hasStartIntersectionCoordinates = startIntersectionFeature ? this.featureHasCoordinates(startIntersectionFeature) : false;
+    const hasEndCoordinates = endFeature ? this.featureHasCoordinates(endFeature) : false;
 
     return (
       <Col className='SigmetsContainer'>
