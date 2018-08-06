@@ -138,7 +138,7 @@ class SigmetEditMode extends PureComponent {
 * @returns {boolean} Whether or not is should be disabled
 */
   getDisabledFlag (abilityRef, isInValidityPeriod, selectedPhenomenon) {
-    const { copiedSigmetRef, hasEdits } = this.props;
+    const { copiedSigmetRef, hasEdits, validdate, validdateEnd, obsFcTime } = this.props;
     if (!abilityRef) {
       return false;
     }
@@ -148,7 +148,8 @@ class SigmetEditMode extends PureComponent {
       case EDIT_ABILITIES.DISCARD['dataField']:
         return !hasEdits;
       case EDIT_ABILITIES.SAVE['dataField']:
-        return !hasEdits || !selectedPhenomenon;
+        return !hasEdits || !selectedPhenomenon || (obsFcTime !== null && !moment(obsFcTime, DATETIME_FORMAT).isValid()) ||
+          !moment(validdate, DATETIME_FORMAT).isValid() || !moment(validdateEnd, DATETIME_FORMAT).isValid();
       default:
         return false;
     }
@@ -249,9 +250,14 @@ class SigmetEditMode extends PureComponent {
           />
           <DateTimePicker dateFormat={DATE_FORMAT} timeFormat={TIME_FORMAT} utc data-field='obsFcTime'
             viewMode='time'
-            value={obsFcTime ? moment.utc(obsFcTime) : null}
+            value={obsFcTime === null
+              ? null
+              : moment(obsFcTime, DATETIME_FORMAT).isValid()
+                ? moment.utc(obsFcTime)
+                : obsFcTime
+            }
             onChange={(time) => dispatch(actions.updateSigmetAction(uuid, 'obs_or_forecast',
-              { obs: isObserved, obsFcTime: moment.isMoment(time) ? time.format(DATETIME_FORMAT) : null }))}
+              { obs: isObserved, obsFcTime: moment.isMoment(time) ? time.format(DATETIME_FORMAT) : time }))}
             onFocus={(evt) => obsFcTime ||
               dispatch(actions.updateSigmetAction(uuid, 'obs_or_forecast', {
                 obs: isObserved,
@@ -274,9 +280,14 @@ class SigmetEditMode extends PureComponent {
         <ValiditySection>
           <DateTimePicker dateFormat={DATE_FORMAT} timeFormat={TIME_FORMAT} utc data-field='validdate'
             viewMode='time'
-            value={validdate ? moment.utc(validdate) : now}
+            value={validdate === null
+              ? now
+              : moment(validdate, DATETIME_FORMAT).isValid()
+                ? moment.utc(validdate)
+                : validdate
+            }
             onChange={(time) => dispatch(actions.updateSigmetAction(uuid, 'validdate',
-              moment.isMoment(time) ? time.format(DATETIME_FORMAT) : null))}
+              moment.isMoment(time) ? time.format(DATETIME_FORMAT) : time))}
             isValidDate={(curr, selected) => this.isValidStartTimestamp(curr)}
             timeConstraints={{
               hours: {
@@ -291,9 +302,14 @@ class SigmetEditMode extends PureComponent {
           />
           <DateTimePicker dateFormat={DATE_FORMAT} timeFormat={TIME_FORMAT} utc data-field='validdate_end'
             viewMode='time'
-            value={validdateEnd ? moment.utc(validdateEnd) : now}
+            value={validdateEnd === null
+              ? now
+              : moment(validdateEnd, DATETIME_FORMAT).isValid()
+                ? moment.utc(validdateEnd)
+                : validdateEnd
+            }
             onChange={(time) => dispatch(actions.updateSigmetAction(uuid, 'validdate_end',
-              moment.isMoment(time) ? time.format(DATETIME_FORMAT) : null))}
+              moment.isMoment(time) ? time.format(DATETIME_FORMAT) : time))}
             isValidDate={(curr, selected) => this.isValidEndTimestamp(curr)}
             timeConstraints={{
               hours: {
