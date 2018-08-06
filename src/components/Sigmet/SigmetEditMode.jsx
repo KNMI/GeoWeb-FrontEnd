@@ -224,7 +224,7 @@ class SigmetEditMode extends PureComponent {
       ? !hasStartCoordinates
         ? `${messagePrefix} ${isObserved ? 'observed' : 'expected to occur'}.`
         : ''
-      : !hasEndCoordinates
+      : movement && !movement.stationary && useGeometryForEnd && !hasEndCoordinates
         ? `${messagePrefix} expected to be at the end of the valid period.`
         : '';
     const now = moment.utc();
@@ -471,7 +471,7 @@ class SigmetEditMode extends PureComponent {
             <InputGroupAddon>KT</InputGroupAddon>
           </InputGroup>
           <DrawSection data-field='drawbar' title={drawMessage(true)}
-            className={movement && !movement.stationary && useGeometryForEnd ? `required${hasStartCoordinates ? '' : ' missing'}` : ''}>
+            className={movement && !movement.stationary && useGeometryForEnd ? `required${hasEndCoordinates ? '' : ' missing'}` : ''}>
             {
               drawActions(true).map((actionItem, index) =>
                 <Button color='primary' key={actionItem.action + '_button'} data-field={actionItem.action + '_button'}

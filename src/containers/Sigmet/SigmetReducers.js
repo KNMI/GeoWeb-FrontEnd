@@ -66,13 +66,19 @@ const byValidDate = (sigmetA, sigmetB) => {
 };
 
 const updateCategory = (ref, sigmets, container, callback = () => {}) => {
+  const templateWithDefaults = {
+    'SIGMET': getEmptySigmet(container)
+  };
+  templateWithDefaults['SIGMET'] = produce(templateWithDefaults['SIGMET'], draftState => {
+    draftState.geojson = initialGeoJson();
+  });
   container.setState(produce(container.state, draftState => {
     const categoryIndex = draftState.categories.findIndex((category) => category.ref === ref);
     if (!isNaN(categoryIndex) && categoryIndex >= 0) {
       draftState.categories[categoryIndex].sigmets.length = 0;
       sigmets.sort(byValidDate);
       sigmets.forEach((incomingSigmet) => {
-        draftState.categories[categoryIndex].sigmets.push(mergeInTemplate(incomingSigmet, 'SIGMET', SIGMET_TEMPLATES));
+        draftState.categories[categoryIndex].sigmets.push(mergeInTemplate(incomingSigmet, 'SIGMET', templateWithDefaults));
         if (incomingSigmet.uuid) {
           retrieveTAC(incomingSigmet.uuid, container);
         }
@@ -221,19 +227,47 @@ const receivedSigmetsCallback = (ref, response, container, callback) => {
 
 const focusSigmet = (evt, uuid, container) => {
   const { dispatch, mapActions } = container.props;
+  const { state } = container;
   if (evt.target.tagName === 'BUTTON') {
     return;
   }
   let shouldClearDrawing = false;
+  const modeMapping = {
+    'point': 'select-point',
+    'box': 'select-region',
+    'poly': 'select-shape'
+  };
+  const indices = findCategoryAndSigmetIndex(uuid, state);
+  let drawModeStart = null;
+  let drawModeEnd = null;
+  let useGeometryForEnd = false;
+
+  if (indices.categoryIndex !== -1 && indices.sigmetIndex !== -1) {
+    const sigmet = state.categories[indices.categoryIndex].sigmets[indices.sigmetIndex];
+    if (sigmet) {
+      const startFeature = sigmet.geojson.features.find((feature) => feature.properties.featureFunction === 'start');
+      const endFeature = sigmet.geojson.features.find((feature) => feature.properties.featureFunction === 'end');
+      drawModeStart = startFeature ? modeMapping[startFeature.properties.selectionType] : null;
+      drawModeEnd = endFeature ? modeMapping[endFeature.properties.selectionType] : null;
+      if (!sigmet.movement.stationary && endFeature && container.featureHasCoordinates(endFeature)) {
+        useGeometryForEnd = true;
+      }
+    }
+  }
   container.setState(produce(container.state, draftState => {
     if (draftState.focussedSigmet.uuid !== uuid) {
       draftState.focussedSigmet.uuid = uuid;
+      draftState.focussedSigmet.useGeometryForEnd = useGeometryForEnd;
+      draftState.focussedSigmet.drawModeStart = drawModeStart || null;
+      draftState.focussedSigmet.drawModeEnd = drawModeEnd || null;
     } else {
       draftState.focussedSigmet.uuid = null;
+      draftState.focussedSigmet.useGeometryForEnd = false;
+      draftState.focussedSigmet.drawModeStart = null;
+      draftState.focussedSigmet.drawModeEnd = null;
       shouldClearDrawing = true;
     }
     draftState.focussedSigmet.mode = SIGMET_MODES.READ;
-    draftState.focussedSigmet.drawMode = null;
   }), () => {
     dispatch(mapActions.setMapMode('pan'));
     if (shouldClearDrawing) {
@@ -327,7 +361,6 @@ const getEmptySigmet = (container) => produce(SIGMET_TEMPLATES.SIGMET, draftSigm
     draftSigmet.firname = container.state.parameters.firareas[0].firname;
     updateFir(draftSigmet.firname, container);
   }
-  draftSigmet.change = container.state.parameters.change;
 });
 
 const addSigmet = (ref, container) => {
