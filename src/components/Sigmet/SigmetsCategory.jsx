@@ -40,8 +40,9 @@ class SigmetsCategory extends PureComponent {
   render () {
     const { typeRef, title, icon, sigmets, focussedSigmet, copiedSigmetRef, hasEdits, tacs, isOpen, dispatch, actions, abilities, phenomena, parameters } = this.props;
     const maxSize = 10000; // for now, arbitrairy big
-    const itemLimit = 15;
+    const itemLimit = 25;
     const isOpenable = (isOpen || (!isOpen && sigmets.length > 0));
+
     return <Card className={`SigmetsCategory row accordion${isOpen ? ' open' : ''}${isOpenable ? ' openable' : ''}`}>
       <Col>
         <CardHeader className='row' title={title} onClick={isOpenable ? (evt) => dispatch(actions.toggleCategoryAction(evt, typeRef)) : null}>
@@ -66,7 +67,8 @@ class SigmetsCategory extends PureComponent {
               <CardBlock>
                 <Row>
                   <Col className='btn-group-vertical'>
-                    {sigmets.slice(0, itemLimit).sort(this.byStartAndSequence).map((sigmet, index) => {
+                    {sigmets.slice().sort(this.byStartAndSequence).slice(0, itemLimit).map((sigmet, index) => {
+                      const isCancelFor = sigmet.cancels !== null && !isNaN(sigmet.cancels) ? parseInt(sigmet.cancels) : null;
                       if (focussedSigmet.uuid === sigmet.uuid) {
                         if (focussedSigmet.mode === SIGMET_MODES.EDIT) {
                           return <SigmetEditMode key={sigmet.uuid}
@@ -116,7 +118,7 @@ class SigmetsCategory extends PureComponent {
                             validdateEnd={sigmet.validdate_end}
                             hasStartCoordinates={this.props.hasStartCoordinates}
                             hasStartIntersectionCoordinates={this.props.hasStartIntersectionCoordinates}
-                            isCancel={sigmet.cancels !== null && !isNaN(sigmet.cancels)}
+                            isCancelFor={isCancelFor}
                             issuedate={sigmet.issuedate}
                             sequence={sigmet.sequence}
                             firname={sigmet.firname}
@@ -145,6 +147,7 @@ class SigmetsCategory extends PureComponent {
                         validdateEnd={sigmet.validdate_end}
                         hasStartCoordinates={this.props.hasStartCoordinates}
                         hasStartIntersectionCoordinates={this.props.hasStartIntersectionCoordinates}
+                        isCancelFor={isCancelFor}
                         issuedate={sigmet.issuedate}
                         sequence={sigmet.sequence}
                         firname={sigmet.firname}

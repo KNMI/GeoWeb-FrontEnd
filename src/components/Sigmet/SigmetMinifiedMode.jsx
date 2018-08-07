@@ -9,10 +9,10 @@ const DATE_TIME_FORMAT_2 = 'HH:mm UTC';
 
 class SigmetMinifiedMode extends PureComponent {
   render () {
-    const { dispatch, actions, uuid, phenomenon, validdate, validdateEnd, tac } = this.props;
+    const { dispatch, actions, uuid, phenomenon, validdate, validdateEnd, tac, isCancelFor } = this.props;
     return <Button tag='div' className={`Sigmet minified row`} onClick={(evt) => dispatch(actions.focusSigmetAction(evt, uuid))}>
       <Col>
-        <HeaderSection type={phenomenon} />
+        <HeaderSection type={phenomenon} isCancelFor={isCancelFor} />
         <Row>
           <Col xs={{ size: 2, offset: 1 }}>
             <Badge color='success'>Valid</Badge>
@@ -48,7 +48,8 @@ SigmetMinifiedMode.propTypes = {
   }),
   phenomenon: PropTypes.string,
   validdate: PropTypes.string,
-  validdateEnd: PropTypes.string
+  validdateEnd: PropTypes.string,
+  isCancelFor: PropTypes.number
 };
 
 export default SigmetMinifiedMode;

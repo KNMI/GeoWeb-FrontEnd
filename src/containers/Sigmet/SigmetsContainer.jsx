@@ -109,7 +109,7 @@ class SigmetsContainer extends Component {
                     typeRef={category.ref}
                     title={category.title}
                     icon={category.icon}
-                    isOpen={this.state.focussedCategoryRef === category.ref}
+                    isOpen={this.state.focussedCategoryRef === category.ref && category.sigmets.length > 0}
                     abilities={category.abilities}
                     sigmets={category.sigmets}
                     focussedSigmet={this.state.focussedSigmet}

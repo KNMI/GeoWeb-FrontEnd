@@ -242,7 +242,7 @@ const focusSigmet = (evt, uuid, container) => {
   let drawModeEnd = null;
   let useGeometryForEnd = false;
 
-  if (indices.categoryIndex !== -1 && indices.sigmetIndex !== -1) {
+  if (indices.isFound) {
     const sigmet = state.categories[indices.categoryIndex].sigmets[indices.sigmetIndex];
     if (sigmet) {
       const startFeature = sigmet.geojson.features.find((feature) => feature.properties.featureFunction === 'start');
@@ -330,7 +330,7 @@ const initialGeoJson = () => {
   draftState.features[2].id = uuidv4();
   draftState.features[2].properties.featureFunction = 'intersection';
   draftState.features[2].properties.relatesTo = startId;
-  draftState.features[2].properties.selectionType = 'poly';
+  draftState.features[2].properties.selectionType = null;
   draftState.features[2].properties['fill-opacity'] = 0.33;
   draftState.features[2].properties.fill = '#2a2';
   draftState.features[2].properties['stroke-width'] = 2;
@@ -339,7 +339,7 @@ const initialGeoJson = () => {
   draftState.features[3].id = uuidv4();
   draftState.features[3].properties.featureFunction = 'intersection';
   draftState.features[3].properties.relatesTo = endId;
-  draftState.features[3].properties.selectionType = 'poly';
+  draftState.features[3].properties.selectionType = null;
   draftState.features[3].properties['fill-opacity'] = 0.33;
   draftState.features[3].properties.fill = '#a22';
   draftState.features[3].properties['stroke-width'] = 2;
@@ -388,7 +388,7 @@ const findCategoryAndSigmetIndex = (uuid, state) => {
     sigmetIndex = category.sigmets.findIndex((sigmet) => sigmet.uuid === uuid);
     return sigmetIndex !== -1;
   });
-  return { sigmetIndex, categoryIndex };
+  return { sigmetIndex, categoryIndex, isFound: (categoryIndex !== -1 && sigmetIndex !== -1) };
 };
 
 const updateSigmet = (uuid, dataField, value, container) => {
@@ -396,7 +396,7 @@ const updateSigmet = (uuid, dataField, value, container) => {
   const { drawProperties, dispatch, drawActions } = props;
   const shouldCleanEndFeature = dataField === 'movement' && value.hasOwnProperty('stationary') && value.stationary === true;
   const indices = findCategoryAndSigmetIndex(uuid, state);
-  if (!dataField || indices.categoryIndex === -1 || indices.sigmetIndex === -1) {
+  if (!dataField || !indices.isFound) {
     return;
   }
   if (dataField === 'phenomenon' && Array.isArray(value)) {
@@ -423,7 +423,7 @@ const updateSigmet = (uuid, dataField, value, container) => {
 
 const updateSigmetLevel = (uuid, dataField, context, container) => {
   const indices = findCategoryAndSigmetIndex(uuid, container.state);
-  if (indices.categoryIndex === -1 || indices.sigmetIndex === -1) {
+  if (!indices.isFound) {
     return;
   }
   let newLevelInfo = {};
@@ -622,7 +622,7 @@ const modifyFocussedSigmet = (dataField, value, container) => {
     switch (dataField) {
       case 'useGeometryForEnd': {
         const indices = findCategoryAndSigmetIndex(draftState.focussedSigmet.uuid, draftState);
-        if (indices.categoryIndex === -1 || indices.sigmetIndex === -1) {
+        if (!indices.isFound) {
           break;
         }
         if (value === true) {
@@ -682,7 +682,7 @@ const discardSigmet = (event, uuid, container) => {
 const saveSigmet = (event, uuid, container) => {
   const { drawProperties, urls, dispatch, mapActions } = container.props;
   const indices = findCategoryAndSigmetIndex(uuid, container.state);
-  if (indices.categoryIndex === -1 || indices.sigmetIndex === -1) {
+  if (!indices.isFound) {
     return;
   }
   const affectedSigmet = container.state.categories[indices.categoryIndex].sigmets[indices.sigmetIndex];
@@ -728,20 +728,36 @@ const saveSigmet = (event, uuid, container) => {
     }));
     retrieveSigmets(container, () => {
       // Set mode to READ, set focus of category and Sigmet, and clear new Sigmet
+      let uuid = response.data.uuid;
+      let shouldUpdateFocussed = false;
+      let indices = findCategoryAndSigmetIndex(uuid, container.state);
+      if (indices.isFound) {
+        shouldUpdateFocussed = true;
+        const sigmet = container.state.categories[indices.categoryIndex].sigmets[indices.sigmetIndex];
+        if (sigmet.status === STATUSES.CANCELED) {
+          const publishedCategory = container.state.categories.find((category) => category.ref === CATEGORY_REFS.ACTIVE_SIGMETS);
+          if (publishedCategory) {
+            const relatedCancelSigmet = publishedCategory.sigmets.find((cancelSigmet) => cancelSigmet.cancels === sigmet.sequence);
+            if (relatedCancelSigmet) {
+              uuid = relatedCancelSigmet.uuid;
+              indices = findCategoryAndSigmetIndex(uuid, container.state);
+            }
+          }
+        }
+      }
       container.setState(produce(container.state, draftState => {
         draftState.focussedSigmet.mode = SIGMET_MODES.READ;
         draftState.focussedSigmet.hasEdits = false;
-        const indices = findCategoryAndSigmetIndex(response.data.uuid, draftState);
-        if (indices.categoryIndex !== -1 && indices.sigmetIndex !== -1) {
+        if (shouldUpdateFocussed) {
           const catRef = draftState.categories[indices.categoryIndex].ref;
           if (catRef && catRef !== draftState.focussedCategoryRef) {
             draftState.focussedCategoryRef = catRef;
           }
-          draftState.focussedSigmet.uuid = response.data.uuid;
+          draftState.focussedSigmet.uuid = uuid;
         }
       }), () => {
         dispatch(mapActions.setMapMode('pan'));
-        setSigmetDrawing(response.data.uuid, container);
+        setSigmetDrawing(uuid, container);
       });
     });
   }).catch(error => {
@@ -779,7 +795,7 @@ const deleteSigmet = (event, uuid, container) => {
     return;
   }
   const indices = findCategoryAndSigmetIndex(uuid, state);
-  if (indices.categoryIndex !== -1 && indices.sigmetIndex !== -1 &&
+  if (indices.isFound &&
       state.categories[indices.categoryIndex].sigmets[indices.sigmetIndex].status === STATUSES.CONCEPT) {
     axios({
       method: 'delete',
@@ -799,13 +815,7 @@ const deleteSigmet = (event, uuid, container) => {
         // Set mode to READ, set focus of category and Sigmet, and clear new Sigmet
         container.setState(produce(container.state, draftState => {
           draftState.focussedSigmet.mode = SIGMET_MODES.READ;
-          const indices = findCategoryAndSigmetIndex(uuid, draftState);
-          if (indices.categoryIndex !== -1) {
-            const catRef = draftState.categories[indices.categoryIndex].ref;
-            if (catRef && catRef !== draftState.focussedCategoryRef) {
-              draftState.focussedCategoryRef = catRef;
-            }
-          }
+          draftState.focussedSigmet.uuid = null;
         }), () => {
           dispatch(mapActions.setMapMode('pan'));
           setSigmetDrawing(null, container);
@@ -835,7 +845,7 @@ const copySigmet = (event, uuid, container) => {
   const { state } = container;
   const { dispatch } = container.props;
   const indices = findCategoryAndSigmetIndex(uuid, state);
-  if (indices.categoryIndex !== -1 && indices.sigmetIndex !== -1) {
+  if (indices.isFound) {
     container.setState(produce(state, draftState => {
       draftState.copiedSigmetRef = uuid;
     }), () => {
@@ -861,8 +871,7 @@ const pasteSigmet = (event, container) => {
   const { dispatch, drawActions } = container.props;
   const indicesCopiedSigmet = findCategoryAndSigmetIndex(state.copiedSigmetRef, state);
   const indicesCurrentSigmet = findCategoryAndSigmetIndex(state.focussedSigmet.uuid, state);
-  if (indicesCopiedSigmet.categoryIndex !== -1 && indicesCopiedSigmet.sigmetIndex !== -1 &&
-      indicesCurrentSigmet.categoryIndex !== -1 && indicesCurrentSigmet.sigmetIndex !== -1) {
+  if (indicesCopiedSigmet.isFound && indicesCurrentSigmet.isFound) {
     const copiedSigmet = state.categories[indicesCopiedSigmet.categoryIndex].sigmets[indicesCopiedSigmet.sigmetIndex];
     if (!copiedSigmet && state.categories[indicesCurrentSigmet.categoryIndex].ref !== CATEGORY_REFS.ADD_SIGMET) {
       return;
@@ -905,7 +914,7 @@ const pasteSigmet = (event, container) => {
 const publishSigmet = (event, uuid, container) => {
   container.setState(produce(container.state, draftState => {
     const indices = findCategoryAndSigmetIndex(uuid, draftState);
-    if (indices.categoryIndex !== -1 && indices.sigmetIndex !== -1) {
+    if (indices.isFound) {
       draftState.categories[indices.categoryIndex].sigmets[indices.sigmetIndex].status = STATUSES.PUBLISHED;
     }
   }), () => saveSigmet(event, uuid, container));
@@ -943,7 +952,7 @@ const retrieveTAC = (uuid, container) => {
 const cancelSigmet = (event, uuid, container) => {
   container.setState(produce(container.state, draftState => {
     const indices = findCategoryAndSigmetIndex(uuid, draftState);
-    if (indices.categoryIndex !== -1 && indices.sigmetIndex !== -1) {
+    if (indices.isFound) {
       draftState.categories[indices.categoryIndex].sigmets[indices.sigmetIndex].status = STATUSES.CANCELED;
     }
   }), () => {
@@ -957,7 +966,7 @@ const setSigmetDrawing = (uuid, container) => {
     return;
   }
   const indices = findCategoryAndSigmetIndex(uuid, container.state);
-  if (indices.categoryIndex === -1 || indices.sigmetIndex === -1) {
+  if (!indices.isFound) {
     return;
   }
   const affectedSigmet = container.state.categories[indices.categoryIndex].sigmets[indices.sigmetIndex];
