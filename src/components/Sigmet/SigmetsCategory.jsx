@@ -10,6 +10,7 @@ import SigmetMinifiedMode from './SigmetMinifiedMode';
 
 class SigmetsCategory extends PureComponent {
   byStartAndSequence (sigA, sigB) {
+    // By valid period start (DESC) and sequence number (DESC)
     const startA = sigA.hasOwnProperty('validdate') && sigA.validdate;
     const startB = sigB.hasOwnProperty('validdate') && sigB.validdate;
     const seqA = sigA.hasOwnProperty('sequence') && sigA.sequence;
@@ -23,7 +24,7 @@ class SigmetsCategory extends PureComponent {
           return -1;
         }
         if (!isNaN(seqA) && !isNaN(seqB)) {
-          return seqA - seqB;
+          return seqB - seqA;
         }
         return 0;
       } else {
@@ -33,16 +34,16 @@ class SigmetsCategory extends PureComponent {
       return -1;
     }
     if (!isNaN(seqA) && !isNaN(seqB)) {
-      return seqA - seqB;
+      return seqB - seqA;
     }
     return 0;
   }
   render () {
-    const { typeRef, title, icon, sigmets, focussedSigmet, copiedSigmetRef, hasEdits, tacs, isOpen, dispatch, actions, abilities, phenomena, parameters } = this.props;
+    const { typeRef, title, icon, sigmets, focussedSigmet, copiedSigmetRef, hasEdits, tacs, isOpen, dispatch, actions, abilities,
+      phenomena, parameters } = this.props;
     const maxSize = 10000; // for now, arbitrairy big
     const itemLimit = 25;
     const isOpenable = (isOpen || (!isOpen && sigmets.length > 0));
-
     return <Card className={`SigmetsCategory row accordion${isOpen ? ' open' : ''}${isOpenable ? ' openable' : ''}`}>
       <Col>
         <CardHeader className='row' title={title} onClick={isOpenable ? (evt) => dispatch(actions.toggleCategoryAction(evt, typeRef)) : null}>
@@ -69,6 +70,11 @@ class SigmetsCategory extends PureComponent {
                   <Col className='btn-group-vertical'>
                     {sigmets.slice().sort(this.byStartAndSequence).slice(0, itemLimit).map((sigmet, index) => {
                       const isCancelFor = sigmet.cancels !== null && !isNaN(sigmet.cancels) ? parseInt(sigmet.cancels) : null;
+                      const isVolcanicAsh = sigmet.phenomenon ? sigmet.phenomenon === 'VA_ERUPTION' : false;
+                      const volcanoCoordinates = Array.isArray(sigmet.volcano_coordinates) && sigmet.volcano_coordinates.length > 1
+                        ? sigmet.volcano_coordinates
+                        : [null, null];
+                      console.log('volcanoCoordinates', volcanoCoordinates, sigmet.volcano_coordinates);
                       if (focussedSigmet.uuid === sigmet.uuid) {
                         if (focussedSigmet.mode === SIGMET_MODES.EDIT) {
                           return <SigmetEditMode key={sigmet.uuid}
@@ -78,6 +84,7 @@ class SigmetsCategory extends PureComponent {
                             abilities={abilities[SIGMET_MODES.EDIT]}
                             copiedSigmetRef={copiedSigmetRef}
                             hasEdits={hasEdits}
+                            isVolcanicAsh={isVolcanicAsh}
                             availablePhenomena={phenomena.slice().sort((phA, phB) => {
                               const nameA = phA.name.toUpperCase();
                               const nameB = phB.name.toUpperCase();
@@ -88,6 +95,8 @@ class SigmetsCategory extends PureComponent {
                                   : 0;
                             })}
                             phenomenon={sigmet.phenomenon}
+                            volcanoName={sigmet.volcano_name || null}
+                            volcanoCoordinates={volcanoCoordinates}
                             focus
                             uuid={sigmet.uuid}
                             obsFcTime={sigmet.obs_or_forecast.obsFcTime}
@@ -107,8 +116,8 @@ class SigmetsCategory extends PureComponent {
                             hasStartCoordinates={this.props.hasStartCoordinates}
                             hasEndCoordinates={this.props.hasEndCoordinates}
                             availableFirs={parameters.firareas}
-                            maxHoursInAdvance={parameters.hoursbeforevalidity}
-                            maxHoursDuration={parameters.maxhoursofvalidity}
+                            maxHoursInAdvance={isVolcanicAsh ? parameters.va_hoursbeforevalidity : parameters.hoursbeforevalidity}
+                            maxHoursDuration={isVolcanicAsh ? parameters.va_maxhoursofvalidity : parameters.maxhoursofvalidity}
                           />;
                         } else {
                           return <SigmetReadMode key={sigmet.uuid}
@@ -119,9 +128,12 @@ class SigmetsCategory extends PureComponent {
                             focus={focussedSigmet.uuid === sigmet.uuid}
                             uuid={sigmet.uuid}
                             tac={tacs && tacs.find((tac) => tac.uuid === sigmet.uuid)}
+                            isVolcanicAsh={isVolcanicAsh}
                             obsFcTime={sigmet.obs_or_forecast ? sigmet.obs_or_forecast.obsFcTime : null}
                             phenomenon={sigmet.phenomenon}
                             isObserved={sigmet.obs_or_forecast ? sigmet.obs_or_forecast.obs : null}
+                            volcanoName={sigmet.volcano_name || null}
+                            volcanoCoordinates={volcanoCoordinates}
                             validdate={sigmet.validdate}
                             validdateEnd={sigmet.validdate_end}
                             hasStartCoordinates={this.props.hasStartCoordinates}
@@ -135,37 +147,20 @@ class SigmetsCategory extends PureComponent {
                             levelinfo={sigmet.levelinfo}
                             movement={sigmet.movement}
                             change={sigmet.change}
-                            maxHoursInAdvance={parameters.hoursbeforevalidity}
-                            maxHoursDuration={parameters.maxhoursofvalidity}
+                            maxHoursInAdvance={isVolcanicAsh ? parameters.va_hoursbeforevalidity : parameters.hoursbeforevalidity}
+                            maxHoursDuration={isVolcanicAsh ? parameters.va_maxhoursofvalidity : parameters.maxhoursofvalidity}
                           />;
                         }
                       }
                       return <SigmetMinifiedMode key={sigmet.uuid}
                         dispatch={dispatch}
                         actions={actions}
-                        abilities={abilities[SIGMET_MODES.READ]}
-                        copiedSigmetRef={copiedSigmetRef}
-                        focus={focussedSigmet.uuid === sigmet.uuid}
                         uuid={sigmet.uuid}
                         tac={tacs && tacs.find((tac) => tac.uuid === sigmet.uuid)}
-                        obsFcTime={sigmet.obs_or_forecast ? sigmet.obs_or_forecast.obsFcTime : null}
                         phenomenon={sigmet.phenomenon}
-                        isObserved={sigmet.obs_or_forecast ? sigmet.obs_or_forecast.obs : null}
                         validdate={sigmet.validdate}
                         validdateEnd={sigmet.validdate_end}
-                        hasStartCoordinates={this.props.hasStartCoordinates}
-                        hasStartIntersectionCoordinates={this.props.hasStartIntersectionCoordinates}
                         isCancelFor={isCancelFor}
-                        issuedate={sigmet.issuedate}
-                        sequence={sigmet.sequence}
-                        firname={sigmet.firname}
-                        locationIndicatorIcao={sigmet.location_indicator_icao}
-                        locationIndicatorMwo={sigmet.location_indicator_mwo}
-                        levelinfo={sigmet.levelinfo}
-                        movement={sigmet.movement}
-                        change={sigmet.change}
-                        maxHoursInAdvance={parameters.hoursbeforevalidity}
-                        maxHoursDuration={parameters.maxhoursofvalidity}
                       />;
                     })}
                   </Col>

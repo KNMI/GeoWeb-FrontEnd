@@ -50,6 +50,8 @@ TEMPLATES.SIGMET = {
   /* What */
   phenomenon: null, // string
   obs_or_forecast: cloneDeep(TEMPLATES.OBS_OR_FORECAST),
+  volcano_name: null, // string
+  volcano_coordinates: [null], // number values
   /* Where */
   geojson: cloneDeep(TEMPLATES.GEOJSON),
   levelinfo: cloneDeep(TEMPLATES.LEVELINFO),
@@ -149,7 +151,9 @@ const DIRECTIONS = [
   { shortName: 'SW', longName: 'Southwest' },
   { shortName: 'WSW', longName: 'West-Southwest' },
   { shortName: 'W', longName: 'West' },
-  { shortName: 'WNW', longName: 'West-Northwest' }
+  { shortName: 'WNW', longName: 'West-Northwest' },
+  { shortName: 'NW', longName: 'Northwest' },
+  { shortName: 'NNW', longName: 'North-Northwest' }
 ];
 
 // Change types

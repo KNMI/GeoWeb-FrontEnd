@@ -179,7 +179,7 @@ class SigmetEditMode extends PureComponent {
 
   render () {
     const { dispatch, actions, availablePhenomena, useGeometryForEnd, hasStartCoordinates, hasEndCoordinates,
-      availableFirs, levelinfo, movement, focus, uuid, locationIndicatorMwo, change,
+      availableFirs, levelinfo, movement, focus, uuid, locationIndicatorMwo, change, isVolcanicAsh, volcanoName, volcanoCoordinates,
       phenomenon, isObserved, obsFcTime, validdate, maxHoursInAdvance, maxHoursDuration, validdateEnd, locationIndicatorIcao } = this.props;
     const selectedPhenomenon = availablePhenomena.find((ph) => ph.code === phenomenon);
     const selectedFir = availableFirs.find((fir) => fir.location_indicator_icao === locationIndicatorIcao);
@@ -191,9 +191,10 @@ class SigmetEditMode extends PureComponent {
     const atOrAboveLabel = atOrAboveOption ? atOrAboveOption.label : '';
     const drawActions = (isEndFeature = false) => [
       /* {
-        title: 'Select point',
+        title: `Draw point${!selectedFir ? ' (select a FIR first)' : ''}`,
         action: 'select-point',
-        icon: 'circle'
+        icon: 'circle',
+        disabled: !selectedFir
       }, */
       {
         title: `Draw region${!selectedFir ? ' (select a FIR first)' : ''}`,
@@ -275,6 +276,28 @@ class SigmetEditMode extends PureComponent {
             }}
             className={!this.isValidObsFcTimestamp(obsFcTime) ? 'missing' : null}
           />
+          {isVolcanicAsh
+            ? <Input type='text' value={volcanoName || ''} data-field='volcano_name' placeholder='Volcano name'
+              onChange={(evt) => dispatch(actions.updateSigmetAction(uuid, 'volcano_name', evt.target.value))}
+            />
+            : null
+          }
+          {isVolcanicAsh
+            ? <Input type='number' placeholder='Position' step='0.1'
+              value={Array.isArray(volcanoCoordinates) && volcanoCoordinates.length > 1 && volcanoCoordinates[0] !== null ? volcanoCoordinates[0] : ''}
+              data-field='volcano_coordinates_lat'
+              onChange={(evt) => dispatch(actions.updateSigmetAction(uuid, 'volcano_coordinates', [evt.target.value, volcanoCoordinates[1]]))}
+            />
+            : null
+          }
+          {isVolcanicAsh
+            ? <Input type='number' placeholder='Position' step='0.1'
+              value={Array.isArray(volcanoCoordinates) && volcanoCoordinates.length > 1 && volcanoCoordinates[1] !== null ? volcanoCoordinates[1] : ''}
+              data-field='volcano_coordinates_lon'
+              onChange={(evt) => dispatch(actions.updateSigmetAction(uuid, 'volcano_coordinates', [volcanoCoordinates[0], evt.target.value]))}
+            />
+            : null
+          }
         </WhatSection>
 
         <ValiditySection>
@@ -568,7 +591,10 @@ SigmetEditMode.propTypes = {
   validdateEnd: PropTypes.string,
   maxHoursDuration: PropTypes.number,
   maxHoursInAdvance: PropTypes.number,
-  locationIndicatorIcao: PropTypes.string
+  locationIndicatorIcao: PropTypes.string,
+  volcanoName: PropTypes.string,
+  volcanoCoordinates: PropTypes.arrayOf(PropTypes.number),
+  isVolcanicAsh: PropTypes.bool
 };
 
 export default SigmetEditMode;
