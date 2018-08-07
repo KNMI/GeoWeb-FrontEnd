@@ -93,7 +93,7 @@ class TriggerCategory extends Component {
                         <Badge color='success'>When</Badge>
                       </Col>
                       <Col xs='9'>
-                        <Moment format={DATE_TIME_FORMAT} date={moment.utc(item.triggerdate)} />
+                        <Moment format={DATE_TIME_FORMAT} date={moment.utc(item.triggerdate)} utc />
                       </Col>
                     </Row>
                     <Row className='section'>

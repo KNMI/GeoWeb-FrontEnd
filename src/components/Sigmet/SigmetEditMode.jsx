@@ -112,7 +112,7 @@ class SigmetEditMode extends PureComponent {
   isValidStartTimestamp (timestamp) {
     const { maxHoursInAdvance } = this.props;
     const now = moment.utc();
-    return now.clone().subtract(1, 'day').isSameOrBefore(timestamp) &&
+    return now.clone().subtract(1, 'hour').isSameOrBefore(timestamp) &&
       now.clone().add(maxHoursInAdvance, 'hour').isSameOrAfter(timestamp);
   };
 
@@ -138,7 +138,7 @@ class SigmetEditMode extends PureComponent {
 * @returns {boolean} Whether or not is should be disabled
 */
   getDisabledFlag (abilityRef, isInValidityPeriod, selectedPhenomenon) {
-    const { copiedSigmetRef, hasEdits } = this.props;
+    const { copiedSigmetRef, hasEdits, validdate, validdateEnd, obsFcTime } = this.props;
     if (!abilityRef) {
       return false;
     }
@@ -148,7 +148,8 @@ class SigmetEditMode extends PureComponent {
       case EDIT_ABILITIES.DISCARD['dataField']:
         return !hasEdits;
       case EDIT_ABILITIES.SAVE['dataField']:
-        return !hasEdits || !selectedPhenomenon;
+        return !hasEdits || !selectedPhenomenon || (obsFcTime !== null && !moment(obsFcTime, DATETIME_FORMAT).isValid()) ||
+          !moment(validdate, DATETIME_FORMAT).isValid() || !moment(validdateEnd, DATETIME_FORMAT).isValid();
       default:
         return false;
     }
@@ -224,7 +225,7 @@ class SigmetEditMode extends PureComponent {
       ? !hasStartCoordinates
         ? `${messagePrefix} ${isObserved ? 'observed' : 'expected to occur'}.`
         : ''
-      : !hasEndCoordinates
+      : movement && !movement.stationary && useGeometryForEnd && !hasEndCoordinates
         ? `${messagePrefix} expected to be at the end of the valid period.`
         : '';
     const now = moment.utc();
@@ -249,9 +250,14 @@ class SigmetEditMode extends PureComponent {
           />
           <DateTimePicker dateFormat={DATE_FORMAT} timeFormat={TIME_FORMAT} utc data-field='obsFcTime'
             viewMode='time'
-            value={obsFcTime ? moment.utc(obsFcTime) : null}
+            value={obsFcTime === null
+              ? null
+              : moment(obsFcTime, DATETIME_FORMAT).isValid()
+                ? moment.utc(obsFcTime)
+                : obsFcTime
+            }
             onChange={(time) => dispatch(actions.updateSigmetAction(uuid, 'obs_or_forecast',
-              { obs: isObserved, obsFcTime: moment.isMoment(time) ? time.format(DATETIME_FORMAT) : null }))}
+              { obs: isObserved, obsFcTime: moment.isMoment(time) ? time.format(DATETIME_FORMAT) : time }))}
             onFocus={(evt) => obsFcTime ||
               dispatch(actions.updateSigmetAction(uuid, 'obs_or_forecast', {
                 obs: isObserved,
@@ -274,9 +280,14 @@ class SigmetEditMode extends PureComponent {
         <ValiditySection>
           <DateTimePicker dateFormat={DATE_FORMAT} timeFormat={TIME_FORMAT} utc data-field='validdate'
             viewMode='time'
-            value={validdate ? moment.utc(validdate) : now}
+            value={validdate === null
+              ? now
+              : moment(validdate, DATETIME_FORMAT).isValid()
+                ? moment.utc(validdate)
+                : validdate
+            }
             onChange={(time) => dispatch(actions.updateSigmetAction(uuid, 'validdate',
-              moment.isMoment(time) ? time.format(DATETIME_FORMAT) : null))}
+              moment.isMoment(time) ? time.format(DATETIME_FORMAT) : time))}
             isValidDate={(curr, selected) => this.isValidStartTimestamp(curr)}
             timeConstraints={{
               hours: {
@@ -291,9 +302,14 @@ class SigmetEditMode extends PureComponent {
           />
           <DateTimePicker dateFormat={DATE_FORMAT} timeFormat={TIME_FORMAT} utc data-field='validdate_end'
             viewMode='time'
-            value={validdateEnd ? moment.utc(validdateEnd) : now}
+            value={validdateEnd === null
+              ? now
+              : moment(validdateEnd, DATETIME_FORMAT).isValid()
+                ? moment.utc(validdateEnd)
+                : validdateEnd
+            }
             onChange={(time) => dispatch(actions.updateSigmetAction(uuid, 'validdate_end',
-              moment.isMoment(time) ? time.format(DATETIME_FORMAT) : null))}
+              moment.isMoment(time) ? time.format(DATETIME_FORMAT) : time))}
             isValidDate={(curr, selected) => this.isValidEndTimestamp(curr)}
             timeConstraints={{
               hours: {
@@ -448,7 +464,7 @@ class SigmetEditMode extends PureComponent {
             value={useGeometryForEnd ? 'geom' : 'dirsp'}
             checkedOption={{ optionId: 'geom', label: 'End location' }}
             unCheckedOption={{ optionId: 'dirsp', label: 'Direction & speed' }}
-            onChange={(evt) => { dispatch(actions.modifyFocussedSigmet('useGeometryForEnd', evt.target.checked)); }}
+            onChange={(evt) => { dispatch(actions.modifyFocussedSigmetAction('useGeometryForEnd', evt.target.checked)); }}
             disabled={movement && movement.stationary}
             data-field='movementType'
           />
@@ -471,7 +487,7 @@ class SigmetEditMode extends PureComponent {
             <InputGroupAddon>KT</InputGroupAddon>
           </InputGroup>
           <DrawSection data-field='drawbar' title={drawMessage(true)}
-            className={movement && !movement.stationary && useGeometryForEnd ? `required${hasStartCoordinates ? '' : ' missing'}` : ''}>
+            className={movement && !movement.stationary && useGeometryForEnd ? `required${hasEndCoordinates ? '' : ' missing'}` : ''}>
             {
               drawActions(true).map((actionItem, index) =>
                 <Button color='primary' key={actionItem.action + '_button'} data-field={actionItem.action + '_button'}

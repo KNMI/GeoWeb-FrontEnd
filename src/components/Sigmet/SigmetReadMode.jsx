@@ -97,13 +97,13 @@ class SigmetReadMode extends PureComponent {
    * @returns {array} The remaining abilities for this specific Sigmet
    */
   reduceAbilities () {
-    const { abilities, validdate, validdateEnd } = this.props;
+    const { abilities, validdate, validdateEnd, isCancelFor } = this.props;
     const abilitiesCtAs = []; // CtA = Call To Action
     const now = moment.utc();
     const isInValidityPeriod = !now.isBefore(validdate) && !now.isAfter(validdateEnd);
     if (focus) {
       Object.values(READ_ABILITIES).map((ability) => {
-        if (abilities[ability.check] === true) {
+        if (abilities[ability.check] === true && (ability.dataField !== 'cancel' || !isCancelFor)) {
           ability.disabled = this.getDisabledFlag(ability.dataField, isInValidityPeriod);
           abilitiesCtAs.push(ability);
         }
@@ -115,18 +115,18 @@ class SigmetReadMode extends PureComponent {
 
   render () {
     const { dispatch, actions, focus, uuid, phenomenon, isObserved, obsFcTime, validdate, validdateEnd, firname, locationIndicatorIcao, issuedate,
-      locationIndicatorMwo, levelinfo, movement, change, sequence, tac } = this.props;
+      locationIndicatorMwo, levelinfo, movement, change, sequence, tac, isCancelFor } = this.props;
     const abilityCtAs = this.reduceAbilities(); // CtA = Call To Action
     const selectedDirection = movement && DIRECTIONS.find((obj) => obj.shortName === movement.dir);
     const directionLongName = selectedDirection ? selectedDirection.longName : null;
     return <Button tag='div' className={`Sigmet row${focus ? ' focus' : ''}`} onClick={(evt) => dispatch(actions.focusSigmetAction(evt, uuid))}>
       <Col>
-        <HeaderSection />
+        <HeaderSection isCancelFor={isCancelFor} />
         <WhatSection>
           <span data-field='phenomenon'>{phenomenon}</span>
           <span data-field='obs_or_fcst'>{isObserved ? 'Observed' : 'Forecast'}</span>
           {obsFcTime
-            ? <Moment format={DATE_TIME_FORMAT} date={obsFcTime} data-field='obsFcTime' />
+            ? <Moment format={DATE_TIME_FORMAT} date={obsFcTime} data-field='obsFcTime' utc />
             : <span data-field='obsFcTime'>
               {isObserved
                 ? '(no observation time provided)'
@@ -168,7 +168,7 @@ class SigmetReadMode extends PureComponent {
 
         <IssueSection>
           {issuedate
-            ? <Moment format={DATE_TIME_FORMAT} date={issuedate} data-field='issuedate' />
+            ? <Moment format={DATE_TIME_FORMAT} date={issuedate} data-field='issuedate' utc />
             : <span data-field='issuedate'>(not yet issued)</span>
           }
           <span data-field='issueLocation'>{locationIndicatorMwo}</span>
@@ -240,7 +240,8 @@ SigmetReadMode.propTypes = {
   maxHoursInAdvance: PropTypes.number,
   maxHoursDuration: PropTypes.number,
   hasStartCoordinates: PropTypes.bool,
-  hasStartIntersectionCoordinates: PropTypes.bool
+  hasStartIntersectionCoordinates: PropTypes.bool,
+  isCancelFor: PropTypes.number
 };
 
 export default SigmetReadMode;
