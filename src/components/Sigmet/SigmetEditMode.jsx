@@ -190,11 +190,12 @@ class SigmetEditMode extends PureComponent {
     const atOrAboveOption = MODES_LVL_OPTIONS.find((option) => option.optionId === levelMode.extent && option.optionId !== MODES_LVL.BETW);
     const atOrAboveLabel = atOrAboveOption ? atOrAboveOption.label : '';
     const drawActions = (isEndFeature = false) => [
-      /* {
-        title: 'Select point',
+      {
+        title: `Draw point${!selectedFir ? ' (select a FIR first)' : ''}`,
         action: 'select-point',
-        icon: 'circle'
-      }, */
+        icon: 'circle',
+        disabled: !selectedFir
+      },
       {
         title: `Draw region${!selectedFir ? ' (select a FIR first)' : ''}`,
         action: 'select-region',

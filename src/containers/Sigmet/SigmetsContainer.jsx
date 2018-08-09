@@ -41,10 +41,15 @@ class SigmetsContainer extends Component {
     if (feature && feature.geometry && feature.geometry.coordinates &&
       Array.isArray(feature.geometry.coordinates)) { // shapes
       const { coordinates } = feature.geometry;
-      if (coordinates.length > 0 && Array.isArray(coordinates[0])) { // lines
-        if (coordinates[0].length > 0 && Array.isArray(coordinates[0][0])) { // points
-          if (coordinates[0][0].length === 2 && !isNaN(coordinates[0][0][0]) && !isNaN(coordinates[0][0][1])) { // lat-long coordinates
-            return true;
+      if (feature.geometry.type === 'Point') {
+        return true;
+      }
+      if (feature.geometry.type === 'Polygon') {
+        if (coordinates.length > 0 && Array.isArray(coordinates[0])) { // lines
+          if (coordinates[0].length > 0 && Array.isArray(coordinates[0][0])) { // points
+            if (coordinates[0][0].length === 2 && !isNaN(coordinates[0][0][0]) && !isNaN(coordinates[0][0][1])) { // lat-long coordinates
+              return true;
+            }
           }
         }
       }
