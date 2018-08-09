@@ -231,6 +231,9 @@
   }
 
   .Move {
+    .row:nth-child(1) {
+      margin-bottom: 0.1rem;
+    }
     .row:nth-child(3) {
       padding-top: 0.2rem;
     }

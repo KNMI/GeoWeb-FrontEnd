@@ -135,7 +135,8 @@ class SigmetEditMode extends PureComponent {
 * @param {object} ability The ability to provide the flag for
 * @param {boolean} isInValidityPeriod Whether or not the referred Sigmet is active
 * @param {string} selectedPhenomenon The phenomenon which is selected
-* @returns {boolean} Whether or not is should be disabled
+* @returns {object} Object with {boolean} property disable, indicating whether or not is should be disabled
+*          and {string} property message to explain why...
 */
   getDisabledFlag (abilityRef, isInValidityPeriod, selectedPhenomenon) {
     const { copiedSigmetRef, hasEdits, validdate, validdateEnd, obsFcTime } = this.props;
@@ -483,14 +484,26 @@ class SigmetEditMode extends PureComponent {
         </ProgressSection>
 
         <MovementSection disabled={movement && movement.stationary} useGeometryForEnd={useGeometryForEnd}>
-          <Switch
-            value={useGeometryForEnd ? 'geom' : 'dirsp'}
-            checkedOption={{ optionId: 'geom', label: 'End location' }}
-            unCheckedOption={{ optionId: 'dirsp', label: 'Direction & speed' }}
-            onChange={(evt) => { dispatch(actions.modifyFocussedSigmetAction('useGeometryForEnd', evt.target.checked)); }}
-            disabled={movement && movement.stationary}
-            data-field='movementType'
-          />
+          {!isVolcanicAsh
+            ? <Switch
+              value={useGeometryForEnd ? 'geom' : 'dirsp'}
+              checkedOption={{ optionId: 'geom', label: 'End location' }}
+              unCheckedOption={{ optionId: 'dirsp', label: 'Direction & speed' }}
+              onChange={(evt) => { dispatch(actions.modifyFocussedSigmetAction('useGeometryForEnd', evt.target.checked)); }}
+              disabled={movement && movement.stationary}
+              data-field='movementType'
+            />
+            : <RadioGroup
+              value={useGeometryForEnd ? 'geom' : 'dirsp'}
+              options={[
+                { optionId: 'dirsp', label: 'Direction & speed' },
+                { optionId: 'geom', label: 'Location' },
+                { optionId: 'nova', label: 'No VA' }
+              ]}
+              onChange={(evt, selectedOption) => console.warn('Updating movement is not yet implemented for Volcanic Ash')}
+              data-field='movementType'
+            />
+          }
           <Typeahead filterBy={['shortName', 'longName']} labelKey='longName' data-field='direction'
             options={DIRECTIONS} placeholder={'Set direction'} disabled={!movement || movement.stationary || useGeometryForEnd}
             onFocus={() => dispatch(actions.updateSigmetAction(uuid, 'movement', { ...movement, dir: null }))}

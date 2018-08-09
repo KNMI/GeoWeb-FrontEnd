@@ -74,7 +74,6 @@ class SigmetsCategory extends PureComponent {
                       const volcanoCoordinates = Array.isArray(sigmet.volcano_coordinates) && sigmet.volcano_coordinates.length > 1
                         ? sigmet.volcano_coordinates
                         : [null, null];
-                      console.log('volcanoCoordinates', volcanoCoordinates, sigmet.volcano_coordinates);
                       if (focussedSigmet.uuid === sigmet.uuid) {
                         if (focussedSigmet.mode === SIGMET_MODES.EDIT) {
                           return <SigmetEditMode key={sigmet.uuid}
