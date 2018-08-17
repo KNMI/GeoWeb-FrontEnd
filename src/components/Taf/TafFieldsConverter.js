@@ -567,6 +567,7 @@ const tacToJsonForWind = (windAsTac, useFallback = false) => {
 const tacToJsonForVisibility = (visibilityAsTac, useFallback = false) => {
   const result = cloneDeep(TAF_TEMPLATES.VISIBILITY);
   if (visibilityAsTac && typeof visibilityAsTac === 'string') {
+    // if (parseInt(visibilityAsTac) > 9999) visibilityAsTac = '9999'; TODO: Discuss if auto changing input is desired or not
     const matchResult = visibilityAsTac.match(visibilityRegEx);
     if (matchResult) {
       result.value = parseInt(matchResult[1]);

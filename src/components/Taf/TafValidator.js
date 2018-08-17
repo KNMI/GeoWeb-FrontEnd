@@ -3,7 +3,7 @@ import setNestedProperty from 'lodash.set';
 import getNestedProperty from 'lodash.get';
 import removeNestedProperty from 'lodash.unset';
 import axios from 'axios';
-import { getJsonPointers, clearNullPointersAndAncestors } from '../../utils/json';
+import { getJsonPointers, clearNullPointersAndAncestors, removeNulls } from '../../utils/json';
 /**
  * Validates TAF input in two steps:
  * 1) Check for fallback values
@@ -44,28 +44,31 @@ const TafValidator = (BACKEND_SERVER_URL, tafAsObject) => {
       inputParsingReport.succeeded = true;
     }
 
-    clearNullPointersAndAncestors(taf);
-    if (!getNestedProperty(taf, ['changegroups'])) {
-      setNestedProperty(taf, ['changegroups'], []);
+    clearNullPointersAndAncestors(taf); // TODO: Check this function does not clean all nulls
+
+    let cleanedTaf = removeNulls(taf);
+
+    if (!getNestedProperty(cleanedTaf, ['changegroups'])) {
+      setNestedProperty(cleanedTaf, ['changegroups'], []);
     }
-    // if (getNestedProperty(taf, ['metadata', 'issueTime']) === 'not yet issued') {
-    //   setNestedProperty(taf, ['metadata', 'issueTime'], moment.utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z');
+    // if (getNestedProperty(cleanedTaf, ['metadata', 'issueTime']) === 'not yet issued') {
+    //   setNestedProperty(cleanedTaf, ['metadata', 'issueTime'], moment.utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z');
     // }
 
     /* TODO: Temporary fixes for validation */
-    if (taf.metadata) {
-      taf.metadata.status = taf.metadata.status.toLowerCase();
-      taf.metadata.type = taf.metadata.type.toLowerCase();
+    if (cleanedTaf.metadata) {
+      cleanedTaf.metadata.status = cleanedTaf.metadata.status.toLowerCase();
+      cleanedTaf.metadata.type = cleanedTaf.metadata.type.toLowerCase();
     }
-    if (taf.metadata.status === 'new') {
-      delete taf.metadata.status;
+    if (cleanedTaf.metadata.status === 'new') {
+      delete cleanedTaf.metadata.status;
     }
 
     axios({
       method: 'post',
       url: BACKEND_SERVER_URL + '/tafs/verify',
       withCredentials: true,
-      data: JSON.stringify(taf),
+      data: JSON.stringify(cleanedTaf),
       headers: { 'Content-Type': 'application/json' }
     }).then(
       response => {

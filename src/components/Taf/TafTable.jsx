@@ -125,6 +125,8 @@ class TafTable extends Component {
    */
   updateValue (element) {
     let name = element ? (element.name || element.props.name) : null;
+    let elementValue = element.value && element.value.length && element.value.length > 0 ? element.value.trim().toUpperCase() : null;
+
     // Empty in this case means that val is an object which has keys, but for every key its value is null
     const isObjInArrayEmpty = (val, lastPathElem) => {
       const allValuesNull = (obj) => Object.values(obj).every((value) => value === null || (Array.isArray(value) && value.length === 0));
@@ -143,20 +145,20 @@ class TafTable extends Component {
       const phenomenonType = getPhenomenonType(propertyTypeName);
       switch (phenomenonType) {
         case PHENOMENON_TYPES.WIND:
-          propertiesToUpdate[0].propertyValue = tacToJsonForWind(element.value, true);
+          propertiesToUpdate[0].propertyValue = tacToJsonForWind(elementValue, true);
           break;
         case PHENOMENON_TYPES.VISIBILITY:
-          const matchCavok = tacToJsonForCavok(element.value);
+          const matchCavok = tacToJsonForCavok(elementValue);
           propertiesToUpdate.push({
             propertyPath: cloneDeep(propertiesToUpdate[0].propertyPath),
-            propertyValue: tacToJsonForVisibility(element.value, matchCavok === false)
+            propertyValue: tacToJsonForVisibility(elementValue, matchCavok === false)
           });
           propertiesToUpdate[0].propertyValue = matchCavok;
           propertiesToUpdate[0].propertyPath.pop();
           propertiesToUpdate[0].propertyPath.push('caVOK');
           break;
         case PHENOMENON_TYPES.WEATHER:
-          propertiesToUpdate[0].propertyValue = tacToJsonForWeather(element.value, true);
+          propertiesToUpdate[0].propertyValue = tacToJsonForWeather(elementValue, true);
           if (propertiesToUpdate[0].propertyValue === 'NSW') {
             propertiesToUpdate[0].propertyPath.pop();
           }
@@ -165,10 +167,10 @@ class TafTable extends Component {
           }
           break;
         case PHENOMENON_TYPES.CLOUDS:
-          const matchVerticalVisibility = tacToJsonForVerticalVisibility(element.value);
+          const matchVerticalVisibility = tacToJsonForVerticalVisibility(elementValue);
           propertiesToUpdate.push({
             propertyPath: cloneDeep(propertiesToUpdate[0].propertyPath),
-            propertyValue: tacToJsonForClouds(element.value, matchVerticalVisibility === null)
+            propertyValue: tacToJsonForClouds(elementValue, matchVerticalVisibility === null)
           });
           propertiesToUpdate[0].propertyValue = matchVerticalVisibility;
           propertiesToUpdate[0].propertyPath.pop();
@@ -190,13 +192,13 @@ class TafTable extends Component {
             propertiesToUpdate[0].propertyPath.pop();
             propertiesToUpdate[0].propertyPath.push('changeType');
             const change = jsonToTacForChangeType(getNestedProperty(this.props.taf, propertiesToUpdate[0].propertyPath), true);
-            propertiesToUpdate[0].propertyValue = tacToJsonForProbabilityAndChangeType(element.value, change, true);
+            propertiesToUpdate[0].propertyValue = tacToJsonForProbabilityAndChangeType(elementValue, change, true);
             break;
           case 'change':
             propertiesToUpdate[0].propertyPath.pop();
             propertiesToUpdate[0].propertyPath.push('changeType');
             const probability = jsonToTacForProbability(getNestedProperty(this.props.taf, propertiesToUpdate[0].propertyPath), true);
-            propertiesToUpdate[0].propertyValue = tacToJsonForProbabilityAndChangeType(probability, element.value, true);
+            propertiesToUpdate[0].propertyValue = tacToJsonForProbabilityAndChangeType(probability, elementValue, true);
             break;
           case 'validity':
             const scopeStart = this.props.taf.metadata.validityStart;
@@ -209,10 +211,10 @@ class TafTable extends Component {
             propertiesToUpdate[0].propertyPath.push('changeStart');
             propertiesToUpdate[1].propertyPath.push('changeEnd');
             let value;
-            if (element.value.length === 4) {
-              value = { start: tacToJsonForTimestamp(element.value, scopeStart, scopeEnd, true), end: null };
+            if (elementValue.length === 4) {
+              value = { start: tacToJsonForTimestamp(elementValue, scopeStart, scopeEnd, true), end: null };
             } else {
-              value = tacToJsonForPeriod(element.value, scopeStart, scopeEnd, true);
+              value = tacToJsonForPeriod(elementValue, scopeStart, scopeEnd, true);
             }
             propertiesToUpdate[0].propertyValue = value.start || (value.hasOwnProperty('fallback') ? { fallback: value.fallback } : null);
             propertiesToUpdate[1].propertyValue = value.end;

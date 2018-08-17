@@ -3,6 +3,7 @@ import getNestedProperty from 'lodash.get';
 import setNestedProperty from 'lodash.set';
 import hasNestedProperty from 'lodash.has';
 import cloneDeep from 'lodash.clonedeep';
+import cleanDeep from 'clean-deep';
 import removeNestedProperty from 'lodash.unset';
 
 /**
@@ -157,6 +158,7 @@ const getJsonPointers = (collection, predicate, accumulator, parentName = '') =>
  * @param  {Object} objectToClear An hierarchical object to clean null values for
  */
 const clearNullPointersAndAncestors = (objectToClear) => {
+  // TODO MP 2018-08-17: Check this function does not clean all nulls, maybe we can use removeNulls instead.
   const nullPointers = [];
   getJsonPointers(objectToClear, (field) => field === null, nullPointers);
   nullPointers.forEach((nullPointer) => {
@@ -167,9 +169,18 @@ const clearNullPointersAndAncestors = (objectToClear) => {
   });
 };
 
+/**
+ * Clear all null values in an object, and clear resulting empty ancestors as well
+ * @param  {Object} objectToClear An hierarchical object to clean null values for
+ */
+const removeNulls = (obj) => {
+  return cleanDeep(obj);
+};
+
 module.exports = {
   getJsonPointers: getJsonPointers,
   clearRecursive: clearRecursive,
   mergeInTemplate: mergeInTemplate,
-  clearNullPointersAndAncestors: clearNullPointersAndAncestors
+  clearNullPointersAndAncestors: clearNullPointersAndAncestors,
+  removeNulls: removeNulls
 };
