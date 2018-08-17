@@ -5,7 +5,7 @@ import { arrayMove } from 'react-sortable-hoc';
 import setNestedProperty from 'lodash.set';
 import getNestedProperty from 'lodash.get';
 import removeNestedProperty from 'lodash.unset';
-import { clearNullPointersAndAncestors, mergeInTemplate } from '../../utils/json';
+import { clearNullPointersAndAncestors, mergeInTemplate, removeNulls } from '../../utils/json';
 import { ReadLocations } from '../../utils/admin';
 import { LOCAL_ACTION_TYPES, STATUSES, LIFECYCLE_STAGE_NAMES, MODES, FEEDBACK_CATEGORIES, FEEDBACK_STATUSES } from './TafActions';
 import { TAF_TEMPLATES, TIMELABEL_FORMAT, TIMESTAMP_FORMAT } from '../../components/Taf/TafTemplates';
@@ -244,6 +244,35 @@ const updateFeedback = (title, status, category, subTitle, list, container, call
 };
 
 /**
+ * Merges the values into (nested) templates, but with TAF quirks for NSC / NSW
+ * TODO: (MP 2018-08-17): Discuss with Wim how to solve this more nicely.
+ * @param {any} incomingValues The object with values to merge into templates, same hierarchy as template
+ * @param {string} parentName The property name of the top level incomingValues entity
+ * @param {object} templates A map of templates, with keys equal to the property names
+ * @returns {any} The template with the incoming values merged or null
+ */
+const mergeInTemplateTaf = (incomingValues, parentName, templates) => {
+  let mergedTaf = mergeInTemplate(incomingValues, parentName, templates);
+  if (parentName === 'FORECAST') {
+    if (incomingValues && incomingValues.clouds && typeof incomingValues.clouds === 'string' && incomingValues.clouds === 'NSC') {
+      mergedTaf = produce(mergedTaf, draftState => { draftState.clouds = 'NSC'; });
+    }
+    if (incomingValues && incomingValues.weather && typeof incomingValues.weather === 'string' && incomingValues.weather === 'NSW') {
+      mergedTaf = produce(mergedTaf, draftState => { draftState.weather = 'NSW'; });
+    }
+  }
+  if (parentName === 'CHANGE_GROUP') {
+    if (incomingValues && incomingValues.forecast && incomingValues.forecast.clouds && typeof incomingValues.forecast.clouds === 'string' && incomingValues.forecast.clouds === 'NSC') {
+      mergedTaf = produce(mergedTaf, draftState => { draftState.forecast.clouds = 'NSC'; });
+    }
+    if (incomingValues && incomingValues.forecast && incomingValues.forecast.weather && typeof incomingValues.forecast.weather === 'string' && incomingValues.forecast.weather === 'NSW') {
+      mergedTaf = produce(mergedTaf, draftState => { draftState.forecast.weather = 'NSW'; });
+    }
+  }
+  return mergedTaf;
+};
+
+/**
  * Creates a selectable TAF object out of a regular TAF object
  * @param {object} tafData The TAF object to wrap
  * @returns A selectable TAF corresponding to the incoming TAF
@@ -275,11 +304,11 @@ const wrapIntoSelectableTaf = (tafData) => {
         draftSelectable.tafData.metadata[entry[0]] = tafData.metadata[entry[0]];
       }
     });
-    draftSelectable.tafData.forecast = mergeInTemplate(tafData.forecast, 'FORECAST', TAF_TEMPLATES);
+    draftSelectable.tafData.forecast = mergeInTemplateTaf(tafData.forecast, 'FORECAST', TAF_TEMPLATES);
     if (Array.isArray(tafData.changegroups) && tafData.changegroups.length > 0) {
       draftSelectable.tafData.changegroups.length = 0;
       tafData.changegroups.forEach((changeGroup) => {
-        draftSelectable.tafData.changegroups.push(mergeInTemplate(changeGroup, 'CHANGE_GROUP', TAF_TEMPLATES));
+        draftSelectable.tafData.changegroups.push(mergeInTemplateTaf(changeGroup, 'CHANGE_GROUP', TAF_TEMPLATES));
       });
     }
   });
@@ -396,8 +425,18 @@ const selectTaf = (selection, container) => {
 const discardTaf = (event, container) => {
   const { state } = container;
   container.setState(produce(state, draftState => {
+    const { selectedTaf } = state;
     draftState.mode = MODES.READ;
     draftState.selectedTaf.length = 0;
+    if (selectedTaf && Array.isArray(selectedTaf) && selectedTaf.length === 1) {
+      if (selectedTaf[0].tafData && selectedTaf[0].tafData.metadata && selectedTaf[0].tafData.metadata.uuid) {
+        const uuid = selectedTaf[0].tafData.metadata.uuid;
+        const previousSelected = draftState.selectableTafs.find((selectable) => selectable.tafData.metadata.uuid === uuid);
+        if (previousSelected) {
+          draftState.selectedTaf.push(previousSelected);
+        }
+      }
+    }
   }));
 };
 
@@ -421,6 +460,7 @@ const saveTaf = (event, container) => {
   }), () => {
     const strippedTafData = produce(container.state.selectedTaf[0].tafData, draftTaf => {
       clearNullPointersAndAncestors(draftTaf);
+      draftTaf = removeNulls(draftTaf);
       if (typeof draftTaf.forecast === 'undefined') {
         draftTaf.forecast = {};
       }
@@ -491,6 +531,11 @@ const deleteTaf = (event, container) => {
       draftState.selectedTaf[0].tafData.metadata.status = STATUSES.CONCEPT;
     }
     draftState.selectedTaf.length = 0;
+
+    /* Re-open empty taf after delete */
+    const previousSelected = draftState.selectableTafs.find((selectable) => selectable.tafData.metadata.uuid === uuid);
+    draftState.mode = MODES.EDIT;
+    draftState.selectedTaf.push(previousSelected);
   }), () => {
     axios({
       method: 'delete',

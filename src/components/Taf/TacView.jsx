@@ -15,7 +15,7 @@ export default class TacView extends PureComponent {
       : '';
     const reduceClouds = (clouds) => (Array.isArray(clouds) && clouds.length > 0)
       ? clouds.reduce((result, cloudsItem) => `${result} ${jsonToTacForClouds(cloudsItem) || ''}`, '')
-      : '';
+      : (jsonToTacForClouds(clouds) || '');
     const tac = {
       type: jsonToTacForType(taf.metadata.type) || '',
       location: taf.metadata.location || '',

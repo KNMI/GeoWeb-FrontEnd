@@ -3,18 +3,60 @@ import PropTypes from 'prop-types';
 import Enum from 'es6-enum';
 import cloneDeep from 'lodash.clonedeep';
 
+const emptyGeoJSON = {
+  'type': 'FeatureCollection',
+  'features': []
+};
+
+const featurePoint = {
+  'type': 'Feature',
+  'properties': {},
+  'geometry': {
+    'type': 'Point',
+    'coordinates': []
+  }
+};
+
+const featureMultiPoint = {
+  'type': 'Feature',
+  'properties': {},
+  'geometry': {
+    'type': 'MultiPoint',
+    'coordinates': [[]]
+  }
+};
+
+const featurePolygon = {
+  'type': 'Feature',
+  'properties': {},
+  'geometry': {
+    'type': 'Polygon',
+    'coordinates': [[]]
+  }
+};
+
+const featureBox = {
+  'type': 'Feature',
+  'properties': { '_adaguctype': 'box' },
+  'geometry': {
+    'type': 'Polygon',
+    'coordinates': [[]]
+  }
+};
+
 export default class AdagucMapDraw extends PureComponent {
   constructor (props) {
     super(props);
+
     this.EDITMODE = Enum('EMPTY', 'DELETE_FEATURES', 'ADD_FEATURE');
     this.DRAWMODE = Enum('POLYGON', 'BOX', 'MULTIPOINT', 'POINT');
     this.VERTEX = Enum('NONE', 'MIDDLE_POINT_OF_FEATURE');
     this.EDGE = Enum('NONE');
     this.FEATURE = Enum('NONE');
-    this.SNAPPEDPOYLYGON = Enum('NONE');
+    this.SNAPPEDFEATURE = Enum('NONE');
     this.DRAGMODE = Enum('NONE', 'VERTEX', 'FEATURE');
-    this.editMode = this.EDITMODE.EMPTY;
-    this.drawMode = this.DRAWMODE.MULTIPOINT;
+    this.myEditMode = this.EDITMODE.EMPTY;
+    this.myDrawMode = this.DRAWMODE.POLYGON;
     this.adagucBeforeDraw = this.adagucBeforeDraw.bind(this);
     this.adagucMouseMove = this.adagucMouseMove.bind(this);
     this.adagucMouseDown = this.adagucMouseDown.bind(this);
@@ -34,16 +76,39 @@ export default class AdagucMapDraw extends PureComponent {
     this.transposeVertex = this.transposeVertex.bind(this);
     this.triggerMouseDownTimer = this.triggerMouseDownTimer.bind(this);
     this.adagucMouseDoubleClick = this.adagucMouseDoubleClick.bind(this);
+    this.handleDrawMode = this.handleDrawMode.bind(this);
+    this.componentCleanup = this.componentCleanup.bind(this);
+    this.initializeFeature = this.initializeFeature.bind(this);
+    this.validatePolys = this.validatePolys.bind(this);
+    this.insertVertexInEdge = this.insertVertexInEdge.bind(this);
+    this.createNewFeature = this.createNewFeature.bind(this);
+    this.addPointToMultiPointFeature = this.addPointToMultiPointFeature.bind(this);
+    this.addVerticesToPolygonFeature = this.addVerticesToPolygonFeature.bind(this);
+    this.checkIfFeatureIsBox = this.checkIfFeatureIsBox.bind(this);
+
+    this.handleDrawMode(props.drawMode);
+
     this.textPositions = [];
     this.mouseOverPolygonCoordinates = [];
-    this.pointNumber = 0;
+
     this.defaultPolyProps = {
       'stroke': '#',
-      'stroke-width': 2,
+      'stroke-width': 0.4,
       'stroke-opacity': 1,
-      'fill': '#F00',
-      'fill-opacity': 0.3
+      'fill': '#33cc00',
+      'fill-opacity': 1
     };
+    this.somethingWasDragged = this.DRAGMODE.NONE;
+    this.mouseIsOverVertexNr = this.VERTEX.NONE;
+    this.selectedEdge = this.EDGE.NONE;
+
+    if (props.geojson) {
+      this.geojson = cloneDeep(props.geojson);
+    } else {
+      this.geojson = cloneDeep(emptyGeoJSON);
+      this.featureHasChanged('new');
+    }
+    this.validatePolys(true);
   }
   /* istanbul ignore next */
   convertGeoCoordsToScreenCoords (featureCoords) {
@@ -73,12 +138,57 @@ export default class AdagucMapDraw extends PureComponent {
     return XYCoords;
   };
 
+  initializeFeature (feature, type) {
+    if (!feature) {
+      switch (type) {
+        case this.DRAWMODE.POINT:
+          return cloneDeep(featurePoint);
+        case this.DRAWMODE.MULTIPOINT:
+          return cloneDeep(featureMultiPoint);
+        case this.DRAWMODE.POLYGON:
+          return cloneDeep(featurePolygon);
+        case this.DRAWMODE.BOX:
+          return cloneDeep(featureBox);
+        default:
+      }
+    } else {
+      this.validateFeature(feature);
+      if (feature.properties._adaguctype) delete feature.properties._adaguctype;
+      switch (type) {
+        case this.DRAWMODE.POINT:
+          feature.geometry.type = 'Point';
+          break;
+        case this.DRAWMODE.MULTIPOINT:
+          feature.geometry.type = 'MultiPoint';
+          if (feature.geometry.coordinates.length === 0)feature.geometry.coordinates.push([]);
+          break;
+        case this.DRAWMODE.BOX:
+          feature.geometry.type = 'Polygon';
+          feature.properties._adaguctype = 'box';
+          break;
+        case this.DRAWMODE.POLYGON:
+          feature.geometry.type = 'Polygon';
+          if (feature.geometry.coordinates.length === 0)feature.geometry.coordinates.push([]);
+          break;
+      }
+    }
+    return feature;
+  };
+
+  checkIfFeatureIsBox (feature) {
+    if (!feature || !feature.properties || !feature.properties._adaguctype) return false;
+    return feature.properties._adaguctype === 'box';
+  }
+
   drawVertice (ctx, _coord, selected, middle, isInEditMode) {
     let w = 7;
     let coord = { x: parseInt(_coord.x), y: parseInt(_coord.y) };
     if (isInEditMode === false) {
       /* Standard style, no editing, just display location of vertices */
-      return;
+      ctx.strokeStyle = '#000';
+      ctx.fillStyle = '#000';
+      ctx.lineWidth = 1.0;
+      w = 5;
     } else if (selected === false) {
       if (middle === true) {
         /* Style for middle editable vertice */
@@ -106,10 +216,51 @@ export default class AdagucMapDraw extends PureComponent {
     }
   }
 
+  drawPoint (ctx, _coord, selected, middle, isInEditMode) {
+    if (isInEditMode === false) {
+      /* Standard style, no editing, just display location of vertices */
+      ctx.strokeStyle = '#000';
+      ctx.fillStyle = '#000';
+      ctx.lineWidth = 1.0;
+    } else if (selected === false) {
+      /* Style for standard editable vertice */
+      ctx.strokeStyle = '#000';
+      ctx.fillStyle = '#0275D8';
+      ctx.lineWidth = 1.0;
+    } else {
+      /* Style for selected editable vertice */
+      ctx.strokeStyle = '#000';
+      ctx.fillStyle = '#FF0';
+      ctx.lineWidth = 1.0;
+    }
+    let coord = { x: parseInt(_coord.x), y: parseInt(_coord.y) };
+    ctx.globalAlpha = 1.0;
+    ctx.beginPath();
+    let topRadius = 9;
+    let topHeight = 2.5 * topRadius;
+    ctx.arc(coord.x, coord.y - topHeight, topRadius, Math.PI, Math.PI * 2);
+    ctx.bezierCurveTo(coord.x + topRadius, coord.y - topHeight, coord.x + (topRadius / 1.6), coord.y - topRadius, coord.x, coord.y);
+    ctx.bezierCurveTo(coord.x, coord.y, coord.x - (topRadius / 1.6), coord.y - topRadius, coord.x - topRadius, coord.y - topHeight);
+    ctx.stroke();
+    ctx.fill();
+    /* Fill center circle */
+    ctx.fillStyle = '#FFF';
+    ctx.beginPath();
+    ctx.arc(coord.x, coord.y - topHeight, topRadius / 2, Math.PI * 2, 0);
+    ctx.fill();
+
+    /* Fill marker exact location */
+    ctx.fillStyle = '#000';
+    ctx.beginPath();
+    ctx.arc(coord.x, coord.y, 2, Math.PI * 2, 0);
+    ctx.fill();
+  }
+
   /* istanbul ignore next */
   drawPolygon (ctx, XYCoords, featureIndex, polygonIndex) {
     const feature = this.geojson.features[featureIndex];
-    if (!feature) return;
+    if (!feature || !feature.geometry) return;
+    if (feature.geometry.type !== 'Polygon') return;
     let polyProps = feature.properties;
     if (!polyProps) polyProps = this.defaultPolyProps;
 
@@ -129,12 +280,17 @@ export default class AdagucMapDraw extends PureComponent {
     for (let j = 1; j < XYCoords.length; j++) {
       const coord = XYCoords[j];
       ctx.lineTo(coord.x, coord.y);
-      middle.x += coord.x;
-      middle.y += coord.y;
+      if (j < XYCoords.length - 1) {
+        middle.x += coord.x;
+        middle.y += coord.y;
+      }
     }
     ctx.closePath();
 
     ctx.globalAlpha = polyProps['fill-opacity'] || this.defaultPolyProps['fill-opacity'];
+    if (polyProps['fill-opacity'] === 0) {
+      ctx.globalAlpha = 0;
+    }
     ctx.fill();
     ctx.globalAlpha = polyProps['stroke-opacity'] || this.defaultPolyProps['stroke-opacity'];
     ctx.stroke();
@@ -142,9 +298,10 @@ export default class AdagucMapDraw extends PureComponent {
     let test = ctx.isPointInPath(this.mouseX, this.mouseY);
     if (test) {
       this.mouseOverPolygonCoordinates = XYCoords;
+      this.mouseOverPolygonFeatureIndex = featureIndex;
     }
-    middle.x = parseInt(middle.x / XYCoords.length);
-    middle.y = parseInt(middle.y / XYCoords.length);
+    middle.x = parseInt(middle.x / (XYCoords.length - 1));
+    middle.y = parseInt(middle.y / (XYCoords.length - 1));
 
     if (this.props.isInEditMode === true &&
         this.snappedPolygonIndex === polygonIndex &&
@@ -161,9 +318,78 @@ export default class AdagucMapDraw extends PureComponent {
       ctx.stroke();
     }
 
-    middle.nr = XYCoords.length;
+    middle.nr = XYCoords.length - 1;
 
     return middle;
+  }
+
+  validateFeature (feature) {
+    if (!feature.properties) feature.properties = {};
+    if (!feature.geometry) feature.geometry = {};
+    if (!feature.type) feature.type = 'Feature';
+    if (!feature.geometry.coordinates) feature.geometry.coordinates = [];
+  }
+
+  validatePolys (fixPolys) {
+    if (!this.geojson || !this.geojson.features || !this.geojson.features.length) return;
+    for (let featureIndex = 0; featureIndex < this.geojson.features.length; featureIndex++) {
+      if (!this.geojson.features) this.geojson.features = [];
+      const feature = this.geojson.features[featureIndex];
+      this.validateFeature(feature);
+      const featureType = feature.geometry.type;
+      if (featureType === 'Polygon') {
+        /* Loop through all polygons of the same feature */
+        for (let polygonIndex = 0; polygonIndex < feature.geometry.coordinates.length; polygonIndex++) {
+          let featureCoords = feature.geometry.coordinates[polygonIndex];
+
+          /* Remove duplicates */
+          if (!this.checkIfFeatureIsBox(feature)) {
+            for (let coordIndex = featureCoords.length - 2; coordIndex >= 0; coordIndex--) {
+              let startCoord = featureCoords[coordIndex];
+              let endCoord = featureCoords[coordIndex + 1];
+              if (startCoord && endCoord) {
+                if (startCoord[0] === endCoord[0] && startCoord[1] === endCoord[1]) {
+                  featureCoords.splice(coordIndex, 1);
+                }
+              }
+            }
+            /* Add begin to end to make closed polygon */
+            let startCoord = featureCoords[0];
+            let endCoord = featureCoords[featureCoords.length - 1];
+            if (startCoord && endCoord) {
+              if (startCoord[0] !== endCoord[0] || startCoord[1] !== endCoord[1]) {
+                featureCoords.push(cloneDeep(startCoord));
+                if (this.mouseIsOverVertexNr !== this.VERTEX.NONE && this.mouseIsOverVertexNr !== this.VERTEX.MIDDLE_POINT_OF_FEATURE) {
+                  /* This means that our selected vertex is one lower */
+                  this.mouseIsOverVertexNr--;
+                }
+              }
+            }
+          }
+
+          /* Sort clockwise */
+          if (fixPolys) {
+            let checkClockwiseOrder = (featureCoords) => {
+              let sum = 0;
+              for (let j = 0; j < featureCoords.length - 1; j++) {
+                let currentPoint = featureCoords[j];
+                let nextPoint = featureCoords[(j + 1) % featureCoords.length];
+                sum += ((nextPoint[0] - currentPoint[0]) * (nextPoint[1] + currentPoint[1]));
+              }
+              return sum;
+            };
+            const sum = checkClockwiseOrder(featureCoords);
+            if (sum < 0) {
+              featureCoords = featureCoords.reverse();
+              /* The lastly selected vertex is now aways the second in the array */
+              if (this.mouseIsOverVertexNr !== this.VERTEX.NONE && this.mouseIsOverVertexNr !== this.VERTEX.MIDDLE_POINT_OF_FEATURE) {
+                this.mouseIsOverVertexNr = 1;
+              }
+            }
+          }
+        }
+      }
+    }
   }
 
   /* istanbul ignore next */
@@ -176,6 +402,7 @@ export default class AdagucMapDraw extends PureComponent {
     if (!this.geojson || !this.geojson.features || !this.geojson.features.length) return;
     this.textPositions = [];
     this.mouseOverPolygonCoordinates = [];
+    this.mouseOverPolygonFeatureIndex = -1;
     /* Current selected feature from GeoJSON */
     for (let featureIndex = 0; featureIndex < this.geojson.features.length; featureIndex++) {
       const feature = this.geojson.features[featureIndex];
@@ -190,7 +417,7 @@ export default class AdagucMapDraw extends PureComponent {
           continue;
         }
         for (let j = 0; j < XYCoords.length; j++) {
-          this.drawVertice(ctx, XYCoords[j],
+          this.drawPoint(ctx, XYCoords[j],
             this.mouseIsOverVertexNr === j && this.props.featureNrToEdit === featureIndex,
             false,
             this.props.isInEditMode && this.props.featureNrToEdit === featureIndex);
@@ -204,7 +431,7 @@ export default class AdagucMapDraw extends PureComponent {
           continue;
         }
         for (let j = 0; j < XYCoords.length; j++) {
-          this.drawVertice(ctx, XYCoords[j],
+          this.drawPoint(ctx, XYCoords[j],
             this.mouseIsOverVertexNr === j && this.props.featureNrToEdit === featureIndex,
             false,
             this.props.isInEditMode && this.props.featureNrToEdit === featureIndex);
@@ -250,11 +477,13 @@ export default class AdagucMapDraw extends PureComponent {
         if (totalmiddle.nr > 0) {
           let mx = totalmiddle.x / totalmiddle.nr;
           let my = totalmiddle.y / totalmiddle.nr;
-          if (feature.properties && feature.properties.NUTS_ID) {
-            this.textPositions.push({ x:mx, y:my, text: feature.properties.NUTS_ID });
+          if (feature.properties && feature.properties.text) {
+            this.textPositions.push({ x:mx, y:my, text: feature.properties.text });
           }
         }
-      } else {
+      }
+
+      if (featureType === 'Polygon') {
         /* Loop through all polygons of the same feature */
         for (let polygonIndex = 0; polygonIndex < feature.geometry.coordinates.length; polygonIndex++) {
           const featureCoords = feature.geometry.coordinates[polygonIndex];
@@ -267,8 +496,8 @@ export default class AdagucMapDraw extends PureComponent {
 
           const middle = this.drawPolygon(ctx, XYCoords, featureIndex, polygonIndex);
 
-          if (feature.properties && feature.properties.NUTS_ID) {
-            this.textPositions.push({ x:middle.x, y:middle.y, text: feature.properties.NUTS_ID });
+          if (feature.properties && feature.properties.text) {
+            this.textPositions.push({ x:middle.x, y:middle.y, text: feature.properties.text });
           }
 
           if (this.props.isInEditMode) {
@@ -296,7 +525,7 @@ export default class AdagucMapDraw extends PureComponent {
 
     /* Higlight polygon with mousehover */
     if ((this.mouseIsOverVertexNr === this.VERTEX.NONE &&
-      this.snappedPolygonIndex === this.SNAPPEDPOYLYGON.NONE &&
+      this.snappedPolygonIndex === this.SNAPPEDFEATURE.NONE &&
       this.selectedEdge === this.EDGE.NONE) ||
       this.mouseIsOverVertexNr === this.VERTEX.MIDDLE_POINT_OF_FEATURE) {
       if (this.mouseOverPolygonCoordinates.length >= 2) {
@@ -318,10 +547,15 @@ export default class AdagucMapDraw extends PureComponent {
       }
     }
 
+    if (this.props.hoverFeatureCallback) {
+      this.props.hoverFeatureCallback(this.mouseOverPolygonFeatureIndex);
+    }
+
     /* Draw labels */
     for (let j = 0; j < this.textPositions.length; j++) {
       const { x, y, text } = this.textPositions[j];
       ctx.fillStyle = 'black';
+      ctx.font = '12px Arial';
       ctx.fillText(text, x, y);
     }
   }
@@ -344,7 +578,7 @@ export default class AdagucMapDraw extends PureComponent {
   /* istanbul ignore next */
   checkDist (coord, polygonIndex, mouseX, mouseY) {
     const VERTEX = this.distance(coord, { x: mouseX, y: mouseY });
-    if (VERTEX < 8) {
+    if (VERTEX < 10) {
       this.snappedGeoCoords = { ...this.mouseGeoCoord };
       this.snappedPolygonIndex = polygonIndex;
       return true;
@@ -369,7 +603,7 @@ export default class AdagucMapDraw extends PureComponent {
         }
       }
     }
-    return { selectedEdge: this.EDGE.NONE, snappedPolygonIndex: this.SNAPPEDPOYLYGON.NONE };
+    return { selectedEdge: this.EDGE.NONE, snappedPolygonIndex: this.SNAPPEDFEATURE.NONE };
   }
 
   /* istanbul ignore next */
@@ -382,28 +616,56 @@ export default class AdagucMapDraw extends PureComponent {
       this.snappedGeoCoords.x = this.mouseGeoCoord.x;
       this.snappedGeoCoords.y = this.mouseGeoCoord.y;
     }
-    if (this.editMode !== this.EDITMODE.ADD_FEATURE) {
+    if (this.myEditMode !== this.EDITMODE.ADD_FEATURE) {
       this.somethingWasDragged = this.DRAGMODE.FEATURE;
     }
   }
 
   /* istanbul ignore next */
   transposeVertex (featureCoords) {
-    if (this.editMode !== this.EDITMODE.ADD_FEATURE) {
+    if (this.myEditMode !== this.EDITMODE.ADD_FEATURE) {
       this.somethingWasDragged = this.DRAGMODE.VERTEX;
     }
 
-    if (this.drawMode === this.DRAWMODE.MULTIPOINT) {
+    if (this.myDrawMode === this.DRAWMODE.POINT) {
+      featureCoords[0] = this.mouseGeoCoord.x;
+      featureCoords[1] = this.mouseGeoCoord.y;
       return;
     }
 
-    if (this.drawMode === this.DRAWMODE.BOX && featureCoords.length === 4) {
+    let checkIfVertexNrIsOK = () => {
+      if (this.mouseIsOverVertexNr !== this.SNAPPEDFEATURE.NONE && this.mouseIsOverVertexNr !== this.VERTEX.NONE) {
+        if (this.mouseIsOverVertexNr && this.mouseIsOverVertexNr.length && this.mouseIsOverVertexNr.length < featureCoords) {
+          return true;
+        }
+      }
+      return false;
+    };
+
+    if (checkIfVertexNrIsOK === false) {
+      this.mouseIsOverVertexNr = this.VERTEX.NONE;
+      return;
+    }
+
+    if (this.myDrawMode === this.DRAWMODE.MULTIPOINT) {
+      if (this.mouseIsOverVertexNr !== this.SNAPPEDFEATURE.NONE) {
+        featureCoords[this.mouseIsOverVertexNr][0] = this.mouseGeoCoord.x;
+        featureCoords[this.mouseIsOverVertexNr][1] = this.mouseGeoCoord.y;
+      }
+      return;
+    }
+
+    if (this.myDrawMode === this.DRAWMODE.BOX && (featureCoords.length === 4 || featureCoords.length === 5)) {
+      while (featureCoords.length < 4) {
+        featureCoords.push([this.mouseGeoCoord.x, this.mouseGeoCoord.y]);
+      }
       if (this.mouseIsOverVertexNr === 0) {
         featureCoords[1][0] = this.mouseGeoCoord.x;
         featureCoords[3][1] = this.mouseGeoCoord.y;
       }
       if (this.mouseIsOverVertexNr === 1) {
         featureCoords[0][0] = this.mouseGeoCoord.x;
+        featureCoords[4][0] = this.mouseGeoCoord.x;
         featureCoords[2][1] = this.mouseGeoCoord.y;
       }
       if (this.mouseIsOverVertexNr === 2) {
@@ -412,12 +674,29 @@ export default class AdagucMapDraw extends PureComponent {
       }
       if (this.mouseIsOverVertexNr === 3) {
         featureCoords[0][1] = this.mouseGeoCoord.y;
+        featureCoords[4][1] = this.mouseGeoCoord.y;
         featureCoords[2][0] = this.mouseGeoCoord.x;
+      }
+      featureCoords[this.mouseIsOverVertexNr][0] = this.mouseGeoCoord.x;
+      featureCoords[this.mouseIsOverVertexNr][1] = this.mouseGeoCoord.y;
+      // /* Transpose begin and end vertice */
+      if (this.mouseIsOverVertexNr === 0 || this.mouseIsOverVertexNr === [featureCoords.length - 1]) {
+        featureCoords[0][0] = this.mouseGeoCoord.x;
+        featureCoords[0][1] = this.mouseGeoCoord.y;
+        featureCoords[featureCoords.length - 1][0] = this.mouseGeoCoord.x;
+        featureCoords[featureCoords.length - 1][1] = this.mouseGeoCoord.y;
       }
     }
 
-    featureCoords[this.mouseIsOverVertexNr][0] = this.mouseGeoCoord.x;
-    featureCoords[this.mouseIsOverVertexNr][1] = this.mouseGeoCoord.y;
+    if (this.myDrawMode === this.DRAWMODE.POLYGON) {
+      featureCoords[this.mouseIsOverVertexNr][0] = this.mouseGeoCoord.x;
+      featureCoords[this.mouseIsOverVertexNr][1] = this.mouseGeoCoord.y;
+      /* Transpose begin and end vertice */
+      if (this.mouseIsOverVertexNr === 0) {
+        featureCoords[featureCoords.length - 1][0] = this.mouseGeoCoord.x;
+        featureCoords[featureCoords.length - 1][1] = this.mouseGeoCoord.y;
+      }
+    }
   }
 
   /* istanbul ignore next */
@@ -428,7 +707,7 @@ export default class AdagucMapDraw extends PureComponent {
 
     const vertexSelected = mouseDown === true && this.mouseIsOverVertexNr !== this.VERTEX.NONE;
 
-    if (vertexSelected || this.editMode === this.EDITMODE.ADD_FEATURE) {
+    if (vertexSelected || this.myEditMode === this.EDITMODE.ADD_FEATURE) {
       /* In case middle point is selected, transpose whole polygon */
       if (this.mouseIsOverVertexNr === this.VERTEX.MIDDLE_POINT_OF_FEATURE && this.snappedGeoCoords) {
         this.transposePolygon(featureCoords);
@@ -445,8 +724,19 @@ export default class AdagucMapDraw extends PureComponent {
     let foundVertex = this.VERTEX.NONE;
     this.mouseIsOverVertexNr = this.VERTEX.NONE;
 
+    if (feature.geometry.type === 'Point') {
+      this.snappedPolygonIndex = this.SNAPPEDFEATURE.NONE;
+      const featureCoords = feature.geometry.coordinates;
+      /* Get all vertexes */
+      const XYCoords = this.convertGeoCoordsToScreenCoords([featureCoords]);
+      if (this.checkDist(XYCoords[0], 0, mouseX, mouseY)) {
+        this.mouseIsOverVertexNr = 0;
+        return;
+      }
+    }
+
     if (feature.geometry.type === 'MultiPoint') {
-      this.snappedPolygonIndex = this.SNAPPEDPOYLYGON.NONE;
+      this.snappedPolygonIndex = this.SNAPPEDFEATURE.NONE;
       for (let polygonIndex = feature.geometry.coordinates.length - 1; polygonIndex >= 0; polygonIndex--) {
         const featureCoords = feature.geometry.coordinates[polygonIndex];
         if (featureCoords === undefined) {
@@ -456,40 +746,40 @@ export default class AdagucMapDraw extends PureComponent {
         const XYCoords = this.convertGeoCoordsToScreenCoords([featureCoords]);
         if (this.checkDist(XYCoords[0], polygonIndex, mouseX, mouseY)) {
           this.mouseIsOverVertexNr = polygonIndex;
-          this.pointNumber = polygonIndex;
           return;
         }
       }
-      return;
     }
 
-    for (let polygonIndex = feature.geometry.coordinates.length - 1; polygonIndex >= 0; polygonIndex--) {
-      const featureCoords = feature.geometry.coordinates[polygonIndex];
-      if (featureCoords === undefined) {
-        continue;
-      }
-      /* Get all vertexes */
-      const XYCoords = this.convertGeoCoordsToScreenCoords(featureCoords);
-      const middle = { x: 0, y: 0 };
-      /* Snap to the vertex closer than specified pixels */
-      for (let j = 0; j < XYCoords.length; j++) {
-        const coord = XYCoords[j];
-        middle.x += coord.x;
-        middle.y += coord.y;
-
-        if (this.checkDist(coord, polygonIndex, mouseX, mouseY)) {
-          foundVertex = j;
-          break;
+    if (feature.geometry.type === 'Polygon') {
+      for (let polygonIndex = feature.geometry.coordinates.length - 1; polygonIndex >= 0; polygonIndex--) {
+        const featureCoords = feature.geometry.coordinates[polygonIndex];
+        if (featureCoords === undefined) {
+          continue;
         }
-      }
-      middle.x = parseInt(middle.x / XYCoords.length);
-      middle.y = parseInt(middle.y / XYCoords.length);
-      /* Check if the mouse hovers the middle vertex */
-      if (foundVertex === this.VERTEX.NONE && this.checkDist(middle, polygonIndex, mouseX, mouseY)) {
-        foundVertex = this.VERTEX.MIDDLE_POINT_OF_FEATURE;
-      }
+        /* Get all vertexes */
+        const XYCoords = this.convertGeoCoordsToScreenCoords(featureCoords);
+        const middle = { x: 0, y: 0 };
+        /* Snap to the vertex closer than specified pixels */
+        for (let j = 0; j < XYCoords.length - 1; j++) {
+          const coord = XYCoords[j];
+          middle.x += coord.x;
+          middle.y += coord.y;
 
-      this.mouseIsOverVertexNr = foundVertex;
+          if (this.checkDist(coord, polygonIndex, mouseX, mouseY)) {
+            foundVertex = j;
+            break;
+          }
+        }
+        middle.x = parseInt(middle.x / (XYCoords.length - 1));
+        middle.y = parseInt(middle.y / (XYCoords.length - 1));
+        /* Check if the mouse hovers the middle vertex */
+        if (foundVertex === this.VERTEX.NONE && this.checkDist(middle, polygonIndex, mouseX, mouseY)) {
+          foundVertex = this.VERTEX.MIDDLE_POINT_OF_FEATURE;
+        }
+
+        this.mouseIsOverVertexNr = foundVertex;
+      }
     }
   }
 
@@ -508,7 +798,12 @@ export default class AdagucMapDraw extends PureComponent {
     }
 
     const feature = this.geojson.features[this.props.featureNrToEdit];
-    const featureCoords = feature.geometry.coordinates[this.snappedPolygonIndex];
+    if (!feature) return;
+    const featureType = feature.geometry.type;
+    let featureCoords = feature.geometry.coordinates[this.snappedPolygonIndex];
+    if (featureType === 'Point' || featureType === 'MultiPoint') {
+      featureCoords = feature.geometry.coordinates;
+    }
 
     const { webmapjs } = this.props;
 
@@ -535,7 +830,7 @@ export default class AdagucMapDraw extends PureComponent {
 
     /* Check if the mouse hovers an edge of a polygon */
     this.selectedEdge = this.EDGE.NONE;
-    if (this.editMode !== this.EDITMODE.DELETE_FEATURES) {
+    if (this.myEditMode !== this.EDITMODE.DELETE_FEATURES) {
       const retObj = this.hoverEdge(feature.geometry.coordinates, mouseX, mouseY);
       this.selectedEdge = retObj.selectedEdge;
       this.snappedPolygonIndex = retObj.snappedPolygonIndex;
@@ -546,7 +841,7 @@ export default class AdagucMapDraw extends PureComponent {
       return false;
     }
 
-    if (this.editMode === this.EDITMODE.ADD_FEATURE) {
+    if (this.myEditMode === this.EDITMODE.ADD_FEATURE) {
       return false;
     }
 
@@ -587,7 +882,7 @@ export default class AdagucMapDraw extends PureComponent {
     this.doubleClickTimer.isRunning = true;
     this.doubleClickTimer.mouseX = mouseX;
     this.doubleClickTimer.mouseY = mouseY;
-    this.doubleClickTimer.timer = setTimeout(checkTimeOut, 600);
+    this.doubleClickTimer.timer = setTimeout(checkTimeOut, 300);
 
     /* No double click detected, return false */
     return false;
@@ -595,6 +890,155 @@ export default class AdagucMapDraw extends PureComponent {
 
   adagucMouseDoubleClick (event) {
     this.handleKeyDown({ keyCode: 27 });
+    return true;
+  }
+
+  /* Insert a new vertex into an edge, e.g a line is clicked and a point is added */
+  insertVertexInEdge (event) {
+    const { mouseX, mouseY } = event;
+    const { webmapjs } = this.props;
+    if (this.myDrawMode === this.DRAWMODE.POLYGON) {
+      if (this.selectedEdge !== this.EDGE.NONE &&
+          this.myEditMode !== this.EDITMODE.DELETE_FEATURES &&
+          this.myDrawMode !== this.DRAWMODE.BOX) {
+        this.mouseGeoCoord = webmapjs.getLatLongFromPixelCoord({ x: mouseX, y: mouseY });
+        const feature = this.geojson.features[this.props.featureNrToEdit];
+        if (this.checkIfFeatureIsBox(feature)) {
+          return false;
+        }
+        const featureCoords = feature.geometry.coordinates[this.snappedPolygonIndex];
+        if (featureCoords === undefined) {
+          return false;
+        }
+        featureCoords.splice(this.selectedEdge + 1, 0, [this.mouseGeoCoord.x, this.mouseGeoCoord.y]);
+        this.featureHasChanged('insert vertex into line');
+        this.adagucMouseMove(event);
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /* This is trigged when a new feature is created.  */
+  createNewFeature (event) {
+    const { mouseX, mouseY } = event;
+    const { webmapjs } = this.props;
+    if (this.myEditMode === this.EDITMODE.EMPTY) {
+      this.myEditMode = this.EDITMODE.ADD_FEATURE;
+      let feature = this.geojson.features[this.props.featureNrToEdit];
+
+      feature = this.geojson.features[this.props.featureNrToEdit] = this.initializeFeature(feature, this.myDrawMode);
+
+      this.mouseGeoCoord = webmapjs.getLatLongFromPixelCoord({ x: mouseX, y: mouseY });
+
+      if (this.myDrawMode === this.DRAWMODE.POINT || this.myDrawMode === this.DRAWMODE.MULTIPOINT) {
+        /* Create points */
+        if (feature.geometry.coordinates === undefined) {
+          feature.geometry.coordinates = [];
+        }
+        if (this.myDrawMode === this.DRAWMODE.POINT) {
+          const featureCoords = feature.geometry.coordinates;
+          featureCoords[0] = this.mouseGeoCoord.x;
+          featureCoords[1] = this.mouseGeoCoord.y;
+          this.snappedPolygonIndex = feature.geometry.coordinates.length - 1;
+          /* For type POINT it is not possible to add multiple points to the same feature */
+          this.myEditMode = this.EDITMODE.EMPTY;
+          this.featureHasChanged('new point created');
+        }
+        if (this.myDrawMode === this.DRAWMODE.MULTIPOINT) {
+          this.myEditMode = this.EDITMODE.EMPTY;
+          let featureCoords = feature.geometry.coordinates;
+          if (featureCoords === undefined) {
+            featureCoords = [];
+          }
+          if (featureCoords[0] === undefined || featureCoords[0].length === 0) {
+            featureCoords[0] = []; /* Used to create the first polygon */
+          } else {
+            featureCoords.push([]); /* Used to create extra polygons in the same feature */
+          }
+          // featureCoords.push([this.mouseGeoCoord.x, this.mouseGeoCoord.y]);
+          featureCoords[featureCoords.length - 1] = [this.mouseGeoCoord.x, this.mouseGeoCoord.y];
+          this.snappedPolygonIndex = feature.geometry.coordinates.length - 1;
+          this.featureHasChanged('new point in multipoint created');
+        }
+      }
+
+      if (this.myDrawMode === this.DRAWMODE.POLYGON || this.myDrawMode === this.DRAWMODE.BOX) {
+        /* Create poly's and boxes */
+        this.myEditMode = this.EDITMODE.ADD_FEATURE;
+
+        if (feature.geometry.coordinates === undefined) {
+          feature.geometry.coordinates = [];
+        }
+        if (feature.geometry.coordinates[0] === undefined || feature.geometry.coordinates[0].length === 0) {
+          feature.geometry.coordinates[0] = []; /* Used to create the first polygon */
+        } else {
+          feature.geometry.coordinates.push([]); /* Used to create extra polygons in the same feature */
+        }
+        this.snappedPolygonIndex = feature.geometry.coordinates.length - 1;
+        const featureCoords = feature.geometry.coordinates[this.snappedPolygonIndex];
+        featureCoords.push([this.mouseGeoCoord.x, this.mouseGeoCoord.y]);
+        featureCoords.push([this.mouseGeoCoord.x, this.mouseGeoCoord.y]);
+
+        /* This is triggered when a bounding box is created. Five points are added at once */
+        if (this.myDrawMode === this.DRAWMODE.BOX) {
+          featureCoords.push([this.mouseGeoCoord.x, this.mouseGeoCoord.y]);
+          featureCoords.push([this.mouseGeoCoord.x, this.mouseGeoCoord.y]);
+          featureCoords.push([this.mouseGeoCoord.x, this.mouseGeoCoord.y]);
+        }
+
+        if (featureCoords.length > 2) {
+          this.featureHasChanged('new poly created');
+        }
+
+        if (this.myDrawMode === this.DRAWMODE.BOX) {
+          this.mouseIsOverVertexNr = 3;
+        } else {
+          this.mouseIsOverVertexNr = featureCoords.length - 1;
+        }
+      }
+      webmapjs.draw('AdagucMapDraw::adagucMouseDown');
+
+      return false;
+    }
+    return true;
+  }
+
+  /* This is triggered when new points are added during the addmultipoint mode. One point is added per time */
+  addPointToMultiPointFeature (event) {
+    const { mouseX, mouseY } = event;
+    const { webmapjs } = this.props;
+    if (this.myDrawMode === this.DRAWMODE.MULTIPOINT) {
+      if (this.myEditMode === this.EDITMODE.ADD_FEATURE && this.snappedPolygonIndex !== this.SNAPPEDFEATURE.NONE) {
+        this.mouseGeoCoord = webmapjs.getLatLongFromPixelCoord({ x: mouseX, y: mouseY });
+        const feature = this.geojson.features[this.props.featureNrToEdit];
+        const featureCoords = feature.geometry.coordinates;
+        featureCoords.push([this.mouseGeoCoord.x, this.mouseGeoCoord.y]);
+        this.featureHasChanged('point added to multipoint');
+        this.mouseIsOverVertexNr = this.VERTEX.NONE;
+        this.adagucMouseMove(event);
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /* This is triggered when new points are added during the addpolygon mode. One point is added per time */
+  addVerticesToPolygonFeature (event) {
+    const { mouseX, mouseY } = event;
+    const { webmapjs } = this.props;
+    if (this.myDrawMode === this.DRAWMODE.POLYGON) {
+      if (this.myEditMode === this.EDITMODE.ADD_FEATURE && this.snappedPolygonIndex !== this.SNAPPEDFEATURE.NONE) {
+        this.mouseGeoCoord = webmapjs.getLatLongFromPixelCoord({ x: mouseX, y: mouseY });
+        const feature = this.geojson.features[this.props.featureNrToEdit];
+        const featureCoords = feature.geometry.coordinates[this.snappedPolygonIndex];
+        featureCoords.push([this.mouseGeoCoord.x, this.mouseGeoCoord.y]);
+        this.featureHasChanged('vertex added to polygon');
+        this.mouseIsOverVertexNr = featureCoords.length - 1;
+        this.adagucMouseMove(event);
+        return false;
+      }
+    }
     return true;
   }
 
@@ -608,119 +1052,27 @@ export default class AdagucMapDraw extends PureComponent {
       return this.adagucMouseDoubleClick(event);
     }
 
-    if (this.editMode === this.EDITMODE.ADD_FEATURE && this.drawMode === this.DRAWMODE.BOX) {
+    if (this.myEditMode === this.EDITMODE.ADD_FEATURE && this.myDrawMode === this.DRAWMODE.BOX) {
       return this.adagucMouseDoubleClick(event);
     }
 
     this.somethingWasDragged = this.DRAGMODE.NONE;
-    const { webmapjs } = this.props;
-    const { mouseX, mouseY } = event;
 
-    if (this.mouseIsOverVertexNr !== this.VERTEX.NONE && this.editMode === this.EDITMODE.EMPTY) {
+    if (this.mouseIsOverVertexNr !== this.VERTEX.NONE && this.myEditMode === this.EDITMODE.EMPTY) {
       return false;
     }
 
     /* Insert a new vertex into an edge, e.g a line is clicked and a point is added */
-    if (this.selectedEdge !== this.EDGE.NONE &&
-        this.editMode !== this.EDITMODE.DELETE_FEATURES &&
-        this.drawMode !== this.DRAWMODE.BOX) {
-      this.mouseGeoCoord = webmapjs.getLatLongFromPixelCoord({ x: mouseX, y: mouseY });
-      const feature = this.geojson.features[this.props.featureNrToEdit];
-      const featureCoords = feature.geometry.coordinates[this.snappedPolygonIndex];
-      if (featureCoords === undefined) {
-        return false;
-      }
-      featureCoords.splice(this.selectedEdge + 1, 0, [this.mouseGeoCoord.x, this.mouseGeoCoord.y]);
-      this.featureHasChanged('insert vertex into line');
-      this.adagucMouseMove(event);
-      return false;
-    }
+    if (this.insertVertexInEdge(event) === false) return false;
 
-    /* This is trigged when a new polygon is created. Two points are added at once */
-    if (this.editMode === this.EDITMODE.EMPTY) {
-      this.editMode = this.EDITMODE.ADD_FEATURE;
-      const feature = this.geojson.features[this.props.featureNrToEdit];
-      this.mouseGeoCoord = webmapjs.getLatLongFromPixelCoord({ x: mouseX, y: mouseY });
+    /* This is trigged when a new feature is created.  */
+    if (this.createNewFeature(event) === false) return false;
 
-      if (this.drawMode === this.DRAWMODE.POINT || this.drawMode === this.DRAWMODE.MULTIPOINT) {
-        /* Create points */
-        if (feature.geometry.coordinates === undefined) {
-          feature.geometry.coordinates = [];
-        }
-        if (this.drawMode === this.DRAWMODE.POINT) {
-          const featureCoords = feature.geometry.coordinates;
-          featureCoords[0] = this.mouseGeoCoord.x;
-          featureCoords[1] = this.mouseGeoCoord.y;
-          this.pointNumber = 0;
-          this.snappedPolygonIndex = this.SNAPPEDPOYLYGON.NONE;
-        }
-        if (this.drawMode === this.DRAWMODE.MULTIPOINT) {
-          const featureCoords = feature.geometry.coordinates;
-          featureCoords.push([this.mouseGeoCoord.x, this.mouseGeoCoord.y]);
-          this.pointNumber = featureCoords.length;
-          this.snappedPolygonIndex = this.SNAPPEDPOYLYGON.NONE;
-        }
-      } else {
-        /* Create poly's and boxes */
-        if (feature.geometry.coordinates === undefined) {
-          feature.geometry.coordinates = [];
-        }
-        if (feature.geometry.coordinates[0] === undefined) {
-          feature.geometry.coordinates[0] = []; /* Used to create the first polygon */
-        } else {
-          feature.geometry.coordinates.push([]); /* Used to create extra polygons in the same feature */
-        }
-        this.snappedPolygonIndex = feature.geometry.coordinates.length - 1;
-        const featureCoords = feature.geometry.coordinates[this.snappedPolygonIndex];
-        featureCoords.push([this.mouseGeoCoord.x, this.mouseGeoCoord.y]);
-        featureCoords.push([this.mouseGeoCoord.x, this.mouseGeoCoord.y]);
-
-        /* This is triggered when a bounding box is created. Four points are added at once */
-        if (this.drawMode === this.DRAWMODE.BOX) {
-          featureCoords.push([this.mouseGeoCoord.x, this.mouseGeoCoord.y]);
-          featureCoords.push([this.mouseGeoCoord.x, this.mouseGeoCoord.y]);
-        }
-
-        this.featureHasChanged('new poly created');
-
-        if (this.drawMode === this.DRAWMODE.BOX) {
-          this.mouseIsOverVertexNr = 2;
-        } else {
-          this.mouseIsOverVertexNr = featureCoords.length - 1;
-        }
-      }
-      webmapjs.draw('AdagucMapDraw::adagucMouseDown');
-
-      return false;
-    }
-
-    // console.log('this.editMode ', this.editMode);
-    // console.log('this.snappedPolygonIndex ', this.snappedPolygonIndex);
     /* This is triggered when new points are added during the addmultipoint mode. One point is added per time */
-
-    if (this.drawMode === this.DRAWMODE.MULTIPOINT) {
-      if (this.editMode === this.EDITMODE.ADD_FEATURE && this.pointNumber !== this.SNAPPEDPOYLYGON.NONE) {
-        this.mouseGeoCoord = webmapjs.getLatLongFromPixelCoord({ x: mouseX, y: mouseY });
-        const feature = this.geojson.features[this.props.featureNrToEdit];
-        feature.geometry.coordinates.push([this.mouseGeoCoord.x, this.mouseGeoCoord.y]);
-        this.featureHasChanged('point added to multipoint');
-        this.pointNumber = feature.geometry.coordinates.length;
-        this.adagucMouseMove(event);
-        return false;
-      }
-    }
+    if (this.addPointToMultiPointFeature(event) === false) return false;
 
     /* This is triggered when new points are added during the addpolygon mode. One point is added per time */
-    if (this.editMode === this.EDITMODE.ADD_FEATURE && this.snappedPolygonIndex !== this.SNAPPEDPOYLYGON.NONE) {
-      this.mouseGeoCoord = webmapjs.getLatLongFromPixelCoord({ x: mouseX, y: mouseY });
-      const feature = this.geojson.features[this.props.featureNrToEdit];
-      const featureCoords = feature.geometry.coordinates[this.snappedPolygonIndex];
-      featureCoords.push([this.mouseGeoCoord.x, this.mouseGeoCoord.y]);
-      this.featureHasChanged('vertex added to polygon');
-      this.mouseIsOverVertexNr = featureCoords.length - 1;
-      this.adagucMouseMove(event);
-      return false;
-    }
+    if (this.addVerticesToPolygonFeature(event) === false) return false;
 
     return false; /* False means that this component will take over entire controll.
                      True means that it is still possible to pan and drag the map while editing */
@@ -753,7 +1105,9 @@ export default class AdagucMapDraw extends PureComponent {
         this.deletePolygon(this.snappedPolygonIndex);
       } else {
         /* Remove edge of polygon */
-        featureCoords.splice(this.mouseIsOverVertexNr, 1);
+        if (!this.checkIfFeatureIsBox(feature)) {
+          featureCoords.splice(this.mouseIsOverVertexNr, 1);
+        }
       }
     } else {
       /* Remove the polygon completely */
@@ -776,7 +1130,7 @@ export default class AdagucMapDraw extends PureComponent {
     }
 
     /* Delete a vertex or feature on mouseUp */
-    if (this.editMode === this.EDITMODE.DELETE_FEATURES) {
+    if (this.myEditMode === this.EDITMODE.DELETE_FEATURES) {
       this.deleteFeature();
       return false;
     }
@@ -785,7 +1139,7 @@ export default class AdagucMapDraw extends PureComponent {
       return false;
     }
 
-    if (this.editMode === this.EDITMODE.ADD_FEATURE) {
+    if (this.myEditMode === this.EDITMODE.ADD_FEATURE) {
       return false;
     }
   }
@@ -794,34 +1148,48 @@ export default class AdagucMapDraw extends PureComponent {
     if (this.props.isInEditMode === false) {
       return;
     }
-    const { webmapjs, geojson } = this.props;
+    const { webmapjs } = this.props;
 
     /* When in addpolygon mode, finish the polygon */
-    if (this.editMode === this.EDITMODE.ADD_FEATURE) {
-      this.editMode = this.EDITMODE.EMPTY;
-      if (this.snappedPolygonIndex === this.SNAPPEDPOYLYGON.NONE) {
+    if (this.myEditMode === this.EDITMODE.ADD_FEATURE) {
+      this.myEditMode = this.EDITMODE.EMPTY;
+      if (this.snappedPolygonIndex === this.SNAPPEDFEATURE.NONE) {
         return;
       }
 
-      const feature = geojson.features[this.props.featureNrToEdit];
-      const { geometry } = feature;
-      const coordinates = geometry.coordinates;
+      const feature = this.geojson.features[this.props.featureNrToEdit];
+      const coordinates = feature.geometry.coordinates;
       const polygon = coordinates[this.snappedPolygonIndex];
+
+      if (!polygon) {
+        coordinates[this.snappedPolygonIndex] = [];
+        return;
+      }
 
       if (polygon.length === 0) {
         return;
       }
-      if (cancelLastPoint === true) {
-        polygon.pop();
+
+      if (!this.checkIfFeatureIsBox(feature)) {
+        if (cancelLastPoint === true) {
+          polygon.pop();
+        }
+        if (polygon.length < 3) {
+          coordinates.pop();
+        }
       }
-      if (polygon.length < 3) {
-        coordinates.pop();
-      }
+
+      // TODO: Check is not needed anymore /* Remove last duplicate point */
+      // if (polygon && polygon.length > 0) {
+      //   console.log(polygon);
+      //   // geojson.features[this.props.featureNrToEdit].geometry.coordinates[this.snappedPolygonIndex] = polygon;
+      // }
+
       this.featureHasChanged('cancelEdit');
       webmapjs.draw('AdagucMapDraw::cancelEdit');
     } else {
       /* When in standard mode or deletefeatures mode, remove any vertex under the mousecursor */
-      if (this.editMode === this.EDITMODE.EMPTY || this.editMode === this.EDITMODE.DELETE_FEATURES) {
+      if (this.myEditMode === this.EDITMODE.EMPTY || this.myEditMode === this.EDITMODE.DELETE_FEATURES) {
         this.deleteFeature();
       }
     }
@@ -831,16 +1199,20 @@ export default class AdagucMapDraw extends PureComponent {
   handleKeyDown (event) {
     const ESCAPE_KEY = 27;
     if (event.keyCode === ESCAPE_KEY) {
-      if (this.props.exitDrawModeCallback && (this.editMode === this.EDITMODE.EMPTY || this.editMode === this.EDITMODE.DELETE_FEATURES)) {
+      if (this.props.exitDrawModeCallback && (this.myEditMode === this.EDITMODE.EMPTY || this.myEditMode === this.EDITMODE.DELETE_FEATURES)) {
         this.props.exitDrawModeCallback();
       }
-      this.cancelEdit(this.drawMode !== this.DRAWMODE.BOX);
+      this.cancelEdit(this.myDrawMode !== this.DRAWMODE.BOX);
     }
   }
-  componentWillMount () {
+
+  componentDidMount () {
+    window.addEventListener('beforeunload', this.componentCleanup);
     document.addEventListener('keydown', this.handleKeyDown);
   }
-  componentWillUnMount () {
+
+  componentCleanup () { // this will hold the cleanup code
+    window.removeEventListener('beforeunload', this.componentCleanup); // remove the event handler for normal unmounting
     document.removeEventListener('keydown', this.handleKeyDown);
     const { webmapjs } = this.props;
     if (webmapjs !== undefined && this.listenersInitialized === true) {
@@ -851,11 +1223,29 @@ export default class AdagucMapDraw extends PureComponent {
       webmapjs.removeListener('beforemouseup', this.adagucMouseUp);
     }
   }
-  featureHasChanged (text) {
-    const { dispatch, actions } = this.props;
-    const geojson = cloneDeep(this.geojson);
-    dispatch(actions.updateFeature(geojson, text));
+
+  componentWillUnmount () {
+    this.componentCleanup();
   }
+
+  featureHasChanged (text) {
+    this.validatePolys(text === 'cancelEdit');
+    if (this.props.updateGeojson && this.geojson) {
+      this.props.updateGeojson(cloneDeep(this.geojson), text);
+    }
+  }
+
+  /* Converts string input into right drawmode */
+  handleDrawMode (_drawMode) {
+    if (_drawMode) {
+      let drawMode = _drawMode.toUpperCase();
+      if (drawMode === 'POINT') { this.myDrawMode = this.DRAWMODE.POINT; }
+      if (drawMode === 'MULTIPOINT') { this.myDrawMode = this.DRAWMODE.MULTIPOINT; }
+      if (drawMode === 'BOX') { this.myDrawMode = this.DRAWMODE.BOX; }
+      if (drawMode === 'POLYGON') { this.myDrawMode = this.DRAWMODE.POLYGON; }
+    }
+  }
+
   /* istanbul ignore next */
   componentWillReceiveProps (nextProps) {
     if (nextProps.geojson) {
@@ -863,31 +1253,26 @@ export default class AdagucMapDraw extends PureComponent {
     }
 
     /* Handle toggle edit */
-    if (nextProps.isInEditMode === false && this.editMode !== this.EDITMODE.EMPTY) {
+    if (nextProps.isInEditMode === false && this.myEditMode !== this.EDITMODE.EMPTY) {
       this.cancelEdit(true); /* Throw away last vertice */
-      if (this.editMode === this.EDITMODE.DELETE_FEATURES) {
-        this.editMode = this.EDITMODE.EMPTY;
+      if (this.myEditMode === this.EDITMODE.DELETE_FEATURES) {
+        this.myEditMode = this.EDITMODE.EMPTY;
         return;
       }
     }
 
     /* Handle toggle delete */
     if (nextProps.isInDeleteMode === true) {
-      this.editMode = this.EDITMODE.DELETE_FEATURES;
-    } else if (this.editMode === this.EDITMODE.DELETE_FEATURES) {
-      this.editMode = this.EDITMODE.EMPTY;
+      this.myEditMode = this.EDITMODE.DELETE_FEATURES;
+    } else if (this.myEditMode === this.EDITMODE.DELETE_FEATURES) {
+      this.myEditMode = this.EDITMODE.EMPTY;
     }
     if (nextProps.isInEditMode === false && nextProps.isInDeleteMode === false) {
-      this.editMode = this.EDITMODE.EMPTY;
+      this.myEditMode = this.EDITMODE.EMPTY;
     }
 
     /* Handle drawmode */
-    if (nextProps.drawMode) {
-      if (nextProps.drawMode === 'POINT') { this.drawMode = this.DRAWMODE.POINT; }
-      if (nextProps.drawMode === 'MULTIPOINT') { this.drawMode = this.DRAWMODE.MULTIPOINT; }
-      if (nextProps.drawMode === 'BOX') { this.drawMode = this.DRAWMODE.BOX; }
-      if (nextProps.drawMode === 'POLYGON') { this.drawMode = this.DRAWMODE.POLYGON; }
-    }
+    this.handleDrawMode(nextProps.drawMode);
   }
 
   /* istanbul ignore next */
@@ -897,7 +1282,7 @@ export default class AdagucMapDraw extends PureComponent {
       this.disabled = this.props.isInDeleteMode;
     }
 
-    if (webmapjs !== undefined && this.listenersInitialized === undefined) {
+    if (webmapjs !== undefined && this.listenersInitialized !== true) {
       this.listenersInitialized = true;
       webmapjs.addListener('beforecanvasdisplay', this.adagucBeforeDraw, true);
       webmapjs.addListener('beforemousemove', this.adagucMouseMove, true);
@@ -912,14 +1297,14 @@ export default class AdagucMapDraw extends PureComponent {
 AdagucMapDraw.propTypes = {
   webmapjs: PropTypes.object,
   geojson: PropTypes.object,
-  actions: PropTypes.object,
   drawMode: PropTypes.string,
   deletePolygonCallback: PropTypes.func,
   exitDrawModeCallback: PropTypes.func,
-  dispatch: PropTypes.func.isRequired,
   isInEditMode: PropTypes.bool,
   isInDeleteMode: PropTypes.bool,
-  featureNrToEdit: PropTypes.number
+  featureNrToEdit: PropTypes.number,
+  hoverFeatureCallback: PropTypes.func,
+  updateGeojson: PropTypes.func
 };
 
 AdagucMapDraw.defaultProps = {
