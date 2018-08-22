@@ -19,7 +19,6 @@ import {
   MODES, READ_ABILITIES, EDIT_ABILITIES, byEditAbilities, byReadAbilities, LIFECYCLE_STAGE_NAMES,
   FEEDBACK_STATUSES, FEEDBACK_CATEGORIES
 } from '../../containers/Taf/TafActions';
-import TafValidator from './TafValidator';
 const TMP = '◷';
 
 const MOVE_DIRECTION = Enum(
@@ -60,7 +59,7 @@ class Taf extends Component {
     this.serializeWeatherArray = this.serializeWeatherArray.bind(this);
     this.byPhenomenonType = this.byPhenomenonType.bind(this);
     this.byStartAndChangeType = this.byStartAndChangeType.bind(this);
-    this.validateTaf = debounce(this.validateTaf.bind(this), 1250, false);
+    this.validateTafDebounced = debounce(this.validateTafDebounced.bind(this), 250, false);
 
     const initialState = {
       focusedFieldName: 'forecast-wind',
@@ -73,45 +72,10 @@ class Taf extends Component {
     this.register = [];
   };
 
-  validateTaf (tafAsObject) {
-    let stringifiedTafObject = JSON.stringify(tafAsObject);
-    if (this.validatedTafObject !== stringifiedTafObject) {
-      this.validatedTafObject = stringifiedTafObject;
-      const { dispatch, actions, urls } = this.props;
-      let validationMessage = 'Unable to get validation report';
-      if (!actions) {
-        console.error(validationMessage);// TODO
-        return;
-      }
-      if (!urls) {
-        dispatch(actions.updateFeedbackAction(
-          validationMessage,
-          FEEDBACK_STATUSES.ERROR, FEEDBACK_CATEGORIES.VALIDATION, null, null)
-        );
-        return;
-      }
-
-      TafValidator(urls.BACKEND_SERVER_URL, tafAsObject).then((validationReport) => {
-        let validationErrors = [];
-        let validationSucceeded = false;
-        if (validationReport) {
-          if (validationReport.errors) {
-            validationErrors = validationReport.errors;
-          }
-          if (validationReport.message) {
-            validationMessage = validationReport.message;
-          }
-          if (validationReport.succeeded === true) {
-            validationSucceeded = true;
-          }
-        }
-
-        dispatch(actions.updateFeedbackAction(
-          validationMessage,
-          validationSucceeded ? FEEDBACK_STATUSES.SUCCESS : FEEDBACK_STATUSES.ERROR, FEEDBACK_CATEGORIES.VALIDATION, null, validationErrors)
-        );
-      });
-    }
+  validateTafDebounced (tafAsObject) {
+    const { dispatch, actions } = this.props;
+    if (!actions) return;
+    dispatch(actions.validateTafAction(tafAsObject));
   }
 
   /**
@@ -654,23 +618,26 @@ class Taf extends Component {
         if (direction === MOVE_DIRECTION.DOWN_BEGINNING) {
           let currentRow = parseInt(nameParts[1]);
           if (Number.isNaN(currentRow)) currentRow = -1;
-          let result = this.setFocus(`changegroups-${currentRow + 1}-probability`);
+          this.setFocus(`changegroups-${currentRow + 1}-probability`);
         }
       }
-      this.validateTaf(this.props.selectedTaf.tafData);
+      this.validateTafDebounced(this.props.selectedTaf.tafData);
     }
   }
 
   componentWillReceiveProps (nextProps) {
-    if (nextProps.selectedTaf) {
-      this.validateTaf(nextProps.selectedTaf.tafData);
+    /* Updates TAF and TAC based on key events */
+    if (nextProps.selectedTaf && this.props.selectedTaf && nextProps.selectedTaf.tafData && this.props.selectedTaf.tafData) {
+      if (nextProps.selectedTaf.tafData !== this.props.selectedTaf.tafData) {
+        this.validateTafDebounced(nextProps.selectedTaf.tafData);
+      }
     }
   }
 
   componentDidMount () {
     const { selectedTaf } = this.props;
     if (selectedTaf) {
-      this.validateTaf(selectedTaf.tafData);
+      this.validateTafDebounced(selectedTaf.tafData);
     }
   }
 
@@ -755,18 +722,17 @@ class Taf extends Component {
     if (!selectedTaf) {
       return null;
     }
-    const { tafData } = selectedTaf;
+    const { tafData, TAC } = selectedTaf;
     const validationFeedback = feedback && feedback[FEEDBACK_CATEGORIES.VALIDATION];
     const abilityCtAs = this.reduceAbilities(); // CtA = Call To Action
     const series = this.extractScheduleInformation(tafData);
 
     const isCancel = selectedTaf && selectedTaf.tafData && selectedTaf.tafData.metadata && selectedTaf.tafData.metadata.type &&
       selectedTaf.tafData.metadata.type.toLowerCase() === LIFECYCLE_STAGE_NAMES.CANCELED;
-
     return (
       <Row className='Taf'>
         <Col>
-          <TacView taf={tafData} />
+          <TacView TAC={TAC} />
           <Row className='TafTable'>
             <Col>
               <TafTable

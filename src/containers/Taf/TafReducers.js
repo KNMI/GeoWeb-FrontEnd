@@ -9,6 +9,7 @@ import { clearNullPointersAndAncestors, mergeInTemplate, removeNulls } from '../
 import { ReadLocations } from '../../utils/admin';
 import { LOCAL_ACTION_TYPES, STATUSES, LIFECYCLE_STAGE_NAMES, MODES, FEEDBACK_CATEGORIES, FEEDBACK_STATUSES } from './TafActions';
 import { TAF_TEMPLATES, TIMELABEL_FORMAT, TIMESTAMP_FORMAT } from '../../components/Taf/TafTemplates';
+import TafValidator from '../../components/Taf/TafValidator';
 
 const STATUS_ICONS = {
   NEW: 'star-o',
@@ -314,6 +315,53 @@ const wrapIntoSelectableTaf = (tafData) => {
   });
 };
 
+/** Validate taf
+ * @param {object} tafAsObject The TAF object validate
+*/
+const validateTaf = (tafAsObject, container) => {
+  if (!tafAsObject) {
+    console.error('validateTaf empty');
+    return;
+  }
+
+  const handleValidationResult = (validationReport) => {
+    let validationErrors = [];
+    let validationSucceeded = false;
+    if (validationReport) {
+      if (validationReport.errors) {
+        validationErrors = validationReport.errors;
+      }
+      if (validationReport.message) {
+        validationMessage = validationReport.message;
+      }
+      if (validationReport.succeeded === true) {
+        validationSucceeded = true;
+      }
+    }
+
+    (updateFeedback(
+      validationMessage,
+      validationSucceeded ? FEEDBACK_STATUSES.SUCCESS : FEEDBACK_STATUSES.ERROR, FEEDBACK_CATEGORIES.VALIDATION, null, validationErrors, container)
+    );
+
+    if (validationReport && validationReport.TAC) {
+      updateTAC(validationReport.TAC, container);
+    } else {
+      updateTAC(null, container);
+    }
+  };
+
+  const { props } = container;
+  const { urls } = props;
+  let validationMessage = 'Unable to get validation report';
+  if (!urls) {
+    updateFeedback(validationMessage, FEEDBACK_STATUSES.ERROR, FEEDBACK_CATEGORIES.VALIDATION, null, null, container);
+    return;
+  }
+
+  TafValidator(urls.BACKEND_SERVER_URL, tafAsObject).then(handleValidationResult);
+};
+
 /**
  * Once loaded, this method processes the existing TAFs into the selectable TAFs list
  * @param {Element} container The container to update the selectable TAFs for
@@ -374,10 +422,14 @@ const updateSelectableTafs = (container, tafs, status) => {
       const newDataSelectedTaf = draftState.selectableTafs.find((selectableTaf) => isSameSelectableTaf(selectableTaf, draftState.selectedTaf[0]));
       draftState.selectedTaf.length = 0;
       if (newDataSelectedTaf) {
-        draftState.selectedTaf.push(newDataSelectedTaf);
+        draftState.selectedTaf.push(produce(newDataSelectedTaf, d => { d.TAC = 'Verifying TAF...'; }));
       }
     }
-  }));
+  }), () => {
+    if (state && state.selectedTaf && state.selectedTaf.length === 1) {
+      validateTaf(state.selectedTaf[0].tafData, container);
+    }
+  });
 };
 
 /**
@@ -419,7 +471,11 @@ const selectTaf = (selection, container) => {
         selection[0].tafData.metadata.status === STATUSES.NEW) {
       draftState.mode = MODES.EDIT;
     }
-  }));
+  }), () => {
+    if (state && state.selectedTaf && state.selectedTaf.length === 1) {
+      validateTaf(state.selectedTaf[0].tafData, container);
+    }
+  });
 };
 
 const discardTaf = (event, container) => {
@@ -437,7 +493,11 @@ const discardTaf = (event, container) => {
         }
       }
     }
-  }));
+  }), () => {
+    if (state && state.selectedTaf && state.selectedTaf.length === 1) {
+      validateTaf(state.selectedTaf[0].tafData, container);
+    }
+  });
 };
 
 /**
@@ -772,6 +832,23 @@ const updateTafFields = (valuesAtPaths, container) => {
 };
 
 /**
+ * Updates the TAC display
+ * @param {String} TAC code
+ * @param {Element} container The container in which the TAF table should be altered
+ */
+const updateTAC = (TAC, container) => {
+  const { state } = container;
+  const { selectedTaf } = state;
+  if (!selectedTaf || !Array.isArray(selectedTaf) || selectedTaf.length !== 1) {
+    console.error('No TAF selected');
+    return;
+  }
+  container.setState(produce(state, draftState => {
+    draftState.selectedTaf[0].TAC = TAC;
+  }));
+};
+
+/**
  * TafsContainer has its own state, this is the dispatch for updating the state
  * @param {object} localAction Action-object containing the type and additional, action specific, parameters
  * @param {object} state Object reference for the actual state
@@ -836,6 +913,12 @@ export default (localAction, container) => {
       break;
     case LOCAL_ACTION_TYPES.UPDATE_TAF_FIELDS:
       updateTafFields(localAction.valuesAtPaths, container);
+      break;
+    case LOCAL_ACTION_TYPES.UPDATE_TAC:
+      updateTAC(localAction.TAC, container);
+      break;
+    case LOCAL_ACTION_TYPES.VALIDATE_TAF:
+      validateTaf(localAction.tafObject, container);
       break;
   }
 };

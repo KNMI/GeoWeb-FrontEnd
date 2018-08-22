@@ -59,9 +59,9 @@ const TafValidator = (BACKEND_SERVER_URL, tafAsObject) => {
     if (cleanedTaf.metadata) {
       cleanedTaf.metadata.status = cleanedTaf.metadata.status.toLowerCase();
       cleanedTaf.metadata.type = cleanedTaf.metadata.type.toLowerCase();
-    }
-    if (cleanedTaf.metadata.status === 'new') {
-      delete cleanedTaf.metadata.status;
+      if (cleanedTaf.metadata.status === 'new') {
+        delete cleanedTaf.metadata.status;
+      }
     }
 
     axios({
@@ -84,7 +84,8 @@ const TafValidator = (BACKEND_SERVER_URL, tafAsObject) => {
           const aggregateReport = {
             message: responseJson.message ? responseJson.message : (inputParsingReport.succeeded && responseJson.succeeded ? 'TAF input is verified' : 'TAF input is not valid'),
             succeeded: inputParsingReport.succeeded && responseJson.succeeded,
-            errors: Object.assign({}, inputParsingReport.errors, responseJson.errors)
+            errors: Object.assign({}, inputParsingReport.errors, responseJson.errors),
+            TAC:responseJson.TAC
           };
           resolve(aggregateReport);
           /* this.setState({
@@ -100,10 +101,11 @@ const TafValidator = (BACKEND_SERVER_URL, tafAsObject) => {
     ).catch(error => {
       console.error(error);
       const aggregateReport = {
-        message: 'TAF input is not valid',
+        message: 'Unable to validate, TAF input is not valid',
         subheading: '(Couldn\'t retrieve all validation details.)',
         succeeded: false,
-        errors: inputParsingReport.errors
+        errors: inputParsingReport.errors,
+        TAC: null
       };
       resolve(aggregateReport);
       /* this.setState({

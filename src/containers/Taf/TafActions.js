@@ -17,7 +17,9 @@ export const LOCAL_ACTION_TYPES = {
   ADD_TAF_ROW: 'ADD_TAF_ROW',
   REMOVE_TAF_ROW: 'REMOVE_TAF_ROW',
   REORDER_TAF_ROW: 'REORDER_TAF_ROW',
-  UPDATE_TAF_FIELDS: 'UPDATE_TAF_FIELDS'
+  UPDATE_TAF_FIELDS: 'UPDATE_TAF_FIELDS',
+  UPDATE_TAC: 'UPDATE_TAC',
+  VALIDATE_TAF: 'VALIDATE_TAF'
 };
 
 export const LOCAL_ACTIONS = {
@@ -39,7 +41,9 @@ export const LOCAL_ACTIONS = {
   addTafRowAction: (rowIndex) => ({ type: LOCAL_ACTION_TYPES.ADD_TAF_ROW, rowIndex: rowIndex }),
   removeTafRowAction: (rowIndex) => ({ type: LOCAL_ACTION_TYPES.REMOVE_TAF_ROW, rowIndex: rowIndex }),
   reorderTafRowAction: (affectedIndex, newIndexValue) => ({ type: LOCAL_ACTION_TYPES.REORDER_TAF_ROW, affectedIndex: affectedIndex, newIndexValue: newIndexValue }),
-  updateTafFieldsAction: (valuesAtPaths) => ({ type: LOCAL_ACTION_TYPES.UPDATE_TAF_FIELDS, valuesAtPaths: valuesAtPaths })
+  updateTafFieldsAction: (valuesAtPaths) => ({ type: LOCAL_ACTION_TYPES.UPDATE_TAF_FIELDS, valuesAtPaths: valuesAtPaths }),
+  updateTACAction: (TAC) => ({ type: LOCAL_ACTION_TYPES.UPDATE_TAC, TAC: TAC }),
+  validateTafAction: (tafObject) => ({ type: LOCAL_ACTION_TYPES.VALIDATE_TAF, tafObject: tafObject })
 };
 
 export const MODES = {
