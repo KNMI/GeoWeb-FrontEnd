@@ -5,7 +5,9 @@ import { arrayMove } from 'react-sortable-hoc';
 import setNestedProperty from 'lodash.set';
 import getNestedProperty from 'lodash.get';
 import removeNestedProperty from 'lodash.unset';
-import { clearNullPointersAndAncestors, mergeInTemplate, removeNulls } from '../../utils/json';
+import { mergeInTemplate, removeNulls, getJsonPointers, clearNullPointersAndAncestors } from '../../utils/json';
+import { notify } from 'reapop';
+import cloneDeep from 'lodash.clonedeep';
 import { ReadLocations } from '../../utils/admin';
 import { LOCAL_ACTION_TYPES, STATUSES, LIFECYCLE_STAGE_NAMES, MODES, FEEDBACK_CATEGORIES, FEEDBACK_STATUSES } from './TafActions';
 import { TAF_TEMPLATES, TIMELABEL_FORMAT, TIMESTAMP_FORMAT } from '../../components/Taf/TafTemplates';
@@ -339,9 +341,9 @@ const validateTaf = (tafAsObject, container) => {
       }
     }
 
-    (updateFeedback(
+    updateFeedback(
       validationMessage,
-      validationSucceeded ? FEEDBACK_STATUSES.SUCCESS : FEEDBACK_STATUSES.ERROR, FEEDBACK_CATEGORIES.VALIDATION, null, validationErrors, container)
+      validationSucceeded ? FEEDBACK_STATUSES.SUCCESS : FEEDBACK_STATUSES.ERROR, FEEDBACK_CATEGORIES.VALIDATION, null, validationErrors, container
     );
 
     if (validationReport && validationReport.TAC) {
@@ -358,8 +360,8 @@ const validateTaf = (tafAsObject, container) => {
     updateFeedback(validationMessage, FEEDBACK_STATUSES.ERROR, FEEDBACK_CATEGORIES.VALIDATION, null, null, container);
     return;
   }
-
-  TafValidator(urls.BACKEND_SERVER_URL, tafAsObject).then(handleValidationResult);
+  const sanitizedTaf = sanitizeTaf(tafAsObject);
+  TafValidator(urls.BACKEND_SERVER_URL, sanitizedTaf.taf, sanitizedTaf.report).then(handleValidationResult);
 };
 
 /**
@@ -501,59 +503,131 @@ const discardTaf = (event, container) => {
 };
 
 /**
+ * Cleans TAF, returns cleaned taf object and report based on fallback properties
+ @param {object} tafAsObject, the taf object to clean
+ @return {object} Object with taf and report properties
+*/
+const sanitizeTaf = (tafAsObject) => {
+  const taf = cloneDeep(tafAsObject);
+  const fallbackPointers = [];
+  getJsonPointers(taf, (field) => field && field.hasOwnProperty('fallback'), fallbackPointers);
+
+  const inputParsingReport = {};
+  const fallbackPointersLength = fallbackPointers.length;
+  if (fallbackPointersLength > 0) {
+    inputParsingReport.message = 'TAF is not valid';
+    inputParsingReport.succeeded = false;
+    for (let pointerIndex = 0; pointerIndex < fallbackPointersLength; pointerIndex++) {
+      if (!inputParsingReport.hasOwnProperty('errors')) {
+        inputParsingReport.errors = {};
+      }
+      if (!inputParsingReport.errors.hasOwnProperty(fallbackPointers[pointerIndex])) {
+        inputParsingReport.errors[fallbackPointers[pointerIndex]] = [];
+      }
+      const pointerParts = fallbackPointers[pointerIndex].split('/');
+      pointerParts.shift();
+      let message = 'The pattern of the input was not recognized.';
+      const fallbackedProperty = getNestedProperty(taf, pointerParts);
+      if (fallbackedProperty.hasOwnProperty('fallback') && fallbackedProperty.fallback.hasOwnProperty('message')) {
+        message = fallbackedProperty.fallback.message;
+      }
+      inputParsingReport.errors[fallbackPointers[pointerIndex]].push(message);
+      removeNestedProperty(taf, pointerParts);
+    }
+  } else {
+    inputParsingReport.message = 'TAF input is verified';
+    inputParsingReport.succeeded = true;
+  }
+  clearNullPointersAndAncestors(taf);
+  let cleanedTaf = removeNulls(taf);
+
+  if (!getNestedProperty(cleanedTaf, ['changegroups'])) {
+    setNestedProperty(cleanedTaf, ['changegroups'], []);
+  }
+
+  /* Status NEW does only exist in the frontend, don't post it to the backend */
+  if (cleanedTaf.metadata) {
+    cleanedTaf.metadata.status = cleanedTaf.metadata.status.toLowerCase();
+    cleanedTaf.metadata.type = cleanedTaf.metadata.type.toLowerCase();
+    if (cleanedTaf.metadata.status === 'new') {
+      delete cleanedTaf.metadata.status;
+    }
+  }
+  return {
+    taf: cleanedTaf,
+    report: inputParsingReport
+  };
+};
+
+/**
  * Saving TAF to backend
  * @param {object} event The event that triggered saving
  * @param {Element} container The container in which the save action was triggered
  */
 const saveTaf = (event, container) => {
-  const { state, props } = container;
-  const { selectedTaf } = state;
-  const { BACKEND_SERVER_URL } = props.urls;
-  if (!selectedTaf || !Array.isArray(selectedTaf) || selectedTaf.length !== 1 || !BACKEND_SERVER_URL) {
-    return;
-  }
-  container.setState(produce(state, draftState => {
-    if (draftState.selectedTaf[0].tafData.metadata.status === STATUSES.NEW) {
-      draftState.selectedTaf[0].tafData.metadata.status = STATUSES.CONCEPT;
+  saveTafPromise(event, container).then((response) => {
+    const status = response.data.succeeded ? FEEDBACK_STATUSES.SUCCESS : FEEDBACK_STATUSES.ERROR;
+    updateFeedback('TAF is saved', status, FEEDBACK_CATEGORIES.LIFECYCLE, response.data.message, null, container, synchronizeSelectableTafs);
+  }).catch((e) => {
+    console.error('saveTaf error', e);
+    const { props } = container;
+    const { dispatch } = props;
+    dispatch(notify({
+      title:'Couldn\'t save TAF',
+      message: 'Unable to save TAF',
+      status: 'error',
+      position: 'bl',
+      dismissible: false
+    }));
+    // TODO: Discuss with diMosellaAtWork if this is OK
+    // updateFeedback('Couldn\'t save TAF',
+    //   FEEDBACK_STATUSES.ERROR, FEEDBACK_CATEGORIES.LIFECYCLE, null, null, container, (container) => {
+    //     container.setState(produce(state, draftState => {
+    //       if (!draftState.selectedTaf[0].tafData.metadata.uuid) {
+    //         draftState.selectedTaf[0].tafData.metadata.status = STATUSES.NEW;
+    //       } else if (draftState.selectedTaf[0].tafData.metadata.status === STATUSES.PUBLISHED) {
+    //         draftState.selectedTaf[0].tafData.metadata.status = STATUSES.CONCEPT;
+    //       }
+    //     }));
+    //   });
+  });
+};
+
+/**
+ * Saving TAF to backend
+ * @param {object} event The event that triggered saving
+ * @param {Element} container The container in which the save action was triggered
+ * @returns {Promise}
+ */
+const saveTafPromise = (event, container) => {
+  return new Promise((resolve, reject) => {
+    const { state, props } = container;
+    const { selectedTaf } = state;
+    const { BACKEND_SERVER_URL } = props.urls;
+    if (!selectedTaf || !Array.isArray(selectedTaf) || selectedTaf.length !== 1 || !BACKEND_SERVER_URL) {
+      reject(new Error('Unable to save TAF: No TAF is selected'));
+      return;
     }
-    draftState.mode = MODES.READ;
-  }), () => {
-    const strippedTafData = produce(container.state.selectedTaf[0].tafData, draftTaf => {
-      clearNullPointersAndAncestors(draftTaf);
-      draftTaf = removeNulls(draftTaf);
-      if (typeof draftTaf.forecast === 'undefined') {
-        draftTaf.forecast = {};
-      }
-      if (typeof draftTaf.changegroups === 'undefined') {
-        draftTaf.changegroups = [];
-      }
-      draftTaf.changegroups.forEach((changegroup) => {
-        if (typeof changegroup.forecast === 'undefined') {
-          changegroup.forecast = {};
-        }
-      });
-    });
     axios({
       method: 'post',
       url: `${BACKEND_SERVER_URL}/tafs`,
       withCredentials: true,
-      data: JSON.stringify(strippedTafData),
+      data: JSON.stringify(sanitizeTaf(container.state.selectedTaf[0].tafData).taf),
       headers: { 'Content-Type': 'application/json' }
     }).then(response => {
-      const status = response.data.succeeded ? FEEDBACK_STATUSES.SUCCESS : FEEDBACK_STATUSES.ERROR;
-      updateFeedback('TAF is saved', status, FEEDBACK_CATEGORIES.LIFECYCLE, response.data.message, null, container, synchronizeSelectableTafs);
+      /* Update the state after successful save, not before */
+      container.setState(produce(state, draftState => {
+        if (draftState.selectedTaf[0].tafData.metadata.status === STATUSES.NEW) {
+          draftState.selectedTaf[0].tafData.metadata.status = STATUSES.CONCEPT;
+        }
+        draftState.mode = MODES.READ;
+      }), () => {
+        synchronizeSelectableTafs(container);
+        resolve(response);
+      });
     }).catch(error => {
       console.error('Couldn\'t save TAF', error);
-      updateFeedback('Couldn\'t save TAF',
-        FEEDBACK_STATUSES.ERROR, FEEDBACK_CATEGORIES.LIFECYCLE, null, null, container, (container) => {
-          container.setState(produce(state, draftState => {
-            if (!draftState.selectedTaf[0].tafData.metadata.uuid) {
-              draftState.selectedTaf[0].tafData.metadata.status = STATUSES.NEW;
-            } else if (draftState.selectedTaf[0].tafData.metadata.status === STATUSES.PUBLISHED) {
-              draftState.selectedTaf[0].tafData.metadata.status = STATUSES.CONCEPT;
-            }
-          }));
-        });
+      reject(new Error('Unable to save TAF'));
     });
   });
 };
@@ -664,7 +738,18 @@ const publishTaf = (event, container) => {
     draftState.selectedTaf[0].tafData.metadata.status = STATUSES.PUBLISHED;
     draftState.mode = MODES.READ;
   }), () => {
-    saveTaf(event, container);
+    saveTafPromise(event, container).catch((e) => {
+      console.error('publishTaf', e);
+      const { props } = container;
+      const { dispatch } = props;
+      dispatch(notify({
+        title:'Error: Unable to publish TAF',
+        message: e,
+        status: 'error',
+        position: 'bl',
+        dismissible: false
+      }));
+    });
   });
 };
 
