@@ -73,20 +73,28 @@ class BaseForecast extends Component {
         classes: []
       });
     }
-    for (let cloudsIndex = 0; cloudsIndex < 4; cloudsIndex++) {
+    /* TODO: maartenplieger, 2018-08-22: Discuss with diMosellaAtWork how to solve vertical visibility and one cloudgroup at the same time */
+    const hasVerticalVisibility = tafForecast.hasOwnProperty('vertical_visibility') && jsonToTacForVerticalVisibility(tafForecast.vertical_visibility) !== null;
+    if (hasVerticalVisibility) {
+      columns.push({
+        name: 'forecast-clouds-0',
+        value: jsonToTacForVerticalVisibility(tafForecast.vertical_visibility),
+        disabled: !editable,
+        classes: []
+      });
+    }
+    for (let cloudsIndex = hasVerticalVisibility ? 1 : 0; cloudsIndex < 4; cloudsIndex++) {
       columns.push({
         name: 'forecast-clouds-' + cloudsIndex,
-        value: tafForecast.hasOwnProperty('vertical_visibility') || tafForecast.hasOwnProperty('clouds')
-          ? jsonToTacForVerticalVisibility(tafForecast.vertical_visibility) ||
-          (Array.isArray(tafForecast.clouds) && tafForecast.clouds.length > cloudsIndex
+        value: tafForecast.hasOwnProperty('clouds')
+          ? (Array.isArray(tafForecast.clouds) && tafForecast.clouds.length > cloudsIndex
             ? jsonToTacForClouds(tafForecast.clouds[cloudsIndex], true) || ''
             : cloudsIndex === 0
               ? jsonToTacForClouds(tafForecast.clouds, true) || '' // NSC
               : '')
           : '',
-        disabled: !editable || (jsonToTacForClouds(tafForecast.clouds) && cloudsIndex !== 0) ||
-          (jsonToTacForVerticalVisibility(tafForecast.vertical_visibility) && cloudsIndex !== 0),
-        classes: [(jsonToTacForVerticalVisibility(tafForecast.vertical_visibility) && cloudsIndex !== 0) ? 'hideValue' : null]
+        disabled: !editable || (jsonToTacForClouds(tafForecast.clouds) && cloudsIndex !== 0),
+        classes: []
       });
     }
     columns.push(
