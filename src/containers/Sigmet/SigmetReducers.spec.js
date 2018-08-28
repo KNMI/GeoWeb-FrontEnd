@@ -231,7 +231,7 @@ describe('(Reducer) Sigmet/SigmetReducers', () => {
       'phenomenon': 'SQL_TSGR',
       'obs_or_forecast': { 'obs': true },
       'levelinfo': { 'levels': [{ 'value': 0, 'unit': 'FL' }, { 'value': 1, 'unit': 'M' }], 'mode': 'AT' },
-      'movement': { 'stationary': true },
+      'movement': { },
       'change': 'WKN',
       'validdate': '2018-07-16T16:00:00Z',
       'validdate_end': '2018-07-16T20:00:00Z',

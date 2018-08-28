@@ -1,6 +1,6 @@
 import produce from 'immer';
 import moment from 'moment';
-import { SIGMET_TEMPLATES, UNITS, UNITS_ALT, MODES_LVL } from '../../components/Sigmet/SigmetTemplates';
+import { SIGMET_TEMPLATES, UNITS, UNITS_ALT, MODES_LVL, MOVEMENT_TYPES } from '../../components/Sigmet/SigmetTemplates';
 import { SIGMET_MODES, LOCAL_ACTION_TYPES, CATEGORY_REFS, STATUSES } from './SigmetActions';
 import { clearNullPointersAndAncestors, mergeInTemplate } from '../../utils/json';
 import axios from 'axios';
@@ -240,7 +240,6 @@ const focusSigmet = (evt, uuid, container) => {
   const indices = findCategoryAndSigmetIndex(uuid, state);
   let drawModeStart = null;
   let drawModeEnd = null;
-  let useGeometryForEnd = false;
 
   if (indices.isFound) {
     const sigmet = state.categories[indices.categoryIndex].sigmets[indices.sigmetIndex];
@@ -249,20 +248,15 @@ const focusSigmet = (evt, uuid, container) => {
       const endFeature = sigmet.geojson.features.find((feature) => feature.properties.featureFunction === 'end');
       drawModeStart = startFeature ? modeMapping[startFeature.properties.selectionType] : null;
       drawModeEnd = endFeature ? modeMapping[endFeature.properties.selectionType] : null;
-      if (!sigmet.movement.stationary && endFeature && container.featureHasCoordinates(endFeature)) {
-        useGeometryForEnd = true;
-      }
     }
   }
   container.setState(produce(container.state, draftState => {
     if (draftState.focussedSigmet.uuid !== uuid) {
       draftState.focussedSigmet.uuid = uuid;
-      draftState.focussedSigmet.useGeometryForEnd = useGeometryForEnd;
       draftState.focussedSigmet.drawModeStart = drawModeStart || null;
       draftState.focussedSigmet.drawModeEnd = drawModeEnd || null;
     } else {
       draftState.focussedSigmet.uuid = null;
-      draftState.focussedSigmet.useGeometryForEnd = false;
       draftState.focussedSigmet.drawModeStart = null;
       draftState.focussedSigmet.drawModeEnd = null;
       shouldClearDrawing = true;
@@ -356,6 +350,7 @@ const getEmptySigmet = (container) => produce(SIGMET_TEMPLATES.SIGMET, draftSigm
   draftSigmet.levelinfo.levels[0].unit = UNITS.FL;
   draftSigmet.levelinfo.levels.push(cloneDeep(SIGMET_TEMPLATES.LEVEL));
   draftSigmet.levelinfo.levels[1].unit = UNITS.FL;
+  draftSigmet.movement_type = MOVEMENT_TYPES.STATIONARY;
   if (Array.isArray(container.state.parameters.firareas)) {
     draftSigmet.location_indicator_icao = container.state.parameters.firareas[0].location_indicator_icao;
     draftSigmet.firname = container.state.parameters.firareas[0].firname;
@@ -394,7 +389,8 @@ const findCategoryAndSigmetIndex = (uuid, state) => {
 const updateSigmet = (uuid, dataField, value, container) => {
   const { state, props } = container;
   const { drawProperties, dispatch, drawActions } = props;
-  const shouldCleanEndFeature = dataField === 'movement' && value.hasOwnProperty('stationary') && value.stationary === true;
+  const shouldCleanEndFeature = dataField === 'movement_type' && value !== MOVEMENT_TYPES.FORECAST_POSITION;
+  const shouldCleanMovement = dataField === 'movement_type' && value !== MOVEMENT_TYPES.MOVEMENT;
   const indices = findCategoryAndSigmetIndex(uuid, state);
   if (!dataField || !indices.isFound) {
     return;
@@ -408,6 +404,9 @@ const updateSigmet = (uuid, dataField, value, container) => {
   }
   container.setState(produce(state, draftState => {
     draftState.categories[indices.categoryIndex].sigmets[indices.sigmetIndex][dataField] = value;
+    if (shouldCleanMovement) {
+      draftState.categories[indices.categoryIndex].sigmets[indices.sigmetIndex]['movement'] = produce(SIGMET_TEMPLATES.MOVEMENT, () => {});
+    }
     draftState.focussedSigmet.hasEdits = true;
   }), () => {
     if (shouldCleanEndFeature === true) {
@@ -597,37 +596,11 @@ const createFirIntersection = (featureId, geojson, container) => {
 };
 
 const modifyFocussedSigmet = (dataField, value, container) => {
-  const { state, props } = container;
-  const { drawProperties, dispatch, drawActions } = props;
-  const shouldCleanEndFeature = dataField === 'useGeometryForEnd' && value !== true;
+  const { state } = container;
   container.setState(produce(state, draftState => {
     draftState.focussedSigmet[dataField] = value;
     draftState.focussedSigmet.hasEdits = true;
-    switch (dataField) {
-      case 'useGeometryForEnd': {
-        const indices = findCategoryAndSigmetIndex(draftState.focussedSigmet.uuid, draftState);
-        if (!indices.isFound) {
-          break;
-        }
-        if (value === true) {
-          draftState.categories[indices.categoryIndex].sigmets[indices.sigmetIndex]['movement'] = produce(SIGMET_TEMPLATES.MOVEMENT,
-            movementDraftState => { movementDraftState.stationary = false; });
-        }
-        break;
-      }
-      default:
-        break;
-    }
-  }), () => {
-    if (shouldCleanEndFeature === true) {
-      const features = cloneDeep(drawProperties.adagucMapDraw.geojson.features);
-      const endFeature = features.find((potentialEndFeature) => potentialEndFeature.properties.featureFunction === 'end');
-      if (endFeature && endFeature.id) {
-        dispatch(drawActions.setFeature({ coordinates: [], selectionType: 'poly', featureId: endFeature.id }));
-        clearRelatedIntersection(endFeature.id, features, dispatch, drawActions);
-      }
-    }
-  });
+  }));
 };
 
 const clearSigmet = (event, uuid, container) => {
@@ -676,21 +649,8 @@ const saveSigmet = (event, uuid, container) => {
   const geojson = cloneDeep(drawProperties.adagucMapDraw.geojson);
   let cleanedFeatures = geojson.features;
   clearNullPointersAndAncestors(cleanedFeatures);
-  // cleanedFeatures.forEach((feature) => {
-  //   const complementResult = complementFeatureCoordinates(feature, container);
-  //   if (complementResult.complemented === true) {
-  //     feature.geometry.coordinates = complementResult.coordinates;
-  //   }
-  // });
   const complementedSigmet = produce(affectedSigmet, draftState => {
-    const origStationary = cloneDeep(draftState.movement.stationary);
-    const origObs = cloneDeep(draftState.obs_or_forecast);
     clearNullPointersAndAncestors(draftState);
-    if (!draftState.hasOwnProperty('movement')) {
-      draftState.movement = {};
-    }
-    draftState.movement.stationary = origStationary;
-    draftState.obs_or_forecast = origObs;
     draftState.geojson.features.length = 0;
     draftState.geojson.features.push(...cleanedFeatures);
   });

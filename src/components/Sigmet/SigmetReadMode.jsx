@@ -4,7 +4,7 @@ import Moment from 'react-moment';
 import moment from 'moment';
 import PropTypes from 'prop-types';
 import { READ_ABILITIES, byReadAbilities } from '../../containers/Sigmet/SigmetActions';
-import { UNITS, UNITS_ALT, DIRECTIONS, CHANGES, MODES_LVL } from './SigmetTemplates';
+import { UNITS, UNITS_ALT, DIRECTIONS, CHANGES, MODES_LVL, MOVEMENT_TYPES, SIGMET_TYPES } from './SigmetTemplates';
 
 import HeaderSection from './Sections/HeaderSection';
 import WhatSection from './Sections/WhatSection';
@@ -115,7 +115,7 @@ class SigmetReadMode extends PureComponent {
 
   render () {
     const { dispatch, actions, focus, uuid, phenomenon, isObserved, obsFcTime, validdate, validdateEnd, firname, locationIndicatorIcao, issuedate,
-      locationIndicatorMwo, levelinfo, movement, change, sequence, tac, isCancelFor } = this.props;
+      locationIndicatorMwo, levelinfo, movement, movementType, change, sequence, tac, isCancelFor } = this.props;
     const abilityCtAs = this.reduceAbilities(); // CtA = Call To Action
     const selectedDirection = movement && DIRECTIONS.find((obj) => obj.shortName === movement.dir);
     const directionLongName = selectedDirection ? selectedDirection.longName : null;
@@ -150,15 +150,21 @@ class SigmetReadMode extends PureComponent {
           <span data-field='level'>{this.showLevels(levelinfo)}</span>
         </HeightSection>
 
-        {/* TODO: Can this be done better? */}
-        {movement && movement.stationary === false && movement.hasOwnProperty('speed') && movement.hasOwnProperty('dir')
+        {movementType === MOVEMENT_TYPES.MOVEMENT
           ? <ProgressSection>
             <span data-field='movement'>Moving</span>
             <span data-field='speed'>{movement.speed}KT</span>
             <span data-field='direction'>{directionLongName}</span>
           </ProgressSection>
           : <ProgressSection>
-            <span data-field='movement'>{movement && movement.stationary ? 'Stationary' : 'Movement is defined by area'}</span>
+            <span data-field='movement'>
+              {movementType === MOVEMENT_TYPES.STATIONARY
+                ? 'Stationary'
+                : movementType === MOVEMENT_TYPES.FORECAST_POSITION
+                  ? 'Movement is defined by area'
+                  : '(movement type is not (properly) set)'
+              }
+            </span>
           </ProgressSection>
         }
 
@@ -227,11 +233,8 @@ SigmetReadMode.propTypes = {
       unit: PropTypes.string
     }))
   }),
-  movement: PropTypes.shape({
-    stationary: PropTypes.bool.isRequired,
-    speed: PropTypes.number,
-    dir: PropTypes.string
-  }),
+  movementType: SIGMET_TYPES.MOVEMENT_TYPE,
+  movement: SIGMET_TYPES.MOVEMENT,
   change: PropTypes.string,
   sequence: PropTypes.number,
   locationIndicatorIcao: PropTypes.string,
