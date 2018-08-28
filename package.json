@@ -97,7 +97,6 @@
     "axios": "^0.18.0",
     "bootstrap": "4.0.0-alpha.6",
     "classnames": "^2.2.6",
-    "clean-deep": "^3.0.2",
     "compression-webpack-plugin": "^1.1.11",
     "deep-diff": "^1.0.1",
     "element-resize-event": "^2.0.9",
