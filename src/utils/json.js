@@ -3,8 +3,7 @@ import getNestedProperty from 'lodash.get';
 import setNestedProperty from 'lodash.set';
 import hasNestedProperty from 'lodash.has';
 import cloneDeep from 'lodash.clonedeep';
-import cleanDeep from 'clean-deep';
-import removeNestedProperty from 'lodash.unset';
+import unsetNestedProperty from 'lodash.unset';
 
 /**
  * Merges the values into (nested) templates
@@ -107,8 +106,8 @@ const clearRecursive = (objectToClear, pathParts) => {
   } else if (parent && typeof parent === 'object') {
     Object.entries(parent).forEach(([key, value]) => {
       if ((!value && value !== 0) ||
-        (Array.isArray(value) && value.length === 0) ||
-        (value && typeof value === 'object' && Object.keys(value).length === 0)) {
+      (Array.isArray(value) && value.length === 0) ||
+      (value && typeof value === 'object' && Object.keys(value).length === 0)) {
         pathParts.push(key);
         removeNestedProperty(objectToClear, pathParts);
         pathParts.pop();
@@ -158,9 +157,9 @@ const getJsonPointers = (collection, predicate, accumulator, parentName = '') =>
  * @param  {Object} objectToClear An hierarchical object to clean null values for
  */
 const clearNullPointersAndAncestors = (objectToClear) => {
-  // TODO MP 2018-08-17: Check this function does not clean all nulls, maybe we can use removeNulls instead.
   const nullPointers = [];
   getJsonPointers(objectToClear, (field) => field === null, nullPointers);
+  nullPointers.reverse(); // handle high (array-)indices first
   nullPointers.forEach((nullPointer) => {
     const pathParts = nullPointer.split('/');
     pathParts.shift();
@@ -170,11 +169,23 @@ const clearNullPointersAndAncestors = (objectToClear) => {
 };
 
 /**
- * Clear all null values in an object, and clear resulting empty ancestors as well
- * @param  {Object} objectToClear An hierarchical object to clean null values for
+ * Remove nested property in object
+ * @param {Object} containingObject An hierarchical object to remove the nested property from
+ * @param {Array} pathParts Array of JSON-path-elements
  */
-const removeNulls = (obj) => {
-  return cleanDeep(obj);
+
+const removeNestedProperty = (containingObject, pathParts) => {
+  const parentPathParts = pathParts.slice();
+  const propertyKey = parentPathParts.pop();
+  if (!isNaN(propertyKey)) {
+    const parentObject = getNestedProperty(containingObject, parentPathParts);
+    if (Array.isArray(parentObject)) {
+      const index = parseInt(propertyKey);
+      parentObject.splice(index, 1);
+    }
+  } else {
+    unsetNestedProperty(containingObject, pathParts);
+  }
 };
 
 module.exports = {
@@ -182,5 +193,5 @@ module.exports = {
   clearRecursive: clearRecursive,
   mergeInTemplate: mergeInTemplate,
   clearNullPointersAndAncestors: clearNullPointersAndAncestors,
-  removeNulls: removeNulls
+  removeNestedProperty: removeNestedProperty
 };

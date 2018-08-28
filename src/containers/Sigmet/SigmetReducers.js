@@ -553,25 +553,8 @@ const drawSigmet = (event, uuid, container, action, featureFunction) => {
   dispatch(drawActions.setFeatureNr(featureIndex));
 };
 
-// const complementFeatureCoordinates = (feature, container) => {
-//   const result = { complemented: false, coordinates: [] };
-//   if (container.featureHasCoordinates(feature)) {
-//     result.coordinates.push(...feature.geometry.coordinates);
-//     if (result.coordinates[0][0] !== result.coordinates[0][result.coordinates[0].length - 1]) {
-//       result.coordinates[0].push(result.coordinates[0][0]);
-//       result.complemented = true;
-//     }
-//   }
-//   return result;
-// };
-
 const createIntersectionData = (feature, firname, container) => {
-  const cleanedFeature = feature;
-  // const cleanedFeature = cloneDeep(feature);
-  // const complementResult = complementFeatureCoordinates(cleanedFeature, container);
-  // if (complementResult.complemented === true) {
-  //   cleanedFeature.geometry.coordinates = complementResult.coordinates;
-  // }
+  const cleanedFeature = cloneDeep(feature);
   clearNullPointersAndAncestors(cleanedFeature);
   return (!container.featureHasCoordinates(cleanedFeature) || (cleanedFeature.geometry.coordinates.length > 0 && cleanedFeature.geometry.coordinates[0].length < 4))
     ? null

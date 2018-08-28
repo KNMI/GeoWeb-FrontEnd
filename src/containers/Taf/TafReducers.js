@@ -4,8 +4,7 @@ import moment from 'moment';
 import { arrayMove } from 'react-sortable-hoc';
 import setNestedProperty from 'lodash.set';
 import getNestedProperty from 'lodash.get';
-import removeNestedProperty from 'lodash.unset';
-import { mergeInTemplate, removeNulls, getJsonPointers, clearNullPointersAndAncestors } from '../../utils/json';
+import { mergeInTemplate, removeNestedProperty, getJsonPointers, clearNullPointersAndAncestors } from '../../utils/json';
 import { notify } from 'reapop';
 import cloneDeep from 'lodash.clonedeep';
 import { ReadLocations } from '../../utils/admin';
@@ -322,7 +321,6 @@ const wrapIntoSelectableTaf = (tafData) => {
 */
 const validateTaf = (tafAsObject, container) => {
   if (!tafAsObject) {
-    console.error('validateTaf empty');
     return;
   }
 
@@ -517,44 +515,44 @@ const sanitizeTaf = (tafAsObject) => {
   if (fallbackPointersLength > 0) {
     inputParsingReport.message = 'TAF is not valid';
     inputParsingReport.succeeded = false;
-    for (let pointerIndex = 0; pointerIndex < fallbackPointersLength; pointerIndex++) {
-      if (!inputParsingReport.hasOwnProperty('errors')) {
-        inputParsingReport.errors = {};
+    if (!inputParsingReport.hasOwnProperty('errors')) {
+      inputParsingReport.errors = {};
+    }
+    fallbackPointers.reverse(); // handle high (array-)indices first
+    fallbackPointers.forEach((pointer) => {
+      if (!inputParsingReport.errors.hasOwnProperty(pointer)) {
+        inputParsingReport.errors[pointer] = [];
       }
-      if (!inputParsingReport.errors.hasOwnProperty(fallbackPointers[pointerIndex])) {
-        inputParsingReport.errors[fallbackPointers[pointerIndex]] = [];
-      }
-      const pointerParts = fallbackPointers[pointerIndex].split('/');
+      const pointerParts = pointer.split('/');
       pointerParts.shift();
       let message = 'The pattern of the input was not recognized.';
       const fallbackedProperty = getNestedProperty(taf, pointerParts);
       if (fallbackedProperty.hasOwnProperty('fallback') && fallbackedProperty.fallback.hasOwnProperty('message')) {
         message = fallbackedProperty.fallback.message;
       }
-      inputParsingReport.errors[fallbackPointers[pointerIndex]].push(message);
+      inputParsingReport.errors[pointer].push(message);
       removeNestedProperty(taf, pointerParts);
-    }
+    });
   } else {
     inputParsingReport.message = 'TAF input is verified';
     inputParsingReport.succeeded = true;
   }
   clearNullPointersAndAncestors(taf);
-  let cleanedTaf = removeNulls(taf);
 
-  if (!getNestedProperty(cleanedTaf, ['changegroups'])) {
-    setNestedProperty(cleanedTaf, ['changegroups'], []);
+  if (!getNestedProperty(taf, ['changegroups'])) {
+    setNestedProperty(taf, ['changegroups'], []);
   }
 
   /* Status NEW does only exist in the frontend, don't post it to the backend */
-  if (cleanedTaf.metadata) {
-    cleanedTaf.metadata.status = cleanedTaf.metadata.status.toLowerCase();
-    cleanedTaf.metadata.type = cleanedTaf.metadata.type.toLowerCase();
-    if (cleanedTaf.metadata.status === 'new') {
-      delete cleanedTaf.metadata.status;
+  if (taf.metadata) {
+    taf.metadata.status = taf.metadata.status.toLowerCase();
+    taf.metadata.type = taf.metadata.type.toLowerCase();
+    if (taf.metadata.status === STATUSES.NEW) {
+      delete taf.metadata.status;
     }
   }
   return {
-    taf: cleanedTaf,
+    taf: taf,
     report: inputParsingReport
   };
 };
@@ -895,18 +893,6 @@ const updateTafFields = (valuesAtPaths, container) => {
       if (entry && typeof entry === 'object' && entry.hasOwnProperty('propertyPath') && entry.hasOwnProperty('propertyValue')) {
         if (entry.deleteProperty === true) {
           removeNestedProperty(draftTafData, entry.propertyPath);
-
-          // removeNestedProperty on an array leaves an empty array element
-          // Therefore, the array needs to be cleaned by this one neat trick
-
-          // If the last element is a number, then it is an index in an array, so we know we are dealing with an array
-          const lastPathElem = entry.propertyPath.pop();
-          if (!isNaN(lastPathElem)) {
-            // Retrieve the array and leave all items that evaluate truthy.
-            // this filters everything as null, undefined, 0, {}, false, "", etc...
-            const theArr = getNestedProperty(draftTafData, entry.propertyPath);
-            setNestedProperty(draftTafData, entry.propertyPath, theArr.filter(n => n));
-          }
         } else {
           setNestedProperty(draftTafData, entry.propertyPath, entry.propertyValue);
         }
