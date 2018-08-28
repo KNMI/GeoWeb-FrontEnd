@@ -537,13 +537,27 @@ const sanitizeTaf = (tafAsObject) => {
     inputParsingReport.message = 'TAF input is verified';
     inputParsingReport.succeeded = true;
   }
+
+  // remove caVOK when false
+  const forecastPointers = [];
+  getJsonPointers(taf, (field) => field && field.hasOwnProperty('caVOK') && field.caVOK === false, forecastPointers);
+  const forecastPointersLength = forecastPointers.length;
+  if (forecastPointersLength > 0) {
+    forecastPointers.forEach((pointer) => {
+      const pointerParts = pointer.split('/');
+      pointerParts.shift();
+      pointerParts.push('caVOK');
+      removeNestedProperty(taf, pointerParts);
+    });
+  }
+
   clearNullPointersAndAncestors(taf);
 
   if (!getNestedProperty(taf, ['changegroups'])) {
     setNestedProperty(taf, ['changegroups'], []);
   }
 
-  /* Status NEW does only exist in the frontend, don't post it to the backend */
+  // status NEW does only exist in the frontend, don't post it to the backend
   if (taf.metadata) {
     taf.metadata.status = taf.metadata.status.toLowerCase();
     taf.metadata.type = taf.metadata.type.toLowerCase();
