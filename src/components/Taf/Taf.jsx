@@ -796,9 +796,6 @@ Taf.defaultProps = {
 Taf.propTypes = {
   selectedTaf: TAF_TYPES.SELECTABLE_TAF,
   mode: PropTypes.string,
-  urls: PropTypes.shape({
-    BACKEND_SERVER_URL: PropTypes.string
-  }),
   abilitiesPerStatus: PropTypes.arrayOf(PropTypes.shape({
     ref: PropTypes.string,
     abilities: PropTypes.object

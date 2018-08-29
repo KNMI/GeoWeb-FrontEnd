@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react';
 import { Row, Col, Badge } from 'reactstrap';
 import PropTypes from 'prop-types';
+import { MOVEMENT_TYPES } from '../SigmetTemplates';
 
 export default class MovementSection extends PureComponent {
   render () {
@@ -17,20 +18,12 @@ export default class MovementSection extends PureComponent {
 
     return <Row className='Move'>
       <Col>
-        <Row className={this.props.disabled ? 'disabled' : null}>
+        <Row className={this.props.movementType !== MOVEMENT_TYPES.MOVEMENT ? 'disabled' : null}>
           <Col xs='3'>
-            <Badge color='success'>Move</Badge>
-          </Col>
-          <Col xs='9'>
-            {children.movementType}
+            <Badge color='success'>Movement</Badge>
           </Col>
         </Row>
-        <Row className={!this.props.useGeometryForEnd ? 'disabled' : null}>
-          <Col>
-            {children.drawbar}
-          </Col>
-        </Row>
-        <Row className={this.props.disabled || this.props.useGeometryForEnd ? 'disabled' : null}>
+        <Row className={this.props.movementType !== MOVEMENT_TYPES.MOVEMENT ? 'disabled' : null}>
           <Col xs={{ size: 2, offset: 1 }}>
             <Badge>Direction</Badge>
           </Col>
@@ -42,7 +35,7 @@ export default class MovementSection extends PureComponent {
             }
           </Col>
         </Row>
-        <Row className={this.props.disabled || this.props.useGeometryForEnd ? 'disabled' : null}>
+        <Row className={this.props.movementType !== MOVEMENT_TYPES.MOVEMENT ? 'disabled' : null}>
           <Col xs={{ size: 2, offset: 1 }}>
             <Badge>Speed</Badge>
           </Col>
@@ -52,6 +45,16 @@ export default class MovementSection extends PureComponent {
               ? <span className={children.speed.props.className.split(' ').includes('missing') ? 'required missing' : 'required'} />
               : null
             }
+          </Col>
+        </Row>
+        <Row className={this.props.movementType !== MOVEMENT_TYPES.FORECAST_POSITION ? 'disabled' : null}>
+          <Col xs='3'>
+            <Badge color='success'>End position</Badge>
+          </Col>
+        </Row>
+        <Row className={this.props.movementType !== MOVEMENT_TYPES.FORECAST_POSITION ? 'disabled' : null}>
+          <Col>
+            {children.drawbar}
           </Col>
         </Row>
       </Col>
@@ -64,6 +67,5 @@ MovementSection.propTypes = {
     PropTypes.arrayOf(PropTypes.element),
     PropTypes.element
   ]),
-  disabled: PropTypes.bool,
-  useGeometryForEnd: PropTypes.bool
+  movementType: PropTypes.string
 };

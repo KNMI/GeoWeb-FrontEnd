@@ -3,8 +3,7 @@ import getNestedProperty from 'lodash.get';
 import setNestedProperty from 'lodash.set';
 import hasNestedProperty from 'lodash.has';
 import cloneDeep from 'lodash.clonedeep';
-import cleanDeep from 'clean-deep';
-import removeNestedProperty from 'lodash.unset';
+import unsetNestedProperty from 'lodash.unset';
 
 /**
  * Merges the values into (nested) templates
@@ -86,37 +85,66 @@ const mergeInTemplate = (incomingValues, parentName, templates) => {
 };
 
 /**
+ * Check if value is defined although falsy
+ * @param {*} value The value to check
+ * @returns {Boolean} True if the value is defined
+ */
+const isDefinedFalsy = (value) =>
+  (value === 0 || value === false || value === '');
+
+/**
+ * Check if structure is empty
+ * @param {*} structure The data structure to check whether or not it is null / empty
+ * @returns {Boolean} True when structure is empty false otherwise
+ */
+const isEmptyStructure = (structure) =>
+  (!structure && !isDefinedFalsy(structure)) ||
+  (Array.isArray(structure) && structure.filter((item) => isDefinedFalsy(item) || item).length === 0) ||
+  (structure && typeof structure === 'object' && structure.constructor === Object && Object.keys(structure).length === 0);
+
+/**
  * Upwards recursively remove empty properties
  * @param {Object} objectToClear The object to cleanse
  * @param {Array} pathParts Array of JSON-path-elements
  */
 const clearRecursive = (objectToClear, pathParts) => {
+  if (!Array.isArray(pathParts) || pathParts.length === 0) {
+    return;
+  }
   pathParts.pop();
-  const parent = getNestedProperty(objectToClear, pathParts);
-  // Check for empty sibling arrays / objects
+  const parent = pathParts.length === 0 ? cloneDeep(objectToClear) : getNestedProperty(objectToClear, pathParts);
+  if (typeof parent === 'undefined') {
+    return;
+  }
+
+  // Clear for empty siblings
   if (Array.isArray(parent) && parent.length !== 0) {
+    const removableIndices = [];
     parent.forEach((child, index) => {
-      if ((!child) ||
-        (Array.isArray(child) && child.length === 0) ||
-        (typeof child === 'object' && Object.keys(child).length === 0)) {
-        pathParts.push(index);
-        removeNestedProperty(objectToClear, pathParts);
-        pathParts.pop();
+      if (isEmptyStructure(child)) {
+        removableIndices.push(index);
       }
+    });
+    removableIndices.sort((a, b) => b - a);
+    removableIndices.forEach((removableIndex) => {
+      pathParts.push(removableIndex);
+      removeNestedProperty(objectToClear, pathParts);
+      pathParts.pop();
     });
   } else if (parent && typeof parent === 'object') {
     Object.entries(parent).forEach(([key, value]) => {
-      if ((!value && value !== 0) ||
-        (Array.isArray(value) && value.length === 0) ||
-        (value && typeof value === 'object' && Object.keys(value).length === 0)) {
+      if (isEmptyStructure(value)) {
         pathParts.push(key);
         removeNestedProperty(objectToClear, pathParts);
         pathParts.pop();
       }
     });
   }
-  if ((Array.isArray(parent) && parent.length === 0) || (parent && typeof parent === 'object' && Object.keys(parent).length === 0)) {
-    removeNestedProperty(objectToClear, pathParts);
+
+  // Clear parent and recur
+  const cleanedParent = pathParts.length === 0 ? cloneDeep(objectToClear) : getNestedProperty(objectToClear, pathParts);
+
+  if (isEmptyStructure(cleanedParent)) {
     clearRecursive(objectToClear, pathParts);
   };
 };
@@ -158,23 +186,34 @@ const getJsonPointers = (collection, predicate, accumulator, parentName = '') =>
  * @param  {Object} objectToClear An hierarchical object to clean null values for
  */
 const clearNullPointersAndAncestors = (objectToClear) => {
-  // TODO MP 2018-08-17: Check this function does not clean all nulls, maybe we can use removeNulls instead.
   const nullPointers = [];
   getJsonPointers(objectToClear, (field) => field === null, nullPointers);
+  nullPointers.reverse(); // handle high (array-)indices first
   nullPointers.forEach((nullPointer) => {
     const pathParts = nullPointer.split('/');
     pathParts.shift();
-    removeNestedProperty(objectToClear, pathParts);
     clearRecursive(objectToClear, pathParts);
   });
 };
 
 /**
- * Clear all null values in an object, and clear resulting empty ancestors as well
- * @param  {Object} objectToClear An hierarchical object to clean null values for
+ * Remove nested property in object
+ * @param {Object} containingObject An hierarchical object to remove the nested property from
+ * @param {Array} pathParts Array of JSON-path-elements
  */
-const removeNulls = (obj) => {
-  return cleanDeep(obj);
+
+const removeNestedProperty = (containingObject, pathParts) => {
+  const parentPathParts = pathParts.slice();
+  const propertyKey = parentPathParts.pop();
+  if (!isNaN(propertyKey)) {
+    const parentObject = getNestedProperty(containingObject, parentPathParts);
+    if (Array.isArray(parentObject)) {
+      const index = parseInt(propertyKey);
+      parentObject.splice(index, 1);
+    }
+  } else {
+    unsetNestedProperty(containingObject, pathParts);
+  }
 };
 
 module.exports = {
@@ -182,5 +221,5 @@ module.exports = {
   clearRecursive: clearRecursive,
   mergeInTemplate: mergeInTemplate,
   clearNullPointersAndAncestors: clearNullPointersAndAncestors,
-  removeNulls: removeNulls
+  removeNestedProperty: removeNestedProperty
 };
