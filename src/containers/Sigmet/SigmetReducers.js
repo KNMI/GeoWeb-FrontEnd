@@ -310,7 +310,7 @@ const initialGeoJson = () => {
   draftState.features[0].properties['fill-opacity'] = 0.2;
   draftState.features[0].properties.fill = '#0f0';
   draftState.features[0].properties['stroke-width'] = 0.8;
-  draftState.features[0].geometry.type = 'Polygon';
+  draftState.features[0].geometry.type = null;
 
   draftState.features[1].id = endId;
   draftState.features[1].properties.featureFunction = 'end';
@@ -319,7 +319,7 @@ const initialGeoJson = () => {
   draftState.features[1].properties['fill-opacity'] = 0.2;
   draftState.features[1].properties.fill = '#f00';
   draftState.features[1].properties['stroke-width'] = 0.8;
-  draftState.features[1].geometry.type = 'Polygon';
+  draftState.features[1].geometry.type = null;
 
   draftState.features[2].id = uuidv4();
   draftState.features[2].properties.featureFunction = 'intersection';
@@ -328,7 +328,7 @@ const initialGeoJson = () => {
   draftState.features[2].properties['fill-opacity'] = 0.33;
   draftState.features[2].properties.fill = '#2a2';
   draftState.features[2].properties['stroke-width'] = 2;
-  draftState.features[2].geometry.type = 'Polygon';
+  draftState.features[2].geometry.type = null;
 
   draftState.features[3].id = uuidv4();
   draftState.features[3].properties.featureFunction = 'intersection';
@@ -337,7 +337,7 @@ const initialGeoJson = () => {
   draftState.features[3].properties['fill-opacity'] = 0.33;
   draftState.features[3].properties.fill = '#a22';
   draftState.features[3].properties['stroke-width'] = 2;
-  draftState.features[3].geometry.type = 'Polygon';
+  draftState.features[3].geometry.type = null;
   return draftState;
 };
 
