@@ -32,7 +32,6 @@ const TEMPLATES = {
     unit: null // string
   },
   MOVEMENT: {
-    stationary: true,
     dir: null, // string
     speed: null // number
   }
@@ -61,6 +60,7 @@ TEMPLATES.SIGMET = {
   validdate_end: null, // string
   /* Development */
   change: null, // string
+  movement_type: null, // string
   movement: cloneDeep(TEMPLATES.MOVEMENT),
   forecast_position_time: null, // string
   /* Identification */
@@ -110,8 +110,8 @@ const TYPES = {
   VALID_DATE: PropTypes.string,
   VALID_DATE_END: PropTypes.string,
   CHANGE: PropTypes.string,
+  MOVEMENT_TYPE: PropTypes.string,
   MOVEMENT: PropTypes.shape({
-    stationary: PropTypes.bool,
     dir: PropTypes.string,
     speed: PropTypes.number
   }),
@@ -136,6 +136,21 @@ TYPES.LEVELINFO = PropTypes.shape({
 /**
  * MISC
  */
+// Movement types
+const MOVEMENT_TYPES = {
+  STATIONARY: 'STATIONARY',
+  MOVEMENT: 'MOVEMENT',
+  FORECAST_POSITION: 'FORECAST_POSITION',
+  NO_VA_EXPECTED: 'NO_VA_EXPECTED'
+};
+
+const MOVEMENT_OPTIONS = [
+  { optionId: MOVEMENT_TYPES.STATIONARY, label: 'Stationary', disabled: false },
+  { optionId: MOVEMENT_TYPES.MOVEMENT, label: 'Movement', disabled: false },
+  { optionId: MOVEMENT_TYPES.FORECAST_POSITION, label: 'End position', disabled: false },
+  { optionId: MOVEMENT_TYPES.NO_VA_EXPECTED, label: 'No VA expected', disabled: true }
+];
+
 // Cardinal, intercardinal and named points for directions of wind
 const DIRECTIONS = [
   { shortName: 'N', longName: 'North' },
@@ -196,6 +211,8 @@ const MODES_LVL_OPTIONS = [
 module.exports = {
   SIGMET_TEMPLATES: TEMPLATES,
   SIGMET_TYPES: TYPES,
+  MOVEMENT_TYPES: MOVEMENT_TYPES,
+  MOVEMENT_OPTIONS: MOVEMENT_OPTIONS,
   DIRECTIONS: DIRECTIONS,
   CHANGES: CHANGES,
   UNITS_ALT: UNITS_ALT,

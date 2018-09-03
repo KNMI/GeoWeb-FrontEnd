@@ -1,9 +1,4 @@
-import cloneDeep from 'lodash.clonedeep';
-import setNestedProperty from 'lodash.set';
-import getNestedProperty from 'lodash.get';
-import removeNestedProperty from 'lodash.unset';
 import axios from 'axios';
-import { getJsonPointers, clearNullPointersAndAncestors } from '../../utils/json';
 /**
  * Validates TAF input in two steps:
  * 1) Check for fallback values
@@ -11,61 +6,13 @@ import { getJsonPointers, clearNullPointersAndAncestors } from '../../utils/json
  * @param  {object} tafAsObject The TAF JSON to validate
  * @return {object} A report of the validation
  */
-const TafValidator = (BACKEND_SERVER_URL, tafAsObject) => {
+const TafValidator = (BACKEND_SERVER_URL, tafAsObject, inputParsingReport) => {
   return new Promise((resolve, reject) => {
-    const taf = cloneDeep(tafAsObject);
-    const fallbackPointers = [];
-    getJsonPointers(taf, (field) => field && field.hasOwnProperty('fallback'), fallbackPointers);
-
-    const inputParsingReport = {};
-    const fallbackPointersLength = fallbackPointers.length;
-    if (fallbackPointersLength > 0) {
-      inputParsingReport.message = 'TAF is not valid';
-      inputParsingReport.succeeded = false;
-      for (let pointerIndex = 0; pointerIndex < fallbackPointersLength; pointerIndex++) {
-        if (!inputParsingReport.hasOwnProperty('errors')) {
-          inputParsingReport.errors = {};
-        }
-        if (!inputParsingReport.errors.hasOwnProperty(fallbackPointers[pointerIndex])) {
-          inputParsingReport.errors[fallbackPointers[pointerIndex]] = [];
-        }
-        const pointerParts = fallbackPointers[pointerIndex].split('/');
-        pointerParts.shift();
-        let message = 'The pattern of the input was not recognized.';
-        const fallbackedProperty = getNestedProperty(taf, pointerParts);
-        if (fallbackedProperty.hasOwnProperty('fallback') && fallbackedProperty.fallback.hasOwnProperty('message')) {
-          message = fallbackedProperty.fallback.message;
-        }
-        inputParsingReport.errors[fallbackPointers[pointerIndex]].push(message);
-        removeNestedProperty(taf, pointerParts);
-      }
-    } else {
-      inputParsingReport.message = 'TAF input is verified';
-      inputParsingReport.succeeded = true;
-    }
-
-    clearNullPointersAndAncestors(taf);
-    if (!getNestedProperty(taf, ['changegroups'])) {
-      setNestedProperty(taf, ['changegroups'], []);
-    }
-    // if (getNestedProperty(taf, ['metadata', 'issueTime']) === 'not yet issued') {
-    //   setNestedProperty(taf, ['metadata', 'issueTime'], moment.utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z');
-    // }
-
-    /* TODO: Temporary fixes for validation */
-    if (taf.metadata) {
-      taf.metadata.status = taf.metadata.status.toLowerCase();
-      taf.metadata.type = taf.metadata.type.toLowerCase();
-    }
-    if (taf.metadata.status === 'new') {
-      delete taf.metadata.status;
-    }
-
     axios({
       method: 'post',
       url: BACKEND_SERVER_URL + '/tafs/verify',
       withCredentials: true,
-      data: JSON.stringify(taf),
+      data: JSON.stringify(tafAsObject),
       headers: { 'Content-Type': 'application/json' }
     }).then(
       response => {
@@ -81,7 +28,8 @@ const TafValidator = (BACKEND_SERVER_URL, tafAsObject) => {
           const aggregateReport = {
             message: responseJson.message ? responseJson.message : (inputParsingReport.succeeded && responseJson.succeeded ? 'TAF input is verified' : 'TAF input is not valid'),
             succeeded: inputParsingReport.succeeded && responseJson.succeeded,
-            errors: Object.assign({}, inputParsingReport.errors, responseJson.errors)
+            errors: Object.assign({}, inputParsingReport.errors, responseJson.errors),
+            TAC:responseJson.TAC
           };
           resolve(aggregateReport);
           /* this.setState({
@@ -97,10 +45,11 @@ const TafValidator = (BACKEND_SERVER_URL, tafAsObject) => {
     ).catch(error => {
       console.error(error);
       const aggregateReport = {
-        message: 'TAF input is not valid',
+        message: 'Unable to validate, TAF input is not valid',
         subheading: '(Couldn\'t retrieve all validation details.)',
         succeeded: false,
-        errors: inputParsingReport.errors
+        errors: inputParsingReport.errors,
+        TAC: null
       };
       resolve(aggregateReport);
       /* this.setState({

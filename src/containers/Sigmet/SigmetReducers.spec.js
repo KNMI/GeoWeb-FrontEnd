@@ -1,5 +1,6 @@
 import dispatch from './SigmetReducers';
 import { LOCAL_ACTIONS, CATEGORY_REFS, SIGMET_MODES } from './SigmetActions';
+import { MODES_GEO_SELECTION } from '../../utils/json';
 import produce from 'immer';
 import moxios from 'moxios';
 
@@ -223,7 +224,7 @@ describe('(Reducer) Sigmet/SigmetReducers', () => {
         'type': 'FeatureCollection',
         'features': [{
           'type': 'Feature',
-          'properties': { 'selectionType': 'box', 'featureFunction': 'start', 'stroke-width': 0.8, 'fill': '#0f0', 'fill-opacity': 0.2 },
+          'properties': { 'selectionType': MODES_GEO_SELECTION.BOX, 'featureFunction': 'start', 'stroke-width': 0.8, 'fill': '#0f0', 'fill-opacity': 0.2 },
           'geometry': { 'type': 'Polygon', 'coordinates': [[[2.84, 52.18], [2.84, 50.36], [7.92, 50.36], [7.92, 52.18], [2.84, 52.18], [2.84, 52.18]]] },
           'id': '5eb7877c-ddab-4f8a-a419-c7051d5b4af8'
         }]
@@ -231,7 +232,7 @@ describe('(Reducer) Sigmet/SigmetReducers', () => {
       'phenomenon': 'SQL_TSGR',
       'obs_or_forecast': { 'obs': true },
       'levelinfo': { 'levels': [{ 'value': 0, 'unit': 'FL' }, { 'value': 1, 'unit': 'M' }], 'mode': 'AT' },
-      'movement': { 'stationary': true },
+      'movement': { },
       'change': 'WKN',
       'validdate': '2018-07-16T16:00:00Z',
       'validdate_end': '2018-07-16T20:00:00Z',

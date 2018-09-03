@@ -18,6 +18,9 @@ const state = {
   panelsActions: {
     setWMJSLayers: () => null
   },
+  drawActions: {
+    updateFeature: () => null
+  },
   adagucProperties: {
     animate: false,
     sources: {},
@@ -193,6 +196,7 @@ describe('(Component) MapPanel', () => {
       urls={{ BACKEND_SERVER_URL: 'http://localhost:8080' }}
       adagucActions={state.adagucActions}
       adagucProperties={state.adagucProperties}
+      drawActions={state.drawActions}
       drawProperties={state.drawProperties}
       mapProperties={state.mapProperties}
       panelsProperties={state.panelsProperties}

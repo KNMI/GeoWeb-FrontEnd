@@ -84,7 +84,7 @@ export default handleActions({
     feature.geometry.coordinates = coordinates;
     return stateCpy;
   },
-  [ADAGUCMAPDRAW_EDIT_BOX]: (state, { payload }) => {
+  [ADAGUCMAPDRAW_EDIT_POINT]: (state, { payload }) => {
     return (
       { ...state,
         adagucMapDraw: {

@@ -77,7 +77,6 @@ class SigmetsCategory extends PureComponent {
                       if (focussedSigmet.uuid === sigmet.uuid) {
                         if (focussedSigmet.mode === SIGMET_MODES.EDIT) {
                           return <SigmetEditMode key={sigmet.uuid}
-                            useGeometryForEnd={focussedSigmet.useGeometryForEnd}
                             dispatch={dispatch}
                             actions={actions}
                             abilities={abilities[SIGMET_MODES.EDIT]}
@@ -107,6 +106,7 @@ class SigmetsCategory extends PureComponent {
                             locationIndicatorIcao={sigmet.location_indicator_icao}
                             locationIndicatorMwo={sigmet.location_indicator_mwo}
                             levelinfo={sigmet.levelinfo}
+                            movementType={sigmet.movement_type}
                             movement={sigmet.movement}
                             change={sigmet.change}
                             isObserved={sigmet.obs_or_forecast.obs}
@@ -144,6 +144,7 @@ class SigmetsCategory extends PureComponent {
                             locationIndicatorIcao={sigmet.location_indicator_icao}
                             locationIndicatorMwo={sigmet.location_indicator_mwo}
                             levelinfo={sigmet.levelinfo}
+                            movementType={sigmet.movement_type}
                             movement={sigmet.movement}
                             change={sigmet.change}
                             maxHoursInAdvance={isVolcanicAsh ? parameters.va_hoursbeforevalidity : parameters.hoursbeforevalidity}

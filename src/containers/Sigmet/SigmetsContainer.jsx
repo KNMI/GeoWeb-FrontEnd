@@ -12,6 +12,7 @@ import dispatch from './SigmetReducers';
 import ContainerHeader from '../../components/Sigmet/ContainerHeader';
 import SigmetsCategory from '../../components/Sigmet/SigmetsCategory';
 import MinifiedCategory from '../../components/Sigmet/MinifiedCategory';
+import { isFeatureGeoJsonComplete } from '../../utils/json';
 
 const ERROR_MSG = {
   FEATURE_ID_MISMATCH: 'GeoJson: the %s feature has a mutated id'
@@ -22,7 +23,6 @@ class SigmetsContainer extends Component {
     super(props);
     this.localDispatch = this.localDispatch.bind(this);
     this.findFeatureByFunction = this.findFeatureByFunction.bind(this);
-    this.featureHasCoordinates = this.featureHasCoordinates.bind(this);
     this.state = produce(INITIAL_STATE, draftState => {});
   }
 
@@ -35,21 +35,6 @@ class SigmetsContainer extends Component {
       return containerProperties.drawProperties.adagucMapDraw.geojson.features.find((feature) => feature.properties.featureFunction === functionName);
     }
     return null;
-  }
-
-  featureHasCoordinates (feature) {
-    if (feature && feature.geometry && feature.geometry.coordinates &&
-      Array.isArray(feature.geometry.coordinates)) { // shapes
-      const { coordinates } = feature.geometry;
-      if (coordinates.length > 0 && Array.isArray(coordinates[0])) { // lines
-        if (coordinates[0].length > 0 && Array.isArray(coordinates[0][0])) { // points
-          if (coordinates[0][0].length === 2 && !isNaN(coordinates[0][0][0]) && !isNaN(coordinates[0][0][1])) { // lat-long coordinates
-            return true;
-          }
-        }
-      }
-    }
-    return false;
   }
 
   componentWillReceiveProps (nextProps) {
@@ -94,9 +79,9 @@ class SigmetsContainer extends Component {
     const startIntersectionFeature = startFeature ? this.props.drawProperties.adagucMapDraw.geojson.features.find((feature) =>
       feature.properties.featureFunction === 'intersection' && feature.properties.relatesTo === startFeature.id) : null;
     const endFeature = this.props.drawProperties.adagucMapDraw.geojson.features.find((feature) => feature.properties.featureFunction === 'end');
-    const hasStartCoordinates = startFeature ? this.featureHasCoordinates(startFeature) : false;
-    const hasStartIntersectionCoordinates = startIntersectionFeature ? this.featureHasCoordinates(startIntersectionFeature) : false;
-    const hasEndCoordinates = endFeature ? this.featureHasCoordinates(endFeature) : false;
+    const hasStartCoordinates = startFeature ? isFeatureGeoJsonComplete(startFeature) : false;
+    const hasStartIntersectionCoordinates = startIntersectionFeature ? isFeatureGeoJsonComplete(startIntersectionFeature) : false;
+    const hasEndCoordinates = endFeature ? isFeatureGeoJsonComplete(endFeature) : false;
 
     return (
       <Col className='SigmetsContainer'>

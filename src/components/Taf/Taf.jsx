@@ -19,14 +19,14 @@ import {
   MODES, READ_ABILITIES, EDIT_ABILITIES, byEditAbilities, byReadAbilities, LIFECYCLE_STAGE_NAMES,
   FEEDBACK_STATUSES, FEEDBACK_CATEGORIES
 } from '../../containers/Taf/TafActions';
-import TafValidator from './TafValidator';
 const TMP = '◷';
 
 const MOVE_DIRECTION = Enum(
   'UP',
   'RIGHT',
   'DOWN',
-  'LEFT'
+  'LEFT',
+  'DOWN_BEGINNING'
 );
 
 /**
@@ -59,7 +59,7 @@ class Taf extends Component {
     this.serializeWeatherArray = this.serializeWeatherArray.bind(this);
     this.byPhenomenonType = this.byPhenomenonType.bind(this);
     this.byStartAndChangeType = this.byStartAndChangeType.bind(this);
-    this.validateTaf = debounce(this.validateTaf.bind(this), 1250, false);
+    this.validateTafDebounced = debounce(this.validateTafDebounced.bind(this), 250, false);
 
     const initialState = {
       focusedFieldName: 'forecast-wind',
@@ -72,45 +72,10 @@ class Taf extends Component {
     this.register = [];
   };
 
-  validateTaf (tafAsObject) {
-    let stringifiedTafObject = JSON.stringify(tafAsObject);
-    if (this.validatedTafObject !== stringifiedTafObject) {
-      this.validatedTafObject = stringifiedTafObject;
-      const { dispatch, actions, urls } = this.props;
-      let validationMessage = 'Unable to get validation report';
-      if (!actions) {
-        console.error(validationMessage);
-        return;
-      }
-      if (!urls) {
-        dispatch(actions.updateFeedbackAction(
-          validationMessage,
-          FEEDBACK_STATUSES.ERROR, FEEDBACK_CATEGORIES.VALIDATION, null, null)
-        );
-        return;
-      }
-
-      TafValidator(urls.BACKEND_SERVER_URL, tafAsObject).then((validationReport) => {
-        let validationErrors = [];
-        let validationSucceeded = false;
-        if (validationReport) {
-          if (validationReport.errors) {
-            validationErrors = validationReport.errors;
-          }
-          if (validationReport.message) {
-            validationMessage = validationReport.message;
-          }
-          if (validationReport.succeeded === true) {
-            validationSucceeded = true;
-          }
-        }
-
-        dispatch(actions.updateFeedbackAction(
-          validationMessage,
-          validationSucceeded ? FEEDBACK_STATUSES.SUCCESS : FEEDBACK_STATUSES.ERROR, FEEDBACK_CATEGORIES.VALIDATION, null, validationErrors)
-        );
-      });
-    }
+  validateTafDebounced (tafAsObject) {
+    const { dispatch, actions } = this.props;
+    if (!actions) return;
+    dispatch(actions.validateTafAction(tafAsObject));
   }
 
   /**
@@ -408,8 +373,7 @@ class Taf extends Component {
             } else {
               dispatch(actions.addTafRowAction());
             }
-            event.preventDefault();
-            event.stopPropagation();
+            this.moveFocus(keyboardEvent.target.name, MOVE_DIRECTION.DOWN_BEGINNING);
           }
           break;
         case 'Escape':
@@ -426,6 +390,7 @@ class Taf extends Component {
    * @param {KeyboardEvent} keyboardEvent The KeyboardEvent that has been fired
    */
   onKeyDown (keyboardEvent) {
+    const { dispatch, actions } = this.props;
     if (keyboardEvent.type === 'keydown') {
       switch (keyboardEvent.key) {
         case 'ArrowUp':
@@ -434,7 +399,11 @@ class Taf extends Component {
         case 'ArrowRight':
         case 'Tab':
           if (!keyboardEvent.target.value || (keyboardEvent.target.selectionStart === keyboardEvent.target.value.length)) {
-            this.moveFocus(keyboardEvent.target.name, MOVE_DIRECTION.RIGHT);
+            if (keyboardEvent.shiftKey) {
+              this.moveFocus(keyboardEvent.target.name, MOVE_DIRECTION.LEFT);
+            } else {
+              this.moveFocus(keyboardEvent.target.name, MOVE_DIRECTION.RIGHT);
+            }
             keyboardEvent.preventDefault();
             keyboardEvent.stopPropagation();
           }
@@ -447,6 +416,25 @@ class Taf extends Component {
             this.moveFocus(keyboardEvent.target.name, MOVE_DIRECTION.LEFT);
             keyboardEvent.preventDefault();
             keyboardEvent.stopPropagation();
+          }
+          break;
+        case 'Delete':
+          /* When pressing shift delete, the current changegroup will be deleted */
+          if (keyboardEvent.shiftKey) {
+            const currentField = this.state.fieldToFocusOn ? this.state.fieldToFocusOn : this.state.focusedFieldName;
+            if (currentField) {
+              if (currentField.startsWith('changegroups-')) {
+                let nameParts = currentField.split('-');
+                const currentChangeGroupIndex = parseInt(nameParts[1]);
+                if (currentChangeGroupIndex >= 0) {
+                  dispatch(actions.removeTafRowAction(currentChangeGroupIndex));
+                  nameParts[1] = parseInt(nameParts[1]) - 1; if (nameParts[1] < 0) nameParts[1] = 0;
+                  this.setFocus(nameParts.join('-'));
+                  keyboardEvent.preventDefault();
+                  keyboardEvent.stopPropagation();
+                }
+              }
+            }
           }
           break;
         default:
@@ -539,21 +527,39 @@ class Taf extends Component {
   registerElement (element) {
     const name = element ? (element.name || element.props.name) : null;
     const hasFocusMethod = element ? 'focus' in element : false;
+
+    /* Splice all elements with same id */
+    let currentItemIndex = -1;
+    do {
+      currentItemIndex = this.register.findIndex((item) => item.name === name);
+      if (currentItemIndex !== -1) this.register.splice(currentItemIndex, 1);
+    } while (currentItemIndex !== -1);
+
     if (name && hasFocusMethod) {
       this.register.push({ name: name, element: element });
+
+      /* A focus was requested on an element which was not yet rendered (e.g. add taf row), now its is rendered we can focus it. */
+      if (this.state.fieldToFocusOn === name) {
+        this.setFocus(this.state.fieldToFocusOn);
+      }
     }
   }
 
   /**
    * Set the focus to a named and registered field
    * @param {string} fieldNameToFocus The field name to set to focus to
+   * @returns {boolean} true on succesful focus
    */
   setFocus (fieldNameToFocus) {
     const foundItem = this.register.find((item) => item.name === fieldNameToFocus);
     if (foundItem && this.state.focusedFieldName !== fieldNameToFocus) {
       foundItem.element.focus();
-      this.setState({ focusedFieldName: fieldNameToFocus });
+      this.setState({ focusedFieldName: fieldNameToFocus, fieldToFocusOn: null });
+      return true;
     }
+    /* The element was not found, maybe it was not rendered yet, we going to retry this in registerElement */
+    this.setState({ fieldToFocusOn: fieldNameToFocus, focusedFieldName: '' });
+    return false;
   }
 
   /**
@@ -609,21 +615,29 @@ class Taf extends Component {
             this.setFocus(nameParts.join('-'));
           }
         }
+        if (direction === MOVE_DIRECTION.DOWN_BEGINNING) {
+          let currentRow = parseInt(nameParts[1]);
+          if (Number.isNaN(currentRow)) currentRow = -1;
+          this.setFocus(`changegroups-${currentRow + 1}-probability`);
+        }
       }
-      this.validateTaf(this.props.selectedTaf.tafData);
+      this.validateTafDebounced(this.props.selectedTaf.tafData);
     }
   }
 
   componentWillReceiveProps (nextProps) {
-    if (nextProps.selectedTaf) {
-      this.validateTaf(nextProps.selectedTaf.tafData);
+    /* Updates TAF and TAC based on key events */
+    if (nextProps.selectedTaf && this.props.selectedTaf && nextProps.selectedTaf.tafData && this.props.selectedTaf.tafData) {
+      if (nextProps.selectedTaf.tafData !== this.props.selectedTaf.tafData) {
+        this.validateTafDebounced(nextProps.selectedTaf.tafData);
+      }
     }
   }
 
   componentDidMount () {
     const { selectedTaf } = this.props;
     if (selectedTaf) {
-      this.validateTaf(selectedTaf.tafData);
+      this.validateTafDebounced(selectedTaf.tafData);
     }
   }
 
@@ -642,6 +656,7 @@ class Taf extends Component {
     }
     switch (abilityRef) {
       case EDIT_ABILITIES.DISCARD['dataField']:
+        return false;
       case EDIT_ABILITIES.SAVE['dataField']:
         return !selectedTaf.hasEdits;
       case EDIT_ABILITIES.PASTE['dataField']:
@@ -668,6 +683,7 @@ class Taf extends Component {
   reduceAbilities () {
     const { selectedTaf, abilitiesPerStatus, mode } = this.props;
     const abilitiesCtAs = []; // CtA = Call To Action
+    // abilitiesCtAs.push(READ_ABILITIES.COPY);
     if (!selectedTaf || !selectedTaf.tafData || !selectedTaf.tafData.metadata ||
       !selectedTaf.tafData.metadata.status || !selectedTaf.tafData.metadata.type) {
       return abilitiesCtAs;
@@ -706,18 +722,17 @@ class Taf extends Component {
     if (!selectedTaf) {
       return null;
     }
-    const { tafData } = selectedTaf;
+    const { tafData, TAC } = selectedTaf;
     const validationFeedback = feedback && feedback[FEEDBACK_CATEGORIES.VALIDATION];
     const abilityCtAs = this.reduceAbilities(); // CtA = Call To Action
     const series = this.extractScheduleInformation(tafData);
 
     const isCancel = selectedTaf && selectedTaf.tafData && selectedTaf.tafData.metadata && selectedTaf.tafData.metadata.type &&
       selectedTaf.tafData.metadata.type.toLowerCase() === LIFECYCLE_STAGE_NAMES.CANCELED;
-
     return (
       <Row className='Taf'>
         <Col>
-          <TacView taf={tafData} />
+          <TacView TAC={TAC} />
           <Row className='TafTable'>
             <Col>
               <TafTable
@@ -781,9 +796,6 @@ Taf.defaultProps = {
 Taf.propTypes = {
   selectedTaf: TAF_TYPES.SELECTABLE_TAF,
   mode: PropTypes.string,
-  urls: PropTypes.shape({
-    BACKEND_SERVER_URL: PropTypes.string
-  }),
   abilitiesPerStatus: PropTypes.arrayOf(PropTypes.shape({
     ref: PropTypes.string,
     abilities: PropTypes.object

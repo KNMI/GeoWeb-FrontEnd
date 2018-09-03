@@ -1,8 +1,8 @@
 import produce from 'immer';
 import moment from 'moment';
-import { SIGMET_TEMPLATES, UNITS, UNITS_ALT, MODES_LVL } from '../../components/Sigmet/SigmetTemplates';
+import { SIGMET_TEMPLATES, UNITS, UNITS_ALT, MODES_LVL, MOVEMENT_TYPES } from '../../components/Sigmet/SigmetTemplates';
 import { SIGMET_MODES, LOCAL_ACTION_TYPES, CATEGORY_REFS, STATUSES } from './SigmetActions';
-import { clearNullPointersAndAncestors, mergeInTemplate } from '../../utils/json';
+import { clearEmptyPointersAndAncestors, mergeInTemplate, isFeatureGeoJsonComplete, MODES_GEO_SELECTION } from '../../utils/json';
 import axios from 'axios';
 import { notify } from 'reapop';
 import cloneDeep from 'lodash.clonedeep';
@@ -255,15 +255,15 @@ const focusSigmet = (evt, uuid, container) => {
     return;
   }
   let shouldClearDrawing = false;
-  const modeMapping = {
-    'point': 'select-point',
-    'box': 'select-region',
-    'poly': 'select-shape'
-  };
+  const modeMapping = {};
+  modeMapping[MODES_GEO_SELECTION.POINT] = 'select-point';
+  modeMapping[MODES_GEO_SELECTION.BOX] = 'select-region';
+  modeMapping[MODES_GEO_SELECTION.POLY] = 'select-shape';
+  modeMapping[MODES_GEO_SELECTION.FIR] = 'select-fir';
+
   const indices = findCategoryAndSigmetIndex(uuid, state);
   let drawModeStart = null;
   let drawModeEnd = null;
-  let useGeometryForEnd = false;
 
   if (indices.isFound) {
     const sigmet = state.categories[indices.categoryIndex].sigmets[indices.sigmetIndex];
@@ -272,20 +272,15 @@ const focusSigmet = (evt, uuid, container) => {
       const endFeature = sigmet.geojson.features.find((feature) => feature.properties.featureFunction === 'end');
       drawModeStart = startFeature ? modeMapping[startFeature.properties.selectionType] : null;
       drawModeEnd = endFeature ? modeMapping[endFeature.properties.selectionType] : null;
-      if (!sigmet.movement.stationary && endFeature && container.featureHasCoordinates(endFeature)) {
-        useGeometryForEnd = true;
-      }
     }
   }
   container.setState(produce(container.state, draftState => {
     if (draftState.focussedSigmet.uuid !== uuid) {
       draftState.focussedSigmet.uuid = uuid;
-      draftState.focussedSigmet.useGeometryForEnd = useGeometryForEnd;
       draftState.focussedSigmet.drawModeStart = drawModeStart || null;
       draftState.focussedSigmet.drawModeEnd = drawModeEnd || null;
     } else {
       draftState.focussedSigmet.uuid = null;
-      draftState.focussedSigmet.useGeometryForEnd = false;
       draftState.focussedSigmet.drawModeStart = null;
       draftState.focussedSigmet.drawModeEnd = null;
       shouldClearDrawing = true;
@@ -380,6 +375,7 @@ const getEmptySigmet = (container) => produce(SIGMET_TEMPLATES.SIGMET, draftSigm
   draftSigmet.levelinfo.levels.push(cloneDeep(SIGMET_TEMPLATES.LEVEL));
   draftSigmet.levelinfo.levels[1].unit = UNITS.FL;
   draftSigmet.volcano_coordinates.push(null);
+  draftSigmet.movement_type = MOVEMENT_TYPES.STATIONARY;
   if (Array.isArray(container.state.parameters.firareas)) {
     draftSigmet.location_indicator_icao = container.state.parameters.firareas[0].location_indicator_icao;
     draftSigmet.firname = container.state.parameters.firareas[0].firname;
@@ -418,7 +414,8 @@ const findCategoryAndSigmetIndex = (uuid, state) => {
 const updateSigmet = (uuid, dataField, value, container) => {
   const { state, props } = container;
   const { drawProperties, dispatch, drawActions } = props;
-  const shouldCleanEndFeature = dataField === 'movement' && value.hasOwnProperty('stationary') && value.stationary === true;
+  const shouldCleanEndFeature = dataField === 'movement_type' && value !== MOVEMENT_TYPES.FORECAST_POSITION;
+  const shouldCleanMovement = dataField === 'movement_type' && value !== MOVEMENT_TYPES.MOVEMENT;
   const indices = findCategoryAndSigmetIndex(uuid, state);
   if (!dataField || !indices.isFound) {
     return;
@@ -435,6 +432,9 @@ const updateSigmet = (uuid, dataField, value, container) => {
   }
   container.setState(produce(state, draftState => {
     draftState.categories[indices.categoryIndex].sigmets[indices.sigmetIndex][dataField] = value;
+    if (shouldCleanMovement) {
+      draftState.categories[indices.categoryIndex].sigmets[indices.sigmetIndex]['movement'] = produce(SIGMET_TEMPLATES.MOVEMENT, () => {});
+    }
     draftState.focussedSigmet.hasEdits = true;
   }), () => {
     if (shouldCleanEndFeature === true) {
@@ -541,36 +541,34 @@ const drawSigmet = (event, uuid, container, action, featureFunction) => {
     case 'select-point':
       dispatch(mapActions.setMapMode('draw'));
       dispatch(drawActions.setFeatureEditPoint());
-      dispatch(drawActions.setFeature({ coordinates: [], selectionType: 'point', featureId }));
+      dispatch(drawActions.setFeature({ coordinates: [], selectionType: MODES_GEO_SELECTION.POINT, featureId }));
       clearRelatedIntersection(featureId, features, dispatch, drawActions);
       modifyFocussedSigmet(drawMode, action, container);
       break;
     case 'select-region':
       dispatch(mapActions.setMapMode('draw'));
       dispatch(drawActions.setFeatureEditBox());
-      dispatch(drawActions.setFeature({ coordinates: [], selectionType: 'box', featureId }));
+      dispatch(drawActions.setFeature({ coordinates: [], selectionType: MODES_GEO_SELECTION.BOX, featureId }));
       clearRelatedIntersection(featureId, features, dispatch, drawActions);
       modifyFocussedSigmet(drawMode, action, container);
       break;
     case 'select-shape':
       dispatch(mapActions.setMapMode('draw'));
       dispatch(drawActions.setFeatureEditPolygon());
-      dispatch(drawActions.setFeature({ coordinates: [], selectionType: 'poly', featureId }));
+      dispatch(drawActions.setFeature({ coordinates: [], selectionType: MODES_GEO_SELECTION.POLY, featureId }));
       clearRelatedIntersection(featureId, features, dispatch, drawActions);
       modifyFocussedSigmet(drawMode, action, container);
       break;
     case 'select-fir':
-      const allSigmets = container.state.categories.find((cat) => cat.ref === container.state.focussedCategoryRef).sigmets;
-      const coordinates = container.state.firs[allSigmets.find((sigmet) => sigmet.uuid === uuid).firname].geometry.coordinates;
       dispatch(mapActions.setMapMode('pan'));
       dispatch(drawActions.setFeatureEditPolygon());
-      dispatch(drawActions.setFeature({ coordinates, selectionType: 'poly', featureId }));
+      dispatch(drawActions.setFeature({ coordinates: [], selectionType: MODES_GEO_SELECTION.FIR, featureId }));
       clearRelatedIntersection(featureId, features, dispatch, drawActions);
       modifyFocussedSigmet(drawMode, action, container);
       break;
     case 'delete-selection':
       dispatch(mapActions.setMapMode('pan'));
-      dispatch(drawActions.setFeature({ coordinates: [], selectionType: 'poly', featureId }));
+      dispatch(drawActions.setFeature({ coordinates: [], selectionType: null, featureId }));
       clearRelatedIntersection(featureId, features, dispatch, drawActions);
       modifyFocussedSigmet(drawMode, null, container);
       break;
@@ -580,26 +578,24 @@ const drawSigmet = (event, uuid, container, action, featureFunction) => {
   dispatch(drawActions.setFeatureNr(featureIndex));
 };
 
-const complementFeatureCoordinates = (feature, container) => {
-  const result = { complemented: false, coordinates: [] };
-  if (container.featureHasCoordinates(feature)) {
-    result.coordinates.push(...feature.geometry.coordinates);
-    if (result.coordinates[0][0] !== result.coordinates[0][result.coordinates[0].length - 1]) {
-      result.coordinates[0].push(result.coordinates[0][0]);
-      result.complemented = true;
-    }
+const cleanFeatures = (features) => {
+  let cleanedFeatures = cloneDeep(features);
+  if (!Array.isArray(cleanedFeatures)) {
+    cleanedFeatures = [cleanedFeatures];
   }
-  return result;
+  cleanedFeatures.forEach((feature) => {
+    const isEntireFir = (feature && feature.properties && feature.properties.selectionType === 'fir');
+    if (isEntireFir === true && feature.geometry && feature.geometry.hasOwnProperty('type')) {
+      feature.geometry.type = null;
+    }
+    clearEmptyPointersAndAncestors(feature);
+  });
+  return Array.isArray(features) ? cleanedFeatures : cleanedFeatures[0];
 };
 
 const createIntersectionData = (feature, firname, container) => {
-  const cleanedFeature = cloneDeep(feature);
-  const complementResult = complementFeatureCoordinates(cleanedFeature, container);
-  if (complementResult.complemented === true) {
-    cleanedFeature.geometry.coordinates = complementResult.coordinates;
-  }
-  clearNullPointersAndAncestors(cleanedFeature);
-  return (!container.featureHasCoordinates(cleanedFeature) || cleanedFeature.geometry.coordinates[0].length < 4)
+  const cleanedFeature = cleanFeatures(feature);
+  return (!isFeatureGeoJsonComplete(cleanedFeature))
     ? null
     : { firname: firname, feature: cleanedFeature };
 };
@@ -640,37 +636,11 @@ const createFirIntersection = (featureId, geojson, container) => {
 };
 
 const modifyFocussedSigmet = (dataField, value, container) => {
-  const { state, props } = container;
-  const { drawProperties, dispatch, drawActions } = props;
-  const shouldCleanEndFeature = dataField === 'useGeometryForEnd' && value !== true;
+  const { state } = container;
   container.setState(produce(state, draftState => {
     draftState.focussedSigmet[dataField] = value;
     draftState.focussedSigmet.hasEdits = true;
-    switch (dataField) {
-      case 'useGeometryForEnd': {
-        const indices = findCategoryAndSigmetIndex(draftState.focussedSigmet.uuid, draftState);
-        if (!indices.isFound) {
-          break;
-        }
-        if (value === true) {
-          draftState.categories[indices.categoryIndex].sigmets[indices.sigmetIndex]['movement'] = produce(SIGMET_TEMPLATES.MOVEMENT,
-            movementDraftState => { movementDraftState.stationary = false; });
-        }
-        break;
-      }
-      default:
-        break;
-    }
-  }), () => {
-    if (shouldCleanEndFeature === true) {
-      const features = cloneDeep(drawProperties.adagucMapDraw.geojson.features);
-      const endFeature = features.find((potentialEndFeature) => potentialEndFeature.properties.featureFunction === 'end');
-      if (endFeature && endFeature.id) {
-        dispatch(drawActions.setFeature({ coordinates: [], selectionType: 'poly', featureId: endFeature.id }));
-        clearRelatedIntersection(endFeature.id, features, dispatch, drawActions);
-      }
-    }
-  });
+  }));
 };
 
 const clearSigmet = (event, uuid, container) => {
@@ -716,24 +686,9 @@ const saveSigmet = (event, uuid, container) => {
   if (!affectedSigmet) {
     return;
   }
-  const geojson = cloneDeep(drawProperties.adagucMapDraw.geojson);
-  let cleanedFeatures = geojson.features;
-  clearNullPointersAndAncestors(cleanedFeatures);
-  cleanedFeatures.forEach((feature) => {
-    const complementResult = complementFeatureCoordinates(feature, container);
-    if (complementResult.complemented === true) {
-      feature.geometry.coordinates = complementResult.coordinates;
-    }
-  });
+  const cleanedFeatures = cleanFeatures(drawProperties.adagucMapDraw.geojson.features);
   const complementedSigmet = produce(affectedSigmet, draftState => {
-    const origStationary = cloneDeep(draftState.movement.stationary);
-    const origObs = cloneDeep(draftState.obs_or_forecast);
-    clearNullPointersAndAncestors(draftState);
-    if (!draftState.hasOwnProperty('movement')) {
-      draftState.movement = {};
-    }
-    draftState.movement.stationary = origStationary;
-    draftState.obs_or_forecast = origObs;
+    clearEmptyPointersAndAncestors(draftState);
     draftState.geojson.features.length = 0;
     draftState.geojson.features.push(...cleanedFeatures);
   });

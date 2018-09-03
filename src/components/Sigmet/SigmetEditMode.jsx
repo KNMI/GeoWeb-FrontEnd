@@ -6,6 +6,7 @@ import { Typeahead } from 'react-bootstrap-typeahead';
 import DateTimePicker from 'react-datetime';
 import produce from 'immer';
 import moment from 'moment';
+import cloneDeep from 'lodash.clonedeep';
 import PropTypes from 'prop-types';
 import { EDIT_ABILITIES, byEditAbilities } from '../../containers/Sigmet/SigmetActions';
 import Icon from 'react-fa';
@@ -23,7 +24,7 @@ import MovementSection from './Sections/MovementSection';
 import IssueSection from './Sections/IssueSection';
 import ChangeSection from './Sections/ChangeSection';
 import HeightsSection from './Sections/HeightsSection';
-import { DIRECTIONS, UNITS_ALT, MODES_LVL, MODES_LVL_OPTIONS, CHANGES, SIGMET_TYPES, SIGMET_TEMPLATES } from './SigmetTemplates';
+import { DIRECTIONS, UNITS_ALT, MODES_LVL, MODES_LVL_OPTIONS, CHANGES, MOVEMENT_TYPES, MOVEMENT_OPTIONS, SIGMET_TYPES } from './SigmetTemplates';
 
 const DATE_FORMAT = 'DD MMM YYYY';
 const TIME_FORMAT = 'HH:mm UTC';
@@ -179,8 +180,8 @@ class SigmetEditMode extends PureComponent {
   }
 
   render () {
-    const { dispatch, actions, availablePhenomena, useGeometryForEnd, hasStartCoordinates, hasEndCoordinates,
-      availableFirs, levelinfo, movement, focus, uuid, locationIndicatorMwo, change, isVolcanicAsh, volcanoName, volcanoCoordinates,
+    const { dispatch, actions, availablePhenomena, hasStartCoordinates, hasEndCoordinates,
+      availableFirs, levelinfo, movement, movementType, focus, uuid, locationIndicatorMwo, change, isVolcanicAsh, volcanoName, volcanoCoordinates,
       phenomenon, isObserved, obsFcTime, validdate, maxHoursInAdvance, maxHoursDuration, validdateEnd, locationIndicatorIcao } = this.props;
     const selectedPhenomenon = availablePhenomena.find((ph) => ph.code === phenomenon);
     const selectedFir = availableFirs.find((fir) => fir.location_indicator_icao === locationIndicatorIcao);
@@ -190,13 +191,15 @@ class SigmetEditMode extends PureComponent {
     const isLevelBetween = levelMode.extent === MODES_LVL.BETW;
     const atOrAboveOption = MODES_LVL_OPTIONS.find((option) => option.optionId === levelMode.extent && option.optionId !== MODES_LVL.BETW);
     const atOrAboveLabel = atOrAboveOption ? atOrAboveOption.label : '';
+    const movementOptions = cloneDeep(MOVEMENT_OPTIONS);
+
     const drawActions = (isEndFeature = false) => [
-      /* {
+      {
         title: `Draw point${!selectedFir ? ' (select a FIR first)' : ''}`,
         action: 'select-point',
         icon: 'circle',
         disabled: !selectedFir
-      }, */
+      },
       {
         title: `Draw region${!selectedFir ? ' (select a FIR first)' : ''}`,
         action: 'select-region',
@@ -227,7 +230,7 @@ class SigmetEditMode extends PureComponent {
       ? !hasStartCoordinates
         ? `${messagePrefix} ${isObserved ? 'observed' : 'expected to occur'}.`
         : ''
-      : movement && !movement.stationary && useGeometryForEnd && !hasEndCoordinates
+      : movementType === MOVEMENT_TYPES.FORECAST_POSITION && !hasEndCoordinates
         ? `${messagePrefix} expected to be at the end of the valid period.`
         : '';
     const now = moment.utc();
@@ -474,62 +477,42 @@ class SigmetEditMode extends PureComponent {
         </HeightsSection>
 
         <ProgressSection>
-          <Switch
-            value={movement && !movement.stationary ? 'mov' : 'stat'}
-            checkedOption={{ optionId: 'mov', label: 'Move' }}
-            unCheckedOption={{ optionId: 'stat', label: 'Stationary' }}
-            onChange={(evt) => dispatch(actions.updateSigmetAction(uuid, 'movement', { ...SIGMET_TEMPLATES.MOVEMENT, stationary: !evt.target.checked }))}
+          <RadioGroup
+            value={movementType}
+            options={movementOptions}
+            onChange={(evt, selectedOption = null) => dispatch(actions.updateSigmetAction(uuid, 'movement_type', selectedOption))}
             data-field='movement'
           />
         </ProgressSection>
 
-        <MovementSection disabled={movement && movement.stationary} useGeometryForEnd={useGeometryForEnd}>
-          {!isVolcanicAsh
-            ? <Switch
-              value={useGeometryForEnd ? 'geom' : 'dirsp'}
-              checkedOption={{ optionId: 'geom', label: 'End location' }}
-              unCheckedOption={{ optionId: 'dirsp', label: 'Direction & speed' }}
-              onChange={(evt) => { dispatch(actions.modifyFocussedSigmetAction('useGeometryForEnd', evt.target.checked)); }}
-              disabled={movement && movement.stationary}
-              data-field='movementType'
-            />
-            : <RadioGroup
-              value={useGeometryForEnd ? 'geom' : 'dirsp'}
-              options={[
-                { optionId: 'dirsp', label: 'Direction & speed' },
-                { optionId: 'geom', label: 'Location' },
-                { optionId: 'nova', label: 'No VA' }
-              ]}
-              onChange={(evt, selectedOption) => console.warn('Updating movement is not yet implemented for Volcanic Ash')}
-              data-field='movementType'
-            />
-          }
+        <MovementSection movementType={movementType}>
           <Typeahead filterBy={['shortName', 'longName']} labelKey='longName' data-field='direction'
-            options={DIRECTIONS} placeholder={'Set direction'} disabled={!movement || movement.stationary || useGeometryForEnd}
+            options={DIRECTIONS} placeholder={'Set direction'} disabled={movementType !== MOVEMENT_TYPES.MOVEMENT}
             onFocus={() => dispatch(actions.updateSigmetAction(uuid, 'movement', { ...movement, dir: null }))}
             onChange={(selectedval) =>
               dispatch(actions.updateSigmetAction(uuid, 'movement', { ...movement, dir: selectedval.length > 0 ? selectedval[0].shortName : null }))}
             selected={selectedDirection ? [selectedDirection] : []}
-            className={movement && !movement.stationary && !useGeometryForEnd && !selectedDirection ? 'missing' : null}
+            className={movementType === MOVEMENT_TYPES.MOVEMENT && !selectedDirection ? 'missing' : null}
             clearButton
           />
-          <InputGroup data-field='speed' className={movement && !movement.stationary && !useGeometryForEnd && !movement.speed ? 'unitAfter missing' : 'unitAfter'}
-            disabled={!movement || movement.stationary || useGeometryForEnd}>
+          <InputGroup data-field='speed' className={movementType === MOVEMENT_TYPES.MOVEMENT && !movement.speed ? 'unitAfter missing' : 'unitAfter'}
+            disabled={movementType !== MOVEMENT_TYPES.MOVEMENT}>
             <Input onChange={(evt) => dispatch(actions.updateSigmetAction(uuid, 'movement', { ...movement, speed: parseInt(evt.target.value) }))}
               value={(!movement || !movement.speed) ? '' : movement.speed}
-              type='number' disabled={!movement || movement.stationary || useGeometryForEnd}
+              type='number' disabled={movementType !== MOVEMENT_TYPES.MOVEMENT}
               step='1' min='1'
             />
             <InputGroupAddon>KT</InputGroupAddon>
           </InputGroup>
           <DrawSection data-field='drawbar' title={drawMessage(true)}
-            className={movement && !movement.stationary && useGeometryForEnd ? `required${hasEndCoordinates ? '' : ' missing'}` : ''}>
+            className={movementType === MOVEMENT_TYPES.FORECAST_POSITION ? `required${hasEndCoordinates ? '' : ' missing'}` : ''}>
             {
               drawActions(true).map((actionItem, index) =>
                 <Button color='primary' key={actionItem.action + '_button'} data-field={actionItem.action + '_button'}
                   active={actionItem.action === this.props.drawModeEnd}
-                  disabled={actionItem.disabled || !movement || movement.stationary || !useGeometryForEnd}
-                  id={actionItem.action + '_button'} title={actionItem.title}
+                  disabled={actionItem.disabled || movementType !== MOVEMENT_TYPES.FORECAST_POSITION}
+                  id={actionItem.action + '_button'}
+                  title={`${actionItem.title}${movementType !== MOVEMENT_TYPES.FORECAST_POSITION ? ' (select position mode first)' : ''}`}
                   onClick={(evt) => dispatch(actions.drawAction(evt, uuid, actionItem.action, 'end'))}>
                   <Icon name={actionItem.icon} />
                 </Button>
@@ -592,12 +575,10 @@ SigmetEditMode.propTypes = {
   drawModeEnd: PropTypes.string,
   hasStartCoordinates: PropTypes.bool,
   hasEndCoordinates: PropTypes.bool,
-  useGeometryForEnd: PropTypes.bool,
   availableFirs: PropTypes.array,
   levelinfo: SIGMET_TYPES.LEVELINFO,
-  movement: PropTypes.shape({
-
-  }),
+  movementType: SIGMET_TYPES.MOVEMENT_TYPE,
+  movement: SIGMET_TYPES.MOVEMENT,
   locationIndicatorMwo: PropTypes.string,
   change: PropTypes.string,
   validdate: PropTypes.string,

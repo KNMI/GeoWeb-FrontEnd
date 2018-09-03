@@ -231,13 +231,10 @@
   }
 
   .Move {
-    .row:nth-child(1) {
-      margin-bottom: 0.1rem;
+    .row:nth-child(2) {
+      margin-top: 0.2rem;
     }
     .row:nth-child(3) {
-      padding-top: 0.2rem;
-    }
-    .row:nth-child(4) {
       margin-top: 0.1rem;
     }
   }
