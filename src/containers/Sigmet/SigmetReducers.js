@@ -112,8 +112,20 @@ const receivedParametersCallback = (response, container) => {
 };
 
 const updateParameters = (parameters, container) => {
+  if (process.env.NODE_ENV === 'development') {
+    parameters.va_hoursbeforevalidity = 6;
+    parameters.va_maxhoursofvalidity = 12;
+    parameters.adjacent_firs = [
+      'EKDK',
+      'EDWW',
+      'EDGG',
+      'EBBU',
+      'EGTT',
+      'EGPX'
+    ];
+  }
   container.setState(produce(container.state, draftState => {
-    Object.assign(draftState.parameters, parameters);
+    draftState.parameters = parameters;
   }));
 };
 
@@ -144,6 +156,17 @@ const receivedPhenomenaCallback = (response, container) => {
 
 const updatePhenomena = (phenomena, container) => {
   const SEPARATOR = '_';
+  if (process.env.NODE_ENV === 'development') {
+    phenomena.push({
+      phenomenon: {
+        layerpreset: null,
+        name: 'Volcanic Ash eruption',
+        code: 'VA_ERUPTION'
+      },
+      variants: [],
+      additions: []
+    });
+  }
   container.setState(produce(container.state, draftState => {
     if (Array.isArray(phenomena)) {
       draftState.phenomena.length = 0;
@@ -351,6 +374,7 @@ const getEmptySigmet = (container) => produce(SIGMET_TEMPLATES.SIGMET, draftSigm
   draftSigmet.levelinfo.levels[0].unit = UNITS.FL;
   draftSigmet.levelinfo.levels.push(cloneDeep(SIGMET_TEMPLATES.LEVEL));
   draftSigmet.levelinfo.levels[1].unit = UNITS.FL;
+  draftSigmet.volcano_coordinates.push(null);
   draftSigmet.movement_type = MOVEMENT_TYPES.STATIONARY;
   if (Array.isArray(container.state.parameters.firareas)) {
     draftSigmet.location_indicator_icao = container.state.parameters.firareas[0].location_indicator_icao;
@@ -402,6 +426,9 @@ const updateSigmet = (uuid, dataField, value, container) => {
     } else {
       value = value[0].code;
     }
+  }
+  if (dataField === 'volcano_coordinates' && Array.isArray(value)) {
+    value = value.map((coordinateAsString) => coordinateAsString !== null && !isNaN(coordinateAsString) ? parseFloat(coordinateAsString) : null);
   }
   container.setState(produce(state, draftState => {
     draftState.categories[indices.categoryIndex].sigmets[indices.sigmetIndex][dataField] = value;

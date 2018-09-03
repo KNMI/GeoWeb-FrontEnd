@@ -49,6 +49,8 @@ TEMPLATES.SIGMET = {
   /* What */
   phenomenon: null, // string
   obs_or_forecast: cloneDeep(TEMPLATES.OBS_OR_FORECAST),
+  volcano_name: null, // string
+  volcano_coordinates: [null], // number values
   /* Where */
   geojson: cloneDeep(TEMPLATES.GEOJSON),
   levelinfo: cloneDeep(TEMPLATES.LEVELINFO),
@@ -138,13 +140,15 @@ TYPES.LEVELINFO = PropTypes.shape({
 const MOVEMENT_TYPES = {
   STATIONARY: 'STATIONARY',
   MOVEMENT: 'MOVEMENT',
-  FORECAST_POSITION: 'FORECAST_POSITION'
+  FORECAST_POSITION: 'FORECAST_POSITION',
+  NO_VA_EXPECTED: 'NO_VA_EXPECTED'
 };
 
 const MOVEMENT_OPTIONS = [
   { optionId: MOVEMENT_TYPES.STATIONARY, label: 'Stationary', disabled: false },
   { optionId: MOVEMENT_TYPES.MOVEMENT, label: 'Movement', disabled: false },
-  { optionId: MOVEMENT_TYPES.FORECAST_POSITION, label: 'End position', disabled: false }
+  { optionId: MOVEMENT_TYPES.FORECAST_POSITION, label: 'End position', disabled: false },
+  { optionId: MOVEMENT_TYPES.NO_VA_EXPECTED, label: 'No VA expected', disabled: true }
 ];
 
 // Cardinal, intercardinal and named points for directions of wind
@@ -162,7 +166,9 @@ const DIRECTIONS = [
   { shortName: 'SW', longName: 'Southwest' },
   { shortName: 'WSW', longName: 'West-Southwest' },
   { shortName: 'W', longName: 'West' },
-  { shortName: 'WNW', longName: 'West-Northwest' }
+  { shortName: 'WNW', longName: 'West-Northwest' },
+  { shortName: 'NW', longName: 'Northwest' },
+  { shortName: 'NNW', longName: 'North-Northwest' }
 ];
 
 // Change types

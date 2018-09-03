@@ -6,6 +6,7 @@ import { Typeahead } from 'react-bootstrap-typeahead';
 import DateTimePicker from 'react-datetime';
 import produce from 'immer';
 import moment from 'moment';
+import cloneDeep from 'lodash.clonedeep';
 import PropTypes from 'prop-types';
 import { EDIT_ABILITIES, byEditAbilities } from '../../containers/Sigmet/SigmetActions';
 import Icon from 'react-fa';
@@ -135,7 +136,8 @@ class SigmetEditMode extends PureComponent {
 * @param {object} ability The ability to provide the flag for
 * @param {boolean} isInValidityPeriod Whether or not the referred Sigmet is active
 * @param {string} selectedPhenomenon The phenomenon which is selected
-* @returns {boolean} Whether or not is should be disabled
+* @returns {object} Object with {boolean} property disable, indicating whether or not is should be disabled
+*          and {string} property message to explain why...
 */
   getDisabledFlag (abilityRef, isInValidityPeriod, selectedPhenomenon) {
     const { copiedSigmetRef, hasEdits, validdate, validdateEnd, obsFcTime } = this.props;
@@ -179,7 +181,7 @@ class SigmetEditMode extends PureComponent {
 
   render () {
     const { dispatch, actions, availablePhenomena, hasStartCoordinates, hasEndCoordinates,
-      availableFirs, levelinfo, movement, movementType, focus, uuid, locationIndicatorMwo, change,
+      availableFirs, levelinfo, movement, movementType, focus, uuid, locationIndicatorMwo, change, isVolcanicAsh, volcanoName, volcanoCoordinates,
       phenomenon, isObserved, obsFcTime, validdate, maxHoursInAdvance, maxHoursDuration, validdateEnd, locationIndicatorIcao } = this.props;
     const selectedPhenomenon = availablePhenomena.find((ph) => ph.code === phenomenon);
     const selectedFir = availableFirs.find((fir) => fir.location_indicator_icao === locationIndicatorIcao);
@@ -189,6 +191,8 @@ class SigmetEditMode extends PureComponent {
     const isLevelBetween = levelMode.extent === MODES_LVL.BETW;
     const atOrAboveOption = MODES_LVL_OPTIONS.find((option) => option.optionId === levelMode.extent && option.optionId !== MODES_LVL.BETW);
     const atOrAboveLabel = atOrAboveOption ? atOrAboveOption.label : '';
+    const movementOptions = cloneDeep(MOVEMENT_OPTIONS);
+
     const drawActions = (isEndFeature = false) => [
       {
         title: `Draw point${!selectedFir ? ' (select a FIR first)' : ''}`,
@@ -276,6 +280,28 @@ class SigmetEditMode extends PureComponent {
             }}
             className={!this.isValidObsFcTimestamp(obsFcTime) ? 'missing' : null}
           />
+          {isVolcanicAsh
+            ? <Input type='text' value={volcanoName || ''} data-field='volcano_name' placeholder='Volcano name'
+              onChange={(evt) => dispatch(actions.updateSigmetAction(uuid, 'volcano_name', evt.target.value))}
+            />
+            : null
+          }
+          {isVolcanicAsh
+            ? <Input type='number' placeholder='Position' step='0.1'
+              value={Array.isArray(volcanoCoordinates) && volcanoCoordinates.length > 1 && volcanoCoordinates[0] !== null ? volcanoCoordinates[0] : ''}
+              data-field='volcano_coordinates_lat'
+              onChange={(evt) => dispatch(actions.updateSigmetAction(uuid, 'volcano_coordinates', [evt.target.value, volcanoCoordinates[1]]))}
+            />
+            : null
+          }
+          {isVolcanicAsh
+            ? <Input type='number' placeholder='Position' step='0.1'
+              value={Array.isArray(volcanoCoordinates) && volcanoCoordinates.length > 1 && volcanoCoordinates[1] !== null ? volcanoCoordinates[1] : ''}
+              data-field='volcano_coordinates_lon'
+              onChange={(evt) => dispatch(actions.updateSigmetAction(uuid, 'volcano_coordinates', [volcanoCoordinates[0], evt.target.value]))}
+            />
+            : null
+          }
         </WhatSection>
 
         <ValiditySection>
@@ -453,7 +479,7 @@ class SigmetEditMode extends PureComponent {
         <ProgressSection>
           <RadioGroup
             value={movementType}
-            options={MOVEMENT_OPTIONS}
+            options={movementOptions}
             onChange={(evt, selectedOption = null) => dispatch(actions.updateSigmetAction(uuid, 'movement_type', selectedOption))}
             data-field='movement'
           />
@@ -559,7 +585,10 @@ SigmetEditMode.propTypes = {
   validdateEnd: PropTypes.string,
   maxHoursDuration: PropTypes.number,
   maxHoursInAdvance: PropTypes.number,
-  locationIndicatorIcao: PropTypes.string
+  locationIndicatorIcao: PropTypes.string,
+  volcanoName: PropTypes.string,
+  volcanoCoordinates: PropTypes.arrayOf(PropTypes.number),
+  isVolcanicAsh: PropTypes.bool
 };
 
 export default SigmetEditMode;

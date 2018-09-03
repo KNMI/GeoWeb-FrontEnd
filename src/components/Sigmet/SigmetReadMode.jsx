@@ -115,7 +115,7 @@ class SigmetReadMode extends PureComponent {
 
   render () {
     const { dispatch, actions, focus, uuid, phenomenon, isObserved, obsFcTime, validdate, validdateEnd, firname, locationIndicatorIcao, issuedate,
-      locationIndicatorMwo, levelinfo, movement, movementType, change, sequence, tac, isCancelFor } = this.props;
+      locationIndicatorMwo, levelinfo, movement, movementType, change, sequence, tac, isCancelFor, volcanoName, volcanoCoordinates, isVolcanicAsh } = this.props;
     const abilityCtAs = this.reduceAbilities(); // CtA = Call To Action
     const selectedDirection = movement && DIRECTIONS.find((obj) => obj.shortName === movement.dir);
     const directionLongName = selectedDirection ? selectedDirection.longName : null;
@@ -133,6 +133,18 @@ class SigmetReadMode extends PureComponent {
                 : '(no forecasted time provided)'
               }
             </span>
+          }
+          {isVolcanicAsh
+            ? <span data-field='volcano_name'>{volcanoName}</span>
+            : null
+          }
+          {isVolcanicAsh
+            ? <span data-field='volcano_coordinates_lat'>{Array.isArray(volcanoCoordinates) && volcanoCoordinates.length > 1 ? volcanoCoordinates[0] : null}</span>
+            : null
+          }
+          {isVolcanicAsh
+            ? <span data-field='volcano_coordinates_lon'>{Array.isArray(volcanoCoordinates) && volcanoCoordinates.length > 1 ? volcanoCoordinates[1] : null}</span>
+            : null
           }
         </WhatSection>
 
@@ -244,7 +256,10 @@ SigmetReadMode.propTypes = {
   maxHoursDuration: PropTypes.number,
   hasStartCoordinates: PropTypes.bool,
   hasStartIntersectionCoordinates: PropTypes.bool,
-  isCancelFor: PropTypes.number
+  isCancelFor: PropTypes.number,
+  volcanoName: PropTypes.string,
+  volcanoCoordinates: PropTypes.arrayOf(PropTypes.number),
+  isVolcanicAsh: PropTypes.bool
 };
 
 export default SigmetReadMode;
