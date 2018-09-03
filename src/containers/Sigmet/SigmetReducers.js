@@ -598,7 +598,12 @@ const createFirIntersection = (featureId, geojson, container) => {
       data: intersectionData
     }).then((response) => {
       if (response.data) {
-        dispatch(drawActions.setFeature({ coordinates: response.data.geometry.coordinates, selectionType: 'poly', featureId: intersectionFeature.id }));
+        dispatch(drawActions.setFeature({
+          coordinates: response.data.geometry.coordinates,
+          type: response.data.geometry.type,
+          selectionType: response.data.properties.selectionType,
+          featureId: intersectionFeature.id
+        }));
       }
     }).catch(error => {
       console.error('Couldn\'t retrieve intersection for feature', error, featureId);
