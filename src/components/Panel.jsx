@@ -1,10 +1,11 @@
 import React, { PureComponent } from 'react';
 import { Row, ButtonDropdown, DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap';
 import PropTypes from 'prop-types';
+import MomentPropTypes from 'react-moment-proptypes';
 import { Typeahead } from 'react-bootstrap-typeahead';
 
 class Panel extends PureComponent {
-  constructor() {
+  constructor () {
     super();
     this.state = {
       typeIsOpen: false,
@@ -34,7 +35,9 @@ class Panel extends PureComponent {
         <div className={className ? 'Panel ' + className : 'Panel'} id={id} onClick={onClick}>
           {(type && panelOpts.some((opt) => opt === type))
             ? <Row className='title notitle' style={{ ...style, overflow: 'visible' }}>
-              <ModeLocationChanger mapId={mapId} type={type} location={this.props.location} dispatch={dispatch} isLoggedIn={isLoggedIn} panelsActions={panelsActions} adagucActions={this.props.adagucActions} locations={this.props.locations} type={type} referenceTime={this.props.referenceTime} />
+              <ModeLocationChanger mapId={mapId} type={type} location={this.props.location}
+                dispatch={dispatch} isLoggedIn={isLoggedIn} panelsActions={panelsActions}
+                adagucActions={this.props.adagucActions} locations={this.props.locations} referenceTime={this.props.referenceTime} />
             </Row>
             : <Row className='title notitle' style={style} />
           }
@@ -74,7 +77,7 @@ class ModeLocationChanger extends PureComponent {
     this.state = {
       modelIsOpen: false,
       typeIsOpen: false
-    }
+    };
   }
   toggleType () {
     this.setState({
@@ -124,7 +127,7 @@ class ModeLocationChanger extends PureComponent {
     }
   }
   convertMinSec (loc) {
-    function padLeft(nr, n, str) {
+    function padLeft (nr, n, str) {
       return Array(n - String(nr).length + 1).join(str || '0') + nr;
     }
 
@@ -209,7 +212,7 @@ class ModeLocationChanger extends PureComponent {
             }
           </DropdownMenu>
         </ButtonDropdown>
-      </div>
+      </div>;
     }
   }
 }
@@ -221,14 +224,26 @@ Panel.propTypes = {
   className: PropTypes.string,
   mapId: PropTypes.number,
   dispatch: PropTypes.func,
-  mapActions: PropTypes.object,
   panelsActions: PropTypes.object,
   adagucActions: PropTypes.object,
   id: PropTypes.string,
   mapMode: PropTypes.string,
-  referenceTime: PropTypes.object,
-  location: PropTypes.object,
+  referenceTime: MomentPropTypes.momentObj,
+  location: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
   type: PropTypes.string,
+  locations: PropTypes.array,
+  isLoggedIn: PropTypes.bool
+};
+
+ModeLocationChanger.propTypes = {
+  type: PropTypes.string,
+  location: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
+  dispatch: PropTypes.func,
+  adagucActions: PropTypes.object,
+  mapId: PropTypes.number,
+  panelsActions: PropTypes.object,
+  isLoggedIn: PropTypes.bool,
+  referenceTime: MomentPropTypes.momentObj,
   locations: PropTypes.array
 };
 
