@@ -4,7 +4,7 @@ import moment from 'moment';
 import { arrayMove } from 'react-sortable-hoc';
 import setNestedProperty from 'lodash.set';
 import getNestedProperty from 'lodash.get';
-import { mergeInTemplate, removeNestedProperty, getJsonPointers, clearNullPointersAndAncestors } from '../../utils/json';
+import { mergeInTemplate, removeNestedProperty, getJsonPointers, clearEmptyPointersAndAncestors } from '../../utils/json';
 import { notify } from 'reapop';
 import cloneDeep from 'lodash.clonedeep';
 import { ReadLocations } from '../../utils/admin';
@@ -551,7 +551,7 @@ const sanitizeTaf = (tafAsObject) => {
     });
   }
 
-  clearNullPointersAndAncestors(taf);
+  clearEmptyPointersAndAncestors(taf);
 
   if (!getNestedProperty(taf, ['changegroups'])) {
     setNestedProperty(taf, ['changegroups'], []);

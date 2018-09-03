@@ -5,6 +5,14 @@ import hasNestedProperty from 'lodash.has';
 import cloneDeep from 'lodash.clonedeep';
 import unsetNestedProperty from 'lodash.unset';
 
+// Modes for geo-location selection
+const MODES_GEO_SELECTION = {
+  POINT: 'point',
+  BOX: 'box',
+  POLY: 'poly',
+  FIR: 'fir'
+};
+
 /**
  * Merges the values into (nested) templates
  * @param {any} incomingValues The object with values to merge into templates, same hierarchy as template
@@ -93,6 +101,14 @@ const isDefinedFalsy = (value) =>
   (value === 0 || value === false || value === '');
 
 /**
+ * Check if structure is an object
+ * @param {*} structure The data structure to check
+ * @returns {Boolean} True when structure is an object, false otherwise
+ */
+const isObject = (structure) =>
+  (structure && typeof structure === 'object' && structure.constructor === Object);
+
+/**
  * Check if structure is empty
  * @param {*} structure The data structure to check whether or not it is null / empty
  * @returns {Boolean} True when structure is empty false otherwise
@@ -100,7 +116,7 @@ const isDefinedFalsy = (value) =>
 const isEmptyStructure = (structure) =>
   (!structure && !isDefinedFalsy(structure)) ||
   (Array.isArray(structure) && structure.filter((item) => isDefinedFalsy(item) || item).length === 0) ||
-  (structure && typeof structure === 'object' && structure.constructor === Object && Object.keys(structure).length === 0);
+  (isObject(structure) && Object.keys(structure).length === 0);
 
 /**
  * Upwards recursively remove empty properties
@@ -197,11 +213,25 @@ const clearNullPointersAndAncestors = (objectToClear) => {
 };
 
 /**
+ * Clear all empty values in an object, and clear resulting empty ancestors as well
+ * @param  {Object} objectToClear An hierarchical object to clean null values for
+ */
+const clearEmptyPointersAndAncestors = (objectToClear) => {
+  const emptyPointers = [];
+  getJsonPointers(objectToClear, (field) => isEmptyStructure(field), emptyPointers);
+  emptyPointers.reverse(); // handle high (array-)indices first
+  emptyPointers.forEach((nullPointer) => {
+    const pathParts = nullPointer.split('/');
+    pathParts.shift();
+    clearRecursive(objectToClear, pathParts);
+  });
+};
+
+/**
  * Remove nested property in object
  * @param {Object} containingObject An hierarchical object to remove the nested property from
  * @param {Array} pathParts Array of JSON-path-elements
  */
-
 const removeNestedProperty = (containingObject, pathParts) => {
   const parentPathParts = pathParts.slice();
   const propertyKey = parentPathParts.pop();
@@ -216,10 +246,49 @@ const removeNestedProperty = (containingObject, pathParts) => {
   }
 };
 
+/**
+ * Test if a feature (in the context of GeoJson) has necessarily properties (coordinates) are valid and present
+ * @param {Object} feature The geojson feature to test
+ * @returns {Boolean} True when the feature properties are valid and present, false otherwise
+ */
+const isFeatureGeoJsonComplete = (feature) => {
+  if (!isObject(feature) || !isObject(feature.properties)) {
+    return false;
+  }
+  const selectionType = feature.properties.selectionType || null;
+  switch (selectionType) {
+    case MODES_GEO_SELECTION.FIR:
+      return true;
+    case MODES_GEO_SELECTION.POINT:
+      if (feature.geometry && Array.isArray(feature.geometry.coordinates) &&
+          feature.geometry.coordinates.length === 2 && !isNaN(feature.geometry.coordinates[0]) && !isNaN(feature.geometry.coordinates[1])) {
+        return true;
+      }
+      return false;
+    case MODES_GEO_SELECTION.POLY:
+    case MODES_GEO_SELECTION.BOX:
+      if (feature.geometry && Array.isArray(feature.geometry.coordinates) &&
+          feature.geometry.coordinates.length > 0) { // polygon (multiple sub-polygons with joins and exclusions)
+        if (feature.geometry.coordinates.every((subPolygon) =>
+          (Array.isArray(subPolygon) && subPolygon.length > 3 && subPolygon.every((latLon) =>
+            (Array.isArray(latLon) && latLon.length === 2 && !isNaN(latLon[0]) && !isNaN(latLon[1]))
+          )))) {
+          return true;
+        }
+      }
+      return false;
+    default:
+      return false;
+  }
+};
+
 module.exports = {
   getJsonPointers: getJsonPointers,
   clearRecursive: clearRecursive,
   mergeInTemplate: mergeInTemplate,
   clearNullPointersAndAncestors: clearNullPointersAndAncestors,
-  removeNestedProperty: removeNestedProperty
+  clearEmptyPointersAndAncestors: clearEmptyPointersAndAncestors,
+  removeNestedProperty: removeNestedProperty,
+  isFeatureGeoJsonComplete: isFeatureGeoJsonComplete,
+  MODES_GEO_SELECTION: MODES_GEO_SELECTION
 };
