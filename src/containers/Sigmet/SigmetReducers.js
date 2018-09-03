@@ -441,7 +441,10 @@ const updateSigmet = (uuid, dataField, value, container) => {
       const features = cloneDeep(drawProperties.adagucMapDraw.geojson.features);
       const endFeature = features.find((potentialEndFeature) => potentialEndFeature.properties.featureFunction === 'end');
       if (endFeature && endFeature.id) {
-        dispatch(drawActions.setFeature({ coordinates: [], selectionType: 'poly', featureId: endFeature.id }));
+        dispatch(drawActions.setFeature({
+          geometry: { coordinates: [], type: null },
+          properties: { selectionType: null },
+          featureId: endFeature.id }));
         clearRelatedIntersection(endFeature.id, features, dispatch, drawActions);
       }
     }
@@ -522,7 +525,10 @@ const clearRelatedIntersection = (featureId, features, dispatch, drawActions) =>
     feature.properties.featureFunction === 'intersection' && feature.properties.relatesTo === featureId
   );
   if (relatedIntersection) {
-    dispatch(drawActions.setFeature({ coordinates: [], selectionType: 'poly', featureId: relatedIntersection.id }));
+    dispatch(drawActions.setFeature({
+      geometry: { coordinates: [], type: null },
+      properties: { selectionType: null },
+      featureId: relatedIntersection.id }));
   }
 };
 
@@ -541,34 +547,54 @@ const drawSigmet = (event, uuid, container, action, featureFunction) => {
     case 'select-point':
       dispatch(mapActions.setMapMode('draw'));
       dispatch(drawActions.setFeatureEditPoint());
-      dispatch(drawActions.setFeature({ coordinates: [], selectionType: MODES_GEO_SELECTION.POINT, featureId }));
+      dispatch(drawActions.setFeature({
+        geometry: { coordinates: [] },
+        properties: { selectionType: MODES_GEO_SELECTION.POINT },
+        featureId: featureId
+      }));
+
       clearRelatedIntersection(featureId, features, dispatch, drawActions);
       modifyFocussedSigmet(drawMode, action, container);
       break;
     case 'select-region':
       dispatch(mapActions.setMapMode('draw'));
       dispatch(drawActions.setFeatureEditBox());
-      dispatch(drawActions.setFeature({ coordinates: [], selectionType: MODES_GEO_SELECTION.BOX, featureId }));
+      dispatch(drawActions.setFeature({
+        geometry: { coordinates: [] },
+        properties: { selectionType: MODES_GEO_SELECTION.BOX },
+        featureId: featureId }));
+
       clearRelatedIntersection(featureId, features, dispatch, drawActions);
       modifyFocussedSigmet(drawMode, action, container);
       break;
     case 'select-shape':
       dispatch(mapActions.setMapMode('draw'));
       dispatch(drawActions.setFeatureEditPolygon());
-      dispatch(drawActions.setFeature({ coordinates: [], selectionType: MODES_GEO_SELECTION.POLY, featureId }));
+      dispatch(drawActions.setFeature({
+        geometry: { coordinates: [] },
+        properties: { selectionType: MODES_GEO_SELECTION.POLY },
+        featureId: featureId }));
       clearRelatedIntersection(featureId, features, dispatch, drawActions);
       modifyFocussedSigmet(drawMode, action, container);
       break;
     case 'select-fir':
       dispatch(mapActions.setMapMode('pan'));
       dispatch(drawActions.setFeatureEditPolygon());
-      dispatch(drawActions.setFeature({ coordinates: [], selectionType: MODES_GEO_SELECTION.FIR, featureId }));
+      dispatch(drawActions.setFeature({
+        geometry: { coordinates: [] },
+        properties: { selectionType: MODES_GEO_SELECTION.FIR },
+        featureId: featureId }));
+
       clearRelatedIntersection(featureId, features, dispatch, drawActions);
       modifyFocussedSigmet(drawMode, action, container);
       break;
     case 'delete-selection':
       dispatch(mapActions.setMapMode('pan'));
-      dispatch(drawActions.setFeature({ coordinates: [], selectionType: null, featureId }));
+      dispatch(drawActions.setFeature({
+        geometry: { coordinates: [], type: null },
+        properties: { selectionType: null },
+        featureId: featureId }));
+
       clearRelatedIntersection(featureId, features, dispatch, drawActions);
       modifyFocussedSigmet(drawMode, null, container);
       break;
@@ -625,12 +651,11 @@ const createFirIntersection = (featureId, geojson, container) => {
       data: intersectionData
     }).then((response) => {
       if (response.data) {
+        console.log('Sigmet intersection', JSON.stringify(response.data, null, 2));
         dispatch(drawActions.setFeature({
-          coordinates: response.data.geometry.coordinates,
-          type: response.data.geometry.type,
-          selectionType: response.data.properties.selectionType,
-          featureId: intersectionFeature.id
-        }));
+          geometry: { coordinates: response.data.geometry.coordinates, type: response.data.geometry.type },
+          properties: { selectionType:  response.data.properties.selectionType },
+          featureId: intersectionFeature.id }));
       }
     }).catch(error => {
       console.error('Couldn\'t retrieve intersection for feature', error, featureId);
