@@ -216,12 +216,15 @@ export default class AdagucMapDraw extends PureComponent {
     }
   }
 
-  drawPoint (ctx, _coord, selected, middle, isInEditMode) {
+  drawPoint (ctx, _coord, selected, middle, isInEditMode, featureProperties) {
+    const strokeStyle = (featureProperties && featureProperties.stroke) || this.defaultPolyProps.stroke;
+    const lineWidth = (featureProperties && featureProperties['stroke-width']) || this.defaultPolyProps['stroke-width'];
+    const fillStyle = (featureProperties && featureProperties.fill) || this.defaultPolyProps.fill;
     if (isInEditMode === false) {
       /* Standard style, no editing, just display location of vertices */
-      ctx.strokeStyle = '#000';
-      ctx.fillStyle = '#000';
-      ctx.lineWidth = 1.0;
+      ctx.strokeStyle = strokeStyle;
+      ctx.fillStyle = fillStyle;
+      ctx.lineWidth = lineWidth;
     } else if (selected === false) {
       /* Style for standard editable vertice */
       ctx.strokeStyle = '#000';
@@ -420,7 +423,8 @@ export default class AdagucMapDraw extends PureComponent {
           this.drawPoint(ctx, XYCoords[j],
             this.mouseIsOverVertexNr === j && this.props.featureNrToEdit === featureIndex,
             false,
-            this.props.isInEditMode && this.props.featureNrToEdit === featureIndex);
+            this.props.isInEditMode && this.props.featureNrToEdit === featureIndex,
+            feature.properties);
         }
       }
 

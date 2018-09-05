@@ -73,15 +73,17 @@ export const actions = {
 };
 
 export default handleActions({
+  /* Updates geometry and properties */
   [SET_FEATURE]: (state, { payload }) => {
-    const { coordinates, selectionType, featureId } = payload;
+    const { properties, geometry, featureId } = payload;
     const stateCpy = cloneDeep(state);
-    const feature = stateCpy.adagucMapDraw.geojson.features.find((feature) => feature.id === featureId);
-    if (!feature) {
+    const featureToUpdate = stateCpy.adagucMapDraw.geojson.features.find((feature) => feature.id === featureId);
+    if (!featureToUpdate) {
       return state;
     }
-    feature.properties.selectionType = selectionType;
-    feature.geometry.coordinates = coordinates;
+    featureToUpdate.properties = Object.assign(featureToUpdate.properties, properties);
+
+    featureToUpdate.geometry = geometry;
     return stateCpy;
   },
   [ADAGUCMAPDRAW_EDIT_POINT]: (state, { payload }) => {
