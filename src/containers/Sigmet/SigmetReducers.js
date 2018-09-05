@@ -78,7 +78,18 @@ const updateCategory = (ref, sigmets, container, callback = () => {}) => {
       draftState.categories[categoryIndex].sigmets.length = 0;
       sigmets.sort(byValidDate);
       sigmets.forEach((incomingSigmet) => {
-        draftState.categories[categoryIndex].sigmets.push(mergeInTemplate(incomingSigmet, 'SIGMET', templateWithDefaults));
+        /* TODO FIX for diMosellaAtWork (reported MaartenPlieger, 05-09-2018, 10:30). MergeInTemplate coordinates needs different nesting for point/poly */
+        let mergedSigmet = produce(mergeInTemplate(incomingSigmet, 'SIGMET', templateWithDefaults), sigmetToAddCoordsTo => {
+          if (incomingSigmet && incomingSigmet.geojson && incomingSigmet.geojson.features && incomingSigmet.geojson.features.length > 0) {
+            for (let f = 0; f < incomingSigmet.geojson.features.length; f++) {
+              let incomingFeature = incomingSigmet.geojson.features[f];
+              if (incomingFeature.geometry && incomingFeature.geometry.coordinates && incomingFeature.geometry.coordinates.length > 0) {
+                sigmetToAddCoordsTo.geojson.features[f].geometry.coordinates = incomingFeature.geometry.coordinates;
+              }
+            }
+          }
+        });
+        draftState.categories[categoryIndex].sigmets.push(mergedSigmet);
         if (incomingSigmet.uuid) {
           retrieveTAC(incomingSigmet.uuid, container);
         }
@@ -651,7 +662,6 @@ const createFirIntersection = (featureId, geojson, container) => {
       data: intersectionData
     }).then((response) => {
       if (response.data) {
-        console.log('Sigmet intersection', JSON.stringify(response.data, null, 2));
         dispatch(drawActions.setFeature({
           geometry: { coordinates: response.data.geometry.coordinates, type: response.data.geometry.type },
           properties: { selectionType:  response.data.properties.selectionType },
