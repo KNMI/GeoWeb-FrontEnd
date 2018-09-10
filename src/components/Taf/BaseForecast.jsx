@@ -78,7 +78,7 @@ class BaseForecast extends Component {
     columns.push({
       name: 'forecast-vertical_visibility',
       value: jsonToTacForVerticalVisibility(tafForecast.vertical_visibility, true) || '',
-      disabled: !editable,
+      disabled: !editable || !hasVerticalVisibility,
       classes: [hasVerticalVisibility ? '' : 'hidden-taf-field']
     });
     for (let cloudsIndex = 0; cloudsIndex < 4; cloudsIndex++) {
@@ -91,7 +91,7 @@ class BaseForecast extends Component {
               ? jsonToTacForClouds(tafForecast.clouds[cloudsIndex], true) || ''
               : ''
           : '',
-        disabled: !editable || (jsonToTacForClouds(tafForecast.clouds) && cloudsIndex !== 0),
+        disabled: !editable || (jsonToTacForClouds(tafForecast.clouds) && cloudsIndex !== 0) || (hasVerticalVisibility && cloudsIndex === 3),
         classes: [ (hasVerticalVisibility && cloudsIndex === 3) ? 'hidden-taf-field' : '' ]
       });
     }

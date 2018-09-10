@@ -208,9 +208,6 @@ class TafTable extends Component {
             propertiesToUpdate[0].propertyPath.pop();
             propertiesToUpdate[0].propertyPath.pop();
             propertiesToUpdate[0].propertyPath.push('vertical_visibility');
-            // TODO: FIX FOCUS on inivisbile field
-            propertiesToUpdate[0].setFocus = propertiesToUpdate[0].propertyPath.join('-');
-            this.props.setFocus(propertiesToUpdate[0].propertyPath.join('-'));
             break;
           }
           /* Handle clouds */
@@ -330,7 +327,6 @@ TafTable.defaultProps = {
   editable: false,
   inputRef: () => {},
   focusedFieldName: null,
-  setFocus: () => {},
   setTafValues: () => {},
   onKeyUp: () => {},
   onKeyDown: () => {},
@@ -344,7 +340,6 @@ TafTable.propTypes = {
   focusedFieldName: PropTypes.string,
   editable : PropTypes.bool,
   inputRef: PropTypes.func,
-  setFocus: PropTypes.func,
   setTafValues: PropTypes.func,
   onKeyUp: PropTypes.func,
   onKeyDown: PropTypes.func,

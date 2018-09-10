@@ -900,7 +900,6 @@ const updateTafFields = (valuesAtPaths, container) => {
     !Array.isArray(valuesAtPaths) || valuesAtPaths.length === 0) {
     return;
   }
-  let fieldToFocus = null;
   container.setState(produce(state, draftState => {
     const { selectedTaf } = draftState;
     const draftTafData = selectedTaf[0].tafData;
@@ -912,16 +911,9 @@ const updateTafFields = (valuesAtPaths, container) => {
           setNestedProperty(draftTafData, entry.propertyPath, entry.propertyValue);
         }
         draftState.selectedTaf[0].hasEdits = true;
-        if (entry.setFocus) {
-          fieldToFocus = entry.setFocus;
-        }
       }
     });
-  }), () => {
-    if (fieldToFocus) {
-      console.log('TODO, set focus on ', fieldToFocus);
-    }
-  });
+  }));
 };
 
 /**
