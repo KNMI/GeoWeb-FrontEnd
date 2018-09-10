@@ -73,28 +73,26 @@ class BaseForecast extends Component {
         classes: []
       });
     }
-    /* TODO: maartenplieger, 2018-08-22: Discuss with diMosellaAtWork how to solve vertical visibility and one cloudgroup at the same time */
-    const hasVerticalVisibility = tafForecast.hasOwnProperty('vertical_visibility') && jsonToTacForVerticalVisibility(tafForecast.vertical_visibility) !== null;
-    if (hasVerticalVisibility) {
-      columns.push({
-        name: 'forecast-clouds-0',
-        value: jsonToTacForVerticalVisibility(tafForecast.vertical_visibility),
-        disabled: !editable,
-        classes: []
-      });
-    }
-    for (let cloudsIndex = hasVerticalVisibility ? 1 : 0; cloudsIndex < 4; cloudsIndex++) {
+    const hasVerticalVisibility = tafForecast.hasOwnProperty('vertical_visibility') &&
+      jsonToTacForVerticalVisibility(tafForecast.vertical_visibility, true) !== null;
+    columns.push({
+      name: 'forecast-vertical_visibility',
+      value: jsonToTacForVerticalVisibility(tafForecast.vertical_visibility, true) || '',
+      disabled: !editable,
+      classes: [hasVerticalVisibility ? '' : 'hidden-taf-field']
+    });
+    for (let cloudsIndex = 0; cloudsIndex < 4; cloudsIndex++) {
       columns.push({
         name: 'forecast-clouds-' + cloudsIndex,
         value: tafForecast.hasOwnProperty('clouds')
-          ? (Array.isArray(tafForecast.clouds) && tafForecast.clouds.length > cloudsIndex
-            ? jsonToTacForClouds(tafForecast.clouds[cloudsIndex], true) || ''
-            : cloudsIndex === 0
-              ? jsonToTacForClouds(tafForecast.clouds, true) || '' // NSC
-              : '')
+          ? typeof tafForecast.clouds === 'string' && cloudsIndex === 0
+            ? jsonToTacForClouds(tafForecast.clouds, true) || '' // NSC
+            : Array.isArray(tafForecast.clouds) && tafForecast.clouds.length > (cloudsIndex)
+              ? jsonToTacForClouds(tafForecast.clouds[cloudsIndex], true) || ''
+              : ''
           : '',
         disabled: !editable || (jsonToTacForClouds(tafForecast.clouds) && cloudsIndex !== 0),
-        classes: []
+        classes: [ (hasVerticalVisibility && cloudsIndex === 3) ? 'hidden-taf-field' : '' ]
       });
     }
     columns.push(
