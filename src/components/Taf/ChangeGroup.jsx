@@ -73,22 +73,28 @@ class ChangeGroup extends Component {
         classes: []
       });
     }
+    const hasVerticalVisibility = tafChangeGroup.hasOwnProperty('forecast') && tafChangeGroup.forecast.hasOwnProperty('vertical_visibility') &&
+      jsonToTacForVerticalVisibility(tafChangeGroup.forecast.vertical_visibility, true) !== null;
+    columns.push({
+      name: 'changegroups-' + index + '-forecast-vertical_visibility',
+      value: (tafChangeGroup.hasOwnProperty('forecast') && jsonToTacForVerticalVisibility(tafChangeGroup.forecast.vertical_visibility, true)) || '',
+      disabled: !editable || !hasVerticalVisibility,
+      classes: [hasVerticalVisibility ? '' : 'hidden-taf-field']
+    });
     for (let cloudsIndex = 0; cloudsIndex < 4; cloudsIndex++) {
       columns.push({
         name: 'changegroups-' + index + '-forecast-clouds-' + cloudsIndex,
-        value: (tafChangeGroup.hasOwnProperty('forecast') && (tafChangeGroup.forecast.hasOwnProperty('vertical_visibility') || tafChangeGroup.forecast.hasOwnProperty('clouds')))
-          ? jsonToTacForVerticalVisibility(tafChangeGroup.forecast.vertical_visibility) ||
-            (Array.isArray(tafChangeGroup.forecast.clouds) && tafChangeGroup.forecast.clouds.length > cloudsIndex
+        value: tafChangeGroup.hasOwnProperty('forecast') && tafChangeGroup.forecast.hasOwnProperty('clouds')
+          ? typeof tafChangeGroup.forecast.clouds === 'string' && cloudsIndex === 0
+            ? jsonToTacForClouds(tafChangeGroup.forecast.clouds, true) || '' // NSC
+            : Array.isArray(tafChangeGroup.forecast.clouds) && tafChangeGroup.forecast.clouds.length > (cloudsIndex)
               ? jsonToTacForClouds(tafChangeGroup.forecast.clouds[cloudsIndex], true) || ''
-              : cloudsIndex === 0
-                ? jsonToTacForClouds(tafChangeGroup.forecast.clouds, true) || '' // NSC
-                : '')
+              : ''
           : '',
-        disabled: !editable || (jsonToTacForClouds(tafChangeGroup.forecast.clouds) && cloudsIndex !== 0) ||
-          (jsonToTacForVerticalVisibility(tafChangeGroup.forecast.vertical_visibility) && cloudsIndex !== 0),
-        classes: (tafChangeGroup.hasOwnProperty('forecast') && (tafChangeGroup.forecast.hasOwnProperty('vertical_visibility') || tafChangeGroup.forecast.hasOwnProperty('clouds')))
-          ? [ (jsonToTacForVerticalVisibility(tafChangeGroup.forecast.vertical_visibility) && cloudsIndex !== 0) ? 'hideValue' : null ]
-          : null
+        disabled: !editable ||
+          (tafChangeGroup.hasOwnProperty('forecast') && jsonToTacForClouds(tafChangeGroup.forecast.clouds) && cloudsIndex !== 0) ||
+          (hasVerticalVisibility && cloudsIndex === 3),
+        classes: [ (hasVerticalVisibility && cloudsIndex === 3) ? 'hidden-taf-field' : '' ]
       });
     }
     columns.push(
@@ -124,7 +130,6 @@ class ChangeGroup extends Component {
         column.classes.push('TACColumnError');
       }
     });
-
     return <tr>
       {columns.map((col) =>
         <TafCell classes={col.classes} key={col.name} name={col.name} value={col.value} inputRef={inputRef}

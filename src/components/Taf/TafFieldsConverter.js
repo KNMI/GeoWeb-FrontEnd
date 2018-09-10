@@ -668,7 +668,7 @@ const tacToJsonForVerticalVisibility = (verticalVisibilityAsTac, useFallback = f
     }
   }
   if (useFallback && result === null && verticalVisibilityAsTac && typeof verticalVisibilityAsTac === 'string') {
-    result.fallback = { value: verticalVisibilityAsTac, message: converterMessagesMap.clouds };
+    result = { fallback: { value: verticalVisibilityAsTac, message: converterMessagesMap.vertical_visibility } };
   }
   return result;
 };
@@ -684,8 +684,9 @@ const converterMessagesMap = {
     'with <qualifier> one of (' + convertMapToString(qualifierInverseMap) + '), <descriptor> one of (' + convertMapToString(descriptorInverseMap) + '), ' +
     '<phenomena> any of (' + convertMapToString(phenomenaInverseMap) + ').',
   clouds: 'Cloud was not recognized. Expected at least one of <amount><height>, <modifier>, <vertical_visibility> or (NSC), ' +
-    'with <amount> one of (' + convertMapToString(amountInverseMap) + '), <height> equal to 3 digits, <modifier> one of ' +
-    '(' + convertMapToString(modInverseMap) + ') and <vertical_visibility> equal to (VV) followed by 3 digits.'
+    'with <amount> one of (' + convertMapToString(amountInverseMap) + '), <height> equal to 3 digits and <modifier> one of ' +
+    '(' + convertMapToString(modInverseMap) + ')',
+  vertical_visibility: 'Vertical visibility was not recognized. Expected <vertical_visibility> equal to (VV) followed by 3 digits.'
 };
 
 module.exports = {

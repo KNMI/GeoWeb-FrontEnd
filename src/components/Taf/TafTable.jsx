@@ -8,6 +8,7 @@ import SortableChangeGroup from './SortableChangeGroup';
 import { TAF_TEMPLATES, TAF_TYPES, PHENOMENON_TYPES, getPhenomenonType } from './TafTemplates';
 import getNestedProperty from 'lodash.get';
 import cloneDeep from 'lodash.clonedeep';
+import isEqual from 'lodash.isequal';
 import { tacToJsonForWind, tacToJsonForCavok, tacToJsonForVisibility, tacToJsonForWeather, tacToJsonForVerticalVisibility, tacToJsonForClouds,
   jsonToTacForChangeType, tacToJsonForProbabilityAndChangeType, jsonToTacForProbability, tacToJsonForTimestamp, tacToJsonForPeriod } from './TafFieldsConverter';
 
@@ -166,21 +167,56 @@ class TafTable extends Component {
             propertiesToUpdate[0].deleteProperty = true;
           }
           break;
+        case PHENOMENON_TYPES.VERTICAL_VISIBILITY:
+          propertiesToUpdate[0].propertyValue = tacToJsonForVerticalVisibility(value, true);
+          if (tacToJsonForVerticalVisibility(value) === null) {
+            const valueAsCloud = tacToJsonForClouds(value);
+            if (!isEqual(valueAsCloud, TAF_TEMPLATES.CLOUDS[0])) {
+              /* Vertical vis does not match, directly erase this value and use clouds with their fallback instead */
+              const newPath = cloneDeep(propertiesToUpdate[0].propertyPath);
+              propertiesToUpdate.push({
+                propertyPath: newPath,
+                propertyValue: valueAsCloud
+              });
+              /* Clear vertical visibility */
+              propertiesToUpdate[0].propertyValue = null;
+              propertiesToUpdate[1].propertyPath.pop();
+              propertiesToUpdate[1].propertyPath.push('clouds');
+              propertiesToUpdate[1].propertyPath.push('0');
+              if (propertiesToUpdate[1].propertyValue === 'NSC') {
+                propertiesToUpdate[1].propertyPath.pop();
+              }
+              if (isObjInArrayEmpty(propertiesToUpdate[1].propertyValue, propertiesToUpdate[1].propertyPath[propertiesToUpdate[1].propertyPath.length - 1])) {
+                propertiesToUpdate[1].deleteProperty = true;
+              }
+            }
+          }
+          break;
         case PHENOMENON_TYPES.CLOUDS:
           const matchVerticalVisibility = tacToJsonForVerticalVisibility(value);
-          propertiesToUpdate.push({
-            propertyPath: cloneDeep(propertiesToUpdate[0].propertyPath),
-            propertyValue: tacToJsonForClouds(value, matchVerticalVisibility === null)
-          });
-          propertiesToUpdate[0].propertyValue = matchVerticalVisibility;
-          propertiesToUpdate[0].propertyPath.pop();
-          propertiesToUpdate[0].propertyPath.pop();
-          propertiesToUpdate[0].propertyPath.push('vertical_visibility');
-          if (propertiesToUpdate[1].propertyValue === 'NSC') {
-            propertiesToUpdate[1].propertyPath.pop();
+          /* Check if this is the first cloud field (forecast-clouds-0), for vertical visibility */
+          if (parseInt(propertiesToUpdate[0].propertyPath[propertiesToUpdate[0].propertyPath.length - 1]) === 0 && matchVerticalVisibility !== null) {
+            /* We have to update both clouds and vertical visibility, clone path and adjust */
+            const newPath = cloneDeep(propertiesToUpdate[0].propertyPath);
+            propertiesToUpdate.push({
+              propertyPath: newPath,
+              propertyValue: null, /* Clear clouds */
+              deleteProperty: true
+            });
+            /* Set vertical visibility by adjusting the json path forecast/clouds/0 to forecast/vertical_visibility */
+            propertiesToUpdate[0].propertyValue = matchVerticalVisibility;
+            propertiesToUpdate[0].propertyPath.pop();
+            propertiesToUpdate[0].propertyPath.pop();
+            propertiesToUpdate[0].propertyPath.push('vertical_visibility');
+            break;
           }
-          if (isObjInArrayEmpty(propertiesToUpdate[1].propertyValue, propertiesToUpdate[1].propertyPath[propertiesToUpdate[1].propertyPath.length - 1])) {
-            propertiesToUpdate[1].deleteProperty = true;
+          /* Handle clouds */
+          propertiesToUpdate[0].propertyValue = tacToJsonForClouds(value, true);
+          if (propertiesToUpdate[0].propertyValue === 'NSC') {
+            propertiesToUpdate[0].propertyPath.pop();
+          }
+          if (isObjInArrayEmpty(propertiesToUpdate[0].propertyValue, propertiesToUpdate[0].propertyPath[propertiesToUpdate[0].propertyPath.length - 1])) {
+            propertiesToUpdate[0].deleteProperty = true;
           }
           break;
         default:

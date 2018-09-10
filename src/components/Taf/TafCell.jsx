@@ -11,7 +11,7 @@ class TafCell extends PureComponent {
         ? <span name={name} disabled={disabled}>{value}</span>
         : isButton
           ? <Button name={name} size='sm' disabled={disabled} autoFocus={autoFocus}>{value}</Button>
-          : <input ref={inputRef} name={name} type='text' value={value} disabled={disabled} autoFocus={autoFocus} />
+          : <input ref={inputRef} name={name} type='text' value={value} disabled={disabled} autoFocus={autoFocus} onChange={() => {}} />
       }
     </td>;
   }

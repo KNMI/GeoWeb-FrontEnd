@@ -36,7 +36,7 @@ const MOVE_DIRECTION = Enum(
  * The component hierarchy is structured as follows:
  *
  *                                 BaseForecast -> \
- *                                                   --> TafTable -> Taf
+ *                                                   --> TafTable -> Taf -> TafContainer
  *     ChangeGroup(s) -> SortableChangeGroup(s) -> /
  *
  */
