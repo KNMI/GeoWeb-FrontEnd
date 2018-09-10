@@ -158,7 +158,10 @@ const TYPES = {
 TYPES.FORECAST = PropTypes.shape({
   caVOK: PropTypes.bool,
   clouds: TYPES.CLOUDS,
-  vertical_visibility: PropTypes.number,
+  vertical_visibility: PropTypes.oneOfType([
+    PropTypes.number,
+    TYPE_FALLBACK
+  ]),
   visibility: TYPES.VISIBILITY,
   weather: TYPES.WEATHER,
   wind: TYPES.WIND,

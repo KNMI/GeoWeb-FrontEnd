@@ -65,8 +65,6 @@ describe('(Container) Taf/TafTable.jsx', () => {
     const _instance = _component.instance();
     _instance.updateValue(inputMock);
     expect(values).to.eql([
-      { propertyPath: [ 'changegroups', '1', 'forecast', 'vertical_visibility' ],
-        propertyValue: null },
       { propertyPath: [ 'changegroups', '1', 'forecast', 'clouds', '2' ],
         propertyValue: { amount: 'BKN', height: 30, mod: null } } ]);
   });
