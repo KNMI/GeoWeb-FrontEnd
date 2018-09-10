@@ -739,7 +739,6 @@ class Taf extends Component {
                 validationReport={validationFeedback && validationFeedback.list}
                 taf={tafData}
                 focusedFieldName={this.state.focusedFieldName}
-                setFocus={this.setFocus}
                 inputRef={this.registerElement}
                 onSortEnd={({ oldIndex, newIndex }) => dispatch(actions.reorderTafRowAction(oldIndex, newIndex))}
                 setTafValues={(valuesAtPaths) => dispatch(actions.updateTafFieldsAction(valuesAtPaths))}
