@@ -40,7 +40,12 @@ class ChangeGroup extends Component {
       },
       {
         name: 'changegroups-' + index + '-validity',
-        value: tafChangeGroup.hasOwnProperty('changeStart') && tafChangeGroup.hasOwnProperty('changeEnd') ? jsonToTacForPeriod(tafChangeGroup.changeStart, tafChangeGroup.changeEnd, true) || '' : '',
+        value: (tafChangeGroup.hasOwnProperty('changeStart') && tafChangeGroup.hasOwnProperty('changeEnd'))
+          ? jsonToTacForPeriod(tafChangeGroup.changeStart,
+            tafChangeGroup.changeEnd,
+            true,
+            tafChangeGroup.hasOwnProperty('changeType') && tafChangeGroup.changeType === 'FM' && !tafChangeGroup.changeEnd) || ''
+          : '',
         disabled: !editable,
         classes: []
       },
