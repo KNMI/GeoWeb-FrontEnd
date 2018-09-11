@@ -680,15 +680,8 @@ const deleteTaf = (event, container) => {
     return;
   }
   container.setState(produce(state, draftState => {
-    if (draftState.selectedTaf[0].tafData.metadata.status === STATUSES.NEW) {
-      draftState.selectedTaf[0].tafData.metadata.status = STATUSES.CONCEPT;
-    }
-    draftState.selectedTaf.length = 0;
-
-    /* Re-open empty taf after delete */
-    const previousSelected = draftState.selectableTafs.find((selectable) => selectable.tafData.metadata.uuid === uuid);
     draftState.mode = MODES.EDIT;
-    draftState.selectedTaf.push(previousSelected);
+    draftState.displayModal = null;
   }), () => {
     axios({
       method: 'delete',
@@ -702,10 +695,7 @@ const deleteTaf = (event, container) => {
       updateFeedback('Couldn\'t delete TAF',
         FEEDBACK_STATUSES.ERROR, FEEDBACK_CATEGORIES.LIFECYCLE, null, null, container, () => {
           container.setState(produce(state, draftState => {
-            const previousSelected = draftState.selectableTafs.find((selectable) => selectable.tafData.metadata.uuid === uuid);
-            if (previousSelected) {
-              draftState.selectedTaf.push(previousSelected);
-            }
+            draftState.mode = MODES.READ;
           }));
         });
     });
@@ -938,6 +928,22 @@ const updateTAC = (TAC, container) => {
 };
 
 /**
+ * Toggles TAF modals on and off
+ * @param {Event} event The event which triggered the toggling
+ * @param {string} type The modal type to toggle
+ * @param {component} container The container in which the TAF modal should be toggled
+ */
+const toggleTafModal = (event, type, container) => {
+  const { state } = container;
+  if (event) {
+    event.stopPropagation();
+  }
+  container.setState(produce(state, draftState => {
+    draftState.displayModal = draftState.displayModal === type ? null : type;
+  }));
+};
+
+/**
  * TafsContainer has its own state, this is the dispatch for updating the state
  * @param {object} localAction Action-object containing the type and additional, action specific, parameters
  * @param {object} state Object reference for the actual state
@@ -1009,5 +1015,7 @@ export default (localAction, container) => {
     case LOCAL_ACTION_TYPES.VALIDATE_TAF:
       validateTaf(localAction.tafObject, container);
       break;
+    case LOCAL_ACTION_TYPES.TOGGLE_TAF_MODAL:
+      toggleTafModal(localAction.event, localAction.modalType, container);
   }
 };

@@ -7,8 +7,9 @@ import Taf from '../../components/Taf/Taf';
 import ContainerHeader from '../../components/Taf/ContainerHeader';
 import TafSelector from '../../components/Taf/TafSelector';
 import FeedbackSection from '../../components/Taf/FeedbackSection';
-import { INITIAL_STATE, LOCAL_ACTIONS, FEEDBACK_STATUSES, FEEDBACK_CATEGORIES } from './TafActions';
+import { INITIAL_STATE, LOCAL_ACTIONS, FEEDBACK_STATUSES, FEEDBACK_CATEGORIES, MODALS } from './TafActions';
 import dispatch from './TafReducers';
+import ConfirmationModal from '../../components/Taf/ConfirmationModal';
 
 export default class TafsContainer extends Component {
   constructor (props) {
@@ -27,7 +28,7 @@ export default class TafsContainer extends Component {
   }
 
   render () {
-    const { selectableTafs, selectedTaf, mode, abilitiesPerStatus, copiedTafRef, feedback } = this.state;
+    const { selectableTafs, selectedTaf, mode, abilitiesPerStatus, copiedTafRef, feedback, displayModal } = this.state;
     const tafToShow = selectedTaf && Array.isArray(selectedTaf) && selectedTaf.length === 1 ? selectedTaf[0] : null;
     const hasFollowUp = Array.isArray(selectableTafs) && !!tafToShow && selectableTafs.some((selectable) =>
       !!selectable.tafData.metadata.previousUuid && selectable.tafData.metadata.previousUuid === tafToShow.tafData.metadata.uuid);
@@ -57,6 +58,8 @@ export default class TafsContainer extends Component {
               : <Row className='TafFeedbackSection empty' />
             }
           </Col>
+          <ConfirmationModal config={MODALS.CONFIRM_DELETE} openModal={displayModal} dispatch={this.localDispatch} actions={LOCAL_ACTIONS}
+            identifier={tafToShow ? `the TAF for ${tafToShow.location} ${tafToShow.timestamp.format('HH:mm')}` : null} />
         </Panel>
       </Col>);
   }
