@@ -85,12 +85,19 @@ const isSameSelectableTaf = (tafA, tafB) => {
  * Create a function that determines the selectability of TAFs
  * @param {array} locations The locations that should be selectable
  * @param {object} timestamps The timestamps that should be selectable
- * @returns {func} A function to determine to check whether or not a TAF should be listed as selectable
+ * @returns {func} A function which determines whether or not a TAF should be listed as selectable
  */
-const isTafSelectable = (locations, timestamps) => (taf) =>
-  taf && taf.metadata && typeof taf.metadata.validityStart === 'string' && typeof taf.metadata.location === 'string' &&
-  (timestamps.current.isSame(moment.utc(taf.metadata.validityStart)) || timestamps.next.isSame(moment.utc(taf.metadata.validityStart))) &&
-  locations.includes(taf.metadata.location.toUpperCase());
+const isTafSelectable = (locations, timestamps) => (taf) => {
+  if (!taf || !taf.metadata || typeof taf.metadata.validityStart !== 'string' ||
+      typeof taf.metadata.location !== 'string' || typeof taf.metadata.type !== 'string') {
+    return false;
+  }
+  const validityStart = moment.utc(taf.metadata.validityStart);
+  return locations.includes(taf.metadata.location.toUpperCase()) &&
+    (timestamps.current.isSame(validityStart) || timestamps.next.isSame(validityStart) ||
+    ((taf.metadata.type === LIFECYCLE_STAGE_NAMES.AMENDMENT || taf.metadata.type === LIFECYCLE_STAGE_NAMES.CANCELED) &&
+      timestamps.current.isSameOrBefore(validityStart)));
+};
 
 /**
  * Determines if the available timestamps and locations don't match the selectable TAFs for a TAF-container
@@ -859,9 +866,6 @@ const removeTafRow = (rowIndex, container) => {
   }
   container.setState(produce(state, draftState => {
     draftState.selectedTaf[0].tafData.changegroups.splice(rowIndex, 1);
-    // if (draftState.selectedTaf[0].tafData.changegroups.length === 0) {
-    //   draftState.selectedTaf[0].tafData.changegroups.push(produce(TAF_TEMPLATES.CHANGE_GROUP, draftChangegroup => { }));
-    // }
     draftState.selectedTaf[0].hasEdits = true;
   }));
 };

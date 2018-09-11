@@ -30,6 +30,8 @@ const changeTypeRegEx = new RegExp('^(' + convertMapToRegExpOptions(typeInverseM
 
 const timestampRegEx = /^(\d{2})(\d{2})$/i;
 
+const extendedTimestampRegEx = /^(\d{2})(\d{2})(\d{2})$/i;
+
 const periodRegEx = /^(\d{4})\/(\d{4})$/i;
 
 const windRegEx = new RegExp('^(\\d{3}|' + convertMapToRegExpOptions(windDirectionInverseMap) + ')' +
@@ -132,14 +134,15 @@ const jsonToTacForChangeType = (changeTypeAsJson, useFallback = false) => {
   return result;
 };
 
-const jsonToTacForTimestamp = (timestampAsJson, useFallback = false, isPeriodEnd = false) => {
+const jsonToTacForTimestamp = (timestampAsJson, useFallback = false, isPeriodEnd = false, useExtendedNotation = false) => {
   let result = null;
+  const timestampFormat = useExtendedNotation ? 'DDHHmm' : 'DDHH';
   if (timestampAsJson && typeof timestampAsJson === 'string' && moment(timestampAsJson).isValid()) {
     const timestampMoment = moment.utc(timestampAsJson);
     if (isPeriodEnd && timestampMoment.hours() === 0) {
       result = timestampMoment.add(-1, 'days').format('DD') + '24';
     } else {
-      result = timestampMoment.format('DDHH');
+      result = timestampMoment.format(timestampFormat);
     }
   } else if (useFallback && timestampAsJson && timestampAsJson.hasOwnProperty('fallback')) {
     result = timestampAsJson.fallback.value;
@@ -147,10 +150,10 @@ const jsonToTacForTimestamp = (timestampAsJson, useFallback = false, isPeriodEnd
   return result;
 };
 
-const jsonToTacForPeriod = (startTimestampAsJson, endTimestampAsJson, useFallback = false) => {
+const jsonToTacForPeriod = (startTimestampAsJson, endTimestampAsJson, useFallback = false, useExtendedNotation = false) => {
   let result = null;
-  const periodStart = jsonToTacForTimestamp(startTimestampAsJson, useFallback);
-  const periodEnd = jsonToTacForTimestamp(endTimestampAsJson, useFallback, true);
+  const periodStart = jsonToTacForTimestamp(startTimestampAsJson, useFallback, false, useExtendedNotation);
+  const periodEnd = jsonToTacForTimestamp(endTimestampAsJson, useFallback, true, useExtendedNotation);
   if (periodStart && periodEnd) {
     result = periodStart + '/' + periodEnd;
   } else if (periodStart) {
@@ -426,23 +429,28 @@ const tacToJsonForProbabilityAndChangeType = (probabilityAsTac, changeTypeAsTac,
   return result;
 };
 
-const tacToJsonForTimestamp = (timestampAsTac, scopeStart, scopeEnd, useFallback = false, prefix = true) => {
+const tacToJsonForTimestamp = (timestampAsTac, scopeStart, scopeEnd, useFallback = false, prefix = true, useExtendedNotation = false) => {
   let result = null;
   const scopeStartMoment = moment.utc(scopeStart);
   const scopeEndMoment = moment.utc(scopeEnd);
   let matchResult;
   let dateValue;
   let hourValue;
+  let minuteValue = 0;
   if (scopeStartMoment.isValid() && scopeEndMoment.isValid() && scopeStartMoment.isBefore(scopeEndMoment) &&
       timestampAsTac && typeof timestampAsTac === 'string') {
-    matchResult = timestampAsTac.match(timestampRegEx);
+    matchResult = timestampAsTac.match(useExtendedNotation ? extendedTimestampRegEx : timestampRegEx);
     if (matchResult) {
       const resultMoment = scopeStartMoment.clone();
       dateValue = parseInt(matchResult[1]);
       hourValue = parseInt(matchResult[2]);
-      resultMoment.date(dateValue).hours(hourValue).minutes(0).seconds(0).milliseconds(0);
+      if (useExtendedNotation) {
+        minuteValue = parseInt(matchResult[3]);
+      }
+      resultMoment.date(dateValue).hours(hourValue).minutes(minuteValue).seconds(0).milliseconds(0);
       // Only proceed if moment has not bubbled dates overflow to months and not bubbled hours overflow to days
-      if ((resultMoment.date() === dateValue && resultMoment.hours() === hourValue) || (hourValue === 24)) {
+      if ((resultMoment.date() === dateValue && resultMoment.hours() === hourValue && resultMoment.minutes() === minuteValue) ||
+          (resultMoment.date() === dateValue + 1 && hourValue === 24 && minuteValue === 0)) {
         if (scopeEndMoment.month() !== scopeStartMoment.month() && dateValue < 15) {
           resultMoment.add(1, 'months');
         }
@@ -454,7 +462,7 @@ const tacToJsonForTimestamp = (timestampAsTac, scopeStart, scopeEnd, useFallback
     const fallbackMessages = [];
     let prefixMessage = prefix ? converterMessagesMap.prefix + 'Valid period Start ' : '';
     if (!matchResult) {
-      fallbackMessages.push(prefixMessage + 'is expected to equal 4 digits');
+      fallbackMessages.push(`${prefixMessage} is expected to equal ${useExtendedNotation ? '6' : '4'} digits`);
     } else {
       if (dateValue < 1 || dateValue > 31) {
         fallbackMessages.push(prefixMessage + 'should have a date value between 01 and 31.');
@@ -465,8 +473,17 @@ const tacToJsonForTimestamp = (timestampAsTac, scopeStart, scopeEnd, useFallback
         }
         fallbackMessages.push(prefixMessage + 'should have an hour value between 00 and 24.');
       }
+      if (minuteValue < 0 || minuteValue > 59) {
+        if (prefixMessage && fallbackMessages.length > 0) {
+          prefixMessage = 'And also, it ';
+        }
+        fallbackMessages.push(prefixMessage + 'should have a minute value between 00 and 59.');
+      }
       if (fallbackMessages.length === 0) {
-        fallbackMessages.push(prefixMessage + 'should equal <date><hour>, with <date> a valid, 2 digit date and <hour> a valid, 2 digit hour');
+        fallbackMessages.push(`${prefixMessage} ${useExtendedNotation
+          ? 'should equal <date><hour><minute>, with <date> a valid, 2 digit date, ' +
+              '<hour> a valid, 2 digit hour and <minute> a valid, 2 digit minute'
+          : 'should equal <date><hour>, with <date> a valid, 2 digit date and <hour> a valid, 2 digit hour'}`);
       }
     }
     result = { fallback: { value: timestampAsTac, message: fallbackMessages } };
@@ -675,7 +692,8 @@ const tacToJsonForVerticalVisibility = (verticalVisibilityAsTac, useFallback = f
 
 const converterMessagesMap = {
   prefix: 'The input value for ',
-  period: 'Valid period was not recognized. Expected either <timestamp> or <timestamp>/<timestamp>, with <timestamp> equal to 4 digits.',
+  period: 'Valid period was not recognized. Expected either <timestamp>, <extended_timestamp> or <timestamp>/<timestamp>,' +
+      'with <timestamp> equal to 4 digits and <extended_timestamp> equal to 6 digits.',
   wind: 'was not recognized. Expected at least <direction><speed>, with <direction> to equal either 3 digits or VRB and <speed> equal to 2 digits',
   visibility: 'was not recognized. Expected either <value>, <value><unit> or (CAVOK), with <value> equal to 4 digits and <unit> ' +
     'one of (' + convertMapToString(visibilityUnitInverseMap) + ').',

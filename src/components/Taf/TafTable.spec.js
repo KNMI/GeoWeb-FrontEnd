@@ -92,13 +92,13 @@ describe('(Container) Taf/TafTable.jsx', () => {
       setTafValues={(propsToUpdate) => { values = propsToUpdate; }} />);
     const inputMock = {
       name: 'changegroups-3-validity',
-      value: '0410'
+      value: '041020'
     };
     const _instance = _component.instance();
     _instance.updateValue(inputMock);
     expect(values).to.eql([
       { propertyPath: [ 'changegroups', '3', 'changeStart' ],
-        propertyValue: '2017-08-04T10:00:00Z' },
+        propertyValue: '2017-08-04T10:20:00Z' },
       { propertyPath: [ 'changegroups', '3', 'changeEnd' ],
         propertyValue: null } ]);
   });
