@@ -64,6 +64,17 @@ export const MODALS = {
       action: 'deleteTafAction'
     },
     toggleAction: 'toggleTafModalAction'
+  },
+  CONFIRM_CANCEL: {
+    type: 'confirm cancel',
+    title: 'Cancel TAF?',
+    message: (identifier) => `Are you sure you want to cancel ${identifier}?`,
+    button: {
+      label: 'Cancel',
+      icon: 'times-circle',
+      action: 'cancelTafAction'
+    },
+    toggleAction: 'toggleTafModalAction'
   }
 };
 
@@ -140,7 +151,8 @@ export const READ_ABILITIES = {
     'dataField': 'cancel',
     'label': 'Cancel',
     'check': 'isCancelable',
-    'action': 'cancelTafAction'
+    'action': 'toggleTafModalAction',
+    'parameter': MODALS.CONFIRM_CANCEL.type
   }
 };
 

@@ -5,9 +5,8 @@ import PropTypes from 'prop-types';
 
 export default class ConfirmationModal extends PureComponent {
   render () {
-    const { config, openModal, dispatch, actions, identifier } = this.props;
-    return <Modal className='ConfirmationModal' isOpen={openModal === config.type}
-      toggle={(evt) => dispatch(actions[config.toggleAction](evt, config.type))}>
+    const { config, dispatch, actions, identifier } = this.props;
+    return <Modal className='ConfirmationModal' isOpen toggle={(evt) => dispatch(actions[config.toggleAction](evt, config.type))}>
       <ModalHeader>{config.title}</ModalHeader>
       <ModalBody>
         <Row>
@@ -17,7 +16,10 @@ export default class ConfirmationModal extends PureComponent {
       <ModalFooter>
         <Row>
           <Col xs={{ size: 6, offset: 6 }}>
-            <Button color='secondary' onClick={(evt) => dispatch(actions[config.toggleAction](evt, config.type))}>Cancel</Button>
+            <Button color='primary' onClick={(evt) => dispatch(actions[config.toggleAction](evt, config.type))}>
+              <Icon className='icon' name='undo' />
+              Go back
+            </Button>
             <Button color='primary' onClick={(evt) => dispatch(actions[config.button.action](evt))}>
               <Icon className='icon' name={config.button.icon} />
               {config.button.label}
@@ -31,7 +33,6 @@ export default class ConfirmationModal extends PureComponent {
 
 ConfirmationModal.propTypes = {
   config: PropTypes.object,
-  openModal: PropTypes.string,
   identifier: PropTypes.string,
   dispatch: PropTypes.func,
   actions: PropTypes.objectOf(PropTypes.func)

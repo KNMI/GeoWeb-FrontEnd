@@ -816,12 +816,13 @@ const cancelTaf = (event, container) => {
     draftState.selectedTaf[0].tafData.metadata.previousUuid = draftState.selectedTaf[0].tafData.metadata.uuid;
     draftState.selectedTaf[0].tafData.metadata.uuid = null;
     draftState.selectedTaf[0].uuid = null;
-    draftState.selectedTaf[0].tafData.metadata.status = STATUSES.CONCEPT;
+    draftState.selectedTaf[0].tafData.metadata.status = STATUSES.PUBLISHED;
     draftState.selectedTaf[0].tafData.metadata.type = LIFECYCLE_STAGE_NAMES.CANCELED;
     draftState.selectedTaf[0].tafData.changegroups.length = 0;
     draftState.selectedTaf[0].tafData.forecast = {};
     draftState.mode = MODES.READ;
-  }));
+    draftState.displayModal = null;
+  }), () => saveTaf(event, container));
 };
 
 /**
