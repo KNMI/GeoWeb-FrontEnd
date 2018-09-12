@@ -7,8 +7,9 @@ import Taf from '../../components/Taf/Taf';
 import ContainerHeader from '../../components/Taf/ContainerHeader';
 import TafSelector from '../../components/Taf/TafSelector';
 import FeedbackSection from '../../components/Taf/FeedbackSection';
-import { INITIAL_STATE, LOCAL_ACTIONS, FEEDBACK_STATUSES, FEEDBACK_CATEGORIES } from './TafActions';
+import { INITIAL_STATE, LOCAL_ACTIONS, FEEDBACK_STATUSES, FEEDBACK_CATEGORIES, MODALS, LIFECYCLE_STAGES } from './TafActions';
 import dispatch from './TafReducers';
+import ConfirmationModal from '../../components/Taf/ConfirmationModal';
 
 export default class TafsContainer extends Component {
   constructor (props) {
@@ -27,8 +28,15 @@ export default class TafsContainer extends Component {
   }
 
   render () {
-    const { selectableTafs, selectedTaf, mode, abilitiesPerStatus, copiedTafRef, feedback } = this.state;
+    const { selectableTafs, selectedTaf, mode, abilitiesPerStatus, copiedTafRef, feedback, displayModal } = this.state;
     const tafToShow = selectedTaf && Array.isArray(selectedTaf) && selectedTaf.length === 1 ? selectedTaf[0] : null;
+
+    // Get information for modal
+    const stageOfTafToShow = tafToShow ? LIFECYCLE_STAGES.find((item) => item.stage === tafToShow.tafData.metadata.type) : null;
+    const typeOfTafToShow = stageOfTafToShow ? stageOfTafToShow.label : null;
+    const modalEntries = Object.entries(MODALS).filter((modalEntry) => modalEntry[1].type === displayModal);
+    const modalConfig = Array.isArray(modalEntries) && modalEntries.length > 0 ? modalEntries[0][1] : null;
+
     const hasFollowUp = Array.isArray(selectableTafs) && !!tafToShow && selectableTafs.some((selectable) =>
       !!selectable.tafData.metadata.previousUuid && selectable.tafData.metadata.previousUuid === tafToShow.tafData.metadata.uuid);
     const lifecycleFeedback = feedback && feedback[FEEDBACK_CATEGORIES.LIFECYCLE];
@@ -57,6 +65,11 @@ export default class TafsContainer extends Component {
               : <Row className='TafFeedbackSection empty' />
             }
           </Col>
+          {modalConfig
+            ? <ConfirmationModal config={modalConfig} dispatch={this.localDispatch} actions={LOCAL_ACTIONS}
+              identifier={tafToShow && typeOfTafToShow ? `the TAF for ${tafToShow.location} ${tafToShow.timestamp.format('HH:mm')} ${typeOfTafToShow}` : null} />
+            : null
+          }
         </Panel>
       </Col>);
   }

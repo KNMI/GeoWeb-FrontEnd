@@ -683,7 +683,6 @@ class Taf extends Component {
   reduceAbilities () {
     const { selectedTaf, abilitiesPerStatus, mode } = this.props;
     const abilitiesCtAs = []; // CtA = Call To Action
-    // abilitiesCtAs.push(READ_ABILITIES.COPY);
     if (!selectedTaf || !selectedTaf.tafData || !selectedTaf.tafData.metadata ||
       !selectedTaf.tafData.metadata.status || !selectedTaf.tafData.metadata.type) {
       return abilitiesCtAs;
@@ -710,8 +709,8 @@ class Taf extends Component {
     });
     if (selectedType === LIFECYCLE_STAGE_NAMES.CANCELED) {
       abilitiesCtAs.length = 0;
-      abilitiesCtAs.push(EDIT_ABILITIES.DISCARD);
-      abilitiesCtAs.push(READ_ABILITIES.PUBLISH);
+      // abilitiesCtAs.push(EDIT_ABILITIES.DISCARD);
+      // abilitiesCtAs.push(READ_ABILITIES.PUBLISH);
     }
     abilitiesCtAs.sort(byAbilities);
     return abilitiesCtAs;
@@ -777,7 +776,7 @@ class Taf extends Component {
               <Button key={`action-${ability.dataField}`}
                 data-field={ability.dataField}
                 color='primary' disabled={ability.disabled}
-                onClick={(evt) => dispatch(actions[ability.action](evt))}>
+                onClick={(evt) => dispatch(actions[ability.action](evt, ability.parameter))}>
                 {ability.label}
               </Button>
             )}
@@ -806,17 +805,7 @@ Taf.propTypes = {
   }),
   hasFollowUp: PropTypes.bool,
   dispatch: PropTypes.func,
-  actions: PropTypes.shape({
-    discardTafAction: PropTypes.func,
-    saveTafAction: PropTypes.func,
-    editTafAction: PropTypes.func,
-    deleteTafAction: PropTypes.func,
-    copyTafAction: PropTypes.func,
-    publishTafAction: PropTypes.func,
-    amendTafAction: PropTypes.func,
-    correctTafAction: PropTypes.func,
-    cancelTafAction: PropTypes.func
-  })
+  actions: PropTypes.objectOf(PropTypes.func)
 };
 
 export default Taf;

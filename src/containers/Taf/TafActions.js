@@ -19,7 +19,8 @@ export const LOCAL_ACTION_TYPES = {
   REORDER_TAF_ROW: 'REORDER_TAF_ROW',
   UPDATE_TAF_FIELDS: 'UPDATE_TAF_FIELDS',
   UPDATE_TAC: 'UPDATE_TAC',
-  VALIDATE_TAF: 'VALIDATE_TAF'
+  VALIDATE_TAF: 'VALIDATE_TAF',
+  TOGGLE_TAF_MODAL: 'TOGGLE_TAF_MODAL'
 };
 
 export const LOCAL_ACTIONS = {
@@ -43,12 +44,38 @@ export const LOCAL_ACTIONS = {
   reorderTafRowAction: (affectedIndex, newIndexValue) => ({ type: LOCAL_ACTION_TYPES.REORDER_TAF_ROW, affectedIndex: affectedIndex, newIndexValue: newIndexValue }),
   updateTafFieldsAction: (valuesAtPaths) => ({ type: LOCAL_ACTION_TYPES.UPDATE_TAF_FIELDS, valuesAtPaths: valuesAtPaths }),
   updateTACAction: (TAC) => ({ type: LOCAL_ACTION_TYPES.UPDATE_TAC, TAC: TAC }),
-  validateTafAction: (tafObject) => ({ type: LOCAL_ACTION_TYPES.VALIDATE_TAF, tafObject: tafObject })
+  validateTafAction: (tafObject) => ({ type: LOCAL_ACTION_TYPES.VALIDATE_TAF, tafObject: tafObject }),
+  toggleTafModalAction: (evt, type) => ({ type: LOCAL_ACTION_TYPES.TOGGLE_TAF_MODAL, event: evt, modalType: type })
 };
 
 export const MODES = {
   EDIT: 'EDIT',
   READ: 'READ'
+};
+
+export const MODALS = {
+  CONFIRM_DELETE: {
+    type: 'confirm delete',
+    title: 'Delete TAF?',
+    message: (identifier) => `Are you sure you want to delete ${identifier}?`,
+    button: {
+      label: 'Delete',
+      icon: 'trash',
+      action: 'deleteTafAction'
+    },
+    toggleAction: 'toggleTafModalAction'
+  },
+  CONFIRM_CANCEL: {
+    type: 'confirm cancel',
+    title: 'Cancel TAF?',
+    message: (identifier) => `Are you sure you want to cancel ${identifier}?`,
+    button: {
+      label: 'Cancel this TAF',
+      icon: 'times-circle',
+      action: 'cancelTafAction'
+    },
+    toggleAction: 'toggleTafModalAction'
+  }
 };
 
 export const EDIT_ABILITIES = {
@@ -93,7 +120,8 @@ export const READ_ABILITIES = {
     'dataField': 'delete',
     'label': 'Delete',
     'check': 'isDeletable',
-    'action': 'deleteTafAction'
+    'action': 'toggleTafModalAction',
+    'parameter': MODALS.CONFIRM_DELETE.type
   },
   COPY: {
     'dataField': 'copy',
@@ -123,7 +151,8 @@ export const READ_ABILITIES = {
     'dataField': 'cancel',
     'label': 'Cancel',
     'check': 'isCancelable',
-    'action': 'cancelTafAction'
+    'action': 'toggleTafModalAction',
+    'parameter': MODALS.CONFIRM_CANCEL.type
   }
 };
 
@@ -197,7 +226,8 @@ const STATE = {
       ref: STATUSES.PUBLISHED,
       abilities: {}
     }
-  ]
+  ],
+  displayModal: null
 };
 STATE.feedback[FEEDBACK_CATEGORIES.VALIDATION] = null;
 STATE.feedback[FEEDBACK_CATEGORIES.LIFECYCLE] = null;
