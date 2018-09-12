@@ -34,6 +34,7 @@ const TEMPLATES = {
     maximum: null // number
   }],
   METADATA: {
+    baseTime: null, // string
     issueTime: null, // string
     location: null, // string
     status: null, // string
@@ -143,6 +144,7 @@ const TYPES = {
     maximum: PropTypes.number
   })),
   METADATA: PropTypes.shape({
+    baseTime: PropTypes.string,
     issueTime: PropTypes.string,
     location: PropTypes.string,
     status: PropTypes.string,

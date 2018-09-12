@@ -709,8 +709,8 @@ class Taf extends Component {
     });
     if (selectedType === LIFECYCLE_STAGE_NAMES.CANCELED) {
       abilitiesCtAs.length = 0;
-      abilitiesCtAs.push(EDIT_ABILITIES.DISCARD);
-      abilitiesCtAs.push(READ_ABILITIES.PUBLISH);
+      // abilitiesCtAs.push(EDIT_ABILITIES.DISCARD);
+      // abilitiesCtAs.push(READ_ABILITIES.PUBLISH);
     }
     abilitiesCtAs.sort(byAbilities);
     return abilitiesCtAs;

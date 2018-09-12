@@ -72,13 +72,16 @@ const isSameSelectableTaf = (tafA, tafB) => {
   if (tafA.hasOwnProperty('uuid') && tafB.hasOwnProperty('uuid') && tafA.uuid && tafB.uuid) {
     return tafA.uuid === tafB.uuid;
   }
-  if (tafA.timestamp.isSame(tafB.timestamp) && tafA.location.toUpperCase() === tafB.location.toUpperCase()) {
+
+  return false;
+  /* TODO: This part of the code should now never be reached, as TAF is always findable via UUID */
+  /* if (tafA.timestamp.isSame(tafB.timestamp) && tafA.location.toUpperCase() === tafB.location.toUpperCase()) {
     if (tafA.tafData.metadata.type && tafB.tafData.metadata.type) {
       return tafA.tafData.metadata.type === tafB.tafData.metadata.type;
     } else {
       return true;
     }
-  }
+  } */
 };
 
 /**
@@ -92,11 +95,13 @@ const isTafSelectable = (locations, timestamps) => (taf) => {
       typeof taf.metadata.location !== 'string' || typeof taf.metadata.type !== 'string') {
     return false;
   }
-  const validityStart = moment.utc(taf.metadata.validityStart);
-  return locations.includes(taf.metadata.location.toUpperCase()) &&
-    (timestamps.current.isSame(validityStart) || timestamps.next.isSame(validityStart) ||
-    ((taf.metadata.type === LIFECYCLE_STAGE_NAMES.AMENDMENT || taf.metadata.type === LIFECYCLE_STAGE_NAMES.CANCELED) &&
-      timestamps.current.isSameOrBefore(validityStart)));
+  return true;
+  /* MaartenPlieger, 12-09-2018, why should we do this ? Let the backend handle this logic? */
+  // const validityStart = moment.utc(taf.metadata.validityStart);
+  // return locations.includes(taf.metadata.location.toUpperCase()) &&
+  //   (timestamps.current.isSame(validityStart) || timestamps.next.isSame(validityStart) ||
+  //   ((taf.metadata.type === LIFECYCLE_STAGE_NAMES.AMENDMENT || taf.metadata.type === LIFECYCLE_STAGE_NAMES.CANCELED) &&
+  //     timestamps.current.isSameOrBefore(validityStart)));
 };
 
 /**
@@ -427,8 +432,8 @@ const updateSelectableTafs = (container, tafs, status) => {
     if (draftState.selectedTaf && Array.isArray(draftState.selectedTaf) &&
         draftState.selectedTaf.length > 0 && draftState.selectedTaf[0].tafData.metadata.status === status) {
       const newDataSelectedTaf = draftState.selectableTafs.find((selectableTaf) => isSameSelectableTaf(selectableTaf, draftState.selectedTaf[0]));
-      draftState.selectedTaf.length = 0;
       if (newDataSelectedTaf) {
+        draftState.selectedTaf.length = 0;
         draftState.selectedTaf.push(produce(newDataSelectedTaf, d => { d.TAC = 'Verifying TAF...'; }));
       }
     }
@@ -640,12 +645,19 @@ const saveTafPromise = (event, container) => {
           draftState.selectedTaf[0].tafData.metadata.status = STATUSES.CONCEPT;
         }
         draftState.mode = MODES.READ;
+        /* Update the UUID of the selectable taf with the new one from the backend, this will be used in isSameSelectableTaf TAF to find the TAF */
+        if (response.data.tafjson && response.data.tafjson.metadata && response.data.tafjson.metadata.uuid) {
+          draftState.selectedTaf[0].tafData.metadata.uuid = response.data.tafjson.metadata.uuid;
+          draftState.selectedTaf[0].uuid = response.data.tafjson.metadata.uuid;
+        }
       }), () => {
         synchronizeSelectableTafs(container);
         resolve(response);
       });
     }).catch(error => {
       console.error('Couldn\'t save TAF', error);
+      /* Revert status, sync with backend */
+      synchronizeSelectableTafs(container);
       reject(new Error('Unable to save TAF'));
     });
   });
@@ -747,8 +759,10 @@ const publishTaf = (event, container) => {
     draftState.selectedTaf[0].tafData.metadata.status = STATUSES.PUBLISHED;
     draftState.mode = MODES.READ;
   }), () => {
-    saveTafPromise(event, container).catch((e) => {
-      console.error('publishTaf', e);
+    saveTafPromise(event, container).then((response) => {
+      updateFeedback('TAF is published', status, FEEDBACK_CATEGORIES.LIFECYCLE, response.data.message, null, container, synchronizeSelectableTafs);
+    }).catch((e) => {
+      console.error('publishTaf failed', e);
       const { props } = container;
       const { dispatch } = props;
       dispatch(notify({
@@ -790,6 +804,7 @@ const amendTaf = (event, container) => {
 const correctTaf = (event, container) => {
   const { state } = container;
   if (container.state.selectedTaf[0].tafData.metadata.status !== STATUSES.PUBLISHED) {
+    console.error('Unable to correct TAF, status is already published');
     return;
   }
   container.setState(produce(state, draftState => {

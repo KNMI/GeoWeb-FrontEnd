@@ -70,7 +70,7 @@ export const MODALS = {
     title: 'Cancel TAF?',
     message: (identifier) => `Are you sure you want to cancel ${identifier}?`,
     button: {
-      label: 'Cancel',
+      label: 'Cancel this TAF',
       icon: 'times-circle',
       action: 'cancelTafAction'
     },
