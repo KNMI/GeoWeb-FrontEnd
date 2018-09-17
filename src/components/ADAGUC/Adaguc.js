@@ -252,7 +252,7 @@ export default class Adaguc extends PureComponent {
           break;
         case 'draw':
           if (active) {
-            this.webMapJS.setMessage('Press [Esc] to close the polygon.');
+            this.webMapJS.setMessage(`Press [Esc] to exit drawing mode.`);
           }
           break;
         case 'measure':
@@ -450,14 +450,19 @@ export default class Adaguc extends PureComponent {
     const { mapProperties, adagucProperties, active } = this.props;
     const { boundingBox, mapMode, projection } = mapProperties;
     const { timeDimension, cursor } = adagucProperties;
+    const { code } = projection;
+
+    const { mapProperties: prevMapProperties, adagucProperties: prevAdagucProperties } = prevProps;
+    const { boundingBox: prevBoundingBox, mapMode: prevMapMode, projection: prevProjection } = prevMapProperties;
+    const { timeDimension: prevTimeDimension, cursor: prevCursor } = prevAdagucProperties;
+    const { code: prevCode } = prevProjection;
 
     // Updates that need to happen across all panels
-    this.updateBoundingBox(boundingBox, prevProps.mapProperties.boundingBox, projection.code, prevProps.mapProperties.projection.code);
-    this.updateTime(timeDimension, prevProps.adagucProperties.timeDimension || null);
-    this.updateMapMode(mapMode, prevProps.mapProperties.mapMode, active);
+    this.updateBoundingBox(boundingBox, prevBoundingBox, code, prevCode);
+    this.updateTime(timeDimension, prevTimeDimension || null);
+    this.updateMapMode(mapMode, prevMapMode, active);
 
     // Track cursor if necessary
-    const prevCursor = prevProps.adagucProperties.cursor;
     if (cursor && cursor.location && cursor !== prevCursor) {
       this.webMapJS.positionMapPinByLatLon({ x: cursor.location.x, y: cursor.location.y });
     }
