@@ -73,15 +73,13 @@ const isSameSelectableTaf = (tafA, tafB) => {
     return tafA.uuid === tafB.uuid;
   }
 
-  return false;
-  /* TODO: This part of the code should now never be reached, as TAF is always findable via UUID */
-  /* if (tafA.timestamp.isSame(tafB.timestamp) && tafA.location.toUpperCase() === tafB.location.toUpperCase()) {
+  if (tafA.timestamp.isSame(tafB.timestamp) && tafA.location.toUpperCase() === tafB.location.toUpperCase()) {
     if (tafA.tafData.metadata.type && tafB.tafData.metadata.type) {
       return tafA.tafData.metadata.type === tafB.tafData.metadata.type;
     } else {
       return true;
     }
-  } */
+  }
 };
 
 /**
@@ -432,8 +430,8 @@ const updateSelectableTafs = (container, tafs, status) => {
     if (draftState.selectedTaf && Array.isArray(draftState.selectedTaf) &&
         draftState.selectedTaf.length > 0 && draftState.selectedTaf[0].tafData.metadata.status === status) {
       const newDataSelectedTaf = draftState.selectableTafs.find((selectableTaf) => isSameSelectableTaf(selectableTaf, draftState.selectedTaf[0]));
+      draftState.selectedTaf.length = 0;
       if (newDataSelectedTaf) {
-        draftState.selectedTaf.length = 0;
         draftState.selectedTaf.push(produce(newDataSelectedTaf, d => { d.TAC = 'Verifying TAF...'; }));
       }
     }
@@ -640,7 +638,7 @@ const saveTafPromise = (event, container) => {
       headers: { 'Content-Type': 'application/json' }
     }).then(response => {
       /* Update the state after successful save, not before */
-      container.setState(produce(state, draftState => {
+      container.setState(produce(container.state, draftState => {
         if (draftState.selectedTaf[0].tafData.metadata.status === STATUSES.NEW) {
           draftState.selectedTaf[0].tafData.metadata.status = STATUSES.CONCEPT;
         }

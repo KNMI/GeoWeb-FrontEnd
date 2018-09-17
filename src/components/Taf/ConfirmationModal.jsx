@@ -15,7 +15,7 @@ export default class ConfirmationModal extends PureComponent {
       </ModalBody>
       <ModalFooter>
         <Row>
-          <Col style={{ marginLeft:'auto' }}>
+          <Col xs={{ offset: '4', size: '8' }}>
             <Button color='primary' onClick={(evt) => dispatch(actions[config.toggleAction](evt, config.type))}>
               <Icon className='icon' name='undo' />
               Go back
