@@ -139,6 +139,17 @@
       margin-right: 0.2rem;
     }
 
+    .Switch > .col-auto {
+      flex-basis: 0;
+      flex-grow: 1;
+      > label {
+        flex: 1;
+        > .checkbox + span {
+          flex: 1;
+        }
+      }
+    }
+
     .btn-group {
       height: 100%;
 
@@ -200,7 +211,7 @@
             margin-top: 0.8rem;
           }
           > span:first-of-type {
-            margin-left: 0.65rem;
+            margin-left: 0.75rem;
           }
           > span .label.input-group {
             margin: 0;
