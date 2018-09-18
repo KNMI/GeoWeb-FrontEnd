@@ -78,7 +78,7 @@ const updateCategory = (ref, sigmets, container, callback = () => {}) => {
       draftState.categories[categoryIndex].sigmets.length = 0;
       sigmets.sort(byValidDate);
       sigmets.forEach((incomingSigmet) => {
-        /* TODO FIX for diMosellaAtWork (reported MaartenPlieger, 05-09-2018, 10:30). MergeInTemplate coordinates needs different nesting for point/poly */
+        /* TODO: FIX for diMosellaAtWork (reported MaartenPlieger, 05-09-2018, 10:30). MergeInTemplate coordinates needs different nesting for point/poly */
         let mergedSigmet = produce(mergeInTemplate(incomingSigmet, 'SIGMET', templateWithDefaults), sigmetToAddCoordsTo => {
           if (incomingSigmet && incomingSigmet.geojson && incomingSigmet.geojson.features && incomingSigmet.geojson.features.length > 0) {
             for (let f = 0; f < incomingSigmet.geojson.features.length; f++) {
@@ -298,6 +298,7 @@ const focusSigmet = (evt, uuid, container) => {
     }
     draftState.focussedSigmet.mode = SIGMET_MODES.READ;
   }), () => {
+    // TODO: display preset
     dispatch(mapActions.setMapMode('pan'));
     if (shouldClearDrawing) {
       setSigmetDrawing(null, container);
@@ -431,11 +432,16 @@ const updateSigmet = (uuid, dataField, value, container) => {
   if (!dataField || !indices.isFound) {
     return;
   }
-  if (dataField === 'phenomenon' && Array.isArray(value)) {
-    if (value.length === 0) {
-      value = '';
-    } else {
-      value = value[0].code;
+  if (dataField === 'phenomenon') {
+    if (Array.isArray(value)) {
+      if (value.length === 0) {
+        value = '';
+      } else {
+        value = value[0].code;
+      }
+    }
+    if (value) {
+      // TODO: display preset
     }
   }
   if (dataField === 'volcano_coordinates' && Array.isArray(value)) {
