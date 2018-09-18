@@ -998,6 +998,7 @@ const pasteSigmet = (event, container) => {
       'validdate_end',
       'change',
       'movement',
+      'movement_type',
       'forecast_position_time',
       'location_indicator_icao',
       'location_indicator_mwo'
