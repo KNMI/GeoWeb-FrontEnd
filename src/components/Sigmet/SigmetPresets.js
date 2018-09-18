@@ -9,6 +9,30 @@ export const getPresetForPhenomenon = (p, sources) => {
   const LIGHTNING_URL = GetServiceByName(sources, 'LGT');
   const SATELLITE_URL = GetServiceByName(sources, 'SAT');
 
+  // FIXME: enable and update (by Product Owners) contents of presets
+  if (p && true) {
+    return (
+      {
+        area: {
+          bottom: BOUNDING_BOXES[1].bbox[1],
+          top: BOUNDING_BOXES[1].bbox[3],
+          crs: 'EPSG:3857'
+        },
+        display: {
+          npanels: 1,
+          type: 'single'
+        },
+        layers: [[{
+          service: OVERLAY_URL,
+          title: 'Countries',
+          name: 'countries',
+          label: 'Countries',
+          overlay: true
+        }]]
+      }
+    );
+  }
+
   const defaultOverlays = [
     {
       service: OVERLAY_URL,
