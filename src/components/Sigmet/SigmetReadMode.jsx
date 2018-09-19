@@ -23,6 +23,26 @@ class SigmetReadMode extends PureComponent {
     return UNITS_ALT.find((unit) => unit.unit === unitName).label;
   };
 
+  getValueLabel (value, unit) {
+    if (typeof value !== 'number' || value === 0) {
+      return null;
+    }
+    const valueAsString = value.toString();
+    let minimalCharactersCount = 0;
+    switch (unit) {
+      case UNITS.FL:
+        minimalCharactersCount = 3;
+        break;
+      case UNITS.M:
+      case UNITS.FT:
+        minimalCharactersCount = 4;
+        break;
+      default:
+        break;
+    }
+    return valueAsString.padStart(minimalCharactersCount, '0');
+  };
+
   showLevels (levelinfo) {
     if (!levelinfo) {
       return;
@@ -31,24 +51,40 @@ class SigmetReadMode extends PureComponent {
     const level1 = levelinfo.levels[1];
     const is0FL = level0.unit === UNITS.FL;
     const is1FL = level1.unit === UNITS.FL;
+    const value0Label = this.getValueLabel(level0.value, level0.unit);
     const unit0Label = this.getUnitLabel(level0.unit);
+    const value1Label = this.getValueLabel(level1.value, level1.unit);
     const unit1Label = this.getUnitLabel(level1.unit);
     switch (levelinfo.mode) {
       case MODES_LVL.ABV:
-        return `Above ${is0FL ? unit0Label : ''} ${level0.value} ${!is0FL ? unit0Label : ''}`;
+        return unit0Label && value0Label
+          ? `Above ${is0FL ? unit0Label : ''} ${value0Label} ${!is0FL ? unit0Label : ''}`
+          : null;
       case MODES_LVL.AT:
-        return `At ${is0FL ? unit0Label : ''} ${level0.value} ${!is0FL ? unit0Label : ''}`;
+        return unit0Label && value0Label
+          ? `At ${is0FL ? unit0Label : ''} ${value0Label} ${!is0FL ? unit0Label : ''}`
+          : null;
       case MODES_LVL.BETW:
-        return `Between ${is0FL ? unit0Label : ''} ${level0.value} ${!is0FL ? unit0Label : ''} and
-          ${is1FL ? unit1Label : ''} ${level1.value} ${!is1FL ? unit1Label : ''}`;
+        return unit0Label && value0Label && unit1Label && value1Label
+          ? `Between ${is0FL ? unit0Label : ''} ${value0Label} ${!is0FL ? unit0Label : ''} and
+            ${is1FL ? unit1Label : ''} ${value1Label} ${!is1FL ? unit1Label : ''}`
+          : null;
       case MODES_LVL.BETW_SFC:
-        return `Between surface and ${is1FL ? unit1Label : ''} ${level1.value} ${!is1FL ? unit1Label : ''}`;
+        return unit1Label && value1Label
+          ? `Between surface and ${is1FL ? unit1Label : ''} ${value1Label} ${!is1FL ? unit1Label : ''}`
+          : null;
       case MODES_LVL.TOPS:
-        return `Tops at ${is0FL ? unit0Label : ''} ${level0.value} ${!is0FL ? unit0Label : ''}`;
+        return unit0Label && value0Label
+          ? `Tops at ${is0FL ? unit0Label : ''} ${value0Label} ${!is0FL ? unit0Label : ''}`
+          : null;
       case MODES_LVL.TOPS_ABV:
-        return `Tops above ${is0FL ? unit0Label : ''} ${level0.value} ${!is0FL ? unit0Label : ''}`;
+        return unit0Label && value0Label
+          ? `Tops above ${is0FL ? unit0Label : ''} ${value0Label} ${!is0FL ? unit0Label : ''}`
+          : null;
       case MODES_LVL.TOPS_BLW:
-        return `Tops below ${is0FL ? unit0Label : ''} ${level0.value} ${!is0FL ? unit0Label : ''}`;
+        return unit0Label && value0Label
+          ? `Tops below ${is0FL ? unit0Label : ''} ${value0Label} ${!is0FL ? unit0Label : ''}`
+          : null;
       default:
         return '';
     }
