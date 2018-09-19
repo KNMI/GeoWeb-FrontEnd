@@ -139,6 +139,17 @@
       margin-right: 0.2rem;
     }
 
+    .Switch > .col-auto {
+      flex-basis: 0;
+      flex-grow: 1;
+      > label {
+        flex: 1;
+        > .checkbox + span {
+          flex: 1;
+        }
+      }
+    }
+
     .btn-group {
       height: 100%;
 
@@ -200,7 +211,7 @@
             margin-top: 0.8rem;
           }
           > span:first-of-type {
-            margin-left: 0.65rem;
+            margin-left: 0.75rem;
           }
           > span .label.input-group {
             margin: 0;
@@ -272,8 +283,9 @@
   .row.disabled .row {
     border-top: unset;
   }
-  .disabled .form-control:disabled, .disabled .btn-secondary:disabled {
+  .disabled .form-control:disabled, .form-control:disabled, button.dropdown-toggle:disabled {
     background: #f4f4f4;
+    cursor: not-allowed;
   }
   .row.disabled ~ .disabled {
     border-radius: unset;
@@ -286,8 +298,9 @@
     font-family: inherit;
     color: #666;
   }
-  .disabled label, .disabled span:not(.fa):not(.badge), .disabled input::placeholder, .disabled button.dropdown-toggle {
+  .disabled label, .disabled span:not(.fa):not(.badge), .disabled input::placeholder, .form-control:disabled::placeholder, button.dropdown-toggle:disabled {
     color: #999;
+    cursor: not-allowed;
   }
 
   .badge {

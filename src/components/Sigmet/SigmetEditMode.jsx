@@ -24,7 +24,7 @@ import MovementSection from './Sections/MovementSection';
 import IssueSection from './Sections/IssueSection';
 import ChangeSection from './Sections/ChangeSection';
 import HeightsSection from './Sections/HeightsSection';
-import { DIRECTIONS, UNITS_ALT, MODES_LVL, MODES_LVL_OPTIONS, CHANGES, MOVEMENT_TYPES, MOVEMENT_OPTIONS, SIGMET_TYPES } from './SigmetTemplates';
+import { DIRECTIONS, UNITS_ALT, UNITS, MODES_LVL, MODES_LVL_OPTIONS, CHANGES, MOVEMENT_TYPES, MOVEMENT_OPTIONS, SIGMET_TYPES } from './SigmetTemplates';
 
 const DATE_FORMAT = 'DD MMM YYYY';
 const TIME_FORMAT = 'HH:mm UTC';
@@ -36,6 +36,9 @@ class SigmetEditMode extends PureComponent {
     this.setMode = this.setMode.bind(this);
     this.getMode = this.getMode.bind(this);
     this.getUnitLabel = this.getUnitLabel.bind(this);
+    this.maxLevelPerUnit = this.maxLevelPerUnit.bind(this);
+    this.stepLevelPerUnit = this.stepLevelPerUnit.bind(this);
+    this.formatLevelPerUnit = this.formatLevelPerUnit.bind(this);
     this.isValidStartTimestamp = this.isValidStartTimestamp.bind(this);
     this.isValidEndTimestamp = this.isValidEndTimestamp.bind(this);
     this.isValidObsFcTimestamp = this.isValidObsFcTimestamp.bind(this);
@@ -108,6 +111,51 @@ class SigmetEditMode extends PureComponent {
 
   getUnitLabel (unitName) {
     return UNITS_ALT.find((unit) => unit.unit === unitName).label;
+  };
+
+  maxLevelPerUnit (unit) {
+    switch (unit) {
+      case UNITS.FL:
+        return 999;
+      case UNITS.M:
+        return 9999;
+      case UNITS.FT:
+        return 99999;
+      default:
+        return null;
+    }
+  };
+
+  stepLevelPerUnit (unit) {
+    switch (unit) {
+      case UNITS.FL:
+        return 10;
+      case UNITS.M:
+      case UNITS.FT:
+        return 100;
+      default:
+        return null;
+    }
+  };
+
+  formatLevelPerUnit (value, unit) {
+    if (typeof value !== 'number') {
+      return value;
+    }
+    const valueAsString = value.toString();
+    let minimalCharactersCount = 0;
+    switch (unit) {
+      case UNITS.FL:
+        minimalCharactersCount = 3;
+        break;
+      case UNITS.M:
+      case UNITS.FT:
+        minimalCharactersCount = 4;
+        break;
+      default:
+        break;
+    }
+    return valueAsString.padStart(minimalCharactersCount, '0');
   };
 
   isValidStartTimestamp (timestamp) {
@@ -404,7 +452,8 @@ class SigmetEditMode extends PureComponent {
           />
           <label data-field='at-above-toggle'>{atOrAboveLabel}</label>
           <InputGroup data-field='at-above-altitude'
-            className={!isLevelBetween && levelinfo && levelinfo.levels && levelinfo.levels[0] && !levelinfo.levels[0].value ? 'missing' : null}
+            className={!isLevelBetween && levelinfo && levelinfo.levels && levelinfo.levels[0] &&
+              (!levelinfo.levels[0].value || levelinfo.levels[0].value > this.maxLevelPerUnit(levelinfo.levels[0].unit)) ? 'missing' : null}
             disabled={isLevelBetween}>
             <InputGroupButton>
               <ButtonDropdown toggle={() => null}>
@@ -419,13 +468,15 @@ class SigmetEditMode extends PureComponent {
                 </DropdownMenu>
               </ButtonDropdown>
             </InputGroupButton>
-            <Input placeholder='Level' disabled={isLevelBetween} type='number' min='0' step='10'
-              value={(isLevelBetween || !levelinfo.levels[0].value) ? '' : levelinfo.levels[0].value}
+            <Input placeholder='Level' disabled={isLevelBetween} type='number' pattern='\d{0,5}'
+              min='0' step={this.stepLevelPerUnit(levelinfo.levels[0].unit)} max={this.maxLevelPerUnit(levelinfo.levels[0].unit)}
+              value={(isLevelBetween || !levelinfo.levels[0].value) ? '' : this.formatLevelPerUnit(levelinfo.levels[0].value, levelinfo.levels[0].unit)}
               onChange={(evt) => dispatch(actions.updateSigmetLevelAction(uuid, 'value', { value: evt.target.value, isUpperLevel: false }))} />
           </InputGroup>
           <Switch
             className={isLevelBetween && !levelMode.hasSurface &&
-              levelinfo && levelinfo.levels && levelinfo.levels[0] && !levelinfo.levels[0].value ? 'missing' : ''}
+              levelinfo && levelinfo.levels && levelinfo.levels[0] &&
+              (!levelinfo.levels[0].value || levelinfo.levels[0].value > this.maxLevelPerUnit(levelinfo.levels[0].unit)) ? 'missing' : null}
             value={levelMode.hasSurface ? 'sfc' : 'lvl'}
             checkedOption={{
               optionId: 'lvl',
@@ -443,8 +494,11 @@ class SigmetEditMode extends PureComponent {
                     </DropdownMenu>
                   </ButtonDropdown>
                 </InputGroupButton>
-                <Input placeholder='Level' disabled={!isLevelBetween || levelMode.hasSurface} type='number' min='0' step='10'
-                  value={(!isLevelBetween || levelMode.hasSurface || !levelinfo.levels[0].value) ? '' : levelinfo.levels[0].value}
+                <Input placeholder='Level' disabled={!isLevelBetween || levelMode.hasSurface} type='number'
+                  min='0' step={this.stepLevelPerUnit(levelinfo.levels[0].unit)} max={this.maxLevelPerUnit(levelinfo.levels[0].unit)}
+                  value={(!isLevelBetween || levelMode.hasSurface || !levelinfo.levels[0].value)
+                    ? ''
+                    : this.formatLevelPerUnit(levelinfo.levels[0].value, levelinfo.levels[0].unit)}
                   onChange={(evt) => dispatch(actions.updateSigmetLevelAction(uuid, 'value', { value: evt.target.value, isUpperLevel: false }))} />
               </InputGroup>
             }}
@@ -470,8 +524,9 @@ class SigmetEditMode extends PureComponent {
                 </DropdownMenu>
               </ButtonDropdown>
             </InputGroupButton>
-            <Input placeholder='Level' disabled={!isLevelBetween} type='number' min='0' step='10'
-              value={(!isLevelBetween || !levelinfo.levels[1].value) ? '' : levelinfo.levels[1].value}
+            <Input placeholder='Level' disabled={!isLevelBetween} type='number'
+              min='0' step={this.stepLevelPerUnit(levelinfo.levels[1].unit)} max={this.maxLevelPerUnit(levelinfo.levels[1].unit)}
+              value={(!isLevelBetween || !levelinfo.levels[1].value) ? '' : this.formatLevelPerUnit(levelinfo.levels[1].value, levelinfo.levels[1].unit)}
               onChange={(evt) => dispatch(actions.updateSigmetLevelAction(uuid, 'value', { value: evt.target.value, isUpperLevel: true }))} />
           </InputGroup>
         </HeightsSection>
