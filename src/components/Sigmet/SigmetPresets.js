@@ -2,13 +2,6 @@ import { BOUNDING_BOXES } from '../../constants/bounding_boxes';
 import { GetServiceByName } from '../../utils/getServiceByName';
 
 export const getPresetForPhenomenon = (p, sources) => {
-  const HARMONIE_URL = GetServiceByName(sources, 'Harmonie36');
-  const OVERLAY_URL = GetServiceByName(sources, 'OVL');
-  const OBSERVATIONS_URL = GetServiceByName(sources, 'OBS');
-  const RADAR_URL = GetServiceByName(sources, 'RADAR');
-  const LIGHTNING_URL = GetServiceByName(sources, 'LGT');
-  const SATELLITE_URL = GetServiceByName(sources, 'SAT');
-
   // FIXME: enable and update (by Product Owners) contents of presets
   if (p && true) {
     return (
@@ -22,16 +15,16 @@ export const getPresetForPhenomenon = (p, sources) => {
           npanels: 1,
           type: 'single'
         },
-        layers: [[{
-          service: OVERLAY_URL,
-          title: 'Countries',
-          name: 'countries',
-          label: 'Countries',
-          overlay: true
-        }]]
+        layers: [[]]
       }
     );
   }
+  const HARMONIE_URL = GetServiceByName(sources, 'Harmonie36');
+  const OVERLAY_URL = GetServiceByName(sources, 'OVL');
+  const OBSERVATIONS_URL = GetServiceByName(sources, 'OBS');
+  const RADAR_URL = GetServiceByName(sources, 'RADAR');
+  const LIGHTNING_URL = GetServiceByName(sources, 'LGT');
+  const SATELLITE_URL = GetServiceByName(sources, 'SAT');
 
   const defaultOverlays = [
     {

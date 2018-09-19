@@ -35,23 +35,20 @@ const toggleContainer = (evt, container) => {
 };
 
 const toggleCategory = (evt, ref, container) => {
-  const { dispatch, mapActions, drawActions } = container.props;
+  const { dispatch, mapActions } = container.props;
   container.setState(produce(container.state, draftState => {
     if (ref === CATEGORY_REFS.ADD_SIGMET && ref !== draftState.focussedCategoryRef) {
       draftState.focussedSigmet.mode = SIGMET_MODES.EDIT;
       draftState.focussedSigmet.uuid = null;
     }
-    draftState.focussedSigmet.drawMode = null;
+    draftState.focussedSigmet.drawModeStart = null;
+    draftState.focussedSigmet.drawModeEnd = null;
     draftState.focussedCategoryRef = (draftState.focussedCategoryRef === ref)
       ? null
       : ref;
   }), () => {
     dispatch(mapActions.setMapMode('pan'));
-    if (ref === CATEGORY_REFS.ADD_SIGMET) {
-      dispatch(drawActions.setGeoJSON(initialGeoJson()));
-    } else {
-      setSigmetDrawing(null, container);
-    }
+    setSigmetDrawing(null, container, ref === CATEGORY_REFS.ADD_SIGMET);
   });
 };
 
@@ -379,6 +376,34 @@ const initialGeoJson = () => {
   return draftState;
 };
 
+// FIXME: Should be Immutable, but AdagucMapDraw can't handle this ATM. Fix this.
+const addFirFeature = (geojson, firName, container) => {
+  const { firs: availableFirs } = container.state;
+  if (!geojson || !firName) {
+    return null;
+  }
+  const draftState = cloneDeep(geojson);
+  if (!Array.isArray(geojson.features)) {
+    return null;
+  }
+  if (!availableFirs.hasOwnProperty(firName)) {
+    return null;
+  }
+  const firFeature = availableFirs[firName];
+  const newFeatureIndex = draftState.features.push(cloneDeep(SIGMET_TEMPLATES.FEATURE)) - 1;
+  draftState.features[newFeatureIndex].type = firFeature.type;
+  draftState.features[newFeatureIndex].properties.featureFunction = 'fir';
+  draftState.features[newFeatureIndex].properties.selectionType = 'fir';
+  draftState.features[newFeatureIndex].properties.fill = 'transparent';
+  draftState.features[newFeatureIndex].properties['fill-opacity'] = 0.01;
+  draftState.features[newFeatureIndex].properties.stroke = '#017daf';
+  draftState.features[newFeatureIndex].properties['stroke-width'] = 1.2;
+  draftState.features[newFeatureIndex].geometry.type = firFeature.geometry.type;
+  draftState.features[newFeatureIndex].geometry.coordinates.length = 0;
+  draftState.features[newFeatureIndex].geometry.coordinates.push(...firFeature.geometry.coordinates);
+  return draftState;
+};
+
 const getEmptySigmet = (container) => produce(SIGMET_TEMPLATES.SIGMET, draftSigmet => {
   draftSigmet.validdate = getRoundedNow().format();
   draftSigmet.validdate_end = getRoundedNow().add(container.state.parameters.maxhoursofvalidity, 'hour').format();
@@ -427,6 +452,7 @@ const findCategoryAndSigmetIndex = (uuid, state) => {
 
 const updateDisplayedPreset = (preset, container) => {
   // FIXME: how to properly chain all these asynchronous dispatches?
+  // FIXME: this code closely resembles the TitleBarContainer.setPreset, it should be generalized
   const { dispatch, panelsActions, mapActions, adagucActions } = container.props;
   if (!preset) {
     return;
@@ -477,7 +503,7 @@ const updateDisplayedPreset = (preset, container) => {
                   newLayer.setDimension(dim, layer.dimensions[dim]);
                 });
               }
-              return resolve({ layer: newLayer, panelIdx: panelIdx, index: i })
+              return resolve({ layer: newLayer, panelIdx: panelIdx, index: i });
             });
           }));
         });
@@ -635,6 +661,7 @@ const clearRelatedIntersection = (featureId, features, dispatch, drawActions) =>
 
 const drawSigmet = (event, uuid, container, action, featureFunction) => {
   const { dispatch, mapActions, drawActions, drawProperties } = container.props;
+  const { focussedSigmet } = container.state;
   const features = drawProperties.adagucMapDraw.geojson.features;
   // Select relevant polygon to edit, this assumes there is ONE start and ONE end feature.
   const featureIndex = features.findIndex((feature) =>
@@ -644,58 +671,53 @@ const drawSigmet = (event, uuid, container, action, featureFunction) => {
   }
   const featureId = features[featureIndex].id;
   const drawMode = `drawMode${featureFunction.charAt(0).toUpperCase() + featureFunction.slice(1)}`;
+  const updatableFeatureProps = {
+    geometry: { coordinates: [], type: null },
+    properties: { selectionType: null },
+    featureId: featureId
+  };
+  if (action === focussedSigmet[drawMode]) {
+    updatableFeatureProps.geometry.coordinates.push(...features[featureIndex].geometry.coordinates);
+  }
   switch (action) {
     case 'select-point':
       dispatch(mapActions.setMapMode('draw'));
       dispatch(drawActions.setFeatureEditPoint());
-      dispatch(drawActions.setFeature({
-        geometry: { coordinates: [] },
-        properties: { selectionType: MODES_GEO_SELECTION.POINT },
-        featureId: featureId
-      }));
-
+      updatableFeatureProps.geometry.type = 'Point';
+      updatableFeatureProps.properties.selectionType = MODES_GEO_SELECTION.POINT;
+      dispatch(drawActions.setFeature(updatableFeatureProps));
       clearRelatedIntersection(featureId, features, dispatch, drawActions);
       modifyFocussedSigmet(drawMode, action, container);
       break;
     case 'select-region':
       dispatch(mapActions.setMapMode('draw'));
       dispatch(drawActions.setFeatureEditBox());
-      dispatch(drawActions.setFeature({
-        geometry: { coordinates: [] },
-        properties: { selectionType: MODES_GEO_SELECTION.BOX },
-        featureId: featureId }));
-
+      updatableFeatureProps.geometry.type = 'Polygon';
+      updatableFeatureProps.properties.selectionType = MODES_GEO_SELECTION.BOX;
+      dispatch(drawActions.setFeature(updatableFeatureProps));
       clearRelatedIntersection(featureId, features, dispatch, drawActions);
       modifyFocussedSigmet(drawMode, action, container);
       break;
     case 'select-shape':
       dispatch(mapActions.setMapMode('draw'));
       dispatch(drawActions.setFeatureEditPolygon());
-      dispatch(drawActions.setFeature({
-        geometry: { coordinates: [] },
-        properties: { selectionType: MODES_GEO_SELECTION.POLY },
-        featureId: featureId }));
+      updatableFeatureProps.geometry.type = 'Polygon';
+      updatableFeatureProps.properties.selectionType = MODES_GEO_SELECTION.POLY;
+      dispatch(drawActions.setFeature(updatableFeatureProps));
       clearRelatedIntersection(featureId, features, dispatch, drawActions);
       modifyFocussedSigmet(drawMode, action, container);
       break;
     case 'select-fir':
       dispatch(mapActions.setMapMode('pan'));
       dispatch(drawActions.setFeatureEditPolygon());
-      dispatch(drawActions.setFeature({
-        geometry: { coordinates: [] },
-        properties: { selectionType: MODES_GEO_SELECTION.FIR },
-        featureId: featureId }));
-
+      updatableFeatureProps.properties.selectionType = MODES_GEO_SELECTION.FIR;
+      dispatch(drawActions.setFeature(updatableFeatureProps));
       clearRelatedIntersection(featureId, features, dispatch, drawActions);
       modifyFocussedSigmet(drawMode, action, container);
       break;
     case 'delete-selection':
       dispatch(mapActions.setMapMode('pan'));
-      dispatch(drawActions.setFeature({
-        geometry: { coordinates: [], type: null },
-        properties: { selectionType: null },
-        featureId: featureId }));
-
+      dispatch(drawActions.setFeature(updatableFeatureProps));
       clearRelatedIntersection(featureId, features, dispatch, drawActions);
       modifyFocussedSigmet(drawMode, null, container);
       break;
@@ -1073,17 +1095,23 @@ const cancelSigmet = (event, uuid, container) => {
   });
 };
 
-const setSigmetDrawing = (uuid, container) => {
+const setSigmetDrawing = (uuid, container, useInitial = false) => {
   const { dispatch, drawActions } = container.props;
-  if (container.state.focussedSigmet.uuid !== uuid) {
+  if (container.state.focussedSigmet.uuid !== uuid && useInitial !== true) {
     return;
   }
   const indices = findCategoryAndSigmetIndex(uuid, container.state);
-  if (!indices.isFound) {
+  if (!indices.isFound && useInitial !== true) {
     return;
   }
-  const affectedSigmet = container.state.categories[indices.categoryIndex].sigmets[indices.sigmetIndex];
-  dispatch(drawActions.setGeoJSON(affectedSigmet.geojson));
+  const affectedSigmet = indices.isFound
+    ? container.state.categories[indices.categoryIndex].sigmets[indices.sigmetIndex]
+    : null;
+  const geojson = !useInitial && affectedSigmet
+    ? affectedSigmet.geojson
+    : initialGeoJson();
+  const enhancedGeojson = addFirFeature(geojson, affectedSigmet ? affectedSigmet.firname : null, container);
+  dispatch(drawActions.setGeoJSON(enhancedGeojson || geojson));
 };
 
 /**
