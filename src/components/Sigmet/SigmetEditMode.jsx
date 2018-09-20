@@ -24,11 +24,9 @@ import MovementSection from './Sections/MovementSection';
 import IssueSection from './Sections/IssueSection';
 import ChangeSection from './Sections/ChangeSection';
 import HeightsSection from './Sections/HeightsSection';
-import { DIRECTIONS, UNITS_ALT, UNITS, MODES_LVL, MODES_LVL_OPTIONS, CHANGES, MOVEMENT_TYPES, MOVEMENT_OPTIONS, SIGMET_TYPES } from './SigmetTemplates';
-
-const DATE_FORMAT = 'DD MMM YYYY';
-const TIME_FORMAT = 'HH:mm UTC';
-const DATETIME_FORMAT = 'YYYY-MM-DD[T]HH:mm:ss[Z]'; // 2017-08-07T11:30:00Z'
+import {
+  DIRECTIONS, UNITS_ALT, UNITS, MODES_LVL, MODES_LVL_OPTIONS, CHANGES, MOVEMENT_TYPES, MOVEMENT_OPTIONS, SIGMET_TYPES,
+  DATE_LABEL_FORMAT, TIME_FORMAT_UTC, DATETIME_FORMAT } from './SigmetTemplates';
 
 class SigmetEditMode extends PureComponent {
   constructor (props) {
@@ -301,7 +299,7 @@ class SigmetEditMode extends PureComponent {
             onChange={(evt) => dispatch(actions.updateSigmetAction(uuid, 'obs_or_forecast', { obs: !evt.target.checked, obsFcTime: obsFcTime }))}
             data-field='obs_or_fcst'
           />
-          <DateTimePicker dateFormat={DATE_FORMAT} timeFormat={TIME_FORMAT} utc data-field='obsFcTime'
+          <DateTimePicker dateFormat={DATE_LABEL_FORMAT} timeFormat={TIME_FORMAT_UTC} utc data-field='obsFcTime'
             viewMode='time'
             value={obsFcTime === null
               ? null
@@ -353,7 +351,7 @@ class SigmetEditMode extends PureComponent {
         </WhatSection>
 
         <ValiditySection>
-          <DateTimePicker dateFormat={DATE_FORMAT} timeFormat={TIME_FORMAT} utc data-field='validdate'
+          <DateTimePicker dateFormat={DATE_LABEL_FORMAT} timeFormat={TIME_FORMAT_UTC} utc data-field='validdate'
             viewMode='time'
             value={validdate === null
               ? now
@@ -375,7 +373,7 @@ class SigmetEditMode extends PureComponent {
             }}
             className={!this.isValidStartTimestamp(validdate) ? 'missing' : null}
           />
-          <DateTimePicker dateFormat={DATE_FORMAT} timeFormat={TIME_FORMAT} utc data-field='validdate_end'
+          <DateTimePicker dateFormat={DATE_LABEL_FORMAT} timeFormat={TIME_FORMAT_UTC} utc data-field='validdate_end'
             viewMode='time'
             value={validdateEnd === null
               ? now

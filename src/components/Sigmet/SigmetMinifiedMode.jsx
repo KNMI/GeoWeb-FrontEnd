@@ -2,10 +2,8 @@ import React, { PureComponent } from 'react';
 import { Button, Col, Row, Badge } from 'reactstrap';
 import Moment from 'react-moment';
 import PropTypes from 'prop-types';
+import { TIME_LABEL_FORMAT_UTC, DATETIME_START_FORMAT } from './SigmetTemplates';
 import HeaderSection from './Sections/HeaderSection';
-
-const DATE_TIME_FORMAT_1 = 'DD MMM YYYY, HH:mm';
-const DATE_TIME_FORMAT_2 = 'HH:mm UTC';
 
 class SigmetMinifiedMode extends PureComponent {
   render () {
@@ -18,9 +16,9 @@ class SigmetMinifiedMode extends PureComponent {
             <Badge color='success'>Valid</Badge>
           </Col>
           <Col xs='9'>
-            <Moment format={DATE_TIME_FORMAT_1} date={validdate} data-field='validdate' utc />
+            <Moment format={DATETIME_START_FORMAT} date={validdate} data-field='validdate' utc />
             <span>-</span>
-            <Moment format={DATE_TIME_FORMAT_2} date={validdateEnd} data-field='validdate_end' utc />
+            <Moment format={TIME_LABEL_FORMAT_UTC} date={validdateEnd} data-field='validdate_end' utc />
           </Col>
         </Row>
         <Row>

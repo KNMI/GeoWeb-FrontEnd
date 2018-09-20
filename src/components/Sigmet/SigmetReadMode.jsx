@@ -4,7 +4,7 @@ import Moment from 'react-moment';
 import moment from 'moment';
 import PropTypes from 'prop-types';
 import { READ_ABILITIES, byReadAbilities } from '../../containers/Sigmet/SigmetActions';
-import { UNITS, UNITS_ALT, DIRECTIONS, CHANGES, MODES_LVL, MOVEMENT_TYPES, SIGMET_TYPES } from './SigmetTemplates';
+import { UNITS, UNITS_ALT, DIRECTIONS, CHANGES, MODES_LVL, MOVEMENT_TYPES, SIGMET_TYPES, DATETIME_LABEL_FORMAT_UTC } from './SigmetTemplates';
 
 import HeaderSection from './Sections/HeaderSection';
 import WhatSection from './Sections/WhatSection';
@@ -15,8 +15,6 @@ import HeightSection from './Sections/HeightSection';
 import ProgressSection from './Sections/ProgressSection';
 import ChangeSection from './Sections/ChangeSection';
 import IssueSection from './Sections/IssueSection';
-
-const DATE_TIME_FORMAT = 'DD MMM YYYY HH:mm UTC';
 
 class SigmetReadMode extends PureComponent {
   getUnitLabel (unitName) {
@@ -162,7 +160,7 @@ class SigmetReadMode extends PureComponent {
           <span data-field='phenomenon'>{phenomenon}</span>
           <span data-field='obs_or_fcst'>{isObserved ? 'Observed' : 'Forecast'}</span>
           {obsFcTime
-            ? <Moment format={DATE_TIME_FORMAT} date={obsFcTime} data-field='obsFcTime' utc />
+            ? <Moment format={DATETIME_LABEL_FORMAT_UTC} date={obsFcTime} data-field='obsFcTime' utc />
             : <span data-field='obsFcTime'>
               {isObserved
                 ? '(no observation time provided)'
@@ -185,8 +183,8 @@ class SigmetReadMode extends PureComponent {
         </WhatSection>
 
         <ValiditySection>
-          <Moment format={DATE_TIME_FORMAT} date={validdate} data-field='validdate' utc />
-          <Moment format={DATE_TIME_FORMAT} date={validdateEnd} data-field='validdate_end' utc />
+          <Moment format={DATETIME_LABEL_FORMAT_UTC} date={validdate} data-field='validdate' utc />
+          <Moment format={DATETIME_LABEL_FORMAT_UTC} date={validdateEnd} data-field='validdate_end' utc />
         </ValiditySection>
 
         <FirSection>
@@ -222,7 +220,7 @@ class SigmetReadMode extends PureComponent {
 
         <IssueSection>
           {issuedate
-            ? <Moment format={DATE_TIME_FORMAT} date={issuedate} data-field='issuedate' utc />
+            ? <Moment format={DATETIME_LABEL_FORMAT_UTC} date={issuedate} data-field='issuedate' utc />
             : <span data-field='issuedate'>(not yet issued)</span>
           }
           <span data-field='issueLocation'>{locationIndicatorMwo}</span>
