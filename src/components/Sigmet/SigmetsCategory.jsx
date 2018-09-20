@@ -112,6 +112,8 @@ class SigmetsCategory extends PureComponent {
                             isObserved={sigmet.obs_or_forecast.obs}
                             drawModeStart={focussedSigmet.drawModeStart}
                             drawModeEnd={focussedSigmet.drawModeEnd}
+                            feedbackStart={focussedSigmet.feedbackStart}
+                            feedbackEnd={focussedSigmet.feedbackEnd}
                             hasStartCoordinates={this.props.hasStartCoordinates}
                             hasEndCoordinates={this.props.hasEndCoordinates}
                             availableFirs={parameters.firareas}
