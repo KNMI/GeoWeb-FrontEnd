@@ -188,6 +188,8 @@ const STATE = {
     mode: SIGMET_MODES.READ,
     drawModeStart: null,
     drawModeEnd: null,
+    feedbackStart: null,
+    feedbackEnd: null,
     hasEdits: false
   },
   copiedSigmetRef: null,

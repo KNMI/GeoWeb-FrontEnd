@@ -1183,12 +1183,6 @@ export default class AdagucMapDraw extends PureComponent {
         }
       }
 
-      // TODO: Check is not needed anymore /* Remove last duplicate point */
-      // if (polygon && polygon.length > 0) {
-      //   console.log(polygon);
-      //   // geojson.features[this.props.featureNrToEdit].geometry.coordinates[this.snappedPolygonIndex] = polygon;
-      // }
-
       this.featureHasChanged('cancelEdit');
       webmapjs.draw('AdagucMapDraw::cancelEdit');
     } else {
@@ -1207,6 +1201,10 @@ export default class AdagucMapDraw extends PureComponent {
         this.props.exitDrawModeCallback();
       }
       this.cancelEdit(this.myDrawMode !== this.DRAWMODE.BOX);
+      // TODO: is it OK to only use a single [Esc] to remove the last vertex AND exit draw mode?
+      if (this.myDrawMode === this.DRAWMODE.POLYGON && this.props.exitDrawModeCallback) {
+        this.props.exitDrawModeCallback();
+      }
     }
   }
 

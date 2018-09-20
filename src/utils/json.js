@@ -290,5 +290,6 @@ module.exports = {
   clearEmptyPointersAndAncestors: clearEmptyPointersAndAncestors,
   removeNestedProperty: removeNestedProperty,
   isFeatureGeoJsonComplete: isFeatureGeoJsonComplete,
+  isObject: isObject,
   MODES_GEO_SELECTION: MODES_GEO_SELECTION
 };

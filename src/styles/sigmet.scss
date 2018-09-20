@@ -122,7 +122,10 @@
   .Draw.required {
     margin-left: unset;
   }
-
+  .Draw.warning {
+    border-radius: 0.25rem;
+    border-color: #f90;
+  }
   .Draw.missing {
     border-radius: 0.25rem;
     border-color: red;
@@ -346,7 +349,9 @@
   .required:after {
     content: '*';
   }
-
+  .warning {
+    color: #f90;
+  }
   .required.missing {
     color: red;
     font-weight: bold;

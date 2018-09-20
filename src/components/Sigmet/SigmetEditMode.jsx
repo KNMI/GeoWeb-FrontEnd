@@ -228,7 +228,7 @@ class SigmetEditMode extends PureComponent {
   }
 
   render () {
-    const { dispatch, actions, availablePhenomena, hasStartCoordinates, hasEndCoordinates,
+    const { dispatch, actions, availablePhenomena, hasStartCoordinates, hasEndCoordinates, feedbackStart, feedbackEnd,
       availableFirs, levelinfo, movement, movementType, focus, uuid, locationIndicatorMwo, change, isVolcanicAsh, volcanoName, volcanoCoordinates,
       phenomenon, isObserved, obsFcTime, validdate, maxHoursInAdvance, maxHoursDuration, validdateEnd, locationIndicatorIcao } = this.props;
     const selectedPhenomenon = availablePhenomena.find((ph) => ph.code === phenomenon);
@@ -277,10 +277,10 @@ class SigmetEditMode extends PureComponent {
     const drawMessage = (isEndDrawing) => !isEndDrawing
       ? !hasStartCoordinates
         ? `${messagePrefix} ${isObserved ? 'observed' : 'expected to occur'}.`
-        : ''
+        : feedbackStart || ''
       : movementType === MOVEMENT_TYPES.FORECAST_POSITION && !hasEndCoordinates
         ? `${messagePrefix} expected to be at the end of the valid period.`
-        : '';
+        : feedbackEnd || '';
     const now = moment.utc();
     const abilityCtAs = this.reduceAbilities(selectedPhenomenon); // CtA = Call To Action
     return <Button tag='div' className={`Sigmet row${focus ? ' focus' : ''}`} id={uuid} onClick={!focus ? (evt) => dispatch(actions.focusSigmetAction(evt, uuid)) : null}>
@@ -424,7 +424,7 @@ class SigmetEditMode extends PureComponent {
           <span data-field='location_indicator_icao'>{locationIndicatorIcao}</span>
         </FirSection>
 
-        <DrawSection className={`required${hasStartCoordinates ? '' : ' missing'}`} title={drawMessage()}>
+        <DrawSection className={`required${hasStartCoordinates ? '' : ' missing'}${feedbackStart ? ' warning' : ''}`} title={drawMessage()}>
           {
             drawActions().map((actionItem, index) =>
               <Button color='primary' key={actionItem.action + '_button'} data-field={actionItem.action + '_button'}
@@ -560,7 +560,7 @@ class SigmetEditMode extends PureComponent {
             <InputGroupAddon>KT</InputGroupAddon>
           </InputGroup>
           <DrawSection data-field='drawbar' title={drawMessage(true)}
-            className={movementType === MOVEMENT_TYPES.FORECAST_POSITION ? `required${hasEndCoordinates ? '' : ' missing'}` : ''}>
+            className={movementType === MOVEMENT_TYPES.FORECAST_POSITION ? `required${hasEndCoordinates ? '' : ' missing'}${feedbackEnd ? ' warning' : ''}` : ''}>
             {
               drawActions(true).map((actionItem, index) =>
                 <Button color='primary' key={actionItem.action + '_button'} data-field={actionItem.action + '_button'}
@@ -628,6 +628,8 @@ SigmetEditMode.propTypes = {
   obsFcTime: PropTypes.string,
   drawModeStart: PropTypes.string,
   drawModeEnd: PropTypes.string,
+  feedbackStart: PropTypes.string,
+  feedbackEnd: PropTypes.string,
   hasStartCoordinates: PropTypes.bool,
   hasEndCoordinates: PropTypes.bool,
   availableFirs: PropTypes.array,

@@ -2,7 +2,7 @@ import produce from 'immer';
 import moment from 'moment';
 import { SIGMET_TEMPLATES, UNITS, UNITS_ALT, MODES_LVL, MOVEMENT_TYPES } from '../../components/Sigmet/SigmetTemplates';
 import { SIGMET_MODES, LOCAL_ACTION_TYPES, CATEGORY_REFS, STATUSES } from './SigmetActions';
-import { clearEmptyPointersAndAncestors, mergeInTemplate, isFeatureGeoJsonComplete, MODES_GEO_SELECTION } from '../../utils/json';
+import { clearEmptyPointersAndAncestors, mergeInTemplate, isFeatureGeoJsonComplete, MODES_GEO_SELECTION, isObject } from '../../utils/json';
 import axios from 'axios';
 import { notify } from 'reapop';
 import cloneDeep from 'lodash.clonedeep';
@@ -296,6 +296,8 @@ const focusSigmet = (evt, uuid, container) => {
       draftState.focussedSigmet.drawModeEnd = null;
       shouldClearDrawing = true;
     }
+    draftState.focussedSigmet.feedbackStart = null;
+    draftState.focussedSigmet.feedbackEnd = null;
     draftState.focussedSigmet.mode = SIGMET_MODES.READ;
   }), () => {
     // TODO: display preset
@@ -668,15 +670,34 @@ const createFirIntersection = (featureId, geojson, container) => {
       data: intersectionData
     }).then((response) => {
       if (response.data) {
-        dispatch(drawActions.setFeature({
-          geometry: { coordinates: response.data.geometry.coordinates, type: response.data.geometry.type },
-          properties: { selectionType:  response.data.properties.selectionType },
-          featureId: intersectionFeature.id }));
+        const { feature: stringifiedFeature, message, succeeded: stringifiedSucceeded } = response.data;
+        const responseFeature = !isObject(stringifiedFeature) ? JSON.parse(stringifiedFeature) : stringifiedFeature;
+        const responseSucceeded = typeof stringifiedSucceeded !== 'boolean' ? JSON.parse(stringifiedSucceeded) : stringifiedSucceeded;
+        const responseMessage = typeof message === 'string' ? message : null;
+        const { featureFunction } = featureToIntersect.properties;
+        const feedbackProperty = `feedback${featureFunction.charAt(0).toUpperCase()}${featureFunction.slice(1)}`;
+
+        container.setState(produce(container.state, draftState => {
+          draftState.focussedSigmet[feedbackProperty] = responseMessage;
+        }), () => {
+          if (responseSucceeded === true) {
+            dispatch(drawActions.setFeature({
+              geometry: { coordinates: responseFeature.geometry.coordinates, type: responseFeature.geometry.type },
+              properties: { selectionType:  responseFeature.properties.selectionType },
+              featureId: intersectionFeature.id
+            }));
+          }
+        });
       }
     }).catch(error => {
       console.error('Couldn\'t retrieve intersection for feature', error, featureId);
     });
   } else {
+    /* const { featureFunction } = featureToIntersect.properties;
+    const feedbackProperty = `feedback${featureFunction.charAt(0).toUpperCase()}${featureFunction.slice(1)}`;
+    container.setState(produce(container.state, draftState => {
+      draftState.focussedSigmet[feedbackProperty] = null;
+    })); */
     console.warn('The intersection feature was not found');
   }
 };
@@ -686,7 +707,8 @@ const modifyFocussedSigmet = (dataField, value, container) => {
   container.setState(produce(state, draftState => {
     draftState.focussedSigmet[dataField] = value;
     draftState.focussedSigmet.hasEdits = true;
-  }));
+  }), () => {
+  });
 };
 
 const clearSigmet = (event, uuid, container) => {
