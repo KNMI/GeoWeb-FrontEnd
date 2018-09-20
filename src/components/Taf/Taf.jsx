@@ -485,7 +485,7 @@ class Taf extends Component {
     if (focusEvent.type === 'focus' && 'name' in focusEvent.target && typeof focusEvent.target.name === 'string') {
       const nameParts = focusEvent.target.name.split('-');
       let phenomenonName = '';
-      // TODO Check if resulting phenomenon name is a known phenomenon
+      // TODO: Check if resulting phenomenon name is a known phenomenon
       if (!isNaN(nameParts[nameParts.length - 1])) {
         phenomenonName = nameParts[nameParts.length - 2];
       } else {

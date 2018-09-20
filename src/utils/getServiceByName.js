@@ -24,7 +24,7 @@ export const GetServiceByName = (sources, name) => {
   if (source.source && source.source.service) {
     return source.source.service;
   }
-  // TODO we need our own error handling mechanism here, e.g. a dialog showing what errors have occured.
+  // TODO: we need our own error handling mechanism here, e.g. a dialog showing what errors have occured.
   console.error('Source not found [' + name + ']', sources);
   return null;
 };
