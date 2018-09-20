@@ -395,7 +395,7 @@ const addFirFeature = (geojson, firName, container) => {
   const firFeature = availableFirs[firName];
   const newFeatureIndex = draftState.features.push(cloneDeep(SIGMET_TEMPLATES.FEATURE)) - 1;
   draftState.features[newFeatureIndex].type = firFeature.type;
-  draftState.features[newFeatureIndex].properties.featureFunction = 'fir';
+  draftState.features[newFeatureIndex].properties.featureFunction = 'base-fir';
   draftState.features[newFeatureIndex].properties.selectionType = 'fir';
   draftState.features[newFeatureIndex].properties.fill = 'transparent';
   draftState.features[newFeatureIndex].properties['fill-opacity'] = 0.01;
@@ -730,18 +730,28 @@ const drawSigmet = (event, uuid, container, action, featureFunction) => {
 };
 
 const cleanFeatures = (features) => {
-  let cleanedFeatures = cloneDeep(features);
-  if (!Array.isArray(cleanedFeatures)) {
-    cleanedFeatures = [cleanedFeatures];
-  }
+  // features with featureFunction equal to 'base-fir' should be filtered
+  const isNotBaseFirFeature = (feature) => (!feature || !feature.properties || feature.properties.featureFunction !== 'base-fir');
+
+  // The features can be an array, or an individual feature - which in turn can be a removable base-fir feature
+  const cleanedFeatures = Array.isArray(features)
+    ? cloneDeep(features.filter(isNotBaseFirFeature))
+    : isNotBaseFirFeature(features) === true
+      ? [cloneDeep(features)]
+      : []; // single, removable base-fir, feature
+
   cleanedFeatures.forEach((feature) => {
-    const isEntireFir = (feature && feature.properties && feature.properties.selectionType === 'fir');
+    const isEntireFir = (feature && feature.properties && feature.properties.selectionType === MODES_GEO_SELECTION.FIR);
     if (isEntireFir === true && feature.geometry && feature.geometry.hasOwnProperty('type')) {
       feature.geometry.type = null;
     }
     clearEmptyPointersAndAncestors(feature);
   });
-  return Array.isArray(features) ? cleanedFeatures : cleanedFeatures[0];
+  return Array.isArray(features)
+    ? cleanedFeatures
+    : cleanedFeatures.length > 0
+      ? cleanedFeatures[0]
+      : null;
 };
 
 const createIntersectionData = (feature, firname, container) => {
@@ -799,11 +809,6 @@ const createFirIntersection = (featureId, geojson, container) => {
       console.error('Couldn\'t retrieve intersection for feature', error, featureId);
     });
   } else {
-    /* const { featureFunction } = featureToIntersect.properties;
-    const feedbackProperty = `feedback${featureFunction.charAt(0).toUpperCase()}${featureFunction.slice(1)}`;
-    container.setState(produce(container.state, draftState => {
-      draftState.focussedSigmet[feedbackProperty] = null;
-    })); */
     console.warn('The intersection feature was not found');
   }
 };
