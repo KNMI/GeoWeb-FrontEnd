@@ -184,11 +184,13 @@ export default class AdagucMapDraw extends PureComponent {
     let w = 7;
     let coord = { x: parseInt(_coord.x), y: parseInt(_coord.y) };
     if (isInEditMode === false) {
+      return;
       /* Standard style, no editing, just display location of vertices */
-      ctx.strokeStyle = '#000';
+      // TODO: Is it OK to remove the vertices completely, when not in edit mode?
+      /* ctx.strokeStyle = '#000';
       ctx.fillStyle = '#000';
       ctx.lineWidth = 1.0;
-      w = 5;
+      w = 5; */
     } else if (selected === false) {
       if (middle === true) {
         /* Style for middle editable vertice */
@@ -409,7 +411,6 @@ export default class AdagucMapDraw extends PureComponent {
     /* Current selected feature from GeoJSON */
     for (let featureIndex = 0; featureIndex < this.geojson.features.length; featureIndex++) {
       const feature = this.geojson.features[featureIndex];
-
       const featureType = feature.geometry.type;
       let totalmiddle = { x: 0, y: 0, nr: 0 };
 
@@ -454,9 +455,11 @@ export default class AdagucMapDraw extends PureComponent {
             }
 
             const middle = this.drawPolygon(ctx, XYCoords, featureIndex, polygonIndex);
-            totalmiddle.x += middle.x * middle.nr;
-            totalmiddle.y += middle.y * middle.nr;
-            totalmiddle.nr += middle.nr;
+            if (middle) {
+              totalmiddle.x += middle.x * middle.nr;
+              totalmiddle.y += middle.y * middle.nr;
+              totalmiddle.nr += middle.nr;
+            }
             if (this.props.isInEditMode) {
               /* Draw all vertices on the edges of the polygons */
               for (let j = 0; j < XYCoords.length; j++) {
@@ -467,7 +470,7 @@ export default class AdagucMapDraw extends PureComponent {
                   this.props.isInEditMode && this.props.featureNrToEdit === featureIndex);
               }
 
-              if (this.props.isInEditMode === true && XYCoords.length >= 3) {
+              if (middle && this.props.isInEditMode === true && XYCoords.length >= 3) {
                 /* Draw middle vertice for the poly if poly covers an area, e.g. when it contains more than three points */
                 this.drawVertice(ctx,
                   middle,
@@ -500,7 +503,7 @@ export default class AdagucMapDraw extends PureComponent {
 
           const middle = this.drawPolygon(ctx, XYCoords, featureIndex, polygonIndex);
 
-          if (feature.properties && feature.properties.text) {
+          if (middle && feature.properties && feature.properties.text) {
             this.textPositions.push({ x:middle.x, y:middle.y, text: feature.properties.text });
           }
 
@@ -514,7 +517,7 @@ export default class AdagucMapDraw extends PureComponent {
                 this.props.isInEditMode && this.props.featureNrToEdit === featureIndex);
             }
 
-            if (this.props.isInEditMode === true && XYCoords.length >= 3) {
+            if (middle && this.props.isInEditMode === true && XYCoords.length >= 3) {
               /* Draw middle vertice for the poly if poly covers an area, e.g. when it contains more than three points */
               this.drawVertice(ctx,
                 middle,
@@ -528,7 +531,9 @@ export default class AdagucMapDraw extends PureComponent {
     }
 
     /* Higlight polygon with mousehover */
-    if ((this.mouseIsOverVertexNr === this.VERTEX.NONE &&
+    if ((this.props.isInEditMode === true &&
+      this.mouseOverPolygonFeatureIndex === this.props.featureNrToEdit &&
+      this.mouseIsOverVertexNr === this.VERTEX.NONE &&
       this.snappedPolygonIndex === this.SNAPPEDFEATURE.NONE &&
       this.selectedEdge === this.EDGE.NONE) ||
       this.mouseIsOverVertexNr === this.VERTEX.MIDDLE_POINT_OF_FEATURE) {
@@ -551,7 +556,9 @@ export default class AdagucMapDraw extends PureComponent {
       }
     }
 
-    if (this.props.hoverFeatureCallback) {
+    if (this.props.isInEditMode === true &&
+      this.mouseOverPolygonFeatureIndex === this.props.featureNrToEdit &&
+      this.props.hoverFeatureCallback) {
       this.props.hoverFeatureCallback(this.mouseOverPolygonFeatureIndex);
     }
 
