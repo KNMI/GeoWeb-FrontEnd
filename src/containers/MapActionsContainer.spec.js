@@ -1,6 +1,6 @@
 import React from 'react';
 import { default as MapActionsContainer } from './MapActionsContainer';
-import { mount, shallow } from 'enzyme';
+import { mount } from 'enzyme';
 
 const state = {
   adagucProperties: {
@@ -90,13 +90,9 @@ const emptyActions = {
 };
 
 describe('(Container) MapActionsContainer', () => {
-  let _deepComponent, _shallowComponent;
+  let _deepComponent;
   beforeEach(() => {
     _deepComponent = mount(<MapActionsContainer urls={{ BACKEND_SERVER_URL: 'http://localhost:8080' }}
-      user={{}}
-      adagucActions={{ toggleAnimation: () => null, setTimeDimension: () => null }}
-      mapProperties={state.mapProperties} adagucProperties={state.adagucProperties} dispatch={emptyDispatch} actions={emptyActions} />);
-    _shallowComponent = shallow(<MapActionsContainer urls={{ BACKEND_SERVER_URL: 'http://localhost:8080' }}
       user={{}}
       adagucActions={{ toggleAnimation: () => null, setTimeDimension: () => null }}
       mapProperties={state.mapProperties} adagucProperties={state.adagucProperties} dispatch={emptyDispatch} actions={emptyActions} />);
@@ -113,7 +109,7 @@ describe('(Container) MapActionsContainer', () => {
   //   expect('everything').to.be.ok();
   // });
   it('Allows for triggering togglePopside', () => {
-    _shallowComponent.instance().togglePopside();
+    _deepComponent.instance().togglePopside();
     expect('everything').to.be.ok();
   });
   // it('Allows for triggering goToNow', () => {
@@ -155,7 +151,7 @@ describe('(Container) MapActionsContainer', () => {
     expect('everything').to.be.ok();
   });
   it('Allows for setting popoverOpen state', () => {
-    _shallowComponent.setState({ popoverOpen: true });
+    _deepComponent.setState({ popoverOpen: true });
     expect('everything').to.be.ok();
   });
   it('Allows for creating a progtemp config', () => {
