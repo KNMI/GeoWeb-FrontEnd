@@ -3,7 +3,7 @@ import {
   Button, Col, InputGroup, InputGroupAddon, Input, InputGroupButton, ButtonDropdown,
   DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap';
 import { Typeahead } from 'react-bootstrap-typeahead';
-import DateTimePicker from 'react-datetime';
+import TimePicker from '../Basis/DateTimePicker';
 import produce from 'immer';
 import moment from 'moment';
 import cloneDeep from 'lodash.clonedeep';
@@ -25,8 +25,7 @@ import IssueSection from './Sections/IssueSection';
 import ChangeSection from './Sections/ChangeSection';
 import HeightsSection from './Sections/HeightsSection';
 import {
-  DIRECTIONS, UNITS_ALT, UNITS, MODES_LVL, MODES_LVL_OPTIONS, CHANGES, MOVEMENT_TYPES, MOVEMENT_OPTIONS, SIGMET_TYPES,
-  DATE_LABEL_FORMAT, TIME_FORMAT_UTC, DATETIME_FORMAT } from './SigmetTemplates';
+  DIRECTIONS, UNITS_ALT, UNITS, MODES_LVL, MODES_LVL_OPTIONS, CHANGES, MOVEMENT_TYPES, MOVEMENT_OPTIONS, SIGMET_TYPES, DATETIME_FORMAT } from './SigmetTemplates';
 
 class SigmetEditMode extends PureComponent {
   constructor (props) {
@@ -299,32 +298,16 @@ class SigmetEditMode extends PureComponent {
             onChange={(evt) => dispatch(actions.updateSigmetAction(uuid, 'obs_or_forecast', { obs: !evt.target.checked, obsFcTime: obsFcTime }))}
             data-field='obs_or_fcst'
           />
-          <DateTimePicker dateFormat={DATE_LABEL_FORMAT} timeFormat={TIME_FORMAT_UTC} utc data-field='obsFcTime'
-            viewMode='time'
-            value={obsFcTime === null
-              ? null
-              : moment(obsFcTime, DATETIME_FORMAT).isValid()
-                ? moment.utc(obsFcTime)
-                : obsFcTime
+          <TimePicker data-field='obsFcTime' utc
+            value={moment(obsFcTime, DATETIME_FORMAT).isValid()
+              ? moment.utc(obsFcTime)
+              : obsFcTime
             }
-            onChange={(time) => dispatch(actions.updateSigmetAction(uuid, 'obs_or_forecast',
-              { obs: isObserved, obsFcTime: moment.isMoment(time) ? time.format(DATETIME_FORMAT) : time }))}
-            onFocus={(evt) => obsFcTime ||
-              dispatch(actions.updateSigmetAction(uuid, 'obs_or_forecast', {
-                obs: isObserved,
-                obsFcTime: now.clone().startOf('minute').add(5 - now.minutes() % 5, 'minutes').format(DATETIME_FORMAT)
-              }))}
-            isValidDate={(curr, selected) => this.isValidObsFcTimestamp(curr)}
-            timeConstraints={{
-              hours: {
-                min: now.hour() - 1,
-                max: (now.hour() + maxHoursInAdvance + maxHoursDuration)
-              },
-              minutes: {
-                step: 5
-              }
-            }}
-            className={!this.isValidObsFcTimestamp(obsFcTime) ? 'missing' : null}
+            onChange={(evt, timestamp) => dispatch(actions.updateSigmetAction(uuid, 'obs_or_forecast', { obs: isObserved, obsFcTime: timestamp }))}
+            min={now.clone().subtract(1, 'hour')}
+            max={validdateEnd !== null && moment(validdateEnd, DATETIME_FORMAT).isValid()
+              ? moment.utc(validdateEnd)
+              : now.clone().add(maxHoursDuration + maxHoursInAdvance, 'hour')}
           />
           {isVolcanicAsh
             ? <Input type='text' value={volcanoName || ''} data-field='volcano_name' placeholder='Volcano name'
@@ -351,49 +334,29 @@ class SigmetEditMode extends PureComponent {
         </WhatSection>
 
         <ValiditySection>
-          <DateTimePicker dateFormat={DATE_LABEL_FORMAT} timeFormat={TIME_FORMAT_UTC} utc data-field='validdate'
-            viewMode='time'
+          <TimePicker data-field='validdate' utc required
             value={validdate === null
               ? now
               : moment(validdate, DATETIME_FORMAT).isValid()
                 ? moment.utc(validdate)
                 : validdate
             }
-            onChange={(time) => dispatch(actions.updateSigmetAction(uuid, 'validdate',
-              moment.isMoment(time) ? time.format(DATETIME_FORMAT) : time))}
-            isValidDate={(curr, selected) => this.isValidStartTimestamp(curr)}
-            timeConstraints={{
-              hours: {
-                min: now.hour(),
-                max: (now.hour() + maxHoursInAdvance)
-              },
-              minutes: {
-                step: 5
-              }
-            }}
-            className={!this.isValidStartTimestamp(validdate) ? 'missing' : null}
+            onChange={(evt, timestamp) => dispatch(actions.updateSigmetAction(uuid, 'validdate', timestamp))}
+            min={now.clone().subtract(1, 'hour')}
+            max={now.clone().add(maxHoursInAdvance * 6, 'hour')}
           />
-          <DateTimePicker dateFormat={DATE_LABEL_FORMAT} timeFormat={TIME_FORMAT_UTC} utc data-field='validdate_end'
-            viewMode='time'
+          <TimePicker data-field='validdate_end' utc required
             value={validdateEnd === null
               ? now
               : moment(validdateEnd, DATETIME_FORMAT).isValid()
                 ? moment.utc(validdateEnd)
                 : validdateEnd
             }
-            onChange={(time) => dispatch(actions.updateSigmetAction(uuid, 'validdate_end',
-              moment.isMoment(time) ? time.format(DATETIME_FORMAT) : time))}
-            isValidDate={(curr, selected) => this.isValidEndTimestamp(curr)}
-            timeConstraints={{
-              hours: {
-                min: moment.utc(validdate).hour(),
-                max: (moment.utc(validdate).hour() + maxHoursDuration)
-              },
-              minutes: {
-                step: 5
-              }
-            }}
-            className={!this.isValidEndTimestamp(validdateEnd) ? 'missing' : null}
+            onChange={(evt, timestamp) => dispatch(actions.updateSigmetAction(uuid, 'validdate_end', timestamp))}
+            min={validdate !== null && moment(validdate, DATETIME_FORMAT).isValid() ? moment.utc(validdate) : now}
+            max={validdate !== null && moment(validdate, DATETIME_FORMAT).isValid()
+              ? moment.utc(validdate).add(maxHoursDuration, 'hour')
+              : now.clone().add(maxHoursDuration, 'hour')}
           />
         </ValiditySection>
 
@@ -551,7 +514,7 @@ class SigmetEditMode extends PureComponent {
           <InputGroup data-field='speed' className={movementType === MOVEMENT_TYPES.MOVEMENT && !movement.speed ? 'unitAfter missing' : 'unitAfter'}
             disabled={movementType !== MOVEMENT_TYPES.MOVEMENT}>
             <Input onChange={(evt) => dispatch(actions.updateSigmetAction(uuid, 'movement', { ...movement, speed: parseInt(evt.target.value) }))}
-              value={(!movement || !movement.speed) ? '' : movement.speed}
+              value={(!movement || !movement.speed) ? '' : movement.speed} placeholder={'Set speed'}
               type='number' disabled={movementType !== MOVEMENT_TYPES.MOVEMENT}
               step='1' min='1'
             />
