@@ -3,6 +3,7 @@ import moment from 'moment';
 import { SIGMET_TEMPLATES, UNITS, UNITS_ALT, MODES_LVL, MOVEMENT_TYPES } from '../../components/Sigmet/SigmetTemplates';
 import { SIGMET_MODES, LOCAL_ACTION_TYPES, CATEGORY_REFS, STATUSES } from './SigmetActions';
 import { clearEmptyPointersAndAncestors, mergeInTemplate, isFeatureGeoJsonComplete, MODES_GEO_SELECTION, isObject } from '../../utils/json';
+import { getPresetForPhenomenon } from '../../components/Sigmet/SigmetPresets';
 import axios from 'axios';
 import { notify } from 'reapop';
 import cloneDeep from 'lodash.clonedeep';
@@ -34,23 +35,20 @@ const toggleContainer = (evt, container) => {
 };
 
 const toggleCategory = (evt, ref, container) => {
-  const { dispatch, mapActions, drawActions } = container.props;
+  const { dispatch, mapActions } = container.props;
   container.setState(produce(container.state, draftState => {
     if (ref === CATEGORY_REFS.ADD_SIGMET && ref !== draftState.focussedCategoryRef) {
       draftState.focussedSigmet.mode = SIGMET_MODES.EDIT;
       draftState.focussedSigmet.uuid = null;
     }
-    draftState.focussedSigmet.drawMode = null;
+    draftState.focussedSigmet.drawModeStart = null;
+    draftState.focussedSigmet.drawModeEnd = null;
     draftState.focussedCategoryRef = (draftState.focussedCategoryRef === ref)
       ? null
       : ref;
   }), () => {
     dispatch(mapActions.setMapMode('pan'));
-    if (ref === CATEGORY_REFS.ADD_SIGMET) {
-      dispatch(drawActions.setGeoJSON(initialGeoJson()));
-    } else {
-      setSigmetDrawing(null, container);
-    }
+    setSigmetDrawing(null, container, ref === CATEGORY_REFS.ADD_SIGMET);
   });
 };
 
@@ -78,7 +76,7 @@ const updateCategory = (ref, sigmets, container, callback = () => {}) => {
       draftState.categories[categoryIndex].sigmets.length = 0;
       sigmets.sort(byValidDate);
       sigmets.forEach((incomingSigmet) => {
-        /* TODO: FIX for diMosellaAtWork (reported MaartenPlieger, 05-09-2018, 10:30). MergeInTemplate coordinates needs different nesting for point/poly */
+        /* FIXME: for diMosellaAtWork (reported MaartenPlieger, 05-09-2018, 10:30). MergeInTemplate coordinates needs different nesting for point/poly */
         let mergedSigmet = produce(mergeInTemplate(incomingSigmet, 'SIGMET', templateWithDefaults), sigmetToAddCoordsTo => {
           if (incomingSigmet && incomingSigmet.geojson && incomingSigmet.geojson.features && incomingSigmet.geojson.features.length > 0) {
             for (let f = 0; f < incomingSigmet.geojson.features.length; f++) {
@@ -260,7 +258,7 @@ const receivedSigmetsCallback = (ref, response, container, callback) => {
 };
 
 const focusSigmet = (evt, uuid, container) => {
-  const { dispatch, mapActions } = container.props;
+  const { dispatch, mapActions, sources } = container.props;
   const { state } = container;
   if (evt.target.tagName === 'BUTTON') {
     return;
@@ -284,6 +282,8 @@ const focusSigmet = (evt, uuid, container) => {
       drawModeStart = startFeature ? modeMapping[startFeature.properties.selectionType] : null;
       drawModeEnd = endFeature ? modeMapping[endFeature.properties.selectionType] : null;
     }
+    const preset = getPresetForPhenomenon(sigmet.phenomenon, sources);
+    updateDisplayedPreset(preset, container);
   }
   container.setState(produce(container.state, draftState => {
     if (draftState.focussedSigmet.uuid !== uuid) {
@@ -336,7 +336,7 @@ const updateFir = (firName, container) => {
   }
 };
 
-// TODO: Should be Immutable, but AdagucMapDraw can't handle this ATM. Fix this.
+// FIXME: Should be Immutable, but AdagucMapDraw can't handle this ATM. Fix this.
 const initialGeoJson = () => {
   const draftState = cloneDeep(SIGMET_TEMPLATES.GEOJSON);
   draftState.features.push(cloneDeep(SIGMET_TEMPLATES.FEATURE), cloneDeep(SIGMET_TEMPLATES.FEATURE), cloneDeep(SIGMET_TEMPLATES.FEATURE));
@@ -376,6 +376,34 @@ const initialGeoJson = () => {
   draftState.features[3].properties.fill = '#a22';
   draftState.features[3].properties['stroke-width'] = 2;
   draftState.features[3].geometry.type = null;
+  return draftState;
+};
+
+// FIXME: Should be Immutable, but AdagucMapDraw can't handle this ATM. Fix this.
+const addFirFeature = (geojson, firName, container) => {
+  const { firs: availableFirs } = container.state;
+  if (!geojson || !firName) {
+    return null;
+  }
+  const draftState = cloneDeep(geojson);
+  if (!Array.isArray(geojson.features)) {
+    return null;
+  }
+  if (!availableFirs.hasOwnProperty(firName)) {
+    return null;
+  }
+  const firFeature = availableFirs[firName];
+  const newFeatureIndex = draftState.features.push(cloneDeep(SIGMET_TEMPLATES.FEATURE)) - 1;
+  draftState.features[newFeatureIndex].type = firFeature.type;
+  draftState.features[newFeatureIndex].properties.featureFunction = 'base-fir';
+  draftState.features[newFeatureIndex].properties.selectionType = 'fir';
+  draftState.features[newFeatureIndex].properties.fill = 'transparent';
+  draftState.features[newFeatureIndex].properties['fill-opacity'] = 0.01;
+  draftState.features[newFeatureIndex].properties.stroke = '#017daf';
+  draftState.features[newFeatureIndex].properties['stroke-width'] = 1.2;
+  draftState.features[newFeatureIndex].geometry.type = firFeature.geometry.type;
+  draftState.features[newFeatureIndex].geometry.coordinates.length = 0;
+  draftState.features[newFeatureIndex].geometry.coordinates.push(...firFeature.geometry.coordinates);
   return draftState;
 };
 
@@ -425,6 +453,86 @@ const findCategoryAndSigmetIndex = (uuid, state) => {
   return { sigmetIndex, categoryIndex, isFound: (categoryIndex !== -1 && sigmetIndex !== -1) };
 };
 
+const updateDisplayedPreset = (preset, container) => {
+  // FIXME: how to properly chain all these asynchronous dispatches?
+  // FIXME: this code closely resembles the TitleBarContainer.setPreset, it should be generalized
+  const { dispatch, panelsActions, mapActions, adagucActions } = container.props;
+  if (!preset) {
+    return;
+  }
+  if (preset.area) {
+    dispatch(panelsActions.setPanelLayout(preset.display.type));
+  }
+  if (preset.display) {
+    dispatch(mapActions.setCut({ name: 'Custom', bbox: [preset.area.left || 570875, preset.area.bottom, preset.area.right || 570875, preset.area.top] }));
+  }
+
+  if (preset.layers) {
+    // This is tricky because all layers need to be restored in the correct order
+    // So first create all panels as null....
+    const newPanels = [null, null, null, null];
+    const promises = [];
+    preset.layers.map((panel, panelIdx) => {
+      // Then for each panel initialize it to this object where layers is an empty array with the
+      // length of the layers in the panel, as it needs to be inserted in a certain order. For the baselayers
+      // this is irrelevant because the order of overlays is not relevant
+      if (panel.length === 1 && panel[0].type && panel[0].type.toLowerCase() !== 'adaguc') {
+        newPanels[panelIdx] = { 'layers': [], 'baselayers': [], type: panel[0].type.toUpperCase() };
+        if (this.state.locations && panel[0].location) {
+          // Assume ICAO name
+          if (typeof panel[0].location === 'string') {
+            const possibleLocation = this.state.locations.filter((loc) => loc.name === panel[0].location);
+            if (possibleLocation.length === 1) {
+              dispatch(adagucActions.setCursorLocation(possibleLocation[0]));
+            } else {
+              dispatch(adagucActions.setCursorLocation(panel[0].location));
+            }
+          }
+        }
+      } else {
+        newPanels[panelIdx] = { 'layers': new Array(panel.length), 'baselayers': [] };
+        panel.map((layer, i) => {
+          // Create a Promise for parsing all WMJSlayers because we can only do something when ALL layers have been parsed
+          promises.push(new Promise((resolve, reject) => {
+            // eslint-disable-next-line no-undef
+            const wmjsLayer = new WMJSLayer(layer);
+            wmjsLayer.parseLayer((newLayer) => {
+              if (!newLayer.service) {
+                return resolve(null);
+              }
+              newLayer.keepOnTop = (layer.overlay || layer.keepOnTop);
+              if (layer.dimensions) {
+                Object.keys(layer.dimensions).map((dim) => {
+                  newLayer.setDimension(dim, layer.dimensions[dim]);
+                });
+              }
+              return resolve({ layer: newLayer, panelIdx: panelIdx, index: i });
+            });
+          }));
+        });
+      }
+    });
+
+    // Once that happens, insert the layer in the appropriate place in the appropriate panel
+    Promise.all(promises).then((layers) => {
+      layers.map((layerDescription) => {
+        if (layerDescription) {
+          const { layer, panelIdx, index } = layerDescription;
+          if (layer.keepOnTop === true) {
+            layer.keepOnTop = true;
+            newPanels[panelIdx].baselayers.push(layer);
+          } else {
+            newPanels[panelIdx].layers[index] = layer;
+          }
+        }
+      });
+      // Beware: a layer can still contain null values because a layer might have been a null value
+      // also, panels may have had no layers in them
+      dispatch(panelsActions.setPresetLayers(newPanels));
+    });
+  }
+};
+
 const updateSigmet = (uuid, dataField, value, container) => {
   const { state, props } = container;
   const { drawProperties, dispatch, drawActions } = props;
@@ -443,7 +551,9 @@ const updateSigmet = (uuid, dataField, value, container) => {
       }
     }
     if (value) {
-      // TODO: display preset
+      const { sources } = props;
+      const preset = getPresetForPhenomenon(value, sources);
+      updateDisplayedPreset(preset, container);
     }
   }
   if (dataField === 'volcano_coordinates' && Array.isArray(value)) {
@@ -553,6 +663,7 @@ const clearRelatedIntersection = (featureId, features, dispatch, drawActions) =>
 
 const drawSigmet = (event, uuid, container, action, featureFunction) => {
   const { dispatch, mapActions, drawActions, drawProperties } = container.props;
+  const { focussedSigmet } = container.state;
   const features = drawProperties.adagucMapDraw.geojson.features;
   // Select relevant polygon to edit, this assumes there is ONE start and ONE end feature.
   const featureIndex = features.findIndex((feature) =>
@@ -562,58 +673,53 @@ const drawSigmet = (event, uuid, container, action, featureFunction) => {
   }
   const featureId = features[featureIndex].id;
   const drawMode = `drawMode${featureFunction.charAt(0).toUpperCase() + featureFunction.slice(1)}`;
+  const updatableFeatureProps = {
+    geometry: { coordinates: [], type: null },
+    properties: { selectionType: null },
+    featureId: featureId
+  };
+  if (action === focussedSigmet[drawMode]) {
+    updatableFeatureProps.geometry.coordinates.push(...features[featureIndex].geometry.coordinates);
+  }
   switch (action) {
     case 'select-point':
       dispatch(mapActions.setMapMode('draw'));
       dispatch(drawActions.setFeatureEditPoint());
-      dispatch(drawActions.setFeature({
-        geometry: { coordinates: [] },
-        properties: { selectionType: MODES_GEO_SELECTION.POINT },
-        featureId: featureId
-      }));
-
+      updatableFeatureProps.geometry.type = 'Point';
+      updatableFeatureProps.properties.selectionType = MODES_GEO_SELECTION.POINT;
+      dispatch(drawActions.setFeature(updatableFeatureProps));
       clearRelatedIntersection(featureId, features, dispatch, drawActions);
       modifyFocussedSigmet(drawMode, action, container);
       break;
     case 'select-region':
       dispatch(mapActions.setMapMode('draw'));
       dispatch(drawActions.setFeatureEditBox());
-      dispatch(drawActions.setFeature({
-        geometry: { coordinates: [] },
-        properties: { selectionType: MODES_GEO_SELECTION.BOX },
-        featureId: featureId }));
-
+      updatableFeatureProps.geometry.type = 'Polygon';
+      updatableFeatureProps.properties.selectionType = MODES_GEO_SELECTION.BOX;
+      dispatch(drawActions.setFeature(updatableFeatureProps));
       clearRelatedIntersection(featureId, features, dispatch, drawActions);
       modifyFocussedSigmet(drawMode, action, container);
       break;
     case 'select-shape':
       dispatch(mapActions.setMapMode('draw'));
       dispatch(drawActions.setFeatureEditPolygon());
-      dispatch(drawActions.setFeature({
-        geometry: { coordinates: [] },
-        properties: { selectionType: MODES_GEO_SELECTION.POLY },
-        featureId: featureId }));
+      updatableFeatureProps.geometry.type = 'Polygon';
+      updatableFeatureProps.properties.selectionType = MODES_GEO_SELECTION.POLY;
+      dispatch(drawActions.setFeature(updatableFeatureProps));
       clearRelatedIntersection(featureId, features, dispatch, drawActions);
       modifyFocussedSigmet(drawMode, action, container);
       break;
     case 'select-fir':
       dispatch(mapActions.setMapMode('pan'));
       dispatch(drawActions.setFeatureEditPolygon());
-      dispatch(drawActions.setFeature({
-        geometry: { coordinates: [] },
-        properties: { selectionType: MODES_GEO_SELECTION.FIR },
-        featureId: featureId }));
-
+      updatableFeatureProps.properties.selectionType = MODES_GEO_SELECTION.FIR;
+      dispatch(drawActions.setFeature(updatableFeatureProps));
       clearRelatedIntersection(featureId, features, dispatch, drawActions);
       modifyFocussedSigmet(drawMode, action, container);
       break;
     case 'delete-selection':
       dispatch(mapActions.setMapMode('pan'));
-      dispatch(drawActions.setFeature({
-        geometry: { coordinates: [], type: null },
-        properties: { selectionType: null },
-        featureId: featureId }));
-
+      dispatch(drawActions.setFeature(updatableFeatureProps));
       clearRelatedIntersection(featureId, features, dispatch, drawActions);
       modifyFocussedSigmet(drawMode, null, container);
       break;
@@ -624,18 +730,28 @@ const drawSigmet = (event, uuid, container, action, featureFunction) => {
 };
 
 const cleanFeatures = (features) => {
-  let cleanedFeatures = cloneDeep(features);
-  if (!Array.isArray(cleanedFeatures)) {
-    cleanedFeatures = [cleanedFeatures];
-  }
+  // features with featureFunction equal to 'base-fir' should be filtered
+  const isNotBaseFirFeature = (feature) => (!feature || !feature.properties || feature.properties.featureFunction !== 'base-fir');
+
+  // The features can be an array, or an individual feature - which in turn can be a removable base-fir feature
+  const cleanedFeatures = Array.isArray(features)
+    ? cloneDeep(features.filter(isNotBaseFirFeature))
+    : isNotBaseFirFeature(features) === true
+      ? [cloneDeep(features)]
+      : []; // single, removable base-fir, feature
+
   cleanedFeatures.forEach((feature) => {
-    const isEntireFir = (feature && feature.properties && feature.properties.selectionType === 'fir');
+    const isEntireFir = (feature && feature.properties && feature.properties.selectionType === MODES_GEO_SELECTION.FIR);
     if (isEntireFir === true && feature.geometry && feature.geometry.hasOwnProperty('type')) {
       feature.geometry.type = null;
     }
     clearEmptyPointersAndAncestors(feature);
   });
-  return Array.isArray(features) ? cleanedFeatures : cleanedFeatures[0];
+  return Array.isArray(features)
+    ? cleanedFeatures
+    : cleanedFeatures.length > 0
+      ? cleanedFeatures[0]
+      : null;
 };
 
 const createIntersectionData = (feature, firname, container) => {
@@ -693,11 +809,6 @@ const createFirIntersection = (featureId, geojson, container) => {
       console.error('Couldn\'t retrieve intersection for feature', error, featureId);
     });
   } else {
-    /* const { featureFunction } = featureToIntersect.properties;
-    const feedbackProperty = `feedback${featureFunction.charAt(0).toUpperCase()}${featureFunction.slice(1)}`;
-    container.setState(produce(container.state, draftState => {
-      draftState.focussedSigmet[feedbackProperty] = null;
-    })); */
     console.warn('The intersection feature was not found');
   }
 };
@@ -936,6 +1047,7 @@ const pasteSigmet = (event, container) => {
       'validdate_end',
       'change',
       'movement',
+      'movement_type',
       'forecast_position_time',
       'location_indicator_icao',
       'location_indicator_mwo'
@@ -1010,17 +1122,23 @@ const cancelSigmet = (event, uuid, container) => {
   });
 };
 
-const setSigmetDrawing = (uuid, container) => {
+const setSigmetDrawing = (uuid, container, useInitial = false) => {
   const { dispatch, drawActions } = container.props;
-  if (container.state.focussedSigmet.uuid !== uuid) {
+  if (container.state.focussedSigmet.uuid !== uuid && useInitial !== true) {
     return;
   }
   const indices = findCategoryAndSigmetIndex(uuid, container.state);
-  if (!indices.isFound) {
+  if (!indices.isFound && useInitial !== true) {
     return;
   }
-  const affectedSigmet = container.state.categories[indices.categoryIndex].sigmets[indices.sigmetIndex];
-  dispatch(drawActions.setGeoJSON(affectedSigmet.geojson));
+  const affectedSigmet = indices.isFound
+    ? container.state.categories[indices.categoryIndex].sigmets[indices.sigmetIndex]
+    : null;
+  const geojson = !useInitial && affectedSigmet
+    ? affectedSigmet.geojson
+    : initialGeoJson();
+  const enhancedGeojson = addFirFeature(geojson, affectedSigmet ? affectedSigmet.firname : null, container);
+  dispatch(drawActions.setGeoJSON(enhancedGeojson || geojson));
 };
 
 /**

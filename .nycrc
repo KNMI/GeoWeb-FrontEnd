@@ -25,7 +25,6 @@
       "branches": [40, 50]
   },
   "lines": 40,
-  "require": "babel-core/register",
   "sourceMap": false,
   "instrument": false,
   "cache": true,

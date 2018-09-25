@@ -2,6 +2,23 @@ import { BOUNDING_BOXES } from '../../constants/bounding_boxes';
 import { GetServiceByName } from '../../utils/getServiceByName';
 
 export const getPresetForPhenomenon = (p, sources) => {
+  // FIXME: enable and update (by Product Owners) contents of presets
+  if (p && true) {
+    return (
+      {
+        area: {
+          bottom: BOUNDING_BOXES[1].bbox[1],
+          top: BOUNDING_BOXES[1].bbox[3],
+          crs: 'EPSG:3857'
+        },
+        display: {
+          npanels: 1,
+          type: 'single'
+        },
+        layers: [[]]
+      }
+    );
+  }
   const HARMONIE_URL = GetServiceByName(sources, 'Harmonie36');
   const OVERLAY_URL = GetServiceByName(sources, 'OVL');
   const OBSERVATIONS_URL = GetServiceByName(sources, 'OBS');
