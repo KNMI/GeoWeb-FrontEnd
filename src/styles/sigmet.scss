@@ -103,6 +103,13 @@
     }
   }
 
+  .Validity .required::after {
+    padding-top: 0.33rem;
+    padding-right: 0.33rem;
+    width: 4%;
+    text-align: right;
+  }
+
   .Draw {
     min-height: 3.685rem;
     padding-bottom: 0.33rem;
@@ -119,14 +126,14 @@
       white-space: normal;
     }
   }
-  .Draw.required {
+  .Draw.required, .Validity .required:not(span) {
     margin-left: unset;
   }
   .Draw.warning {
     border-radius: 0.25rem;
-    border-color: #f90;
+    border-color: red; /* #f90; */
   }
-  .Draw.missing {
+  .Draw.missing, .Validity .missing {
     border-radius: 0.25rem;
     border-color: red;
   }
@@ -278,7 +285,7 @@
     flex: 0 auto;
   }
 
-  .row.disabled {
+  .row.disabled:not(label) {
     background-color: #f4f4f4;
     box-shadow: inset 0.1rem 0.1rem 0.1rem rgba(175, 175, 175, 0.3);
     border-radius: 0.2rem 0 0 0.2rem;
@@ -350,9 +357,9 @@
     content: '*';
   }
   .warning {
-    color: #f90;
+    color: red; /* #f90; */
   }
-  .required.missing {
+  .required.missing:after {
     color: red;
     font-weight: bold;
   }

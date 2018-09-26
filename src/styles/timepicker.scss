@@ -1,0 +1,53 @@
+.DateTimePicker.row {
+  width: 100%;
+  border: 1px solid #00000026;
+  border-radius: .25rem;
+  > .col {
+    label.row {
+      padding-top: unset;
+      margin: 0;
+      display: inherit;
+      .form-control.rbt-input, input.form-control {
+        border: none;
+      }
+      .form-control, > span {
+        display: inherit;
+        padding: 0.2rem 0;
+      }
+      .form-control.rbt-input {
+        padding-left: 0.75rem;
+      }
+      > input.form-control:first-of-type {
+        text-align: right;
+      }
+      > input.col-1 {
+        flex: 0 0 6%;
+        max-width: 6%;
+      }
+      > div.col-3 {
+        flex: 0 0 29%;
+        max-width: 29%;
+      }
+      input:disabled {
+        color: #999;
+      }
+      button {
+        margin-top: -0.1rem;
+      }
+      button:focus {
+        outline: none;
+      }
+    }
+    label.disabled {
+      background: #f4f4f4;
+      cursor: not-allowed;
+    }
+  }
+}
+.DateTimePicker.row.required {
+  padding-top: 0!important;
+}
+
+.DateTimePicker.row:not(.required) > .col label button {
+  margin-right: 1rem;
+}

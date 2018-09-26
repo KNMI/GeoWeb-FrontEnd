@@ -30,10 +30,10 @@ function mockCanvas (window) {
         return {
           height: 150,
           width: 150
-        }
+        };
       },
       putImageData: function () { },
-      createImageData: function () { return [] },
+      createImageData: function () { return []; },
       setTransform: function () { },
       drawImage: function () { },
       save: function () { },
@@ -56,11 +56,11 @@ function mockCanvas (window) {
       rect: function () { },
       clip: function () { }
     };
-  }
+  };
 
   window.HTMLCanvasElement.prototype.toDataURL = function () {
     return '';
-  }
+  };
 }
 
 const jsdom = new JSDOM('<!doctype html><html><body></body></html>');
