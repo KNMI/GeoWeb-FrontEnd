@@ -39,7 +39,7 @@ class SigmetsCategory extends PureComponent {
     return 0;
   }
   render () {
-    const { typeRef, title, icon, sigmets, focussedSigmet, copiedSigmetRef, hasEdits, tacs, isOpen, dispatch, actions, abilities,
+    const { typeRef, title, icon, sigmets, focussedSigmet, geojson, copiedSigmetRef, hasEdits, tacs, isOpen, dispatch, actions, abilities,
       phenomena, parameters } = this.props;
     const maxSize = 10000; // for now, arbitrairy big
     const itemLimit = 25;
@@ -97,6 +97,8 @@ class SigmetsCategory extends PureComponent {
                             volcanoCoordinates={volcanoCoordinates}
                             focus
                             uuid={sigmet.uuid}
+                            sigmet={sigmet}
+                            geojson={geojson}
                             obsFcTime={sigmet.obs_or_forecast.obsFcTime}
                             validdate={sigmet.validdate}
                             validdateEnd={sigmet.validdate_end}
@@ -119,6 +121,7 @@ class SigmetsCategory extends PureComponent {
                             availableFirs={parameters.firareas}
                             maxHoursInAdvance={isVolcanicAsh ? parameters.va_hoursbeforevalidity : parameters.hoursbeforevalidity}
                             maxHoursDuration={isVolcanicAsh ? parameters.va_maxhoursofvalidity : parameters.maxhoursofvalidity}
+                            tac={{ code: focussedSigmet.tac }}
                           />;
                         } else {
                           return <SigmetReadMode key={sigmet.uuid}
@@ -209,7 +212,8 @@ SigmetsCategory.propTypes = {
     uuid: PropTypes.string,
     code: PropTypes.string
   })),
-  copiedSigmetRef: PropTypes.string
+  copiedSigmetRef: PropTypes.string,
+  geojson: PropTypes.object
 };
 
 export default SigmetsCategory;

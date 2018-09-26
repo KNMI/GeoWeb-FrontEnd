@@ -792,7 +792,6 @@ const createFirIntersection = (featureId, geojson, container) => {
         const responseMessage = typeof message === 'string' ? message : null;
         const { featureFunction } = featureToIntersect.properties;
         const feedbackProperty = `feedback${featureFunction.charAt(0).toUpperCase()}${featureFunction.slice(1)}`;
-
         container.setState(produce(container.state, draftState => {
           draftState.focussedSigmet[feedbackProperty] = responseMessage;
         }), () => {
@@ -1141,6 +1140,54 @@ const setSigmetDrawing = (uuid, container, useInitial = false) => {
   dispatch(drawActions.setGeoJSON(enhancedGeojson || geojson));
 };
 
+/** Verify sigmet
+ * @param {object} sigmetAsObject The SIGMET object validate
+*/
+const verifySigmet = (sigmetObject, container) => {
+  if (!sigmetObject) {
+    return;
+  }
+  const { drawProperties, urls } = container.props;
+  const cleanedFeatures = cleanFeatures(drawProperties.adagucMapDraw.geojson.features);
+  const complementedSigmet = produce(sigmetObject, draftState => {
+    clearEmptyPointersAndAncestors(draftState);
+    draftState.geojson.features.length = 0;
+    draftState.geojson.features.push(...cleanedFeatures);
+  });
+  container.setState(produce(container.state, draftState => {
+    draftState.focussedSigmet['tac'] = '... retrieving TAC ...';
+  }));
+  axios({
+    method: 'post',
+    url: `${urls.BACKEND_SERVER_URL}/sigmets/verify`,
+    withCredentials: true,
+    data: JSON.stringify(complementedSigmet),
+    headers: { 'Content-Type': 'application/json' }
+  }).then(
+    response => {
+      if (response.data) {
+        let responseJson = response.data;
+        if (responseJson.TAC) {
+          container.setState(produce(container.state, draftState => {
+            draftState.focussedSigmet['tac'] = responseJson.TAC;
+          }));
+        } else {
+          container.setState(produce(container.state, draftState => {
+            draftState.focussedSigmet['tac'] = 'No TAC received from server';
+          }));
+        }
+      } else {
+        console.error('sigmet/verify has no response.data');
+      }
+    }
+  ).catch(error => {
+    console.error('sigmet/verify', error);
+    container.setState(produce(container.state, draftState => {
+      draftState.focussedSigmet['tac'] = 'Unable to make TAC request';
+    }));
+  });
+};
+
 /**
  * SigmetsContainer has its own state, this is the dispatch for updating the state
  * @param {object} localAction Action-object containing the type and additional, action specific, parameters
@@ -1218,6 +1265,9 @@ export default (localAction, container) => {
       break;
     case LOCAL_ACTION_TYPES.SET_DRAWING:
       setSigmetDrawing(localAction.uuid, container);
+      break;
+    case LOCAL_ACTION_TYPES.VERIFY_SIGMET:
+      verifySigmet(localAction.sigmetObject, container);
       break;
   }
 };

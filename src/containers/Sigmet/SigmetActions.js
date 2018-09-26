@@ -21,7 +21,8 @@ export const LOCAL_ACTION_TYPES = {
   UPDATE_FIR: 'UPDATE_FIR',
   CREATE_FIR_INTERSECTION: 'CREATE_FIR_INTERSECTION',
   MODIFY_FOCUSSED_SIGMET: 'MODIFY_FOCUSSED_SIGMET',
-  SET_DRAWING: 'SET_DRAWING'
+  SET_DRAWING: 'SET_DRAWING',
+  VERIFY_SIGMET: 'VERIFY_SIGMET'
 };
 
 export const LOCAL_ACTIONS = {
@@ -47,7 +48,8 @@ export const LOCAL_ACTIONS = {
   updateFir: (firName) => ({ type: LOCAL_ACTION_TYPES.UPDATE_FIR, firName: firName }),
   createFirIntersectionAction: (featureId, geoJson) => ({ type: LOCAL_ACTION_TYPES.CREATE_FIR_INTERSECTION, featureId: featureId, geoJson: geoJson }),
   modifyFocussedSigmetAction: (dataField, value) => ({ type: LOCAL_ACTION_TYPES.MODIFY_FOCUSSED_SIGMET, dataField: dataField, value: value }),
-  setSigmetDrawing: (uuid) => ({ type: LOCAL_ACTION_TYPES.SET_DRAWING, uuid: uuid })
+  setSigmetDrawing: (uuid) => ({ type: LOCAL_ACTION_TYPES.SET_DRAWING, uuid: uuid }),
+  verifySigmetAction: (sigmetObject) => ({ type: LOCAL_ACTION_TYPES.VERIFY_SIGMET, sigmetObject: sigmetObject })
 };
 
 export const SIGMET_MODES = {

@@ -82,7 +82,6 @@ class SigmetsContainer extends Component {
     const hasStartCoordinates = startFeature ? isFeatureGeoJsonComplete(startFeature) : false;
     const hasStartIntersectionCoordinates = startIntersectionFeature ? isFeatureGeoJsonComplete(startIntersectionFeature) : false;
     const hasEndCoordinates = endFeature ? isFeatureGeoJsonComplete(endFeature) : false;
-
     return (
       <Col className='SigmetsContainer'>
         <CollapseOmni className='CollapseOmni' isOpen={this.state.isContainerOpen} isHorizontal minSize={64} maxSize={maxSize}>
@@ -97,6 +96,7 @@ class SigmetsContainer extends Component {
                     isOpen={this.state.focussedCategoryRef === category.ref && category.sigmets.length > 0}
                     abilities={category.abilities}
                     sigmets={category.sigmets}
+                    geojson={this.props.drawProperties.adagucMapDraw.geojson}
                     focussedSigmet={this.state.focussedSigmet}
                     dispatch={this.localDispatch}
                     actions={LOCAL_ACTIONS}

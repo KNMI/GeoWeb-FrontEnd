@@ -26,6 +26,7 @@ import ChangeSection from './Sections/ChangeSection';
 import HeightsSection from './Sections/HeightsSection';
 import {
   DIRECTIONS, UNITS_ALT, UNITS, MODES_LVL, MODES_LVL_OPTIONS, CHANGES, MOVEMENT_TYPES, MOVEMENT_OPTIONS, SIGMET_TYPES, DATETIME_FORMAT } from './SigmetTemplates';
+import { debounce } from '../../utils/debounce';
 
 class SigmetEditMode extends PureComponent {
   constructor (props) {
@@ -39,6 +40,24 @@ class SigmetEditMode extends PureComponent {
     this.isValidStartTimestamp = this.isValidStartTimestamp.bind(this);
     this.isValidEndTimestamp = this.isValidEndTimestamp.bind(this);
     this.isValidObsFcTimestamp = this.isValidObsFcTimestamp.bind(this);
+    this.verifySigmetDebounced = debounce(this.verifySigmetDebounced.bind(this), 250, false);
+  }
+
+  verifySigmetDebounced (sigmetObject) {
+    const { dispatch, actions } = this.props;
+    dispatch(actions.verifySigmetAction(sigmetObject));
+  }
+
+  componentWillReceiveProps (nextProps) {
+    if (nextProps.sigmet && this.props.sigmet && nextProps.geojson && this.props.geojson) {
+      if (nextProps.sigmet !== this.props.sigmet || nextProps.geojson !== this.props.geojson) {
+        this.verifySigmetDebounced(nextProps.sigmet);
+      }
+    }
+  }
+
+  componentDidMount () {
+    this.verifySigmetDebounced(this.props.sigmet);
   }
 
   setMode (evt, selectedOption = null) {
@@ -226,7 +245,7 @@ class SigmetEditMode extends PureComponent {
 
   render () {
     const { dispatch, actions, availablePhenomena, hasStartCoordinates, hasEndCoordinates, feedbackStart, feedbackEnd,
-      availableFirs, levelinfo, movement, movementType, focus, uuid, locationIndicatorMwo, change, isVolcanicAsh, volcanoName, volcanoCoordinates,
+      availableFirs, levelinfo, movement, movementType, focus, tac, uuid, locationIndicatorMwo, change, isVolcanicAsh, volcanoName, volcanoCoordinates,
       phenomenon, isObserved, obsFcTime, validdate, maxHoursInAdvance, maxHoursDuration, validdateEnd, locationIndicatorIcao } = this.props;
     const selectedPhenomenon = availablePhenomena.find((ph) => ph.code === phenomenon);
     const selectedFir = availableFirs.find((fir) => fir.location_indicator_icao === locationIndicatorIcao);
@@ -550,6 +569,7 @@ class SigmetEditMode extends PureComponent {
         <IssueSection>
           <span data-field='issuedate'>(Not yet published)</span>
           <span data-field='issueLocation'>{locationIndicatorMwo}</span>
+          <span className='tac' data-field='tac' title={tac && tac.code}>{tac && tac.code}</span>
         </IssueSection>
 
         <ActionSection colSize={3}>
@@ -606,7 +626,13 @@ SigmetEditMode.propTypes = {
   locationIndicatorIcao: PropTypes.string,
   volcanoName: PropTypes.string,
   volcanoCoordinates: PropTypes.arrayOf(PropTypes.number),
-  isVolcanicAsh: PropTypes.bool
+  isVolcanicAsh: PropTypes.bool,
+  sigmet: PropTypes.object,
+  geojson: PropTypes.object,
+  tac: PropTypes.shape({
+    uuid: PropTypes.string,
+    code: PropTypes.string
+  })
 };
 
 export default SigmetEditMode;
