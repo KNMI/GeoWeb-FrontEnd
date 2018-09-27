@@ -362,7 +362,7 @@ class SigmetEditMode extends PureComponent {
             }
             onChange={(evt, timestamp) => dispatch(actions.updateSigmetAction(uuid, 'validdate', timestamp))}
             min={now.clone().subtract(1, 'hour')}
-            max={now.clone().add(maxHoursInAdvance * 6, 'hour')}
+            max={now.clone().add(maxHoursInAdvance, 'hour')}
           />
           <TimePicker data-field='validdate_end' utc required
             value={validdateEnd === null
