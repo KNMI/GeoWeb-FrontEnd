@@ -25,8 +25,8 @@
         max-width: 6%;
       }
       > div.col-3 {
-        flex: 0 0 29%;
-        max-width: 29%;
+        flex: 0 0 31%;
+        max-width: 31%;
       }
       input:disabled {
         color: #999;
@@ -36,6 +36,12 @@
       }
       button:focus {
         outline: none;
+      }
+      ul.rbt-menu.dropdown-menu.show {
+        box-shadow: 0.2rem 0.2rem 0.3rem #afafafaf;
+        a.dropdown-item {
+          padding: 0.2rem 0.75rem;
+        }
       }
     }
     label.disabled {
