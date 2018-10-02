@@ -45,6 +45,10 @@ export default class DateTimePicker extends PureComponent {
     }
   }
 
+  onKeyUp (evt, currentValue, timeDigit, step, min, max) {
+
+  }
+
   render () {
     const { value, min, max, onChange, className, required, disabled, utc } = this.props;
     const hourStep = 1;
@@ -99,6 +103,7 @@ export default class DateTimePicker extends PureComponent {
               ? parsedValue.clone().minute(parseInt(evt.target.value)).format(DATETIME_FORMAT)
               : null)}
             onWheel={(evt) => this.adjustValueByStep(evt, parsedValue, DIGIT_TYPES.MINUTE, minuteStep, minuteMinimum, minuteMaximum)}
+            onKeyUp={(evt) => this.handleKeyUp(evt, parsedValue, DIGIT_TYPES.MINUTE, minuteStep, minuteMinimum, minuteMaximum)}
           />
           {utc
             ? <span>UTC</span>
