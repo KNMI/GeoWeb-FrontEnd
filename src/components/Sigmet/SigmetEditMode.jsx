@@ -244,7 +244,7 @@ class SigmetEditMode extends PureComponent {
   }
 
   render () {
-    const { dispatch, actions, availablePhenomena, hasStartCoordinates, hasEndCoordinates, feedbackStart, feedbackEnd,
+    const { dispatch, actions, availablePhenomena, hasStartCoordinates, hasEndCoordinates, feedbackStart, feedbackEnd, isNoVolcanicAshExpected,
       availableFirs, levelinfo, movement, movementType, focus, tac, uuid, locationIndicatorMwo, change, isVolcanicAsh, volcanoName, volcanoCoordinates,
       phenomenon, isObserved, obsFcTime, validdate, maxHoursInAdvance, maxHoursDuration, validdateEnd, locationIndicatorIcao } = this.props;
     const selectedPhenomenon = availablePhenomena.find((ph) => ph.code === phenomenon);
@@ -330,7 +330,7 @@ class SigmetEditMode extends PureComponent {
           />
           {isVolcanicAsh
             ? <Input type='text' value={volcanoName || ''} data-field='volcano_name' placeholder='Volcano name'
-              onChange={(evt) => dispatch(actions.updateSigmetAction(uuid, 'volcano_name', evt.target.value))}
+              onChange={(evt) => dispatch(actions.updateSigmetAction(uuid, 'va_extra_fields.volcano.name', evt.target.value))}
             />
             : null
           }
@@ -338,7 +338,7 @@ class SigmetEditMode extends PureComponent {
             ? <Input type='number' placeholder='Position' step='0.1'
               value={Array.isArray(volcanoCoordinates) && volcanoCoordinates.length > 1 && volcanoCoordinates[0] !== null ? volcanoCoordinates[0] : ''}
               data-field='volcano_coordinates_lat'
-              onChange={(evt) => dispatch(actions.updateSigmetAction(uuid, 'volcano_coordinates', [evt.target.value, volcanoCoordinates[1]]))}
+              onChange={(evt) => dispatch(actions.updateSigmetAction(uuid, 'va_extra_fields.volcano.position.0', evt.target.value || null))}
             />
             : null
           }
@@ -346,7 +346,7 @@ class SigmetEditMode extends PureComponent {
             ? <Input type='number' placeholder='Position' step='0.1'
               value={Array.isArray(volcanoCoordinates) && volcanoCoordinates.length > 1 && volcanoCoordinates[1] !== null ? volcanoCoordinates[1] : ''}
               data-field='volcano_coordinates_lon'
-              onChange={(evt) => dispatch(actions.updateSigmetAction(uuid, 'volcano_coordinates', [volcanoCoordinates[0], evt.target.value]))}
+              onChange={(evt) => dispatch(actions.updateSigmetAction(uuid, 'va_extra_fields.volcano.position.1', evt.target.value || null))}
             />
             : null
           }
@@ -512,6 +512,15 @@ class SigmetEditMode extends PureComponent {
         </HeightsSection>
 
         <ProgressSection>
+          {isVolcanicAsh
+            ? <Checkbox
+              value={isNoVolcanicAshExpected ? 'noVA' : ''}
+              option={{ optionId: 'noVA', label: 'No volcanic ash expected' }}
+              onChange={(evt, selectedOption = null) => dispatch(actions.updateSigmetAction(uuid, 'va_extra_fields.no_va_expected', !!evt.target.checked))}
+              data-field='no_va_expected'
+            />
+            : null
+          }
           <RadioGroup
             value={movementType}
             options={movementOptions}
@@ -626,6 +635,7 @@ SigmetEditMode.propTypes = {
   locationIndicatorIcao: PropTypes.string,
   volcanoName: PropTypes.string,
   volcanoCoordinates: PropTypes.arrayOf(PropTypes.number),
+  isNoVolcanicAshExpected: PropTypes.bool,
   isVolcanicAsh: PropTypes.bool,
   sigmet: PropTypes.object,
   geojson: PropTypes.object,

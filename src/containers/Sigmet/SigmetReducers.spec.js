@@ -72,10 +72,29 @@ describe('(Reducer) Sigmet/SigmetReducers', () => {
   });
   it('should handle retrieveParameters', (done) => {
     const parameters = {
-      'maxhoursofvalidity': 4.0,
-      'hoursbeforevalidity': 4.0,
-      'firareas': [{ 'location_indicator_icao': 'EHAA', 'firname': 'FIR AMSTERDAM', 'areapreset': 'NL_FIR' }],
-      'location_indicator_wmo': 'EHDB'
+      'location_indicator_wmo': 'EHDB',
+      'firareas' : {
+        'EHAA': {
+          'firname': 'AMSTERDAM FIR',
+          'location_indicator_icao': 'EHAA',
+          'areapreset': 'NL_FIR',
+          'wv_maxhoursofvalidity': 4,
+          'wv_hoursbeforevalidity': 4,
+          'tc_maxhoursofvalidity': 0,
+          'tc_hoursbeforevalidity': 0,
+          'va_maxhoursofvalidity': 12,
+          'va_hoursbeforevalidity': 6,
+          'adjacent_firs': [
+            'EKDK',
+            'EDWW',
+            'EDGG',
+            'EBBU',
+            'EGTT',
+            'EGPX'
+          ]
+        }
+      },
+      'active_firs': ['EHAA']
     };
     const container = {
       props: {
@@ -101,9 +120,9 @@ describe('(Reducer) Sigmet/SigmetReducers', () => {
       }).then(() => {
         expect(container.state).to.be.a('object');
         expect(container.state).to.have.property('parameters');
-        expect(container.state.parameters).to.have.property('maxhoursofvalidity', 4.0);
-        expect(container.state.parameters).to.have.property('hoursbeforevalidity', 4.0);
         expect(container.state.parameters).to.have.property('location_indicator_wmo', 'EHDB');
+        expect(container.state.parameters).to.have.property('active_firs');
+        expect(container.state.parameters['active_firs']).to.eql(parameters['active_firs']);
         expect(container.state.parameters).to.have.property('firareas');
         expect(container.state.parameters.firareas).to.eql(parameters.firareas);
         done();

@@ -4,6 +4,7 @@ import CollapseOmni from '../../components/CollapseOmni';
 import Icon from 'react-fa';
 import PropTypes from 'prop-types';
 import { SIGMET_MODES, CATEGORY_REFS, READ_ABILITIES } from '../../containers/Sigmet/SigmetActions';
+import { SIGMET_VARIANTS_PREFIXES } from './SigmetTemplates';
 import SigmetEditMode from './SigmetEditMode';
 import SigmetReadMode from './SigmetReadMode';
 import SigmetMinifiedMode from './SigmetMinifiedMode';
@@ -71,8 +72,23 @@ class SigmetsCategory extends PureComponent {
                     {sigmets.slice().sort(this.byStartAndSequence).slice(0, itemLimit).map((sigmet, index) => {
                       const isCancelFor = sigmet.cancels !== null && !isNaN(sigmet.cancels) ? parseInt(sigmet.cancels) : null;
                       const isVolcanicAsh = sigmet.phenomenon ? sigmet.phenomenon === 'VA_ERUPTION' : false;
-                      const volcanoCoordinates = Array.isArray(sigmet.volcano_coordinates) && sigmet.volcano_coordinates.length > 1
-                        ? sigmet.volcano_coordinates
+                      const isTropicalCyclone = false;
+                      const prefix = isVolcanicAsh
+                        ? SIGMET_VARIANTS_PREFIXES.VOLCANIC_ASH
+                        : isTropicalCyclone
+                          ? SIGMET_VARIANTS_PREFIXES.TROPICAL_CYCLONE
+                          : SIGMET_VARIANTS_PREFIXES.NORMAL;
+                      const activeFirEntry = Object.entries(parameters.firareas).filter((entry) => entry.firname === sigmet.firname &&
+                          entry.location_indicator_icao === sigmet.location_indicator_icao);
+                      const availableFirs = parameters.active_firs.map((firKey) => parameters.firareas[firKey]);
+                      const maxHoursInAdvance = activeFirEntry
+                        ? activeFirEntry[`${prefix}hoursbeforevalidity`]
+                        : null;
+                      const maxHoursDuration = activeFirEntry
+                        ? activeFirEntry[`${prefix}maxhoursofvalidity`]
+                        : null;
+                      const volcanoCoordinates = Array.isArray(sigmet.va_extra_fields.volcano.position) && sigmet.va_extra_fields.volcano.position.length > 1
+                        ? sigmet.va_extra_fields.volcano.position
                         : [null, null];
                       if (focussedSigmet.uuid === sigmet.uuid) {
                         if (focussedSigmet.mode === SIGMET_MODES.EDIT) {
@@ -93,8 +109,9 @@ class SigmetsCategory extends PureComponent {
                                   : 0;
                             })}
                             phenomenon={sigmet.phenomenon}
-                            volcanoName={sigmet.volcano_name || null}
+                            volcanoName={sigmet.va_extra_fields.volcano.name || null}
                             volcanoCoordinates={volcanoCoordinates}
+                            isNoVolcanicAshExpected={sigmet.va_extra_fields.no_va_expected}
                             focus
                             uuid={sigmet.uuid}
                             sigmet={sigmet}
@@ -118,9 +135,9 @@ class SigmetsCategory extends PureComponent {
                             feedbackEnd={focussedSigmet.feedbackEnd}
                             hasStartCoordinates={this.props.hasStartCoordinates}
                             hasEndCoordinates={this.props.hasEndCoordinates}
-                            availableFirs={parameters.firareas}
-                            maxHoursInAdvance={isVolcanicAsh ? parameters.va_hoursbeforevalidity : parameters.hoursbeforevalidity}
-                            maxHoursDuration={isVolcanicAsh ? parameters.va_maxhoursofvalidity : parameters.maxhoursofvalidity}
+                            availableFirs={availableFirs}
+                            maxHoursInAdvance={maxHoursInAdvance}
+                            maxHoursDuration={maxHoursDuration}
                             tac={{ code: focussedSigmet.tac }}
                           />;
                         } else {
@@ -136,8 +153,9 @@ class SigmetsCategory extends PureComponent {
                             obsFcTime={sigmet.obs_or_forecast ? sigmet.obs_or_forecast.obsFcTime : null}
                             phenomenon={sigmet.phenomenon}
                             isObserved={sigmet.obs_or_forecast ? sigmet.obs_or_forecast.obs : null}
-                            volcanoName={sigmet.volcano_name || null}
+                            volcanoName={sigmet.va_extra_fields.volcano.name || null}
                             volcanoCoordinates={volcanoCoordinates}
+                            isNoVolcanicAshExpected={sigmet.va_extra_fields.no_va_expected}
                             validdate={sigmet.validdate}
                             validdateEnd={sigmet.validdate_end}
                             hasStartCoordinates={this.props.hasStartCoordinates}
@@ -152,8 +170,8 @@ class SigmetsCategory extends PureComponent {
                             movementType={sigmet.movement_type}
                             movement={sigmet.movement}
                             change={sigmet.change}
-                            maxHoursInAdvance={isVolcanicAsh ? parameters.va_hoursbeforevalidity : parameters.hoursbeforevalidity}
-                            maxHoursDuration={isVolcanicAsh ? parameters.va_maxhoursofvalidity : parameters.maxhoursofvalidity}
+                            maxHoursInAdvance={maxHoursInAdvance}
+                            maxHoursDuration={maxHoursDuration}
                           />;
                         }
                       }
@@ -206,7 +224,8 @@ SigmetsCategory.propTypes = {
   hasStartIntersectionCoordinates: PropTypes.bool,
   hasEndCoordinates: PropTypes.bool,
   parameters: PropTypes.shape({
-    firareas: PropTypes.array
+    firareas: PropTypes.object,
+    active_firs: PropTypes.array
   }),
   tacs: PropTypes.arrayOf(PropTypes.shape({
     uuid: PropTypes.string,

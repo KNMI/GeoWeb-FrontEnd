@@ -113,29 +113,40 @@ const retrieveParameters = (container) => {
 
 const receivedParametersCallback = (response, container) => {
   if (response.status === 200 && response.data) {
-    updateParameters(response.data, container);
-    addSigmet(CATEGORY_REFS.ADD_SIGMET, container);
+    updateParameters(response.data, container, () => addSigmet(CATEGORY_REFS.ADD_SIGMET, container));
   } else {
     console.error(ERROR_MSG.RETRIEVE_PARAMS, response.status, response.data);
   }
 };
 
-const updateParameters = (parameters, container) => {
+const updateParameters = (parameters, container, callback) => {
   if (process.env.NODE_ENV === 'development') {
-    parameters.va_hoursbeforevalidity = 6;
-    parameters.va_maxhoursofvalidity = 12;
-    parameters.adjacent_firs = [
-      'EKDK',
-      'EDWW',
-      'EDGG',
-      'EBBU',
-      'EGTT',
-      'EGPX'
-    ];
+    parameters.firareas = {
+      EHAA: {
+        firname: 'AMSTERDAM FIR',
+        location_indicator_icao: 'EHAA',
+        areapreset: 'NL_FIR',
+        wv_maxhoursofvalidity: 4,
+        wv_hoursbeforevalidity: 4,
+        tc_maxhoursofvalidity: 0,
+        tc_hoursbeforevalidity: 0,
+        va_maxhoursofvalidity: 12,
+        va_hoursbeforevalidity: 6,
+        adjacent_firs: [
+          'EKDK',
+          'EDWW',
+          'EDGG',
+          'EBBU',
+          'EGTT',
+          'EGPX'
+        ]
+      }
+    };
+    parameters.active_firs = [ 'EHAA' ];
   }
   container.setState(produce(container.state, draftState => {
     draftState.parameters = parameters;
-  }));
+  }), callback);
 };
 
 const retrievePhenomena = (container) => {
@@ -156,14 +167,13 @@ const retrievePhenomena = (container) => {
 
 const receivedPhenomenaCallback = (response, container) => {
   if (response.status === 200 && response.data) {
-    updatePhenomena(response.data, container);
-    addSigmet(CATEGORY_REFS.ADD_SIGMET, container);
+    updatePhenomena(response.data, container, () => addSigmet(CATEGORY_REFS.ADD_SIGMET, container));
   } else {
     console.error(ERROR_MSG.RETRIEVE_PHENOMENA, response.status, response.data);
   }
 };
 
-const updatePhenomena = (phenomena, container) => {
+const updatePhenomena = (phenomena, container, callback) => {
   const SEPARATOR = '_';
   if (process.env.NODE_ENV === 'development') {
     phenomena.push({
@@ -213,7 +223,7 @@ const updatePhenomena = (phenomena, container) => {
         }
       });
     }
-  }));
+  }), callback);
 };
 
 const retrieveSigmets = (container, callback = () => {}) => {
@@ -408,19 +418,28 @@ const addFirFeature = (geojson, firName, container) => {
 };
 
 const getEmptySigmet = (container) => produce(SIGMET_TEMPLATES.SIGMET, draftSigmet => {
-  draftSigmet.validdate = getRoundedNow().format();
-  draftSigmet.validdate_end = getRoundedNow().add(container.state.parameters.maxhoursofvalidity, 'hour').format();
-  draftSigmet.location_indicator_mwo = container.state.parameters.location_indicator_wmo;
+  const { parameters } = container.state;
   draftSigmet.status = STATUSES.CONCEPT;
   draftSigmet.levelinfo.mode = MODES_LVL.AT;
   draftSigmet.levelinfo.levels[0].unit = UNITS.FL;
   draftSigmet.levelinfo.levels.push(cloneDeep(SIGMET_TEMPLATES.LEVEL));
   draftSigmet.levelinfo.levels[1].unit = UNITS.FL;
-  draftSigmet.volcano_coordinates.push(null);
+  draftSigmet.va_extra_fields.volcano.position.push(null);
   draftSigmet.movement_type = MOVEMENT_TYPES.STATIONARY;
-  if (Array.isArray(container.state.parameters.firareas)) {
-    draftSigmet.location_indicator_icao = container.state.parameters.firareas[0].location_indicator_icao;
-    draftSigmet.firname = container.state.parameters.firareas[0].firname;
+  draftSigmet.location_indicator_mwo = parameters.location_indicator_wmo;
+  draftSigmet.validdate = getRoundedNow().format();
+  const defaultFirKey = Array.isArray(parameters.active_firs) && parameters.active_firs.length > 0 ? parameters.active_firs[0] : null;
+  const defaultFirData = defaultFirKey !== null && parameters.firareas[defaultFirKey]
+    ? parameters.firareas[defaultFirKey]
+    : parameters.firareas && Object.keys(parameters.firareas).length > 0
+      ? parameters.firareas[Object.keys(parameters.firareas)[0]]
+      : null;
+  if (defaultFirData) {
+    draftSigmet.validdate_end = getRoundedNow().add(defaultFirData.wv_maxhoursofvalidity, 'hour').format();
+    draftSigmet.location_indicator_icao = defaultFirData.location_indicator_icao;
+    draftSigmet.firname = defaultFirData.firname;
+  }
+  if (draftSigmet.firname) {
     updateFir(draftSigmet.firname, container);
   }
 });
@@ -542,7 +561,10 @@ const updateSigmet = (uuid, dataField, value, container) => {
   if (!dataField || !indices.isFound) {
     return;
   }
-  if (dataField === 'phenomenon') {
+  const dataFieldParts = dataField.split('.');
+  console.log(dataField, value);
+  const fieldToUpdate = dataFieldParts.length > 0 && dataFieldParts.pop();
+  if (fieldToUpdate === 'phenomenon') {
     if (Array.isArray(value)) {
       if (value.length === 0) {
         value = '';
@@ -556,11 +578,15 @@ const updateSigmet = (uuid, dataField, value, container) => {
       updateDisplayedPreset(preset, container);
     }
   }
-  if (dataField === 'volcano_coordinates' && Array.isArray(value)) {
-    value = value.map((coordinateAsString) => coordinateAsString !== null && !isNaN(coordinateAsString) ? parseFloat(coordinateAsString) : null);
+  if (dataField.indexOf('volcano.position') !== -1) {
+    value = value !== null && !isNaN(value) ? parseFloat(value) : null;
   }
   container.setState(produce(state, draftState => {
-    draftState.categories[indices.categoryIndex].sigmets[indices.sigmetIndex][dataField] = value;
+    const parentToUpdate = dataFieldParts.reduce(
+      (traverser, propertyKey) => traverser && traverser[propertyKey],
+      draftState.categories[indices.categoryIndex].sigmets[indices.sigmetIndex]
+    );
+    parentToUpdate[!isNaN(fieldToUpdate) ? parseInt(fieldToUpdate) : fieldToUpdate] = value;
     if (shouldCleanMovement) {
       draftState.categories[indices.categoryIndex].sigmets[indices.sigmetIndex]['movement'] = produce(SIGMET_TEMPLATES.MOVEMENT, () => {});
     }
@@ -854,6 +880,32 @@ const discardSigmet = (event, uuid, container) => {
   });
 };
 
+/**
+ * Cleans sigmet, returns cleaned sigmet object
+ @param {object} sigmetAsObject, the sigmet object to clean
+ @param {array} cleanedFeatures, the cleaned features to add
+ @return {object} Object with taf and report properties
+*/
+const sanitizeSigmet = (sigmetAsObject, cleanedFeatures) => {
+  const volcanoPosition = sigmetAsObject.va_extra_fields.volcano.position;
+  const hasVolcanoPosition = volcanoPosition.some((coordinate) => typeof coordinate === 'number');
+  return produce(sigmetAsObject, draftState => {
+    clearEmptyPointersAndAncestors(draftState);
+    draftState.geojson.features.length = 0;
+    draftState.geojson.features.push(...cleanedFeatures);
+    if (hasVolcanoPosition) {
+      if (!draftState.va_extra_fields.volcano) {
+        draftState.va_extra_fields['volcano'] = {};
+        if (!draftState.va_extra_fields.volcano.position) {
+          draftState.va_extra_fields.volcano.position = [];
+        }
+      }
+      draftState.va_extra_fields.volcano.position.length = 0;
+      draftState.va_extra_fields.volcano.position.push(...volcanoPosition);
+    }
+  });
+};
+
 const saveSigmet = (event, uuid, container) => {
   const { drawProperties, urls, dispatch, mapActions } = container.props;
   const indices = findCategoryAndSigmetIndex(uuid, container.state);
@@ -865,11 +917,7 @@ const saveSigmet = (event, uuid, container) => {
     return;
   }
   const cleanedFeatures = cleanFeatures(drawProperties.adagucMapDraw.geojson.features);
-  const complementedSigmet = produce(affectedSigmet, draftState => {
-    clearEmptyPointersAndAncestors(draftState);
-    draftState.geojson.features.length = 0;
-    draftState.geojson.features.push(...cleanedFeatures);
-  });
+  const complementedSigmet = sanitizeSigmet(affectedSigmet, cleanedFeatures);
 
   axios({
     method: 'post',
@@ -1149,11 +1197,7 @@ const verifySigmet = (sigmetObject, container) => {
   }
   const { drawProperties, urls } = container.props;
   const cleanedFeatures = cleanFeatures(drawProperties.adagucMapDraw.geojson.features);
-  const complementedSigmet = produce(sigmetObject, draftState => {
-    clearEmptyPointersAndAncestors(draftState);
-    draftState.geojson.features.length = 0;
-    draftState.geojson.features.push(...cleanedFeatures);
-  });
+  const complementedSigmet = sanitizeSigmet(sigmetObject, cleanedFeatures);
   container.setState(produce(container.state, draftState => {
     draftState.focussedSigmet['tac'] = '... retrieving TAC ...';
   }));
@@ -1161,8 +1205,8 @@ const verifySigmet = (sigmetObject, container) => {
     method: 'post',
     url: `${urls.BACKEND_SERVER_URL}/sigmets/verify`,
     withCredentials: true,
-    data: JSON.stringify(complementedSigmet),
-    headers: { 'Content-Type': 'application/json' }
+    responseType: 'json',
+    data: complementedSigmet
   }).then(
     response => {
       if (response.data) {

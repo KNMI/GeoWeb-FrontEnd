@@ -22,32 +22,20 @@ export default class ProgressSection extends PureComponent {
             <Badge color='success'>Progress</Badge>
           </Col>
           <Col xs='9'>
-            {children.movement}
+            {children.hasOwnProperty('no_va_expected')
+              ? children.no_va_expected
+              : children.movement
+            }
+            {}
           </Col>
         </Row>
-        {
-          children.hasOwnProperty('direction')
-            ? <Row>
-              <Col xs={{ size: 2, offset: 1 }}>
-                <Badge>Direction</Badge>
-              </Col>
-              <Col xs='9'>
-                {children.direction}
-              </Col>
-            </Row>
-            : null
-        }
-        {
-          children.hasOwnProperty('speed')
-            ? <Row>
-              <Col xs={{ size: 2, offset: 1 }}>
-                <Badge>Speed</Badge>
-              </Col>
-              <Col xs='9'>
-                {children.speed}
-              </Col>
-            </Row>
-            : null
+        {children.hasOwnProperty('no_va_expected')
+          ? <Row>
+            <Col xs={{ size: 9, offset: 3 }}>
+              {children.movement}
+            </Col>
+          </Row>
+          : null
         }
       </Col>
     </Row>;
