@@ -256,6 +256,12 @@ class SigmetEditMode extends PureComponent {
     const atOrAboveOption = MODES_LVL_OPTIONS.find((option) => option.optionId === levelMode.extent && option.optionId !== MODES_LVL.BETW);
     const atOrAboveLabel = atOrAboveOption ? atOrAboveOption.label : '';
     const movementOptions = cloneDeep(MOVEMENT_OPTIONS);
+    if (isVolcanicAsh && isNoVolcanicAshExpected === true) {
+      const forecastOptionIndex = movementOptions.findIndex((item) => item.optionId === MOVEMENT_TYPES.FORECAST_POSITION);
+      if (forecastOptionIndex !== -1) {
+        movementOptions[forecastOptionIndex].disabled = true;
+      }
+    }
 
     const drawActions = (isEndFeature = false) => [
       {

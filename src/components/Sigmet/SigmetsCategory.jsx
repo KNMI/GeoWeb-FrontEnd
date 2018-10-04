@@ -78,14 +78,14 @@ class SigmetsCategory extends PureComponent {
                         : isTropicalCyclone
                           ? SIGMET_VARIANTS_PREFIXES.TROPICAL_CYCLONE
                           : SIGMET_VARIANTS_PREFIXES.NORMAL;
-                      const activeFirEntry = Object.entries(parameters.firareas).filter((entry) => entry.firname === sigmet.firname &&
-                          entry.location_indicator_icao === sigmet.location_indicator_icao);
+                      const activeFirEntry = Object.entries(parameters.firareas).filter((entry) => entry[1].firname === sigmet.firname &&
+                          entry[1].location_indicator_icao === sigmet.location_indicator_icao);
                       const availableFirs = parameters.active_firs.map((firKey) => parameters.firareas[firKey]);
-                      const maxHoursInAdvance = activeFirEntry
-                        ? activeFirEntry[`${prefix}hoursbeforevalidity`]
+                      const maxHoursInAdvance = Array.isArray(activeFirEntry) && activeFirEntry.length === 1
+                        ? activeFirEntry[0][1][`${prefix}hoursbeforevalidity`]
                         : null;
-                      const maxHoursDuration = activeFirEntry
-                        ? activeFirEntry[`${prefix}maxhoursofvalidity`]
+                      const maxHoursDuration = Array.isArray(activeFirEntry) && activeFirEntry.length === 1
+                        ? activeFirEntry[0][1][`${prefix}maxhoursofvalidity`]
                         : null;
                       const volcanoCoordinates = Array.isArray(sigmet.va_extra_fields.volcano.position) && sigmet.va_extra_fields.volcano.position.length > 1
                         ? sigmet.va_extra_fields.volcano.position

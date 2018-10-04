@@ -120,7 +120,8 @@ const receivedParametersCallback = (response, container) => {
 };
 
 const updateParameters = (parameters, container, callback) => {
-  if (process.env.NODE_ENV === 'development') {
+  // TODO: remove when integration with backend is ready
+  if (process.env.NODE_ENV === 'development' && Array.isArray(parameters.firareas)) {
     parameters.firareas = {
       EHAA: {
         firname: 'AMSTERDAM FIR',
@@ -175,7 +176,8 @@ const receivedPhenomenaCallback = (response, container) => {
 
 const updatePhenomena = (phenomena, container, callback) => {
   const SEPARATOR = '_';
-  if (process.env.NODE_ENV === 'development') {
+  // TODO: remove when backend integration is finished
+  if (process.env.NODE_ENV === 'development' && phenomena.findIndex((item) => item.phenomenon.code === 'VA_ERUPTION') === -1) {
     phenomena.push({
       phenomenon: {
         layerpreset: null,
@@ -435,7 +437,7 @@ const getEmptySigmet = (container) => produce(SIGMET_TEMPLATES.SIGMET, draftSigm
       ? parameters.firareas[Object.keys(parameters.firareas)[0]]
       : null;
   if (defaultFirData) {
-    draftSigmet.validdate_end = getRoundedNow().add(defaultFirData.wv_maxhoursofvalidity, 'hour').format();
+    draftSigmet.validdate_end = getRoundedNow().add(defaultFirData.maxhoursofvalidity, 'hour').format();
     draftSigmet.location_indicator_icao = defaultFirData.location_indicator_icao;
     draftSigmet.firname = defaultFirData.firname;
   }
@@ -562,7 +564,6 @@ const updateSigmet = (uuid, dataField, value, container) => {
     return;
   }
   const dataFieldParts = dataField.split('.');
-  console.log(dataField, value);
   const fieldToUpdate = dataFieldParts.length > 0 && dataFieldParts.pop();
   if (fieldToUpdate === 'phenomenon') {
     if (Array.isArray(value)) {
@@ -995,10 +996,11 @@ const editSigmet = (event, uuid, container) => {
 * @param {string} uuid The identifier of the Sigmet to be deleted
 * @param {Element} container The container in which the delete action was triggered
 */
-const deleteSigmet = (event, uuid, container) => {
+const deleteSigmet = (event, container) => {
   const { state, props } = container;
   const { dispatch, mapActions } = props;
   const { BACKEND_SERVER_URL } = props.urls;
+  const { uuid } = state.focussedSigmet;
   if (!uuid || !BACKEND_SERVER_URL) {
     return;
   }
@@ -1024,6 +1026,7 @@ const deleteSigmet = (event, uuid, container) => {
         container.setState(produce(container.state, draftState => {
           draftState.focussedSigmet.mode = SIGMET_MODES.READ;
           draftState.focussedSigmet.uuid = null;
+          draftState.displayModal = null;
         }), () => {
           dispatch(mapActions.setMapMode('pan'));
           setSigmetDrawing(null, container);
@@ -1158,7 +1161,8 @@ const retrieveTAC = (uuid, container) => {
   });
 };
 
-const cancelSigmet = (event, uuid, container) => {
+const cancelSigmet = (event, container) => {
+  const { uuid } = container.state.focussedSigmet;
   container.setState(produce(container.state, draftState => {
     const indices = findCategoryAndSigmetIndex(uuid, draftState);
     if (indices.isFound) {
@@ -1233,6 +1237,22 @@ const verifySigmet = (sigmetObject, container) => {
 };
 
 /**
+ * Toggles SIGMET modals on and off
+ * @param {Event} event The event which triggered the toggling
+ * @param {string} type The modal type to toggle
+ * @param {component} container The container in which the SIGMET modal should be toggled
+ */
+const toggleSigmetModal = (event, type, container) => {
+  const { state } = container;
+  if (event) {
+    event.stopPropagation();
+  }
+  container.setState(produce(state, draftState => {
+    draftState.displayModal = draftState.displayModal === type ? null : type;
+  }));
+};
+
+/**
  * SigmetsContainer has its own state, this is the dispatch for updating the state
  * @param {object} localAction Action-object containing the type and additional, action specific, parameters
  * @param {object} state Object reference for the actual state
@@ -1281,7 +1301,7 @@ export default (localAction, container) => {
       editSigmet(localAction.event, localAction.uuid, container);
       break;
     case LOCAL_ACTION_TYPES.DELETE_SIGMET:
-      deleteSigmet(localAction.event, localAction.uuid, container);
+      deleteSigmet(localAction.event, container);
       break;
     case LOCAL_ACTION_TYPES.COPY_SIGMET:
       copySigmet(localAction.event, localAction.uuid, container);
@@ -1293,7 +1313,7 @@ export default (localAction, container) => {
       publishSigmet(localAction.event, localAction.uuid, container);
       break;
     case LOCAL_ACTION_TYPES.CANCEL_SIGMET:
-      cancelSigmet(localAction.event, localAction.uuid, container);
+      cancelSigmet(localAction.event, container);
       break;
     case LOCAL_ACTION_TYPES.DRAW_SIGMET:
       drawSigmet(localAction.event, localAction.uuid, container, localAction.action, localAction.featureFunction);
@@ -1313,5 +1333,7 @@ export default (localAction, container) => {
     case LOCAL_ACTION_TYPES.VERIFY_SIGMET:
       verifySigmet(localAction.sigmetObject, container);
       break;
+    case LOCAL_ACTION_TYPES.TOGGLE_SIGMET_MODAL:
+      toggleSigmetModal(localAction.event, localAction.modalType, container);
   }
 };

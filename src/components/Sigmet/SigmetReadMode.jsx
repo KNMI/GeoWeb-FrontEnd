@@ -149,7 +149,8 @@ class SigmetReadMode extends PureComponent {
 
   render () {
     const { dispatch, actions, focus, uuid, phenomenon, isObserved, obsFcTime, validdate, validdateEnd, firname, locationIndicatorIcao, issuedate,
-      locationIndicatorMwo, levelinfo, movement, movementType, change, sequence, tac, isCancelFor, volcanoName, volcanoCoordinates, isVolcanicAsh } = this.props;
+      locationIndicatorMwo, levelinfo, movement, movementType, change, sequence, tac, isCancelFor,
+      isNoVolcanicAshExpected, volcanoName, volcanoCoordinates, isVolcanicAsh } = this.props;
     const abilityCtAs = this.reduceAbilities(); // CtA = Call To Action
     const selectedDirection = movement && DIRECTIONS.find((obj) => obj.shortName === movement.dir);
     const directionLongName = selectedDirection ? selectedDirection.longName : null;
@@ -201,6 +202,10 @@ class SigmetReadMode extends PureComponent {
             <span data-field='movement'>Moving</span>
             <span data-field='speed'>{movement.speed}KT</span>
             <span data-field='direction'>{directionLongName}</span>
+            {isVolcanicAsh && isNoVolcanicAshExpected
+              ? <span data-field='no_va_expected'>No volcanic ash is expected at the end.</span>
+              : null
+            }
           </ProgressSection>
           : <ProgressSection>
             <span data-field='movement'>
@@ -211,6 +216,10 @@ class SigmetReadMode extends PureComponent {
                   : '(movement type is not (properly) set)'
               }
             </span>
+            {isVolcanicAsh && isNoVolcanicAshExpected
+              ? <span data-field='no_va_expected'>No volcanic ash is expected at the end.</span>
+              : null
+            }
           </ProgressSection>
         }
 
@@ -234,7 +243,7 @@ class SigmetReadMode extends PureComponent {
               data-field={ability.dataField}
               color='primary'
               disabled={ability.disabled}
-              onClick={(evt) => dispatch(actions[ability.action](evt, uuid))}>
+              onClick={(evt) => dispatch(actions[ability.action](evt, uuid, ability.parameter))}>
               {ability.label}
             </Button>
           )}
@@ -293,7 +302,8 @@ SigmetReadMode.propTypes = {
   isCancelFor: PropTypes.number,
   volcanoName: PropTypes.string,
   volcanoCoordinates: PropTypes.arrayOf(PropTypes.number),
-  isVolcanicAsh: PropTypes.bool
+  isVolcanicAsh: PropTypes.bool,
+  isNoVolcanicAshExpected: PropTypes.bool
 };
 
 export default SigmetReadMode;
