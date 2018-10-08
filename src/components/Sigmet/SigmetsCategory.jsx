@@ -9,6 +9,8 @@ import SigmetEditMode from './SigmetEditMode';
 import SigmetReadMode from './SigmetReadMode';
 import SigmetMinifiedMode from './SigmetMinifiedMode';
 
+const PHENOMENON_CODE_VOLCANIC_ASH = 'VA_CLD';
+
 class SigmetsCategory extends PureComponent {
   byStartAndSequence (sigA, sigB) {
     // By valid period start (DESC) and sequence number (DESC)
@@ -41,7 +43,7 @@ class SigmetsCategory extends PureComponent {
   }
   render () {
     const { typeRef, title, icon, sigmets, focussedSigmet, geojson, copiedSigmetRef, hasEdits, tacs, isOpen, dispatch, actions, abilities,
-      phenomena, parameters } = this.props;
+      phenomena, parameters, displayModal } = this.props;
     const maxSize = 10000; // for now, arbitrairy big
     const itemLimit = 25;
     const isOpenable = (isOpen || (!isOpen && sigmets.length > 0));
@@ -70,8 +72,9 @@ class SigmetsCategory extends PureComponent {
                 <Row>
                   <Col className='btn-group-vertical'>
                     {sigmets.slice().sort(this.byStartAndSequence).slice(0, itemLimit).map((sigmet, index) => {
+                      console.log('Sigmet', sigmet.va_extra_fields.move_to);
                       const isCancelFor = sigmet.cancels !== null && !isNaN(sigmet.cancels) ? parseInt(sigmet.cancels) : null;
-                      const isVolcanicAsh = sigmet.phenomenon ? sigmet.phenomenon === 'VA_ERUPTION' : false;
+                      const isVolcanicAsh = sigmet.phenomenon ? sigmet.phenomenon === PHENOMENON_CODE_VOLCANIC_ASH : false;
                       const isTropicalCyclone = false;
                       const prefix = isVolcanicAsh
                         ? SIGMET_VARIANTS_PREFIXES.VOLCANIC_ASH
@@ -80,12 +83,18 @@ class SigmetsCategory extends PureComponent {
                           : SIGMET_VARIANTS_PREFIXES.NORMAL;
                       const activeFirEntry = Object.entries(parameters.firareas).filter((entry) => entry[1].firname === sigmet.firname &&
                           entry[1].location_indicator_icao === sigmet.location_indicator_icao);
-                      const availableFirs = parameters.active_firs.map((firKey) => parameters.firareas[firKey]);
-                      const maxHoursInAdvance = Array.isArray(activeFirEntry) && activeFirEntry.length === 1
-                        ? activeFirEntry[0][1][`${prefix}hoursbeforevalidity`]
+                      const activeFir = Array.isArray(activeFirEntry) && activeFirEntry.length === 1
+                        ? activeFirEntry[0][1]
                         : null;
-                      const maxHoursDuration = Array.isArray(activeFirEntry) && activeFirEntry.length === 1
-                        ? activeFirEntry[0][1][`${prefix}maxhoursofvalidity`]
+                      const availableFirs = parameters.active_firs.map((firKey) => parameters.firareas[firKey]);
+                      const maxHoursInAdvance = activeFir
+                        ? activeFir[`${prefix}hoursbeforevalidity`]
+                        : null;
+                      const maxHoursDuration = activeFir
+                        ? activeFir[`${prefix}maxhoursofvalidity`]
+                        : null;
+                      const adjacentFirs = activeFir
+                        ? activeFir['adjacent_firs']
                         : null;
                       const volcanoCoordinates = Array.isArray(sigmet.va_extra_fields.volcano.position) && sigmet.va_extra_fields.volcano.position.length > 1
                         ? sigmet.va_extra_fields.volcano.position
@@ -172,6 +181,9 @@ class SigmetsCategory extends PureComponent {
                             change={sigmet.change}
                             maxHoursInAdvance={maxHoursInAdvance}
                             maxHoursDuration={maxHoursDuration}
+                            displayModal={displayModal}
+                            adjacentFirs={adjacentFirs}
+                            moveTo={sigmet.va_extra_fields.move_to}
                           />;
                         }
                       }
@@ -232,7 +244,8 @@ SigmetsCategory.propTypes = {
     code: PropTypes.string
   })),
   copiedSigmetRef: PropTypes.string,
-  geojson: PropTypes.object
+  geojson: PropTypes.object,
+  displayModal: PropTypes.string
 };
 
 export default SigmetsCategory;

@@ -2,8 +2,9 @@ import React, { PureComponent } from 'react';
 import { Button, Col } from 'reactstrap';
 import Moment from 'react-moment';
 import moment from 'moment';
+import produce from 'immer';
 import PropTypes from 'prop-types';
-import { READ_ABILITIES, byReadAbilities } from '../../containers/Sigmet/SigmetActions';
+import { READ_ABILITIES, byReadAbilities, MODALS, MODAL_TYPES } from '../../containers/Sigmet/SigmetActions';
 import { UNITS, UNITS_ALT, DIRECTIONS, CHANGES, MODES_LVL, MOVEMENT_TYPES, SIGMET_TYPES, DATETIME_LABEL_FORMAT_UTC } from './SigmetTemplates';
 
 import HeaderSection from './Sections/HeaderSection';
@@ -15,6 +16,7 @@ import HeightSection from './Sections/HeightSection';
 import ProgressSection from './Sections/ProgressSection';
 import ChangeSection from './Sections/ChangeSection';
 import IssueSection from './Sections/IssueSection';
+import ConfirmationModal from '../ConfirmationModal';
 
 class SigmetReadMode extends PureComponent {
   getUnitLabel (unitName) {
@@ -150,10 +152,27 @@ class SigmetReadMode extends PureComponent {
   render () {
     const { dispatch, actions, focus, uuid, phenomenon, isObserved, obsFcTime, validdate, validdateEnd, firname, locationIndicatorIcao, issuedate,
       locationIndicatorMwo, levelinfo, movement, movementType, change, sequence, tac, isCancelFor,
-      isNoVolcanicAshExpected, volcanoName, volcanoCoordinates, isVolcanicAsh } = this.props;
+      isNoVolcanicAshExpected, volcanoName, volcanoCoordinates, isVolcanicAsh, displayModal, adjacentFirs, moveTo } = this.props;
     const abilityCtAs = this.reduceAbilities(); // CtA = Call To Action
     const selectedDirection = movement && DIRECTIONS.find((obj) => obj.shortName === movement.dir);
     const directionLongName = selectedDirection ? selectedDirection.longName : null;
+    const modalEntries = Object.entries(MODALS).filter((modalEntry) => modalEntry[1].type === displayModal);
+    const modalConfig = Array.isArray(modalEntries) && modalEntries.length > 0 ? produce(modalEntries[0][1], draftState => {
+      if (isVolcanicAsh && draftState && draftState.type === MODAL_TYPES.TYPE_CONFIRM_CANCEL && draftState.optional && Array.isArray(adjacentFirs)) {
+        if (Array.isArray(draftState.optional.options)) {
+          draftState.optional.options.push(...adjacentFirs.map((firCode) => ({
+            optionId: firCode, label: firCode, disabled: false
+          })));
+        }
+        if (Array.isArray(draftState.optional.parameters)) {
+          draftState.optional.parameters.push(uuid);
+          draftState.optional.parameters.push('va_extra_fields.move_to');
+        }
+        if (Array.isArray(moveTo) && moveTo.length > 0) {
+          draftState.optional.selectedOption = moveTo[0];
+        }
+      }
+    }) : null;
     return <Button tag='div' className={`Sigmet row${focus ? ' focus' : ''}`} onClick={(evt) => dispatch(actions.focusSigmetAction(evt, uuid))}>
       <Col>
         <HeaderSection isCancelFor={isCancelFor} />
@@ -249,6 +268,11 @@ class SigmetReadMode extends PureComponent {
           )}
         </ActionSection>
       </Col>
+      {modalConfig
+        ? <ConfirmationModal config={modalConfig} dispatch={dispatch} actions={actions}
+          identifier={`this ${phenomenon} SIGMET`} />
+        : null
+      }
     </Button>;
   }
 }
@@ -303,7 +327,10 @@ SigmetReadMode.propTypes = {
   volcanoName: PropTypes.string,
   volcanoCoordinates: PropTypes.arrayOf(PropTypes.number),
   isVolcanicAsh: PropTypes.bool,
-  isNoVolcanicAshExpected: PropTypes.bool
+  isNoVolcanicAshExpected: PropTypes.bool,
+  displayModal: PropTypes.string,
+  adjacentFirs: PropTypes.arrayOf(PropTypes.string),
+  moveTo: PropTypes.arrayOf(PropTypes.string)
 };
 
 export default SigmetReadMode;

@@ -9,7 +9,7 @@ import TafSelector from '../../components/Taf/TafSelector';
 import FeedbackSection from '../../components/Taf/FeedbackSection';
 import { INITIAL_STATE, LOCAL_ACTIONS, FEEDBACK_STATUSES, FEEDBACK_CATEGORIES, MODALS, LIFECYCLE_STAGES } from './TafActions';
 import dispatch from './TafReducers';
-import ConfirmationModal from '../../components/Taf/ConfirmationModal';
+import ConfirmationModal from '../../components/ConfirmationModal';
 
 export default class TafsContainer extends Component {
   constructor (props) {
@@ -36,7 +36,6 @@ export default class TafsContainer extends Component {
     const typeOfTafToShow = stageOfTafToShow ? stageOfTafToShow.label : null;
     const modalEntries = Object.entries(MODALS).filter((modalEntry) => modalEntry[1].type === displayModal);
     const modalConfig = Array.isArray(modalEntries) && modalEntries.length > 0 ? modalEntries[0][1] : null;
-    console.log(displayModal);
 
     const hasFollowUp = Array.isArray(selectableTafs) && !!tafToShow && selectableTafs.some((selectable) =>
       !!selectable.tafData.metadata.previousUuid && selectable.tafData.metadata.previousUuid === tafToShow.tafData.metadata.uuid);

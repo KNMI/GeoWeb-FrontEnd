@@ -6,13 +6,12 @@ import isEqual from 'lodash.isequal';
 
 import Panel from '../../components/Panel';
 import CollapseOmni from '../../components/CollapseOmni';
-import { CATEGORY_REFS, INITIAL_STATE, LOCAL_ACTIONS, MODALS } from './SigmetActions';
+import { CATEGORY_REFS, INITIAL_STATE, LOCAL_ACTIONS } from './SigmetActions';
 import dispatch from './SigmetReducers';
 
 import ContainerHeader from '../../components/Sigmet/ContainerHeader';
 import SigmetsCategory from '../../components/Sigmet/SigmetsCategory';
 import MinifiedCategory from '../../components/Sigmet/MinifiedCategory';
-import ConfirmationModal from '../../components/Sigmet/ConfirmationModal';
 import { isFeatureGeoJsonComplete } from '../../utils/json';
 
 const ERROR_MSG = {
@@ -83,13 +82,7 @@ class SigmetsContainer extends Component {
     const hasStartCoordinates = startFeature ? isFeatureGeoJsonComplete(startFeature) : false;
     const hasStartIntersectionCoordinates = startIntersectionFeature ? isFeatureGeoJsonComplete(startIntersectionFeature) : false;
     const hasEndCoordinates = endFeature ? isFeatureGeoJsonComplete(endFeature) : false;
-    const modalEntries = Object.entries(MODALS).filter((modalEntry) => modalEntry[1].type === this.state.displayModal);
-    const modalConfig = Array.isArray(modalEntries) && modalEntries.length > 0 ? modalEntries[0][1] : null;
-    // const MODES_LVL_OPTIONS = [
-    //   { optionId: MODES_LVL.AT, label: 'At', disabled: false },
-    //   { optionId: MODES_LVL.BETW, label: 'Between', disabled: false },
-    //   { optionId: MODES_LVL.ABV, label: 'Above', disabled: false }
-    // ];
+
     return (
       <Col className='SigmetsContainer'>
         <CollapseOmni className='CollapseOmni' isOpen={this.state.isContainerOpen} isHorizontal minSize={64} maxSize={maxSize}>
@@ -115,17 +108,13 @@ class SigmetsContainer extends Component {
                     hasStartCoordinates={hasStartCoordinates}
                     hasStartIntersectionCoordinates={hasStartIntersectionCoordinates}
                     hasEndCoordinates={hasEndCoordinates}
-                    parameters={this.state.parameters} />
+                    parameters={this.state.parameters}
+                    displayModal={this.state.displayModal} />
                   : <MinifiedCategory key={category.ref}
                     icon={category.icon}
                     sigmetCount={(category.ref === CATEGORY_REFS.ADD_SIGMET) ? 0 : category.sigmets.length} />;
               })}
             </Col>
-            {modalConfig
-              ? <ConfirmationModal config={modalConfig} dispatch={this.localDispatch} actions={LOCAL_ACTIONS}
-                identifier={`this SIGMET`} />
-              : null
-            }
           </Panel>
         </CollapseOmni>
       </Col>

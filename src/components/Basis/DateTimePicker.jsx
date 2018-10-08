@@ -39,7 +39,7 @@ export default class DateTimePicker extends PureComponent {
 
     return <Row className={`DateTimePicker${className ? ` ${className}` : ''}${required ? ` required${shouldHightlight ? ' missing' : ''}` : ''}`}>
       <Col>
-        <label className={`row${disabled ? ' disabled' : ''}`} title={!disabled ? moment.utc(value).format() : null} onClick={(evt) => evt.preventDefault()}>
+        <label className={`row${disabled ? ' disabled' : ''}`} title={!disabled ? moment.utc(value).format(DATETIME_FORMAT) : null} onClick={(evt) => evt.preventDefault()}>
           <Typeahead filterBy={['label']} labelKey='label' data-field={`${dataField}-day`}
             options={dayOptions} disabled={disabled}
             onFocus={(evt) => onChange(null, '')}

@@ -177,12 +177,12 @@ const receivedPhenomenaCallback = (response, container) => {
 const updatePhenomena = (phenomena, container, callback) => {
   const SEPARATOR = '_';
   // TODO: remove when backend integration is finished
-  if (process.env.NODE_ENV === 'development' && phenomena.findIndex((item) => item.phenomenon.code === 'VA_ERUPTION') === -1) {
+  if (process.env.NODE_ENV === 'development' && phenomena.findIndex((item) => item.phenomenon.code === 'VA_CLD') === -1) {
     phenomena.push({
       phenomenon: {
         layerpreset: null,
-        name: 'Volcanic Ash eruption',
-        code: 'VA_ERUPTION'
+        name: 'Volcanic Ash',
+        code: 'VA_CLD'
       },
       variants: [],
       additions: []
@@ -555,6 +555,7 @@ const updateDisplayedPreset = (preset, container) => {
 };
 
 const updateSigmet = (uuid, dataField, value, container) => {
+  console.log('updateSigmet', uuid, dataField, value);
   const { state, props } = container;
   const { drawProperties, dispatch, drawActions } = props;
   const shouldCleanEndFeature = dataField === 'movement_type' && value !== MOVEMENT_TYPES.FORECAST_POSITION;

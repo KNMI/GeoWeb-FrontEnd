@@ -58,9 +58,14 @@ export const SIGMET_MODES = {
   READ: 'READ'
 };
 
+export const MODAL_TYPES = {
+  TYPE_CONFIRM_DELETE: 'confirm delete',
+  TYPE_CONFIRM_CANCEL: 'confirm cancel'
+};
+
 export const MODALS = {
   CONFIRM_DELETE: {
-    type: 'confirm delete',
+    type: MODAL_TYPES.TYPE_CONFIRM_DELETE,
     title: 'Delete SIGMET?',
     message: (identifier) => `Are you sure you want to delete ${identifier}?`,
     button: {
@@ -71,13 +76,23 @@ export const MODALS = {
     toggleAction: 'toggleSigmetModalAction'
   },
   CONFIRM_CANCEL: {
-    type: 'confirm cancel',
+    type: MODAL_TYPES.TYPE_CONFIRM_CANCEL,
     title: 'Cancel SIGMET?',
     message: (identifier) => `Are you sure you want to cancel ${identifier}?`,
     button: {
       label: 'Cancel this SIGMET',
       icon: 'times-circle',
       action: 'cancelSigmetAction'
+    },
+    optional: {
+      message: 'Optionally, you can indicate which adjacent FIR the Volcanic Ash is moving to:',
+      options: [],
+      selectedOption: null,
+      action: 'updateSigmetAction',
+      parameters: {
+        uuid: null,
+        dataField: null
+      }
     },
     toggleAction: 'toggleSigmetModalAction'
   }
@@ -224,7 +239,7 @@ const STATE = {
   },
   copiedSigmetRef: null,
   isContainerOpen: true,
-  displayModal: false
+  displayModal: null
 };
 
 // active-sigmets
