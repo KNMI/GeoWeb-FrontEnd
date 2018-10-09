@@ -29,6 +29,16 @@
       padding: 0.33rem 0;
       color: #666;
     }
+    button.clear {
+      &:disabled {
+        color: #ddd;
+        cursor: default;
+      }
+      span {
+        line-height: 0.7;
+        vertical-align: top;
+      }
+    }
   }
   .modal-footer {
     border-top: 0.05rem solid #d4f0ff;

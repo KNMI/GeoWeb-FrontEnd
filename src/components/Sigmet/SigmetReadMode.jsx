@@ -91,6 +91,34 @@ class SigmetReadMode extends PureComponent {
   }
 
   /**
+   * Compose the specific configuration for the confirmation modal
+   * @param {string} displayModal The name of the modal to display
+   * @param {string} uuid The identifier for the focussed SIGMET
+   * @param {boolean} isVolcanicAsh Whether or not the focussed SIGMET describes a VA
+   * @param {string[]} adjacentFirs A list of identifiers for the adjacent FIRs
+   * @returns {Object} The configuration for the confirmation modal
+   */
+  getModalConfig (displayModal, uuid, isVolcanicAsh, adjacentFirs, moveTo) {
+    const modalEntries = Object.entries(MODALS).filter((modalEntry) => modalEntry[1].type === displayModal);
+    return Array.isArray(modalEntries) && modalEntries.length > 0 ? produce(modalEntries[0][1], draftState => {
+      if (isVolcanicAsh && draftState && draftState.type === MODAL_TYPES.TYPE_CONFIRM_CANCEL && draftState.optional && Array.isArray(adjacentFirs)) {
+        if (Array.isArray(draftState.optional.options)) {
+          draftState.optional.options.push(...adjacentFirs.map((firCode) => ({
+            optionId: firCode, label: firCode, disabled: false
+          })));
+        }
+        if (Array.isArray(draftState.optional.parameters)) {
+          draftState.optional.parameters.push(uuid);
+          draftState.optional.parameters.push('va_extra_fields.move_to');
+        }
+        if (Array.isArray(moveTo) && moveTo.length > 0) {
+          draftState.optional.selectedOption = moveTo[0];
+        }
+      }
+    }) : null;
+  }
+
+  /**
    * Check whether or not the basic values for this specific Sigmet are valid
    * @returns {boolean} Whether or not the basic values in this specific Sigmet are valid
    */
@@ -156,23 +184,7 @@ class SigmetReadMode extends PureComponent {
     const abilityCtAs = this.reduceAbilities(); // CtA = Call To Action
     const selectedDirection = movement && DIRECTIONS.find((obj) => obj.shortName === movement.dir);
     const directionLongName = selectedDirection ? selectedDirection.longName : null;
-    const modalEntries = Object.entries(MODALS).filter((modalEntry) => modalEntry[1].type === displayModal);
-    const modalConfig = Array.isArray(modalEntries) && modalEntries.length > 0 ? produce(modalEntries[0][1], draftState => {
-      if (isVolcanicAsh && draftState && draftState.type === MODAL_TYPES.TYPE_CONFIRM_CANCEL && draftState.optional && Array.isArray(adjacentFirs)) {
-        if (Array.isArray(draftState.optional.options)) {
-          draftState.optional.options.push(...adjacentFirs.map((firCode) => ({
-            optionId: firCode, label: firCode, disabled: false
-          })));
-        }
-        if (Array.isArray(draftState.optional.parameters)) {
-          draftState.optional.parameters.push(uuid);
-          draftState.optional.parameters.push('va_extra_fields.move_to');
-        }
-        if (Array.isArray(moveTo) && moveTo.length > 0) {
-          draftState.optional.selectedOption = moveTo[0];
-        }
-      }
-    }) : null;
+    const modalConfig = this.getModalConfig(displayModal, uuid, isVolcanicAsh, adjacentFirs, moveTo);
     return <Button tag='div' className={`Sigmet row${focus ? ' focus' : ''}`} onClick={(evt) => dispatch(actions.focusSigmetAction(evt, uuid))}>
       <Col>
         <HeaderSection isCancelFor={isCancelFor} />

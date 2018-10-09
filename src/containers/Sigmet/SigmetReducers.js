@@ -555,7 +555,6 @@ const updateDisplayedPreset = (preset, container) => {
 };
 
 const updateSigmet = (uuid, dataField, value, container) => {
-  console.log('updateSigmet', uuid, dataField, value);
   const { state, props } = container;
   const { drawProperties, dispatch, drawActions } = props;
   const shouldCleanEndFeature = dataField === 'movement_type' && value !== MOVEMENT_TYPES.FORECAST_POSITION;
@@ -958,6 +957,7 @@ const saveSigmet = (event, uuid, container) => {
       container.setState(produce(container.state, draftState => {
         draftState.focussedSigmet.mode = SIGMET_MODES.READ;
         draftState.focussedSigmet.hasEdits = false;
+        draftState.displayModal = null;
         if (shouldUpdateFocussed) {
           const catRef = draftState.categories[indices.categoryIndex].ref;
           if (catRef && catRef !== draftState.focussedCategoryRef) {

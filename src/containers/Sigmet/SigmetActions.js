@@ -89,10 +89,7 @@ export const MODALS = {
       options: [],
       selectedOption: null,
       action: 'updateSigmetAction',
-      parameters: {
-        uuid: null,
-        dataField: null
-      }
+      parameters: []
     },
     toggleAction: 'toggleSigmetModalAction'
   }

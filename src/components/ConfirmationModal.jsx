@@ -13,9 +13,6 @@ export default class ConfirmationModal extends PureComponent {
     const { config, dispatch, actions, identifier } = this.props;
     const { options } = config.optional || {};
     const hasOptions = Array.isArray(options) && options.length > 0;
-    if (hasOptions) {
-      console.log(...config.optional.parameters);
-    }
     return <Modal className={styleContext('ConfirmationModal')} isOpen toggle={(evt) => dispatch(actions[config.toggleAction](evt, null, config.type))}>
       <ModalHeader>{config.title}</ModalHeader>
       <ModalBody>
@@ -29,13 +26,24 @@ export default class ConfirmationModal extends PureComponent {
           : null
         }
         {hasOptions
-          ? <RadioGroup
-            value={config.optional.selectedOption || ''}
-            options={options}
-            onChange={(evt, value) => dispatch(actions[config.optional.action](...config.optional.parameters, [value]))}
-            data-field='confirmation'
-            spacedEvenly
-          />
+          ? <Row>
+            <Col>
+              <RadioGroup
+                value={config.optional.selectedOption || ''}
+                options={options}
+                onChange={(evt, value) => dispatch(actions[config.optional.action](...config.optional.parameters, [value]))}
+                data-field='confirmation'
+                spacedEvenly
+              />
+            </Col>
+            {hasOptions
+              ? <Col xs='auto'>
+                <button className='clear close' title={config.optional.selectedOption ? 'Clear' : null} disabled={!config.optional.selectedOption}
+                  onClick={(evt) => dispatch(actions[config.optional.action](...config.optional.parameters, []))}><span>×</span></button>
+              </Col>
+              : null
+            }
+          </Row>
           : null
         }
       </ModalBody>
@@ -58,7 +66,7 @@ export default class ConfirmationModal extends PureComponent {
 }
 
 ConfirmationModal.propTypes = {
-  config: PropTypes.object,
+  config: PropTypes.object.isRequired,
   identifier: PropTypes.string,
   dispatch: PropTypes.func,
   actions: PropTypes.objectOf(PropTypes.func)

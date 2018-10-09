@@ -72,7 +72,6 @@ class SigmetsCategory extends PureComponent {
                 <Row>
                   <Col className='btn-group-vertical'>
                     {sigmets.slice().sort(this.byStartAndSequence).slice(0, itemLimit).map((sigmet, index) => {
-                      console.log('Sigmet', sigmet.va_extra_fields.move_to);
                       const isCancelFor = sigmet.cancels !== null && !isNaN(sigmet.cancels) ? parseInt(sigmet.cancels) : null;
                       const isVolcanicAsh = sigmet.phenomenon ? sigmet.phenomenon === PHENOMENON_CODE_VOLCANIC_ASH : false;
                       const isTropicalCyclone = false;
