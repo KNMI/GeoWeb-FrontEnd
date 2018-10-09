@@ -329,10 +329,6 @@ class SigmetEditMode extends PureComponent {
               ? moment.utc(validdateEnd)
               : now.clone().add(maxHoursDuration + maxHoursInAdvance, 'hour')}
           />
-          <NumberInput
-            value={typeof levelinfo.levels[0].value === 'number' ? levelinfo.levels[0].value.toString() : ''}
-            min={0} max={59} step={5} minLength={3} maxLength={3} data-field='volcano_name'
-            onChange={(evt, value) => dispatch(actions.updateSigmetLevelAction(uuid, 'value', { value: value, isUpperLevel: false }))} />
           {isVolcanicAsh
             ? <Input type='text' value={volcanoName || ''} data-field='volcano_name' placeholder='Volcano name'
               onChange={(evt) => dispatch(actions.updateSigmetAction(uuid, 'volcano_name', evt.target.value))}
