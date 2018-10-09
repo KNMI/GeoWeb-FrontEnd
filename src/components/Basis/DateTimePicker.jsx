@@ -4,7 +4,7 @@ import { Typeahead } from 'react-bootstrap-typeahead';
 import moment from 'moment';
 import PropTypes from 'prop-types';
 import MomentPropTypes from 'react-moment-proptypes';
-import { HOUR_LABEL_FORMAT, MINUTE_LABEL_FORMAT, CALENDAR_FORMAT, DATETIME_FORMAT } from '../Sigmet/SigmetTemplates';
+import { HOUR_LABEL_FORMAT, MINUTE_LABEL_FORMAT, CALENDAR_FORMAT, DATETIME_FORMAT, DATETIME_LABEL_FORMAT_UTC } from '../Sigmet/SigmetTemplates';
 
 export default class DateTimePicker extends PureComponent {
   parseTimestamp (timestamp) {
@@ -39,7 +39,7 @@ export default class DateTimePicker extends PureComponent {
 
     return <Row className={`DateTimePicker${className ? ` ${className}` : ''}${required ? ` required${shouldHightlight ? ' missing' : ''}` : ''}`}>
       <Col>
-        <label className={`row${disabled ? ' disabled' : ''}`} title={!disabled ? moment.utc(value).format(DATETIME_FORMAT) : null} onClick={(evt) => evt.preventDefault()}>
+        <label className={`row${disabled ? ' disabled' : ''}`} title={!disabled ? moment.utc(value).format(DATETIME_LABEL_FORMAT_UTC) : null} onClick={(evt) => evt.preventDefault()}>
           <Typeahead filterBy={['label']} labelKey='label' data-field={`${dataField}-day`}
             options={dayOptions} disabled={disabled}
             onFocus={(evt) => onChange(null, '')}
