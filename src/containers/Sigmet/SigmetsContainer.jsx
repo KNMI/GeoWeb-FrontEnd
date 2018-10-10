@@ -111,8 +111,10 @@ class SigmetsContainer extends Component {
                     hasStartCoordinates={hasStartCoordinates}
                     hasStartIntersectionCoordinates={hasStartIntersectionCoordinates}
                     hasEndCoordinates={hasEndCoordinates}
+                    displayModal={this.state.displayModal}
                     hasEndIntersectionCoordinates={hasEndIntersectionCoordinates}
-                    parameters={this.state.parameters} />
+                    parameters={this.state.parameters}
+                  />
                   : <MinifiedCategory key={category.ref}
                     icon={category.icon}
                     sigmetCount={(category.ref === CATEGORY_REFS.ADD_SIGMET) ? 0 : category.sigmets.length} />;

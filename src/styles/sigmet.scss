@@ -88,6 +88,11 @@
     [data-field=phenomenon] {
       font-weight: bold;
     }
+    .row:nth-child(n + 4) {
+      input.form-control {
+        padding: 0.2rem 0.75rem;
+      }
+    }
   }
 
   .Validity, .Where, .Draw, .Level, .Progress, .Move, .Change, .Issue {
@@ -100,6 +105,9 @@
     .row:nth-child(2) {
       margin-top: 0.2rem;
       margin-bottom: 0.1rem;
+    }
+    .row:nth-child(3) .DateTimePicker {
+      z-index: 50;
     }
   }
 
@@ -248,6 +256,12 @@
       > div:nth-child(2) {
         padding-left: 0.2rem;
       }
+    }
+  }
+
+  .Progress {
+    .row:first-child {
+      margin-bottom: 0.25rem;
     }
   }
 

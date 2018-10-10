@@ -39,22 +39,60 @@ export const LOCAL_ACTIONS = {
   discardSigmetAction: (evt, uuid) => ({ type: LOCAL_ACTION_TYPES.DISCARD_SIGMET, event: evt, uuid: uuid }),
   saveSigmetAction: (evt, uuid) => ({ type: LOCAL_ACTION_TYPES.SAVE_SIGMET, event: evt, uuid: uuid }),
   editSigmetAction: (evt, uuid) => ({ type: LOCAL_ACTION_TYPES.EDIT_SIGMET, event: evt, uuid: uuid }),
-  deleteSigmetAction: (evt, uuid) => ({ type: LOCAL_ACTION_TYPES.DELETE_SIGMET, event: evt, uuid: uuid }),
+  deleteSigmetAction: (evt) => ({ type: LOCAL_ACTION_TYPES.DELETE_SIGMET, event: evt }),
   copySigmetAction: (evt, uuid) => ({ type: LOCAL_ACTION_TYPES.COPY_SIGMET, event: evt, uuid: uuid }),
   pasteSigmetAction: (evt) => ({ type: LOCAL_ACTION_TYPES.PASTE_SIGMET, event: evt }),
   publishSigmetAction: (evt, uuid) => ({ type: LOCAL_ACTION_TYPES.PUBLISH_SIGMET, event: evt, uuid: uuid }),
-  cancelSigmetAction: (evt, uuid) => ({ type: LOCAL_ACTION_TYPES.CANCEL_SIGMET, event: evt, uuid: uuid }),
+  cancelSigmetAction: (evt) => ({ type: LOCAL_ACTION_TYPES.CANCEL_SIGMET, event: evt }),
   drawAction: (evt, uuid, action, featureFunction) => ({ type: LOCAL_ACTION_TYPES.DRAW_SIGMET, uuid: uuid, event: evt, action: action, featureFunction: featureFunction }),
   updateFir: (firName) => ({ type: LOCAL_ACTION_TYPES.UPDATE_FIR, firName: firName }),
   createFirIntersectionAction: (featureId, geoJson) => ({ type: LOCAL_ACTION_TYPES.CREATE_FIR_INTERSECTION, featureId: featureId, geoJson: geoJson }),
   modifyFocussedSigmetAction: (dataField, value) => ({ type: LOCAL_ACTION_TYPES.MODIFY_FOCUSSED_SIGMET, dataField: dataField, value: value }),
   setSigmetDrawing: (uuid) => ({ type: LOCAL_ACTION_TYPES.SET_DRAWING, uuid: uuid }),
-  verifySigmetAction: (sigmetObject) => ({ type: LOCAL_ACTION_TYPES.VERIFY_SIGMET, sigmetObject: sigmetObject })
+  verifySigmetAction: (sigmetObject) => ({ type: LOCAL_ACTION_TYPES.VERIFY_SIGMET, sigmetObject: sigmetObject }),
+  toggleSigmetModalAction: (evt, uuid, type) => ({ type: LOCAL_ACTION_TYPES.TOGGLE_SIGMET_MODAL, event: evt, uuid: uuid, modalType: type })
 };
 
 export const SIGMET_MODES = {
   EDIT: 'EDIT',
   READ: 'READ'
+};
+
+export const MODAL_TYPES = {
+  TYPE_CONFIRM_DELETE: 'confirm delete',
+  TYPE_CONFIRM_CANCEL: 'confirm cancel'
+};
+
+export const MODALS = {
+  CONFIRM_DELETE: {
+    type: MODAL_TYPES.TYPE_CONFIRM_DELETE,
+    title: 'Delete SIGMET?',
+    message: (identifier) => `Are you sure you want to delete ${identifier}?`,
+    button: {
+      label: 'Delete',
+      icon: 'trash',
+      action: 'deleteSigmetAction'
+    },
+    toggleAction: 'toggleSigmetModalAction'
+  },
+  CONFIRM_CANCEL: {
+    type: MODAL_TYPES.TYPE_CONFIRM_CANCEL,
+    title: 'Cancel SIGMET?',
+    message: (identifier) => `Are you sure you want to cancel ${identifier}?`,
+    button: {
+      label: 'Cancel this SIGMET',
+      icon: 'times-circle',
+      action: 'cancelSigmetAction'
+    },
+    optional: {
+      message: 'Optionally, you can indicate which adjacent FIR the Volcanic Ash is moving to:',
+      options: [],
+      selectedOption: null,
+      action: 'updateSigmetAction',
+      parameters: []
+    },
+    toggleAction: 'toggleSigmetModalAction'
+  }
 };
 
 export const STATUSES = {
@@ -112,7 +150,8 @@ export const READ_ABILITIES = {
     'dataField': 'delete',
     'label': 'Delete',
     'check': 'isDeletable',
-    'action': 'deleteSigmetAction'
+    'action': 'toggleSigmetModalAction',
+    'parameter': MODALS.CONFIRM_DELETE.type
   },
   COPY: {
     'dataField': 'copy',
@@ -130,7 +169,8 @@ export const READ_ABILITIES = {
     'dataField': 'cancel',
     'label': 'Cancel',
     'check': 'isCancelable',
-    'action': 'cancelSigmetAction'
+    'action': 'toggleSigmetModalAction',
+    'parameter': MODALS.CONFIRM_CANCEL.type
   }
 };
 
@@ -195,7 +235,8 @@ const STATE = {
     hasEdits: false
   },
   copiedSigmetRef: null,
-  isContainerOpen: true
+  isContainerOpen: true,
+  displayModal: null
 };
 
 // active-sigmets

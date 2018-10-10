@@ -1,0 +1,8 @@
+.NumberInput.form-control {
+  padding: 0.2rem 0.75rem;
+}
+.NumberInput::selection {
+  background-color: #5bc0de;
+  color: #fff;
+  font-weight: bold;
+}

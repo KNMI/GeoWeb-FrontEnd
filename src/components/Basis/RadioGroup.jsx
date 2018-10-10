@@ -4,11 +4,12 @@ import PropTypes from 'prop-types';
 
 export default class RadioGroup extends PureComponent {
   render () {
-    const { value, onChange, options, disabled, className } = this.props;
+    const { value, onChange, options, disabled, className, spacedEvenly } = this.props;
     const dataField = this.props['data-field'];
+    const relativeSize = spacedEvenly ? Math.floor(12 / options.length) : 'auto';
     return <Row className={`RadioGroup${className ? ` ${className}` : ''}`}>
       {options.map((option) =>
-        <Col xs='auto' key={`radioGroup-${option.optionId}`}>
+        <Col xs={relativeSize} key={`radioGroup-${option.optionId}`}>
           <label>
             <input type='radio' name={dataField} data-field={dataField}
               checked={option.optionId === value} onChange={(evt) => onChange(evt, option.optionId)}
@@ -33,5 +34,6 @@ RadioGroup.propTypes = {
     disabled: PropTypes.bool
   })),
   disabled: PropTypes.bool,
-  className: PropTypes.string
+  className: PropTypes.string,
+  spacedEvenly: PropTypes.bool
 };
