@@ -3,9 +3,10 @@
   margin: 15rem auto;
   div {
     display: inherit;
+    width: 65vw;
   }
   .modal-content {
-    width: 100%;
+    width: auto;
   }
   .modal-header, .modal-body, .modal-footer {
     padding: 0.5rem;
