@@ -79,9 +79,13 @@ class SigmetsContainer extends Component {
     const startIntersectionFeature = startFeature ? this.props.drawProperties.adagucMapDraw.geojson.features.find((feature) =>
       feature.properties.featureFunction === 'intersection' && feature.properties.relatesTo === startFeature.id) : null;
     const endFeature = this.props.drawProperties.adagucMapDraw.geojson.features.find((feature) => feature.properties.featureFunction === 'end');
+    const endIntersectionFeature = endFeature ? this.props.drawProperties.adagucMapDraw.geojson.features.find((feature) =>
+      feature.properties.featureFunction === 'intersection' && feature.properties.relatesTo === endFeature.id) : null;
     const hasStartCoordinates = startFeature ? isFeatureGeoJsonComplete(startFeature) : false;
     const hasStartIntersectionCoordinates = startIntersectionFeature ? isFeatureGeoJsonComplete(startIntersectionFeature) : false;
     const hasEndCoordinates = endFeature ? isFeatureGeoJsonComplete(endFeature) : false;
+    const hasEndIntersectionCoordinates = endIntersectionFeature ? isFeatureGeoJsonComplete(endIntersectionFeature) : false;
+
     return (
       <Col className='SigmetsContainer'>
         <CollapseOmni className='CollapseOmni' isOpen={this.state.isContainerOpen} isHorizontal minSize={64} maxSize={maxSize}>
@@ -107,6 +111,7 @@ class SigmetsContainer extends Component {
                     hasStartCoordinates={hasStartCoordinates}
                     hasStartIntersectionCoordinates={hasStartIntersectionCoordinates}
                     hasEndCoordinates={hasEndCoordinates}
+                    hasEndIntersectionCoordinates={hasEndIntersectionCoordinates}
                     parameters={this.state.parameters} />
                   : <MinifiedCategory key={category.ref}
                     icon={category.icon}

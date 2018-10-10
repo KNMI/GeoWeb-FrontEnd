@@ -89,18 +89,79 @@ class SigmetReadMode extends PureComponent {
   }
 
   /**
+   * Checks whether or not an individual level is valid
+   * @param {object} level The level to check for validity
+   * @returns {boolean} The result
+   */
+  isLevelValid (level) {
+    return typeof level === 'object' &&
+      typeof level.unit === 'string' && level.unit.length > 0 &&
+      typeof level.value === 'number' && !isNaN(level.value);
+  }
+
+  /**
+   * Checks whether or not the levels information section is valid
+   * @returns {boolean} The result
+   */
+  isLevelInfoValid () {
+    const { levelinfo } = this.props;
+    switch (levelinfo.mode) {
+      case MODES_LVL.ABV:
+      case MODES_LVL.AT:
+      case MODES_LVL.TOPS:
+      case MODES_LVL.TOPS_ABV:
+      case MODES_LVL.TOPS_BLW:
+        return Array.isArray(levelinfo.levels) && levelinfo.levels.length > 0 &&
+          this.isLevelValid(levelinfo.levels[0]);
+      case MODES_LVL.BETW:
+        return Array.isArray(levelinfo.levels) && levelinfo.levels.length > 1 &&
+          this.isLevelValid(levelinfo.levels[0]) &&
+          this.isLevelValid(levelinfo.levels[1]);
+      case MODES_LVL.BETW_SFC:
+        return Array.isArray(levelinfo.levels) && levelinfo.levels.length > 0 &&
+          this.isLevelValid(levelinfo.levels[1]);
+      default:
+        return false;
+    }
+  }
+
+  /**
+   * Checks whether or not the movement section is valid
+   * @returns {boolean} The result
+   */
+  isMovementValid () {
+    const { movementType, movement, hasEndCoordinates, hasEndIntersectionCoordinates } = this.props;
+    switch (movementType) {
+      case MOVEMENT_TYPES.STATIONARY:
+        return true;
+      case MOVEMENT_TYPES.MOVEMENT:
+        return movement && typeof movement.speed === 'number' &&
+        typeof movement.dir === 'string' && movement.dir.length > 0;
+      case MOVEMENT_TYPES.FORECAST_POSITION:
+        return hasEndCoordinates && hasEndIntersectionCoordinates;
+      default:
+        return false;
+    }
+  }
+
+  /**
    * Check whether or not the basic values for this specific Sigmet are valid
    * @returns {boolean} Whether or not the basic values in this specific Sigmet are valid
    */
   isValid () {
-    const { validdate, validdateEnd, maxHoursInAdvance, maxHoursDuration, hasStartCoordinates, hasStartIntersectionCoordinates } = this.props;
+    const { validdate, validdateEnd, maxHoursInAdvance, maxHoursDuration, phenomenon, firname,
+      change, hasStartCoordinates, hasStartIntersectionCoordinates } = this.props;
     const now = moment.utc();
     const startTimeStamp = moment.utc(validdate);
     const isStartValid = now.clone().subtract(1, 'day').isSameOrBefore(startTimeStamp) &&
       now.clone().add(maxHoursInAdvance, 'hour').isSameOrAfter(startTimeStamp);
     const isEndValid = startTimeStamp.isSameOrBefore(validdateEnd) &&
       startTimeStamp.clone().add(maxHoursDuration, 'hour').isSameOrAfter(validdateEnd);
-    return isStartValid && isEndValid && hasStartCoordinates && hasStartIntersectionCoordinates;
+    const hasPhenomenon = typeof phenomenon === 'string' && phenomenon.length > 0;
+    const hasFir = typeof firname === 'string' && firname.length > 0;
+    const hasChange = typeof change === 'string' && change.length > 0;
+    return isStartValid && isEndValid && hasStartCoordinates && hasStartIntersectionCoordinates  &&
+      hasPhenomenon && hasFir && hasChange && this.isLevelInfoValid() && this.isMovementValid();
   };
 
   /**
