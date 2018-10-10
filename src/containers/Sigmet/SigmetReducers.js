@@ -648,7 +648,7 @@ const updateSigmetLevel = (uuid, dataField, context, container) => {
     case 'value':
       if (typeof context.isUpperLevel === 'boolean') {
         newLevelInfo.levels = [];
-        newLevelInfo.levels[context.isUpperLevel ? 1 : 0] = { value: !isNaN(context.value) ? parseInt(context.value) : null };
+        newLevelInfo.levels[context.isUpperLevel ? 1 : 0] = { value: context.value !== null && !isNaN(context.value) ? parseInt(context.value) : null };
       }
       break;
     default:

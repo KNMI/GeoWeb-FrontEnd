@@ -106,6 +106,9 @@
       margin-top: 0.2rem;
       margin-bottom: 0.1rem;
     }
+    .row:nth-child(3) .DateTimePicker {
+      z-index: 50;
+    }
   }
 
   .Validity .required::after {

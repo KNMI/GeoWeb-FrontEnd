@@ -13,6 +13,7 @@ import Icon from 'react-fa';
 import Checkbox from '../Basis/Checkbox';
 import RadioGroup from '../Basis/RadioGroup';
 import Switch from '../Basis/Switch';
+import NumberInput from '../Basis/NumberInput';
 import HeaderSection from './Sections/HeaderSection';
 import WhatSection from './Sections/WhatSection';
 import ValiditySection from './Sections/ValiditySection';
@@ -368,7 +369,7 @@ class SigmetEditMode extends PureComponent {
             }
             onChange={(evt, timestamp) => dispatch(actions.updateSigmetAction(uuid, 'validdate', timestamp))}
             min={now.clone().subtract(1, 'hour')}
-            max={now.clone().add(maxHoursInAdvance * 6, 'hour')}
+            max={now.clone().add(maxHoursInAdvance, 'hour')}
           />
           <TimePicker data-field='validdate_end' utc required
             value={validdateEnd === null
