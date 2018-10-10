@@ -120,31 +120,31 @@ const receivedParametersCallback = (response, container) => {
 };
 
 const updateParameters = (parameters, container, callback) => {
-  // TODO: remove when integration with backend is ready
-  if (process.env.NODE_ENV === 'development' && Array.isArray(parameters.firareas)) {
-    parameters.firareas = {
-      EHAA: {
-        firname: 'AMSTERDAM FIR',
-        location_indicator_icao: 'EHAA',
-        areapreset: 'NL_FIR',
-        maxhoursofvalidity: 4,
-        hoursbeforevalidity: 4,
-        tc_maxhoursofvalidity: 0,
-        tc_hoursbeforevalidity: 0,
-        va_maxhoursofvalidity: 12,
-        va_hoursbeforevalidity: 6,
-        adjacent_firs: [
-          'EKDK',
-          'EDWW',
-          'EDGG',
-          'EBBU',
-          'EGTT',
-          'EGPX'
-        ]
-      }
-    };
-    parameters.active_firs = [ 'EHAA' ];
-  }
+  // // TODO: remove when integration with backend is ready
+  // if (process.env.NODE_ENV === 'development' && Array.isArray(parameters.firareas)) {
+  //   parameters.firareas = {
+  //     EHAA: {
+  //       firname: 'AMSTERDAM FIR',
+  //       location_indicator_icao: 'EHAA',
+  //       areapreset: 'NL_FIR',
+  //       maxhoursofvalidity: 4,
+  //       hoursbeforevalidity: 4,
+  //       tc_maxhoursofvalidity: 0,
+  //       tc_hoursbeforevalidity: 0,
+  //       va_maxhoursofvalidity: 12,
+  //       va_hoursbeforevalidity: 6,
+  //       adjacent_firs: [
+  //         'EKDK',
+  //         'EDWW',
+  //         'EDGG',
+  //         'EBBU',
+  //         'EGTT',
+  //         'EGPX'
+  //       ]
+  //     }
+  //   };
+  //   parameters.active_firs = [ 'EHAA' ];
+  // }
   container.setState(produce(container.state, draftState => {
     draftState.parameters = parameters;
   }), callback);
@@ -176,18 +176,18 @@ const receivedPhenomenaCallback = (response, container) => {
 
 const updatePhenomena = (phenomena, container, callback) => {
   const SEPARATOR = '_';
-  // TODO: remove when backend integration is finished
-  if (process.env.NODE_ENV === 'development' && phenomena.findIndex((item) => item.phenomenon.code === 'VA_CLD') === -1) {
-    phenomena.push({
-      phenomenon: {
-        layerpreset: null,
-        name: 'Volcanic Ash',
-        code: 'VA_CLD'
-      },
-      variants: [],
-      additions: []
-    });
-  }
+  // // TODO: remove when backend integration is finished
+  // if (process.env.NODE_ENV === 'development' && phenomena.findIndex((item) => item.phenomenon.code === 'VA_CLD') === -1) {
+  //   phenomena.push({
+  //     phenomenon: {
+  //       layerpreset: null,
+  //       name: 'Volcanic Ash',
+  //       code: 'VA_CLD'
+  //     },
+  //     variants: [],
+  //     additions: []
+  //   });
+  // }
   container.setState(produce(container.state, draftState => {
     if (Array.isArray(phenomena)) {
       draftState.phenomena.length = 0;
