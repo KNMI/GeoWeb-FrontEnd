@@ -168,6 +168,8 @@ class SigmetsCategory extends PureComponent {
                             validdateEnd={sigmet.validdate_end}
                             hasStartCoordinates={this.props.hasStartCoordinates}
                             hasStartIntersectionCoordinates={this.props.hasStartIntersectionCoordinates}
+                            hasEndCoordinates={this.props.hasEndCoordinates}
+                            hasEndIntersectionCoordinates={this.props.hasEndIntersectionCoordinates}
                             isCancelFor={isCancelFor}
                             issuedate={sigmet.issuedate}
                             sequence={sigmet.sequence}
@@ -234,6 +236,7 @@ SigmetsCategory.propTypes = {
   hasStartCoordinates: PropTypes.bool,
   hasStartIntersectionCoordinates: PropTypes.bool,
   hasEndCoordinates: PropTypes.bool,
+  hasEndIntersectionCoordinates: PropTypes.bool,
   parameters: PropTypes.shape({
     firareas: PropTypes.object,
     active_firs: PropTypes.array
