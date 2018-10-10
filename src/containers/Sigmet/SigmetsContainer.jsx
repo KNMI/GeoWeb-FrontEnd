@@ -82,6 +82,7 @@ class SigmetsContainer extends Component {
     const hasStartCoordinates = startFeature ? isFeatureGeoJsonComplete(startFeature) : false;
     const hasStartIntersectionCoordinates = startIntersectionFeature ? isFeatureGeoJsonComplete(startIntersectionFeature) : false;
     const hasEndCoordinates = endFeature ? isFeatureGeoJsonComplete(endFeature) : false;
+
     return (
       <Col className='SigmetsContainer'>
         <CollapseOmni className='CollapseOmni' isOpen={this.state.isContainerOpen} isHorizontal minSize={64} maxSize={maxSize}>
@@ -107,7 +108,8 @@ class SigmetsContainer extends Component {
                     hasStartCoordinates={hasStartCoordinates}
                     hasStartIntersectionCoordinates={hasStartIntersectionCoordinates}
                     hasEndCoordinates={hasEndCoordinates}
-                    parameters={this.state.parameters} />
+                    parameters={this.state.parameters}
+                    displayModal={this.state.displayModal} />
                   : <MinifiedCategory key={category.ref}
                     icon={category.icon}
                     sigmetCount={(category.ref === CATEGORY_REFS.ADD_SIGMET) ? 0 : category.sigmets.length} />;

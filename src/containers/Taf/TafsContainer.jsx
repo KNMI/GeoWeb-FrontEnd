@@ -9,7 +9,7 @@ import TafSelector from '../../components/Taf/TafSelector';
 import FeedbackSection from '../../components/Taf/FeedbackSection';
 import { INITIAL_STATE, LOCAL_ACTIONS, FEEDBACK_STATUSES, FEEDBACK_CATEGORIES, MODALS, LIFECYCLE_STAGES } from './TafActions';
 import dispatch from './TafReducers';
-import ConfirmationModal from '../../components/Taf/ConfirmationModal';
+import ConfirmationModal from '../../components/ConfirmationModal';
 
 export default class TafsContainer extends Component {
   constructor (props) {

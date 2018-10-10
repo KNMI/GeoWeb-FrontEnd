@@ -128,35 +128,3 @@
   }
 
 }
-
-.ConfirmationModal {
-  display: flex;
-  margin: 15rem auto;
-  div {
-    display: inherit;
-  }
-  .modal-content {
-    width: 100%;
-  }
-  .modal-header, .modal-body, .modal-footer {
-    padding: 0.5rem;
-    .row {
-      width: 100%;
-      margin: 0;
-    }
-  }
-  .modal-header {
-    border-bottom: 0.05rem solid #d4f0ff;
-    background-color: #e9f8ff;
-    border-radius: 0.2rem 0.2rem 0 0;
-  }
-  .modal-footer {
-    border-top: 0.05rem solid #d4f0ff;
-  }
-  .btn {
-    width: 100%;
-  }
-  .btn:not(:last-of-type) {
-    margin-right: 0.33rem;
-  }
-}
