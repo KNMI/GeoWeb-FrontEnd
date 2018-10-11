@@ -1,6 +1,7 @@
 import produce from 'immer';
 import moment from 'moment';
-import { SIGMET_TEMPLATES, UNITS, UNITS_ALT, MODES_LVL, MOVEMENT_TYPES } from '../../components/Sigmet/SigmetTemplates';
+import { SIGMET_TEMPLATES, UNITS, UNITS_ALT, MODES_LVL, MOVEMENT_TYPES,
+  PHENOMENON_CODE_VOLCANIC_ASH, SIGMET_VARIANTS_PREFIXES } from '../../components/Sigmet/SigmetTemplates';
 import { SIGMET_MODES, LOCAL_ACTION_TYPES, CATEGORY_REFS, STATUSES } from './SigmetActions';
 import { clearEmptyPointersAndAncestors, mergeInTemplate, isFeatureGeoJsonComplete, MODES_GEO_SELECTION, isObject } from '../../utils/json';
 import { getPresetForPhenomenon } from '../../components/Sigmet/SigmetPresets';
@@ -522,6 +523,7 @@ const updateSigmet = (uuid, dataField, value, container) => {
   const { drawProperties, dispatch, drawActions } = props;
   const shouldCleanEndFeature = dataField === 'movement_type' && value !== MOVEMENT_TYPES.FORECAST_POSITION;
   const shouldCleanMovement = dataField === 'movement_type' && value !== MOVEMENT_TYPES.MOVEMENT;
+  let updateMaxHoursDuration = null;
   const indices = findCategoryAndSigmetIndex(uuid, state);
   if (!dataField || !indices.isFound) {
     return;
@@ -538,6 +540,20 @@ const updateSigmet = (uuid, dataField, value, container) => {
     }
     if (value) {
       const { sources } = props;
+      const { parameters } = state;
+      const sigmet = container.state.categories[indices.categoryIndex].sigmets[indices.sigmetIndex];
+      const isVolcanicAsh = value === PHENOMENON_CODE_VOLCANIC_ASH;
+      const prefix = isVolcanicAsh
+        ? SIGMET_VARIANTS_PREFIXES.VOLCANIC_ASH
+        : SIGMET_VARIANTS_PREFIXES.NORMAL;
+      const activeFirEntry = Object.entries(parameters.firareas).filter((entry) => entry[1].firname === sigmet.firname &&
+        entry[1].location_indicator_icao === sigmet.location_indicator_icao);
+      const activeFir = Array.isArray(activeFirEntry) && activeFirEntry.length === 1
+        ? activeFirEntry[0][1]
+        : null;
+      updateMaxHoursDuration = activeFir
+        ? activeFir[`${prefix}maxhoursofvalidity`]
+        : null;
       const preset = getPresetForPhenomenon(value, sources);
       updateDisplayedPreset(preset, container);
     }
@@ -553,6 +569,10 @@ const updateSigmet = (uuid, dataField, value, container) => {
     parentToUpdate[!isNaN(fieldToUpdate) ? parseInt(fieldToUpdate) : fieldToUpdate] = value;
     if (shouldCleanMovement) {
       draftState.categories[indices.categoryIndex].sigmets[indices.sigmetIndex]['movement'] = produce(SIGMET_TEMPLATES.MOVEMENT, () => {});
+    }
+    if (updateMaxHoursDuration !== null) {
+      draftState.categories[indices.categoryIndex].sigmets[indices.sigmetIndex]['validdate'] = getRoundedNow().format();
+      draftState.categories[indices.categoryIndex].sigmets[indices.sigmetIndex]['validdate_end'] = getRoundedNow().add(updateMaxHoursDuration, 'hour').format();
     }
     draftState.focussedSigmet.hasEdits = true;
   }), () => {
@@ -1064,7 +1084,8 @@ const pasteSigmet = (event, container) => {
       'movement_type',
       'forecast_position_time',
       'location_indicator_icao',
-      'location_indicator_mwo'
+      'location_indicator_mwo',
+      'va_extra_fields'
     ];
     container.setState(produce(state, draftState => {
       propertiesToCopy.forEach((property) => {

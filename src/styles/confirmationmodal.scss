@@ -1,12 +1,11 @@
 .ConfirmationModal {
   display: flex;
-  margin: 15rem 25vw;
+  margin: 15rem auto;
   div {
     display: inherit;
-    width: 50vw;
   }
   .modal-content {
-    width: auto;
+    width: 100%;
   }
   .modal-header, .modal-body, .modal-footer {
     padding: 0.5rem;

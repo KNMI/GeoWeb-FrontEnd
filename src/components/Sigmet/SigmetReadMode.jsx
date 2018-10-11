@@ -312,6 +312,10 @@ class SigmetReadMode extends PureComponent {
               ? <span data-field='no_va_expected'>No volcanic ash is expected at the end.</span>
               : null
             }
+            {isVolcanicAsh && Array.isArray(moveTo) && moveTo.length > 0 && typeof moveTo === 'string'
+              ? <span data-field='no_va_expected'>No volcanic ash is expected at the end.</span>
+              : null
+            }
           </ProgressSection>
         }
 

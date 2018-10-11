@@ -4,12 +4,10 @@ import CollapseOmni from '../../components/CollapseOmni';
 import Icon from 'react-fa';
 import PropTypes from 'prop-types';
 import { SIGMET_MODES, CATEGORY_REFS, READ_ABILITIES } from '../../containers/Sigmet/SigmetActions';
-import { SIGMET_VARIANTS_PREFIXES } from './SigmetTemplates';
+import { SIGMET_VARIANTS_PREFIXES, PHENOMENON_CODE_VOLCANIC_ASH } from './SigmetTemplates';
 import SigmetEditMode from './SigmetEditMode';
 import SigmetReadMode from './SigmetReadMode';
 import SigmetMinifiedMode from './SigmetMinifiedMode';
-
-const PHENOMENON_CODE_VOLCANIC_ASH = 'VA_CLD';
 
 class SigmetsCategory extends PureComponent {
   byStartAndSequence (sigA, sigB) {

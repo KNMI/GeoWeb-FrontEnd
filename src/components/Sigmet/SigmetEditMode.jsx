@@ -13,7 +13,6 @@ import Icon from 'react-fa';
 import Checkbox from '../Basis/Checkbox';
 import RadioGroup from '../Basis/RadioGroup';
 import Switch from '../Basis/Switch';
-import NumberInput from '../Basis/NumberInput';
 import HeaderSection from './Sections/HeaderSection';
 import WhatSection from './Sections/WhatSection';
 import ValiditySection from './Sections/ValiditySection';
@@ -263,7 +262,6 @@ class SigmetEditMode extends PureComponent {
         movementOptions[forecastOptionIndex].disabled = true;
       }
     }
-
     const drawActions = (isEndFeature = false) => [
       {
         title: `Draw point${!selectedFir ? ' (select a FIR first)' : ''}`,
@@ -326,13 +324,13 @@ class SigmetEditMode extends PureComponent {
           />
           <TimePicker data-field='obsFcTime' utc
             value={moment(obsFcTime, DATETIME_FORMAT).isValid()
-              ? moment.utc(obsFcTime)
+              ? moment.utc(obsFcTime, DATETIME_FORMAT)
               : obsFcTime
             }
             onChange={(evt, timestamp) => dispatch(actions.updateSigmetAction(uuid, 'obs_or_forecast', { obs: isObserved, obsFcTime: timestamp }))}
-            min={now.clone().subtract(1, 'hour')}
+            min={now.clone().subtract(3, 'hour')}
             max={validdateEnd !== null && moment(validdateEnd, DATETIME_FORMAT).isValid()
-              ? moment.utc(validdateEnd)
+              ? moment.utc(validdateEnd, DATETIME_FORMAT)
               : now.clone().add(maxHoursDuration + maxHoursInAdvance, 'hour')}
           />
           {isVolcanicAsh
@@ -362,26 +360,26 @@ class SigmetEditMode extends PureComponent {
         <ValiditySection>
           <TimePicker data-field='validdate' utc required
             value={validdate === null
-              ? now
+              ? now.clone()
               : moment(validdate, DATETIME_FORMAT).isValid()
-                ? moment.utc(validdate)
+                ? moment.utc(validdate, DATETIME_FORMAT)
                 : validdate
             }
             onChange={(evt, timestamp) => dispatch(actions.updateSigmetAction(uuid, 'validdate', timestamp))}
-            min={now.clone().subtract(1, 'hour')}
+            min={now.clone()}
             max={now.clone().add(maxHoursInAdvance, 'hour')}
           />
           <TimePicker data-field='validdate_end' utc required
             value={validdateEnd === null
-              ? now
+              ? now.clone()
               : moment(validdateEnd, DATETIME_FORMAT).isValid()
-                ? moment.utc(validdateEnd)
+                ? moment.utc(validdateEnd, DATETIME_FORMAT)
                 : validdateEnd
             }
             onChange={(evt, timestamp) => dispatch(actions.updateSigmetAction(uuid, 'validdate_end', timestamp))}
-            min={validdate !== null && moment(validdate, DATETIME_FORMAT).isValid() ? moment.utc(validdate) : now}
+            min={validdate !== null && moment(validdate, DATETIME_FORMAT).isValid() ? moment.utc(validdate, DATETIME_FORMAT) : now.clone()}
             max={validdate !== null && moment(validdate, DATETIME_FORMAT).isValid()
-              ? moment.utc(validdate).add(maxHoursDuration, 'hour')
+              ? moment.utc(validdate, DATETIME_FORMAT).add(maxHoursDuration, 'hour')
               : now.clone().add(maxHoursDuration, 'hour')}
           />
         </ValiditySection>

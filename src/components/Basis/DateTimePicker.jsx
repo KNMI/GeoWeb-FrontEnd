@@ -11,7 +11,7 @@ export default class DateTimePicker extends PureComponent {
   constructor (props) {
     super(props);
     this.registerElement = this.registerElement.bind(this);
-    this.onKeyUp = this.onKeyUp.bind(this);
+    this.onKeyDown = this.onKeyDown.bind(this);
     this.state = { element: null };
   }
   registerElement (element) {
@@ -52,26 +52,32 @@ export default class DateTimePicker extends PureComponent {
   }
 
   /**
-   * Handles the keyup event
+   * Handles the keydown event
    * @param {Event} evt The event that was triggered by the change
    */
-  onKeyUp (evt) {
+  onKeyDown (evt) {
     const dataField = this.props['data-field'];
-    if (evt.type === 'keyup') {
+    if (evt.type === 'keydown') {
       switch (evt.key) {
         case 'ArrowRight':
           if (evt.target.dataset.field === `${dataField}-hour` && !evt.shiftKey && evt.target.selectionStart === evt.target.value.length) {
             this.state.element.querySelector(`[data-field=${dataField}-minute]`).focus();
+            evt.preventDefault();
+            evt.stopPropagation();
           }
           break;
         case ':':
           if (evt.target.dataset.field === `${dataField}-hour`) {
             this.state.element.querySelector(`[data-field=${dataField}-minute]`).focus();
+            evt.preventDefault();
+            evt.stopPropagation();
           }
           break;
         case 'ArrowLeft':
           if (evt.target.dataset.field === `${dataField}-minute` && !evt.shiftKey && evt.target.selectionStart === 0) {
             this.state.element.querySelector(`[data-field=${dataField}-hour]`).focus();
+            evt.preventDefault();
+            evt.stopPropagation();
           }
           break;
       }
@@ -85,13 +91,13 @@ export default class DateTimePicker extends PureComponent {
     const parsedValue = this.parseTimestamp(value);
     const parsedMin = this.parseTimestamp(min);
     const parsedMax = this.parseTimestamp(max);
-    const firstDay = parsedMin.clone().startOf('minute');
+    const firstDay = parsedMin.clone().startOf('day');
     const nextToLastDay = parsedMax.clone().startOf('day').add(1, 'day');
     const dayOptions = [];
     let dayToAdd = firstDay.clone();
     while (dayToAdd.isBefore(nextToLastDay)) {
       dayOptions.push({ label: dayToAdd.calendar(null, CALENDAR_FORMAT), timestamp: dayToAdd.clone() });
-      dayToAdd.add(1, 'day').startOf('day');
+      dayToAdd.add(1, 'day');
     }
     const dataField = this.props['data-field'];
     const hourMinimum = parsedValue.isSame(parsedMin, 'day')
@@ -110,7 +116,7 @@ export default class DateTimePicker extends PureComponent {
         <label className={`row${disabled ? ' disabled' : ''}`}
           title={!disabled ? moment.utc(value).format(DATETIME_LABEL_FORMAT_UTC) : null}
           onClick={(evt) => evt.preventDefault()}
-          onKeyUp={this.onKeyUp}
+          onKeyDown={this.onKeyDown}
           ref={this.registerElement}
         >
           <Typeahead filterBy={['label']} labelKey='label' data-field={`${dataField}-day`}

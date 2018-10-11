@@ -16,6 +16,7 @@ export default class NumberInput extends PureComponent {
     this.registerElement = this.registerElement.bind(this);
     this.onChange = this.onChange.bind(this);
     this.onWheel = this.onWheel.bind(this);
+    this.onKeyDown = this.onKeyDown.bind(this);
     this.state = produce(INITIAL_STATE, draftState => { });
   }
 
@@ -98,8 +99,8 @@ export default class NumberInput extends PureComponent {
   selectionHook () {
     return this.setStatePromise({
       selection: {
-        startIndex: this.state.element.selectionStart,
-        endIndex: this.state.element.selectionEnd
+        startIndex: this.state.element.selectionStart - this.state.element.value.length,
+        endIndex: this.state.element.selectionEnd - this.state.element.value.length
       }
     });
   }
@@ -119,7 +120,8 @@ export default class NumberInput extends PureComponent {
    * @param {Event} evt The event that was triggered by the change
    */
   onChange (evt) {
-    const { min, max, maxLength } = this.props;
+    // const { min, max, maxLength } = this.props;
+    const { max, maxLength, onChange } = this.props;
     const { value } = evt.target;
     evt.preventDefault();
     evt.stopPropagation();
@@ -127,7 +129,7 @@ export default class NumberInput extends PureComponent {
       let resultValue = Number.NaN;
       if (typeof value === 'string') {
         if (value === '') {
-          this.onChangeHooked(evt, null);
+          onChange(evt, null);
           return;
         } else {
           resultValue = parseInt(parseInt(value).toString().substr(0, maxLength));
@@ -142,11 +144,11 @@ export default class NumberInput extends PureComponent {
       if (resultValue > max) {
         console.warn('NumberInput:', 'provided value exceeds the maximum value');
         return;
-      } else if (resultValue < min) {
+      } /* else if (resultValue < min) {
         console.warn('NumberInput:', 'provided value is below the minimum value');
         return;
-      }
-      this.onChangeHooked(evt, resultValue.toString());
+      } */
+      onChange(evt, resultValue.toString());
     }
   }
 
@@ -155,7 +157,7 @@ export default class NumberInput extends PureComponent {
    * @param {Event} evt The event that was triggered by the change
    */
   onWheel (evt) {
-    const { value, step, min, max } = this.props;
+    const { value, step, min, max, onChange } = this.props;
     if (evt.type === 'wheel') {
       evt.preventDefault();
       evt.stopPropagation();
@@ -188,17 +190,27 @@ export default class NumberInput extends PureComponent {
         } else {
           return;
         }
-        this.onChangeHooked(evt, resultValue.toString());
+        onChange(evt, resultValue.toString());
       } else {
         console.warn('NumberInput:', 'provided value is not parseable as number');
       }
     } else {
-      this.onChangeHooked(evt, null);
+      onChange(evt, null);
+    }
+  }
+
+  onKeyDown (evt) {
+    if (evt.type === 'keydown') {
+      console.log('oKD', this.state.element.selectionStart, this.state.element.selectionEnd);
+      this.selectionHook();
     }
   }
 
   componentDidUpdate (prevProps, prevState) {
-    this.state.element.setSelectionRange(this.state.selection.startIndex, this.state.selection.startIndex);
+    if (prevProps.value !== this.props.value) {
+      console.log('cDU', this.state.selection.startIndex, this.state.selection.endIndex);
+      // this.state.element.setSelectionRange(this.state.selection.startIndex, this.state.selection.startIndex);
+    }
   }
 
   render () {
@@ -224,6 +236,7 @@ export default class NumberInput extends PureComponent {
       value={displayValue}
       onChange={this.onChange}
       onWheel={this.onWheel}
+      onKeyDown={this.onKeyDown}
     />;
   }
 }
