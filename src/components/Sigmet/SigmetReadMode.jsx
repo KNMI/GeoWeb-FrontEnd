@@ -190,7 +190,7 @@ class SigmetReadMode extends PureComponent {
     const hasPhenomenon = typeof phenomenon === 'string' && phenomenon.length > 0;
     const hasFir = typeof firname === 'string' && firname.length > 0;
     const hasChange = typeof change === 'string' && change.length > 0;
-    return isStartValid && isEndValid && hasStartCoordinates && hasStartIntersectionCoordinates  &&
+    return isStartValid && isEndValid && hasStartCoordinates && hasStartIntersectionCoordinates &&
       hasPhenomenon && hasFir && hasChange && this.isLevelInfoValid() && this.isMovementValid();
   };
 
@@ -396,6 +396,8 @@ SigmetReadMode.propTypes = {
   maxHoursDuration: PropTypes.number,
   hasStartCoordinates: PropTypes.bool,
   hasStartIntersectionCoordinates: PropTypes.bool,
+  hasEndCoordinates: PropTypes.bool,
+  hasEndIntersectionCoordinates: PropTypes.bool,
   isCancelFor: PropTypes.number,
   volcanoName: PropTypes.string,
   volcanoCoordinates: PropTypes.arrayOf(PropTypes.number),
