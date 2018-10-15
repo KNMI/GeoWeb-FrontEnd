@@ -252,7 +252,7 @@ STATE.categories[0].abilities[SIGMET_MODES.EDIT] = {};
 // concept-sigmets
 STATE.categories[1].ref = CATEGORY_REFS.CONCEPT_SIGMETS;
 STATE.categories[1].abilities[SIGMET_MODES.READ] = {};
-STATE.categories[1].abilities[SIGMET_MODES.READ][READ_ABILITIES.CANCEL.check] = true;
+STATE.categories[1].abilities[SIGMET_MODES.READ][READ_ABILITIES.CANCEL.check] = false;
 STATE.categories[1].abilities[SIGMET_MODES.READ][READ_ABILITIES.DELETE.check] = true;
 STATE.categories[1].abilities[SIGMET_MODES.READ][READ_ABILITIES.EDIT.check] = true;
 STATE.categories[1].abilities[SIGMET_MODES.READ][READ_ABILITIES.COPY.check] = true;

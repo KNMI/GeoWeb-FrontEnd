@@ -289,35 +289,37 @@ class SigmetReadMode extends PureComponent {
           <span data-field='level'>{this.showLevels(levelinfo)}</span>
         </HeightSection>
 
-        {movementType === MOVEMENT_TYPES.MOVEMENT
-          ? <ProgressSection>
-            <span data-field='movement'>Moving</span>
-            <span data-field='speed'>{movement.speed}KT</span>
-            <span data-field='direction'>{directionLongName}</span>
-            {isVolcanicAsh && isNoVolcanicAshExpected
-              ? <span data-field='no_va_expected'>No volcanic ash is expected at the end.</span>
-              : null
-            }
-          </ProgressSection>
-          : <ProgressSection>
-            <span data-field='movement'>
-              {movementType === MOVEMENT_TYPES.STATIONARY
-                ? 'Stationary'
-                : movementType === MOVEMENT_TYPES.FORECAST_POSITION
-                  ? 'Movement is defined by area'
-                  : '(movement type is not (properly) set)'
+        <ProgressSection>
+          <span data-field='movement'>
+            {() => {
+              switch (movementType) {
+                case MOVEMENT_TYPES.STATIONARY:
+                  return 'Stationary';
+                case MOVEMENT_TYPES.MOVEMENT:
+                  return 'Moving';
+                case MOVEMENT_TYPES.FORECAST_POSITION:
+                  return 'Movement is defined by area';
+                default:
+                  return '(movement type is not (properly) set)';
               }
-            </span>
-            {isVolcanicAsh && isNoVolcanicAshExpected
-              ? <span data-field='no_va_expected'>No volcanic ash is expected at the end.</span>
-              : null
-            }
-            {isVolcanicAsh && Array.isArray(moveTo) && moveTo.length > 0 && typeof moveTo === 'string'
-              ? <span data-field='no_va_expected'>No volcanic ash is expected at the end.</span>
-              : null
-            }
-          </ProgressSection>
-        }
+            }}
+          </span>
+          {movementType === MOVEMENT_TYPES.MOVEMENT
+            ? [
+              <span data-field='speed' > {movement.speed}KT</span>,
+              <span data-field='direction'>{directionLongName}</span>
+            ]
+            : null
+          }
+          {isVolcanicAsh && isNoVolcanicAshExpected
+            ? <span data-field='no_va_expected'>No volcanic ash is expected at the end.</span>
+            : null
+          }
+          {isVolcanicAsh && Array.isArray(moveTo) && moveTo.length > 0 && typeof moveTo[0] === 'string' && moveTo[0].length > 0
+            ? <span data-field='move_to_fir'>{`Moving to FIR ${moveTo[0]}`}</span>
+            : null
+          }
+        </ProgressSection>
 
         <ChangeSection>
           <span data-field='change'>{change && CHANGES.find((obj) => obj.shortName === change).longName}</span>

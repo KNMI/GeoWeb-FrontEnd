@@ -1,6 +1,7 @@
 .ConfirmationModal {
   display: flex;
   margin: 15rem auto;
+  max-width: 40rem;
   div {
     display: inherit;
   }
@@ -8,7 +9,7 @@
     width: 100%;
   }
   .modal-header, .modal-body, .modal-footer {
-    padding: 0.5rem;
+    padding: 1rem;
     .row {
       width: 100%;
       margin: 0;
@@ -41,6 +42,7 @@
     }
   }
   .modal-footer {
+    padding: 0.5rem;
     border-top: 0.05rem solid #d4f0ff;
   }
   .btn {

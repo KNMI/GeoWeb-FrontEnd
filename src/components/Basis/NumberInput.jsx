@@ -17,6 +17,7 @@ export default class NumberInput extends PureComponent {
     this.onChange = this.onChange.bind(this);
     this.onWheel = this.onWheel.bind(this);
     this.onKeyDown = this.onKeyDown.bind(this);
+    this.setCursorPosition = this.setCursorPosition.bind(this);
     this.state = produce(INITIAL_STATE, draftState => { });
   }
 
@@ -58,6 +59,13 @@ export default class NumberInput extends PureComponent {
                           case 'boolean':
                             draftState[entry[0]][subEntry[0]] = subEntry[1];
                             break;
+                          case 'object':
+                            if (subEntry[1] === null) {
+                              draftState[entry[0]][subEntry[0]] = subEntry[1];
+                              break;
+                            }
+                            reject(new Error(`Value is a (deep) nested property for [${entry[0]}.${subEntry[0]}]. setState is not configured to handle these.`));
+                            break;
                           default:
                             reject(new Error(`Value is a (deep) nested property for [${entry[0]}.${subEntry[0]}]. setState is not configured to handle these.`));
                         }
@@ -93,16 +101,37 @@ export default class NumberInput extends PureComponent {
   }
 
   /**
+   * Hook to store the start and end of the selection
+   * @param {number} offset The offset to apply, i.e. shift the selectionIndices
+   * @param {number|null} overrideStart The value to override the startIndex with
+   * @param {number|null} overrideEnd The value to override the endIndex with
+   * @returns {Promise} A promise which is resolved when the state is updated with the selection data
+   */
+  selectionHook (offset = 0, overrideStart, overrideEnd) {
+    return this.setStatePromise({
+      selection: {
+        startIndex: typeof overrideStart === 'undefined'
+          ? this.state.element.selectionStart - this.state.element.value.length + offset
+          : overrideStart,
+        endIndex: typeof overrideEnd === 'undefined'
+          ? this.state.element.selectionEnd - this.state.element.value.length + offset
+          : overrideEnd
+      }
+    });
+  }
+
+  /**
    * Hook to set the start and end of the selection
    * @returns {Promise} A promise which is resolved when the state is updated with the selection data
    */
-  selectionHook () {
-    return this.setStatePromise({
-      selection: {
-        startIndex: this.state.element.selectionStart - this.state.element.value.length,
-        endIndex: this.state.element.selectionEnd - this.state.element.value.length
-      }
-    });
+  setCursorPosition () {
+    const { element, selection } = this.state;
+    const { value } = element;
+    if (typeof value === 'string' && typeof selection.endIndex === 'number' && value.length > (selection.endIndex * -1)) {
+      const selectionIndex = value.length + selection.endIndex;
+      element.setSelectionRange(selectionIndex, selectionIndex);
+      this.selectionHook(undefined, null, null);
+    }
   }
 
   /**
@@ -132,19 +161,27 @@ export default class NumberInput extends PureComponent {
           onChange(evt, null);
           return;
         } else {
-          resultValue = parseInt(parseInt(value).toString().substr(0, maxLength));
+          const valueAsString = parseInt(value).toString();
+          if (valueAsString.length > maxLength) {
+            this.selectionHook(valueAsString.length - maxLength);
+          }
+          resultValue = parseInt(valueAsString.substr(0, maxLength));
         }
       } else if (typeof value === 'number') {
         resultValue = value;
       }
-      if (isNaN(resultValue)) {
+      if (isNaN(resultValue) || resultValue > max) {
+        this.selectionHook().then(this.setCursorPosition);
         console.warn('NumberInput:', 'provided value is not parseable as number');
         return;
       }
       if (resultValue > max) {
+        this.selectionHook().then(this.setCursorPosition);
         console.warn('NumberInput:', 'provided value exceeds the maximum value');
         return;
-      } /* else if (resultValue < min) {
+      } /* TODO: when the entire value is replaced, the user could start typing one character,
+                and hence not fulfilling this minimum requirement
+        else if (resultValue < min) {
         console.warn('NumberInput:', 'provided value is below the minimum value');
         return;
       } */
@@ -200,16 +237,12 @@ export default class NumberInput extends PureComponent {
   }
 
   onKeyDown (evt) {
-    if (evt.type === 'keydown') {
-      console.log('oKD', this.state.element.selectionStart, this.state.element.selectionEnd);
-      this.selectionHook();
-    }
+    this.selectionHook();
   }
 
   componentDidUpdate (prevProps, prevState) {
     if (prevProps.value !== this.props.value) {
-      console.log('cDU', this.state.selection.startIndex, this.state.selection.endIndex);
-      // this.state.element.setSelectionRange(this.state.selection.startIndex, this.state.selection.startIndex);
+      this.setCursorPosition();
     }
   }
 
