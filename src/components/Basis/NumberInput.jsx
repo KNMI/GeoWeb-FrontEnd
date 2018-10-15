@@ -16,6 +16,8 @@ export default class NumberInput extends PureComponent {
     this.registerElement = this.registerElement.bind(this);
     this.onChange = this.onChange.bind(this);
     this.onWheel = this.onWheel.bind(this);
+    this.onKeyDown = this.onKeyDown.bind(this);
+    this.setCursorPosition = this.setCursorPosition.bind(this);
     this.state = produce(INITIAL_STATE, draftState => { });
   }
 
@@ -57,6 +59,13 @@ export default class NumberInput extends PureComponent {
                           case 'boolean':
                             draftState[entry[0]][subEntry[0]] = subEntry[1];
                             break;
+                          case 'object':
+                            if (subEntry[1] === null) {
+                              draftState[entry[0]][subEntry[0]] = subEntry[1];
+                              break;
+                            }
+                            reject(new Error(`Value is a (deep) nested property for [${entry[0]}.${subEntry[0]}]. setState is not configured to handle these.`));
+                            break;
                           default:
                             reject(new Error(`Value is a (deep) nested property for [${entry[0]}.${subEntry[0]}]. setState is not configured to handle these.`));
                         }
@@ -92,16 +101,37 @@ export default class NumberInput extends PureComponent {
   }
 
   /**
+   * Hook to store the start and end of the selection
+   * @param {number} offset The offset to apply, i.e. shift the selectionIndices
+   * @param {number|null} overrideStart The value to override the startIndex with
+   * @param {number|null} overrideEnd The value to override the endIndex with
+   * @returns {Promise} A promise which is resolved when the state is updated with the selection data
+   */
+  selectionHook (offset = 0, overrideStart, overrideEnd) {
+    return this.setStatePromise({
+      selection: {
+        startIndex: typeof overrideStart === 'undefined'
+          ? this.state.element.selectionStart - this.state.element.value.length + offset
+          : overrideStart,
+        endIndex: typeof overrideEnd === 'undefined'
+          ? this.state.element.selectionEnd - this.state.element.value.length + offset
+          : overrideEnd
+      }
+    });
+  }
+
+  /**
    * Hook to set the start and end of the selection
    * @returns {Promise} A promise which is resolved when the state is updated with the selection data
    */
-  selectionHook () {
-    return this.setStatePromise({
-      selection: {
-        startIndex: this.state.element.selectionStart,
-        endIndex: this.state.element.selectionEnd
-      }
-    });
+  setCursorPosition () {
+    const { element, selection } = this.state;
+    const { value } = element;
+    if (typeof value === 'string' && typeof selection.endIndex === 'number' && value.length > (selection.endIndex * -1)) {
+      const selectionIndex = value.length + selection.endIndex;
+      element.setSelectionRange(selectionIndex, selectionIndex);
+      this.selectionHook(undefined, null, null);
+    }
   }
 
   /**
@@ -119,7 +149,8 @@ export default class NumberInput extends PureComponent {
    * @param {Event} evt The event that was triggered by the change
    */
   onChange (evt) {
-    const { min, max, maxLength } = this.props;
+    // const { min, max, maxLength } = this.props;
+    const { max, maxLength, onChange } = this.props;
     const { value } = evt.target;
     evt.preventDefault();
     evt.stopPropagation();
@@ -127,26 +158,34 @@ export default class NumberInput extends PureComponent {
       let resultValue = Number.NaN;
       if (typeof value === 'string') {
         if (value === '') {
-          this.onChangeHooked(evt, null);
+          onChange(evt, null);
           return;
         } else {
-          resultValue = parseInt(parseInt(value).toString().substr(0, maxLength));
+          const valueAsString = parseInt(value).toString();
+          if (valueAsString.length > maxLength) {
+            this.selectionHook(valueAsString.length - maxLength);
+          }
+          resultValue = parseInt(valueAsString.substr(0, maxLength));
         }
       } else if (typeof value === 'number') {
         resultValue = value;
       }
-      if (isNaN(resultValue)) {
+      if (isNaN(resultValue) || resultValue > max) {
+        this.selectionHook().then(this.setCursorPosition);
         console.warn('NumberInput:', 'provided value is not parseable as number');
         return;
       }
       if (resultValue > max) {
+        this.selectionHook().then(this.setCursorPosition);
         console.warn('NumberInput:', 'provided value exceeds the maximum value');
         return;
-      } else if (resultValue < min) {
+      } /* TODO: when the entire value is replaced, the user could start typing one character,
+                and hence not fulfilling this minimum requirement
+        else if (resultValue < min) {
         console.warn('NumberInput:', 'provided value is below the minimum value');
         return;
-      }
-      this.onChangeHooked(evt, resultValue.toString());
+      } */
+      onChange(evt, resultValue.toString());
     }
   }
 
@@ -155,7 +194,7 @@ export default class NumberInput extends PureComponent {
    * @param {Event} evt The event that was triggered by the change
    */
   onWheel (evt) {
-    const { value, step, min, max } = this.props;
+    const { value, step, min, max, onChange } = this.props;
     if (evt.type === 'wheel') {
       evt.preventDefault();
       evt.stopPropagation();
@@ -188,17 +227,23 @@ export default class NumberInput extends PureComponent {
         } else {
           return;
         }
-        this.onChangeHooked(evt, resultValue.toString());
+        onChange(evt, resultValue.toString());
       } else {
         console.warn('NumberInput:', 'provided value is not parseable as number');
       }
     } else {
-      this.onChangeHooked(evt, null);
+      onChange(evt, null);
     }
   }
 
+  onKeyDown (evt) {
+    this.selectionHook();
+  }
+
   componentDidUpdate (prevProps, prevState) {
-    this.state.element.setSelectionRange(this.state.selection.startIndex, this.state.selection.startIndex);
+    if (prevProps.value !== this.props.value) {
+      this.setCursorPosition();
+    }
   }
 
   render () {
@@ -224,6 +269,7 @@ export default class NumberInput extends PureComponent {
       value={displayValue}
       onChange={this.onChange}
       onWheel={this.onWheel}
+      onKeyDown={this.onKeyDown}
     />;
   }
 }

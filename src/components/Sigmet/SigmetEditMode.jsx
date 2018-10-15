@@ -13,7 +13,6 @@ import Icon from 'react-fa';
 import Checkbox from '../Basis/Checkbox';
 import RadioGroup from '../Basis/RadioGroup';
 import Switch from '../Basis/Switch';
-import NumberInput from '../Basis/NumberInput';
 import HeaderSection from './Sections/HeaderSection';
 import WhatSection from './Sections/WhatSection';
 import ValiditySection from './Sections/ValiditySection';
@@ -248,6 +247,19 @@ class SigmetEditMode extends PureComponent {
     const { dispatch, actions, availablePhenomena, hasStartCoordinates, hasEndCoordinates, feedbackStart, feedbackEnd, isNoVolcanicAshExpected,
       availableFirs, levelinfo, movement, movementType, focus, tac, uuid, locationIndicatorMwo, change, isVolcanicAsh, volcanoName, volcanoCoordinates,
       phenomenon, isObserved, obsFcTime, validdate, maxHoursInAdvance, maxHoursDuration, validdateEnd, locationIndicatorIcao } = this.props;
+    const now = moment.utc();
+    const minObsOrFcst = now.clone().subtract(3, 'hour');
+    const maxObsOrFcst = validdateEnd !== null && moment(validdateEnd, DATETIME_FORMAT).isValid()
+      ? moment.utc(validdateEnd, DATETIME_FORMAT)
+      : now.clone().add(maxHoursDuration + maxHoursInAdvance, 'hour');
+    const minValidDate = now.clone();
+    const maxValidDate = now.clone().add(maxHoursInAdvance, 'hour');
+    const minValidDateEnd = validdate !== null && moment(validdate, DATETIME_FORMAT).isValid()
+      ? moment.utc(validdate, DATETIME_FORMAT)
+      : now.clone();
+    const maxValidDateEnd = validdate !== null && moment(validdate, DATETIME_FORMAT).isValid()
+      ? moment.utc(validdate, DATETIME_FORMAT).add(maxHoursDuration, 'hour')
+      : now.clone().add(maxHoursDuration, 'hour');
     const selectedPhenomenon = availablePhenomena.find((ph) => ph.code === phenomenon);
     const selectedFir = availableFirs.find((fir) => fir.location_indicator_icao === locationIndicatorIcao);
     const selectedChange = change ? CHANGES.find((chg) => chg.shortName === change) : null;
@@ -263,7 +275,6 @@ class SigmetEditMode extends PureComponent {
         movementOptions[forecastOptionIndex].disabled = true;
       }
     }
-
     const drawActions = (isEndFeature = false) => [
       {
         title: `Draw point${!selectedFir ? ' (select a FIR first)' : ''}`,
@@ -304,7 +315,6 @@ class SigmetEditMode extends PureComponent {
       : movementType === MOVEMENT_TYPES.FORECAST_POSITION && !hasEndCoordinates
         ? `${messagePrefix} expected to be at the end of the valid period.`
         : feedbackEnd || '';
-    const now = moment.utc();
     const abilityCtAs = this.reduceAbilities(selectedPhenomenon); // CtA = Call To Action
     return <Button tag='div' className={`Sigmet row${focus ? ' focus' : ''}`} id={uuid} onClick={!focus ? (evt) => dispatch(actions.focusSigmetAction(evt, uuid)) : null}>
       <Col>
@@ -326,14 +336,12 @@ class SigmetEditMode extends PureComponent {
           />
           <TimePicker data-field='obsFcTime' utc
             value={moment(obsFcTime, DATETIME_FORMAT).isValid()
-              ? moment.utc(obsFcTime)
+              ? moment.utc(obsFcTime, DATETIME_FORMAT)
               : obsFcTime
             }
             onChange={(evt, timestamp) => dispatch(actions.updateSigmetAction(uuid, 'obs_or_forecast', { obs: isObserved, obsFcTime: timestamp }))}
-            min={now.clone().subtract(1, 'hour')}
-            max={validdateEnd !== null && moment(validdateEnd, DATETIME_FORMAT).isValid()
-              ? moment.utc(validdateEnd)
-              : now.clone().add(maxHoursDuration + maxHoursInAdvance, 'hour')}
+            min={minObsOrFcst}
+            max={maxObsOrFcst}
           />
           {isVolcanicAsh
             ? <Input type='text' value={volcanoName || ''} data-field='volcano_name' placeholder='Volcano name'
@@ -362,27 +370,25 @@ class SigmetEditMode extends PureComponent {
         <ValiditySection>
           <TimePicker data-field='validdate' utc required
             value={validdate === null
-              ? now
+              ? now.clone()
               : moment(validdate, DATETIME_FORMAT).isValid()
-                ? moment.utc(validdate)
+                ? moment.utc(validdate, DATETIME_FORMAT)
                 : validdate
             }
             onChange={(evt, timestamp) => dispatch(actions.updateSigmetAction(uuid, 'validdate', timestamp))}
-            min={now.clone().subtract(1, 'hour')}
-            max={now.clone().add(maxHoursInAdvance, 'hour')}
+            min={minValidDate}
+            max={maxValidDate}
           />
           <TimePicker data-field='validdate_end' utc required
             value={validdateEnd === null
-              ? now
+              ? now.clone()
               : moment(validdateEnd, DATETIME_FORMAT).isValid()
-                ? moment.utc(validdateEnd)
+                ? moment.utc(validdateEnd, DATETIME_FORMAT)
                 : validdateEnd
             }
             onChange={(evt, timestamp) => dispatch(actions.updateSigmetAction(uuid, 'validdate_end', timestamp))}
-            min={validdate !== null && moment(validdate, DATETIME_FORMAT).isValid() ? moment.utc(validdate) : now}
-            max={validdate !== null && moment(validdate, DATETIME_FORMAT).isValid()
-              ? moment.utc(validdate).add(maxHoursDuration, 'hour')
-              : now.clone().add(maxHoursDuration, 'hour')}
+            min={minValidDateEnd}
+            max={maxValidDateEnd}
           />
         </ValiditySection>
 
