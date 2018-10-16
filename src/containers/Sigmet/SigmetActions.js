@@ -60,7 +60,8 @@ export const SIGMET_MODES = {
 
 export const MODAL_TYPES = {
   TYPE_CONFIRM_DELETE: 'confirm delete',
-  TYPE_CONFIRM_CANCEL: 'confirm cancel'
+  TYPE_CONFIRM_CANCEL: 'confirm cancel',
+  TYPE_CONFIRM_PUBLISH: 'confirm publish'
 };
 
 export const MODALS = {
@@ -90,6 +91,17 @@ export const MODALS = {
       selectedOption: null,
       action: 'updateSigmetAction',
       parameters: []
+    },
+    toggleAction: 'toggleSigmetModalAction'
+  },
+  CONFIRM_PUBLISH: {
+    type: MODAL_TYPES.TYPE_CONFIRM_PUBLISH,
+    title: 'Publish SIGMET?',
+    message: (identifier) => `Are you sure you want to publish ${identifier}?`,
+    button: {
+      label: 'Publish',
+      icon: 'send',
+      action: 'publishSigmetAction'
     },
     toggleAction: 'toggleSigmetModalAction'
   }
@@ -163,7 +175,8 @@ export const READ_ABILITIES = {
     'dataField': 'publish',
     'label': 'Publish',
     'check': 'isPublishable',
-    'action': 'publishSigmetAction'
+    'action': 'toggleSigmetModalAction',
+    'parameter': MODALS.CONFIRM_PUBLISH.type
   },
   CANCEL: {
     'dataField': 'cancel',

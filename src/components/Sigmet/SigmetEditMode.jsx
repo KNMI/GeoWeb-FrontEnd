@@ -26,7 +26,7 @@ import ChangeSection from './Sections/ChangeSection';
 import HeightsSection from './Sections/HeightsSection';
 import {
   DIRECTIONS, UNITS_ALT, UNITS, MODES_LVL, MODES_LVL_OPTIONS, CHANGES, MOVEMENT_TYPES, MOVEMENT_OPTIONS, SIGMET_TYPES,
-  DATETIME_FORMAT, dateRanges } from './SigmetTemplates';
+  DATETIME_FORMAT, DISTRIBUTION_OPTIONS, dateRanges } from './SigmetTemplates';
 import { debounce } from '../../utils/debounce';
 
 class SigmetEditMode extends PureComponent {
@@ -223,7 +223,7 @@ class SigmetEditMode extends PureComponent {
   render () {
     const { dispatch, actions, availablePhenomena, hasStartCoordinates, hasEndCoordinates, feedbackStart, feedbackEnd, isNoVolcanicAshExpected,
       availableFirs, levelinfo, movement, movementType, focus, tac, uuid, locationIndicatorMwo, change, isVolcanicAsh, volcanoName, volcanoCoordinates,
-      phenomenon, isObserved, obsFcTime, validdate, maxHoursInAdvance, maxHoursDuration, validdateEnd, locationIndicatorIcao } = this.props;
+      phenomenon, isObserved, obsFcTime, validdate, maxHoursInAdvance, maxHoursDuration, validdateEnd, locationIndicatorIcao, distributionType } = this.props;
     const now = moment.utc();
     const dateLimits = dateRanges(now, validdate, validdateEnd, maxHoursInAdvance, maxHoursDuration);
     const selectedPhenomenon = availablePhenomena.find((ph) => ph.code === phenomenon);
@@ -554,10 +554,19 @@ class SigmetEditMode extends PureComponent {
             clearButton />
         </ChangeSection>
 
-        <IssueSection>
+        <IssueSection className={`required${typeof distributionType !== 'string' || distributionType.length === 0 ? ' missing' : ''}`}>
           <span data-field='issuedate'>(Not yet published)</span>
           <span data-field='issueLocation'>{locationIndicatorMwo}</span>
           <span className='tac' data-field='tac' title={tac && tac.code}>{tac && tac.code}</span>
+          <RadioGroup
+            value={distributionType}
+            options={DISTRIBUTION_OPTIONS}
+            onChange={(evt, selectedOption = null) => dispatch(actions.updateSigmetAction(uuid, 'type', selectedOption))}
+            data-field='distribution_type'
+          />
+          <button className='clear close' title={typeof distributionType === 'string' ? 'Clear' : null}
+            disabled={typeof distributionType !== 'string' || distributionType.length === 0} data-field='clear_distribution_type'
+            onClick={(evt) => dispatch(actions.updateSigmetAction(uuid, 'type', null))}><span>×</span></button>
         </IssueSection>
 
         <ActionSection colSize={3}>
@@ -592,6 +601,7 @@ SigmetEditMode.propTypes = {
   availablePhenomena: PropTypes.array,
   focus: PropTypes.bool,
   uuid: PropTypes.string,
+  distributionType: SIGMET_TYPES.TYPE,
   phenomenon: PropTypes.string,
   isObserved: PropTypes.bool,
   obsFcTime: PropTypes.string,

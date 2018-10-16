@@ -120,7 +120,7 @@ class SigmetsCategory extends PureComponent {
                             isNoVolcanicAshExpected={sigmet.va_extra_fields.no_va_expected}
                             focus
                             uuid={sigmet.uuid}
-                            type={sigmet.type}
+                            distributionType={sigmet.type}
                             sigmet={sigmet}
                             geojson={geojson}
                             obsFcTime={sigmet.obs_or_forecast.obsFcTime}
@@ -155,7 +155,7 @@ class SigmetsCategory extends PureComponent {
                             copiedSigmetRef={copiedSigmetRef}
                             focus={focussedSigmet.uuid === sigmet.uuid}
                             uuid={sigmet.uuid}
-                            type={sigmet.type}
+                            distributionType={sigmet.type}
                             tac={tacs && tacs.find((tac) => tac.uuid === sigmet.uuid)}
                             isVolcanicAsh={isVolcanicAsh}
                             obsFcTime={sigmet.obs_or_forecast ? sigmet.obs_or_forecast.obsFcTime : null}
@@ -192,7 +192,7 @@ class SigmetsCategory extends PureComponent {
                         dispatch={dispatch}
                         actions={actions}
                         uuid={sigmet.uuid}
-                        type={sigmet.type}
+                        distributionType={sigmet.type}
                         tac={tacs && tacs.find((tac) => tac.uuid === sigmet.uuid)}
                         phenomenon={sigmet.phenomenon}
                         validdate={sigmet.validdate}
