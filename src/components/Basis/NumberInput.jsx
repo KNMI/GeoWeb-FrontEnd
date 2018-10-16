@@ -170,7 +170,7 @@ export default class NumberInput extends PureComponent {
       } else if (typeof value === 'number') {
         resultValue = value;
       }
-      if (isNaN(resultValue) || resultValue > max) {
+      if (isNaN(resultValue)) {
         this.selectionHook().then(this.setCursorPosition);
         console.warn('NumberInput:', 'provided value is not parseable as number');
         return;

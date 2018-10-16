@@ -25,7 +25,8 @@ import IssueSection from './Sections/IssueSection';
 import ChangeSection from './Sections/ChangeSection';
 import HeightsSection from './Sections/HeightsSection';
 import {
-  DIRECTIONS, UNITS_ALT, UNITS, MODES_LVL, MODES_LVL_OPTIONS, CHANGES, MOVEMENT_TYPES, MOVEMENT_OPTIONS, SIGMET_TYPES, DATETIME_FORMAT } from './SigmetTemplates';
+  DIRECTIONS, UNITS_ALT, UNITS, MODES_LVL, MODES_LVL_OPTIONS, CHANGES, MOVEMENT_TYPES, MOVEMENT_OPTIONS, SIGMET_TYPES,
+  DATETIME_FORMAT, dateRanges } from './SigmetTemplates';
 import { debounce } from '../../utils/debounce';
 
 class SigmetEditMode extends PureComponent {
@@ -37,9 +38,6 @@ class SigmetEditMode extends PureComponent {
     this.maxLevelPerUnit = this.maxLevelPerUnit.bind(this);
     this.stepLevelPerUnit = this.stepLevelPerUnit.bind(this);
     this.formatLevelPerUnit = this.formatLevelPerUnit.bind(this);
-    this.isValidStartTimestamp = this.isValidStartTimestamp.bind(this);
-    this.isValidEndTimestamp = this.isValidEndTimestamp.bind(this);
-    this.isValidObsFcTimestamp = this.isValidObsFcTimestamp.bind(this);
     this.verifySigmetDebounced = debounce(this.verifySigmetDebounced.bind(this), 250, false);
   }
 
@@ -174,27 +172,6 @@ class SigmetEditMode extends PureComponent {
     return valueAsString.padStart(minimalCharactersCount, '0');
   };
 
-  isValidStartTimestamp (timestamp) {
-    const { maxHoursInAdvance } = this.props;
-    const now = moment.utc();
-    return now.clone().subtract(1, 'hour').isSameOrBefore(timestamp) &&
-      now.clone().add(maxHoursInAdvance, 'hour').isSameOrAfter(timestamp);
-  };
-
-  isValidEndTimestamp (timestamp) {
-    const { maxHoursDuration, validdate } = this.props;
-    const startTimeStamp = moment.utc(validdate);
-    return startTimeStamp.isSameOrBefore(timestamp) &&
-      startTimeStamp.clone().add(maxHoursDuration, 'hour').isSameOrAfter(timestamp);
-  };
-
-  isValidObsFcTimestamp (timestamp) {
-    const { maxHoursInAdvance, maxHoursDuration } = this.props;
-    const now = moment.utc();
-    return timestamp === null || (now.clone().subtract(1, 'day').isSameOrBefore(timestamp) &&
-      now.clone().add(maxHoursInAdvance + maxHoursDuration, 'hour').isSameOrAfter(timestamp));
-  };
-
   /**
 * Add disabled flag to abilities
 * @param {object} ability The ability to provide the flag for
@@ -248,18 +225,7 @@ class SigmetEditMode extends PureComponent {
       availableFirs, levelinfo, movement, movementType, focus, tac, uuid, locationIndicatorMwo, change, isVolcanicAsh, volcanoName, volcanoCoordinates,
       phenomenon, isObserved, obsFcTime, validdate, maxHoursInAdvance, maxHoursDuration, validdateEnd, locationIndicatorIcao } = this.props;
     const now = moment.utc();
-    const minObsOrFcst = now.clone().subtract(3, 'hour');
-    const maxObsOrFcst = validdateEnd !== null && moment(validdateEnd, DATETIME_FORMAT).isValid()
-      ? moment.utc(validdateEnd, DATETIME_FORMAT)
-      : now.clone().add(maxHoursDuration + maxHoursInAdvance, 'hour');
-    const minValidDate = now.clone();
-    const maxValidDate = now.clone().add(maxHoursInAdvance, 'hour');
-    const minValidDateEnd = validdate !== null && moment(validdate, DATETIME_FORMAT).isValid()
-      ? moment.utc(validdate, DATETIME_FORMAT)
-      : now.clone();
-    const maxValidDateEnd = validdate !== null && moment(validdate, DATETIME_FORMAT).isValid()
-      ? moment.utc(validdate, DATETIME_FORMAT).add(maxHoursDuration, 'hour')
-      : now.clone().add(maxHoursDuration, 'hour');
+    const dateLimits = dateRanges(now, validdate, validdateEnd, maxHoursInAdvance, maxHoursDuration);
     const selectedPhenomenon = availablePhenomena.find((ph) => ph.code === phenomenon);
     const selectedFir = availableFirs.find((fir) => fir.location_indicator_icao === locationIndicatorIcao);
     const selectedChange = change ? CHANGES.find((chg) => chg.shortName === change) : null;
@@ -340,8 +306,8 @@ class SigmetEditMode extends PureComponent {
               : obsFcTime
             }
             onChange={(evt, timestamp) => dispatch(actions.updateSigmetAction(uuid, 'obs_or_forecast', { obs: isObserved, obsFcTime: timestamp }))}
-            min={minObsOrFcst}
-            max={maxObsOrFcst}
+            min={dateLimits.obsFcTime.min}
+            max={dateLimits.obsFcTime.max}
           />
           {isVolcanicAsh
             ? <Input type='text' value={volcanoName || ''} data-field='volcano_name' placeholder='Volcano name'
@@ -376,8 +342,8 @@ class SigmetEditMode extends PureComponent {
                 : validdate
             }
             onChange={(evt, timestamp) => dispatch(actions.updateSigmetAction(uuid, 'validdate', timestamp))}
-            min={minValidDate}
-            max={maxValidDate}
+            min={dateLimits.validDate.min}
+            max={dateLimits.validDate.max}
           />
           <TimePicker data-field='validdate_end' utc required
             value={validdateEnd === null
@@ -387,8 +353,8 @@ class SigmetEditMode extends PureComponent {
                 : validdateEnd
             }
             onChange={(evt, timestamp) => dispatch(actions.updateSigmetAction(uuid, 'validdate_end', timestamp))}
-            min={minValidDateEnd}
-            max={maxValidDateEnd}
+            min={dateLimits.validDateEnd.min}
+            max={dateLimits.validDateEnd.max}
           />
         </ValiditySection>
 

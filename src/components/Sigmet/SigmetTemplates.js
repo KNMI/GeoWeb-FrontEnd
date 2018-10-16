@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import cloneDeep from 'lodash.clonedeep';
+import moment from 'moment';
 
 /**
  * TEMPLATES
@@ -268,6 +269,27 @@ SIGMET_VARIANTS_PREFIXES[SIGMET_VARIANTS.NORMAL] = '';
 SIGMET_VARIANTS_PREFIXES[SIGMET_VARIANTS.VOLCANIC_ASH] = 'va_';
 SIGMET_VARIANTS_PREFIXES[SIGMET_VARIANTS.TROPICAL_CYCLONE] = 'tc_';
 
+const dateRanges = (now, startTimestamp, endTimestamp, maxHoursInAdvance, maxHoursDuration) => ({
+  obsFcTime: {
+    min: now.clone().subtract(3, 'hour'),
+    max: endTimestamp !== null && moment(endTimestamp, DATETIME_FORMAT).isValid()
+      ? moment.utc(endTimestamp, DATETIME_FORMAT)
+      : now.clone().add(maxHoursDuration + maxHoursInAdvance, 'hour')
+  },
+  validDate: {
+    min: now.clone(),
+    max: now.clone().add(maxHoursInAdvance, 'hour')
+  },
+  validDateEnd: {
+    min: startTimestamp !== null && moment(startTimestamp, DATETIME_FORMAT).isValid()
+      ? moment.utc(startTimestamp, DATETIME_FORMAT)
+      : now.clone(),
+    max: startTimestamp !== null && moment(startTimestamp, DATETIME_FORMAT).isValid()
+      ? moment.utc(startTimestamp, DATETIME_FORMAT).add(maxHoursDuration, 'hour')
+      : now.clone().add(maxHoursDuration, 'hour')
+  }
+});
+
 module.exports = {
   SIGMET_TEMPLATES: TEMPLATES,
   SIGMET_TYPES: TYPES,
@@ -291,5 +313,6 @@ module.exports = {
   DATETIME_FORMAT: DATETIME_FORMAT,
   CALENDAR_FORMAT: CALENDAR_FORMAT,
   SIGMET_VARIANTS_PREFIXES: SIGMET_VARIANTS_PREFIXES,
-  PHENOMENON_CODE_VOLCANIC_ASH: PHENOMENON_CODE_VOLCANIC_ASH
+  PHENOMENON_CODE_VOLCANIC_ASH: PHENOMENON_CODE_VOLCANIC_ASH,
+  dateRanges: dateRanges
 };

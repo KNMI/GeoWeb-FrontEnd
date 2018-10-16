@@ -5,7 +5,7 @@ import moment from 'moment';
 import produce from 'immer';
 import PropTypes from 'prop-types';
 import { READ_ABILITIES, byReadAbilities, MODALS, MODAL_TYPES } from '../../containers/Sigmet/SigmetActions';
-import { UNITS, UNITS_ALT, DIRECTIONS, CHANGES, MODES_LVL, MOVEMENT_TYPES, SIGMET_TYPES, DATETIME_LABEL_FORMAT_UTC } from './SigmetTemplates';
+import { UNITS, UNITS_ALT, DIRECTIONS, CHANGES, MODES_LVL, MOVEMENT_TYPES, SIGMET_TYPES, DATETIME_LABEL_FORMAT_UTC, dateRanges } from './SigmetTemplates';
 
 import HeaderSection from './Sections/HeaderSection';
 import WhatSection from './Sections/WhatSection';
@@ -182,11 +182,13 @@ class SigmetReadMode extends PureComponent {
     const { validdate, validdateEnd, maxHoursInAdvance, maxHoursDuration, phenomenon, firname,
       change, hasStartCoordinates, hasStartIntersectionCoordinates } = this.props;
     const now = moment.utc();
-    const startTimeStamp = moment.utc(validdate);
-    const isStartValid = now.clone().subtract(1, 'day').isSameOrBefore(startTimeStamp) &&
-      now.clone().add(maxHoursInAdvance, 'hour').isSameOrAfter(startTimeStamp);
-    const isEndValid = startTimeStamp.isSameOrBefore(validdateEnd) &&
-      startTimeStamp.clone().add(maxHoursDuration, 'hour').isSameOrAfter(validdateEnd);
+    const startTimestamp = moment.utc(validdate);
+    const endTimestamp = moment.utc(validdateEnd);
+    const dateLimits = dateRanges(now, startTimestamp, endTimestamp, maxHoursInAdvance, maxHoursDuration);
+    const isStartValid = dateLimits.validDate.min.isSameOrBefore(startTimestamp) &&
+      dateLimits.validDate.max.isSameOrAfter(startTimestamp);
+    const isEndValid = dateLimits.validDateEnd.min.isSameOrBefore(endTimestamp) &&
+      dateLimits.validDateEnd.max.isSameOrAfter(endTimestamp);
     const hasPhenomenon = typeof phenomenon === 'string' && phenomenon.length > 0;
     const hasFir = typeof firname === 'string' && firname.length > 0;
     const hasChange = typeof change === 'string' && change.length > 0;
