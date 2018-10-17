@@ -46,6 +46,7 @@ class TitleBarContainer extends PureComponent {
     this.toggleFeedbackModal = this.toggleFeedbackModal.bind(this);
     this.toggleSharePresetModal = this.toggleSharePresetModal.bind(this);
     this.handleOnChange = this.handleOnChange.bind(this);
+    this.handleOnFocus = this.handleOnFocus.bind(this);
     this.handleKeyPressPassword = this.handleKeyPressPassword.bind(this);
     this.checkCredentials = this.checkCredentials.bind(this);
     this.setLoggedOutCallback = this.setLoggedOutCallback.bind(this);
@@ -56,13 +57,15 @@ class TitleBarContainer extends PureComponent {
     this.inputfieldUserName = '';
     this.inputfieldPassword = '';
     this.timer = -1;
+    this.inputRefs = {};
     this.state = {
       currentTime: moment().utc().format(timeFormat).toString(),
       loginModal: this.props.loginModal,
       loginModalMessage: '',
       feedbackModalOpen: false,
       sharePresetModal: false,
-      sharePresetName: ''
+      sharePresetName: '',
+      fieldToFocus: null
     };
   }
 
@@ -191,11 +194,15 @@ class TitleBarContainer extends PureComponent {
     this.timer = setInterval(this.setTime, 15000);
     this.setState({ currentTime: moment().utc().format(timeFormat).toString() });
     this.checkCredentials();
+    this.fieldToFocus = 'username';
   }
 
   componentDidUpdate () {
-    if (this.userNameInputRef && this.state.loginModal === true) {
-      this.userNameInputRef.focus();
+    if (this.inputRefs && this.state.loginModal === true && this.fieldToFocus && this.inputRefs[this.fieldToFocus] && this.focussedField !== this.fieldToFocus) {
+      if (this.inputRefs[this.fieldToFocus].focus) {
+        this.inputRefs[this.fieldToFocus].focus();
+        this.focussedField = this.fieldToFocus;
+      }
     }
   }
 
@@ -356,6 +363,14 @@ class TitleBarContainer extends PureComponent {
     }
   }
 
+  handleOnFocus (event) {
+    if (event && event.target && event.target.name) {
+      this.setState({ fieldToFocus: event.target.name });
+    } else {
+      this.setState({ fieldToFocus: null });
+    }
+  }
+
   handleOnChange (event) {
     if (event.target.name === 'password') {
       this.inputfieldPassword = event.target.value;
@@ -377,16 +392,24 @@ class TitleBarContainer extends PureComponent {
   }
 
   renderLoginModal (loginModalOpen, loginModalMessage, toggleLoginModal, handleOnChange, handleKeyPressPassword) {
+    const { urls } = this.props;
     return (<Modal isOpen={loginModalOpen} toggle={toggleLoginModal}>
       <ModalHeader toggle={toggleLoginModal}>Sign in</ModalHeader>
       <ModalBody>
         <Collapse isOpen>
           <InputGroup>
-            <input ref={(input) => { this.userNameInputRef = input; }} className='form-control' tabIndex={0} placeholder='username' name='username' onChange={this.handleOnChange} />
-            <Input type='password' name='password' id='examplePassword' placeholder='password'
-              onKeyPress={handleKeyPressPassword} onChange={handleOnChange} />
+            <input ref={(input) => { this.inputRefs['username'] = input; }} className='form-control' tabIndex={0} placeholder='username' name='username'
+              onChange={this.handleOnChange}
+              onFocus={this.handleOnFocus}
+              onBlur={this.handleOnFocus}
+            />
+            <Input ref={(input) => { this.inputRefs['password'] = input; }} type='password' name='password' id='examplePassword' placeholder='password'
+              onKeyPress={handleKeyPressPassword} onChange={handleOnChange} onFocus={this.handleOnFocus} />
           </InputGroup>
         </Collapse>
+        <FormText color='muted'>
+          {loginModalMessage ? null : 'Backend: ' + urls.BACKEND_SERVER_URL}
+        </FormText>
         <FormText color='muted'>
           {loginModalMessage}
         </FormText>
