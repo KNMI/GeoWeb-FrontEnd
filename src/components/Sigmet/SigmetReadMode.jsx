@@ -101,7 +101,7 @@ class SigmetReadMode extends PureComponent {
   getModalConfig (displayModal, uuid, isVolcanicAsh, adjacentFirs, moveTo) {
     const modalEntries = Object.entries(MODALS).filter((modalEntry) => modalEntry[1].type === displayModal);
     return Array.isArray(modalEntries) && modalEntries.length > 0 ? produce(modalEntries[0][1], draftState => {
-      if (draftState.button) draftState.button.arguments = uuid;
+      if (draftState.button) draftState.button.arguments = uuid; /* Used in action dispatch with right arguments */
       if (isVolcanicAsh && draftState && draftState.type === MODAL_TYPES.TYPE_CONFIRM_CANCEL && draftState.optional && Array.isArray(adjacentFirs)) {
         if (Array.isArray(draftState.optional.options)) {
           draftState.optional.options.push(...adjacentFirs.map((firCode) => ({
