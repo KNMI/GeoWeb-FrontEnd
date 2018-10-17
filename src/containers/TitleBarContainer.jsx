@@ -489,7 +489,7 @@ class TitleBarContainer extends PureComponent {
     const feedbackObj = {
       state: flattenLayers(this.props.fullState),
       url: window.location.href,
-      config: { ...require('config'), backend_url: urls.BACKEND_SERVER_URL },
+      config: { version: version, backend_url: urls.BACKEND_SERVER_URL },
       userAgent: navigator.userAgent,
       descriptions: { ...formValues },
       latestLogs: myLogs.slice(Math.max(0, numLogs - 100)).reverse()
