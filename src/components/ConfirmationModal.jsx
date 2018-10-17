@@ -51,7 +51,7 @@ export default class ConfirmationModal extends PureComponent {
               <Icon className='icon' name='undo' />
               Go back
             </Button>
-            <Button color='primary' onClick={(evt) => dispatch(actions[config.button.action](evt))}>
+            <Button color='primary' onClick={(evt) => dispatch(actions[config.button.action](evt, config.button.arguments))}>
               <Icon className='icon' name={config.button.icon} />
               {config.button.label}
             </Button>

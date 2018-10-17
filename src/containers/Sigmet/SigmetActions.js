@@ -72,7 +72,8 @@ export const MODALS = {
     button: {
       label: 'Delete',
       icon: 'trash',
-      action: 'deleteSigmetAction'
+      action: 'deleteSigmetAction',
+      arguments: null // We use uuid here, which is passed to action
     },
     toggleAction: 'toggleSigmetModalAction'
   },
@@ -83,7 +84,8 @@ export const MODALS = {
     button: {
       label: 'Cancel this SIGMET',
       icon: 'times-circle',
-      action: 'cancelSigmetAction'
+      action: 'cancelSigmetAction',
+      arguments: null // We use uuid here, which is passed to action
     },
     optional: {
       message: 'Optionally, you can indicate which adjacent FIR the Volcanic Ash is moving to:',
@@ -101,7 +103,8 @@ export const MODALS = {
     button: {
       label: 'Publish',
       icon: 'send',
-      action: 'publishSigmetAction'
+      action: 'publishSigmetAction',
+      arguments: null // We use uuid here, which is passed to action
     },
     toggleAction: 'toggleSigmetModalAction'
   }

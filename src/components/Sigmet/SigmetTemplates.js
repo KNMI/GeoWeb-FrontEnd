@@ -266,9 +266,9 @@ const SIGMET_VARIANTS = {
 
 // Sigmet distribution types
 const DISTRIBUTION_TYPES = {
-  NORMAL: 'NORMAL',
-  EXERCISE: 'EXERCISE',
-  TEST: 'TEST'
+  NORMAL: 'normal',
+  EXERCISE: 'exercise',
+  TEST: 'test'
 };
 
 const DISTRIBUTION_OPTIONS = [
