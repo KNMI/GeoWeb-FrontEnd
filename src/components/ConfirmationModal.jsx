@@ -36,13 +36,10 @@ export default class ConfirmationModal extends PureComponent {
                 spacedEvenly
               />
             </Col>
-            {hasOptions
-              ? <Col xs='auto'>
-                <button className='clear close' title={config.optional.selectedOption ? 'Clear' : null} disabled={!config.optional.selectedOption}
-                  onClick={(evt) => dispatch(actions[config.optional.action](...config.optional.parameters, []))}><span>×</span></button>
-              </Col>
-              : null
-            }
+            <Col xs='auto'>
+              <button className='clear close' title={config.optional.selectedOption ? 'Clear' : null} disabled={!config.optional.selectedOption}
+                onClick={(evt) => dispatch(actions[config.optional.action](...config.optional.parameters, []))}><span>×</span></button>
+            </Col>
           </Row>
           : null
         }

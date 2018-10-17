@@ -5,7 +5,7 @@ import moment from 'moment';
 import produce from 'immer';
 import PropTypes from 'prop-types';
 import { READ_ABILITIES, byReadAbilities, MODALS, MODAL_TYPES } from '../../containers/Sigmet/SigmetActions';
-import { UNITS, UNITS_ALT, DIRECTIONS, CHANGES, MODES_LVL, MOVEMENT_TYPES, SIGMET_TYPES, DATETIME_LABEL_FORMAT_UTC } from './SigmetTemplates';
+import { UNITS, UNITS_ALT, DIRECTIONS, CHANGES, MODES_LVL, MOVEMENT_TYPES, SIGMET_TYPES, DATETIME_LABEL_FORMAT_UTC, dateRanges } from './SigmetTemplates';
 
 import HeaderSection from './Sections/HeaderSection';
 import WhatSection from './Sections/WhatSection';
@@ -180,18 +180,21 @@ class SigmetReadMode extends PureComponent {
    */
   isValid () {
     const { validdate, validdateEnd, maxHoursInAdvance, maxHoursDuration, phenomenon, firname,
-      change, hasStartCoordinates, hasStartIntersectionCoordinates } = this.props;
+      change, hasStartCoordinates, hasStartIntersectionCoordinates, distributionType } = this.props;
     const now = moment.utc();
-    const startTimeStamp = moment.utc(validdate);
-    const isStartValid = now.clone().subtract(1, 'day').isSameOrBefore(startTimeStamp) &&
-      now.clone().add(maxHoursInAdvance, 'hour').isSameOrAfter(startTimeStamp);
-    const isEndValid = startTimeStamp.isSameOrBefore(validdateEnd) &&
-      startTimeStamp.clone().add(maxHoursDuration, 'hour').isSameOrAfter(validdateEnd);
+    const startTimestamp = moment.utc(validdate);
+    const endTimestamp = moment.utc(validdateEnd);
+    const dateLimits = dateRanges(now, startTimestamp, endTimestamp, maxHoursInAdvance, maxHoursDuration);
+    const isStartValid = dateLimits.validDate.min.isSameOrBefore(startTimestamp) &&
+      dateLimits.validDate.max.isSameOrAfter(startTimestamp);
+    const isEndValid = dateLimits.validDateEnd.min.isSameOrBefore(endTimestamp) &&
+      dateLimits.validDateEnd.max.isSameOrAfter(endTimestamp);
     const hasPhenomenon = typeof phenomenon === 'string' && phenomenon.length > 0;
     const hasFir = typeof firname === 'string' && firname.length > 0;
     const hasChange = typeof change === 'string' && change.length > 0;
+    const hasType = typeof distributionType === 'string' && distributionType.length > 0;
     return isStartValid && isEndValid && hasStartCoordinates && hasStartIntersectionCoordinates &&
-      hasPhenomenon && hasFir && hasChange && this.isLevelInfoValid() && this.isMovementValid();
+      hasPhenomenon && hasFir && hasChange && hasType && this.isLevelInfoValid() && this.isMovementValid();
   };
 
   /**
@@ -240,7 +243,7 @@ class SigmetReadMode extends PureComponent {
 
   render () {
     const { dispatch, actions, focus, uuid, phenomenon, isObserved, obsFcTime, validdate, validdateEnd, firname, locationIndicatorIcao, issuedate,
-      locationIndicatorMwo, levelinfo, movement, movementType, change, sequence, tac, isCancelFor,
+      locationIndicatorMwo, levelinfo, movement, movementType, change, sequence, tac, isCancelFor, distributionType,
       isNoVolcanicAshExpected, volcanoName, volcanoCoordinates, isVolcanicAsh, displayModal, adjacentFirs, moveTo } = this.props;
     const abilityCtAs = this.reduceAbilities(); // CtA = Call To Action
     const selectedDirection = movement && DIRECTIONS.find((obj) => obj.shortName === movement.dir);
@@ -333,6 +336,11 @@ class SigmetReadMode extends PureComponent {
           <span data-field='issueLocation'>{locationIndicatorMwo}</span>
           <span data-field='sequence'>{sequence < 1 ? '(not yet issued)' : sequence}</span>
           <span className='tac' data-field='tac' title={tac && tac.code}>{tac && tac.code}</span>
+          <span data-field='distribution_type'>
+            {typeof distributionType === 'string' && distributionType.length > 0
+              ? distributionType
+              : '(no type assigned yet)'}
+          </span>
         </IssueSection>
 
         <ActionSection colSize={2}>
@@ -349,7 +357,7 @@ class SigmetReadMode extends PureComponent {
       </Col>
       {modalConfig
         ? <ConfirmationModal config={modalConfig} dispatch={dispatch} actions={actions}
-          identifier={`this ${phenomenon} SIGMET`} />
+          identifier={`this${modalConfig.type === MODAL_TYPES.TYPE_CONFIRM_PUBLISH ? ` [ ${distributionType.toLowerCase()} ] -` : ''} SIGMET for ${phenomenon}`} />
         : null
       }
     </Button>;
@@ -373,6 +381,7 @@ SigmetReadMode.propTypes = {
   abilities: PropTypes.shape(abilitiesPropTypes),
   focus: PropTypes.bool,
   uuid: PropTypes.string,
+  distributionType: SIGMET_TYPES.TYPE,
   tac: PropTypes.shape({
     uuid: PropTypes.string,
     code: PropTypes.string
