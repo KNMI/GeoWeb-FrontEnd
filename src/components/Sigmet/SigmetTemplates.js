@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import cloneDeep from 'lodash.clonedeep';
+import moment from 'moment';
 
 /**
  * TEMPLATES
@@ -84,6 +85,7 @@ TEMPLATES.SIGMET = {
   uuid: null, // string
   sequence: null, // number
   status: null, // string
+  type: null, // string
   cancels: null, // number
   /* Metadata */
   location_indicator_icao: null, // string
@@ -149,6 +151,7 @@ const TYPES = {
   UUID: PropTypes.string,
   SEQUENCE: PropTypes.number,
   STATUS: PropTypes.string,
+  TYPE: PropTypes.string,
   CANCELS: PropTypes.number,
   LOCATION_INDICATOR_ICAO: PropTypes.string,
   LOCATION_INDICATOR_MWO: PropTypes.string
@@ -261,6 +264,19 @@ const SIGMET_VARIANTS = {
   TROPICAL_CYCLONE: 'TROPICAL_CYCLONE'
 };
 
+// Sigmet distribution types
+const DISTRIBUTION_TYPES = {
+  NORMAL: 'NORMAL',
+  EXERCISE: 'EXERCISE',
+  TEST: 'TEST'
+};
+
+const DISTRIBUTION_OPTIONS = [
+  { optionId: DISTRIBUTION_TYPES.NORMAL, label: 'Normal', disabled: false },
+  { optionId: DISTRIBUTION_TYPES.EXERCISE, label: 'Exercise', disabled: false },
+  { optionId: DISTRIBUTION_TYPES.TEST, label: 'Test', disabled: false }
+];
+
 const PHENOMENON_CODE_VOLCANIC_ASH = 'VA_CLD';
 
 const SIGMET_VARIANTS_PREFIXES = {};
@@ -268,11 +284,34 @@ SIGMET_VARIANTS_PREFIXES[SIGMET_VARIANTS.NORMAL] = '';
 SIGMET_VARIANTS_PREFIXES[SIGMET_VARIANTS.VOLCANIC_ASH] = 'va_';
 SIGMET_VARIANTS_PREFIXES[SIGMET_VARIANTS.TROPICAL_CYCLONE] = 'tc_';
 
+const dateRanges = (now, startTimestamp, endTimestamp, maxHoursInAdvance, maxHoursDuration) => ({
+  obsFcTime: {
+    min: now.clone().subtract(3, 'hour'),
+    max: endTimestamp !== null && moment(endTimestamp, DATETIME_FORMAT).isValid()
+      ? moment.utc(endTimestamp, DATETIME_FORMAT)
+      : now.clone().add(maxHoursDuration + maxHoursInAdvance, 'hour')
+  },
+  validDate: {
+    min: now.clone(),
+    max: now.clone().add(maxHoursInAdvance, 'hour')
+  },
+  validDateEnd: {
+    min: startTimestamp !== null && moment(startTimestamp, DATETIME_FORMAT).isValid()
+      ? moment.utc(startTimestamp, DATETIME_FORMAT)
+      : now.clone(),
+    max: startTimestamp !== null && moment(startTimestamp, DATETIME_FORMAT).isValid()
+      ? moment.utc(startTimestamp, DATETIME_FORMAT).add(maxHoursDuration, 'hour')
+      : now.clone().add(maxHoursDuration, 'hour')
+  }
+});
+
 module.exports = {
   SIGMET_TEMPLATES: TEMPLATES,
   SIGMET_TYPES: TYPES,
   MOVEMENT_TYPES: MOVEMENT_TYPES,
   MOVEMENT_OPTIONS: MOVEMENT_OPTIONS,
+  DISTRIBUTION_TYPES: DISTRIBUTION_TYPES,
+  DISTRIBUTION_OPTIONS: DISTRIBUTION_OPTIONS,
   DIRECTIONS: DIRECTIONS,
   CHANGES: CHANGES,
   UNITS_ALT: UNITS_ALT,
@@ -291,5 +330,6 @@ module.exports = {
   DATETIME_FORMAT: DATETIME_FORMAT,
   CALENDAR_FORMAT: CALENDAR_FORMAT,
   SIGMET_VARIANTS_PREFIXES: SIGMET_VARIANTS_PREFIXES,
-  PHENOMENON_CODE_VOLCANIC_ASH: PHENOMENON_CODE_VOLCANIC_ASH
+  PHENOMENON_CODE_VOLCANIC_ASH: PHENOMENON_CODE_VOLCANIC_ASH,
+  dateRanges: dateRanges
 };

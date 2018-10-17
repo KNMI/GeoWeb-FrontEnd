@@ -5,14 +5,15 @@ import PropTypes from 'prop-types';
 export default class IssueSection extends PureComponent {
   render () {
     const children = {};
-    if (Array.isArray(this.props.children)) {
-      this.props.children.map(child => {
+    const { className, children : propsChildren } = this.props;
+    if (Array.isArray(propsChildren)) {
+      propsChildren.map(child => {
         if (child && child.props) {
           children[child.props['data-field']] = child;
         }
       });
     } else {
-      children[this.props.children.props['data-field']] = this.props.children;
+      children[propsChildren.props['data-field']] = propsChildren;
     }
     return <Row className='Issue'>
       <Col>
@@ -39,20 +40,41 @@ export default class IssueSection extends PureComponent {
             </Col>
           </Row>
           : null}
-        <Row>
-          <Col xs={{ size: 2, offset: 1 }}>
-            <Badge>TAC</Badge>
-          </Col>
-          <Col xs='9'>
-            {children.tac}
-          </Col>
-        </Row>
+        {children.tac
+          ? <Row>
+            <Col xs={{ size: 2, offset: 1 }}>
+              <Badge>TAC</Badge>
+            </Col>
+            <Col xs='9'>
+              {children.tac}
+            </Col>
+          </Row>
+          : null}
+        {children.distribution_type
+          ? <Row>
+            <Col xs={{ size: 2, offset: 1 }}>
+              <Badge>Type</Badge>
+            </Col>
+            <Col xs='9'>
+              <Row className={className || ''}>
+                <Col xs='auto'>
+                  {children.distribution_type}
+                </Col>
+                <Col />
+                <Col xs='auto'>
+                  {children.clear_distribution_type}
+                </Col>
+              </Row>
+            </Col>
+          </Row>
+          : null}
       </Col>
     </Row>;
   }
 }
 
 IssueSection.propTypes = {
+  className: PropTypes.string,
   children: PropTypes.oneOfType([
     PropTypes.arrayOf(PropTypes.element),
     PropTypes.element,
