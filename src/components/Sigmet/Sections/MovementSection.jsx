@@ -12,7 +12,6 @@ export default class MovementSection extends PureComponent {
     childrenToProcess.map(child => {
       if (child && child.props) {
         children[child.props['data-field']] = child;
-        console.log('Child', child.props['data-field'], (child && child.props.selected && !child.props.disabled));
       }
     });
     const className = disabled === true ? 'disabled' : null;
