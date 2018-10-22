@@ -313,11 +313,11 @@ class TitleBarContainer extends PureComponent {
         return;
       }
       this.getServices();
-      dispatch(this.props.userActions.login({ username: username, roles: roles }));
-
       this.setState({
         loginModal: false,
         loginModalMessage: 'Signed in as user ' + username
+      }, () => {
+        dispatch(this.props.userActions.login({ username: username, roles: roles }));
       });
     } else {
       this.getServices();
