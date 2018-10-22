@@ -95,7 +95,7 @@
     }
   }
 
-  .Validity, .Where, .Draw, .Level, .Progress, .Move, .Change, .Issue {
+  .Validity, .Where, .Draw, .Level, .Progress, .Move, .Change, .Issue, .EndPosition {
     margin-top: 0.33rem;
     padding-top: 0.33rem;
     border-top: 0.05rem solid #ccc;
@@ -266,6 +266,24 @@
   }
 
   .Move {
+    .required {
+      margin: 0;
+      padding: 0;
+      z-index: unset;
+      &:after {
+        padding-top: 0.33rem;
+        z-index: 100;
+      }
+      &.missing:after {
+        margin-left: -0.9rem;
+      }
+      &.unitAfter:after {
+        padding-top: 0.6rem;
+        margin-left: -4rem;
+        margin-right: 3rem;
+        width: 1rem;
+      }
+    }
     .row:nth-child(2) {
       margin-top: 0.2rem;
     }
