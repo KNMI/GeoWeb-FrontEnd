@@ -266,7 +266,6 @@ class SigmetReadMode extends PureComponent {
     const selectedDirection = movement && DIRECTIONS.find((obj) => obj.shortName === movement.dir);
     const directionLongName = selectedDirection ? selectedDirection.longName : null;
     const modalConfig = this.getModalConfig(displayModal, uuid, isVolcanicAsh, adjacentFirs, moveTo);
-    console.log('render', movementType);
     return <Button tag='div' className={`Sigmet row${focus ? ' focus' : ''}`} onClick={(evt) => dispatch(actions.focusSigmetAction(evt, uuid))}>
       <Col>
         <HeaderSection isCancelFor={isCancelFor} />
