@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Popover, PopoverTitle, Row, ButtonDropdown, DropdownToggle, DropdownMenu, DropdownItem, Button } from 'reactstrap';
+import { Popover, PopoverTitle, Row, ButtonDropdown, DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap';
 import { Typeahead } from 'react-bootstrap-typeahead';
 import axios from 'axios';
 import { DefaultLocations } from '../constants/defaultlocations';

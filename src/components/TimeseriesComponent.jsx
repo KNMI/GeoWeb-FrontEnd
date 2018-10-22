@@ -2,6 +2,7 @@ import React, { PureComponent } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import axios from 'axios';
 import PropTypes from 'prop-types';
+import MomentPropTypes from 'react-moment-proptypes';
 import { GetServiceByNamePromise } from '../utils/getServiceByName';
 
 var moment = require('moment');
@@ -81,7 +82,6 @@ export default class TimeseriesComponent extends PureComponent {
       return newObj;
     }
     function getWindInfo (windX, windY, unit) {
-
       let toRadians = (deg) => {
         return (deg / 180) * Math.PI;
       };
@@ -298,7 +298,7 @@ export default class TimeseriesComponent extends PureComponent {
   }
   /* istanbul ignore next */
   render () {
-    const { location, time, className, style, width, height } = this.props;
+    const { className, style } = this.props;
     return (
       <div id={this.props.id} className={className} style={{ ...style, overflowY: 'hidden', minWidth: '400px', height: '100%', maxHeight: '100%' }}>
         {this.state.timeData.length > 0
@@ -364,9 +364,14 @@ export default class TimeseriesComponent extends PureComponent {
   }
 }
 TimeseriesComponent.propTypes = {
-  adagucProperties: PropTypes.object.isRequired,
-  isOpen: PropTypes.bool.isRequired,
   dispatch: PropTypes.func.isRequired,
   adagucActions: PropTypes.object.isRequired,
-  urls: PropTypes.object.isRequired
+  urls: PropTypes.object.isRequired,
+  referenceTime: MomentPropTypes.momentObj,
+  selectedModel: PropTypes.string,
+  location: PropTypes.string,
+  time: MomentPropTypes.momentObj,
+  className: PropTypes.string,
+  style: PropTypes.string,
+  id: PropTypes.string
 };

@@ -2,8 +2,8 @@ import React, { PureComponent, Component } from 'react';
 import ReactDOM from 'react-dom';
 import LayerManager from './LayerManager';
 import { hashHistory } from 'react-router';
-import { default as TimeComponent } from './ADAGUC/TimeComponent';
-import { default as Panel } from './Panel';
+import TimeComponent from './ADAGUC/TimeComponent';
+import Panel from './Panel';
 import { Row, Col, Button, Modal, ModalBody, Input, Label, ListGroup, ListGroupItem, ModalFooter } from 'reactstrap';
 import { Icon } from 'react-fa';
 import PropTypes from 'prop-types';
@@ -43,6 +43,7 @@ class LayerManagerPanel extends PureComponent {
     const source = GetServiceByName(sources, 'OVL');
     if (source) {
       [...Array(panelsProperties.panels.length).keys()].map((id) => {
+        // eslint-disable-next-line no-undef
         new WMJSLayer({
           service: source,
           title: 'OVL_EXT',
@@ -54,7 +55,6 @@ class LayerManagerPanel extends PureComponent {
             panelId: id,
             layer: layerObj
           }));
-
         });
       });
     }
@@ -136,7 +136,7 @@ class LayerManagerPanel extends PureComponent {
   }
 
   render () {
-    const { title, dispatch, panelsActions, adagucProperties, panelsProperties, mapProperties, adagucActions } = this.props;
+    const { title, dispatch, panelsActions, adagucProperties, panelsProperties, adagucActions } = this.props;
     const { sources, animationSettings } = adagucProperties;
     const { panels, activePanelId } = panelsProperties;
     const currentPanel = panels[activePanelId];
@@ -144,10 +144,12 @@ class LayerManagerPanel extends PureComponent {
 
     return (
       <Panel title={title} className='LayerManagerPanel'>
-        <LayerChooser toggle={this.toggleLayerChooser} dispatch={dispatch} panelsActions={panelsActions} panelsProperties={panelsProperties} open={this.state.layerChooserOpen} data={this.props.adagucProperties.sources} />
+        <LayerChooser toggle={this.toggleLayerChooser} dispatch={dispatch}
+          panelsActions={panelsActions} panelsProperties={panelsProperties} open={this.state.layerChooserOpen} data={this.props.adagucProperties.sources} />
         <Row style={{ flex: 1 }}>
           <Col xs='auto'>
-            <TimeControls animationSettings={animationSettings} dispatch={dispatch} adagucActions={adagucActions} currentTime={adagucProperties.timeDimension} panel={currentPanel} showControls={this.state.showControls} />
+            <TimeControls animationSettings={animationSettings} dispatch={dispatch} adagucActions={adagucActions}
+              currentTime={adagucProperties.timeDimension} panel={currentPanel} showControls={this.state.showControls} />
           </Col>
           <Col style={{ flex: 1, flexDirection: 'column-reverse' }}>
             <Row style={{ flex: 1 }}>
@@ -159,7 +161,10 @@ class LayerManagerPanel extends PureComponent {
             </Row>
             <Row />
           </Col>
-          <LayerMutations toggleFullscreen={this.toggleFullscreen} toggleControls={this.toggleControls} dispatch={dispatch} panelsActions={panelsActions} activePanelId={activePanelId} sources={sources} toggleLayerChooser={this.toggleLayerChooser} showControls={this.state.showControls} isFullScreen={isFullScreen} removeAllLayersEnabled={currentPanel && ((currentPanel.baselayers.length > 2) || (currentPanel.layers.length > 0))}/>
+          <LayerMutations toggleFullscreen={this.toggleFullscreen} toggleControls={this.toggleControls} dispatch={dispatch}
+            panelsActions={panelsActions} activePanelId={activePanelId} sources={sources} toggleLayerChooser={this.toggleLayerChooser}
+            showControls={this.state.showControls} isFullScreen={isFullScreen}
+            removeAllLayersEnabled={currentPanel && ((currentPanel.baselayers.length > 2) || (currentPanel.layers.length > 0))} />
         </Row>
       </Panel>
     );
@@ -172,7 +177,7 @@ class LayerMutations extends PureComponent {
     this.resetLayers = this.resetLayers.bind(this);
   }
 
-  resetLayers() {
+  resetLayers () {
     const { dispatch, panelsActions, activePanelId, sources } = this.props;
     // This call removes all data layers and all baselayers
     // except the default map
@@ -196,7 +201,7 @@ class LayerMutations extends PureComponent {
   }
 
   render () {
-    const { showControls, isFullScreen, currentPanel, removeAllLayersEnabled, sources, toggleControls, toggleLayerChooser, toggleFullscreen } = this.props;
+    const { showControls, isFullScreen, currentPanel, sources, toggleControls, toggleLayerChooser, toggleFullscreen } = this.props;
     return (
       <Col xs='auto' style={{ flexDirection: 'column-reverse', marginLeft: '.66rem' }}>
 
@@ -416,10 +421,8 @@ class LayerChooser extends PureComponent {
         <Button color='secondary' onClick={toggle}>Cancel</Button>
       </ModalFooter>
     </Modal>);
-
   }
 }
-
 
 class TimeControls extends Component {
   constructor () {
@@ -529,14 +532,55 @@ class TimeControls extends Component {
   }
 }
 
+LayerMutations.propTypes = {
+  dispatch: PropTypes.func,
+  panelsActions: PropTypes.object,
+  activePanelId: PropTypes.number,
+  sources: PropTypes.object,
+  showControls: PropTypes.bool,
+  isFullScreen: PropTypes.bool,
+  currentPanel: PropTypes.object,
+  toggleControls: PropTypes.func,
+  toggleLayerChooser: PropTypes.func,
+  toggleFullscreen: PropTypes.func
+};
+
+LayerChooser.propTypes = {
+  dispatch: PropTypes.func,
+  panelsActions: PropTypes.object,
+  panelsProperties: PropTypes.object,
+  toggle: PropTypes.func,
+  data: PropTypes.object,
+  open: PropTypes.bool
+};
+
+TimeControls.propTypes = {
+  dispatch: PropTypes.func,
+  showControls: PropTypes.bool,
+  adagucActions: PropTypes.shape({
+    toggleAnimation: PropTypes.func
+  }),
+  animationSettings: PropTypes.shape({
+    animate: PropTypes.bool,
+    duration: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
+  }),
+  panel: PropTypes.object,
+  currentTime: PropTypes.string
+};
+
 LayerManagerPanel.propTypes = {
   title: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
   dispatch: PropTypes.func.isRequired,
   panelsProperties: PropTypes.object.isRequired,
   adagucProperties: PropTypes.object,
-  mapProperties: PropTypes.object,
-  adagucActions: PropTypes.object,
-  panelsActions: PropTypes.object
+  adagucActions: PropTypes.shape({
+    toggleAnimation: PropTypes.func
+  }),
+  panelsActions: PropTypes.object,
+  animationSettings: PropTypes.shape({
+    animate: PropTypes.bool,
+    duration: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
+  })
 };
 
 export default LayerManagerPanel;

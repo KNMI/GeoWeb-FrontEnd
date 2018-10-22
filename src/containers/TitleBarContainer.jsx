@@ -851,7 +851,7 @@ class LayoutDropDown extends PureComponent {
             const wmjsLayer = new WMJSLayer(layer);
             wmjsLayer.parseLayer((newLayer) => {
               newLayer.keepOnTop = (layer.overlay || layer.keepOnTop);
-              return resolve({ layer: newLayer, panelIdx: panelIdx, index: i })
+              return resolve({ layer: newLayer, panelIdx: panelIdx, index: i });
             });
           }));
         });

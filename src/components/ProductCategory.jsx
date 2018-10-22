@@ -36,24 +36,24 @@ class ProductCategory extends Component {
             {notifications > 0 ? <Badge color='danger' pill className='collapsed'>{notifications}</Badge> : null}
           </Col>
         </CardHeader></Link>
-        : <CardHeader onClick={maxSize > 0 ? this.toggle : null} className={maxSize > 0 ? null : 'disabled'} title={title}>
-          <Col xs='auto'>
-            <Icon name={icon} />
-          </Col>
-          <Col style={{ marginLeft: '0.9rem' }}>
-            {title}
-          </Col>
-          <Col xs='auto'>
-            {notifications > 0 ? <Badge color='danger' pill>{notifications}</Badge> : null}
-          </Col>
-          <Col xs='auto'>
-            <Link to={link} className='row'>
-              <Button outline color='info' disabled={typeof link === 'undefined'}>
-                <Icon name='caret-right' />
-              </Button>
-            </Link>
-          </Col>
-        </CardHeader>}
+          : <CardHeader onClick={maxSize > 0 ? this.toggle : null} className={maxSize > 0 ? null : 'disabled'} title={title}>
+            <Col xs='auto'>
+              <Icon name={icon} />
+            </Col>
+            <Col style={{ marginLeft: '0.9rem' }}>
+              {title}
+            </Col>
+            <Col xs='auto'>
+              {notifications > 0 ? <Badge color='danger' pill>{notifications}</Badge> : null}
+            </Col>
+            <Col xs='auto'>
+              <Link to={link} className='row'>
+                <Button outline color='info' disabled={typeof link === 'undefined'}>
+                  <Icon name='caret-right' />
+                </Button>
+              </Link>
+            </Col>
+          </CardHeader>}
         <CollapseOmni className='CollapseOmni' isOpen={this.state.isOpen} minSize={0} maxSize={maxSize}>
           <CardBlock>
             <Row>
