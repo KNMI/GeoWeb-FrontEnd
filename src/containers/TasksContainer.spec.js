@@ -1,5 +1,5 @@
 import React from 'react';
-import { default as TasksContainer } from './TasksContainer';
+import TasksContainer from './TasksContainer';
 import { mount } from 'enzyme';
 
 describe('(Container) TasksContainer', () => {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { default as AdagucMapDraw } from './AdagucMapDraw';
+import AdagucMapDraw from './AdagucMapDraw';
 import { shallow } from 'enzyme';
 
 const dispatch = () => { /* intentionally left blank */ };

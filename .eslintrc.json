@@ -26,7 +26,8 @@
     "should" : false,
     "sinon"  : false,
     "windows": false,
-    "document": false
+    "document": false,
+    "myLogs": false
   },
   "rules": {
     "semi"                 : [1, "always"],

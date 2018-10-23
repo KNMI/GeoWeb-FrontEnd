@@ -1,5 +1,5 @@
 import React from 'react';
-import { default as CollapseOmni } from './CollapseOmni';
+import CollapseOmni from './CollapseOmni';
 import { mount } from 'enzyme';
 
 describe('(Component) CollapseOmni', () => {

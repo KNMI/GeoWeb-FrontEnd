@@ -1138,7 +1138,13 @@ LayoutDropDown.propTypes = {
   savePreset: PropTypes.func,
   fetchNewPresets: PropTypes.func,
   presets: PropTypes.array,
-  panelsActions: PropTypes.object
+  panelsActions: PropTypes.object,
+  urls: PropTypes.shape({
+    BACKEND_SERVER_URL: PropTypes.string
+  }),
+  panelsProperties: PropTypes.shape({
+    panels: PropTypes.array
+  })
 };
 
 TitleBarContainer.propTypes = {

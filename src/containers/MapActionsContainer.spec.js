@@ -1,5 +1,5 @@
 import React from 'react';
-import { default as MapActionsContainer } from './MapActionsContainer';
+import MapActionsContainer from './MapActionsContainer';
 import { mount } from 'enzyme';
 
 const state = {

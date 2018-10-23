@@ -369,7 +369,7 @@ TimeseriesComponent.propTypes = {
   urls: PropTypes.object.isRequired,
   referenceTime: MomentPropTypes.momentObj,
   selectedModel: PropTypes.string,
-  location: PropTypes.string,
+  location: PropTypes.object,
   time: MomentPropTypes.momentObj,
   className: PropTypes.string,
   style: PropTypes.string,

@@ -1,5 +1,5 @@
 import React from 'react';
-import { default as MapPanel } from './MapPanel';
+import MapPanel from './MapPanel';
 import { shallow, mount } from 'enzyme';
 import sinon from 'sinon';
 import { Row } from 'reactstrap';

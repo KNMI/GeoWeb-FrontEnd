@@ -1,6 +1,5 @@
 import React from 'react';
-// eslint-disable-next-line no-unused-vars
-import { default as Empty } from './Empty';
+import Empty from './Empty';
 import { shallow } from 'enzyme';
 
 describe('(Component) Empty', () => {
