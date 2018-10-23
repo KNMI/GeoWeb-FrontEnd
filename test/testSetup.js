@@ -63,7 +63,10 @@ function mockCanvas (window) {
   };
 }
 
-const jsdom = new JSDOM('<!doctype html><html><body></body></html>');
+const jsdom = new JSDOM('<!doctype html><html><body></body></html>', {
+  url: 'http://localhost/',
+  pretendToBeVisual: true
+});
 const { window } = jsdom;
 mockCanvas(window);
 
