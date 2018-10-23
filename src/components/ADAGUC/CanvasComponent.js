@@ -32,14 +32,18 @@ export default class CanvasComponent extends Component {
 
   /* istanbul ignore next */
   componentDidMount () {
-    this.canvas.addEventListener('mousemove', this.handleMouseMoveEvent);
-    this.canvas.addEventListener('click', this.handleClickEvent);
-    this.updateCanvas();
+    if (this.canvas) {
+      this.canvas.addEventListener('mousemove', this.handleMouseMoveEvent);
+      this.canvas.addEventListener('click', this.handleClickEvent);
+      this.updateCanvas();
+    }
   }
 
   componentWillUnmount () {
-    this.canvas.removeEventListener('mousemove', this.handleMouseMoveEvent);
-    this.canvas.removeEventListener('click', this.handleClickEvent);
+    if (this.canvas) {
+      this.canvas.removeEventListener('mousemove', this.handleMouseMoveEvent);
+      this.canvas.removeEventListener('click', this.handleClickEvent);
+    }
   }
 
   /* istanbul ignore next */

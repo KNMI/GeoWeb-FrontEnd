@@ -161,7 +161,9 @@ export default class Adaguc extends PureComponent {
 
   componentDidMount () {
     this.initAdaguc(this.refs.adaguc);
-    elementResizeEvent(this.refs.adaguccontainer, this.resize);
+    if (this.refs.adaguccontainer) {
+      elementResizeEvent(this.refs.adaguccontainer, this.resize);
+    }
     this.interval = setInterval(this.reparseLayers, moment.duration(1, 'minute').asMilliseconds());
   }
 

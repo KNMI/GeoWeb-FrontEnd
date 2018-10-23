@@ -25,6 +25,7 @@
     "expect" : false,
     "should" : false,
     "sinon"  : false,
+    "enzyme" : false,
     "windows": false,
     "document": false,
     "myLogs": false

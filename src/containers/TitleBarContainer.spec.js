@@ -85,8 +85,8 @@ describe('(Component) TitleBarContainer', () => {
         _component.doLogin = sinon.spy();
         _component.toggleLoginModal = sinon.spy();
         const loginComponent = _component.find('#loginIcon');
-        expect(loginComponent.length).to.equal(1);
-        loginComponent.simulate('click');
+        expect(loginComponent.length).to.be.at.least(1); // enzyme v3++ doesn't dedupe anymore
+        loginComponent.at(0).simulate('click');
         done();
       }).catch(done);
     });

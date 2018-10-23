@@ -4,11 +4,22 @@ import reducer from '../../redux/reducers';
 import { shallow } from 'enzyme';
 import sinon from 'sinon';
 
+const baselayer = {
+  service: 'http://geoservices.knmi.nl/cgi-bin/bgmaps.cgi?',
+  name: 'streetmap',
+  title: 'OpenStreetMap',
+  format: 'image/gif',
+  enabled: true
+};
+
 describe('(Component) Adaguc', () => {
   let _globalState;
   let _dispatchSpy;
   beforeEach(() => {
     _globalState = {
+      adagucActions: {
+        setTimeDimension: () => null
+      },
       adagucProperties: {
         animate: false,
         sources: {},
@@ -43,7 +54,10 @@ describe('(Component) Adaguc', () => {
         activeMapId: 0,
         layout: 'single',
         mapMode: 'pan',
-        projectionName: 'EPSG:3857',
+        projection: {
+          name: 'Mercator',
+          code: 'EPSG:3857'
+        },
         boundingBox: {
           title: 'Netherlands',
           bbox: [
@@ -60,32 +74,30 @@ describe('(Component) Adaguc', () => {
         roles: []
       },
       panelsProperties: {
-        wmjsLayers: [],
-        baselayer: {
-          service: 'http://geoservices.knmi.nl/cgi-bin/bgmaps.cgi?',
-          name: 'streetmap',
-          title: 'OpenStreetMap',
-          format: 'image/gif',
-          enabled: true
-        },
         panels: [
           {
-            overlays: [],
-            panelsProperties: []
+            baselayers: [baselayer],
+            layers: [],
+            type: 'ADAGUC'
           },
           {
-            overlays: [],
-            panelsProperties: []
+            baselayers: [baselayer],
+            layers: [],
+            type: 'PROGTEMP'
           },
           {
-            overlays: [],
-            panelsProperties: []
+            baselayers: [baselayer],
+            layers: [],
+            type: 'TIMESERIES'
           },
           {
-            overlays: [],
-            panelsProperties: []
+            baselayers: [baselayer],
+            layers: [],
+            type: 'ADAGUC'
           }
-        ]
+        ],
+        activePanelId: 0,
+        panelLayout: 'single'
       },
       recentTriggers: [],
       notifications: []
@@ -95,12 +107,53 @@ describe('(Component) Adaguc', () => {
     });
   });
 
+  before(() => {
+    const emptyFunc = () => null;
+    global.getCurrentDateIso8601 = () => {
+      return { toISO8601: emptyFunc };
+    };
+    global.WMJSLayer = sinon.stub().returns({});
+    global.WMJSMap = sinon.stub().returns({
+      addLayer: emptyFunc,
+      addListener: emptyFunc,
+      destroy: emptyFunc,
+      draw: emptyFunc,
+      drawAutomatic: emptyFunc,
+      getActiveLayer: emptyFunc,
+      getBaseLayers: emptyFunc,
+      getDimension: emptyFunc,
+      getLatLongFromPixelCoord: emptyFunc,
+      getLayers: emptyFunc,
+      getListener: emptyFunc,
+      getPixelCoordFromLatLong: emptyFunc,
+      positionMapPinByLatLon: emptyFunc,
+      removeAllLayers: emptyFunc,
+      removeListener: emptyFunc,
+      setActive: emptyFunc,
+      setAnimationDelay: emptyFunc,
+      setBaseLayers: emptyFunc,
+      setBaseURL: emptyFunc,
+      setBBOX: emptyFunc,
+      setDimension: emptyFunc,
+      setMapModeNone: emptyFunc,
+      setMapModePan: emptyFunc,
+      setMapModeZoomBoxIn: emptyFunc,
+      setMessage: emptyFunc,
+      setProjection: emptyFunc,
+      setSize: emptyFunc,
+      setTimeOffset: emptyFunc,
+      setWMJSTileRendererTileSettings: emptyFunc,
+      showDialogs: emptyFunc,
+      stopAnimating: emptyFunc
+    });
+  });
+
   it('Renders a div', () => {
     const _component = shallow(<Adaguc
       urls={{ BACKEND_SERVER_URL: 'http://localhost:8080' }}
       active dispatch={_dispatchSpy}
       panelsActions={{}}
-      adagucActions={{}}
+      adagucActions={_globalState.adagucActions}
       mapActions={{}}
       drawActions={{}}
       adagucProperties={_globalState.adagucProperties}
