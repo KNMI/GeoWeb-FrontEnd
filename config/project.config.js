@@ -88,8 +88,7 @@ const config = {
   ],
   compiler_babel: {
     cacheDirectory: true,
-    plugins: ['react-hot-loader/babel'],
-    presets: ['es2015']
+    plugins: ['react-hot-loader/babel']
   }
 };
 

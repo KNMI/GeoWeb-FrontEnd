@@ -36,13 +36,13 @@ class LayerManagerPanel extends PureComponent {
       return;
     }
     // By default add Countries overlay layer to each panel
-    // The call [...Array(a.length).keys()] generates an array [0, 1, 2, ..., a.length - 1]
+    // The call Array.from({ length: a.length }, (item, index) => index) generates an array [0, 1, 2, ..., a.length - 1]
     if (!sources || (Object.keys(sources).length === 0 && sources.constructor === Object)) {
       return;
     }
     const source = GetServiceByName(sources, 'OVL');
     if (source) {
-      [...Array(panelsProperties.panels.length).keys()].map((id) => {
+      Array.from({ length: panelsProperties.panels.length }, (item, index) => index).map((id) => {
         // eslint-disable-next-line no-undef
         new WMJSLayer({
           service: source,
