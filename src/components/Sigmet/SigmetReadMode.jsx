@@ -17,6 +17,8 @@ import ProgressSection from './Sections/ProgressSection';
 import ChangeSection from './Sections/ChangeSection';
 import IssueSection from './Sections/IssueSection';
 import ConfirmationModal from '../ConfirmationModal';
+import MovementSection from './Sections/MovementSection';
+import EndPositionSection from './Sections/EndPositionSection';
 
 class SigmetReadMode extends PureComponent {
   getUnitLabel (unitName) {
@@ -88,7 +90,21 @@ class SigmetReadMode extends PureComponent {
       default:
         return '';
     }
-  }
+  };
+
+  showProgress () {
+    const { movementType } = this.props;
+    switch (movementType) {
+      case MOVEMENT_TYPES.STATIONARY:
+        return 'Stationary';
+      case MOVEMENT_TYPES.MOVEMENT:
+        return 'Moving';
+      case MOVEMENT_TYPES.FORECAST_POSITION:
+        return 'Movement is defined by area';
+      default:
+        return '(movement type is not (properly) set)';
+    }
+  };
 
   /**
    * Compose the specific configuration for the confirmation modal
@@ -295,26 +311,8 @@ class SigmetReadMode extends PureComponent {
 
         <ProgressSection>
           <span data-field='movement'>
-            {() => {
-              switch (movementType) {
-                case MOVEMENT_TYPES.STATIONARY:
-                  return 'Stationary';
-                case MOVEMENT_TYPES.MOVEMENT:
-                  return 'Moving';
-                case MOVEMENT_TYPES.FORECAST_POSITION:
-                  return 'Movement is defined by area';
-                default:
-                  return '(movement type is not (properly) set)';
-              }
-            }}
+            {this.showProgress()}
           </span>
-          {movementType === MOVEMENT_TYPES.MOVEMENT
-            ? [
-              <span data-field='speed' > {movement.speed}KT</span>,
-              <span data-field='direction'>{directionLongName}</span>
-            ]
-            : null
-          }
           {isVolcanicAsh && isNoVolcanicAshExpected
             ? <span data-field='no_va_expected'>No volcanic ash is expected at the end.</span>
             : null
@@ -324,9 +322,15 @@ class SigmetReadMode extends PureComponent {
             : null
           }
         </ProgressSection>
-
+        {movementType === MOVEMENT_TYPES.MOVEMENT
+          ? <MovementSection>
+            <span data-field='speed' >{movement.speed}KT</span>
+            <span data-field='direction'>{directionLongName}</span>
+          </MovementSection>
+          : null
+        }
         <ChangeSection>
-          <span data-field='change'>{change && CHANGES.find((obj) => obj.shortName === change).longName}</span>
+          <span data-field='change'>{(change && CHANGES.find((obj) => obj.shortName === change).longName) || '(change not set yet)'}</span>
         </ChangeSection>
 
         <IssueSection>

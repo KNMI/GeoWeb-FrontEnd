@@ -6,6 +6,7 @@ import { Typeahead } from 'react-bootstrap-typeahead';
 import TimePicker from '../Basis/DateTimePicker';
 import produce from 'immer';
 import moment from 'moment';
+import classNames from 'classnames';
 import cloneDeep from 'lodash.clonedeep';
 import PropTypes from 'prop-types';
 import { EDIT_ABILITIES, byEditAbilities } from '../../containers/Sigmet/SigmetActions';
@@ -28,6 +29,7 @@ import {
   DIRECTIONS, UNITS_ALT, UNITS, MODES_LVL, MODES_LVL_OPTIONS, CHANGES, MOVEMENT_TYPES, MOVEMENT_OPTIONS, SIGMET_TYPES,
   DATETIME_FORMAT, DISTRIBUTION_OPTIONS, dateRanges } from './SigmetTemplates';
 import { debounce } from '../../utils/debounce';
+import EndPositionSection from './Sections/EndPositionSection';
 
 class SigmetEditMode extends PureComponent {
   constructor (props) {
@@ -508,17 +510,24 @@ class SigmetEditMode extends PureComponent {
           />
         </ProgressSection>
 
-        <MovementSection movementType={movementType}>
+        <MovementSection disabled={movementType !== MOVEMENT_TYPES.MOVEMENT}>
           <Typeahead filterBy={['shortName', 'longName']} labelKey='longName' data-field='direction'
             options={DIRECTIONS} placeholder={'Set direction'} disabled={movementType !== MOVEMENT_TYPES.MOVEMENT}
             onFocus={() => dispatch(actions.updateSigmetAction(uuid, 'movement', { ...movement, dir: null }))}
             onChange={(selectedval) =>
               dispatch(actions.updateSigmetAction(uuid, 'movement', { ...movement, dir: selectedval.length > 0 ? selectedval[0].shortName : null }))}
             selected={selectedDirection ? [selectedDirection] : []}
-            className={movementType === MOVEMENT_TYPES.MOVEMENT && !selectedDirection ? 'missing' : null}
+            className={classNames({
+              required: movementType === MOVEMENT_TYPES.MOVEMENT,
+              missing: movementType === MOVEMENT_TYPES.MOVEMENT && !selectedDirection
+            })}
             clearButton
           />
-          <InputGroup data-field='speed' className={movementType === MOVEMENT_TYPES.MOVEMENT && !movement.speed ? 'unitAfter missing' : 'unitAfter'}
+          <InputGroup data-field='speed'
+            className={classNames('unitAfter', {
+              required: movementType === MOVEMENT_TYPES.MOVEMENT,
+              missing: movementType === MOVEMENT_TYPES.MOVEMENT && !movement.speed
+            })}
             disabled={movementType !== MOVEMENT_TYPES.MOVEMENT}>
             <Input onChange={(evt) => dispatch(actions.updateSigmetAction(uuid, 'movement', { ...movement, speed: parseInt(evt.target.value) }))}
               value={(!movement || !movement.speed) ? '' : movement.speed} placeholder={'Set speed'}
@@ -527,6 +536,8 @@ class SigmetEditMode extends PureComponent {
             />
             <InputGroupAddon>KT</InputGroupAddon>
           </InputGroup>
+        </MovementSection>
+        <EndPositionSection disabled={movementType !== MOVEMENT_TYPES.FORECAST_POSITION}>
           <DrawSection data-field='drawbar' title={drawMessage(true)}
             className={movementType === MOVEMENT_TYPES.FORECAST_POSITION ? `required${hasEndCoordinates ? '' : ' missing'}${feedbackEnd ? ' warning' : ''}` : ''}>
             {
@@ -542,7 +553,7 @@ class SigmetEditMode extends PureComponent {
               )
             }
           </DrawSection>
-        </MovementSection>
+        </EndPositionSection>
 
         <ChangeSection>
           <Typeahead filterBy={['shortName', 'longName']} labelKey='longName' data-field='change'
