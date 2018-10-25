@@ -5,7 +5,7 @@ import dirtyChai from 'dirty-chai';
 import { requestAnimationFrame } from 'request-animation-frame';
 import sinonChai from 'sinon-chai';
 import { configure } from 'enzyme';
-import Adapter from 'enzyme-adapter-react-15';
+import Adapter from 'enzyme-adapter-react-16';
 const { JSDOM } = require('jsdom');
 
 chai.use(chaiAsPromised);

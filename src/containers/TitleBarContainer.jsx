@@ -11,7 +11,7 @@ import axios from 'axios';
 import uuidV4 from 'uuid/v4';
 import {
   Alert, Navbar, NavbarBrand, Row, Col, Nav, NavLink, Breadcrumb, BreadcrumbItem,
-  Collapse, Label, ListGroup, ListGroupItem, ButtonGroup, InputGroupButton, Modal, ModalHeader, ModalBody, ModalFooter, Button, InputGroup, Input, FormText
+  Collapse, Label, ListGroup, ListGroupItem, ButtonGroup, InputGroupAddon, Modal, ModalHeader, ModalBody, ModalFooter, Button, InputGroup, Input, FormText
 } from 'reactstrap';
 import { AvForm, AvRadioGroup, AvRadio, AvField, AvGroup } from 'availity-reactstrap-validation';
 import { Link, hashHistory } from 'react-router';
@@ -692,8 +692,8 @@ class TitleBarContainer extends PureComponent {
     const hasRoleADMIN = CheckIfUserHasRole(user.roles, UserRoles.ADMIN);
     let cumulativePath = '';
     return (
-      <Navbar inverse className='test'>
-        <Row>
+      <Navbar className='test navbar-inverse'>
+        <Row className='no-gutters'>
           <Col xs='auto'>
             <NavbarBrand tag='div'>
               <Link activeClassName='breadcrumb-active' to={routes[0].path}>
@@ -1030,9 +1030,9 @@ class LayoutDropDown extends PureComponent {
               <Row>
                 <InputGroup>
                   <Input id='sourceurlinput' ref={ref => { this._urlinput = ref; }} placeholder='Add your own source' disabled={this.state.getCapBusy} />
-                  <InputGroupButton>
+                  <InputGroupAddon addonType='append'>
                     <Button color='primary' onClick={this.handleAddSource} disabled={this.state.getCapBusy}>Add</Button>
-                  </InputGroupButton>
+                  </InputGroupAddon>
                 </InputGroup>
                 <ListGroup>
                   {
@@ -1102,13 +1102,13 @@ class LayoutDropDown extends PureComponent {
               <Row style={{ marginTop: '0.5rem' }}>
                 <InputGroup>
                   <input className='form-control' ref={(ref) => { this.presetNameInput = ref; }} placeholder='Preset name' />
-                  <InputGroupButton>
+                  <InputGroupAddon addonType='append'>
                     <Button style={{ minWidth: '9.25rem' }} onClick={() => {
                       this.props.savePreset(this.presetNameInput.value)
                         .then(() => { this.presetNameInput.value = 'Saved preset'; this.props.fetchNewPresets(); })
                         .catch(() => { this.presetNameInput.value = 'Error saving preset'; });
                     }} color='primary'><Icon name='star' /> Save preset</Button>
-                  </InputGroupButton>
+                  </InputGroupAddon>
                 </InputGroup>
               </Row>
             </Col>

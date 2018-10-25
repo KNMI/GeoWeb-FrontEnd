@@ -139,11 +139,11 @@
   }
   .Draw.warning {
     border-radius: 0.25rem;
-    border-color: red; /* #f90; */
+    border-color: #d9534f; /* #f90; */
   }
   .Draw.missing, .Validity .missing {
     border-radius: 0.25rem;
-    border-color: red;
+    border-color: #d9534f;
   }
   .Draw.required::after {
     padding-top: 1rem;
@@ -318,7 +318,7 @@
         text-align: right;
       }
       &.missing {
-        border-color: red;
+        border-color: #d9534f;
       }
     }
   }
@@ -424,10 +424,10 @@
     content: '*';
   }
   .warning {
-    color: red; /* #f90; */
+    color: #d9534f; /* #f90; */
   }
   .required.missing:after {
-    color: red;
+    color: #d9534f;
     font-weight: bold;
   }
 

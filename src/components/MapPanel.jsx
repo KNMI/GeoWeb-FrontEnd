@@ -1,4 +1,4 @@
-import React, { PureComponent } from 'react';
+import React, { PureComponent, Component } from 'react';
 import Adaguc from './ADAGUC/Adaguc';
 import Panel from './Panel';
 import { Row, Col } from 'reactstrap';
@@ -10,7 +10,7 @@ import moment from 'moment';
 import { ReadLocations } from '../utils/admin';
 import { GetServiceByNamePromise } from '../utils/getServiceByName';
 
-export class SinglePanel extends PureComponent {
+export class SinglePanel extends Component {
   constructor () {
     super();
     this.renderPanelContent = this.renderPanelContent.bind(this);

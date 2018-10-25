@@ -8,7 +8,7 @@ class SidebarredLayout extends Component {
     const { leftSidebar, secondLeftSidebar, rightSidebar } = route;
     return (
       <Col className='sidebarredLayout'>
-        <Row>
+        <Row className='no-gutters'>
           {leftSidebar
             ? <Col xs='auto' className='LeftSideBar' tag='aside'>
               {leftSidebar}

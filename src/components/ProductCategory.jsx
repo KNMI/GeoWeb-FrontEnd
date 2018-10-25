@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Button, Col, Row, Badge, Card, CardHeader, CardBlock } from 'reactstrap';
+import { Button, Col, Row, Badge, Card, CardHeader, CardBody } from 'reactstrap';
 import { Link } from 'react-router';
 import Icon from 'react-fa';
 import CollapseOmni from '../components/CollapseOmni';
@@ -55,7 +55,7 @@ class ProductCategory extends Component {
             </Col>
           </CardHeader>}
         <CollapseOmni className='CollapseOmni' isOpen={this.state.isOpen} minSize={0} maxSize={maxSize}>
-          <CardBlock>
+          <CardBody>
             <Row>
               <Col className='btn-group-vertical'>
                 {tasks ? tasks.map((item, i) =>
@@ -78,7 +78,7 @@ class ProductCategory extends Component {
                 ) : ''}
               </Col>
             </Row>
-          </CardBlock>
+          </CardBody>
         </CollapseOmni>
       </Card>
     );

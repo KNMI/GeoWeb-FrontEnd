@@ -1,4 +1,3 @@
-@import '~normalize.css/normalize.css';
 @import '~bootstrap/scss/bootstrap';
 @import 'typeaheadjs';
 @import 'collapse';
@@ -41,7 +40,7 @@ body {
   width: 100vw;
   overflow: hidden;
 }
-button, button.btn, input, optgroup, select, textarea {
+html, body, button, button.btn, input, optgroup, select, textarea {
   font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   font-size: 1rem;
   font-weight: normal;
@@ -91,15 +90,20 @@ button.btn.btn-sm, button.btn.btn-group-sm > .btn {
   cursor: pointer;
 }
 
-.popover-content > li,.btn-group-vertical > .btn {
+.btn-group-vertical > .btn {
   cursor: pointer;
 }
 
 .row {
   margin: 0;
+  &.no-gutters {
+    .col-auto {
+      padding: 0;
+    }
+  }
 }
 
-.col, .col-1, .col-2, .col-3, .col-4, .col-5, .col-6, .col-7, .col-8, .col-9, .col-10, .col-12 {
+.col, .col-1, .col-2, .col-3, .col-4, .col-5, .col-6, .col-7, .col-8, .col-9, .col-10, .col-12, .col-auto {
   padding: 0;
 }
 
@@ -163,8 +167,13 @@ button.btn.btn-sm, button.btn.btn-group-sm > .btn {
   opacity: 0.6;
 }
 
+.btn {
+  padding: 0.5rem 1rem;
+}
+
 .btn-primary {
   @extend .ux-interactive;
+  padding: 0.5rem 1rem;
 }
 
 .btn-primary:hover {
@@ -179,13 +188,23 @@ button.btn.btn-sm, button.btn.btn-group-sm > .btn {
   @extend .ux-interactive:active;
 }
 
-.btn-primary.active {
+.btn-primary:not(:disabled):not(.disabled).active {
   @extend .ux-interactive:checked;
 }
 
 .btn-primary.disabled, .btn-primary.disabled:hover {
   @extend .ux-interactive:disabled;
   background-color: $ux-interactive-color;
+}
+
+.btn-primary:not(:disabled):not(.disabled):focus {
+  &:active, &.active {
+    box-shadow: unset;
+  }
+}
+
+.btn-secondary, .btn-secondary:hover {
+  color: #292b2c;
 }
 
 .btn-outline-info {
@@ -214,7 +233,7 @@ button.btn.btn-sm, button.btn.btn-group-sm > .btn {
   font-style: italic;
 }
 
-.search-clear, .search-clear:hover, .search-clear:focus, .search-clear:active {
+button.search-clear, .search-clear, .search-clear:hover, .search-clear:focus, .search-clear:active {
   color: rgba(0, 0, 0, 0.149);
   font-size: 0.8rem;
   background: none;
@@ -241,7 +260,7 @@ button.btn.btn-sm, button.btn.btn-group-sm > .btn {
 
 .missing {
   .form-control, .form-control.rbt-input {
-    border-color: red;
+    border-color: #d9534f;
   }
 }
 
@@ -252,6 +271,10 @@ button.btn.btn-sm, button.btn.btn-group-sm > .btn {
 
 .form-control.rbt-input {
   padding: 0.2rem 0.75rem;
+}
+
+.form-control {
+  height: unset;
 }
 
 .rbt.open {
@@ -282,6 +305,10 @@ button.btn.btn-sm, button.btn.btn-group-sm > .btn {
   padding: 0.1rem 0.5rem;
   margin-bottom: 0.2rem;
   width: 100%;
+  line-height: 1.5;
+  > .row {
+    width: 100%;
+  }
 }
 
 .nav-link {
@@ -307,12 +334,14 @@ button.btn.btn-sm, button.btn.btn-group-sm > .btn {
 
 .navbar-brand {
   margin-left: 0.3rem;
+  padding: 0.25rem 0;
 }
 
 .breadcrumb {
   background: none;
   padding-top: 0.925rem;
   margin-bottom: 0;
+  padding-bottom: 0.75rem;
 }
 
 .breadcrumb-item a, .breadcrumb-item a:hover {
@@ -383,7 +412,7 @@ a.breadcrumb-active:hover, a.nav-link.active:hover {
 }
 
 .accordion > a:not([href]),
-.accordion .card-block .btn:disabled,
+.accordion .card-body .btn:disabled,
 .accordion > .card-header.disabled {
   cursor: not-allowed;
 }
@@ -408,22 +437,26 @@ a.breadcrumb-active:hover, a.nav-link.active:hover {
   background: inherit;
 }
 
-.accordion .card-block .btn-group-vertical > .btn:first-child:not(.focus) {
+.accordion .card-body .btn-group-vertical > .btn:first-child:not(.focus) {
   border-radius: 0;
 }
 
-.accordion .card-block {
+.accordion .card-body {
   padding: 0;
   margin-right: 0.33rem;
 }
 
-.accordion .card-block .row {
+.accordion .card-body .row {
   flex: 1;
 }
 
-.accordion .card-block .row.btn {
+.accordion .card-body .row.btn {
   display: flex;
   flex-flow: row nowrap;
+}
+
+.badge-danger {
+  background-color: #d9534f;
 }
 
 .accordion .badge {
@@ -440,12 +473,12 @@ a.breadcrumb-active:hover, a.nav-link.active:hover {
   margin-bottom: 0.5rem;
 }
 
-.accordion .card-block .icon {
+.accordion .card-body .icon {
   padding: 0 0.5rem;
   margin-left: 0.5rem;
 }
 
-.accordion .card-block .btn:focus {
+.accordion .card-body .btn:focus {
   box-shadow: unset;
 }
 
@@ -454,7 +487,7 @@ a.breadcrumb-active:hover, a.nav-link.active:hover {
   padding-top: 0.5rem;
 }
 
-.dropdown-item, .bootstrap-typeahead-menu > li, .popover-content > li {
+.dropdown-item, .bootstrap-typeahead-menu > li {
   padding: 0.19rem;
 }
 
@@ -514,9 +547,6 @@ a.breadcrumb-active:hover, a.nav-link.active:hover {
   margin-right: 0.4rem;
 }
 
-#timePopover {
-  margin-top: 11rem;
-}
 aside, header, main {
   display: inherit;
 }
@@ -631,6 +661,7 @@ input[type=number]::-webkit-inner-spin-button {
 
 .Panel > .title .input-group {
   margin-left: 0.8rem;
+  flex-wrap: nowrap;
 }
 
 .Panel > .title .form-inline .form-control {
@@ -735,12 +766,12 @@ span.fa {
   padding: 0.5rem 0.7rem;
 }
 
-.accordion .card-block .TafStyle.row.btn {
+.accordion .card-body .TafStyle.row.btn {
   flex-direction: column;
   padding: 0.19rem;
   line-height: 1.4rem;
 }
 
-.accordion .card-block .TafStyle.row.btn .row {
+.accordion .card-body .TafStyle.row.btn .row {
   flex-direction: row;
 }

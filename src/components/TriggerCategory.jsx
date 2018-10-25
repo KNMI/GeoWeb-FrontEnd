@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Button, Col, Row, Badge, Card, CardHeader, CardBlock } from 'reactstrap';
+import { Button, Col, Row, Badge, Card, CardHeader, CardBody } from 'reactstrap';
 import Moment from 'react-moment';
 import moment from 'moment';
 import Icon from 'react-fa';
@@ -75,7 +75,7 @@ class TriggerCategory extends Component {
             </Col>
           </CardHeader>}
         <CollapseOmni className='CollapseOmni' isOpen={this.state.isOpen} minSize={0} maxSize={maxSize}>
-          <CardBlock>
+          <CardBody>
             <Row>
               <Col className='btn-group-vertical'>
                 {data.map((item, index) =>
@@ -127,7 +127,7 @@ class TriggerCategory extends Component {
                 )}
               </Col>
             </Row>
-          </CardBlock>
+          </CardBody>
         </CollapseOmni>
       </Card>);
   }

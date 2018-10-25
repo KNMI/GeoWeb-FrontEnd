@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Button, Col, Row, InputGroupButton, InputGroup, Input, Badge, Card, CardHeader, CardBlock } from 'reactstrap';
+import { Button, Col, Row, InputGroupAddon, InputGroup, Input, Badge, Card, CardHeader, CardBody } from 'reactstrap';
 import { Link } from 'react-router';
 import Icon from 'react-fa';
 import cloneDeep from 'lodash.clonedeep';
@@ -169,12 +169,14 @@ class TasksContainer extends Component {
       {this.state.isOpen ? <InputGroup>
         <Input id='task-filter' className='search-input' placeholder='search term&hellip;'
           onKeyPress={this.handleKeyPress} onKeyUp={this.handleKeyUp} onFocus={this.handleFocus} onBlur={this.handleBlur} />
-        <InputGroupButton className='search-clear'onClick={this.handleClickClear}>
-          <Icon name='times' />
-        </InputGroupButton>
-        <InputGroupButton>
+        <InputGroupAddon addonType='append'>
+          <Button className='search-clear'onClick={this.handleClickClear}>
+            <Icon name='times' />
+          </Button>
+        </InputGroupAddon>
+        <InputGroupAddon addonType='append'>
           <Button outline color='info' onClick={this.handleClickFilter}>Search</Button>
-        </InputGroupButton>
+        </InputGroupAddon>
       </InputGroup> : ''}
     </Row>;
     const hasFilter = this.state.filter instanceof RegExp;
@@ -259,7 +261,7 @@ class TaskCategory extends Component {
             </Col>
           </CardHeader>}
         <CollapseOmni className='CollapseOmni' isOpen={this.state.isOpen} minSize={0} maxSize={40 * tasks.length}>
-          <CardBlock>
+          <CardBody>
             <Row>
               <Col className='btn-group-vertical'>
                 {tasks.map((item, i) =>
@@ -280,7 +282,7 @@ class TaskCategory extends Component {
                 )}
               </Col>
             </Row>
-          </CardBlock>
+          </CardBody>
         </CollapseOmni>
       </Card>
     );
