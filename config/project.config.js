@@ -43,6 +43,7 @@ const config = {
     colors : true
   },
   compiler_vendors : [
+    '@babel/polyfill',
     'availity-reactstrap-validation',
     'axios',
     'bootstrap',
@@ -52,6 +53,7 @@ const config = {
     'es6-enum',
     'immer',
     'ip',
+    'jquery',
     'lodash.clonedeep',
     'lodash.escaperegexp',
     'lodash.get',
@@ -73,9 +75,11 @@ const config = {
     'react-json-tree',
     'react-moment',
     'react-moment-proptypes',
+    'react-popper',
     'react-redux',
     'react-router',
     'react-sortable-hoc',
+    'react-transition-group',
     'reactstrap',
     'reapop',
     'reapop-theme-wybo',

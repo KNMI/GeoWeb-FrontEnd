@@ -203,23 +203,35 @@ button.btn.btn-sm, button.btn.btn-group-sm > .btn {
   }
 }
 
-.btn-secondary, .btn-secondary:hover {
-  color: #292b2c;
-}
-
-.btn-outline-info {
+.btn-secondary, .btn-outline-info {
   color: $ux-interactive-color-checked;
   border-color: $ux-interactive-color-checked;
 }
 
-.btn-outline-info:hover {
+.btn-outline-info {
+  background-color: transparent;
+}
+
+.btn-secondary {
+  background-color: #fff;
+}
+
+.btn-secondary:hover, .btn-outline-info:hover, .show > .btn-secondary.dropdown-toggle {
   color: $inverse-active-color;
   border-color: $ux-interactive-color-checked;
   background-color: $ux-interactive-color-checked;
 }
 
-.btn-outline-info:focus {
+.btn-secondary:focus, .btn-outline-info:focus {
   box-shadow: unset;
+}
+
+.btn-secondary {
+  &:disabled, &.disabled {
+    background-color: transparent;
+    border-color: #ced4da;
+    cursor: not-allowed;
+  }
 }
 
 .search-input {
@@ -233,29 +245,66 @@ button.btn.btn-sm, button.btn.btn-group-sm > .btn {
   font-style: italic;
 }
 
-button.search-clear, .search-clear, .search-clear:hover, .search-clear:focus, .search-clear:active {
-  color: rgba(0, 0, 0, 0.149);
-  font-size: 0.8rem;
+.input-group {
+  > .input-group-append .btn, > .input-group-prepend:not(:first-child) .btn {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+  }
+  > .input-group-append:not(:last-child) .btn, .input-group-prepend .btn {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+}
+
+button.search-clear.btn.btn-secondary, .search-clear, .search-clear:hover, .search-clear:focus, .search-clear:active {
+  font-size: 1.5rem;
   background: none;
-  border: 0.063rem solid rgba(0, 0, 0, 0.149);
+  border: 0.063rem solid #3299cb80;
   border-left: none;
   border-right: none;
   box-shadow: unset;
-  padding: 0.5rem 0.3rem;
+  padding: 0 0.25rem;
+  background-color: transparent;
+  font-weight: 700;
+  line-height: 0.9;
+  span {
+    color: #000;
+    opacity: .5;
+  }
+}
+button.search-clear.btn.btn-secondary:hover {
+  span {
+    opacity: .75;
+  }
+}
+button.search-clear.btn.btn-secondary:disabled {
+  cursor: default;
+  opacity: 1;
+  span {
+    color: #aaa;
+    opacity: 0.5;
+  }
 }
 
-.search-clear.focus {
-  border-color: $ux-interactive-color-checked;
+.search-clear.btn.btn-secondary.focus {
+  border-color: #3299cb80;
   box-shadow: inherit;
 }
 
-.search-clear.active {
+.search-clear.btn.btn-secondary:not(:disabled):active, search-clear.btn.btn-secondary:not(.disabled):active {
+  border-color: #3299cb80;
   color: $ux-interactive-color-checked;
   background: inherit;
+  box-shadow: unset;
 }
 
 .form-control:focus {
   border-color: $ux-interactive-color-checked;
+}
+
+.form-control, .form-control:focus, .form-control.rbt-input, .form-control.rbt-input:focus {
+  border-color: #3298cb80;
+  box-shadow: unset;
 }
 
 .missing {
@@ -267,6 +316,7 @@ button.search-clear, .search-clear, .search-clear:hover, .search-clear:focus, .s
 .form-control:disabled, .rbt-input-hint-container[disabled] {
   cursor: not-allowed;
   background-color: #e8eaec;
+  border-color: #ced4da;
 }
 
 .form-control.rbt-input {
@@ -405,16 +455,21 @@ a.breadcrumb-active:hover, a.nav-link.active:hover {
   cursor: pointer;
 }
 
-.accordion a:not(.triggerPreset) {
-  color: inherit;
+.accordion a {
   text-decoration: inherit;
-  cursor: inherit;
+  &.btn.disabled {
+    pointer-events: unset;
+  }
 }
 
-.accordion > a:not([href]),
+.accordion a:not([href]),
 .accordion .card-body .btn:disabled,
 .accordion > .card-header.disabled {
   cursor: not-allowed;
+}
+
+.accordion .card-header a {
+  color: $inverse-active-color;
 }
 
 .accordion .card-header .btn-outline-info {
@@ -441,9 +496,12 @@ a.breadcrumb-active:hover, a.nav-link.active:hover {
   border-radius: 0;
 }
 
+.accordion .card-body .btn-group-vertical {
+  justify-content: unset;
+}
+
 .accordion .card-body {
   padding: 0;
-  margin-right: 0.33rem;
 }
 
 .accordion .card-body .row {
@@ -690,7 +748,7 @@ input[type=number]::-webkit-inner-spin-button {
 
 .Panel .accordionsWrapper .collapse .btn.btn-secondary.active {
   background: #bcdff1;
-  border-color: #3299cb;
+  border-color: #3299cb80;
   z-index: unset;
 }
 

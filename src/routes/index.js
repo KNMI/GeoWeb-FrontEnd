@@ -15,7 +15,6 @@ import { Route, IndexRoute } from 'react-router';
 import { connect } from 'react-redux';
 
 import TasksContainer from '../containers/TasksContainer';
-import ProductsContainer from '../containers/ProductsContainer';
 import TriggersContainer from '../containers/TriggersContainer';
 
 import AppManagementPanel from '../components/Management/AppManagementPanel';
@@ -136,21 +135,21 @@ const mapStateToTafsContainerProps = (state) => ({
   urls: state.urls,
   user: state.userProperties
 });
-const mapStateToProductsContainerProps = state => ({
-  adagucProperties: state.adagucProperties,
-  panelsProperties: state.panelsProperties,
-  mapProperties: state.mapProperties,
-  drawProperties: state.drawProperties,
-  user: state.userProperties
+const mapStateToProductSidebarProps = state => ({
+  recentTriggers: state.recentTriggers,
+  urls: state.urls,
+  user: state.userProperties,
+  isOpen: true,
+  openCategory: 'Products'
 });
 // TODO: research this; http://henleyedition.com/implicit-code-splitting-with-react-router-and-webpack/
 export const createRoutes = (store) => {
   const header = React.createElement(connect(mapStateToHeaderProps, mapDispatchToHeaderProps)(TitleBarContainer));
   const leftSidebar = React.createElement(connect(mapStateToSidebarProps)(TasksContainer));
+  const leftSidebarProducts = React.createElement(connect(mapStateToProductSidebarProps)(TasksContainer));
   const rightSidebar = React.createElement(connect(mapStateToRightSideBarProps, mapDispatchToRightSidebarProps)(MapActionsContainer));
   const map = connect(mapStateToMapProps, mapDispatchToMainViewportProps)(MapPanel);
   const layerManager = React.createElement(connect(mapStateToLayerManagerProps, mapDispatchToLayerManagerProps)(LayerManagerPanel));
-  const products = React.createElement(connect(mapStateToProductsContainerProps, mapDispatchToLayerManagerProps)(ProductsContainer));
   const sigmet = React.createElement(connect((state) => ({
     drawProperties: state.drawProperties,
     urls: state.urls,
@@ -182,7 +181,7 @@ export const createRoutes = (store) => {
         <Route path='products' title='Products'>
           {/* Here all product routes */}
           <Route component={FooteredLayout} footer={layerManager} >
-            <Route component={SidebarredLayout} secondLeftSidebar={products} leftSidebar={leftSidebar} rightSidebar={rightSidebar}>
+            <Route component={SidebarredLayout} leftSidebar={leftSidebarProducts} rightSidebar={rightSidebar}>
               <IndexRoute component={map} />
             </Route>
           </Route>

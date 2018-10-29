@@ -76,6 +76,7 @@
   flex: 0 auto;
   padding: 0.19rem;
   line-height: 1.4;
+  color: #292b2c;
 
   .Header {
     margin: 0.33rem 0;
@@ -466,6 +467,7 @@
 
 .accordion .Sigmet.btn-secondary:not(.focus) {
   background: #eee;
+  border-color: #ccc;
   cursor: pointer;
 }
 
@@ -476,4 +478,8 @@
   box-shadow: unset;
   outline: unset;
   border-width: 0.1rem 0.1rem 0.2rem 0.06rem;
+}
+
+.SigmetsCategory.accordion .card-body {
+  margin-right: 0.33rem;
 }

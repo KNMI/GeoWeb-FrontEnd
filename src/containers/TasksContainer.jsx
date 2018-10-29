@@ -44,7 +44,6 @@ const items = [
   {
     title: 'Products',
     icon: 'gift',
-    link: 'products',
     tasks: [
       { title: 'Today\'s all shift products' },
       { title: 'Shared products' },
@@ -156,22 +155,27 @@ class TasksContainer extends Component {
   }
 
   render () {
-    const { user } = this.props;
+    const { user, isOpen : isOpenProp, openCategory } = this.props;
     if (user && (!user.isLoggedIn || !CheckIfUserHasRole(user, 'MET'))) {
       return null;
     }
 
+    const isOpen = isOpenProp === true || this.state.isOpen === true;
+    const hasFilter = this.state.filter instanceof RegExp;
     const triggers = this.props.recentTriggers || [];
     let title = <Row>
-      <Button color='primary' onClick={this.toggle} title={this.state.isOpen ? 'Collapse panel' : 'Expand '}>
-        <Icon name={this.state.isOpen ? 'angle-double-left' : 'angle-double-right'} />
-      </Button>
-      {this.state.isOpen ? <InputGroup>
+      {typeof openCategory !== 'string' || openCategory.length === 0
+        ? <Button color='primary' onClick={this.toggle} title={isOpen ? 'Collapse panel' : 'Expand '}>
+          <Icon name={isOpen ? 'angle-double-left' : 'angle-double-right'} />
+        </Button>
+        : null
+      }
+      {isOpen ? <InputGroup>
         <Input id='task-filter' className='search-input' placeholder='search term&hellip;'
           onKeyPress={this.handleKeyPress} onKeyUp={this.handleKeyUp} onFocus={this.handleFocus} onBlur={this.handleBlur} />
         <InputGroupAddon addonType='append'>
-          <Button className='search-clear'onClick={this.handleClickClear}>
-            <Icon name='times' />
+          <Button className='search-clear'onClick={this.handleClickClear} disabled={!hasFilter}>
+            <span>×</span>
           </Button>
         </InputGroupAddon>
         <InputGroupAddon addonType='append'>
@@ -179,7 +183,6 @@ class TasksContainer extends Component {
         </InputGroupAddon>
       </InputGroup> : ''}
     </Row>;
-    const hasFilter = this.state.filter instanceof RegExp;
     let filteredItems = cloneDeep(items).filter(category => {
       if (hasFilter) {
         category.tasks = category.tasks.filter(item => this.state.filter.test(item.title));
@@ -190,11 +193,11 @@ class TasksContainer extends Component {
     const notifiedItems = this.setNotifications(filteredItems, 'monitoring_and_triggers', triggers.filter((trigger) => !trigger.discarded).length);
     return (
       <Col className='TasksContainer'>
-        <CollapseOmni className='CollapseOmni' isOpen={this.state.isOpen} isHorizontal minSize={64} maxSize={300}>
+        <CollapseOmni className='CollapseOmni' isOpen={isOpen} isHorizontal minSize={64} maxSize={300}>
           <Panel className='Panel' title={title}>
             <Col xs='auto' className='accordionsWrapper'>
               {notifiedItems.map((item, index) => {
-                return <TaskCategory key={index} title={item.title} isOpen={this.state.isOpen && hasFilter} parentCollapsed={!this.state.isOpen}
+                return <TaskCategory key={index} title={item.title} isOpen={isOpen && (hasFilter || item.title === openCategory)} parentCollapsed={!isOpen}
                   icon={item.icon} notifications={item.notifications} link={item.link} tasks={item.tasks} />;
               }
               )}
@@ -208,7 +211,9 @@ class TasksContainer extends Component {
 
 TasksContainer.propTypes = {
   recentTriggers: PropTypes.array,
-  user: PropTypes.object
+  user: PropTypes.object,
+  isOpen: PropTypes.bool,
+  openCategory: PropTypes.string
 };
 
 class TaskCategory extends Component {
@@ -251,13 +256,6 @@ class TaskCategory extends Component {
             </Col>
             <Col xs='auto'>
               {notifications > 0 ? <Badge color='danger' pill>{notifications}</Badge> : null}
-            </Col>
-            <Col xs='auto'>
-              <Link to={link} className='row'>
-                <Button outline color='info' disabled={typeof link === 'undefined'}>
-                  <Icon name='caret-right' />
-                </Button>
-              </Link>
             </Col>
           </CardHeader>}
         <CollapseOmni className='CollapseOmni' isOpen={this.state.isOpen} minSize={0} maxSize={40 * tasks.length}>
