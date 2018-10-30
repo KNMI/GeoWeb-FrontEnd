@@ -4,13 +4,15 @@ import Icon from 'react-fa';
 import CollapseOmni from '../components/CollapseOmni';
 import PropTypes from 'prop-types';
 import axios from 'axios';
+import { notify } from 'reapop';
 
 class TriggerTestCategory extends Component {
   constructor (props) {
     super(props);
     this.handleTriggerClick = this.handleTriggerClick.bind(this);
-    this.setPreset = this.setPreset.bind(this);
     this.addTrigger = this.addTrigger.bind(this);
+    this.getTriggerFile = this.getTriggerFile.bind(this);
+    this.showTriggerMessage = this.showTriggerMessage.bind(this);
     this.state = {
       isOpen: props.isOpen
     };
@@ -36,44 +38,57 @@ class TriggerTestCategory extends Component {
     return `${parameter} (${operator}${threshold} ${units})`;
   }
 
-  setPreset (presetName) {
-    axios.get(BACKEND_SERVER_URL + '/preset/getpreset?name=' + presetName, { withCredentials: true }).then((res) => {
-      this.props.dispatch(this.props.actions.setPreset(res.data));
+  addTrigger () {
+    const currentdate = new Date();
+    const year = currentdate.getUTCFullYear();
+    const month = currentdate.getUTCMonth() + 1;
+    const day = currentdate.getUTCDate();
+    let hours = currentdate.getUTCHours();
+    let minutes = Math.floor(currentdate.getUTCMinutes() / 10);
+    if (minutes !== 0) {
+      minutes = minutes - 1;
+    } else {
+      minutes = 5;
+      hours = hours - 1;
+    }
+    const triggerinfo = {
+      parameter: 'ta',
+      operator: 'higher',
+      limit: 7.5,
+      serviceurl: 'http://birdexp07.knmi.nl/geoweb/data/OBS/kmds_alle_stations_10001_' + year + month + day + hours + minutes + '0.nc'
+    };
+    axios({
+      method: 'post',
+      url: this.props.urls.BACKEND_SERVER_URL + '/triggers/triggercreate',
+      data: triggerinfo
+    });
+    setTimeout(this.getTriggerFile, 500);
+  }
+
+  getTriggerFile () {
+    axios({
+      method: 'get',
+      url: this.props.urls.BACKEND_SERVER_URL + '/triggers/triggerget'
+    }).then((res) => {
+      this.showTriggerMessage(res.data);
     }).catch((error) => {
       console.error(error);
     });
   }
 
-  addTrigger(){
-    const currentdate = new Date();
-    const year = currentdate.getUTCFullYear();
-    const month = currentdate.getUTCMonth() + 1;
-    const day = currentdate.getUTCDate();
-    const hours = currentdate.getUTCHours();
-    let minutes = Math.floor(currentdate.getUTCMinutes() / 10);
-    if (minutes != 0){
-      minutes = minutes - 1;
-    }
-    else{
-      minutes = 5;
-    }
-    console.log('Date: ', year, '-', month, '-', day, '|| Time: ', hours, ':', minutes);
-    const dataseturl = 'http://birdexp07.knmi.nl/geoweb/data/OBS/kmds_alle_stations_10001_'+ year + month + day + hours + minutes + '0.nc';
-    const triggerinfo = {
-      parameter: 'ta',
-      operator: 'higher',
-      limit: 7.5,
-      serviceurl: dataseturl
-    };
-    axios({
-      method: 'post',
-      url: this.props.urls.BACKEND_SERVER_URL + '/triggers/triggertest',
-      data: triggerinfo
-    }).then((res) => {
-      this.props.dispatch(this.props.actions.setPreset(res.data));
-    }).catch((error) => {
-      console.error(error);
-    });
+  showTriggerMessage (data) {
+    // const datajson = require(data);
+    // console.log(datajson.phenomenon.long_name);
+    console.log(data);
+    const { dispatch } = this.props;
+    dispatch(notify({
+      title: 'Test',
+      message: data,
+      status: 'warning',
+      position: 'bl',
+      dismissAfter: 0,
+      dismissible: true
+    }));
   }
 
   render () {
@@ -106,11 +121,9 @@ TriggerTestCategory.propTypes = {
   isOpen        : PropTypes.bool,
   title         : PropTypes.string.isRequired,
   icon          : PropTypes.string,
-  selectedIndex : PropTypes.number,
   toggleMethod  : PropTypes.func,
-  parentCollapsed   : PropTypes.bool,
   data              : PropTypes.array,
-  urls              : PropTypes.shape({BACKEND_SERVER_URL:PropTypes.string}).isRequired
+  urls              : PropTypes.shape({ BACKEND_SERVER_URL:PropTypes.string }).isRequired
 };
 
 export default TriggerTestCategory;

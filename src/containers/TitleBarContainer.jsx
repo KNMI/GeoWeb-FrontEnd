@@ -18,7 +18,7 @@ import { Link, hashHistory } from 'react-router';
 import PropTypes from 'prop-types';
 import moment from 'moment';
 import cloneDeep from 'lodash.clonedeep';
-import { addNotification } from 'reapop';
+import { addNotification, notify } from 'reapop';
 // import datajson from '/nobackup/users/schouten/Triggers/trigger_2018101913063100519.json';
 import { Typeahead } from 'react-bootstrap-typeahead';
 import { GetServices } from '../utils/getServiceByName';
@@ -91,8 +91,8 @@ class TitleBarContainer extends PureComponent {
 
   addTriggerTest () {
     const datajson = this.readJSONFileTest();
-    const { notify } = this.props;
-    notify({
+    const { dispatch } = this.props;
+    dispatch(notify({
       title: datajson.phenomenon.long_name,
       message: this.setTriggerTestMessage(),
       status: 'warning',
@@ -108,7 +108,7 @@ class TitleBarContainer extends PureComponent {
         name: 'Remove locations',
         onClick: (e) => { e.stopPropagation(); this.handleTriggerClick([]); }
       }]
-    })
+    }));
   }
 
   triggerService () {

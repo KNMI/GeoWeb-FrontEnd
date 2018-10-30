@@ -14,7 +14,6 @@ import { actions as drawActions } from '../redux/modules/drawReducer';
 import { actions as triggerActions } from '../redux/modules/recentTriggerReducer';
 import { Route, IndexRoute } from 'react-router';
 import { connect } from 'react-redux';
-import { notify } from 'reaopop';
 
 import TasksContainer from '../containers/TasksContainer';
 import ProductsContainer from '../containers/ProductsContainer';
@@ -67,8 +66,7 @@ const mapDispatchToHeaderProps = function (dispatch) {
     adagucActions,
     userActions,
     panelsActions,
-    triggerActions,
-    notify
+    triggerActions
   });
 };
 const mapStateToSidebarProps = state => ({
