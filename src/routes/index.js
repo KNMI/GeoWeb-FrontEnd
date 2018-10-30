@@ -11,11 +11,14 @@ import { actions as mapActions } from '../redux/modules/mapReducer';
 import { actions as adagucActions } from '../redux/modules/adagucReducer';
 import { actions as panelsActions } from '../redux/modules/panelsReducer';
 import { actions as drawActions } from '../redux/modules/drawReducer';
+import { actions as triggerActions } from '../redux/modules/recentTriggerReducer';
 import { Route, IndexRoute } from 'react-router';
 import { connect } from 'react-redux';
+import { notify } from 'reaopop';
 
 import TasksContainer from '../containers/TasksContainer';
 import ProductsContainer from '../containers/ProductsContainer';
+import TriggersTestContainer from '../containers/TriggersTestContainer';
 import TriggersContainer from '../containers/TriggersContainer';
 
 import AppManagementPanel from '../components/Management/AppManagementPanel';
@@ -54,7 +57,8 @@ const mapStateToHeaderProps = state => ({
   panelsProperties: state.panelsProperties,
   fullState: state,
   urls: state.urls,
-  adagucProperties: state.adagucProperties
+  adagucProperties: state.adagucProperties,
+  recentTriggerProperties: state.recentTriggerProperties
 });
 const mapDispatchToHeaderProps = function (dispatch) {
   return ({
@@ -62,7 +66,9 @@ const mapDispatchToHeaderProps = function (dispatch) {
     mapActions,
     adagucActions,
     userActions,
-    panelsActions
+    panelsActions,
+    triggerActions,
+    notify
   });
 };
 const mapStateToSidebarProps = state => ({
@@ -99,7 +105,8 @@ const mapDispatchToLayerManagerProps = function (dispatch) {
   return ({
     dispatch,
     panelsActions,
-    adagucActions
+    adagucActions,
+    triggerActions
   });
 };
 const mapDispatchToSigmetProps = function (dispatch) {
@@ -111,20 +118,25 @@ const mapDispatchToSigmetProps = function (dispatch) {
     adagucActions
   });
 };
-const mapStateToMapProps = state => ({
-  drawProperties: { ...state.drawProperties },
-  mapProperties: { ...state.mapProperties },
-  adagucProperties: state.adagucProperties,
-  panelsProperties: { ...state.panelsProperties },
-  urls: state.urls,
-  user: state.userProperties
-});
+const mapStateToMapProps = state => {
+  return {
+    drawProperties: { ...state.drawProperties },
+    mapProperties: { ...state.mapProperties },
+    adagucProperties: state.adagucProperties,
+    recentTriggerProperties: state.recentTriggerProperties,
+    panelsProperties: { ...state.panelsProperties },
+    urls: state.urls,
+    user: state.userProperties
+  };
+};
 
 const mapStateToLayerManagerProps = state => ({
   adagucProperties: state.adagucProperties,
   panelsProperties: state.panelsProperties,
   mapProperties: state.mapProperties,
   drawProperties: state.drawProperties,
+  recentTriggersProperties: state.recentTriggerProperties,
+  recentTriggersTestProperties: state.recentTriggerProperties,
   urls: state.urls
 });
 
@@ -156,6 +168,7 @@ export const createRoutes = (store) => {
     urls: state.urls,
     sources: state.adagucProperties.sources
   }), mapDispatchToSigmetProps)(SigmetsContainer));
+  const triggerTest = React.createElement(connect(mapStateToLayerManagerProps, mapDispatchToLayerManagerProps)(TriggersTestContainer));
   const taf = connect(mapStateToTafsContainerProps, mapDispatchToLayerManagerProps)(TafsContainer);
   const trigger = React.createElement(connect(mapStateToLayerManagerProps, mapDispatchToLayerManagerProps)(TriggersContainer));
   const manageLeft = React.createElement(SidebarContainer);
@@ -198,6 +211,16 @@ export const createRoutes = (store) => {
               <Route component={FooteredLayout} >
                 <IndexRoute component={taf} />
               </Route>
+            </Route>
+          </Route>
+
+        </Route>
+
+        <Route path='triggers_test' title='Triggers'>
+          {/* Here all trigger routes */}
+          <Route component={FooteredLayout} footer={layerManager} >
+            <Route component={SidebarredLayout} secondLeftSidebar={triggerTest} leftSidebar={leftSidebar} rightSidebar={rightSidebar}>
+              <IndexRoute component={map} />
             </Route>
           </Route>
 

@@ -19,6 +19,7 @@ import PropTypes from 'prop-types';
 import moment from 'moment';
 import cloneDeep from 'lodash.clonedeep';
 import { addNotification } from 'reapop';
+// import datajson from '/nobackup/users/schouten/Triggers/trigger_2018101913063100519.json';
 import { Typeahead } from 'react-bootstrap-typeahead';
 import { GetServices } from '../utils/getServiceByName';
 const timeFormat = 'ddd DD MMM YYYY HH:mm [UTC]';
@@ -39,9 +40,11 @@ class TitleBarContainer extends PureComponent {
     this.sendFeedback = this.sendFeedback.bind(this);
     this.triggerService = this.triggerService.bind(this);
     this.retrieveTriggers = this.retrieveTriggers.bind(this);
-    this.gotTriggersCallback = this.gotTriggersCallback.bind(this);
+    // this.gotTriggersCallback = this.gotTriggersCallback.bind(this);
+    // this.gotTestTriggersCallback = this.gotTestTriggersCallback.bind(this);
     this.fetchPresets = this.fetchPresets.bind(this);
-    this.errorTriggersCallback = this.errorTriggersCallback.bind(this);
+    // this.errorTriggersCallback = this.errorTriggersCallback.bind(this);
+    // this.errorTestTriggersCallback = this.errorTestTriggersCallback.bind(this);
     this.toggleLoginModal = this.toggleLoginModal.bind(this);
     this.toggleFeedbackModal = this.toggleFeedbackModal.bind(this);
     this.toggleSharePresetModal = this.toggleSharePresetModal.bind(this);
@@ -53,6 +56,10 @@ class TitleBarContainer extends PureComponent {
     this.checkCredentialsBadCallback = this.checkCredentialsBadCallback.bind(this);
     this.getServices = this.getServices.bind(this);
     this.render = this.render.bind(this);
+    this.handleTriggerClick = this.handleTriggerClick.bind(this);
+    this.addTriggerTest = this.addTriggerTest.bind(this);
+    this.setTriggerTestMessage = this.setTriggerTestMessage.bind(this);
+    this.readJSONFileTest = this.readJSONFileTest.bind(this);
     this.inputfieldUserName = '';
     this.inputfieldPassword = '';
     this.timer = -1;
@@ -66,6 +73,44 @@ class TitleBarContainer extends PureComponent {
     };
   }
 
+  readJSONFileTest () {
+    const datajson = require('/nobackup/users/schouten/Triggers/trigger_2018101913063100519.json');
+    return datajson;
+  }
+
+  setTriggerTestMessage () {
+    const datajson = this.readJSONFileTest();
+    let locationamount = '';
+    if (datajson.locations.length === 1) {
+      locationamount = 'location';
+    } else {
+      locationamount = 'locations';
+    }
+    return `${datajson.phenomenon.long_name} ${datajson.phenomenon.operator} than ${datajson.phenomenon.limit} ${datajson.phenomenon.unit} detected at ${datajson.locations.length} ` + locationamount;
+  }
+
+  addTriggerTest () {
+    const datajson = this.readJSONFileTest();
+    const { notify } = this.props;
+    notify({
+      title: datajson.phenomenon.long_name,
+      message: this.setTriggerTestMessage(),
+      status: 'warning',
+      image: 'https://static.wixstatic.com/media/73705d_91d9fa48770e4ed283fc30da3b178041~mv2.gif',
+      position: 'bl',
+      dismissAfter: 0,
+      dismissible: true,
+      buttons: [{
+        name: 'Show locations',
+        primary: true,
+        onClick: (e) => { e.stopPropagation(); this.handleTriggerClick(datajson.locations); }
+      }, {
+        name: 'Remove locations',
+        onClick: (e) => { e.stopPropagation(); this.handleTriggerClick([]); }
+      }]
+    })
+  }
+
   triggerService () {
     if (!this.triggerIntervalId) {
       this.retrieveTriggers();
@@ -75,9 +120,17 @@ class TitleBarContainer extends PureComponent {
 
   retrieveTriggers () {
     const { urls } = this.props;
+    let startDate = '2018-09-05T09:00:00Z'; // moment().subtract(1, 'hours').utc().format();
     axios({
       method: 'get',
-      url: urls.BACKEND_SERVER_URL + '/triggers/gettriggers?startdate=' + moment().subtract(1, 'hours').utc().format() + '&duration=3600',
+      url: urls.BACKEND_SERVER_URL + '/triggers/gettriggers?startdate=' + startDate + '&duration=3600',
+      withCredentials: true,
+      responseType: 'json'
+    }).then(this.gotTestTriggersCallback)
+      .catch(this.errorTestTriggersCallback)
+    axios({
+      method: 'get',
+      url: urls.BACKEND_SERVER_URL + '/triggers/gettriggers?startdate=' + startDate + '&duration=3600',
       withCredentials: true,
       responseType: 'json'
     }).then(this.gotTriggersCallback)
@@ -108,9 +161,9 @@ class TitleBarContainer extends PureComponent {
 
   handleTriggerClick (locations) {
     if (locations !== this.props.adagucProperties.triggerLocations) {
-      this.props.dispatch(this.props.actions.setTriggerLocations(locations));
+      this.props.dispatch(this.props.triggerActions.setTriggerLocations(locations));
     } else {
-      this.props.dispatch(this.props.actions.setTriggerLocations([]));
+      this.props.dispatch(this.props.triggerActions.setTriggerLocations([]));
     }
   }
 
@@ -121,9 +174,10 @@ class TitleBarContainer extends PureComponent {
   }
 
   gotTriggersCallback (result) {
+    let notifications = this.props.notifications && this.props.notifications.length > 0 ? this.props.notifications : [];
     if (result.data.length > 0) {
       result.data.filter((notification) => !this.seen(notification)).filter((trigger) =>
-        !this.props.notifications.some((not) => not.id === trigger.uuid)).sort((a, b) => this.diffWrtNow(a.triggerdate, b.triggerdate)).slice(0, 3).forEach((trigger, i) => {
+        !notifications.some((not) => not.id === trigger.uuid)).sort((a, b) => this.diffWrtNow(a.triggerdate, b.triggerdate)).slice(0, 3).forEach((trigger, i) => {
         this.props.dispatch(addNotification({
           title: this.getTriggerTitle(trigger),
           message: this.getTriggerMessage(trigger),
@@ -149,6 +203,29 @@ class TitleBarContainer extends PureComponent {
   }
 
   errorTriggersCallback (error) {
+    console.error('Error occurred while retrieving triggers', error);
+  }
+
+  gotTestTriggersCallback (result) {
+    let notifications = this.props.notifications && this.props.notifications.length > 0 ? this.props.notifications : [];
+    if (result.data.length > 0) {
+      result.data.filter((notification) => !this.seen(notification)).filter((trigger) =>
+        !notifications.some((not) => not.id === trigger.uuid)).sort((a, b) => this.diffWrtNow(a.triggerdate, b.triggerdate)).slice(0, 3).forEach((trigger, i) => {
+        this.props.dispatch(addNotification({
+          title: 'Trigger',
+          message: 'Trigger message',
+          position: 'tr',
+          raw: trigger,
+          status: 'warning',
+          dismissible: true,
+          dismissAfter: 0,
+          allowHTML: true
+        }));
+      });
+    }
+  }
+
+  errorTestTriggersCallback (error) {
     console.error('Error occurred while retrieving triggers', error);
   }
 
@@ -645,6 +722,7 @@ class TitleBarContainer extends PureComponent {
                 <span>{this.getTitleForRoute(routes[0])}</span>
               </Link>
             </NavbarBrand>
+            <Button classname='active' color='primary' onClick={this.addTriggerTest}>Trigger</Button>
           </Col>
           <Col xs='auto'>
             <Breadcrumb tag='nav'>
@@ -1096,7 +1174,8 @@ TitleBarContainer.propTypes = {
   loginModal: PropTypes.bool,
   routes: PropTypes.array,
   dispatch: PropTypes.func,
-  actions: PropTypes.object,
+  notify: PropTypes.func,
+  triggerActions: PropTypes.object,
   panelsProperties: PropTypes.object,
   user: PropTypes.object,
   userActions: PropTypes.object,

@@ -27,8 +27,8 @@ export default class SidebarContainer extends React.Component {
       }, {
         title: 'Trigger configuration',
         icon: 'bell-o',
-        disabled: true,
-        link: 'trigger',
+        disabled: false,
+        link: 'monitoring_and_triggers',
         key: 'trigger_configuration'
       }, {
         title: 'Logging & Analysis',

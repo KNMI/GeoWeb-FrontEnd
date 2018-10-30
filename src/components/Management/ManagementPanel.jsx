@@ -14,6 +14,10 @@ export default class ManagementPanel extends React.Component {
         title: 'Products',
         text: 'Configuration of several products',
         link: linkBase + 'products'
+      }, {
+        title: 'Triggers',
+        text: 'Configuration of triggers',
+        link: linkBase + 'triggers'
       }
     ];
 

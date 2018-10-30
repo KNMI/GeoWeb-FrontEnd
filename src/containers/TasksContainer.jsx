@@ -73,9 +73,29 @@ const items = [
   {
     title: 'Monitoring & Triggers',
     icon: 'bell-o',
+    // link: 'monitoring_and_triggers',
     tasks: [
-      { title: 'Extremes' },
+      { title: 'Extremes'},
       { title: 'Alarms' }
+    ]
+  },
+  {
+    title: 'Triggers',
+    icon: 'warning',
+    link: 'triggers_test',
+    tasks: [
+      { 
+        title: 'Create Trigger',
+        link: 'triggers_test/trigger_create'
+      },
+      { 
+        title: 'Active Triggers',
+        link: 'triggers_test/trigger_active' 
+      },
+      { 
+        title: 'Previous Triggers',
+        link: 'triggers_test/trigger_previous' 
+      }
     ]
   }
 ];

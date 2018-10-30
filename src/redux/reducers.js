@@ -14,7 +14,7 @@ export const makeRootReducer = () => combineReducers({
   mapProperties: mapReducer,
   userProperties: userReducer,
   panelsProperties: panelsReducer,
-  recentTriggers: recentTriggerReducer,
+  recentTriggerProperties: recentTriggerReducer,
   notifications: notificationsReducer(),
   urls: urlsReducer
 });
