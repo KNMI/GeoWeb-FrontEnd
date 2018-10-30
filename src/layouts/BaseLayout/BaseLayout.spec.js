@@ -1,5 +1,5 @@
 import React from 'react';
-import { default as BaseLayout } from './BaseLayout';
+import BaseLayout from './BaseLayout';
 import { shallow, mount } from 'enzyme';
 import { Container } from 'reactstrap';
 import { Provider } from 'react-redux';

@@ -5,6 +5,9 @@ import { DefaultLocations } from '../../constants/defaultlocations';
 import { ReadLocations, SaveLocations } from '../../utils/admin';
 import cloneDeep from 'lodash.clonedeep';
 import PropTypes from 'prop-types';
+import { LocationCardLayout, BaseLayout, withLabeledChildren } from '../../layouts';
+
+console.log('TLMP', typeof BaseLayout, typeof withLabeledChildren);
 
 const TAF = 'taf';
 
@@ -82,47 +85,30 @@ class TafLocationsManagementPanel extends React.Component {
     }
     return (
       <Panel className='TafLocationManagementPanel'>
-        <Row className='grid'>
-          {this.state.locations.sort(this.compareByName).map((loc, i) =>
-            <Col xs='12' sm='6' md='4' lg='3' xl='2' key={`tafLocMan-${i}`}>
-              <Card>
-                <CardTitle>{loc.name}</CardTitle>
-                <Row>
-                  <Col xs='6'>
-                    <Label>Latitude</Label>
-                  </Col>
-                  <Col xs='6'>
-                    <Label style={{ width: '100%', textAlign: 'right' }}>{loc.y}</Label>
-                  </Col>
-                </Row>
-                <Row>
-                  <Col xs='6'>
-                    <Label>Longitude</Label>
-                  </Col>
-                  <Col xs='6'>
-                    <Label style={{ width: '100%', textAlign: 'right' }}>{loc.x}</Label>
-                  </Col>
-                </Row>
-                <Row>
-                  <FormGroup check>
-                    <Label check>
-                      <Input type='checkbox' checked={this.isLocationSelected(loc.name)} onClick={() => this.selectLocation(loc.name)} />{' '}
-                      Allow TAFs for this location
-                    </Label>
-                  </FormGroup>
-                </Row>
-              </Card>
+        <Col>
+          <Row className='grid'>
+            {this.state.locations.sort(this.compareByName).map((loc, index) =>
+              <LocationCardLayout key={`locationCard-${index}`}>
+                <span data-role='abbreviation'>{loc.name}</span>
+                <Label data-role='latitude'>{loc.y}</Label>
+                <Label data-role='longitude'>{loc.x}</Label>
+                <FormGroup data-role='actions' check>
+                  <Label check>
+                    <Input type='checkbox' checked={this.isLocationSelected(loc.name)} onClick={() => this.selectLocation(loc.name)} />{' '}
+                    Allow TAF for this location
+                  </Label>
+                </FormGroup>
+              </LocationCardLayout>
+            )}
+          </Row>
+          <Row className='grid'>
+            <Col />
+            <Col xs='auto'>
+              <Button color='primary' disabled={!this.state.hasChanges} onClick={this.saveLocationSelection}>Save</Button>
             </Col>
-          )}
-        </Row>
-        <Row className='grid'>
-          <Col />
-          <Col xs='auto'>
-            <Button color='primary' disabled={!this.state.hasChanges} onClick={this.saveLocationSelection}>Save</Button>
-          </Col>
-        </Row>
-        <Row style={{ flex: 1 }} />
-
+          </Row>
+          <Row style={{ flex: 1 }} />
+        </Col>
       </Panel>
     );
   }

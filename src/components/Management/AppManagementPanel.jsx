@@ -7,7 +7,7 @@ export default class AppManagementPanel extends React.Component {
     return (
       <Panel>
         <Row className='managementRow'>
-          <Card className='col-auto loc-card' block>
+          <Card className='col-auto loc-card'>
             <CardTitle>Locations</CardTitle>
             <CardText>Edit the list of available locations</CardText>
             <Link to='manage/app/locations' className='row'>

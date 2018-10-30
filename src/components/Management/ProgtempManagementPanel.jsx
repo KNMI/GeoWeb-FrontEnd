@@ -36,7 +36,7 @@ export default class ProgtempManagementPanel extends React.Component {
       <Panel style={{ overflowX: 'hidden', overflowY: 'auto' }}>
         <Row style={{ flex: 1 }}>
           {this.state.locations.map((loc, i) =>
-            <Card className='col-auto loc-card' key={i} block>
+            <Card className='col-auto loc-card' key={i}>
               <CardTitle>{loc.name}</CardTitle>
               <CardText>
                 <table style={{ display: 'table', width: '100%' }}>

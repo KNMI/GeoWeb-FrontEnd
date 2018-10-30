@@ -147,7 +147,7 @@ class ParameterCard extends React.Component {
 
   render () {
     const { title, value, i } = this.props;
-    return <Card className='col-auto loc-card' key={i} block>
+    return <Card className='col-auto loc-card' key={i}>
       <CardTitle>{this.getTitle(title)}</CardTitle>
       <CardText>
         <table style={{ display: 'table', width: '100%' }}>
@@ -170,7 +170,7 @@ ParameterCard.propTypes = {
 class FirCard extends React.Component {
   render () {
     const { i, title, areapreset, icao, deleteFirArea } = this.props;
-    return <Card className='col-auto loc-card' key={i} style={{ minHeight: '13rem' }} block>
+    return <Card className='col-auto loc-card' key={i} style={{ minHeight: '13rem' }}>
       <CardTitle><Input id={'firnameinput' + i} placeholder='FIR name' defaultValue={title} required /></CardTitle>
       <CardText>
         <table style={{ display: 'table', width: '100%' }}>

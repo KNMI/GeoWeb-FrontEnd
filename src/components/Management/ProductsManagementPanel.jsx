@@ -27,7 +27,7 @@ export default class ProductsManagementPanel extends React.Component {
           {
             items.map((item, i) => {
               return (
-                <Card className='col-auto loc-card' block key={i}>
+                <Card className='col-auto loc-card' key={i}>
                   <CardTitle>{item.title}</CardTitle>
                   <CardText>{item.text}</CardText>
                   <Link to={item.link} className='row'>

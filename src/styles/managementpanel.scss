@@ -2,10 +2,16 @@
   flex: 1;
 }
 
-.TafLocationManagementPanel .content > .row:first-child {
-  width: 100%;
-  overflow-x: hidden;
-  overflow-y: auto;
+.TafLocationManagementPanel .content > .col {
+  flex-direction: column;
+   & > .row:first-child {
+    width: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+   }
+   & > .row:nth-child(2) {
+     flex-shrink: 0;
+   }
 }
 
 .TafLocationManagementPanel .content {
@@ -20,6 +26,11 @@
     flex: 1;
     padding: 0.33rem;
 
+    .card-body {
+      flex-direction: column;
+      padding: 0;
+    }
+
     .row:not(:last-child) {
       font-size: 0.85rem;
     }
@@ -29,5 +40,12 @@
       border-top: 0.06rem solid rgba(0, 0, 0, 0.125);
       padding-top: 0.33rem;
     }
+  }
+}
+
+.LocationCard {
+  .numericValue > * {
+    width: 100%;
+    text-align: right;
   }
 }
