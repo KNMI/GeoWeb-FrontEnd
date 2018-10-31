@@ -18,7 +18,7 @@ import { Link, hashHistory } from 'react-router';
 import PropTypes from 'prop-types';
 import moment from 'moment';
 import cloneDeep from 'lodash.clonedeep';
-import { addNotification, notify } from 'reapop';
+import { notify } from 'reapop';
 // import datajson from '/nobackup/users/schouten/Triggers/trigger_2018101913063100519.json';
 import { Typeahead } from 'react-bootstrap-typeahead';
 import { GetServices } from '../utils/getServiceByName';
@@ -41,10 +41,8 @@ class TitleBarContainer extends PureComponent {
     this.triggerService = this.triggerService.bind(this);
     this.retrieveTriggers = this.retrieveTriggers.bind(this);
     // this.gotTriggersCallback = this.gotTriggersCallback.bind(this);
-    // this.gotTestTriggersCallback = this.gotTestTriggersCallback.bind(this);
     this.fetchPresets = this.fetchPresets.bind(this);
     // this.errorTriggersCallback = this.errorTriggersCallback.bind(this);
-    // this.errorTestTriggersCallback = this.errorTestTriggersCallback.bind(this);
     this.toggleLoginModal = this.toggleLoginModal.bind(this);
     this.toggleFeedbackModal = this.toggleFeedbackModal.bind(this);
     this.toggleSharePresetModal = this.toggleSharePresetModal.bind(this);
@@ -126,15 +124,8 @@ class TitleBarContainer extends PureComponent {
       url: urls.BACKEND_SERVER_URL + '/triggers/gettriggers?startdate=' + startDate + '&duration=3600',
       withCredentials: true,
       responseType: 'json'
-    }).then(this.gotTestTriggersCallback)
-      .catch(this.errorTestTriggersCallback)
-    axios({
-      method: 'get',
-      url: urls.BACKEND_SERVER_URL + '/triggers/gettriggers?startdate=' + startDate + '&duration=3600',
-      withCredentials: true,
-      responseType: 'json'
-    }).then(this.gotTriggersCallback)
-      .catch(this.errorTriggersCallback);
+    });// .then(this.gotTriggersCallback)
+    //   .catch(this.errorTriggersCallback);
   }
 
   getTriggerTitle (trigger) {
@@ -173,61 +164,38 @@ class TitleBarContainer extends PureComponent {
     return adiff - bdiff;
   }
 
-  gotTriggersCallback (result) {
-    let notifications = this.props.notifications && this.props.notifications.length > 0 ? this.props.notifications : [];
-    if (result.data.length > 0) {
-      result.data.filter((notification) => !this.seen(notification)).filter((trigger) =>
-        !notifications.some((not) => not.id === trigger.uuid)).sort((a, b) => this.diffWrtNow(a.triggerdate, b.triggerdate)).slice(0, 3).forEach((trigger, i) => {
-        this.props.dispatch(addNotification({
-          title: this.getTriggerTitle(trigger),
-          message: this.getTriggerMessage(trigger),
-          position: 'bl',
-          id: trigger.uuid,
-          raw: trigger,
-          status: 'error',
-          buttons: [
-            {
-              name: 'Discard',
-              primary: true
-            }, {
-              name: 'Where',
-              onClick: (e) => { e.stopPropagation(); this.handleTriggerClick(trigger.locations); }
-            }
-          ],
-          dismissible: false,
-          dismissAfter: 0,
-          allowHTML: true
-        }));
-      });
-    }
-  }
+  // gotTriggersCallback (result) {
+  //   let notifications = this.props.notifications && this.props.notifications.length > 0 ? this.props.notifications : [];
+  //   if (result.data.length > 0) {
+  //     result.data.filter((notification) => !this.seen(notification)).filter((trigger) =>
+  //       !notifications.some((not) => not.id === trigger.uuid)).sort((a, b) => this.diffWrtNow(a.triggerdate, b.triggerdate)).slice(0, 3).forEach((trigger, i) => {
+  //       this.props.dispatch(addNotification({
+  //         title: this.getTriggerTitle(trigger),
+  //         message: this.getTriggerMessage(trigger),
+  //         position: 'bl',
+  //         id: trigger.uuid,
+  //         raw: trigger,
+  //         status: 'error',
+  //         buttons: [
+  //           {
+  //             name: 'Discard',
+  //             primary: true
+  //           }, {
+  //             name: 'Where',
+  //             onClick: (e) => { e.stopPropagation(); this.handleTriggerClick(trigger.locations); }
+  //           }
+  //         ],
+  //         dismissible: false,
+  //         dismissAfter: 0,
+  //         allowHTML: true
+  //       }));
+  //     });
+  //   }
+  // }
 
-  errorTriggersCallback (error) {
-    console.error('Error occurred while retrieving triggers', error);
-  }
-
-  gotTestTriggersCallback (result) {
-    let notifications = this.props.notifications && this.props.notifications.length > 0 ? this.props.notifications : [];
-    if (result.data.length > 0) {
-      result.data.filter((notification) => !this.seen(notification)).filter((trigger) =>
-        !notifications.some((not) => not.id === trigger.uuid)).sort((a, b) => this.diffWrtNow(a.triggerdate, b.triggerdate)).slice(0, 3).forEach((trigger, i) => {
-        this.props.dispatch(addNotification({
-          title: 'Trigger',
-          message: 'Trigger message',
-          position: 'tr',
-          raw: trigger,
-          status: 'warning',
-          dismissible: true,
-          dismissAfter: 0,
-          allowHTML: true
-        }));
-      });
-    }
-  }
-
-  errorTestTriggersCallback (error) {
-    console.error('Error occurred while retrieving triggers', error);
-  }
+  // errorTriggersCallback (error) {
+  //   console.error('Error occurred while retrieving triggers', error);
+  // }
 
   getServices () {
     const { urls, dispatch, adagucActions } = this.props;
@@ -722,7 +690,7 @@ class TitleBarContainer extends PureComponent {
                 <span>{this.getTitleForRoute(routes[0])}</span>
               </Link>
             </NavbarBrand>
-            <Button classname='active' color='primary' onClick={this.addTriggerTest}>Trigger</Button>
+            <Button className='active' color='primary' onClick={this.addTriggerTest}>Trigger</Button>
           </Col>
           <Col xs='auto'>
             <Breadcrumb tag='nav'>
@@ -1170,11 +1138,9 @@ LayoutDropDown.propTypes = {
 TitleBarContainer.propTypes = {
   adagucProperties: PropTypes.object,
   recentTriggers: PropTypes.array,
-  notifications: PropTypes.array,
   loginModal: PropTypes.bool,
   routes: PropTypes.array,
   dispatch: PropTypes.func,
-  notify: PropTypes.func,
   triggerActions: PropTypes.object,
   panelsProperties: PropTypes.object,
   user: PropTypes.object,

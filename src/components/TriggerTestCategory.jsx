@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Button, Col, Badge, Card, CardHeader } from 'reactstrap';
+import { Button, Col, Badge, Card, CardHeader, Input, InputGroup, ButtonGroup, Label } from 'reactstrap';
 import Icon from 'react-fa';
 import CollapseOmni from '../components/CollapseOmni';
 import PropTypes from 'prop-types';
@@ -13,6 +13,11 @@ class TriggerTestCategory extends Component {
     this.addTrigger = this.addTrigger.bind(this);
     this.getTriggerFile = this.getTriggerFile.bind(this);
     this.showTriggerMessage = this.showTriggerMessage.bind(this);
+    this.setTriggerMessage = this.setTriggerMessage.bind(this);
+    this.handleOnChange = this.handleOnChange.bind(this);
+    this.inputfieldParameter = '';
+    this.inputfieldOperator = '';
+    this.inputfieldLimit = '';
     this.state = {
       isOpen: props.isOpen
     };
@@ -51,10 +56,13 @@ class TriggerTestCategory extends Component {
       minutes = 5;
       hours = hours - 1;
     }
+    if (hours.toString().length < 2) {
+      hours = '0' + hours;
+    }
     const triggerinfo = {
-      parameter: 'ta',
-      operator: 'higher',
-      limit: 7.5,
+      parameter: this.inputfieldParameter,
+      operator: this.inputfieldOperator,
+      limit: this.inputfieldLimit,
       serviceurl: 'http://birdexp07.knmi.nl/geoweb/data/OBS/kmds_alle_stations_10001_' + year + month + day + hours + minutes + '0.nc'
     };
     axios({
@@ -62,7 +70,7 @@ class TriggerTestCategory extends Component {
       url: this.props.urls.BACKEND_SERVER_URL + '/triggers/triggercreate',
       data: triggerinfo
     });
-    setTimeout(this.getTriggerFile, 500);
+    setTimeout(this.getTriggerFile, 100);
   }
 
   getTriggerFile () {
@@ -76,19 +84,41 @@ class TriggerTestCategory extends Component {
     });
   }
 
+  setTriggerMessage (data) {
+    let locationamount = '';
+    const { locations, phenomenon } = data;
+    const { long_name, operator, limit, unit } = phenomenon;
+    if (locations.length === 1) {
+      locationamount = 'location';
+    } else {
+      locationamount = 'locations';
+    }
+    return `${long_name} ${operator} than ${limit} ${unit} detected at ${locations.length} ` + locationamount;
+  }
+
   showTriggerMessage (data) {
-    // const datajson = require(data);
-    // console.log(datajson.phenomenon.long_name);
-    console.log(data);
     const { dispatch } = this.props;
     dispatch(notify({
-      title: 'Test',
-      message: data,
+      title: data.phenomenon.long_name,
+      message: this.setTriggerMessage(data),
       status: 'warning',
+      image: 'https://static.wixstatic.com/media/73705d_91d9fa48770e4ed283fc30da3b178041~mv2.gif',
       position: 'bl',
       dismissAfter: 0,
       dismissible: true
     }));
+  }
+
+  handleOnChange (event) {
+    if (event.target.name === 'parameter') {
+      this.inputfieldParameter = event.target.value;
+    }
+    if (event.target.name === 'operator') {
+      this.inputfieldOperator = event.target.value;
+    }
+    if (event.target.name === 'limit') {
+      this.inputfieldLimit = event.target.value;
+    }
   }
 
   render () {
@@ -108,7 +138,35 @@ class TriggerTestCategory extends Component {
           </Col>
         </CardHeader>
         <CollapseOmni className='CollapseOmni' isOpen={this.state.isOpen} minSize={0} maxSize={500}>
-          <Button color='primary' onClick={this.addTrigger}>Create</Button>
+          <Card>
+            <InputGroup>
+              <Col>
+                <Label>Parameter</Label>
+              </Col>
+              <Col>
+                <Input type='text' name='parameter' onChange={this.handleOnChange} />
+              </Col>
+            </InputGroup>
+            <InputGroup>
+              <Col>
+                <Label>Operator</Label>
+              </Col>
+              <Col>
+                <Input type='text' name='operator' onChange={this.handleOnChange} />
+              </Col>
+            </InputGroup>
+            <InputGroup>
+              <Col>
+                <Label>Limit</Label>
+              </Col>
+              <Col>
+                <Input type='number' step='0.1' name='limit' onChange={this.handleOnChange} />
+              </Col>
+            </InputGroup>
+            <ButtonGroup>
+              <Button color='primary' onClick={this.addTrigger}>Create</Button>
+            </ButtonGroup>
+          </Card>
         </CollapseOmni>
       </Card>);
   }
