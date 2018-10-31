@@ -29,6 +29,7 @@ class LocationCardLayout extends PureComponent {
                 {childrenMap.longitude}
               </Col>
             </Row>
+            <Row />
             <Row>
               <Col>
                 {childrenMap.actions}

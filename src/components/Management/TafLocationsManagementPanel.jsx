@@ -1,13 +1,12 @@
 import React from 'react';
 import Panel from '../Panel';
-import { Input, Card, Button, CardTitle, Row, Col, FormGroup, Label } from 'reactstrap';
+import { Button, Row, Col, Label } from 'reactstrap';
 import { DefaultLocations } from '../../constants/defaultlocations';
 import { ReadLocations, SaveLocations } from '../../utils/admin';
 import cloneDeep from 'lodash.clonedeep';
 import PropTypes from 'prop-types';
-import { LocationCardLayout, BaseLayout, withLabeledChildren } from '../../layouts';
-
-console.log('TLMP', typeof BaseLayout, typeof withLabeledChildren);
+import { LocationCardLayout } from '../../layouts';
+import Checkbox from '../Basis/Checkbox';
 
 const TAF = 'taf';
 
@@ -92,12 +91,13 @@ class TafLocationsManagementPanel extends React.Component {
                 <span data-role='abbreviation'>{loc.name}</span>
                 <Label data-role='latitude'>{loc.y}</Label>
                 <Label data-role='longitude'>{loc.x}</Label>
-                <FormGroup data-role='actions' check>
-                  <Label check>
-                    <Input type='checkbox' checked={this.isLocationSelected(loc.name)} onClick={() => this.selectLocation(loc.name)} />{' '}
-                    Allow TAF for this location
-                  </Label>
-                </FormGroup>
+                <Checkbox
+                  value={this.isLocationSelected(loc.name) ? loc.name : ''}
+                  option={{ optionId: loc.name, label: 'Allow for TAFs' }}
+                  onChange={(evt, optionId) => this.selectLocation(loc.name)}
+                  data-role='actions'
+                  data-field='locationTafEnabled'
+                />
               </LocationCardLayout>
             )}
           </Row>
@@ -107,7 +107,7 @@ class TafLocationsManagementPanel extends React.Component {
               <Button color='primary' disabled={!this.state.hasChanges} onClick={this.saveLocationSelection}>Save</Button>
             </Col>
           </Row>
-          <Row style={{ flex: 1 }} />
+          <Row />
         </Col>
       </Panel>
     );

@@ -226,11 +226,13 @@ button.btn.btn-sm, button.btn.btn-group-sm > .btn {
   box-shadow: unset;
 }
 
-.btn-secondary {
+.btn.btn-secondary {
   &:disabled, &.disabled {
     background-color: transparent;
     border-color: #ced4da;
+    color: #ced4da;
     cursor: not-allowed;
+    pointer-events: unset;
   }
 }
 

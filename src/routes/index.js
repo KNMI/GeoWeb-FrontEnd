@@ -1,10 +1,8 @@
 // We only need to import the modules necessary for initial render
 import React from 'react';
 // import Async from 'react-code-splitting';
-import BaseLayout from '../layouts/BaseLayout';
-import HeaderedLayout from '../layouts/HeaderedLayout';
-import SidebarredLayout from '../layouts/SidebarredLayout';
-import FooteredLayout from '../layouts/FooteredLayout';
+import managementCategoriesConfig from './management-categories';
+import { BaseLayout, HeaderedLayout, SidebarredLayout, FooteredLayout, withCategoryConfiguration } from '../layouts';
 
 import { actions as userActions } from '../redux/modules/userReducer';
 import { actions as mapActions } from '../redux/modules/mapReducer';
@@ -17,25 +15,21 @@ import { connect } from 'react-redux';
 import TasksContainer from '../containers/TasksContainer';
 import TriggersContainer from '../containers/TriggersContainer';
 
-import AppManagementPanel from '../components/Management/AppManagementPanel';
-import ProductsManagementPanel from '../components/Management/ProductsManagementPanel';
 import ProgtempManagementPanel from '../components/Management/ProgtempManagementPanel';
-import TafManagementPanel from '../components/Management/TafManagementPanel';
 import TafValidationManagementPanel from '../components/Management/TafValidationManagementPanel';
 import TafExampleTafManagementPanel from '../components/Management/TafExampleTafManagementPanel';
 import TafLocationsManagementPanel from '../components/Management/TafLocationsManagementPanel';
 import SigmetParameterManagementPanel from '../components/Management/SigmetParameterManagementPanel';
 import LocationManagementPanel from '../components/Management/LocationManagementPanel';
+import ManagementCategoryPanel from '../containers/Management/ManagementCategoryPanel';
 import TafsContainer from '../containers/Taf/TafsContainer';
 
 /* Disable async loading, causes troubles with hmr */
-import SigmetManagementPanel from '../components/Management/SigmetManagementPanel';
 import TitleBarContainer from '../containers/TitleBarContainer';
 import MapActionsContainer from '../containers/MapActionsContainer';
 import LayerManagerPanel from '../components/LayerManagerPanel';
 import MapPanel from '../components/MapPanel';
 import SidebarContainer from '../containers/Management/SidebarContainer';
-import ManagementPanel from '../components/Management/ManagementPanel';
 import SigmetsContainer from '../containers/Sigmet/SigmetsContainer';
 
 // const SigmetManagementPanel = (props) => <Async load={import('../components/Management/SigmetManagementPanel')} componentProps={props} />;
@@ -46,6 +40,7 @@ import SigmetsContainer from '../containers/Sigmet/SigmetsContainer';
 // const SidebarContainer = (props) => <Async load={import('../containers/Management/SidebarContainer')} componentProps={props} />;
 // const ManagementPanel = (props) => <Async load={import('../components/Management/ManagementPanel')} componentProps={props} />;
 // const SigmetsContainer = (props) => <Async load={import('../containers/Sigmet/SigmetsContainer')} componentProps={props} />;
+
 const mapStateToHeaderProps = state => ({
   title: 'header',
   user: state.userProperties,
@@ -142,6 +137,9 @@ const mapStateToProductSidebarProps = state => ({
   isOpen: true,
   openCategory: 'Products'
 });
+const mapStateToManagementPanelProps = state => ({
+  urls: state.urls
+});
 // TODO: research this; http://henleyedition.com/implicit-code-splitting-with-react-router-and-webpack/
 export const createRoutes = (store) => {
   const header = React.createElement(connect(mapStateToHeaderProps, mapDispatchToHeaderProps)(TitleBarContainer));
@@ -158,17 +156,21 @@ export const createRoutes = (store) => {
   const taf = connect(mapStateToTafsContainerProps, mapDispatchToLayerManagerProps)(TafsContainer);
   const trigger = React.createElement(connect(mapStateToLayerManagerProps, mapDispatchToLayerManagerProps)(TriggersContainer));
   const manageLeft = React.createElement(SidebarContainer);
-  const appmanPanel = AppManagementPanel;
-  const prodmanPanel = ProductsManagementPanel;
-  const progmanPanel = connect((state) => ({ urls: state.urls }))(ProgtempManagementPanel);
-  const tafmanPanel = TafManagementPanel;
-  const tafLocmanPanel = connect((state) => ({ urls: state.urls }))(TafLocationsManagementPanel);
-  const tafValidmanPanel = connect((state) => ({ urls: state.urls }))(TafValidationManagementPanel);
-  const tafexTafmanPanel = connect((state) => ({ urls: state.urls }))(TafExampleTafManagementPanel);
-  const sigmanPanel = SigmetManagementPanel;
-  const sigparmanPanel = connect((state) => ({ urls: state.urls }))(SigmetParameterManagementPanel);
-  const locmanPanel = connect((state) => ({ urls: state.urls }))(LocationManagementPanel);
-  const manPanel = ManagementPanel;
+  // Location
+  const progmanPanel = connect(mapStateToManagementPanelProps)(ProgtempManagementPanel);
+  // Location
+  const tafLocmanPanel = connect(mapStateToManagementPanelProps)(TafLocationsManagementPanel);
+  const tafValidmanPanel = connect(mapStateToManagementPanelProps)(TafValidationManagementPanel);
+  const tafexTafmanPanel = connect(mapStateToManagementPanelProps)(TafExampleTafManagementPanel);
+  const sigparmanPanel = connect(mapStateToManagementPanelProps)(SigmetParameterManagementPanel);
+  // Location
+  const locmanPanel = connect(mapStateToManagementPanelProps)(LocationManagementPanel);
+  // Categories
+  const manPanel = withCategoryConfiguration(ManagementCategoryPanel, managementCategoriesConfig.management);
+  const appmanPanel = withCategoryConfiguration(ManagementCategoryPanel, managementCategoriesConfig.application);
+  const prodmanPanel = withCategoryConfiguration(ManagementCategoryPanel, managementCategoriesConfig.products);
+  const tafmanPanel = withCategoryConfiguration(ManagementCategoryPanel, managementCategoriesConfig.taf);
+  const sigmanPanel = withCategoryConfiguration(ManagementCategoryPanel, managementCategoriesConfig.sigmet);
   return (
     /* Default route */
     <Route path='/' component={BaseLayout} title='GeoWeb'>

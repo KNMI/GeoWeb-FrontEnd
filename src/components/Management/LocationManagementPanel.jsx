@@ -1,18 +1,20 @@
 
 import React from 'react';
 import Panel from '../Panel';
-import { Input, Card, Button, CardTitle, CardText, Row, Col } from 'reactstrap';
+import { Input, Card, Button, CardTitle, CardText, Row, Col, Label } from 'reactstrap';
 import { Icon } from 'react-fa';
+import cloneDeep from 'lodash.clonedeep';
 import PropTypes from 'prop-types';
+import { LocationCardLayout } from '../../layouts';
 import { DefaultLocations } from '../../constants/defaultlocations';
 import { ReadLocations, SaveLocations } from '../../utils/admin';
-import cloneDeep from 'lodash.clonedeep';
+
 export default class LocationManagementPanel extends React.Component {
   constructor (props) {
     super(props);
     this.state = {
       locations: DefaultLocations
-    }
+    };
     ReadLocations(`${this.props.urls.BACKEND_SERVER_URL}/admin/read`, (data) => {
       if (data) {
         this.setState({ locations: data });
@@ -35,6 +37,12 @@ export default class LocationManagementPanel extends React.Component {
   }
 }
 
+LocationManagementPanel.propTypes = {
+  urls: PropTypes.shape({
+    BACKEND_SERVER_URL: PropTypes.string
+  })
+};
+
 export class LocationMapper extends React.Component {
   constructor () {
     super();
@@ -46,8 +54,9 @@ export class LocationMapper extends React.Component {
     this.loadLocations = this.loadLocations.bind(this);
     this.state = {
       locations: []
-    }
+    };
   }
+
   /* istanbul ignore next */
   deleteLocation (i) {
     let arrayCpy = this.state.locations.map((a) => Object.assign(a));
@@ -55,21 +64,21 @@ export class LocationMapper extends React.Component {
     this.setState({ locations: arrayCpy });
   }
   /* istanbul ignore next */
-  doneEditing (i) {
-    const newName = document.querySelector('#nameinput' + i).value;
-    const newLat = parseFloat(document.querySelector('#latinput' + i).value);
-    const newLon = parseFloat(document.querySelector('#loninput' + i).value);
+  doneEditing (index) {
+    const newName = document.querySelector(`#nameinput-${index}`).value;
+    const newLat = parseFloat(document.querySelector(`#latinput-${index}`).value);
+    const newLon = parseFloat(document.querySelector(`#loninput-${index}`).value);
     let arrayCpy = cloneDeep(this.state.locations);
     if (isNaN(newLat) || isNaN(newLon)) {
       alert('Please enter location numbers');
       return;
     }
-    arrayCpy[i].name = newName;
-    arrayCpy[i].x = parseFloat(newLon);
-    arrayCpy[i].y = parseFloat(newLat);
-    delete arrayCpy[i].edit;
-    if (!arrayCpy[i].hasOwnProperty('availability')) {
-      arrayCpy[i].availability = [];
+    arrayCpy[index].name = newName;
+    arrayCpy[index].x = parseFloat(newLon);
+    arrayCpy[index].y = parseFloat(newLat);
+    delete arrayCpy[index].edit;
+    if (!arrayCpy[index].hasOwnProperty('availability')) {
+      arrayCpy[index].availability = [];
     }
     this.setState({ locations: arrayCpy });
   }
@@ -108,37 +117,72 @@ export class LocationMapper extends React.Component {
   }
   render () {
     return (
-      <Panel style={{}}>
-        <Row style={{ flex: 1, overflowX: 'hidden', overflowY: 'auto' }}>
-          <Row style={{ flex: 1 }}>
-            {this.state.locations.map((loc, i) =>
-              <LocationCard key={i} edit={loc.edit} name={loc.name} x={loc.x} y={loc.y} i={i} doneEditing={this.doneEditing} setEditMode={this.setEditMode} deleteLocation={this.deleteLocation} />
+      <Panel className='LocationManagementPanel'>
+        <Col>
+          <Row className='grid'>
+            {this.state.locations.map((loc, index) =>
+              <LocationCardLayout key={`locationCard-${index}`}>
+                {loc.edit === true
+                  ? <Input data-role='abbreviation' id={`nameinput-${index}`} placeholder='Location abbreviation' defaultValue={loc.name} required />
+                  : <span data-role='abbreviation'>{loc.name}</span>
+                }
+                {loc.edit === true
+                  ? <Input data-role='latitude' type='number' step='any' id={`latinput-${index}`} placeholder='00.000' defaultValue={loc.y} required />
+                  : <Label data-role='latitude'>{loc.y}</Label>
+                }
+                {loc.edit === true
+                  ? <Input data-role='longitude' type='number' step='any' id={`loninput-${index}`} placeholder='00.000' defaultValue={loc.x} required />
+                  : <Label data-role='longitude'>{loc.x}</Label>
+                }
+                <Row data-role='actions'>
+                  <Col />
+                  <Col xs='auto'>
+                    {loc.edit === true
+                      ? <Button color='secondary' onClick={() => this.doneEditing(index)}>
+                        <Icon name='check' /> Done
+                      </Button>
+                      : <Button color='secondary' onClick={() => this.setEditMode(index)}>
+                        <Icon name='pencil' /> Edit
+                      </Button>
+                    }
+                    {loc.edit !== true
+                      ? <Button color='secondary' onClick={() => this.deleteLocation(index)}>
+                        <Icon name='times' /> Delete
+                      </Button>
+                      : null
+                    }
+                  </Col>
+                </Row>
+              </LocationCardLayout>
             )}
           </Row>
-        </Row>
-        <Row style={{ height:'4rem' }}>
-          <Row style={{ bottom: '1rem', position: 'fixed' }}>
-            <Col>
-              <Button color='primary' style={{ marginRight: '1rem' }} onClick={this.addCard}>Add location</Button>
-              <Button color='primary' style={{ marginRight: '1rem' }} onClick={this.saveLocations}>Save</Button>
-              <Button color='primary' style={{ marginRight: '1rem' }} onClick={this.loadLocations}>(Re)load</Button>
+          <Row className='grid'>
+            <Col />
+            <Col xs='auto'>
+              <Button color='primary' onClick={this.addCard}>Add location</Button>
+              <Button color='primary' onClick={this.saveLocations}>Save</Button>
+              <Button color='primary' onClick={this.loadLocations}>(Re)load</Button>
             </Col>
           </Row>
-        </Row>
+          <Row />
+        </Col>
       </Panel>
     );
   }
 }
 LocationMapper.propTypes = {
-  locations: PropTypes.array.isRequired
+  locations: PropTypes.array.isRequired,
+  urls: PropTypes.shape({
+    BACKEND_SERVER_URL: PropTypes.string
+  })
 };
 
 class LocationCard extends React.Component {
   render () {
-    const { edit, name, x, y, i, doneEditing, setEditMode, deleteLocation } = this.props;
+    const { edit, name, x, y, i, doneEditing } = this.props;
     return (edit
       ? <Col><EditCard i={i} name={name} x={x} y={y} doneEditing={doneEditing} /></Col>
-      : <Col><StaticCard i={i} name={name} x={x} y={y} setEditMode={setEditMode} deleteLocation={deleteLocation} /></Col>);
+      : null);
   }
 }
 LocationCard.propTypes = {
@@ -147,9 +191,7 @@ LocationCard.propTypes = {
   y: PropTypes.number,
   i: PropTypes.number.isRequired,
   edit: PropTypes.bool,
-  doneEditing: PropTypes.func.isRequired,
-  setEditMode: PropTypes.func.isRequired,
-  deleteLocation: PropTypes.func.isRequired
+  doneEditing: PropTypes.func.isRequired
 };
 
 class EditCard extends React.Component {
@@ -181,37 +223,4 @@ EditCard.propTypes = {
   y: PropTypes.number,
   i: PropTypes.number.isRequired,
   doneEditing: PropTypes.func.isRequired
-};
-
-class StaticCard extends React.Component {
-  render () {
-    const { name, x, y, i, setEditMode, deleteLocation } = this.props;
-    return <Card className='col-auto loc-card' key={i}>
-      <CardTitle>{name}</CardTitle>
-      <CardText>
-        <table style={{ display: 'table', width: '100%' }}>
-          <tbody>
-            <tr>
-              <td>Latitude</td>
-              <td>{y}</td>
-            </tr>
-            <tr>
-              <td>Longtitude</td>
-              <td>{x}</td>
-            </tr>
-          </tbody>
-        </table>
-        <Icon name='pencil' onClick={() => setEditMode(i)} style={{ cursor:'pointer' }} />
-        <Icon name='times' onClick={() => deleteLocation(i)} style={{ cursor:'pointer' }} />
-      </CardText>
-    </Card>;
-  }
-}
-StaticCard.propTypes = {
-  name: PropTypes.string,
-  x: PropTypes.number,
-  y: PropTypes.number,
-  i: PropTypes.number.isRequired,
-  setEditMode: PropTypes.func.isRequired,
-  deleteLocation: PropTypes.func.isRequired
 };
