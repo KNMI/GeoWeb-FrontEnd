@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { Button, Col, Badge, Card, CardHeader, Input, InputGroup, ButtonGroup, Label } from 'reactstrap';
+import { Typeahead } from 'react-bootstrap-typeahead';
 import Icon from 'react-fa';
 import CollapseOmni from '../components/CollapseOmni';
 import PropTypes from 'prop-types';
@@ -15,11 +16,14 @@ class TriggerTestCategory extends Component {
     this.showTriggerMessage = this.showTriggerMessage.bind(this);
     this.setTriggerMessage = this.setTriggerMessage.bind(this);
     this.handleOnChange = this.handleOnChange.bind(this);
+    this.getParameterOptions = this.getParameterOptions.bind(this);
+    this.setParameterOptions = this.setParameterOptions.bind(this);
+    this.setServiceURL = this.setServiceURL.bind(this);
     this.inputfieldParameter = '';
-    this.inputfieldOperator = '';
     this.inputfieldLimit = '';
     this.state = {
-      isOpen: props.isOpen
+      isOpen: props.isOpen,
+      operatorOption: ''
     };
   }
 
@@ -43,13 +47,19 @@ class TriggerTestCategory extends Component {
     return `${parameter} (${operator}${threshold} ${units})`;
   }
 
-  addTrigger () {
+  setServiceURL () {
     const currentdate = new Date();
     const year = currentdate.getUTCFullYear();
-    const month = currentdate.getUTCMonth() + 1;
-    const day = currentdate.getUTCDate();
+    let month = currentdate.getUTCMonth() + 1;
+    let day = currentdate.getUTCDate();
     let hours = currentdate.getUTCHours();
     let minutes = Math.floor(currentdate.getUTCMinutes() / 10);
+    if (month.toString().length < 2) {
+      month = '0' + month;
+    }
+    if (day.toString().length < 2) {
+      day = '0' + day;
+    }
     if (minutes !== 0) {
       minutes = minutes - 1;
     } else {
@@ -59,11 +69,15 @@ class TriggerTestCategory extends Component {
     if (hours.toString().length < 2) {
       hours = '0' + hours;
     }
+    return 'http://birdexp07.knmi.nl/geoweb/data/OBS/kmds_alle_stations_10001_' + year + month + day + hours + minutes + '0.nc';
+  }
+
+  addTrigger () {
     const triggerinfo = {
       parameter: this.inputfieldParameter,
-      operator: this.inputfieldOperator,
+      operator: this.state.operatorOption.toString(),
       limit: this.inputfieldLimit,
-      serviceurl: 'http://birdexp07.knmi.nl/geoweb/data/OBS/kmds_alle_stations_10001_' + year + month + day + hours + minutes + '0.nc'
+      serviceurl: this.setServiceURL()
     };
     axios({
       method: 'post',
@@ -113,12 +127,26 @@ class TriggerTestCategory extends Component {
     if (event.target.name === 'parameter') {
       this.inputfieldParameter = event.target.value;
     }
-    if (event.target.name === 'operator') {
-      this.inputfieldOperator = event.target.value;
-    }
     if (event.target.name === 'limit') {
       this.inputfieldLimit = event.target.value;
     }
+  }
+
+  getParameterOptions () {
+    const serviceurl = this.setServiceURL();
+    axios({
+      method: 'post',
+      url: this.props.urls.BACKEND_SERVER_URL + '/triggers/parametersget',
+      data: { serviceurl }
+    }).then((res) => {
+      console.log('PARAMETERS: ', res.data);
+    }).catch((error) => {
+      console.error(error);
+    });
+  }
+
+  setParameterOptions (parameters) {
+
   }
 
   render () {
@@ -144,7 +172,7 @@ class TriggerTestCategory extends Component {
                 <Label>Parameter</Label>
               </Col>
               <Col>
-                <Input type='text' name='parameter' onChange={this.handleOnChange} />
+                <Input type='text' name='parameter' onChange={this.handleOnChange} onClick={this.getParameterOptions} />
               </Col>
             </InputGroup>
             <InputGroup>
@@ -152,7 +180,14 @@ class TriggerTestCategory extends Component {
                 <Label>Operator</Label>
               </Col>
               <Col>
-                <Input type='text' name='operator' onChange={this.handleOnChange} />
+                <Typeahead onChange={(operatorOption) => { this.setState({ operatorOption }); }}
+                  filterBy={(operatorOption) => {
+                    if (operatorOption.length) {
+                      return true;
+                    }
+                  }}
+                  options={[ 'higher', 'lower' ]}
+                  selected={this.state.operatorOption} />
               </Col>
             </InputGroup>
             <InputGroup>
