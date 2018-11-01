@@ -227,7 +227,8 @@ button.btn.btn-sm, button.btn.btn-group-sm > .btn {
 }
 
 .btn.btn-secondary {
-  &:disabled, &.disabled {
+  &:not([href]):disabled:hover, &:not([href]).disabled:hover,
+  &:disabled, &:disabled:hover, &.disabled, &:disabled.hover {
     background-color: transparent;
     border-color: #ced4da;
     color: #ced4da;
