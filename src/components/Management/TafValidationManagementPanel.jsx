@@ -57,7 +57,7 @@ export default class TafValidationManagementPanel extends React.Component {
 
     const hasChanges = !!diff(this.state.schema, this.state.tempSchema);
     return (
-      <Panel>
+      <Panel className='TafValidationManagementPanel'>
         <Col style={{ flexDirection: 'column' }}>
           { this.state.edit
             ? <Row>

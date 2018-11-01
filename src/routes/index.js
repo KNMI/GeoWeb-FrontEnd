@@ -238,7 +238,7 @@ export const createRoutes = (store) => {
                   <IndexRoute component={prodmanPanel} />
                 </Route>
               </Route>
-              <Route path='progtemp' title='Bijvoet'>
+              <Route path='progtemp' title='Progtemp'>
                 <Route>
                   <Route component={FooteredLayout} >
                     <IndexRoute component={progmanPanel} />

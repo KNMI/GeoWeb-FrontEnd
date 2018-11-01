@@ -48,21 +48,19 @@
     "linkPrefix": "manage/products/taf/",
     "items": [
       {
-        "title": "Configure TAF locations",
+        "title": "TAF locations",
         "text": "Configuration of the locations at which a TAF can be issued",
         "link": "locations"
       },
       {
         "title": "Validation rules",
         "text": "Configuration of the validation rules",
-        "link": "validation",
-        "disabled": true
+        "link": "validation"
       },
       {
         "title": "Example TAFs",
         "text": "Test a schema against these TAFs to ensure correctness of the schema",
-        "link": "example_tafs",
-        "disabled": true
+        "link": "example_tafs"
       }
     ]
   },
@@ -71,19 +69,19 @@
     "items": [
       {
         "title": "Parameters",
-        "text": "Configuratie van verscheidene parameters",
+        "text": "Configuration of various parameters",
         "link": "parameters",
         "disabled": true
       },
       {
-        "title": "Fenomenen",
-        "text": "Configuratie voor SIGMET fenomenen",
+        "title": "Phenomena",
+        "text": "Configuration of SIGMET phenomena",
         "link": "phenomena",
         "disabled": true
       },
       {
-        "title": "Lagen",
-        "text": "Standaardlagen voor fenomenen",
+        "title": "Layers",
+        "text": "Configuration of preset layers per phenomenon",
         "link": "layers",
         "disabled": true
       }

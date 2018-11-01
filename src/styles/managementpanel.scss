@@ -1,4 +1,8 @@
-.ManagementCategoryPanel, .ProductsManagementPanel, .AppManagementPanel, .LocationManagementPanel, .TafLocationManagementPanel {
+.TafValidationManagementPanel, .TafExampleManagementPanel, .SigmetParameterManagementPanel {
+  flex: 1;
+}
+
+.ManagementCategoryPanel, .LocationManagementPanel, .TafLocationManagementPanel, .ProgtempLocationManagementPanel {
   flex: 1;
   .content {
     flex-wrap: nowrap;

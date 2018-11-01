@@ -40,6 +40,6 @@ export default class ManagementCategoryPanel extends PureComponent {
 ManagementCategoryPanel.propTypes = {
   categoryConfig: PropTypes.shape({
     linkPrefix:  PropTypes.string,
-    items: PropTypes.arrayOf(PropTypes.objectOf(PropTypes.string))
+    items: PropTypes.arrayOf(PropTypes.objectOf(PropTypes.oneOfType([PropTypes.string, PropTypes.bool])))
   })
 };
