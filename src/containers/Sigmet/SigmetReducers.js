@@ -966,6 +966,7 @@ const saveSigmet = (event, uuid, container) => {
   });
 };
 
+// TODO: copy sigmet!
 const editSigmet = (event, uuid, container) => {
   const { dispatch, mapActions } = container.props;
   container.setState(produce(container.state, draftState => {
