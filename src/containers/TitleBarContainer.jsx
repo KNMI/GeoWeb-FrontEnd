@@ -18,8 +18,7 @@ import { Link, hashHistory } from 'react-router';
 import PropTypes from 'prop-types';
 import moment from 'moment';
 import cloneDeep from 'lodash.clonedeep';
-import { notify } from 'reapop';
-// import datajson from '/nobackup/users/schouten/Triggers/trigger_2018101913063100519.json';
+// import { notify } from 'reapop';
 import { Typeahead } from 'react-bootstrap-typeahead';
 import { GetServices } from '../utils/getServiceByName';
 const timeFormat = 'ddd DD MMM YYYY HH:mm [UTC]';
@@ -55,9 +54,9 @@ class TitleBarContainer extends PureComponent {
     this.getServices = this.getServices.bind(this);
     this.render = this.render.bind(this);
     this.handleTriggerClick = this.handleTriggerClick.bind(this);
-    this.addTriggerTest = this.addTriggerTest.bind(this);
-    this.setTriggerTestMessage = this.setTriggerTestMessage.bind(this);
-    this.readJSONFileTest = this.readJSONFileTest.bind(this);
+    // this.addTriggerTest = this.addTriggerTest.bind(this);
+    // this.setTriggerTestMessage = this.setTriggerTestMessage.bind(this);
+    // this.readJSONFileTest = this.readJSONFileTest.bind(this);
     this.inputfieldUserName = '';
     this.inputfieldPassword = '';
     this.timer = -1;
@@ -71,43 +70,44 @@ class TitleBarContainer extends PureComponent {
     };
   }
 
-  readJSONFileTest () {
-    const datajson = require('/nobackup/users/schouten/Triggers/trigger_2018101913063100519.json');
-    return datajson;
-  }
+  // readJSONFileTest () {
+  //   const datajson = require('/nobackup/users/schouten/Triggers/trigger_2018101913063100519.json');
+  //   return datajson;
+  // }
 
-  setTriggerTestMessage () {
-    const datajson = this.readJSONFileTest();
-    let locationamount = '';
-    if (datajson.locations.length === 1) {
-      locationamount = 'location';
-    } else {
-      locationamount = 'locations';
-    }
-    return `${datajson.phenomenon.long_name} ${datajson.phenomenon.operator} than ${datajson.phenomenon.limit} ${datajson.phenomenon.unit} detected at ${datajson.locations.length} ` + locationamount;
-  }
+  // setTriggerTestMessage () {
+  //   const datajson = this.readJSONFileTest();
+  //   let locationamount = '';
+  //   if (datajson.locations.length === 1) {
+  //     locationamount = 'location';
+  //   } else {
+  //     locationamount = 'locations';
+  //   }
+  // return `${datajson.phenomenon.long_name} ${datajson.phenomenon.operator} than ${datajson.phenomenon.limit}
+  // ${datajson.phenomenon.unit} detected at ${datajson.locations.length} ` + locationamount;
+  // }
 
-  addTriggerTest () {
-    const datajson = this.readJSONFileTest();
-    const { dispatch } = this.props;
-    dispatch(notify({
-      title: datajson.phenomenon.long_name,
-      message: this.setTriggerTestMessage(),
-      status: 'warning',
-      image: 'https://static.wixstatic.com/media/73705d_91d9fa48770e4ed283fc30da3b178041~mv2.gif',
-      position: 'bl',
-      dismissAfter: 0,
-      dismissible: true,
-      buttons: [{
-        name: 'Show locations',
-        primary: true,
-        onClick: (e) => { e.stopPropagation(); this.handleTriggerClick(datajson.locations); }
-      }, {
-        name: 'Remove locations',
-        onClick: (e) => { e.stopPropagation(); this.handleTriggerClick([]); }
-      }]
-    }));
-  }
+  // addTriggerTest () {
+  //   const datajson = this.readJSONFileTest();
+  //   const { dispatch } = this.props;
+  //   dispatch(notify({
+  //     title: datajson.phenomenon.long_name,
+  //     message: this.setTriggerTestMessage(),
+  //     status: 'warning',
+  //     image: 'https://static.wixstatic.com/media/73705d_91d9fa48770e4ed283fc30da3b178041~mv2.gif',
+  //     position: 'bl',
+  //     dismissAfter: 0,
+  //     dismissible: true,
+  //     buttons: [{
+  //       name: 'Show locations',
+  //       primary: true,
+  //       onClick: (e) => { e.stopPropagation(); this.handleTriggerClick(datajson.locations); }
+  //     }, {
+  //       name: 'Remove locations',
+  //       onClick: (e) => { e.stopPropagation(); this.handleTriggerClick([]); }
+  //     }]
+  //   }));
+  // }
 
   triggerService () {
     if (!this.triggerIntervalId) {
@@ -690,7 +690,7 @@ class TitleBarContainer extends PureComponent {
                 <span>{this.getTitleForRoute(routes[0])}</span>
               </Link>
             </NavbarBrand>
-            <Button className='active' color='primary' onClick={this.addTriggerTest}>Trigger</Button>
+            {/* <Button className='active' color='primary' onClick={this.addTriggerTest}>Trigger</Button> */}
           </Col>
           <Col xs='auto'>
             <Breadcrumb tag='nav'>

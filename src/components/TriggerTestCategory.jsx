@@ -19,11 +19,13 @@ class TriggerTestCategory extends Component {
     this.getParameterOptions = this.getParameterOptions.bind(this);
     this.setParameterOptions = this.setParameterOptions.bind(this);
     this.setServiceURL = this.setServiceURL.bind(this);
-    this.inputfieldParameter = '';
     this.inputfieldLimit = '';
     this.state = {
       isOpen: props.isOpen,
-      operatorOption: ''
+      parameterOption: '',
+      operatorOption: '',
+      sourceOption: '',
+      parameterOptions: []
     };
   }
 
@@ -74,7 +76,7 @@ class TriggerTestCategory extends Component {
 
   addTrigger () {
     const triggerinfo = {
-      parameter: this.inputfieldParameter,
+      parameter: this.state.parameterOption.toString().slice(0, -1),
       operator: this.state.operatorOption.toString(),
       limit: this.inputfieldLimit,
       serviceurl: this.setServiceURL()
@@ -124,9 +126,6 @@ class TriggerTestCategory extends Component {
   }
 
   handleOnChange (event) {
-    if (event.target.name === 'parameter') {
-      this.inputfieldParameter = event.target.value;
-    }
     if (event.target.name === 'limit') {
       this.inputfieldLimit = event.target.value;
     }
@@ -139,19 +138,21 @@ class TriggerTestCategory extends Component {
       url: this.props.urls.BACKEND_SERVER_URL + '/triggers/parametersget',
       data: { serviceurl }
     }).then((res) => {
-      console.log('PARAMETERS: ', res.data);
+      this.setParameterOptions(res.data);
     }).catch((error) => {
       console.error(error);
     });
   }
 
   setParameterOptions (parameters) {
-
+    this.state.parameterOptions = parameters;
+    return this.state.parameterOptions;
   }
 
   render () {
     const data = this.props.data || [];
     const { title, icon, toggleMethod } = this.props;
+    const { parameterOptions } = this.state;
     return (
       <Card className='row accordion'>
         <CardHeader onClick={data == false ? toggleMethod : null} className={data == false ? null : 'disabled'} title={title}>
@@ -169,10 +170,34 @@ class TriggerTestCategory extends Component {
           <Card>
             <InputGroup>
               <Col>
-                <Label>Parameter</Label>
+                <Label>Source</Label>
               </Col>
               <Col>
-                <Input type='text' name='parameter' onChange={this.handleOnChange} onClick={this.getParameterOptions} />
+                <Typeahead onChange={(sourceOption) => { this.setState({ sourceOption }); }}
+                  filterBy={(sourceOption) => {
+                    if (sourceOption.length) {
+                      return true;
+                    }
+                  }}
+                  options={[ 'OBS' ]}
+                  selected={this.state.sourceOption}
+                  onMenuHide={this.getParameterOptions} />
+              </Col>
+            </InputGroup>
+            <InputGroup>
+              <Col>
+                <Label>Phenomenon</Label>
+              </Col>
+              <Col>
+                <Typeahead disabled={this.state.sourceOption === ''}
+                  options={parameterOptions}
+                  onChange={(parameterOption) => { this.setState({ parameterOption }); }}
+                  filterBy={(parameterOptions) => {
+                    if (parameterOptions.length) {
+                      return true;
+                    }
+                  }}
+                  selected={this.state.parameterOption} />
               </Col>
             </InputGroup>
             <InputGroup>
@@ -215,8 +240,8 @@ TriggerTestCategory.propTypes = {
   title         : PropTypes.string.isRequired,
   icon          : PropTypes.string,
   toggleMethod  : PropTypes.func,
-  data              : PropTypes.array,
-  urls              : PropTypes.shape({ BACKEND_SERVER_URL:PropTypes.string }).isRequired
+  data          : PropTypes.array,
+  urls          : PropTypes.shape({ BACKEND_SERVER_URL:PropTypes.string }).isRequired
 };
 
 export default TriggerTestCategory;

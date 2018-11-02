@@ -19,8 +19,8 @@ const ITEMS = [
     ref:   'trigger-active',
     icon: 'folder-open'
   }, {
-    title: 'Previous triggers',
-    ref:   'trigger-previous',
+    title: 'Inactive triggers',
+    ref:   'trigger-inactive',
     icon:  'folder-open-o'
   }
 ];
