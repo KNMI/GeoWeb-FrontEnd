@@ -73,9 +73,9 @@ class TriggersTestContainer extends Component {
         <Icon name={this.state.isOpen ? 'angle-double-left' : 'angle-double-right'} />
       </Button>
     </Row>;
-    const maxSize = 350;
+    const maxSize = 500;
     return (
-      <Col className='TriggersTestContainer'>
+      <Col className='SigmetsContainer'>
         <CollapseOmni className='CollapseOmni' isOpen={this.state.isOpen} isHorizontal minSize={64} maxSize={maxSize}>
           <Panel className='Panel' title={title}>
             <Col xs='auto' className='accordionsWrapper' style={{ minWidth: maxSize - 32 }}>

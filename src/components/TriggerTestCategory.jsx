@@ -16,15 +16,19 @@ class TriggerTestCategory extends Component {
     this.showTriggerMessage = this.showTriggerMessage.bind(this);
     this.setTriggerMessage = this.setTriggerMessage.bind(this);
     this.handleOnChange = this.handleOnChange.bind(this);
+    this.handleOnSourceTypeaheadChange = this.handleOnSourceTypeaheadChange.bind(this);
+    this.handleOnParameterTypeaheadChange = this.handleOnParameterTypeaheadChange.bind(this);
     this.getParameterOptions = this.getParameterOptions.bind(this);
     this.setParameterOptions = this.setParameterOptions.bind(this);
     this.setServiceURL = this.setServiceURL.bind(this);
+    this.getUnit = this.getUnit.bind(this);
     this.inputfieldLimit = '';
     this.state = {
       isOpen: props.isOpen,
       parameterOption: '',
       operatorOption: '',
       sourceOption: '',
+      unit: '',
       parameterOptions: []
     };
   }
@@ -131,6 +135,16 @@ class TriggerTestCategory extends Component {
     }
   }
 
+  handleOnSourceTypeaheadChange (value) {
+    this.setState({ sourceOption: value });
+    this.getParameterOptions();
+  }
+
+  handleOnParameterTypeaheadChange (value) {
+    this.setState({ parameterOption: value });
+    this.getUnit();
+  }
+
   getParameterOptions () {
     const serviceurl = this.setServiceURL();
     axios({
@@ -149,10 +163,26 @@ class TriggerTestCategory extends Component {
     return this.state.parameterOptions;
   }
 
+  getUnit () {
+    const unitInfo = {
+      serviceurl: this.setServiceURL(),
+      parameter: this.state.parameterOption.toString().slice(0, -1)
+    };
+    axios({
+      method: 'post',
+      url: this.props.urls.BACKEND_SERVER_URL + '/triggers/unitget',
+      data: unitInfo
+    }).then((res) => {
+      this.setState({ unit: res.data.unit });
+    }).catch((error) => {
+      console.error(error);
+    });
+  }
+
   render () {
     const data = this.props.data || [];
     const { title, icon, toggleMethod } = this.props;
-    const { parameterOptions } = this.state;
+    const { sourceOption, parameterOption, operatorOption } = this.state;
     return (
       <Card className='row accordion'>
         <CardHeader onClick={data == false ? toggleMethod : null} className={data == false ? null : 'disabled'} title={title}>
@@ -167,64 +197,62 @@ class TriggerTestCategory extends Component {
           </Col>
         </CardHeader>
         <CollapseOmni className='CollapseOmni' isOpen={this.state.isOpen} minSize={0} maxSize={500}>
-          <Card>
-            <InputGroup>
-              <Col>
+          <Card className='row accordion'>
+            <InputGroup style={{ marginTop: '0.4rem' }}>
+              <Col xs='3' style={{ margin: '0.3rem', marginLeft: '0.5rem' }}>
                 <Label>Source</Label>
               </Col>
-              <Col>
-                <Typeahead onChange={(sourceOption) => { this.setState({ sourceOption }); }}
+              <Col style={{ margin: '0.3rem' }}>
+                <Typeahead onChange={(sourceOption) => { this.handleOnSourceTypeaheadChange(sourceOption); }}
                   filterBy={(sourceOption) => {
                     if (sourceOption.length) {
                       return true;
                     }
                   }}
-                  options={[ 'OBS' ]}
-                  selected={this.state.sourceOption}
-                  onMenuHide={this.getParameterOptions} />
+                  options={[ 'OBS' ]} />
               </Col>
             </InputGroup>
             <InputGroup>
-              <Col>
+              <Col xs='3' style={{ margin: '0.3rem', marginLeft: '0.5rem' }}>
                 <Label>Phenomenon</Label>
               </Col>
-              <Col>
-                <Typeahead disabled={this.state.sourceOption === ''}
-                  options={parameterOptions}
-                  onChange={(parameterOption) => { this.setState({ parameterOption }); }}
+              <Col style={{ margin: '0.3rem' }}>
+                <Typeahead disabled={sourceOption === ''}
+                  options={this.state.parameterOptions}
+                  onChange={(parameterOption) => { this.handleOnParameterTypeaheadChange(parameterOption); }}
                   filterBy={(parameterOptions) => {
                     if (parameterOptions.length) {
                       return true;
                     }
                   }}
-                  selected={this.state.parameterOption} />
+                  maxHeight='150px' />
               </Col>
             </InputGroup>
             <InputGroup>
-              <Col>
+              <Col xs='3' style={{ margin: '0.3rem', marginLeft: '0.5rem' }}>
                 <Label>Operator</Label>
               </Col>
-              <Col>
+              <Col style={{ margin: '0.3rem' }}>
                 <Typeahead onChange={(operatorOption) => { this.setState({ operatorOption }); }}
                   filterBy={(operatorOption) => {
                     if (operatorOption.length) {
                       return true;
                     }
                   }}
-                  options={[ 'higher', 'lower' ]}
-                  selected={this.state.operatorOption} />
+                  options={[ 'higher', 'lower' ]} />
               </Col>
             </InputGroup>
             <InputGroup>
-              <Col>
+              <Col xs='3' style={{ margin: '0.3rem', marginLeft: '0.5rem' }}>
                 <Label>Limit</Label>
               </Col>
-              <Col>
-                <Input type='number' step='0.1' name='limit' onChange={this.handleOnChange} />
+              <Col style={{ margin: '0.3rem' }}>
+                <Input type='number' step='0.1' name='limit' onChange={this.handleOnChange} placeholder={this.state.unit} />
               </Col>
             </InputGroup>
             <ButtonGroup>
-              <Button color='primary' onClick={this.addTrigger}>Create</Button>
+              <Button color='primary' onClick={this.addTrigger} style={{ margin: '0.7rem' }}
+                disabled={sourceOption === '' || parameterOption === '' || operatorOption === '' || this.inputfieldLimit === ''}>Create</Button>
             </ButtonGroup>
           </Card>
         </CollapseOmni>
