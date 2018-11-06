@@ -13,6 +13,13 @@ const MODES_GEO_SELECTION = {
   FIR: 'fir'
 };
 
+const MODES_GEO_MAPPING = {
+  [MODES_GEO_SELECTION.POINT]: 'select-point',
+  [MODES_GEO_SELECTION.BOX]: 'select-region',
+  [MODES_GEO_SELECTION.POLY]: 'select-shape',
+  [MODES_GEO_SELECTION.FIR]: 'select-fir'
+};
+
 /**
  * Merges the values into (nested) templates
  * @param {any} incomingValues The object with values to merge into templates, same hierarchy as template
@@ -21,13 +28,15 @@ const MODES_GEO_SELECTION = {
  * @returns {any} The template with the incoming values merged or null
  */
 const mergeInTemplate = (incomingValues, parentName, templates) => {
+  // TODO: add param 'invalid callback', to be used for e.g. promise rejection
+  // TODO: store pointer - value pair in a level-js / level-mem db?
   if (!templates || !templates.hasOwnProperty(parentName)) {
     return null;
   }
   const incomingPointers = [];
   getJsonPointers(incomingValues, (field) =>
     field === null ||
-    (!Array.isArray(field) && (typeof field !== 'object' || field.constructor !== Object)), incomingPointers);
+    ((!Array.isArray(field) || field.length === 0) && (typeof field !== 'object' || field.constructor !== Object)), incomingPointers);
   return produce(templates[parentName], draftState => {
     incomingPointers.forEach((pointer) => {
       const pathParts = pointer.split('/');
@@ -40,6 +49,10 @@ const mergeInTemplate = (incomingValues, parentName, templates) => {
           (!Array.isArray(templateValue) && (typeof templateValue !== 'object' || templateValue.constructor !== Object) &&
           typeof templateValue === typeof nextValue)) {
           setNestedProperty(draftState, pathParts, nextValue);
+        // allows for emptying arrays
+        } else if (Array.isArray(templateValue) && templateValue.length > 0 && Array.isArray(nextValue) && nextValue.length === 0) {
+          const affectedArray = getNestedProperty(draftState, pathParts);
+          affectedArray.length = 0;
         }
       } else {
         // deal with possible item additions for an intermediate array in the data structure
@@ -66,12 +79,16 @@ const mergeInTemplate = (incomingValues, parentName, templates) => {
             });
             templateForArray = getNestedProperty(templates[parentName], templatePath);
           }
-          if (!Array.isArray(affectedArray) || affectedArray.length === 0) {
+          if (!Array.isArray(affectedArray)) {
             return;
           }
           const additionalOccurrences = parseInt(pathParts[numericIndex]) + 1 - affectedArray.length;
           if (additionalOccurrences < 1) {
             return;
+          }
+          if (Array.isArray(templateForArray) && templateForArray.length === 0) {
+            // look for a different template
+            console.log('tmpl', pathParts.slice(numericIndex - 1, numericIndex));
           }
           if (Array.isArray(templateForArray) && templateForArray.length > 0) {
             affectedArray.push(...Array(additionalOccurrences).fill(cloneDeep(templateForArray[0])));
@@ -291,5 +308,6 @@ module.exports = {
   removeNestedProperty: removeNestedProperty,
   isFeatureGeoJsonComplete: isFeatureGeoJsonComplete,
   isObject: isObject,
-  MODES_GEO_SELECTION: MODES_GEO_SELECTION
+  MODES_GEO_SELECTION: MODES_GEO_SELECTION,
+  MODES_GEO_MAPPING: MODES_GEO_MAPPING
 };

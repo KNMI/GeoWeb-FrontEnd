@@ -18,7 +18,6 @@ import ChangeSection from './Sections/ChangeSection';
 import IssueSection from './Sections/IssueSection';
 import ConfirmationModal from '../ConfirmationModal';
 import MovementSection from './Sections/MovementSection';
-import EndPositionSection from './Sections/EndPositionSection';
 
 class SigmetReadMode extends PureComponent {
   getUnitLabel (unitName) {

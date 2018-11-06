@@ -74,46 +74,50 @@ class SigmetsContainer extends Component {
 
   render () {
     const maxSize = 580;
-    const header = <ContainerHeader isContainerOpen={this.state.isContainerOpen} dispatch={this.localDispatch} actions={LOCAL_ACTIONS} />;
-    const startFeature = this.props.drawProperties.adagucMapDraw.geojson.features.find((feature) => feature.properties.featureFunction === 'start');
-    const startIntersectionFeature = startFeature ? this.props.drawProperties.adagucMapDraw.geojson.features.find((feature) =>
+    const { isContainerOpen, selectedSigmet, selectedAuxiliaryInfo, categories, focussedCategoryRef,
+      phenomena, parameters, tacs, copiedSigmetRef, displayModal } = this.state;
+    const { drawProperties } = this.props;
+    const header = <ContainerHeader isContainerOpen={isContainerOpen} dispatch={this.localDispatch} actions={LOCAL_ACTIONS} />;
+    const startFeature = drawProperties.adagucMapDraw.geojson.features.find((feature) => feature.properties.featureFunction === 'start');
+    const startIntersectionFeature = startFeature ? drawProperties.adagucMapDraw.geojson.features.find((feature) =>
       feature.properties.featureFunction === 'intersection' && feature.properties.relatesTo === startFeature.id) : null;
-    const endFeature = this.props.drawProperties.adagucMapDraw.geojson.features.find((feature) => feature.properties.featureFunction === 'end');
-    const endIntersectionFeature = endFeature ? this.props.drawProperties.adagucMapDraw.geojson.features.find((feature) =>
+    const endFeature = drawProperties.adagucMapDraw.geojson.features.find((feature) => feature.properties.featureFunction === 'end');
+    const endIntersectionFeature = endFeature ? drawProperties.adagucMapDraw.geojson.features.find((feature) =>
       feature.properties.featureFunction === 'intersection' && feature.properties.relatesTo === endFeature.id) : null;
     const hasStartCoordinates = startFeature ? isFeatureGeoJsonComplete(startFeature) : false;
     const hasStartIntersectionCoordinates = startIntersectionFeature ? isFeatureGeoJsonComplete(startIntersectionFeature) : false;
     const hasEndCoordinates = endFeature ? isFeatureGeoJsonComplete(endFeature) : false;
     const hasEndIntersectionCoordinates = endIntersectionFeature ? isFeatureGeoJsonComplete(endIntersectionFeature) : false;
+    const sigmetToExpand = selectedSigmet && Array.isArray(selectedSigmet) && selectedSigmet.length === 1 ? selectedSigmet[0] : null;
 
     return (
       <Col className='SigmetsContainer'>
-        <CollapseOmni className='CollapseOmni' isOpen={this.state.isContainerOpen} isHorizontal minSize={64} maxSize={maxSize}>
+        <CollapseOmni className='CollapseOmni' isOpen={isContainerOpen} isHorizontal minSize={64} maxSize={maxSize}>
           <Panel className='Panel' title={header}>
-            <Col xs='auto' className='accordionsWrapper' style={{ minWidth: this.state.isContainerOpen ? maxSize - 32 : 'unset' }}>
-              { this.state.categories.map((category) => {
-                return this.state.isContainerOpen
+            <Col xs='auto' className='accordionsWrapper' style={{ minWidth: isContainerOpen ? maxSize - 32 : 'unset' }}>
+              { categories.map((category) => {
+                return isContainerOpen
                   ? <SigmetsCategory key={category.ref}
                     typeRef={category.ref}
                     title={category.title}
                     icon={category.icon}
-                    isOpen={this.state.focussedCategoryRef === category.ref && category.sigmets.length > 0}
+                    isOpen={focussedCategoryRef === category.ref && category.sigmets.length > 0}
                     abilities={category.abilities}
                     sigmets={category.sigmets}
-                    geojson={this.props.drawProperties.adagucMapDraw.geojson}
-                    focussedSigmet={this.state.focussedSigmet}
+                    geojson={drawProperties.adagucMapDraw.geojson}
+                    selectedSigmet={sigmetToExpand}
+                    selectedAuxiliaryInfo={selectedAuxiliaryInfo}
                     dispatch={this.localDispatch}
                     actions={LOCAL_ACTIONS}
-                    phenomena={this.state.phenomena}
-                    tacs={this.state.tacs}
-                    copiedSigmetRef={this.state.copiedSigmetRef}
-                    hasEdits={this.state.focussedSigmet.hasEdits}
+                    phenomena={phenomena}
+                    parameters={parameters}
+                    tacs={tacs}
+                    copiedSigmetRef={copiedSigmetRef}
                     hasStartCoordinates={hasStartCoordinates}
                     hasStartIntersectionCoordinates={hasStartIntersectionCoordinates}
                     hasEndCoordinates={hasEndCoordinates}
-                    displayModal={this.state.displayModal}
+                    displayModal={displayModal}
                     hasEndIntersectionCoordinates={hasEndIntersectionCoordinates}
-                    parameters={this.state.parameters}
                   />
                   : <MinifiedCategory key={category.ref}
                     icon={category.icon}

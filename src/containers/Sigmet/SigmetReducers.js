@@ -3,7 +3,8 @@ import moment from 'moment';
 import { SIGMET_TEMPLATES, UNITS, UNITS_ALT, MODES_LVL, MOVEMENT_TYPES,
   PHENOMENON_CODE_VOLCANIC_ASH, SIGMET_VARIANTS_PREFIXES } from '../../components/Sigmet/SigmetTemplates';
 import { SIGMET_MODES, LOCAL_ACTION_TYPES, CATEGORY_REFS, STATUSES } from './SigmetActions';
-import { clearEmptyPointersAndAncestors, mergeInTemplate, isFeatureGeoJsonComplete, MODES_GEO_SELECTION, isObject } from '../../utils/json';
+import { clearEmptyPointersAndAncestors, mergeInTemplate, isFeatureGeoJsonComplete,
+  MODES_GEO_SELECTION, MODES_GEO_MAPPING, isObject } from '../../utils/json';
 import { getPresetForPhenomenon } from '../../components/Sigmet/SigmetPresets';
 import axios from 'axios';
 import { notify } from 'reapop';
@@ -36,20 +37,22 @@ const toggleContainer = (evt, container) => {
 };
 
 const toggleCategory = (evt, ref, container) => {
-  const { dispatch, mapActions } = container.props;
+  const isChangeToCategoryAddSigmet = ref !== container.state.focussedCategoryRef && ref === CATEGORY_REFS.ADD_SIGMET;
   container.setState(produce(container.state, draftState => {
-    if (ref === CATEGORY_REFS.ADD_SIGMET && ref !== draftState.focussedCategoryRef) {
-      draftState.focussedSigmet.mode = SIGMET_MODES.EDIT;
-      draftState.focussedSigmet.uuid = null;
-    }
-    draftState.focussedSigmet.drawModeStart = null;
-    draftState.focussedSigmet.drawModeEnd = null;
     draftState.focussedCategoryRef = (draftState.focussedCategoryRef === ref)
       ? null
       : ref;
   }), () => {
-    dispatch(mapActions.setMapMode('pan'));
-    setSigmetDrawing(null, container, ref === CATEGORY_REFS.ADD_SIGMET);
+    if (isChangeToCategoryAddSigmet) {
+      selectSigmet([getEmptySigmet(container)], container).then(() => {
+        console.log('Selected', container.state.selectedSigmet);
+        setStatePromise(container, {
+          selectedAuxiliaryInfo: {
+            mode: SIGMET_MODES.EDIT
+          }
+        });
+      });
+    }
   });
 };
 
@@ -233,56 +236,125 @@ const receivedSigmetsCallback = (ref, response, container, callback) => {
   }
 };
 
+/**
+ * Set state in an asynchronous, controlled and immutable way
+ * @param {Object} container The context containing the state
+ * @param {Object} newProps The new properties
+ * @returns {Promise} The promise of setting the state in the context
+ */
+const setStatePromise = (container, newProps) => {
+  return new Promise((resolve, reject) => {
+    console.log('Merged', newProps, mergeInTemplate(newProps, 'stateStructure',
+      {
+        'stateStructure': container.state,
+        'selectedSigmet': [
+          { 'test': null }
+        ]
+      }));
+    container.setState(mergeInTemplate(
+      newProps,
+      'stateStructure',
+      {
+        'stateStructure': container.state,
+        'selectedSigmet': [
+          { 'test': null }
+        ]
+      }
+    ),
+    () => { resolve(); });
+  });
+};
+
+/**
+ * Select a Sigmet in a asynchronous way
+ * @param {array} selection The list of SIGMET(s) to be selected
+ * @param {Element} container The container to select the SIGMET(s) in
+ */
+const selectSigmet = (selection, container) => {
+  const { state, props } = container;
+  const { selectedSigmet } = state;
+  const { sources } = props;
+  if (!Array.isArray(selection)) {
+    return Promise.reject(new Error(`To enable selecting SIGMETs, the selection must be provided as an array`));
+  }
+  const hasPreviousSelection = Array.isArray(selectedSigmet) && selectedSigmet.length > 0;
+
+  // handle combinatorics n(previousSelection) x m(selection)
+  if (selection.length === 0 && !hasPreviousSelection) {
+    // nothing to do
+    return Promise.resolve();
+  }
+
+  if (selection.length === 0) {
+    // clear all
+    return setStatePromise(container, {
+      selectedSigmet: [],
+      selectedAuxiliaryInfo: {
+        mode: SIGMET_MODES.READ,
+        drawModeStart: null,
+        drawModeEnd: null,
+        feedbackStart: null,
+        feedbackEnd: null,
+        hasEdits: false
+      }
+    }).then(() => setSigmetDrawing(initialGeoJson(), null, container))
+      .then(() => getPresetForPhenomenon(null, sources))
+      .then((preset) => updateDisplayedPreset(preset, container));
+  }
+
+  const geojson = selection[0].geojson || null;
+  const firName = selection[0].firname || null;
+  const startFeature = geojson && Array.isArray(geojson.features)
+    ? geojson.features.find((feature) => feature.properties.featureFunction === 'start')
+    : null;
+  const endFeature = geojson && Array.isArray(geojson.features)
+    ? geojson.features.find((feature) => feature.properties.featureFunction === 'end')
+    : null;
+  const drawModeStart = startFeature
+    ? MODES_GEO_MAPPING[startFeature.properties.selectionType] || null
+    : null;
+  const drawModeEnd = endFeature
+    ? MODES_GEO_MAPPING[endFeature.properties.selectionType] || null
+    : null;
+
+  // irrespective of the previous selection:
+  // set the new selection, auxiliary info and
+  // * draw SIGMET features,
+  // * retrieve SIGMET preset and
+  // * update display preset
+  return setStatePromise(container, {
+    selectedSigmet: selection,
+    selectedAuxiliaryInfo: {
+      mode: SIGMET_MODES.READ,
+      drawModeStart: drawModeStart || null,
+      drawModeEnd: drawModeEnd || null,
+      feedbackStart: null,
+      feedbackEnd: null,
+      hasEdits: false
+    }
+  }).then(() => setSigmetDrawing(geojson, firName, container))
+    .then(() => console.log('Promise', container.state.selectedSigmet))
+    .then(() => getPresetForPhenomenon(null, sources))
+    .then((preset) => updateDisplayedPreset(preset, container));
+};
+
 const focusSigmet = (evt, uuid, container) => {
-  const { dispatch, mapActions, sources } = container.props;
+  const { dispatch, mapActions } = container.props;
   const { state } = container;
   if (evt.target.tagName === 'BUTTON') {
     return;
   }
-  let shouldClearDrawing = false;
-  const modeMapping = {};
-  modeMapping[MODES_GEO_SELECTION.POINT] = 'select-point';
-  modeMapping[MODES_GEO_SELECTION.BOX] = 'select-region';
-  modeMapping[MODES_GEO_SELECTION.POLY] = 'select-shape';
-  modeMapping[MODES_GEO_SELECTION.FIR] = 'select-fir';
-
+  const selection = [];
   const indices = findCategoryAndSigmetIndex(uuid, state);
-  let drawModeStart = null;
-  let drawModeEnd = null;
 
   if (indices.isFound) {
     const sigmet = state.categories[indices.categoryIndex].sigmets[indices.sigmetIndex];
     if (sigmet) {
-      const startFeature = sigmet.geojson.features.find((feature) => feature.properties.featureFunction === 'start');
-      const endFeature = sigmet.geojson.features.find((feature) => feature.properties.featureFunction === 'end');
-      drawModeStart = startFeature ? modeMapping[startFeature.properties.selectionType] : null;
-      drawModeEnd = endFeature ? modeMapping[endFeature.properties.selectionType] : null;
+      selection.push(sigmet);
     }
-    const preset = getPresetForPhenomenon(sigmet.phenomenon, sources);
-    updateDisplayedPreset(preset, container);
   }
-  container.setState(produce(container.state, draftState => {
-    if (draftState.focussedSigmet.uuid !== uuid) {
-      draftState.focussedSigmet.uuid = uuid;
-      draftState.focussedSigmet.drawModeStart = drawModeStart || null;
-      draftState.focussedSigmet.drawModeEnd = drawModeEnd || null;
-    } else {
-      draftState.focussedSigmet.uuid = null;
-      draftState.focussedSigmet.drawModeStart = null;
-      draftState.focussedSigmet.drawModeEnd = null;
-      shouldClearDrawing = true;
-    }
-    draftState.focussedSigmet.feedbackStart = null;
-    draftState.focussedSigmet.feedbackEnd = null;
-    draftState.focussedSigmet.mode = SIGMET_MODES.READ;
-  }), () => {
-    // TODO: display preset
+  selectSigmet(selection, container).then(() => {
     dispatch(mapActions.setMapMode('pan'));
-    if (shouldClearDrawing) {
-      setSigmetDrawing(null, container);
-    } else {
-      setSigmetDrawing(uuid, container);
-    }
   });
 };
 
@@ -443,7 +515,7 @@ const updateDisplayedPreset = (preset, container) => {
   // FIXME: this code closely resembles the TitleBarContainer.setPreset, it should be generalized
   const { dispatch, panelsActions, mapActions, adagucActions } = container.props;
   if (!preset) {
-    return;
+    return Promise.resolve();
   }
   if (preset.area) {
     dispatch(panelsActions.setPanelLayout(preset.display.type));
@@ -514,6 +586,7 @@ const updateDisplayedPreset = (preset, container) => {
       // Beware: a layer can still contain null values because a layer might have been a null value
       // also, panels may have had no layers in them
       dispatch(panelsActions.setPresetLayers(newPanels));
+      return Promise.resolve();
     });
   }
 };
@@ -574,7 +647,7 @@ const updateSigmet = (uuid, dataField, value, container) => {
       draftState.categories[indices.categoryIndex].sigmets[indices.sigmetIndex]['validdate'] = getRoundedNow().format();
       draftState.categories[indices.categoryIndex].sigmets[indices.sigmetIndex]['validdate_end'] = getRoundedNow().add(updateMaxHoursDuration, 'hour').format();
     }
-    draftState.focussedSigmet.hasEdits = true;
+    draftState.selectedAuxiliaryInfo.hasEdits = true;
   }), () => {
     if (shouldCleanEndFeature === true) {
       const features = cloneDeep(drawProperties.adagucMapDraw.geojson.features);
@@ -1159,23 +1232,11 @@ const cancelSigmet = (event, container) => {
   });
 };
 
-const setSigmetDrawing = (uuid, container, useInitial = false) => {
+const setSigmetDrawing = (geojson, firName, container) => {
   const { dispatch, drawActions } = container.props;
-  if (container.state.focussedSigmet.uuid !== uuid && useInitial !== true) {
-    return;
-  }
-  const indices = findCategoryAndSigmetIndex(uuid, container.state);
-  if (!indices.isFound && useInitial !== true) {
-    return;
-  }
-  const affectedSigmet = indices.isFound
-    ? container.state.categories[indices.categoryIndex].sigmets[indices.sigmetIndex]
-    : null;
-  const geojson = !useInitial && affectedSigmet
-    ? affectedSigmet.geojson
-    : initialGeoJson();
-  const enhancedGeojson = addFirFeature(geojson, affectedSigmet ? affectedSigmet.firname : null, container);
+  const enhancedGeojson = addFirFeature(geojson, firName || null, container);
   dispatch(drawActions.setGeoJSON(enhancedGeojson || geojson));
+  return Promise.resolve();
 };
 
 /** Verify sigmet
@@ -1309,12 +1370,6 @@ export default (localAction, container) => {
       break;
     case LOCAL_ACTION_TYPES.UPDATE_FIR:
       updateFir(localAction.firName, container);
-      break;
-    case LOCAL_ACTION_TYPES.MODIFY_FOCUSSED_SIGMET:
-      modifyFocussedSigmet(localAction.dataField, localAction.value, container);
-      break;
-    case LOCAL_ACTION_TYPES.SET_DRAWING:
-      setSigmetDrawing(localAction.uuid, container);
       break;
     case LOCAL_ACTION_TYPES.VERIFY_SIGMET:
       verifySigmet(localAction.sigmetObject, container);

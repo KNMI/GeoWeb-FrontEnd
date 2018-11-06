@@ -164,6 +164,37 @@ TYPES.LEVELINFO = PropTypes.shape({
   mode: PropTypes.string,
   levels: PropTypes.arrayOf(TYPES.LEVEL)
 });
+TYPES.SIGMET = PropTypes.shape({
+  phenomenon: TYPES.PHENOMENON,
+  va_extra_fields: TYPES.VA_EXTRA_FIELDS,
+  tc_extra_fields: TYPES.TC_EXTRA_FIELDS,
+  geojson: TYPES.GEOJSON,
+  levelinfo: TYPES.LEVELINFO,
+  firname: TYPES.FIR_NAME,
+  validdate: TYPES.VALID_DATE,
+  validdate_end: TYPES.VALID_DATE_END,
+  change: TYPES.CHANGE,
+  movement_type: TYPES.MOVEMENT_TYPE,
+  movement: TYPES.MOVEMENT,
+  forecast_position_time: TYPES.FORECAST_POSITION_TIME,
+  issuedate: TYPES.ISSUE_DATE,
+  uuid: TYPES.UUID,
+  sequence: TYPES.SEQUENCE,
+  status: TYPES.STATUS,
+  type: TYPES.TYPE,
+  cancels: TYPES.CANCELS,
+  location_indicator_icao: TYPES.LOCATION_INDICATOR_ICAO,
+  location_indicator_mwo: TYPES.LOCATION_INDICATOR_MWO
+});
+
+TYPES.AUXILIARY_INFO = PropTypes.shape({
+  mode: PropTypes.string,
+  drawModeStart: PropTypes.string,
+  drawModeEnd: PropTypes.string,
+  feedbackStart: PropTypes.string,
+  feedbackEnd: PropTypes.string,
+  hasEdits: PropTypes.bool
+});
 
 /**
  * MISC

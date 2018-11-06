@@ -218,6 +218,25 @@ describe('(Utils) json', () => {
       d: [[[{ a: 1, b: null }, { a: null, b: 3 }]]]
     }]);
   });
+  it('.mergeInTemplate should clean deep nested array-objects', () => {
+    let incoming = [
+      [[[]]]
+    ];
+    let template = {
+      test: [
+        [[[{ a: 1 }, { b: null }]]]
+      ]
+    };
+    let result = mergeInTemplate(incoming, 'test', template);
+    expect(template).to.eql({
+      test: [
+        [[[{ a: 1 }, { b: null }]]]
+      ]
+    });
+    expect(result).to.eql([
+      [[[]]]
+    ]);
+  });
 
   it('.clearNullPointersAndAncestors should be a function', () => {
     expect(clearNullPointersAndAncestors).to.be.a('function');

@@ -1,10 +1,32 @@
 import { BOUNDING_BOXES } from '../../constants/bounding_boxes';
 import { GetServiceByName } from '../../utils/getServiceByName';
 
-export const getPresetForPhenomenon = (p, sources) => {
+/**
+ * Retrieve presets for phenomena
+ * @param {string} phenomenon The phenomenon to retrieve a preset for
+ * @param {object} sources The adagucproperties sources object
+ * @returns {object} The preset object
+ */
+export const getPresetForPhenomenon = (phenomenon, sources) => {
   // FIXME: enable and update (by Product Owners) contents of presets
-  if (p && true) {
-    return (
+  // FIXME: these preset configurations should be loaded from the backend!
+  if (phenomenon && true) {
+    return Promise.resolve(
+      {
+        area: {
+          bottom: BOUNDING_BOXES[1].bbox[1],
+          top: BOUNDING_BOXES[1].bbox[3],
+          crs: 'EPSG:3857'
+        },
+        display: {
+          npanels: 1,
+          type: 'single'
+        },
+        layers: [[]]
+      }
+    );
+  } else if (phenomenon === null && true) {
+    return Promise.resolve(
       {
         area: {
           bottom: BOUNDING_BOXES[1].bbox[1],
@@ -63,7 +85,7 @@ export const getPresetForPhenomenon = (p, sources) => {
       overlay: true
     }
   ];
-  switch (p) {
+  switch (phenomenon) {
     case 'sigmet_layer_TS':
       return (
         {

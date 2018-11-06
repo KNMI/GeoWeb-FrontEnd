@@ -45,8 +45,7 @@ describe('(Reducer) Sigmet/SigmetReducers', () => {
         }
       },
       state: {
-        focussedSigmet: {
-          uuid: null,
+        selectedAuxiliaryInfo: {
           mode: SIGMET_MODES.READ
         },
         focussedCategoryRef: CATEGORY_REFS.CONCEPT_SIGMETS
@@ -60,10 +59,9 @@ describe('(Reducer) Sigmet/SigmetReducers', () => {
     dispatch(LOCAL_ACTIONS.toggleCategoryAction(null, CATEGORY_REFS.ADD_SIGMET), container);
     expect(container.state).to.be.a('object');
     expect(container.state).to.have.property('focussedCategoryRef', CATEGORY_REFS.ADD_SIGMET);
-    expect(container.state).to.have.property('focussedSigmet');
-    expect(container.state.focussedSigmet).to.be.a('object');
-    expect(container.state.focussedSigmet).to.have.property('uuid', null);
-    expect(container.state.focussedSigmet).to.have.property('mode', SIGMET_MODES.EDIT);
+    expect(container.state).to.have.property('selectedAuxiliaryInfo');
+    expect(container.state.selectedAuxiliaryInfo).to.be.a('object');
+    expect(container.state.selectedAuxiliaryInfo).to.have.property('mode', SIGMET_MODES.EDIT);
     dispatch(LOCAL_ACTIONS.toggleCategoryAction(null, CATEGORY_REFS.ACTIVE_SIGMETS), container);
     expect(container.state).to.have.property('focussedCategoryRef', CATEGORY_REFS.ACTIVE_SIGMETS);
     dispatch(LOCAL_ACTIONS.toggleCategoryAction(null, CATEGORY_REFS.ACTIVE_SIGMETS), container);

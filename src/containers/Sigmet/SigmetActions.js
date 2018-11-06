@@ -20,8 +20,6 @@ export const LOCAL_ACTION_TYPES = {
   DRAW_SIGMET: 'DRAW_SIGMET',
   UPDATE_FIR: 'UPDATE_FIR',
   CREATE_FIR_INTERSECTION: 'CREATE_FIR_INTERSECTION',
-  MODIFY_FOCUSSED_SIGMET: 'MODIFY_FOCUSSED_SIGMET',
-  SET_DRAWING: 'SET_DRAWING',
   VERIFY_SIGMET: 'VERIFY_SIGMET'
 };
 
@@ -47,8 +45,6 @@ export const LOCAL_ACTIONS = {
   drawAction: (evt, uuid, action, featureFunction) => ({ type: LOCAL_ACTION_TYPES.DRAW_SIGMET, uuid: uuid, event: evt, action: action, featureFunction: featureFunction }),
   updateFir: (firName) => ({ type: LOCAL_ACTION_TYPES.UPDATE_FIR, firName: firName }),
   createFirIntersectionAction: (featureId, geoJson) => ({ type: LOCAL_ACTION_TYPES.CREATE_FIR_INTERSECTION, featureId: featureId, geoJson: geoJson }),
-  modifyFocussedSigmetAction: (dataField, value) => ({ type: LOCAL_ACTION_TYPES.MODIFY_FOCUSSED_SIGMET, dataField: dataField, value: value }),
-  setSigmetDrawing: (uuid) => ({ type: LOCAL_ACTION_TYPES.SET_DRAWING, uuid: uuid }),
   verifySigmetAction: (sigmetObject) => ({ type: LOCAL_ACTION_TYPES.VERIFY_SIGMET, sigmetObject: sigmetObject }),
   toggleSigmetModalAction: (evt, uuid, type) => ({ type: LOCAL_ACTION_TYPES.TOGGLE_SIGMET_MODAL, event: evt, uuid: uuid, modalType: type })
 };
@@ -241,8 +237,9 @@ const STATE = {
   tacs: [],
   firs: {},
   focussedCategoryRef: null,
-  focussedSigmet: {
-    uuid: null,
+  selectedSigmet: [],
+  // TODO: should be incorporated in the selectableSigmet?
+  selectedAuxiliaryInfo: {
     mode: SIGMET_MODES.READ,
     drawModeStart: null,
     drawModeEnd: null,
