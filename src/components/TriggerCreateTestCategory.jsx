@@ -7,50 +7,35 @@ import PropTypes from 'prop-types';
 import axios from 'axios';
 import { notify } from 'reapop';
 
-class TriggerTestCategory extends Component {
+class TriggerCreateTestCategory extends Component {
   constructor (props) {
     super(props);
-    this.handleTriggerClick = this.handleTriggerClick.bind(this);
     this.addTrigger = this.addTrigger.bind(this);
     this.getTriggerFile = this.getTriggerFile.bind(this);
     this.showTriggerMessage = this.showTriggerMessage.bind(this);
     this.setTriggerMessage = this.setTriggerMessage.bind(this);
-    this.handleOnChange = this.handleOnChange.bind(this);
+    this.handleOnLimitChange = this.handleOnLimitChange.bind(this);
     this.handleOnSourceTypeaheadChange = this.handleOnSourceTypeaheadChange.bind(this);
     this.handleOnParameterTypeaheadChange = this.handleOnParameterTypeaheadChange.bind(this);
     this.getParameterOptions = this.getParameterOptions.bind(this);
     this.setParameterOptions = this.setParameterOptions.bind(this);
     this.setServiceURL = this.setServiceURL.bind(this);
     this.getUnit = this.getUnit.bind(this);
-    this.inputfieldLimit = '';
     this.state = {
       isOpen: props.isOpen,
       parameterOption: '',
       operatorOption: '',
       sourceOption: '',
+      inputfieldLimit: '',
       unit: '',
       parameterOptions: []
     };
-  }
-
-  handleTriggerClick (evt, index) {
-    const locations = this.props.data[index].locations;
-    if (locations !== this.props.adagucProperties.triggerLocations) {
-      this.props.dispatch(this.props.actions.setTriggerLocations(locations));
-    } else {
-      this.props.dispatch(this.props.actions.setTriggerLocations([]));
-    }
   }
 
   componentWillReceiveProps (nextProps) {
     if (typeof nextProps.isOpen !== 'undefined') {
       this.setState({ isOpen: nextProps.isOpen });
     }
-  }
-
-  getTitle (trigger) {
-    const { parameter, operator, threshold, units } = trigger;
-    return `${parameter} (${operator}${threshold} ${units})`;
   }
 
   setServiceURL () {
@@ -80,9 +65,9 @@ class TriggerTestCategory extends Component {
 
   addTrigger () {
     const triggerinfo = {
-      parameter: this.state.parameterOption.toString().slice(0, -1),
+      parameter: this.state.parameterOption.toString(),
       operator: this.state.operatorOption.toString(),
-      limit: this.inputfieldLimit,
+      limit: this.state.inputfieldLimit,
       serviceurl: this.setServiceURL()
     };
     axios({
@@ -129,20 +114,20 @@ class TriggerTestCategory extends Component {
     }));
   }
 
-  handleOnChange (event) {
-    if (event.target.name === 'limit') {
-      this.inputfieldLimit = event.target.value;
-    }
+  handleOnLimitChange (value) {
+    this.setState({ inputfieldLimit: value });
   }
 
   handleOnSourceTypeaheadChange (value) {
-    this.setState({ sourceOption: value });
-    this.getParameterOptions();
+    this.setState({ sourceOption: value }, function () {
+      this.getParameterOptions();
+    });
   }
 
   handleOnParameterTypeaheadChange (value) {
-    this.setState({ parameterOption: value });
-    this.getUnit();
+    this.setState({ parameterOption: value }, function () {
+      this.getUnit();
+    });
   }
 
   getParameterOptions () {
@@ -159,33 +144,33 @@ class TriggerTestCategory extends Component {
   }
 
   setParameterOptions (parameters) {
-    this.state.parameterOptions = parameters;
-    return this.state.parameterOptions;
+    this.setState({ parameterOptions: parameters }, function () {
+      return this.state.parameterOptions;
+    });
   }
 
   getUnit () {
     const unitInfo = {
       serviceurl: this.setServiceURL(),
-      parameter: this.state.parameterOption.toString().slice(0, -1)
+      parameter: this.state.parameterOption.toString()
     };
     axios({
       method: 'post',
       url: this.props.urls.BACKEND_SERVER_URL + '/triggers/unitget',
       data: unitInfo
     }).then((res) => {
-      this.setState({ unit: res.data.unit });
+      this.setState({ unit: '(in ' + res.data.unit + ')' });
     }).catch((error) => {
       console.error(error);
     });
   }
 
   render () {
-    const data = this.props.data || [];
     const { title, icon, toggleMethod } = this.props;
-    const { sourceOption, parameterOption, operatorOption } = this.state;
+    const { sourceOption, parameterOption, operatorOption, inputfieldLimit } = this.state;
     return (
       <Card className='row accordion'>
-        <CardHeader onClick={data == false ? toggleMethod : null} className={data == false ? null : 'disabled'} title={title}>
+        <CardHeader onClick={toggleMethod} title={title}>
           <Col xs='auto'>
             <Icon name={icon} />
           </Col>
@@ -193,7 +178,7 @@ class TriggerTestCategory extends Component {
             {title}
           </Col>
           <Col xs='auto'>
-            {data == false ? <Badge color='danger' pill><Icon name='plus' /></Badge> : null}
+            <Badge color='danger' pill><Icon name='plus' /></Badge>
           </Col>
         </CardHeader>
         <CollapseOmni className='CollapseOmni' isOpen={this.state.isOpen} minSize={0} maxSize={500}>
@@ -217,7 +202,7 @@ class TriggerTestCategory extends Component {
                 <Label>Phenomenon</Label>
               </Col>
               <Col style={{ margin: '0.3rem' }}>
-                <Typeahead disabled={sourceOption === ''}
+                <Typeahead disabled={!sourceOption}
                   options={this.state.parameterOptions}
                   onChange={(parameterOption) => { this.handleOnParameterTypeaheadChange(parameterOption); }}
                   filterBy={(parameterOptions) => {
@@ -244,15 +229,15 @@ class TriggerTestCategory extends Component {
             </InputGroup>
             <InputGroup>
               <Col xs='3' style={{ margin: '0.3rem', marginLeft: '0.5rem' }}>
-                <Label>Limit</Label>
+                <Label>Limit {this.state.unit}</Label>
               </Col>
               <Col style={{ margin: '0.3rem' }}>
-                <Input type='number' step='0.1' name='limit' onChange={this.handleOnChange} placeholder={this.state.unit} />
+                <Input type='number' step='0.1' name='limit' onChange={(inputfieldLimit) => { this.setState({ inputfieldLimit: inputfieldLimit.target.value }); }} style={{ height: '34px' }} />
               </Col>
             </InputGroup>
             <ButtonGroup>
               <Button color='primary' onClick={this.addTrigger} style={{ margin: '0.7rem' }}
-                disabled={sourceOption === '' || parameterOption === '' || operatorOption === '' || this.inputfieldLimit === ''}>Create</Button>
+                disabled={sourceOption === '' || parameterOption === '' || operatorOption === '' || inputfieldLimit === ''}>Create</Button>
             </ButtonGroup>
           </Card>
         </CollapseOmni>
@@ -260,16 +245,13 @@ class TriggerTestCategory extends Component {
   }
 }
 
-TriggerTestCategory.propTypes = {
-  adagucProperties: PropTypes.object,
-  actions       : PropTypes.object,
+TriggerCreateTestCategory.propTypes = {
   dispatch      : PropTypes.func,
   isOpen        : PropTypes.bool,
   title         : PropTypes.string.isRequired,
   icon          : PropTypes.string,
   toggleMethod  : PropTypes.func,
-  data          : PropTypes.array,
   urls          : PropTypes.shape({ BACKEND_SERVER_URL:PropTypes.string }).isRequired
 };
 
-export default TriggerTestCategory;
+export default TriggerCreateTestCategory;
