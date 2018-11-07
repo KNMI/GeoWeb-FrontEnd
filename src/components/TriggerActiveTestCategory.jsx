@@ -10,7 +10,7 @@ class TriggerActiveTestCategory extends Component {
     super(props);
     this.getActiveTriggers = this.getActiveTriggers.bind(this);
     this._getActiveTriggersTimer = this._getActiveTriggersTimer.bind(this);
-    this.getURL = this.getURL.bind(this);
+    this.getTriggers = this.getTriggers.bind(this);
     this.state = {
       isOpen: props.isOpen,
       activeList: []
@@ -25,13 +25,8 @@ class TriggerActiveTestCategory extends Component {
 
   componentDidMount () {
     console.log('componentDidmount');
-
-      this.getActiveTriggers();
-
+    this.getActiveTriggers();
   }
-
-
-
 
   getActiveTriggers () {
     if (this.getIntervalTimerIsRunning) {
@@ -57,14 +52,21 @@ class TriggerActiveTestCategory extends Component {
       this.setState({ activeList: res.data });
     }).catch((error) => {
       console.error(error);
-    }).finally(()=>{
+    }).finally(() => {
       console.log('Calling _getActiveTriggersTimer with setInterval');
       setTimeout(this._getActiveTriggersTimer, 1000);
     });
   }
 
-  getURL () {
-    console.log('setServiceURL');
+  getTriggers () {
+    axios({
+      method: 'get',
+      url: this.props.urls.BACKEND_SERVER_URL + '/triggers/gettriggers'
+    }).then((res) => {
+      console.log(res.data);
+    }).catch((error) => {
+      console.error(error);
+    });
   }
 
   render () {
@@ -85,7 +87,7 @@ class TriggerActiveTestCategory extends Component {
         </CardHeader>
         <CollapseOmni className='CollapseOmni' isOpen={this.state.isOpen} minSize={0} maxSize={500}>
           <Card className='row accordion'>
-            <Button color='primary' onClick={this.getURL}>URL</Button>
+            <Button color='primary' onClick={this.getTriggers}>URL</Button>
           </Card>
         </CollapseOmni>
       </Card>);
