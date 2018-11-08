@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import {
-  Button, Col, InputGroup, InputGroupAddon, Input, InputGroupButton, ButtonDropdown,
+  Button, Col, InputGroup, InputGroupAddon, Input, ButtonDropdown,
   DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap';
 import { Typeahead } from 'react-bootstrap-typeahead';
 import TimePicker from '../Basis/DateTimePicker';
@@ -34,6 +34,7 @@ import EndPositionSection from './Sections/EndPositionSection';
 class SigmetEditMode extends PureComponent {
   constructor (props) {
     super(props);
+    this.toggleDropDown = this.toggleDropDown.bind(this);
     this.setMode = this.setMode.bind(this);
     this.getMode = this.getMode.bind(this);
     this.getUnitLabel = this.getUnitLabel.bind(this);
@@ -41,6 +42,13 @@ class SigmetEditMode extends PureComponent {
     this.stepLevelPerUnit = this.stepLevelPerUnit.bind(this);
     this.formatLevelPerUnit = this.formatLevelPerUnit.bind(this);
     this.verifySigmetDebounced = debounce(this.verifySigmetDebounced.bind(this), 250, false);
+  }
+
+  toggleDropDown (evt) {
+    console.log(evt);
+    /* this.setState({
+      typeIsOpen: !this.state.typeIsOpen
+    }); */
   }
 
   verifySigmetDebounced (sigmetObject) {
@@ -416,8 +424,8 @@ class SigmetEditMode extends PureComponent {
             className={!isLevelBetween && levelinfo && levelinfo.levels && levelinfo.levels[0] &&
               (!levelinfo.levels[0].value || levelinfo.levels[0].value > this.maxLevelPerUnit(levelinfo.levels[0].unit)) ? 'missing' : null}
             disabled={isLevelBetween}>
-            <InputGroupButton>
-              <ButtonDropdown toggle={() => null}>
+            <InputGroupAddon addonType='prepend'>
+              <ButtonDropdown toggle={() => this.toggleDropDown('Toggle1')}>
                 <DropdownToggle caret disabled={isLevelBetween}>
                   {this.getUnitLabel(levelinfo.levels[0].unit)}
                 </DropdownToggle>
@@ -428,7 +436,7 @@ class SigmetEditMode extends PureComponent {
                   )}
                 </DropdownMenu>
               </ButtonDropdown>
-            </InputGroupButton>
+            </InputGroupAddon>
             <Input placeholder='Level' disabled={isLevelBetween} type='number' pattern='\d{0,5}'
               min='0' step={this.stepLevelPerUnit(levelinfo.levels[0].unit)} max={this.maxLevelPerUnit(levelinfo.levels[0].unit)}
               value={(isLevelBetween || !levelinfo.levels[0].value) ? '' : this.formatLevelPerUnit(levelinfo.levels[0].value, levelinfo.levels[0].unit)}
@@ -442,8 +450,8 @@ class SigmetEditMode extends PureComponent {
             checkedOption={{
               optionId: 'lvl',
               label: <InputGroup className='label'>
-                <InputGroupButton>
-                  <ButtonDropdown toggle={() => null}>
+                <InputGroupAddon addonType='prepend'>
+                  <ButtonDropdown toggle={() => this.toggleDropDown('Toggle2')}>
                     <DropdownToggle caret disabled={!isLevelBetween || levelMode.hasSurface}>
                       {this.getUnitLabel(levelinfo.levels[0].unit)}
                     </DropdownToggle>
@@ -454,7 +462,7 @@ class SigmetEditMode extends PureComponent {
                       )}
                     </DropdownMenu>
                   </ButtonDropdown>
-                </InputGroupButton>
+                </InputGroupAddon>
                 <Input placeholder='Level' disabled={!isLevelBetween || levelMode.hasSurface} type='number'
                   min='0' step={this.stepLevelPerUnit(levelinfo.levels[0].unit)} max={this.maxLevelPerUnit(levelinfo.levels[0].unit)}
                   value={(!isLevelBetween || levelMode.hasSurface || !levelinfo.levels[0].value)
@@ -472,8 +480,8 @@ class SigmetEditMode extends PureComponent {
             data-field='between-lev-2'
             className={isLevelBetween && levelinfo && levelinfo.levels && levelinfo.levels[1] && !levelinfo.levels[1].value ? 'missing' : null}
             disabled={!isLevelBetween}>
-            <InputGroupButton>
-              <ButtonDropdown toggle={() => null}>
+            <InputGroupAddon addonType='prepend'>
+              <ButtonDropdown toggle={() => this.toggleDropDown('Toggle3')}>
                 <DropdownToggle caret disabled={!isLevelBetween}>
                   {this.getUnitLabel(levelinfo.levels[1].unit)}
                 </DropdownToggle>
@@ -484,7 +492,7 @@ class SigmetEditMode extends PureComponent {
                   )}
                 </DropdownMenu>
               </ButtonDropdown>
-            </InputGroupButton>
+            </InputGroupAddon>
             <Input placeholder='Level' disabled={!isLevelBetween} type='number'
               min='0' step={this.stepLevelPerUnit(levelinfo.levels[1].unit)} max={this.maxLevelPerUnit(levelinfo.levels[1].unit)}
               value={(!isLevelBetween || !levelinfo.levels[1].value) ? '' : this.formatLevelPerUnit(levelinfo.levels[1].value, levelinfo.levels[1].unit)}
@@ -534,7 +542,7 @@ class SigmetEditMode extends PureComponent {
               type='number' disabled={movementType !== MOVEMENT_TYPES.MOVEMENT}
               step='1' min='1'
             />
-            <InputGroupAddon>KT</InputGroupAddon>
+            <InputGroupAddon addonType='append'>KT</InputGroupAddon>
           </InputGroup>
         </MovementSection>
         <EndPositionSection disabled={movementType !== MOVEMENT_TYPES.FORECAST_POSITION}>

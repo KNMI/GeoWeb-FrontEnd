@@ -1,11 +1,30 @@
-.popover,.popover-content {
+.popover {
+  font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 0.875rem;
+  font-weight: normal;
+  line-height: 1.4;
+  width: auto;
   max-width: unset;
-  padding: 0;
-}
-.popover-content > li {
-  @extend .dropdown-item;
+
+  .popover-body {
+    // max-width: unset;
+    padding: 0;
+
+    > li {
+      @extend .dropdown-item;
+      overflow-x: hidden;
+      overflow-y: auto;
+      max-height: 50rem;
+      padding: 0.19rem;
+      cursor: pointer;
+    }
+  }
 }
 
 #timeseriesPopover {
   height: 30rem!important;
+}
+
+#timePopover {
+  margin-top: 11rem;
 }

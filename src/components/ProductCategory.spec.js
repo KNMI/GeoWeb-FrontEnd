@@ -1,5 +1,5 @@
 import React from 'react';
-import { default as ProductCategory } from './ProductCategory';
+import ProductCategory from './ProductCategory';
 import { mount } from 'enzyme';
 
 describe('(Container) ProductCategory', () => {

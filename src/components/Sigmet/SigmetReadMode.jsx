@@ -318,7 +318,7 @@ class SigmetReadMode extends PureComponent {
             : null
           }
           {isVolcanicAsh && Array.isArray(moveTo) && moveTo.length > 0 && typeof moveTo[0] === 'string' && moveTo[0].length > 0
-            ? <span data-field='move_to_fir'>{`Moving to FIR ${moveTo[0]}`}</span>
+            ? <span data-field='move_to_fir'>{`Moving to ${moveTo[0]} FIR`}</span>
             : null
           }
         </ProgressSection>

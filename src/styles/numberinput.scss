@@ -1,5 +1,8 @@
 .NumberInput.form-control {
   padding: 0.2rem 0.75rem;
+  &:focus {
+    box-shadow: none;
+  }
 }
 .NumberInput::selection {
   background-color: #5bc0de;

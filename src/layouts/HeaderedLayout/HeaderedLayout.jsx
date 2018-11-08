@@ -9,11 +9,11 @@ class HeaderedLayout extends Component {
     return (
       <Col className='headeredLayout'>
         { header
-          ? <Row className='Header' tag='header'>
+          ? <Row className='Header no-gutters' tag='header'>
             {React.cloneElement(header, this.props) || 'Oops'}
           </Row>
           : null }
-        <Row className='headeredContent'>
+        <Row className='headeredContent no-gutters'>
           {this.props.children}
         </Row>
       </Col>

@@ -9,7 +9,8 @@ import { DefaultLocations } from '../../constants/defaultlocations';
 import { ReadLocations } from '../../utils/admin';
 import { LoadURLPreset } from '../../utils/URLPresets';
 import { debounce } from '../../utils/debounce';
-require('babel-polyfill');
+// FIXME: is this polyfill really a necessity, since we're using @runtime and transform-runtime? This pollutes the global namespace...
+import '@babel/polyfill/noConflict';
 const WMJSTileRendererTileSettings = require('../../../config/basemaps');
 var elementResizeEvent = require('element-resize-event');
 export default class Adaguc extends PureComponent {
@@ -161,7 +162,9 @@ export default class Adaguc extends PureComponent {
 
   componentDidMount () {
     this.initAdaguc(this.refs.adaguc);
-    elementResizeEvent(this.refs.adaguccontainer, this.resize);
+    if (this.refs.adaguccontainer) {
+      elementResizeEvent(this.refs.adaguccontainer, this.resize);
+    }
     this.interval = setInterval(this.reparseLayers, moment.duration(1, 'minute').asMilliseconds());
   }
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { default as Panel } from './Panel';
+import Panel from './Panel';
 import { mount } from 'enzyme';
 
 describe('(Container) Panel', () => {

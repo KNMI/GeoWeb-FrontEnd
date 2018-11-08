@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { Col, Row, Badge, Card, CardHeader, CardBlock } from 'reactstrap';
+import { Col, Row, Badge, Card, CardHeader, CardBody } from 'reactstrap';
 import CollapseOmni from '../../components/CollapseOmni';
 import Icon from 'react-fa';
 import PropTypes from 'prop-types';
@@ -66,7 +66,7 @@ class SigmetsCategory extends PureComponent {
         {isOpen
           ? <Row>
             <CollapseOmni className='CollapseOmni col' isOpen={isOpen} minSize={0} maxSize={maxSize}>
-              <CardBlock>
+              <CardBody>
                 <Row>
                   <Col className='btn-group-vertical'>
                     {sigmets.slice().sort(this.byStartAndSequence).slice(0, itemLimit).map((sigmet, index) => {
@@ -202,7 +202,7 @@ class SigmetsCategory extends PureComponent {
                     })}
                   </Col>
                 </Row>
-              </CardBlock>
+              </CardBody>
             </CollapseOmni>
           </Row>
           : null

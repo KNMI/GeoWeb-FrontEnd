@@ -1,5 +1,5 @@
 import React from 'react';
-import { default as CollapseOmni } from './CollapseOmni';
+import CollapseOmni from './CollapseOmni';
 import { mount } from 'enzyme';
 
 describe('(Component) CollapseOmni', () => {
@@ -56,14 +56,14 @@ describe('(Component) CollapseOmni', () => {
   it('Allows for collapsing', () => {
     _component = mount(<CollapseOmni minSize={27} maxSize={323} isOpen />);
     expect(_component.props().maxSize).to.eql(323);
-    expect(_component.hasClass('collapse')).to.eql(true);
-    expect(_component.hasClass('show')).to.eql(true);
+    expect(_component.render().hasClass('collapse')).to.eql(true);
+    expect(_component.render().hasClass('show')).to.eql(true);
     _component.setProps({ isOpen: false });
-    expect(_component.hasClass('collapse')).to.eql(false);
-    expect(_component.hasClass('collapsing')).to.eql(true);
+    expect(_component.render().hasClass('collapse')).to.eql(false);
+    expect(_component.render().hasClass('collapsing')).to.eql(true);
     expect(_component.props().isOpen).to.eql(false);
-    expect(_component.hasClass('remain')).to.eql(true);
-    expect(_component.hasClass('height')).to.eql(true);
-    expect(_component.hasClass('show')).to.eql(false);
+    expect(_component.render().hasClass('remain')).to.eql(true);
+    expect(_component.render().hasClass('height')).to.eql(true);
+    expect(_component.render().hasClass('show')).to.eql(false);
   });
 });

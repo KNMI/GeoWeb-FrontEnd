@@ -1,6 +1,5 @@
 import React from 'react';
-// eslint-disable-next-line no-unused-vars
-import { default as HeaderedLayout } from './HeaderedLayout';
+import HeaderedLayout from './HeaderedLayout';
 import { shallow, mount } from 'enzyme';
 import { Col } from 'reactstrap';
 

@@ -1,11 +1,11 @@
-import React, { PureComponent } from 'react';
+import React, { Component } from 'react';
 import CanvasComponent from './CanvasComponent.js';
 import { Col } from 'reactstrap';
 import PropTypes from 'prop-types';
 import { debounce } from '../../utils/debounce';
 import moment from 'moment';
 
-export default class TimeComponent extends PureComponent {
+export default class TimeComponent extends Component {
   constructor () {
     super();
     this.onRenderCanvas = this.onRenderCanvas.bind(this);

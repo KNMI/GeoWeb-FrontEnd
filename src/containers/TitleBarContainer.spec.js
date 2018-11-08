@@ -1,5 +1,5 @@
 import React from 'react';
-import { default as TitleBarContainer } from './TitleBarContainer';
+import TitleBarContainer from './TitleBarContainer';
 import { mount } from 'enzyme';
 import sinon from 'sinon';
 import moxios from 'moxios';
@@ -85,8 +85,8 @@ describe('(Component) TitleBarContainer', () => {
         _component.doLogin = sinon.spy();
         _component.toggleLoginModal = sinon.spy();
         const loginComponent = _component.find('#loginIcon');
-        expect(loginComponent.length).to.equal(1);
-        loginComponent.simulate('click');
+        expect(loginComponent.length).to.be.at.least(1); // enzyme v3++ doesn't dedupe anymore
+        loginComponent.at(0).simulate('click');
         done();
       }).catch(done);
     });

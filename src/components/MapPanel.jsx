@@ -1,4 +1,4 @@
-import React, { PureComponent } from 'react';
+import React, { PureComponent, Component } from 'react';
 import Adaguc from './ADAGUC/Adaguc';
 import Panel from './Panel';
 import { Row, Col } from 'reactstrap';
@@ -10,7 +10,7 @@ import moment from 'moment';
 import { ReadLocations } from '../utils/admin';
 import { GetServiceByNamePromise } from '../utils/getServiceByName';
 
-export class SinglePanel extends PureComponent {
+export class SinglePanel extends Component {
   constructor () {
     super();
     this.renderPanelContent = this.renderPanelContent.bind(this);
@@ -27,25 +27,25 @@ export class SinglePanel extends PureComponent {
   }
 
   renderPanelContent (type) {
-    const { mapProperties, dispatch, mapId, drawProperties, panelsActions, panelsProperties, adagucProperties, urls } = this.props;
+    const { mapProperties, dispatch, mapId, drawProperties, panelsActions, panelsProperties, adagucProperties, urls, adagucActions, referenceTime } = this.props;
     const { activePanelId } = panelsProperties;
-    const { cursor } = this.props.adagucProperties;
-    const adaStart = moment.utc(this.props.adagucProperties.timeDimension).startOf('hour');
+    const { cursor } = adagucProperties;
+    const adaStart = moment.utc(adagucProperties.timeDimension).startOf('hour');
 
     switch (type.toUpperCase()) {
       case 'TIMESERIES':
-        return <TimeseriesComponent urls={urls} layout={mapProperties.layout} location={cursor ? cursor.location : null} referenceTime={this.props.referenceTime}
-          selectedModel={this.props.model} time={adaStart} id={'timeseries' + mapId} />;
+        return <TimeseriesComponent urls={urls} layout={mapProperties.layout} location={cursor ? cursor.location : null} referenceTime={referenceTime}
+          selectedModel={this.props.model} time={adaStart} id={'timeseries' + mapId} dispatch={dispatch} adagucActions={adagucActions} />;
       case 'PROGTEMP':
-        return <ProgtempComponent urls={urls} layout={mapProperties.layout} location={cursor ? cursor.location : null} referenceTime={this.props.referenceTime}
+        return <ProgtempComponent urls={urls} layout={mapProperties.layout} location={cursor ? cursor.location : null} referenceTime={referenceTime}
           selectedModel={this.props.model} loadingDone={() => this.setState({ isLoading: false })} onError={(error) => {
             if (this.state.error !== error) {
               this.setState({ error });
             }
           }} time={adaStart} style={{ height: '100%', width: '100%', marginLeft: '-3.6rem', marginRight: '1.4rem' }} />;
       default:
-        return <Adaguc drawActions={this.props.drawActions} drawActions={this.props.drawActions} mapProperties={mapProperties}
-          adagucActions={this.props.adagucActions} adagucProperties={adagucProperties} panelsProperties={panelsProperties} drawProperties={drawProperties}
+        return <Adaguc drawActions={this.props.drawActions} mapProperties={mapProperties}
+          adagucActions={adagucActions} adagucProperties={adagucProperties} panelsProperties={panelsProperties} drawProperties={drawProperties}
           panelsActions={panelsActions} mapId={mapId} urls={urls} dispatch={dispatch} mapActions={this.props.mapActions} active={mapId === activePanelId} />;
     }
   }
@@ -149,7 +149,7 @@ class MapPanel extends PureComponent {
       return numPanels;
     };
 
-    const { panelsProperties, mapProperties, dispatch, panelsActions } = this.props;
+    const { panelsProperties, dispatch, panelsActions } = this.props;
     const { panels, activePanelId } = panelsProperties;
 
     prevProps.panelsProperties.panels.map((panel, i) => {
@@ -170,7 +170,7 @@ class MapPanel extends PureComponent {
     const { panelsProperties, user } = this.props;
     let isLoggedIn = false;
     if (user) {
-    	isLoggedIn = user.isLoggedIn;
+      isLoggedIn = user.isLoggedIn;
     }
     switch (panelsProperties.panelLayout) {
       case 'dual':
@@ -316,11 +316,24 @@ SinglePanel.propTypes = {
   mapId: PropTypes.number.isRequired,
   drawActions: PropTypes.object.isRequired,
   panelsActions: PropTypes.object.isRequired,
-  adagucActions: PropTypes.object.isRequired
+  adagucActions: PropTypes.object.isRequired,
+  urls: PropTypes.object,
+  referenceTime: PropTypes.string,
+  model: PropTypes.string,
+  isLoggedIn: PropTypes.bool,
+  progtempLocations: PropTypes.array
 };
 MapPanel.propTypes = {
   mapProperties: PropTypes.object.isRequired,
-  adagucProperties: PropTypes.object.isRequired
+  adagucProperties: PropTypes.object.isRequired,
+  urls: PropTypes.shape({
+    BACKEND_SERVER_URL: PropTypes.string
+  }),
+  panelsProperties: PropTypes.object,
+  dispatch: PropTypes.func.isRequired,
+  panelsActions: PropTypes.object,
+  user: PropTypes.object,
+  isLoggedIn: PropTypes.bool
 };
 
 export default MapPanel;

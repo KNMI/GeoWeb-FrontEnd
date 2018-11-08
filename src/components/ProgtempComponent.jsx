@@ -3,7 +3,9 @@ import CanvasComponent from './ADAGUC/CanvasComponent';
 import axios from 'axios';
 import moment from 'moment';
 import PropTypes from 'prop-types';
+import MomentPropTypes from 'react-moment-proptypes';
 import { GetServiceByNamePromise } from '../utils/getServiceByName';
+// eslint-disable-next-line camelcase
 import { drawProgtemp, drawProgtempBg, plotHodo, calc_Tw, calc_Tv } from '../static/progtemp/functions_bijvoet.js';
 export default class ProgtempComponent extends PureComponent {
   constructor () {
@@ -217,7 +219,7 @@ ProgtempComponent.propTypes = {
   style: PropTypes.object,
   time: PropTypes.object,
   selectedModel: PropTypes.string.isRequired,
-  referenceTime: PropTypes.object.isRequired,
+  referenceTime: MomentPropTypes.momentObj,
   location: PropTypes.object,
   urls: PropTypes.object.isRequired,
   onError: PropTypes.func,

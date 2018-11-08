@@ -1,5 +1,5 @@
 import React from 'react';
-import { default as ProgtempPopoverComponent } from './ProgtempPopoverComponent';
+import ProgtempPopoverComponent from './ProgtempPopoverComponent';
 import { mount } from 'enzyme';
 import sinon from 'sinon';
 

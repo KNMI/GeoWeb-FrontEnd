@@ -1,5 +1,5 @@
 import React from 'react';
-import { default as TriggersContainer } from './TriggersContainer';
+import TriggersContainer from './TriggersContainer';
 import { mount } from 'enzyme';
 
 const emptyDispatch = () => null;

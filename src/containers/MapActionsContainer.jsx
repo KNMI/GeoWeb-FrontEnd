@@ -1,4 +1,4 @@
-import React, { PureComponent } from 'react';
+import React, { Component } from 'react';
 import { Button, Col, Row } from 'reactstrap';
 import Panel from '../components/Panel';
 import { Icon } from 'react-fa';
@@ -7,7 +7,7 @@ import TimeseriesPopoverComponent from '../components/TimeseriesPopoverComponent
 import PropTypes from 'prop-types';
 var moment = require('moment');
 
-class MapActionContainer extends PureComponent {
+class MapActionContainer extends Component {
   constructor (props) {
     super(props);
     // Toggles

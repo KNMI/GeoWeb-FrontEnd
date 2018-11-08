@@ -1,33 +1,83 @@
-.TafLocationManagementPanel {
+.TafValidationManagementPanel, .TafExampleManagementPanel, .SigmetParameterManagementPanel {
   flex: 1;
 }
 
-.TafLocationManagementPanel .content > .row:first-child {
-  width: 100%;
-  overflow-x: hidden;
-  overflow-y: auto;
+.ManagementCategoryPanel, .LocationManagementPanel, .TafLocationManagementPanel, .ProgtempLocationManagementPanel {
+  flex: 1;
+  .content {
+    flex-wrap: nowrap;
+    label {
+      margin: auto 0;
+    }
+
+    > .col {
+      flex-direction: column;
+      > .row:first-child {
+        width: 100%;
+        overflow-x: hidden;
+        overflow-y: auto;
+      }
+      > .row:nth-child(2) {
+        flex-shrink: 0;
+      }
+      > .row:last-child {
+        flex: 1;
+      }
+    }
+
+    .row.grid > .col, .row.grid > .col-auto, .row.grid > .col-1, .row.grid > .col-2, .row.grid > .col-3,
+    .row.grid > .col-4, .row.grid > .col-6, .row.grid > .col-7, .row.grid > .col-8, .col-9, .col-10, .col-12 {
+      padding: 0.33rem;
+    }
+
+    .row.grid .col-auto {
+      .btn.btn-primary {
+        &:not(:last-child) {
+          margin-right: 0.33rem;
+        }
+      }
+    }
+
+    .card {
+      flex: 1;
+      padding: 0.33rem;
+
+      .card-body {
+        flex-direction: column;
+        padding: 0;
+        > .row:not(:last-child) {
+          font-size: 0.85rem;
+          line-height: 1.6;
+          margin-bottom: 0.2rem;
+        }
+
+        > .row:nth-last-child(2) {
+          flex: 1;
+        }
+
+        > .row:last-child {
+          border-top: 0.06rem solid rgba(0, 0, 0, 0.125);
+          padding-top: 0.33rem;
+        }
+
+        > .row .row {
+          width: 100%;
+        }
+        .btn.btn-secondary {
+          padding: 0.33rem 0.75rem;
+          &:not(:last-child) {
+            margin-right: 0.33rem;
+          }
+        }
+      }
+
+    }
+  }
 }
 
-.TafLocationManagementPanel .content {
-  flex-wrap: nowrap;
-
-  .row.grid > .col, .row.grid > .col-auto, .row.grid > .col-1, .row.grid > .col-2, .row.grid > .col-3,
-  .row.grid > .col-4, .row.grid > .col-6, .row.grid > .col-7, .row.grid > .col-8, .col-9, .col-10, .col-12 {
-    padding: 0.33rem;
-  }
-
-  .card {
-    flex: 1;
-    padding: 0.33rem;
-
-    .row:not(:last-child) {
-      font-size: 0.85rem;
-    }
-
-    .row:last-child {
-      flex: 1;
-      border-top: 0.06rem solid rgba(0, 0, 0, 0.125);
-      padding-top: 0.33rem;
-    }
+.LocationCard {
+  .numericValue > * {
+    width: 100%;
+    text-align: right;
   }
 }
