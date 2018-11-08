@@ -86,12 +86,13 @@ const mergeInTemplate = (incomingValues, parentName, templates) => {
           if (additionalOccurrences < 1) {
             return;
           }
-          if (Array.isArray(templateForArray) && templateForArray.length === 0) {
-            // look for a different template
-            console.log('tmpl', pathParts.slice(numericIndex - 1, numericIndex));
-          }
-          if (Array.isArray(templateForArray) && templateForArray.length > 0) {
-            affectedArray.push(...Array(additionalOccurrences).fill(cloneDeep(templateForArray[0])));
+          if (Array.isArray(templateForArray)) {
+            if (templateForArray.lenght === 0) {
+              // look for a different template
+              console.log('tmpl', pathParts.slice(numericIndex - 1, numericIndex));
+            } else {
+              affectedArray.push(...Array(additionalOccurrences).fill(cloneDeep(templateForArray[0])));
+            }
           }
           if (hasNestedProperty(affectedArray, pathParts.slice(numericIndex))) {
             const templateValue = getNestedProperty(affectedArray, pathParts.slice(numericIndex));
