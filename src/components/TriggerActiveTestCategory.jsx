@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Col, Badge, Card, CardHeader, Button } from 'reactstrap';
+import { Col, Badge, Card, CardHeader, Label } from 'reactstrap';
 import Icon from 'react-fa';
 import PropTypes from 'prop-types';
 import CollapseOmni from '../components/CollapseOmni';
@@ -11,6 +11,7 @@ class TriggerActiveTestCategory extends Component {
     this.getActiveTriggers = this.getActiveTriggers.bind(this);
     this._getActiveTriggersTimer = this._getActiveTriggersTimer.bind(this);
     this.getTriggers = this.getTriggers.bind(this);
+    this.setActiveTriggerInfo = this.setActiveTriggerInfo.bind(this);
     this.state = {
       isOpen: props.isOpen,
       activeList: []
@@ -47,7 +48,7 @@ class TriggerActiveTestCategory extends Component {
     }
     axios({
       method: 'get',
-      url: this.props.urls.BACKEND_SERVER_URL + '/triggers/activetriggers'
+      url: this.props.urls.BACKEND_SERVER_URL + '/triggers/gettriggers'
     }).then((res) => {
       this.setState({ activeList: res.data });
     }).catch((error) => {
@@ -63,10 +64,19 @@ class TriggerActiveTestCategory extends Component {
       method: 'get',
       url: this.props.urls.BACKEND_SERVER_URL + '/triggers/gettriggers'
     }).then((res) => {
-      console.log(res.data);
+      for (var i = 0; i < res.data.length; i++) {
+        var triggersInfo = res.data[i];
+        this.setActiveTriggerInfo(triggersInfo);
+      }
     }).catch((error) => {
       console.error(error);
     });
+  }
+
+  setActiveTriggerInfo (triggersInfo) {
+    const { phenomenon } = triggersInfo;
+    const { long_name, operator, limit, unit } = phenomenon;
+    return `${long_name} ${operator} than ${limit} ${unit}`;
   }
 
   render () {
@@ -87,7 +97,7 @@ class TriggerActiveTestCategory extends Component {
         </CardHeader>
         <CollapseOmni className='CollapseOmni' isOpen={this.state.isOpen} minSize={0} maxSize={500}>
           <Card className='row accordion'>
-            <Button color='primary' onClick={this.getTriggers}>URL</Button>
+            {this.getTriggers}
           </Card>
         </CollapseOmni>
       </Card>);
