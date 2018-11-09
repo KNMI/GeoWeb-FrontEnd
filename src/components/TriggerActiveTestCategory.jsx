@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Col, Badge, Card, CardHeader, Label } from 'reactstrap';
+import { Col, Badge, Card, CardHeader, Label, Button, Row, CardBlock } from 'reactstrap';
 import Icon from 'react-fa';
 import PropTypes from 'prop-types';
 import CollapseOmni from '../components/CollapseOmni';
@@ -55,22 +55,20 @@ class TriggerActiveTestCategory extends Component {
       console.error(error);
     }).finally(() => {
       console.log('Calling _getActiveTriggersTimer with setInterval');
-      setTimeout(this._getActiveTriggersTimer, 1000);
+      setTimeout(this._getActiveTriggersTimer, 10000);
     });
   }
 
   getTriggers () {
-    axios({
-      method: 'get',
-      url: this.props.urls.BACKEND_SERVER_URL + '/triggers/gettriggers'
-    }).then((res) => {
-      for (var i = 0; i < res.data.length; i++) {
-        var triggersInfo = res.data[i];
-        this.setActiveTriggerInfo(triggersInfo);
-      }
-    }).catch((error) => {
-      console.error(error);
-    });
+    let infoList = [];
+    if (!this.state.activeList || this.state.activeList.length < 1) {
+      return infoList;
+    }
+    for (var i = 0; i < this.state.activeList.length; i++) {
+      var triggersInfo = this.state.activeList[i];
+      infoList.push(this.setActiveTriggerInfo(triggersInfo));
+    }
+    return infoList;
   }
 
   setActiveTriggerInfo (triggersInfo) {
@@ -82,6 +80,7 @@ class TriggerActiveTestCategory extends Component {
   render () {
     const { title, icon, toggleMethod } = this.props;
     const { activeList } = this.state;
+    let triggers = this.getTriggers();
     return (
       <Card className='row accordion'>
         <CardHeader onClick={activeList.length > 0 ? toggleMethod : null} className={activeList.length > 0 ? null : 'disabled'} title={title}>
@@ -96,9 +95,28 @@ class TriggerActiveTestCategory extends Component {
           </Col>
         </CardHeader>
         <CollapseOmni className='CollapseOmni' isOpen={this.state.isOpen} minSize={0} maxSize={500}>
-          <Card className='row accordion'>
-            {this.getTriggers}
-          </Card>
+          <CardBlock>
+            <Row>
+              <Col className='btn-group-vertical'>
+                <Card className='row accordion'>
+                  {
+
+                    triggers.map((item, index) => {
+                      return (
+                        <Button key={index} onClick={() => { console.log(item); }}>
+                          <Row>
+                            <Col>
+                              <Label>{item}</Label>
+                            </Col>
+                          </Row>
+                        </Button>
+                      );
+                    })
+                  }
+                </Card>
+              </Col>
+            </Row>
+          </CardBlock>
         </CollapseOmni>
       </Card>);
   }

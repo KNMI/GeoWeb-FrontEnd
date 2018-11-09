@@ -12,7 +12,7 @@ const ITEMS = [
   {
     title: 'Active triggers',
     ref:   'active-triggers',
-    icon: 'folder-open',
+    icon: 'folder-open'
   }, {
     title: 'Previous triggers',
     ref:   'prev-triggers',
