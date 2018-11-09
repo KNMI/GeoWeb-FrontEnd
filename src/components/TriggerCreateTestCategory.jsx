@@ -39,6 +39,8 @@ class TriggerCreateTestCategory extends Component {
   }
 
   setServiceURL () {
+    const { sourceOption } = this.state;
+    let source = '';
     const currentdate = new Date();
     const year = currentdate.getUTCFullYear();
     let month = currentdate.getUTCMonth() + 1;
@@ -60,7 +62,11 @@ class TriggerCreateTestCategory extends Component {
     if (hours.toString().length < 2) {
       hours = '0' + hours;
     }
-    return 'http://birdexp07.knmi.nl/geoweb/data/OBS/kmds_alle_stations_10001_' + year + month + day + hours + minutes + '0.nc';
+    // eslint-disable-next-line eqeqeq
+    if (sourceOption == 'OBS') {
+      source = 'http://birdexp07.knmi.nl/geoweb/data/OBS/kmds_alle_stations_10001_' + year + month + day + hours + minutes + '0.nc';
+    }
+    return source;
   }
 
   addTrigger () {
@@ -75,7 +81,7 @@ class TriggerCreateTestCategory extends Component {
       url: this.props.urls.BACKEND_SERVER_URL + '/triggers/triggercreate',
       data: triggerinfo
     });
-    setTimeout(this.getTriggerFile, 100);
+    // setTimeout(this.getTriggerFile, 100);
   }
 
   getTriggerFile () {
