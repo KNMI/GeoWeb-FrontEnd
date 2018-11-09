@@ -37,6 +37,14 @@ export default class ProgressSection extends PureComponent {
           </Row>
           : null
         }
+        {children.hasOwnProperty('move_to_fir')
+          ? <Row>
+            <Col xs={{ size: 9, offset: 3 }}>
+              {children.move_to_fir}
+            </Col>
+          </Row>
+          : null
+        }
       </Col>
     </Row>;
   }

@@ -73,7 +73,9 @@ class TriggerActiveTestCategory extends Component {
 
   setActiveTriggerInfo (triggersInfo) {
     const { phenomenon } = triggersInfo;
+    // eslint-disable-next-line camelcase
     const { long_name, operator, limit, unit } = phenomenon;
+    // eslint-disable-next-line camelcase
     return `${long_name} ${operator} than ${limit} ${unit}`;
   }
 

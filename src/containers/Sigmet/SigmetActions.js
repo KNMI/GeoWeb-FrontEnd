@@ -60,7 +60,8 @@ export const SIGMET_MODES = {
 
 export const MODAL_TYPES = {
   TYPE_CONFIRM_DELETE: 'confirm delete',
-  TYPE_CONFIRM_CANCEL: 'confirm cancel'
+  TYPE_CONFIRM_CANCEL: 'confirm cancel',
+  TYPE_CONFIRM_PUBLISH: 'confirm publish'
 };
 
 export const MODALS = {
@@ -71,7 +72,8 @@ export const MODALS = {
     button: {
       label: 'Delete',
       icon: 'trash',
-      action: 'deleteSigmetAction'
+      action: 'deleteSigmetAction',
+      arguments: null // We use uuid here, which is passed to action
     },
     toggleAction: 'toggleSigmetModalAction'
   },
@@ -82,7 +84,8 @@ export const MODALS = {
     button: {
       label: 'Cancel this SIGMET',
       icon: 'times-circle',
-      action: 'cancelSigmetAction'
+      action: 'cancelSigmetAction',
+      arguments: null // We use uuid here, which is passed to action
     },
     optional: {
       message: 'Optionally, you can indicate which adjacent FIR the Volcanic Ash is moving to:',
@@ -90,6 +93,18 @@ export const MODALS = {
       selectedOption: null,
       action: 'updateSigmetAction',
       parameters: []
+    },
+    toggleAction: 'toggleSigmetModalAction'
+  },
+  CONFIRM_PUBLISH: {
+    type: MODAL_TYPES.TYPE_CONFIRM_PUBLISH,
+    title: 'Publish SIGMET?',
+    message: (identifier) => `Are you sure you want to publish ${identifier}?`,
+    button: {
+      label: 'Publish',
+      icon: 'send',
+      action: 'publishSigmetAction',
+      arguments: null // We use uuid here, which is passed to action
     },
     toggleAction: 'toggleSigmetModalAction'
   }
@@ -163,7 +178,8 @@ export const READ_ABILITIES = {
     'dataField': 'publish',
     'label': 'Publish',
     'check': 'isPublishable',
-    'action': 'publishSigmetAction'
+    'action': 'toggleSigmetModalAction',
+    'parameter': MODALS.CONFIRM_PUBLISH.type
   },
   CANCEL: {
     'dataField': 'cancel',

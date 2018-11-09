@@ -1,7 +1,9 @@
-import React, { PureComponent } from 'react';
+import React, { Component } from 'react';
 import Layers from './Layers';
 import { Col, Row } from 'reactstrap';
-export default class LayerManager extends PureComponent {
+import PropTypes from 'prop-types';
+
+export default class LayerManager extends Component {
   constructor () {
     super();
     this.makeActiveLayer = this.makeActiveLayer.bind(this);
@@ -55,3 +57,13 @@ export default class LayerManager extends PureComponent {
       </Col>);
   }
 }
+
+LayerManager.propTypes = {
+  dispatch: PropTypes.func,
+  panelsActions: PropTypes.objectOf(PropTypes.func),
+  activePanelId: PropTypes.number,
+  panel:PropTypes.shape({
+    baselayers: PropTypes.array,
+    layers: PropTypes.array
+  })
+};

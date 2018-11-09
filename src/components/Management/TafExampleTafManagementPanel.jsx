@@ -154,7 +154,7 @@ export default class TafExampleTafManagementPanel extends React.Component {
     };
 
     return (
-      <Panel>
+      <Panel className='TafExampleManagementPanel'>
         <Col style={{ flexDirection: 'column' }}>
           <Row style={{ marginBottom: '0.5rem' }}>
             <Button color='primary' style={{ marginRight: '0.5rem' }} onClick={this.testTAFs}>Test current rules</Button>

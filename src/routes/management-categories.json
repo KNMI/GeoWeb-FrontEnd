@@ -1,0 +1,90 @@
+{
+  "management": {
+    "linkPrefix": "manage/",
+    "items": [
+      {
+        "title": "Application",
+        "text": "Configuration of the GeoWeb application",
+        "link": "app"
+      },
+      {
+        "title": "Products",
+        "text": "Configuration of several products",
+        "link": "products"
+      }
+    ]
+  },
+  "application": {
+    "linkPrefix": "manage/app/",
+    "items": [
+      {
+        "title": "Locations",
+        "text": "Edit the list of available locations",
+        "link": "locations"
+      }
+    ]
+  },
+  "products": {
+    "linkPrefix": "manage/products/",
+    "items": [
+      {
+        "title": "Progtemp",
+        "text": "Configuration of the Progtemp-graph",
+        "link": "progtemp"
+      },
+      {
+        "title": "SIGMET",
+        "text": "Configuration of the SIGMET",
+        "link": "sigmet"
+      },
+      {
+        "title": "TAF",
+        "text": "Configuration of the TAF",
+        "link": "taf"
+      }
+    ]
+  },
+  "taf": {
+    "linkPrefix": "manage/products/taf/",
+    "items": [
+      {
+        "title": "TAF locations",
+        "text": "Configuration of the locations at which a TAF can be issued",
+        "link": "locations"
+      },
+      {
+        "title": "Validation rules",
+        "text": "Configuration of the validation rules",
+        "link": "validation"
+      },
+      {
+        "title": "Example TAFs",
+        "text": "Test a schema against these TAFs to ensure correctness of the schema",
+        "link": "example_tafs"
+      }
+    ]
+  },
+  "sigmet": {
+    "linkPrefix": "manage/products/sigmet/",
+    "items": [
+      {
+        "title": "Parameters",
+        "text": "Configuration of various parameters",
+        "link": "parameters",
+        "disabled": true
+      },
+      {
+        "title": "Phenomena",
+        "text": "Configuration of SIGMET phenomena",
+        "link": "phenomena",
+        "disabled": true
+      },
+      {
+        "title": "Layers",
+        "text": "Configuration of preset layers per phenomenon",
+        "link": "layers",
+        "disabled": true
+      }
+    ]
+  }
+}

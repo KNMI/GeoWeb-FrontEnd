@@ -1,5 +1,5 @@
 import React from 'react';
-import { default as LayerManagerPanel } from './LayerManagerPanel';
+import LayerManagerPanel from './LayerManagerPanel';
 import Panel from './Panel';
 import { shallow } from 'enzyme';
 

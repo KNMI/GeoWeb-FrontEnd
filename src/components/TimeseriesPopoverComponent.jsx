@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Popover, PopoverTitle, Row, ButtonDropdown, DropdownToggle, DropdownMenu, DropdownItem, Button } from 'reactstrap';
+import { Popover, PopoverTitle, Row, ButtonDropdown, DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap';
 import { Typeahead } from 'react-bootstrap-typeahead';
 import axios from 'axios';
 import { DefaultLocations } from '../constants/defaultlocations';
@@ -141,5 +141,8 @@ ProgtempPopoverComponent.propTypes = {
   adagucProperties: PropTypes.object.isRequired,
   isOpen: PropTypes.bool.isRequired,
   dispatch: PropTypes.func.isRequired,
-  adagucActions: PropTypes.object.isRequired
+  adagucActions: PropTypes.object.isRequired,
+  urls: PropTypes.shape({
+    BACKEND_SERVER_URL: PropTypes.string
+  })
 };

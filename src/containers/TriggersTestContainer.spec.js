@@ -1,5 +1,5 @@
 import React from 'react';
-import { default as TriggersTestContainer } from './TriggersTestContainer';
+import TriggersTestContainer from './TriggersTestContainer';
 import { mount } from 'enzyme';
 
 describe('(Container) TriggersTestContainer', () => {

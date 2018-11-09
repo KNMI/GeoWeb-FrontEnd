@@ -1,15 +1,13 @@
 import React, { PureComponent } from 'react';
-import { Col, Row, Badge, Card, CardHeader, CardBlock } from 'reactstrap';
+import { Col, Row, Badge, Card, CardHeader, CardBody } from 'reactstrap';
 import CollapseOmni from '../../components/CollapseOmni';
 import Icon from 'react-fa';
 import PropTypes from 'prop-types';
 import { SIGMET_MODES, CATEGORY_REFS, READ_ABILITIES } from '../../containers/Sigmet/SigmetActions';
-import { SIGMET_VARIANTS_PREFIXES } from './SigmetTemplates';
+import { SIGMET_VARIANTS_PREFIXES, PHENOMENON_CODE_VOLCANIC_ASH } from './SigmetTemplates';
 import SigmetEditMode from './SigmetEditMode';
 import SigmetReadMode from './SigmetReadMode';
 import SigmetMinifiedMode from './SigmetMinifiedMode';
-
-const PHENOMENON_CODE_VOLCANIC_ASH = 'VA_CLD';
 
 class SigmetsCategory extends PureComponent {
   byStartAndSequence (sigA, sigB) {
@@ -68,7 +66,7 @@ class SigmetsCategory extends PureComponent {
         {isOpen
           ? <Row>
             <CollapseOmni className='CollapseOmni col' isOpen={isOpen} minSize={0} maxSize={maxSize}>
-              <CardBlock>
+              <CardBody>
                 <Row>
                   <Col className='btn-group-vertical'>
                     {sigmets.slice().sort(this.byStartAndSequence).slice(0, itemLimit).map((sigmet, index) => {
@@ -122,6 +120,7 @@ class SigmetsCategory extends PureComponent {
                             isNoVolcanicAshExpected={sigmet.va_extra_fields.no_va_expected}
                             focus
                             uuid={sigmet.uuid}
+                            distributionType={sigmet.type}
                             sigmet={sigmet}
                             geojson={geojson}
                             obsFcTime={sigmet.obs_or_forecast.obsFcTime}
@@ -156,6 +155,7 @@ class SigmetsCategory extends PureComponent {
                             copiedSigmetRef={copiedSigmetRef}
                             focus={focussedSigmet.uuid === sigmet.uuid}
                             uuid={sigmet.uuid}
+                            distributionType={sigmet.type}
                             tac={tacs && tacs.find((tac) => tac.uuid === sigmet.uuid)}
                             isVolcanicAsh={isVolcanicAsh}
                             obsFcTime={sigmet.obs_or_forecast ? sigmet.obs_or_forecast.obsFcTime : null}
@@ -192,6 +192,7 @@ class SigmetsCategory extends PureComponent {
                         dispatch={dispatch}
                         actions={actions}
                         uuid={sigmet.uuid}
+                        distributionType={sigmet.type}
                         tac={tacs && tacs.find((tac) => tac.uuid === sigmet.uuid)}
                         phenomenon={sigmet.phenomenon}
                         validdate={sigmet.validdate}
@@ -201,7 +202,7 @@ class SigmetsCategory extends PureComponent {
                     })}
                   </Col>
                 </Row>
-              </CardBlock>
+              </CardBody>
             </CollapseOmni>
           </Row>
           : null

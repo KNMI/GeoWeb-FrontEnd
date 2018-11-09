@@ -10,8 +10,8 @@ import CopyToClipboard from 'react-copy-to-clipboard';
 import axios from 'axios';
 import uuidV4 from 'uuid/v4';
 import {
-  Alert, Navbar, NavbarBrand, Row, Col, Nav, NavLink, Breadcrumb, BreadcrumbItem, Collapse, Popover, Label, ListGroup, ListGroupItem, PopoverContent,
-  PopoverTitle, ButtonGroup, InputGroupButton, Modal, ModalHeader, ModalBody, ModalFooter, Button, InputGroup, Input, FormText
+  Alert, Navbar, NavbarBrand, Row, Col, Nav, NavLink, Breadcrumb, BreadcrumbItem,
+  Collapse, Label, ListGroup, ListGroupItem, ButtonGroup, InputGroupAddon, Modal, ModalHeader, ModalBody, ModalFooter, Button, InputGroup, Input, FormText
 } from 'reactstrap';
 import { AvForm, AvRadioGroup, AvRadio, AvField, AvGroup } from 'availity-reactstrap-validation';
 import { Link, hashHistory } from 'react-router';
@@ -21,6 +21,7 @@ import cloneDeep from 'lodash.clonedeep';
 // import { notify } from 'reapop';
 import { Typeahead } from 'react-bootstrap-typeahead';
 import { GetServices } from '../utils/getServiceByName';
+import { version } from '../../package.json';
 const timeFormat = 'ddd DD MMM YYYY HH:mm [UTC]';
 const browserFullScreenRequests = [
   'mozRequestFullScreen',
@@ -46,12 +47,16 @@ class TitleBarContainer extends PureComponent {
     this.toggleFeedbackModal = this.toggleFeedbackModal.bind(this);
     this.toggleSharePresetModal = this.toggleSharePresetModal.bind(this);
     this.handleOnChange = this.handleOnChange.bind(this);
+    this.handleOnFocus = this.handleOnFocus.bind(this);
     this.handleKeyPressPassword = this.handleKeyPressPassword.bind(this);
     this.checkCredentials = this.checkCredentials.bind(this);
     this.setLoggedOutCallback = this.setLoggedOutCallback.bind(this);
     this.checkCredentialsOKCallback = this.checkCredentialsOKCallback.bind(this);
     this.checkCredentialsBadCallback = this.checkCredentialsBadCallback.bind(this);
     this.getServices = this.getServices.bind(this);
+    this.fetchVersionInfo = this.fetchVersionInfo.bind(this);
+    this.renderLoginModal = this.renderLoginModal.bind(this);
+
     this.render = this.render.bind(this);
     this.handleTriggerClick = this.handleTriggerClick.bind(this);
     // this.addTriggerTest = this.addTriggerTest.bind(this);
@@ -60,13 +65,20 @@ class TitleBarContainer extends PureComponent {
     this.inputfieldUserName = '';
     this.inputfieldPassword = '';
     this.timer = -1;
+    this.inputRefs = {};
     this.state = {
       currentTime: moment().utc().format(timeFormat).toString(),
       loginModal: this.props.loginModal,
       loginModalMessage: '',
       feedbackModalOpen: false,
       sharePresetModal: false,
-      sharePresetName: ''
+      sharePresetName: '',
+      fieldToFocus: null,
+      versionInfo: {
+        messageconverter: '...',
+        backend: '...',
+        frontend: version
+      }
     };
   }
 
@@ -236,11 +248,16 @@ class TitleBarContainer extends PureComponent {
     this.timer = setInterval(this.setTime, 15000);
     this.setState({ currentTime: moment().utc().format(timeFormat).toString() });
     this.checkCredentials();
+    this.fieldToFocus = 'username';
+    this.fetchVersionInfo();
   }
 
   componentDidUpdate () {
-    if (this.userNameInputRef && this.state.loginModal === true) {
-      this.userNameInputRef.focus();
+    if (this.inputRefs && this.state.loginModal === true && this.fieldToFocus && this.inputRefs[this.fieldToFocus] && this.focussedField !== this.fieldToFocus) {
+      if (this.inputRefs[this.fieldToFocus].focus) {
+        this.inputRefs[this.fieldToFocus].focus();
+        this.focussedField = this.fieldToFocus;
+      }
     }
   }
 
@@ -341,11 +358,11 @@ class TitleBarContainer extends PureComponent {
         return;
       }
       this.getServices();
-      dispatch(this.props.userActions.login({ username: username, roles: roles }));
-
       this.setState({
         loginModal: false,
         loginModalMessage: 'Signed in as user ' + username
+      }, () => {
+        dispatch(this.props.userActions.login({ username: username, roles: roles }));
       });
     } else {
       this.getServices();
@@ -401,6 +418,14 @@ class TitleBarContainer extends PureComponent {
     }
   }
 
+  handleOnFocus (event) {
+    if (event && event.target && event.target.name) {
+      this.setState({ fieldToFocus: event.target.name });
+    } else {
+      this.setState({ fieldToFocus: null });
+    }
+  }
+
   handleOnChange (event) {
     if (event.target.name === 'password') {
       this.inputfieldPassword = event.target.value;
@@ -422,28 +447,64 @@ class TitleBarContainer extends PureComponent {
   }
 
   renderLoginModal (loginModalOpen, loginModalMessage, toggleLoginModal, handleOnChange, handleKeyPressPassword) {
-    return (<Modal isOpen={loginModalOpen} toggle={toggleLoginModal}>
-      <ModalHeader toggle={toggleLoginModal}>Sign in</ModalHeader>
-      <ModalBody>
-        <Collapse isOpen>
-          <InputGroup>
-            <input ref={(input) => { this.userNameInputRef = input; }} className='form-control' tabIndex={0} placeholder='username' name='username' onChange={this.handleOnChange} />
-            <Input type='password' name='password' id='examplePassword' placeholder='password'
-              onKeyPress={handleKeyPressPassword} onChange={handleOnChange} />
-          </InputGroup>
-        </Collapse>
-        <FormText color='muted'>
-          {loginModalMessage}
-        </FormText>
-      </ModalBody>
-      <ModalFooter>
-        <Button color='primary' onClick={this.doLogin} className='signInOut'>
-          <Icon className='icon' name='sign-in' />
-          Sign in
-        </Button>
-        <Button color='secondary' onClick={this.toggleLoginModal}>Cancel</Button>
-      </ModalFooter>
-    </Modal>);
+    const { urls, user } = this.props;
+    const { isLoggedIn, username } = user;
+
+    if (isLoggedIn) {
+      return (<Modal isOpen={loginModalOpen} toggle={toggleLoginModal}>
+        <ModalHeader toggle={toggleLoginModal}>Hi {username}</ModalHeader>
+        <ModalBody>
+          <b>Version information</b>
+          <ul>
+            <li>Frontend: {this.state.versionInfo.frontend}</li>
+            <li>Backend: {this.state.versionInfo.backend}</li>
+            <li>Message converter: {this.state.versionInfo.messageconverter}</li>
+          </ul>
+          <FormText color='muted'>
+            {loginModalMessage ? null : 'Backend: ' + urls.BACKEND_SERVER_URL}
+          </FormText>
+          <FormText color='muted'>
+            {loginModalMessage}
+          </FormText>
+        </ModalBody>
+        <ModalFooter>
+          <Button color='primary' onClick={this.doLogout} className='signInOut'>
+            <Icon className='icon' name='sign-out' />
+            Sign out
+          </Button>
+        </ModalFooter>
+      </Modal>);
+    } else {
+      return (<Modal isOpen={loginModalOpen} toggle={toggleLoginModal}>
+        <ModalHeader toggle={toggleLoginModal}>Sign in</ModalHeader>
+        <ModalBody>
+          <Collapse isOpen>
+            <InputGroup>
+              <input ref={(input) => { this.inputRefs['username'] = input; }} className='form-control' tabIndex={0} placeholder='username' name='username'
+                onChange={this.handleOnChange}
+                onFocus={this.handleOnFocus}
+                onBlur={this.handleOnFocus}
+              />
+              <Input ref={(input) => { this.inputRefs['password'] = input; }} type='password' name='password' id='examplePassword' placeholder='password'
+                onKeyPress={handleKeyPressPassword} onChange={handleOnChange} onFocus={this.handleOnFocus} />
+            </InputGroup>
+          </Collapse>
+          <FormText color='muted'>
+            {loginModalMessage ? null : 'Backend: ' + urls.BACKEND_SERVER_URL}
+          </FormText>
+          <FormText color='muted'>
+            {loginModalMessage}
+          </FormText>
+        </ModalBody>
+        <ModalFooter>
+          <Button color='primary' onClick={this.doLogin} className='signInOut'>
+            <Icon className='icon' name='sign-in' />
+            Sign in
+          </Button>
+          <Button color='secondary' onClick={this.toggleLoginModal}>Cancel</Button>
+        </ModalFooter>
+      </Modal>);
+    }
   }
 
   sendFeedback (e, formValues) {
@@ -473,7 +534,7 @@ class TitleBarContainer extends PureComponent {
     const feedbackObj = {
       state: flattenLayers(this.props.fullState),
       url: window.location.href,
-      config: { ...require('config'), backend_url: urls.BACKEND_SERVER_URL },
+      config: { version: version, backend_url: urls.BACKEND_SERVER_URL },
       userAgent: navigator.userAgent,
       descriptions: { ...formValues },
       latestLogs: myLogs.slice(Math.max(0, numLogs - 100)).reverse()
@@ -547,21 +608,16 @@ class TitleBarContainer extends PureComponent {
       </ModalFooter>
     </Modal>);
   }
-  renderLoggedInPopover (loginModal, toggle, userName) {
-    return (
-      <Popover placement='bottom' isOpen={loginModal} target='loginIcon' toggle={toggle}>
-        <PopoverTitle>Hi {userName}</PopoverTitle>
-        <PopoverContent>
-          <ButtonGroup vertical style={{ padding: '0.5rem' }}>
-            <Button onClick={this.doLogout} className='signInOut'>
-              <Icon className='icon' name='sign-out' />
-              Sign out
-            </Button>
-          </ButtonGroup>
-        </PopoverContent>
-      </Popover>
-
-    );
+  fetchVersionInfo () {
+    axios.get(this.props.urls.BACKEND_SERVER_URL + '/versioninfo/version', { withCredentials: true }).then((res) => {
+      this.setState({ versionInfo: {
+        ...this.state.versionInfo,
+        messageconverter: res.data.messageconverter,
+        backend: res.data.backend
+      } });
+    }).catch((error) => {
+      console.error(error);
+    });
   }
   fetchPresets () {
     axios.get(this.props.urls.BACKEND_SERVER_URL + '/preset/getpresets', { withCredentials: true }).then((res) => {
@@ -681,8 +737,8 @@ class TitleBarContainer extends PureComponent {
     const hasRoleADMIN = CheckIfUserHasRole(user.roles, UserRoles.ADMIN);
     let cumulativePath = '';
     return (
-      <Navbar inverse className='test'>
-        <Row>
+      <Navbar className='test navbar-inverse'>
+        <Row className='no-gutters'>
           <Col xs='auto'>
             <NavbarBrand tag='div'>
               <Link activeClassName='breadcrumb-active' to={routes[0].path}>
@@ -720,11 +776,7 @@ class TitleBarContainer extends PureComponent {
                 fetchNewPresets={this.fetchPresets} mapActions={this.props.mapActions} presets={this.state.presets} onChangeServices={this.getServices}
                 urls={this.props.urls} panelsActions={this.props.panelsActions} mapProperties={this.props.mapProperties} dispatch={this.props.dispatch} />
               <NavLink className='active' onClick={this.toggleFullscreen} ><Icon name='expand' /></NavLink>
-              {isLoggedIn
-                ? this.renderLoggedInPopover(this.state.loginModal, this.toggleLoginModal, username)
-                : this.renderLoginModal(this.state.loginModal,
-                  this.state.loginModalMessage, this.toggleLoginModal, this.handleOnChange, this.handleKeyPressPassword)
-              }
+              { this.renderLoginModal(this.state.loginModal, this.state.loginModalMessage, this.toggleLoginModal, this.handleOnChange, this.handleKeyPressPassword) }
               {this.renderFeedbackModal(this.state.feedbackModalOpen, this.toggleFeedbackModal)}
             </Nav>
           </Col>
@@ -845,7 +897,7 @@ class LayoutDropDown extends PureComponent {
             const wmjsLayer = new WMJSLayer(layer);
             wmjsLayer.parseLayer((newLayer) => {
               newLayer.keepOnTop = (layer.overlay || layer.keepOnTop);
-              return resolve({ layer: newLayer, panelIdx: panelIdx, index: i })
+              return resolve({ layer: newLayer, panelIdx: panelIdx, index: i });
             });
           }));
         });
@@ -1024,9 +1076,9 @@ class LayoutDropDown extends PureComponent {
               <Row>
                 <InputGroup>
                   <Input id='sourceurlinput' ref={ref => { this._urlinput = ref; }} placeholder='Add your own source' disabled={this.state.getCapBusy} />
-                  <InputGroupButton>
+                  <InputGroupAddon addonType='append'>
                     <Button color='primary' onClick={this.handleAddSource} disabled={this.state.getCapBusy}>Add</Button>
-                  </InputGroupButton>
+                  </InputGroupAddon>
                 </InputGroup>
                 <ListGroup>
                   {
@@ -1096,13 +1148,13 @@ class LayoutDropDown extends PureComponent {
               <Row style={{ marginTop: '0.5rem' }}>
                 <InputGroup>
                   <input className='form-control' ref={(ref) => { this.presetNameInput = ref; }} placeholder='Preset name' />
-                  <InputGroupButton>
+                  <InputGroupAddon addonType='append'>
                     <Button style={{ minWidth: '9.25rem' }} onClick={() => {
                       this.props.savePreset(this.presetNameInput.value)
                         .then(() => { this.presetNameInput.value = 'Saved preset'; this.props.fetchNewPresets(); })
                         .catch(() => { this.presetNameInput.value = 'Error saving preset'; });
                     }} color='primary'><Icon name='star' /> Save preset</Button>
-                  </InputGroupButton>
+                  </InputGroupAddon>
                 </InputGroup>
               </Row>
             </Col>
@@ -1132,7 +1184,13 @@ LayoutDropDown.propTypes = {
   savePreset: PropTypes.func,
   fetchNewPresets: PropTypes.func,
   presets: PropTypes.array,
-  panelsActions: PropTypes.object
+  panelsActions: PropTypes.object,
+  urls: PropTypes.shape({
+    BACKEND_SERVER_URL: PropTypes.string
+  }),
+  panelsProperties: PropTypes.shape({
+    panels: PropTypes.array
+  })
 };
 
 TitleBarContainer.propTypes = {

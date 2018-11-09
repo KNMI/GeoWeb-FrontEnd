@@ -17,7 +17,7 @@ export default class SigmetParameterManagementPanel extends React.Component {
   /* istanbul ignore next */
   render () {
     if (!this.sigmetParameters) {
-      return <Panel />;
+      return <Panel className='SigmetParameterManagementPanel' />;
     } else {
       return (
         <ParameterMapper sigmetParameters={this.state.sigmetParameters} />
@@ -86,10 +86,10 @@ export class ParameterMapper extends React.Component {
   }
   render () {
     return (
-      <Panel style={{ overflowX: 'hidden', overflowY: 'auto' }}>
+      <Panel className='SigmetParameterManagementPanel'>
         <Row style={{ flex: 1, maxHeight: '15rem' }}>
           {['maxhoursofvalidity', 'hoursbeforevalidity', 'location_indicator_wmo'].map((p, i) =>
-            <SigmetCard key={i} i={i} title={p} value={this.state.sigmetParameters[p].toString()} />
+            <SigmetCard key={i} i={i} title={p} value={this.state.sigmetParameters[p] ? this.state.sigmetParameters[p].toString() : ''} />
           )}
         </Row>
         <Row style={{ flex: 1 }}>
@@ -147,7 +147,7 @@ class ParameterCard extends React.Component {
 
   render () {
     const { title, value, i } = this.props;
-    return <Card className='col-auto loc-card' key={i} block>
+    return <Card className='col-auto loc-card' key={i}>
       <CardTitle>{this.getTitle(title)}</CardTitle>
       <CardText>
         <table style={{ display: 'table', width: '100%' }}>
@@ -170,7 +170,7 @@ ParameterCard.propTypes = {
 class FirCard extends React.Component {
   render () {
     const { i, title, areapreset, icao, deleteFirArea } = this.props;
-    return <Card className='col-auto loc-card' key={i} style={{ minHeight: '13rem' }} block>
+    return <Card className='col-auto loc-card' key={i} style={{ minHeight: '13rem' }}>
       <CardTitle><Input id={'firnameinput' + i} placeholder='FIR name' defaultValue={title} required /></CardTitle>
       <CardText>
         <table style={{ display: 'table', width: '100%' }}>

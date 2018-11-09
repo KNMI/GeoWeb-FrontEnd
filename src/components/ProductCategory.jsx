@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Button, Col, Row, Badge, Card, CardHeader, CardBlock } from 'reactstrap';
+import { Button, Col, Row, Badge, Card, CardHeader, CardBody } from 'reactstrap';
 import { Link } from 'react-router';
 import Icon from 'react-fa';
 import CollapseOmni from '../components/CollapseOmni';
@@ -36,26 +36,26 @@ class ProductCategory extends Component {
             {notifications > 0 ? <Badge color='danger' pill className='collapsed'>{notifications}</Badge> : null}
           </Col>
         </CardHeader></Link>
-        : <CardHeader onClick={maxSize > 0 ? this.toggle : null} className={maxSize > 0 ? null : 'disabled'} title={title}>
-          <Col xs='auto'>
-            <Icon name={icon} />
-          </Col>
-          <Col style={{ marginLeft: '0.9rem' }}>
-            {title}
-          </Col>
-          <Col xs='auto'>
-            {notifications > 0 ? <Badge color='danger' pill>{notifications}</Badge> : null}
-          </Col>
-          <Col xs='auto'>
-            <Link to={link} className='row'>
-              <Button outline color='info' disabled={typeof link === 'undefined'}>
-                <Icon name='caret-right' />
-              </Button>
-            </Link>
-          </Col>
-        </CardHeader>}
+          : <CardHeader onClick={maxSize > 0 ? this.toggle : null} className={maxSize > 0 ? null : 'disabled'} title={title}>
+            <Col xs='auto'>
+              <Icon name={icon} />
+            </Col>
+            <Col style={{ marginLeft: '0.9rem' }}>
+              {title}
+            </Col>
+            <Col xs='auto'>
+              {notifications > 0 ? <Badge color='danger' pill>{notifications}</Badge> : null}
+            </Col>
+            <Col xs='auto'>
+              <Link to={link} className='row'>
+                <Button outline color='info' disabled={typeof link === 'undefined'}>
+                  <Icon name='caret-right' />
+                </Button>
+              </Link>
+            </Col>
+          </CardHeader>}
         <CollapseOmni className='CollapseOmni' isOpen={this.state.isOpen} minSize={0} maxSize={maxSize}>
-          <CardBlock>
+          <CardBody>
             <Row>
               <Col className='btn-group-vertical'>
                 {tasks ? tasks.map((item, i) =>
@@ -78,7 +78,7 @@ class ProductCategory extends Component {
                 ) : ''}
               </Col>
             </Row>
-          </CardBlock>
+          </CardBody>
         </CollapseOmni>
       </Card>
     );

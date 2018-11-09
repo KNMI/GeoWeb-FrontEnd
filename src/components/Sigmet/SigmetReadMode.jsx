@@ -5,7 +5,7 @@ import moment from 'moment';
 import produce from 'immer';
 import PropTypes from 'prop-types';
 import { READ_ABILITIES, byReadAbilities, MODALS, MODAL_TYPES } from '../../containers/Sigmet/SigmetActions';
-import { UNITS, UNITS_ALT, DIRECTIONS, CHANGES, MODES_LVL, MOVEMENT_TYPES, SIGMET_TYPES, DATETIME_LABEL_FORMAT_UTC } from './SigmetTemplates';
+import { UNITS, UNITS_ALT, DIRECTIONS, CHANGES, MODES_LVL, MOVEMENT_TYPES, SIGMET_TYPES, DATETIME_LABEL_FORMAT_UTC, dateRanges } from './SigmetTemplates';
 
 import HeaderSection from './Sections/HeaderSection';
 import WhatSection from './Sections/WhatSection';
@@ -17,6 +17,8 @@ import ProgressSection from './Sections/ProgressSection';
 import ChangeSection from './Sections/ChangeSection';
 import IssueSection from './Sections/IssueSection';
 import ConfirmationModal from '../ConfirmationModal';
+import MovementSection from './Sections/MovementSection';
+import EndPositionSection from './Sections/EndPositionSection';
 
 class SigmetReadMode extends PureComponent {
   getUnitLabel (unitName) {
@@ -88,7 +90,21 @@ class SigmetReadMode extends PureComponent {
       default:
         return '';
     }
-  }
+  };
+
+  showProgress () {
+    const { movementType } = this.props;
+    switch (movementType) {
+      case MOVEMENT_TYPES.STATIONARY:
+        return 'Stationary';
+      case MOVEMENT_TYPES.MOVEMENT:
+        return 'Moving';
+      case MOVEMENT_TYPES.FORECAST_POSITION:
+        return 'Movement is defined by area';
+      default:
+        return '(movement type is not (properly) set)';
+    }
+  };
 
   /**
    * Compose the specific configuration for the confirmation modal
@@ -101,6 +117,7 @@ class SigmetReadMode extends PureComponent {
   getModalConfig (displayModal, uuid, isVolcanicAsh, adjacentFirs, moveTo) {
     const modalEntries = Object.entries(MODALS).filter((modalEntry) => modalEntry[1].type === displayModal);
     return Array.isArray(modalEntries) && modalEntries.length > 0 ? produce(modalEntries[0][1], draftState => {
+      if (draftState.button) draftState.button.arguments = uuid; /* Used in action dispatch with right arguments */
       if (isVolcanicAsh && draftState && draftState.type === MODAL_TYPES.TYPE_CONFIRM_CANCEL && draftState.optional && Array.isArray(adjacentFirs)) {
         if (Array.isArray(draftState.optional.options)) {
           draftState.optional.options.push(...adjacentFirs.map((firCode) => ({
@@ -180,18 +197,21 @@ class SigmetReadMode extends PureComponent {
    */
   isValid () {
     const { validdate, validdateEnd, maxHoursInAdvance, maxHoursDuration, phenomenon, firname,
-      change, hasStartCoordinates, hasStartIntersectionCoordinates } = this.props;
+      change, hasStartCoordinates, hasStartIntersectionCoordinates, distributionType } = this.props;
     const now = moment.utc();
-    const startTimeStamp = moment.utc(validdate);
-    const isStartValid = now.clone().subtract(1, 'day').isSameOrBefore(startTimeStamp) &&
-      now.clone().add(maxHoursInAdvance, 'hour').isSameOrAfter(startTimeStamp);
-    const isEndValid = startTimeStamp.isSameOrBefore(validdateEnd) &&
-      startTimeStamp.clone().add(maxHoursDuration, 'hour').isSameOrAfter(validdateEnd);
+    const startTimestamp = moment.utc(validdate);
+    const endTimestamp = moment.utc(validdateEnd);
+    const dateLimits = dateRanges(now, startTimestamp, endTimestamp, maxHoursInAdvance, maxHoursDuration);
+    const isStartValid = dateLimits.validDate.min.isSameOrBefore(startTimestamp) &&
+      dateLimits.validDate.max.isSameOrAfter(startTimestamp);
+    const isEndValid = dateLimits.validDateEnd.min.isSameOrBefore(endTimestamp) &&
+      dateLimits.validDateEnd.max.isSameOrAfter(endTimestamp);
     const hasPhenomenon = typeof phenomenon === 'string' && phenomenon.length > 0;
     const hasFir = typeof firname === 'string' && firname.length > 0;
     const hasChange = typeof change === 'string' && change.length > 0;
-    return isStartValid && isEndValid && hasStartCoordinates && hasStartIntersectionCoordinates  &&
-      hasPhenomenon && hasFir && hasChange && this.isLevelInfoValid() && this.isMovementValid();
+    const hasType = typeof distributionType === 'string' && distributionType.length > 0;
+    return isStartValid && isEndValid && hasStartCoordinates && hasStartIntersectionCoordinates &&
+      hasPhenomenon && hasFir && hasChange && hasType && this.isLevelInfoValid() && this.isMovementValid();
   };
 
   /**
@@ -240,7 +260,7 @@ class SigmetReadMode extends PureComponent {
 
   render () {
     const { dispatch, actions, focus, uuid, phenomenon, isObserved, obsFcTime, validdate, validdateEnd, firname, locationIndicatorIcao, issuedate,
-      locationIndicatorMwo, levelinfo, movement, movementType, change, sequence, tac, isCancelFor,
+      locationIndicatorMwo, levelinfo, movement, movementType, change, sequence, tac, isCancelFor, distributionType,
       isNoVolcanicAshExpected, volcanoName, volcanoCoordinates, isVolcanicAsh, displayModal, adjacentFirs, moveTo } = this.props;
     const abilityCtAs = this.reduceAbilities(); // CtA = Call To Action
     const selectedDirection = movement && DIRECTIONS.find((obj) => obj.shortName === movement.dir);
@@ -289,34 +309,28 @@ class SigmetReadMode extends PureComponent {
           <span data-field='level'>{this.showLevels(levelinfo)}</span>
         </HeightSection>
 
+        <ProgressSection>
+          <span data-field='movement'>
+            {this.showProgress()}
+          </span>
+          {isVolcanicAsh && isNoVolcanicAshExpected
+            ? <span data-field='no_va_expected'>No volcanic ash is expected at the end.</span>
+            : null
+          }
+          {isVolcanicAsh && Array.isArray(moveTo) && moveTo.length > 0 && typeof moveTo[0] === 'string' && moveTo[0].length > 0
+            ? <span data-field='move_to_fir'>{`Moving to ${moveTo[0]} FIR`}</span>
+            : null
+          }
+        </ProgressSection>
         {movementType === MOVEMENT_TYPES.MOVEMENT
-          ? <ProgressSection>
-            <span data-field='movement'>Moving</span>
-            <span data-field='speed'>{movement.speed}KT</span>
+          ? <MovementSection>
+            <span data-field='speed' >{movement.speed}KT</span>
             <span data-field='direction'>{directionLongName}</span>
-            {isVolcanicAsh && isNoVolcanicAshExpected
-              ? <span data-field='no_va_expected'>No volcanic ash is expected at the end.</span>
-              : null
-            }
-          </ProgressSection>
-          : <ProgressSection>
-            <span data-field='movement'>
-              {movementType === MOVEMENT_TYPES.STATIONARY
-                ? 'Stationary'
-                : movementType === MOVEMENT_TYPES.FORECAST_POSITION
-                  ? 'Movement is defined by area'
-                  : '(movement type is not (properly) set)'
-              }
-            </span>
-            {isVolcanicAsh && isNoVolcanicAshExpected
-              ? <span data-field='no_va_expected'>No volcanic ash is expected at the end.</span>
-              : null
-            }
-          </ProgressSection>
+          </MovementSection>
+          : null
         }
-
         <ChangeSection>
-          <span data-field='change'>{change && CHANGES.find((obj) => obj.shortName === change).longName}</span>
+          <span data-field='change'>{(change && CHANGES.find((obj) => obj.shortName === change).longName) || '(change not set yet)'}</span>
         </ChangeSection>
 
         <IssueSection>
@@ -327,6 +341,11 @@ class SigmetReadMode extends PureComponent {
           <span data-field='issueLocation'>{locationIndicatorMwo}</span>
           <span data-field='sequence'>{sequence < 1 ? '(not yet issued)' : sequence}</span>
           <span className='tac' data-field='tac' title={tac && tac.code}>{tac && tac.code}</span>
+          <span data-field='distribution_type'>
+            {typeof distributionType === 'string' && distributionType.length > 0
+              ? distributionType
+              : '(no type assigned yet)'}
+          </span>
         </IssueSection>
 
         <ActionSection colSize={2}>
@@ -343,7 +362,7 @@ class SigmetReadMode extends PureComponent {
       </Col>
       {modalConfig
         ? <ConfirmationModal config={modalConfig} dispatch={dispatch} actions={actions}
-          identifier={`this ${phenomenon} SIGMET`} />
+          identifier={`this${modalConfig.type === MODAL_TYPES.TYPE_CONFIRM_PUBLISH ? ` [ ${distributionType.toLowerCase()} ] -` : ''} SIGMET for ${phenomenon}`} />
         : null
       }
     </Button>;
@@ -367,6 +386,7 @@ SigmetReadMode.propTypes = {
   abilities: PropTypes.shape(abilitiesPropTypes),
   focus: PropTypes.bool,
   uuid: PropTypes.string,
+  distributionType: SIGMET_TYPES.TYPE,
   tac: PropTypes.shape({
     uuid: PropTypes.string,
     code: PropTypes.string
@@ -396,6 +416,8 @@ SigmetReadMode.propTypes = {
   maxHoursDuration: PropTypes.number,
   hasStartCoordinates: PropTypes.bool,
   hasStartIntersectionCoordinates: PropTypes.bool,
+  hasEndCoordinates: PropTypes.bool,
+  hasEndIntersectionCoordinates: PropTypes.bool,
   isCancelFor: PropTypes.number,
   volcanoName: PropTypes.string,
   volcanoCoordinates: PropTypes.arrayOf(PropTypes.number),

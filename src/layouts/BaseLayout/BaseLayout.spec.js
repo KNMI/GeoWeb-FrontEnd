@@ -1,5 +1,5 @@
 import React from 'react';
-import { default as BaseLayout } from './BaseLayout';
+import BaseLayout from './BaseLayout';
 import { shallow, mount } from 'enzyme';
 import { Container } from 'reactstrap';
 import { Provider } from 'react-redux';
@@ -25,7 +25,7 @@ describe('(Layout) BaseLayout', () => {
       keyCode: 122
     });
     expect(_wrappingComponent.find(BaseLayout)).to.have.length(1);
-    _wrappingComponent.find(BaseLayout).get(0).elementToFullScreen(evt);
+    _wrappingComponent.find(BaseLayout).instance().elementToFullScreen(evt);
     expect('everything').to.be.ok();
   });
 });

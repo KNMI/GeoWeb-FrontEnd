@@ -92,12 +92,14 @@ class TriggerCreateTestCategory extends Component {
   setTriggerMessage (data) {
     let locationamount = '';
     const { locations, phenomenon } = data;
+    // eslint-disable-next-line camelcase
     const { long_name, operator, limit, unit } = phenomenon;
     if (locations.length === 1) {
       locationamount = 'location';
     } else {
       locationamount = 'locations';
     }
+    // eslint-disable-next-line camelcase
     return `${long_name} ${operator} than ${limit} ${unit} detected at ${locations.length} ` + locationamount;
   }
 

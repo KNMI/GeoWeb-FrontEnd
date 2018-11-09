@@ -1,74 +1,121 @@
 import React from 'react';
+import { Button, Row, Col, Label } from 'reactstrap';
+import cloneDeep from 'lodash.clonedeep';
+import PropTypes from 'prop-types';
 import Panel from '../Panel';
-import { Input, Card, Button, CardTitle, CardText, Row, Col, FormGroup, Label } from 'reactstrap';
 import { DefaultLocations } from '../../constants/defaultlocations';
-import { ReadLocations } from '../../utils/admin';
+import { ReadLocations, SaveLocations } from '../../utils/admin';
+import { LocationCardLayout } from '../../layouts';
+import Checkbox from '../Basis/Checkbox';
+
+const PROGTEMP = 'progtemp';
+
 export default class ProgtempManagementPanel extends React.Component {
   constructor (props) {
     super(props);
-    this.addAvailable = this.addAvailable.bind(this);
-    this.progtempLocations = DefaultLocations;
-    ReadLocations(`${this.props.urls.BACKEND_SERVER_URL}/admin/read`, (data) => {
-      if (data) {
-        this.progtempLocations = data;
-        this.setState({ locations: data });
-      } else {
-        console.error('get progtemlocations failed');
+    this.compareByName = this.compareByName.bind(this);
+    this.isLocationSelected = this.isLocationSelected.bind(this);
+    this.selectLocation = this.selectLocation.bind(this);
+    this.saveLocationSelection = this.saveLocationSelection.bind(this);
+    this.state = {
+      locations: DefaultLocations,
+      hasChanges: false
+    };
+  };
+
+  compareByName (itemA, itemB) {
+    if (itemA.name < itemB.name) {
+      return -1;
+    }
+    if (itemA.name > itemB.name) {
+      return 1;
+    }
+    return 0;
+  };
+
+  isLocationSelected (locationName) {
+    const filteredByName = this.state.locations.filter((loc) => loc.name === locationName);
+    if (Array.isArray(filteredByName) && filteredByName.length === 1 && filteredByName[0].hasOwnProperty('availability') &&
+      Array.isArray(filteredByName[0].availability) && filteredByName[0].availability.includes(PROGTEMP)) {
+      return true;
+    }
+    return false;
+  };
+
+  selectLocation (locationName) {
+    const newLocations = cloneDeep(this.state.locations);
+    let hasChanges = false;
+    newLocations.map((location) => {
+      if (location.name === locationName && location.hasOwnProperty('availability') &&
+        Array.isArray(location.availability)) {
+        const index = location.availability.indexOf(PROGTEMP);
+        if (index === -1) {
+          location.availability.push(PROGTEMP);
+        } else {
+          location.availability.splice(index, 1);
+        }
+        hasChanges = true;
       }
     });
+    if (hasChanges) {
+      this.setState({ locations: newLocations, hasChanges: true });
+    }
   }
+
+  saveLocationSelection (clickEvent) {
+    const saveLocations = cloneDeep(this.state.locations);
+    SaveLocations(`${this.props.urls.BACKEND_SERVER_URL}/admin/create`, saveLocations);
+    this.setState({ hasChanges: false });
+  }
+
   componentWillMount () {
-    this.setState({ locations: this.progtempLocations });
-  }
-  componentWillReceiveProps (nextprops) {
-    this.setState({ locations: nextprops.locations });
-  }
-  addAvailable (i) {
-    let listCpy = this.state.locations.map((a) => Object.assign(a));
-    listCpy[i].availability.push('progtemp');
-    this.setState({ locations: listCpy });
-  }
+    ReadLocations(`${this.props.urls.BACKEND_SERVER_URL}/admin/read`, (data) => {
+      if (data) {
+        this.setState({ locations: data });
+      } else {
+        console.error('Couldn\'t retrieve locations');
+      }
+    });
+  };
+
   render () {
     if (!this.state.locations) {
       return null;
     }
     return (
-      <Panel style={{ overflowX: 'hidden', overflowY: 'auto' }}>
-        <Row style={{ flex: 1 }}>
-          {this.state.locations.map((loc, i) =>
-            <Card className='col-auto loc-card' key={i} block>
-              <CardTitle>{loc.name}</CardTitle>
-              <CardText>
-                <table style={{ display: 'table', width: '100%' }}>
-                  <tbody>
-                    <tr>
-                      <td>Latitude</td>
-                      <td>{loc.y}</td>
-                    </tr>
-                    <tr>
-                      <td>Longtitude</td>
-                      <td>{loc.x}</td>
-                    </tr>
-                  </tbody>
-                </table>
-                <br />
-                <FormGroup check>
-                  <Label check>
-                    <Input type='checkbox' checked={this.state.locations[i].availability.find((e) => e === 'progtemp')} onClick={() => this.addAvailable(i)} />{' '}
-                    Beschikbaar voor bijvoet diagram
-                  </Label>
-                </FormGroup>
-              </CardText>
-            </Card>
-          )}
-        </Row>
-        <Row style={{ bottom: '1rem', position: 'fixed' }}>
-          <Col>
-            <Button color='primary'>Save</Button>
-          </Col>
-        </Row>
-
+      <Panel className='ProgtempLocationManagementPanel'>
+        <Col>
+          <Row className='grid'>
+            {this.state.locations.sort(this.compareByName).map((loc, index) =>
+              <LocationCardLayout key={`locationCard-${index}`}>
+                <span data-role='abbreviation'>{loc.name}</span>
+                <Label data-role='latitude'>{loc.y}</Label>
+                <Label data-role='longitude'>{loc.x}</Label>
+                <Checkbox
+                  value={this.isLocationSelected(loc.name) ? loc.name : ''}
+                  option={{ optionId: loc.name, label: 'Allow for Progtemps' }}
+                  onChange={(evt, optionId) => this.selectLocation(loc.name)}
+                  data-role='actions'
+                  data-field='locationProgTempEnabled'
+                />
+              </LocationCardLayout>
+            )}
+          </Row>
+          <Row className='grid'>
+            <Col />
+            <Col xs='auto'>
+              <Button color='primary' disabled={!this.state.hasChanges} onClick={this.saveLocationSelection}>Save</Button>
+            </Col>
+          </Row>
+          <Row />
+        </Col>
       </Panel>
     );
   }
 }
+
+ProgtempManagementPanel.propTypes = {
+  urls: PropTypes.shape({
+    BACKEND_SERVER_URL: PropTypes.string
+  })
+};

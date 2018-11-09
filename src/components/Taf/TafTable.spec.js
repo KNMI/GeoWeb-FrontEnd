@@ -14,7 +14,6 @@ describe('(Container) Taf/TafTable.jsx', () => {
 
   it('Renders a TafTable with SortableChangeGroups', () => {
     const _component = mount(<TafTable
-      ref={'taftable'}
       validationReport={{}}
       taf={TestTafJSON}
       onSortEnd={() => {}}

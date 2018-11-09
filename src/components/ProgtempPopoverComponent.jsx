@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Popover, PopoverTitle, Row, ButtonDropdown, DropdownToggle, DropdownMenu, DropdownItem, Button } from 'reactstrap';
+import { Popover, PopoverTitle, Row, ButtonDropdown, DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap';
 import { Typeahead } from 'react-bootstrap-typeahead';
 import axios from 'axios';
 import { DefaultLocations } from '../constants/defaultlocations';
@@ -149,7 +149,7 @@ export default class ProgtempPopoverComponent extends Component {
       <Popover placement='left' isOpen={this.props.isOpen} target='progtemp_button'>
         <PopoverTitle>Reference time: <strong>{this.state.referenceTime ? this.state.referenceTime.format('ddd DD, HH:mm UTC') : '??'}</strong></PopoverTitle>
         <ProgtempComponent urls={urls} location={cursor ? cursor.location : null} referenceTime={this.state.referenceTime}
-          selectedModel={this.state.selectedModel} loadingDone={this.setIsLoadingDone} onError={this.onError} time={adaStart} className='popover-content'
+          selectedModel={this.state.selectedModel} loadingDone={this.setIsLoadingDone} onError={this.onError} time={adaStart} className='popover-body'
           style={{ height: '600px', width: '450px', marginLeft: '-3.6rem', marginRight: '1.4rem' }} />
         <Row style={{ padding: '0 0 1rem 1rem' }}>
           {this.getLocationOrErrors(cursor)}

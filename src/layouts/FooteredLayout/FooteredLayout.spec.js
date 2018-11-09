@@ -1,5 +1,5 @@
 import React from 'react';
-import { default as FooteredLayout } from './FooteredLayout';
+import FooteredLayout from './FooteredLayout';
 import { shallow } from 'enzyme';
 import { Col } from 'reactstrap';
 

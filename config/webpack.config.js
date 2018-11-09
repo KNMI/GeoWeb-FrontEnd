@@ -1,5 +1,6 @@
 const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 const project = require('./project.config');
 const debug = require('debug')('app:config:webpack');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
@@ -29,6 +30,11 @@ const webpackConfig = {
     aggregateTimeout: 300,
     poll: 1000,
     ignored: ['node_modules', 'src/**/*.spec.js']
+  },
+  optimization: {
+    splitChunks: {
+      chunks: 'all'
+    }
   }
 };
 // ------------------------------------
@@ -57,7 +63,6 @@ webpackConfig.externals = {};
 webpackConfig.externals['react/lib/ExecutionEnvironment'] = true;
 webpackConfig.externals['react/lib/ReactContext'] = true;
 webpackConfig.externals['react/addons'] = true;
-webpackConfig.externals['config'] = JSON.stringify(require('./config.json'));
 webpackConfig.externals['basemaps'] = JSON.stringify(require('./basemaps.json'));
 
 // ------------------------------------
@@ -69,14 +74,12 @@ webpackConfig.plugins = [
   new CopyWebpackPlugin([
     { from: 'src/static' }
   ]),
-  new webpack.optimize.CommonsChunkPlugin({
-    name: 'commons'
-  }),
   new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/)
 ];
 
 if (__DEV__) {
   debug('Enabling plugins for live development (HMR, NoErrors).');
+  webpackConfig.mode = 'development';
   webpackConfig.plugins.push(
     new HtmlWebpackPlugin({
       template: project.paths.client('index.html'),
@@ -93,6 +96,18 @@ if (__DEV__) {
   );
 } else if (__PROD__) {
   debug('Enabling plugins for production (OccurenceOrder, Dedupe & UglifyJS).');
+  webpackConfig.mode = 'production';
+  webpackConfig.optimization.minimizer = [
+    new UglifyJsPlugin({
+      parallel: true,
+      uglifyOptions: {
+        compress: {
+          drop_console: true,
+          keep_infinity: true
+        }
+      }
+    })
+  ];
   webpackConfig.plugins.push(
     new HtmlWebpackPlugin({
       template: project.paths.client('index.prod.html'),
@@ -105,23 +120,6 @@ if (__DEV__) {
       }
     }),
     new webpack.optimize.OccurrenceOrderPlugin(),
-    new webpack.optimize.UglifyJsPlugin({
-      parallel: true,
-      uglifyOptions: {
-        ecma: 6,
-        compress: {
-          unused: true,
-          dead_code: true,
-          warnings: false,
-          drop_console: true,
-          drop_debugger: true,
-          conditionals: true,
-          keep_infinity: true
-        }
-      },
-      sourceMap: false,
-      warnings: false
-    }),
     new webpack.optimize.AggressiveMergingPlugin()
   );
 }
@@ -138,11 +136,6 @@ webpackConfig.module.rules = [
     exclude: /(node_modules)/,
     loader: 'babel-loader',
     options: project.compiler_babel,
-    enforce: 'pre'
-  },
-  {
-    test: /\.json$/,
-    loader: 'json-loader',
     enforce: 'pre'
   }
 ];

@@ -16,7 +16,7 @@ describe('(Component) ProgtempComponent', () => {
     const onError = () => null;
     const referenceTime = moment.utc((moment.utc().format('YYYY-MM-DDT06:00:00')));
     const _component = mount(<ProgtempComponent urls={urls} location={location} referenceTime={referenceTime}
-      selectedModel={'Harmonie36'} onError={onError} time={moment.utc().startOf('hour')} className='popover-content' />);
+      selectedModel={'Harmonie36'} onError={onError} time={moment.utc().startOf('hour')} className='popover-body' />);
     expect(_component.type()).to.eql(ProgtempComponent);
   });
 });

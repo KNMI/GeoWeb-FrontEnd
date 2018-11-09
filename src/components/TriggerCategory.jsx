@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Button, Col, Row, Badge, Card, CardHeader, CardBlock } from 'reactstrap';
+import { Button, Col, Row, Badge, Card, CardHeader, CardBody } from 'reactstrap';
 import Moment from 'react-moment';
 import moment from 'moment';
 import Icon from 'react-fa';
@@ -39,6 +39,7 @@ class TriggerCategory extends Component {
   }
 
   setPreset (presetName) {
+    const { BACKEND_SERVER_URL } = this.props.urls;
     axios.get(BACKEND_SERVER_URL + '/preset/getpreset?name=' + presetName, { withCredentials: true }).then((res) => {
       this.props.dispatch(this.props.actions.setPreset(res.data));
     }).catch((error) => {
@@ -62,19 +63,19 @@ class TriggerCategory extends Component {
             {notifications > 0 ? <Badge color='danger' pill className='collapsed'>{notifications}</Badge> : null}
           </Col>
         </CardHeader>
-        : <CardHeader onClick={maxSize > 0 ? toggleMethod : null} className={maxSize > 0 ? null : 'disabled'} title={title}>
-          <Col xs='auto'>
-            <Icon name={icon} />
-          </Col>
-          <Col style={{ marginLeft: '0.9rem' }}>
-            {title}
-          </Col>
-          <Col xs='auto'>
-            {notifications > 0 ? <Badge color='danger' pill>{notifications}</Badge> : null}
-          </Col>
-        </CardHeader>}
+          : <CardHeader onClick={maxSize > 0 ? toggleMethod : null} className={maxSize > 0 ? null : 'disabled'} title={title}>
+            <Col xs='auto'>
+              <Icon name={icon} />
+            </Col>
+            <Col style={{ marginLeft: '0.9rem' }}>
+              {title}
+            </Col>
+            <Col xs='auto'>
+              {notifications > 0 ? <Badge color='danger' pill>{notifications}</Badge> : null}
+            </Col>
+          </CardHeader>}
         <CollapseOmni className='CollapseOmni' isOpen={this.state.isOpen} minSize={0} maxSize={maxSize}>
-          <CardBlock>
+          <CardBody>
             <Row>
               <Col className='btn-group-vertical'>
                 {data.map((item, index) =>
@@ -109,11 +110,11 @@ class TriggerCategory extends Component {
                         <Badge color='success'>Presets</Badge>
                       </Col>
                       {item.presets.length > 0
-                      ? <Col xs='9'>
-                        <a className='triggerPreset' href='#' onClick={(e) => { e.preventDefault(); e.stopPropagation(); this.setPreset(item.presets[0]); }}>{item.presets[0]}</a>
-                      </Col>
-                      : ''
-                    }
+                        ? <Col xs='9'>
+                          <a className='triggerPreset' href='#' onClick={(e) => { e.preventDefault(); e.stopPropagation(); this.setPreset(item.presets[0]); }}>{item.presets[0]}</a>
+                        </Col>
+                        : ''
+                      }
                     </Row>
                     {item.presets.filter((item, i) => i !== 0).map((preset, i) =>
                       <Row className='' key={i}>
@@ -121,12 +122,12 @@ class TriggerCategory extends Component {
                           <a className='triggerPreset' href='#' onClick={(e) => { e.preventDefault(); e.stopPropagation(); this.setPreset(preset); }}>{preset}</a>
                         </Col>
                       </Row>
-                     )}
+                    )}
                   </Button>
                 )}
               </Col>
             </Row>
-          </CardBlock>
+          </CardBody>
         </CollapseOmni>
       </Card>);
   }
@@ -142,7 +143,10 @@ TriggerCategory.propTypes = {
   selectedIndex : PropTypes.number,
   toggleMethod  : PropTypes.func,
   parentCollapsed   : PropTypes.bool,
-  data              : PropTypes.array
+  data              : PropTypes.array,
+  urls              : PropTypes.shape({
+    BACKEND_SERVER_URL: PropTypes.string
+  })
 };
 
 export default TriggerCategory;
