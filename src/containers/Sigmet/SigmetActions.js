@@ -245,7 +245,8 @@ const STATE = {
     drawModeEnd: null,
     feedbackStart: null,
     feedbackEnd: null,
-    hasEdits: false
+    hasEdits: false,
+    tacRepresentation: null
   },
   copiedSigmetRef: null,
   isContainerOpen: true,

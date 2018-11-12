@@ -72,7 +72,6 @@ class SigmetsCategory extends PureComponent {
                   <Col className='btn-group-vertical'>
                     {sigmets.slice().sort(this.byStartAndSequence).slice(0, itemLimit).map((sigmet, index) => {
                       const isSelectedSigmet = selectedSigmet && sigmet.uuid === selectedSigmet.uuid;
-                      console.log(selectedSigmet, sigmet);
                       const sigmetToShow = isSelectedSigmet ? selectedSigmet : sigmet;
                       const isCancelFor = sigmetToShow.cancels !== null && !isNaN(sigmetToShow.cancels)
                         ? parseInt(sigmetToShow.cancels)
