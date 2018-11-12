@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Col, Badge, Card, CardHeader, ListGroup, ListGroupItem, Row, CardGroup } from 'reactstrap';
+import { Col, Badge, Card, CardBody, CardHeader, CardText, Row, CardGroup } from 'reactstrap';
 import Icon from 'react-fa';
 import PropTypes from 'prop-types';
 import CollapseOmni from '../components/CollapseOmni';
@@ -104,10 +104,17 @@ class TriggerActiveTestCategory extends Component {
                 {
                   triggers.map((item, index) => {
                     return (
-                      <ListGroup key={index} style={{ margin: '0.3rem', width: maxSize - 35 }}>
-                        <ListGroupItem>{item}</ListGroupItem>
+                      <CardGroup key={index} style={{ margin: '0.3rem', width: maxSize - 35 }}>
+                        <Row />
+                        <Card style={{ borderColor: '#bab8b8' }}>
+                          <CardBody>
+                            <CardText style={{ margin: '0.5rem' }}>
+                              {item}
+                            </CardText>
+                          </CardBody>
+                        </Card>
                         {/* <Button color='primary' onClick={() => { console.log(item); }}>Discard</Button> */}
-                      </ListGroup>
+                      </CardGroup>
                     );
                   })
                 }

@@ -59,13 +59,34 @@ class TriggerCreateTestCategory extends Component {
       minutes = 5;
       hours = hours - 1;
     }
-    if (hours.toString().length < 2) {
-      hours = '0' + hours;
-    }
     // eslint-disable-next-line eqeqeq
     if (sourceOption == 'OBS') {
+      if (hours.toString().length < 2) {
+        hours = '0' + hours;
+      }
       source = 'http://birdexp07.knmi.nl/geoweb/data/OBS/kmds_alle_stations_10001_' + year + month + day + hours + minutes + '0.nc';
     }
+    // // eslint-disable-next-line eqeqeq
+    // if (sourceOption == 'HARM_N25') {
+    //   if (hours > 0 || hours < 3) {
+    //     hours = 21;
+    //   } else if (hours > 3 || hours < 6) {
+    //     hours = '00';
+    //   } else if (hours > 6 || hours < 9) {
+    //     hours = '0' + 3;
+    //   } else if (hours > 9 || hours < 12) {
+    //     hours = '0' + 6;
+    //   } else if (hours > 12 || hours < 15) {
+    //     hours = '0' + 9;
+    //   } else if (hours > 15 || hours < 18) {
+    //     hours = 12;
+    //   } else if (hours > 18 || hours < 21) {
+    //     hours = 15;
+    //   } else if (hours > 21) {
+    //     hours = 18;
+    //   }
+    //   source = 'http://birdexp07.knmi.nl/geoweb/data/HARM_N25/HARM_N25_2018' + month + day + '0900.nc';
+    // }
     return source;
   }
 
@@ -74,6 +95,7 @@ class TriggerCreateTestCategory extends Component {
       parameter: this.state.parameterOption.toString(),
       operator: this.state.operatorOption.toString(),
       limit: this.state.inputfieldLimit,
+      source: this.state.sourceOption.toString(),
       serviceurl: this.setServiceURL()
     };
     axios({
