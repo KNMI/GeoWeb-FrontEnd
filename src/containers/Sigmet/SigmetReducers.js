@@ -19,6 +19,7 @@ const ERROR_MSG = {
   RETRIEVE_SIGMETS: 'Could not retrieve SIGMETs:',
   RETRIEVE_PARAMS: 'Could not retrieve SIGMET parameters',
   RETRIEVE_PHENOMENA: 'Could not retrieve SIGMET phenomena',
+  RETRIEVE_TACS: 'Could not retrieve SIGMET TAC:',
   FEATURE_ID_MISMATCH: 'GeoJson: the %s feature has a mutated id',
   FIND_CATEGORY: 'Could not find category'
 };
@@ -105,9 +106,6 @@ const updateCategory = (ref, sigmets, container, callback = () => {}) => {
           }
         });
         draftState.categories[categoryIndex].sigmets.push(mergedSigmet);
-        if (incomingSigmet.uuid) {
-          retrieveTAC(incomingSigmet.uuid, container);
-        }
       });
     }
   }), callback);
@@ -209,6 +207,47 @@ const updatePhenomena = (phenomena, container, callback) => {
 };
 
 /**
+ * Temporary fallback, since TACs should be included in the SIGMET retrieval
+ * @param {Element} container The container where the SIGMETs and there TACs will land
+ * @param {string} uuid The id of the SIGMET to retrieve the TAC for
+ * @returns {Promise} A promise which resolves when the data is loaded, and rejects otherwise
+ */
+const retrieveSigmetTac = (container, uuid) => {
+  const { urls } = container.props;
+
+  if (!uuid || typeof uuid !== 'string') {
+    Promise.reject(new Error(`${ERROR_MSG.RETRIEVE_TACS} no uuid provided`));
+  }
+
+  return new Promise((resolve, reject) =>
+    axios({
+      method: 'get',
+      url: `${urls.BACKEND_SERVER_URL}/sigmets/${uuid}`,
+      withCredentials: true,
+      responseType: 'text',
+      headers: {
+        'Accept': 'text/plain'
+      }
+    }).then(response => {
+      if (response.status === 200 && response.data && typeof response.data === 'string') {
+        resolve({ uuid, code: response.data });
+      } else {
+        console.warn(`${ERROR_MSG.RETRIEVE_TACS} for SIGMET ${uuid}`,
+          `because ${response.status === 200 ? 'no response data could be retrieved' : `status was not OK [${response.status}]`}`);
+        resolve({ uuid, code: null });
+      }
+    }, (error) => {
+      console.error(`${error.message}`);
+      resolve({ uuid, code: null });
+    }).catch(error => {
+      console.error(`${ERROR_MSG.RETRIEVE_TACS} for SIGMET ${uuid} because ${error.message}`);
+      // resolve({ uuid, code: null });
+      reject(error);
+    })
+  );
+};
+
+/**
  * Retrieve SIGMETs from the backend
  * @param {Element} container The container where the SIGMETs will land
  * @param {object} retrievableCategory The category metadata used to retrieve the SIGMETs
@@ -225,20 +264,31 @@ const retrieveCategorizedSigmets = (container, retrievableCategory) => {
       responseType: 'json'
     }).then(response => {
       if (response.status === 200 && response.data) {
-        const sigmets = [];
+        const incomingSigmets = [];
         if (response.data.nsigmets !== 0 && response.data.sigmets &&
           Array.isArray(response.data.sigmets) && response.data.sigmets.length > 0) {
-          sigmets.push(...response.data.sigmets);
+          incomingSigmets.push(...response.data.sigmets);
         }
-        resolve({ ref: retrievableCategory.ref, sigmets });
+        // temporary functionality to add TAC to SIGMET
+        const augmentedSigmets = incomingSigmets.map((incomingSigmet) =>
+          retrieveSigmetTac(container, incomingSigmet.uuid).then(tacResult => {
+            incomingSigmet.tac = tacResult.code;
+            return Promise.resolve(incomingSigmet);
+          })
+        );
+        Promise.all(augmentedSigmets).then((sigmets) =>
+          resolve({ ref: retrievableCategory.ref, sigmets })
+        );
       } else {
         reject(new Error(`${ERROR_MSG.RETRIEVE_SIGMETS} for ${retrievableCategory.ref} `,
           `because ${response.status === 200 ? 'no response data could be retrieved' : `status was not OK [${response.status}]`}`));
       }
     }, (error) => {
       console.error(`${error.message}`);
+      reject(error);
     }).catch(error => {
       console.error(`${ERROR_MSG.RETRIEVE_SIGMETS} for ${retrievableCategory.ref} because ${error.message}`);
+      reject(error);
     })
   );
 };
@@ -288,7 +338,7 @@ const synchronizeSigmets = (container) => {
   });
 };
 
-const retrieveSigmets = (container, callback = () => {}) => {
+const retrieveSigmets = (container) => {
   synchronizeSigmets(container).then((result) => {
     console.log('Result', result);
   });
@@ -1047,6 +1097,7 @@ const sanitizeSigmet = (sigmetAsObject, cleanedFeatures) => {
   const volcanoPosition = sigmetAsObject.va_extra_fields.volcano.position;
   const hasVolcanoPosition = volcanoPosition.some((coordinate) => typeof coordinate === 'number');
   return produce(sigmetAsObject, draftState => {
+    draftState.tac = null;
     clearEmptyPointersAndAncestors(draftState);
     draftState.geojson.features.length = 0;
     draftState.geojson.features.push(...cleanedFeatures);
@@ -1289,35 +1340,6 @@ const publishSigmet = (event, uuid, container) => {
       draftState.categories[indices.categoryIndex].sigmets[indices.sigmetIndex].status = STATUSES.PUBLISHED;
     }
   }), () => saveSigmet(event, container));
-};
-
-const retrieveTAC = (uuid, container) => {
-  const { urls } = container.props;
-
-  if (!uuid) {
-    return;
-  }
-
-  axios({
-    method: 'get',
-    url: `${urls.BACKEND_SERVER_URL}/sigmets/${uuid}`,
-    withCredentials: true,
-    responseType: 'text',
-    headers: {
-      'Accept': 'text/plain'
-    }
-  }).then((response) => {
-    const indexExisting = container.state.tacs.findIndex((tac) => tac.uuid === uuid);
-    container.setState(produce(container.state, draftState => {
-      if (indexExisting !== -1) {
-        draftState.tacs[indexExisting].code = response.data;
-      } else {
-        draftState.tacs.push({ uuid: uuid, code: response.data });
-      }
-    }));
-  }).catch(error => {
-    console.error('Couldn\'t retrieve TAC for Sigmet', error);
-  });
 };
 
 const cancelSigmet = (event, container) => {

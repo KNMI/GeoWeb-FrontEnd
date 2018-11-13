@@ -75,7 +75,7 @@ class SigmetsContainer extends Component {
   render () {
     const maxSize = 580;
     const { isContainerOpen, selectedSigmet, selectedAuxiliaryInfo, categories, focussedCategoryRef,
-      phenomena, parameters, tacs, copiedSigmetRef, displayModal } = this.state;
+      phenomena, parameters, copiedSigmetRef, displayModal } = this.state;
     const { drawProperties } = this.props;
     const header = <ContainerHeader isContainerOpen={isContainerOpen} dispatch={this.localDispatch} actions={LOCAL_ACTIONS} />;
     const startFeature = drawProperties.adagucMapDraw.geojson.features.find((feature) => feature.properties.featureFunction === 'start');
@@ -111,7 +111,6 @@ class SigmetsContainer extends Component {
                     actions={LOCAL_ACTIONS}
                     phenomena={phenomena}
                     parameters={parameters}
-                    tacs={tacs}
                     copiedSigmetRef={copiedSigmetRef}
                     hasStartCoordinates={hasStartCoordinates}
                     hasStartIntersectionCoordinates={hasStartIntersectionCoordinates}

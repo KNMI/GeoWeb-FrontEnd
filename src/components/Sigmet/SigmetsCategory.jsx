@@ -41,11 +41,14 @@ class SigmetsCategory extends PureComponent {
   }
 
   render () {
-    const { typeRef, title, icon, sigmets, selectedSigmet, selectedAuxiliaryInfo, geojson, copiedSigmetRef, tacs, isOpen, dispatch, actions, abilities,
+    const { typeRef, title, icon, sigmets, selectedSigmet, selectedAuxiliaryInfo, geojson, copiedSigmetRef, isOpen, dispatch, actions, abilities,
       phenomena, parameters, displayModal, hasStartCoordinates, hasStartIntersectionCoordinates, hasEndCoordinates, hasEndIntersectionCoordinates } = this.props;
     const maxSize = 10000; // for now, arbitrairy big
     const itemLimit = 25;
     const isOpenable = (isOpen || (!isOpen && sigmets.length > 0));
+
+    console.log('Category', sigmets, parameters);
+
     return <Card className={`SigmetsCategory row accordion${isOpen ? ' open' : ''}${isOpenable ? ' openable' : ''}`}>
       <Col>
         <CardHeader className='row' title={title} onClick={isOpenable ? (evt) => dispatch(actions.toggleCategoryAction(evt, typeRef)) : null}>
@@ -159,7 +162,7 @@ class SigmetsCategory extends PureComponent {
                           displayModal={displayModal}
                           adjacentFirs={adjacentFirs}
                           moveTo={sigmetToShow.va_extra_fields.move_to}
-                          tac={tacs && tacs.find((tac) => tac.uuid === selectedSigmet.uuid)}
+                          tac={sigmetToShow.tac}
                         />;
                       }
 
@@ -169,7 +172,7 @@ class SigmetsCategory extends PureComponent {
                         actions={actions}
                         uuid={sigmetToShow.uuid}
                         distributionType={sigmetToShow.type}
-                        tac={tacs && tacs.find((tac) => tac.uuid === sigmetToShow.uuid)}
+                        tac={sigmetToShow.tac}
                         phenomenon={sigmetToShow.phenomenon}
                         validdate={sigmetToShow.validdate}
                         validdateEnd={sigmetToShow.validdate_end}
@@ -215,10 +218,6 @@ SigmetsCategory.propTypes = {
     firareas: PropTypes.object,
     active_firs: PropTypes.array
   }),
-  tacs: PropTypes.arrayOf(PropTypes.shape({
-    uuid: PropTypes.string,
-    code: PropTypes.string
-  })),
   copiedSigmetRef: PropTypes.string,
   geojson: PropTypes.object,
   displayModal: PropTypes.string

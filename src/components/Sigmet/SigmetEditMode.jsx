@@ -576,7 +576,7 @@ class SigmetEditMode extends PureComponent {
         <IssueSection className={`required${typeof distributionType !== 'string' || distributionType.length === 0 ? ' missing' : ''}`}>
           <span data-field='issuedate'>(Not yet published)</span>
           <span data-field='issueLocation'>{locationIndicatorMwo}</span>
-          <span className='tac' data-field='tac' title={tac && tac.code}>{tac && tac.code}</span>
+          <span className='tac' data-field='tac' title={tac}>{tac}</span>
           <RadioGroup
             value={distributionType}
             options={DISTRIBUTION_OPTIONS}
@@ -647,10 +647,7 @@ SigmetEditMode.propTypes = {
   isVolcanicAsh: PropTypes.bool,
   sigmet: PropTypes.object,
   geojson: PropTypes.object,
-  tac: PropTypes.shape({
-    uuid: PropTypes.string,
-    code: PropTypes.string
-  })
+  tac: PropTypes.string
 };
 
 export default SigmetEditMode;

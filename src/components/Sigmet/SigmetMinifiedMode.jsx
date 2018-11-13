@@ -26,7 +26,7 @@ class SigmetMinifiedMode extends PureComponent {
             <Badge color='success'>TAC</Badge>
           </Col>
           <Col xs='9'>
-            <span className='tac' data-field='tac' title={tac && tac.code}>{tac && tac.code}</span>
+            <span className='tac' data-field='tac' title={tac}>{tac}</span>
           </Col>
         </Row>
       </Col>
@@ -40,10 +40,7 @@ SigmetMinifiedMode.propTypes = {
     focusSigmetAction: PropTypes.func
   }),
   uuid: PropTypes.string,
-  tac: PropTypes.shape({
-    uuid: PropTypes.string,
-    code: PropTypes.string
-  }),
+  tac: PropTypes.string,
   phenomenon: PropTypes.string,
   validdate: PropTypes.string,
   validdateEnd: PropTypes.string,

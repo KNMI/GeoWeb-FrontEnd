@@ -89,7 +89,8 @@ TEMPLATES.SIGMET = {
   cancels: null, // number
   /* Metadata */
   location_indicator_icao: null, // string
-  location_indicator_mwo: null // string
+  location_indicator_mwo: null, // string
+  tac: null // string
 };
 
 /**
@@ -154,7 +155,8 @@ const TYPES = {
   TYPE: PropTypes.string,
   CANCELS: PropTypes.number,
   LOCATION_INDICATOR_ICAO: PropTypes.string,
-  LOCATION_INDICATOR_MWO: PropTypes.string
+  LOCATION_INDICATOR_MWO: PropTypes.string,
+  TAC: PropTypes.string
 };
 TYPES.GEOJSON = PropTypes.shape({
   type: PropTypes.string,
@@ -184,7 +186,8 @@ TYPES.SIGMET = PropTypes.shape({
   type: TYPES.TYPE,
   cancels: TYPES.CANCELS,
   location_indicator_icao: TYPES.LOCATION_INDICATOR_ICAO,
-  location_indicator_mwo: TYPES.LOCATION_INDICATOR_MWO
+  location_indicator_mwo: TYPES.LOCATION_INDICATOR_MWO,
+  tac: TYPES.TAC
 });
 
 TYPES.AUXILIARY_INFO = PropTypes.shape({

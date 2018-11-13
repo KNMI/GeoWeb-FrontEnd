@@ -339,7 +339,7 @@ class SigmetReadMode extends PureComponent {
           }
           <span data-field='issueLocation'>{locationIndicatorMwo}</span>
           <span data-field='sequence'>{sequence < 1 ? '(not yet issued)' : sequence}</span>
-          <span className='tac' data-field='tac' title={tac && tac.code}>{tac && tac.code}</span>
+          <span className='tac' data-field='tac' title={tac}>{tac}</span>
           <span data-field='distribution_type'>
             {typeof distributionType === 'string' && distributionType.length > 0
               ? distributionType
@@ -386,10 +386,7 @@ SigmetReadMode.propTypes = {
   focus: PropTypes.bool,
   uuid: PropTypes.string,
   distributionType: SIGMET_TYPES.TYPE,
-  tac: PropTypes.shape({
-    uuid: PropTypes.string,
-    code: PropTypes.string
-  }),
+  tac: PropTypes.string,
   copiedSigmetRef: PropTypes.string,
   phenomenon: PropTypes.string,
   isObserved: PropTypes.bool,

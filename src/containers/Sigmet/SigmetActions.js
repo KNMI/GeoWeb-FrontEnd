@@ -234,7 +234,6 @@ const STATE = {
   ],
   phenomena: [],
   parameters: {},
-  tacs: [],
   firs: {},
   focussedCategoryRef: null,
   selectedSigmet: [],
