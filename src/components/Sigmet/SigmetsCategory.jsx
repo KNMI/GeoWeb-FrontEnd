@@ -47,7 +47,7 @@ class SigmetsCategory extends PureComponent {
     const itemLimit = 25;
     const isOpenable = (isOpen || (!isOpen && sigmets.length > 0));
 
-    console.log('Category', sigmets, parameters);
+    console.log('Category', sigmets);
 
     return <Card className={`SigmetsCategory row accordion${isOpen ? ' open' : ''}${isOpenable ? ' openable' : ''}`}>
       <Col>

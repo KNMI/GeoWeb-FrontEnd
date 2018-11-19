@@ -333,7 +333,7 @@ const synchronizeSigmets = (container) => {
 
   return new Promise((resolve, reject) => {
     Promise.all(refreshedSigmetCategories).then(() => {
-      console.log('Resulta');
+      console.log('Result');
     });
   });
 };
@@ -406,7 +406,9 @@ const setStatePromise = (container, newProps) => {
         ],
         'sigmets': [
           templateWithDefaults.SIGMET
-        ]
+        ],
+        'coordinates-poly': produce(SIGMET_TEMPLATES.POLYGON_COORDINATES, () => {}),
+        'coordinates-point': produce(SIGMET_TEMPLATES.POINT_COORDINATE, () => {})
       }
     ),
     () => { resolve(); });

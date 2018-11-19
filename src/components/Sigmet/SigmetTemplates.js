@@ -10,24 +10,8 @@ const TEMPLATES = {
     obs: true, // boolean
     obsFcTime: null // string
   },
-  FEATURE: {
-    type: 'Feature',
-    id: null, // string
-    properties: {
-      selectionType: null, // string
-      featureFunction: null, // string
-      relatesTo: null, // string
-      stroke: null, // string
-      'stroke-width': null, // number
-      'stroke-opacity': null, // number
-      fill: null, // string
-      'fill-opacity': null // number
-    },
-    geometry: {
-      type: null, // string
-      coordinates: [[[null]]] // array (polygons) of array (lines) of array (coordinates) of number values
-    }
-  },
+  POLYGON_COORDINATES: [[[null]]], // array (polygons) of array (lines) of array (coordinates) of number values
+  POINT_COORDINATE: [{}],
   LEVEL: {
     value: null, // number
     unit: null // string
@@ -43,6 +27,25 @@ const TEMPLATES = {
   MOVE_TO: [null], // string values, one or more adjacent_firs identifiers, only applicable for Cancel-SIGMET
   TROPICAL_CYCLONE: {
     name: null // string
+  }
+};
+
+TEMPLATES.FEATURE = {
+  type: 'Feature',
+  id: null, // string
+  properties: {
+    selectionType: null, // string
+    featureFunction: null, // string
+    relatesTo: null, // string
+    stroke: null, // string
+    'stroke-width': null, // number
+    'stroke-opacity': null, // number
+    fill: null, // string
+    'fill-opacity': null // number
+  },
+  geometry: {
+    type: null, // string
+    coordinates: cloneDeep(TEMPLATES.POLYGON_COORDINATES)
   }
 };
 
@@ -131,7 +134,10 @@ const TYPES = {
     }),
     geometry: PropTypes.shape({
       type: PropTypes.string,
-      coordinates: PropTypes.arrayOf(PropTypes.arrayOf(PropTypes.arrayOf(PropTypes.number)))
+      coordinates: PropTypes.arrayOf(PropTypes.oneOfType([
+        PropTypes.arrayOf(PropTypes.arrayOf(PropTypes.number)),
+        PropTypes.number
+      ]))
     })
   }),
   LEVEL: PropTypes.shape({
