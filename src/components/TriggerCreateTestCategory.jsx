@@ -19,7 +19,7 @@ class TriggerCreateTestCategory extends Component {
     this.handleOnParameterTypeaheadChange = this.handleOnParameterTypeaheadChange.bind(this);
     this.getParameterOptions = this.getParameterOptions.bind(this);
     this.setParameterOptions = this.setParameterOptions.bind(this);
-    this.setServiceURL = this.setServiceURL.bind(this);
+    // this.setServiceURL = this.setServiceURL.bind(this);
     this.getUnit = this.getUnit.bind(this);
     this.state = {
       isOpen: props.isOpen,
@@ -38,65 +38,64 @@ class TriggerCreateTestCategory extends Component {
     }
   }
 
-  setServiceURL () {
-    const { sourceOption } = this.state;
-    let source = '';
-    const currentdate = new Date();
-    const year = currentdate.getUTCFullYear();
-    let month = currentdate.getUTCMonth() + 1;
-    let day = currentdate.getUTCDate();
-    let hours = currentdate.getUTCHours();
-    let minutes = Math.floor(currentdate.getUTCMinutes() / 10);
-    if (month.toString().length < 2) {
-      month = '0' + month;
-    }
-    if (day.toString().length < 2) {
-      day = '0' + day;
-    }
-    if (minutes !== 0) {
-      minutes = minutes - 1;
-    } else {
-      minutes = 5;
-      hours = hours - 1;
-    }
-    // eslint-disable-next-line eqeqeq
-    if (sourceOption == 'OBS') {
-      if (hours.toString().length < 2) {
-        hours = '0' + hours;
-      }
-      source = 'http://birdexp07.knmi.nl/geoweb/data/OBS/kmds_alle_stations_10001_' + year + month + day + hours + minutes + '0.nc';
-    }
-    // // eslint-disable-next-line eqeqeq
-    // if (sourceOption == 'HARM_N25') {
-    //   if (hours > 0 || hours < 3) {
-    //     hours = 21;
-    //   } else if (hours > 3 || hours < 6) {
-    //     hours = '00';
-    //   } else if (hours > 6 || hours < 9) {
-    //     hours = '0' + 3;
-    //   } else if (hours > 9 || hours < 12) {
-    //     hours = '0' + 6;
-    //   } else if (hours > 12 || hours < 15) {
-    //     hours = '0' + 9;
-    //   } else if (hours > 15 || hours < 18) {
-    //     hours = 12;
-    //   } else if (hours > 18 || hours < 21) {
-    //     hours = 15;
-    //   } else if (hours > 21) {
-    //     hours = 18;
-    //   }
-    //   source = 'http://birdexp07.knmi.nl/geoweb/data/HARM_N25/HARM_N25_2018' + month + day + '0900.nc';
-    // }
-    return source;
-  }
+  // setServiceURL () {
+  //   const { sourceOption } = this.state;
+  //   let source = '';
+  //   const currentdate = new Date();
+  //   const year = currentdate.getUTCFullYear();
+  //   let month = currentdate.getUTCMonth() + 1;
+  //   let day = currentdate.getUTCDate();
+  //   let hours = currentdate.getUTCHours();
+  //   let minutes = Math.floor(currentdate.getUTCMinutes() / 10);
+  //   if (month.toString().length < 2) {
+  //     month = '0' + month;
+  //   }
+  //   if (day.toString().length < 2) {
+  //     day = '0' + day;
+  //   }
+  //   if (minutes !== 0) {
+  //     minutes = minutes - 1;
+  //   } else {
+  //     minutes = 5;
+  //     hours = hours - 1;
+  //   }
+  //   // eslint-disable-next-line eqeqeq
+  //   if (sourceOption == 'OBS') {
+  //     if (hours.toString().length < 2) {
+  //       hours = '0' + hours;
+  //     }
+  //     source = 'http://birdexp07.knmi.nl/geoweb/data/OBS/kmds_alle_stations_10001_' + year + month + day + hours + minutes + '0.nc';
+  //   }
+  //   // // eslint-disable-next-line eqeqeq
+  //   // if (sourceOption == 'HARM_N25') {
+  //   //   if (hours > 0 || hours < 3) {
+  //   //     hours = 21;
+  //   //   } else if (hours > 3 || hours < 6) {
+  //   //     hours = '00';
+  //   //   } else if (hours > 6 || hours < 9) {
+  //   //     hours = '0' + 3;
+  //   //   } else if (hours > 9 || hours < 12) {
+  //   //     hours = '0' + 6;
+  //   //   } else if (hours > 12 || hours < 15) {
+  //   //     hours = '0' + 9;
+  //   //   } else if (hours > 15 || hours < 18) {
+  //   //     hours = 12;
+  //   //   } else if (hours > 18 || hours < 21) {
+  //   //     hours = 15;
+  //   //   } else if (hours > 21) {
+  //   //     hours = 18;
+  //   //   }
+  //   //   source = 'http://birdexp07.knmi.nl/geoweb/data/HARM_N25/HARM_N25_2018' + month + day + hours + '00.nc';
+  //   // }
+  //   return source;
+  // }
 
   addTrigger () {
     const triggerinfo = {
       parameter: this.state.parameterOption.toString(),
       operator: this.state.operatorOption.toString(),
       limit: this.state.inputfieldLimit,
-      source: this.state.sourceOption.toString(),
-      serviceurl: this.setServiceURL()
+      source: this.state.sourceOption.toString()
     };
     axios({
       method: 'post',
@@ -161,11 +160,9 @@ class TriggerCreateTestCategory extends Component {
   }
 
   getParameterOptions () {
-    const serviceurl = this.setServiceURL();
     axios({
-      method: 'post',
-      url: this.props.urls.BACKEND_SERVER_URL + '/triggers/parametersget',
-      data: { serviceurl }
+      method: 'get',
+      url: this.props.urls.BACKEND_SERVER_URL + '/triggers/parametersget'
     }).then((res) => {
       this.setParameterOptions(res.data);
     }).catch((error) => {
@@ -181,7 +178,6 @@ class TriggerCreateTestCategory extends Component {
 
   getUnit () {
     const unitInfo = {
-      serviceurl: this.setServiceURL(),
       parameter: this.state.parameterOption.toString()
     };
     axios({

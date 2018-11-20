@@ -105,6 +105,7 @@
     "lodash.omit": "^4.5.0",
     "lodash.set": "^4.3.2",
     "lodash.unset": "^4.5.2",
+    "material-flux": "^1.4.0",
     "moment": "^2.22.2",
     "prop-types": "^15.6.2",
     "rc-slider": "^8.6.3",
