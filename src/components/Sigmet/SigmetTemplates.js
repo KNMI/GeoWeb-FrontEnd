@@ -11,7 +11,7 @@ const TEMPLATES = {
     obsFcTime: null // string
   },
   POLYGON_COORDINATES: [[[null]]], // array (polygons) of array (lines) of array (coordinates) of number values
-  POINT_COORDINATE: [{}],
+  POINT_COORDINATE: [null],
   LEVEL: {
     value: null, // number
     unit: null // string

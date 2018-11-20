@@ -17,6 +17,7 @@ const WARN_MSG = {
 
 const ERROR_MSG = {
   RETRIEVE_SIGMETS: 'Could not retrieve SIGMETs:',
+  POST_SIGMET: 'Could not post SIGMET:',
   RETRIEVE_PARAMS: 'Could not retrieve SIGMET parameters',
   RETRIEVE_PHENOMENA: 'Could not retrieve SIGMET phenomena',
   RETRIEVE_TACS: 'Could not retrieve SIGMET TAC:',
@@ -78,37 +79,6 @@ const byValidDate = (sigmetA, sigmetB) => {
     result = moment(startA).valueOf() - moment(startB).valueOf();
   }
   return result;
-};
-
-const updateCategory = (ref, sigmets, container, callback = () => {}) => {
-  const templateWithDefaults = {
-    'SIGMET': getEmptySigmet(container)
-  };
-  templateWithDefaults['SIGMET'] = produce(templateWithDefaults['SIGMET'], draftState => {
-    draftState.geojson = initialGeoJson();
-  });
-
-  container.setState(produce(container.state, draftState => {
-    const categoryIndex = draftState.categories.findIndex((category) => category.ref === ref);
-    if (!isNaN(categoryIndex) && categoryIndex >= 0) {
-      draftState.categories[categoryIndex].sigmets.length = 0;
-      sigmets.sort(byValidDate);
-      sigmets.forEach((incomingSigmet) => {
-        /* FIXME: for diMosellaAtWork (reported MaartenPlieger, 05-09-2018, 10:30). MergeInTemplate coordinates needs different nesting for point/poly */
-        let mergedSigmet = produce(mergeInTemplate(incomingSigmet, 'SIGMET', templateWithDefaults), sigmetToAddCoordsTo => {
-          if (incomingSigmet && incomingSigmet.geojson && incomingSigmet.geojson.features && incomingSigmet.geojson.features.length > 0) {
-            for (let f = 0; f < incomingSigmet.geojson.features.length; f++) {
-              let incomingFeature = incomingSigmet.geojson.features[f];
-              if (incomingFeature.geometry && incomingFeature.geometry.coordinates && incomingFeature.geometry.coordinates.length > 0) {
-                sigmetToAddCoordsTo.geojson.features[f].geometry.coordinates = incomingFeature.geometry.coordinates;
-              }
-            }
-          }
-        });
-        draftState.categories[categoryIndex].sigmets.push(mergedSigmet);
-      });
-    }
-  }), callback);
 };
 
 const retrieveParameters = (container) => {
@@ -269,6 +239,7 @@ const retrieveCategorizedSigmets = (container, retrievableCategory) => {
           Array.isArray(response.data.sigmets) && response.data.sigmets.length > 0) {
           incomingSigmets.push(...response.data.sigmets);
         }
+        incomingSigmets.sort(byValidDate);
         // temporary functionality to add TAC to SIGMET
         const augmentedSigmets = incomingSigmets.map((incomingSigmet) =>
           retrieveSigmetTac(container, incomingSigmet.uuid).then(tacResult => {
@@ -342,45 +313,7 @@ const retrieveSigmets = (container) => {
   synchronizeSigmets(container).then((result) => {
     console.log('Result', result);
   });
-  /* const { urls } = container.props;
-  const endpoint = `${urls.BACKEND_SERVER_URL}/sigmets`;
-  const addOneSigmetResponse = {
-    status: 200,
-    data: {
-      nsigmets: 1,
-      sigmets: [getEmptySigmet(container)]
-    }
-  };
-  receivedSigmetsCallback(CATEGORY_REFS.ADD_SIGMET, addOneSigmetResponse, container, callback);
-  let retrievableSigmets = [
-    { ref: CATEGORY_REFS.ACTIVE_SIGMETS, urlSuffix: '?active=true' },
-    { ref: CATEGORY_REFS.CONCEPT_SIGMETS, urlSuffix: `?active=false&status=${STATUSES.CONCEPT}` },
-    { ref: CATEGORY_REFS.ARCHIVED_SIGMETS, urlSuffix: `?active=false&status=${STATUSES.CANCELED}` }
-  ];
-  retrievableSigmets.forEach((retrievableSigmet) => {
-    axios({
-      method: 'get',
-      url: `${endpoint}${retrievableSigmet.urlSuffix}`,
-      withCredentials: true,
-      responseType: 'json'
-    }).then(response => {
-      receivedSigmetsCallback(retrievableSigmet.ref, response, container, callback);
-    }).catch(error => {
-      console.error(ERROR_MSG.RETRIEVE_SIGMETS, retrievableSigmet.ref, error);
-    });
-  }); */
 };
-
-/* const receivedSigmetsCallback = (ref, response, container, callback) => {
-  if (response.status === 200 && response.data) {
-    if (response.data.nsigmets === 0 || !response.data.sigmets) {
-      response.data.sigmets = [];
-    }
-    updateCategory(ref, response.data.sigmets, container, callback);
-  } else {
-    console.error(ERROR_MSG.RETRIEVE_SIGMETS, ref, response.status, response.data);
-  }
-}; */
 
 /**
  * Set state in an asynchronous, controlled and immutable way
@@ -1116,8 +1049,49 @@ const sanitizeSigmet = (sigmetAsObject, cleanedFeatures) => {
   });
 };
 
+const postSigmet = (container) => {
+  const { urls, drawProperties } = container.props;
+  const { selectedSigmet } = container.state;
+
+  const affectedSigmet = Array.isArray(selectedSigmet) && selectedSigmet.length === 1
+    ? selectedSigmet[0]
+    : null;
+  if (!affectedSigmet) {
+    return;
+  }
+  const cleanedFeatures = cleanFeatures(drawProperties.adagucMapDraw.geojson.features);
+  const complementedSigmet = sanitizeSigmet(affectedSigmet, cleanedFeatures);
+
+  return new Promise((resolve, reject) =>
+    axios({
+      method: 'post',
+      url: `${urls.BACKEND_SERVER_URL}/sigmets`,
+      withCredentials: true,
+      responseType: 'json',
+      data: complementedSigmet
+    }).then(response => {
+      if (response.status === 200 && response.data) {
+        let responseUuid = response.data.uuid;
+        resolve(responseUuid);
+      } else {
+        reject(new Error(`${ERROR_MSG.POST_SIGMET} ${complementedSigmet.uuid}`,
+          `because ${response.status === 200 ? 'no response data could be retrieved' : `status was not OK [${response.status}]`}`));
+      }
+    }, (error) => {
+      console.error(`${error.message}`);
+      reject(error);
+    }).catch(error => {
+      console.error(`${ERROR_MSG.POST_SIGMET} ${complementedSigmet.uuid} because ${error.message}`);
+      reject(error);
+    })
+  );
+};
+
 const saveSigmet = (event, container) => {
-  const { drawProperties, urls, dispatch, mapActions } = container.props;
+  postSigmet(container).then((result) => {
+    console.log('Save Result', result);
+  });
+  /* const { drawProperties, urls, dispatch, mapActions } = container.props;
   const { selectedSigmet } = container.state;
 
   const affectedSigmet = Array.isArray(selectedSigmet) && selectedSigmet.length === 1
@@ -1189,16 +1163,15 @@ const saveSigmet = (event, container) => {
       dismissible: true,
       dismissAfter: 3000
     }));
-  });
+  }); */
 };
-
-// TODO: copy sigmet!
-const editSigmet = (event, uuid, container) => {
-  const { dispatch, mapActions } = container.props;
+// FIXME: left here!
+const editSigmet = (event, container) => {
+  /* const { dispatch, mapActions } = container.props;
   container.setState(produce(container.state, draftState => {
     draftState.focussedSigmet.uuid = uuid;
     draftState.focussedSigmet.mode = SIGMET_MODES.EDIT;
-  }), () => dispatch(mapActions.setMapMode('pan')));
+  }), () => dispatch(mapActions.setMapMode('pan'))); */
 };
 
 /**
@@ -1469,7 +1442,7 @@ export default (localAction, container) => {
       saveSigmet(localAction.event, container);
       break;
     case LOCAL_ACTION_TYPES.EDIT_SIGMET:
-      editSigmet(localAction.event, localAction.uuid, container);
+      editSigmet(localAction.event, container);
       break;
     case LOCAL_ACTION_TYPES.DELETE_SIGMET:
       deleteSigmet(localAction.event, container);

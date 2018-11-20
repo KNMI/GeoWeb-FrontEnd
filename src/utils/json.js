@@ -93,7 +93,7 @@ const mergeInTemplate = (incomingValues, parentName, templates) => {
           }
 
           if (!Array.isArray(templateForArray) || templateForArray.length === 0) {
-            // next, look up a alternative template
+            // next, look up an alternative template
             // find closest ancestor in the data structure with a provided template
             // 1) find indices of path parts for which a template is available (i.e. template key starts with property name)
             const templateKeys = Object.keys(templates);
@@ -101,30 +101,28 @@ const mergeInTemplate = (incomingValues, parentName, templates) => {
               .map((key) => pathParts.slice(0, numericIndex).lastIndexOf(key.split('-')[0]))
               .filter((index) => index !== -1);
             if (Array.isArray(partsWithTemplateIndices) && partsWithTemplateIndices.length > 0) {
-              // 2) sort (descending) the indices to determine the closest ancestor template(s)
+              // 2) sort (descending) the indices to determine the closest ancestor template(s) in line
               partsWithTemplateIndices.sort((a, b) => b - a);
-              const relativeTemplatePath = templatePath.slice(partsWithTemplateIndices[0] + 1);
+              const relativeTemplatePath = templatePath.slice(partsWithTemplateIndices[0] + 1); // path from ancestor to template
               const ancestorProperty = pathParts[partsWithTemplateIndices[0]];
               // 3) check which ancestor templates provide the nested path
               const ancestorTemplateKeys = templateKeys.filter((key) => key.startsWith(ancestorProperty));
-              const templateOptions = (
-                relativeTemplatePath.length > 0
-                  ? ancestorTemplateKeys.map(key => getNestedProperty(templates[key], relativeTemplatePath))
-                  : ancestorTemplateKeys.map(key => templates[key])
-              ); /* .filter((templateOption) => Array.isArray(templateOption) && templateOption.length > 0 &&
-              // FIXME: how to select the right option for points????
-                !Array.isArray(templateOption[0]) && templateOption[0].constructor !== Object); */
-              if (templateOptions.length > 1) {
-                if (pathParts.length === 10) {
-                  console.log('point', relativeTemplatePath.length, pathParts.slice(partsWithTemplateIndices[0] + 1));
-                } else if (pathParts.length === 12) {
-                  console.log('poly', relativeTemplatePath.length, pathParts.slice(partsWithTemplateIndices[0] + 1));
-                } else {
-                  console.log('other', relativeTemplatePath.length);
-                }
+              const templateOptions = relativeTemplatePath.length > 0
+                ? ancestorTemplateKeys.map(key => getNestedProperty(templates[key], relativeTemplatePath))
+                : ancestorTemplateKeys.map(key => templates[key]);
+              if (templateOptions.length === 1) {
                 templateForArray = templateOptions[0];
-              } else if (templateOptions.length === 1) {
-                templateForArray = templateOptions[0];
+              } else if (templateOptions.length > 1) {
+                // multiple template options, check existence and type of field in the template
+                const pathInsideTemplate = pathParts.slice(numericIndex).map((part) => !isNaN(part) ? 0 : part); // path from template to field
+                const filteredTemplateOptions = templateOptions.filter((option) => {
+                  const targetField = getNestedProperty(option, pathInsideTemplate);
+                  if (typeof targetField !== 'undefined' && !Array.isArray(targetField)) {
+                    return true;
+                  }
+                  return false;
+                });
+                templateForArray = filteredTemplateOptions[0];
               }
             }
           }
