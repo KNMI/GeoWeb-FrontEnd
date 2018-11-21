@@ -5,6 +5,7 @@ import PropTypes from 'prop-types';
 import CollapseOmni from '../components/CollapseOmni';
 import { notify } from 'reapop';
 import axios from 'axios';
+// import SockJS from 'sockjs-client';
 
 class TriggerActiveTestCategory extends Component {
   constructor (props) {
@@ -13,11 +14,9 @@ class TriggerActiveTestCategory extends Component {
     this._getActiveTriggersTimer = this._getActiveTriggersTimer.bind(this);
     this.getTriggers = this.getTriggers.bind(this);
     this.setActiveTriggerInfo = this.setActiveTriggerInfo.bind(this);
-    // this.setSSE = this.setSSE.bind(this);
     this.calculateActiveTriggers = this.calculateActiveTriggers.bind(this);
     this.showTriggerMessage = this.showTriggerMessage.bind(this);
     this.setTriggerMessage = this.setTriggerMessage.bind(this);
-    // this.setServiceURL = this.setServiceURL.bind(this);
     // this.setSseEmitter = this.setSseEmitter.bind(this);
     this.state = {
       isOpen: props.isOpen,
@@ -34,16 +33,24 @@ class TriggerActiveTestCategory extends Component {
   componentDidMount () {
     // console.log('componentDidmount');
     this.getActiveTriggers();
-    // this.setSSE();
     // this.setSseEmitter();
-  }
+    // var sock = new SockJS(this.props.urls.BACKEND_SERVER_URL + '/chatWS');
 
-  // setSSE () {
-  //   const evtSource = new EventSource(this.props.urls.BACKEND_SERVER_URL + '/triggers/servlettest');
-  //   evtSource.onmessage = function (event) {
-  //     console.log(event.data);
-  //   };
-  // }
+    // sock.onopen = function () {
+    //   console.log('open socket ');
+    //   sock.send('test');
+    // };
+
+    // sock.onmessage = function (e) {
+    //   console.log('message');
+    //   console.log('message', e.data);
+    //   sock.close();
+    // };
+
+    // sock.onclose = function () {
+    //   console.log('close');
+    // };
+  }
 
   // setSseEmitter () {
   //   const sse = new EventSource(this.props.urls.BACKEND_SERVER_URL + '/triggers/sse');
@@ -101,31 +108,6 @@ class TriggerActiveTestCategory extends Component {
     // eslint-disable-next-line camelcase
     return `${long_name} ${operator} than ${limit} ${unit}`;
   }
-
-  // setServiceURL () {
-  //   const currentdate = new Date();
-  //   const year = currentdate.getUTCFullYear();
-  //   let month = currentdate.getUTCMonth() + 1;
-  //   let day = currentdate.getUTCDate();
-  //   let hours = currentdate.getUTCHours();
-  //   let minutes = Math.floor(currentdate.getUTCMinutes() / 10);
-  //   if (month.toString().length < 2) {
-  //     month = '0' + month;
-  //   }
-  //   if (day.toString().length < 2) {
-  //     day = '0' + day;
-  //   }
-  //   if (minutes !== 0) {
-  //     minutes = minutes - 1;
-  //   } else {
-  //     minutes = 5;
-  //     hours = hours - 1;
-  //   }
-  //   if (hours.toString().length < 2) {
-  //     hours = '0' + hours;
-  //   }
-  //   return 'http://birdexp07.knmi.nl/geoweb/data/OBS/kmds_alle_stations_10001_' + year + month + day + hours + minutes + '0.nc';
-  // }
 
   calculateActiveTriggers () {
     axios({
