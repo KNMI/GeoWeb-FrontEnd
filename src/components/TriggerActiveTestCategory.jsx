@@ -5,7 +5,8 @@ import PropTypes from 'prop-types';
 import CollapseOmni from '../components/CollapseOmni';
 import { notify } from 'reapop';
 import axios from 'axios';
-// import SockJS from 'sockjs-client';
+import SockJS from 'sockjs-client';
+import { Stomp } from '@stomp/stompjs';
 
 class TriggerActiveTestCategory extends Component {
   constructor (props) {
@@ -17,6 +18,7 @@ class TriggerActiveTestCategory extends Component {
     this.calculateActiveTriggers = this.calculateActiveTriggers.bind(this);
     this.showTriggerMessage = this.showTriggerMessage.bind(this);
     this.setTriggerMessage = this.setTriggerMessage.bind(this);
+    this.setWebSocket = this.setWebSocket.bind(this);
     // this.setSseEmitter = this.setSseEmitter.bind(this);
     this.state = {
       isOpen: props.isOpen,
@@ -33,6 +35,7 @@ class TriggerActiveTestCategory extends Component {
   componentDidMount () {
     // console.log('componentDidmount');
     this.getActiveTriggers();
+    // this.setWebSocket();
     // this.setSseEmitter();
     // var sock = new SockJS(this.props.urls.BACKEND_SERVER_URL + '/chatWS');
 
@@ -50,6 +53,30 @@ class TriggerActiveTestCategory extends Component {
     // sock.onclose = function () {
     //   console.log('close');
     // };
+  }
+
+  setWebSocket () {
+    var stompClient = null;
+    var socket = new SockJS(this.props.urls.BACKEND_SERVER_URL + '/websockettest');
+
+    // socket.onopen = function () {
+    //   console.log('Socket did open');
+    // };
+    // socket.onmessage = function (event) {
+    //   console.log(event.data);
+    // };
+    // socket.onclose = function () {
+    //   console.log('Socket did close');
+    // };
+
+    stompClient = Stomp.over(socket);
+    stompClient.connect({}, function (frame) {
+      // setConnected(true);
+      stompClient.subscribe('/topic/messages', function (greeting) {
+        // showGreeting(JSON.parse(greeting.body).content);
+        console.log(greeting.body);
+      });
+    });
   }
 
   // setSseEmitter () {
