@@ -31,6 +31,12 @@ import {
 import { debounce } from '../../utils/debounce';
 import EndPositionSection from './Sections/EndPositionSection';
 
+const DROP_DOWN_NAMES = {
+  AT_OR_ABOVE: 'atOrAbove',
+  BETWEEN_LOWER: 'betweenLower',
+  BETWEEN_UPPER: 'betweenUpper'
+};
+
 class SigmetEditMode extends PureComponent {
   constructor (props) {
     super(props);
@@ -42,13 +48,32 @@ class SigmetEditMode extends PureComponent {
     this.stepLevelPerUnit = this.stepLevelPerUnit.bind(this);
     this.formatLevelPerUnit = this.formatLevelPerUnit.bind(this);
     this.verifySigmetDebounced = debounce(this.verifySigmetDebounced.bind(this), 250, false);
+    this.state = {
+      isAtOrAboveDropDownOpen: false,
+      isBetweenLowerDropDownOpen: false,
+      isBetweenUpperDropDownOpen: false
+    };
   }
 
-  toggleDropDown (evt) {
-    console.log(evt);
-    /* this.setState({
-      typeIsOpen: !this.state.typeIsOpen
-    }); */
+  toggleDropDown (dropDownName) {
+    console.log(dropDownName);
+    let flag = null;
+    switch (dropDownName) {
+      case DROP_DOWN_NAMES.AT_OR_ABOVE:
+        flag = 'isAtOrAboveDropDownOpen';
+        break;
+      case DROP_DOWN_NAMES.BETWEEN_LOWER:
+        flag = 'isBetweenLowerDropDownOpen';
+        break;
+      case DROP_DOWN_NAMES.BETWEEN_UPPER:
+        flag = 'isBetweenUpperDropDownOpen';
+        break;
+    }
+    if (flag) {
+      this.setState({
+        [flag]: !this.state[flag]
+      });
+    }
   }
 
   verifySigmetDebounced (sigmetObject) {
@@ -57,6 +82,7 @@ class SigmetEditMode extends PureComponent {
   }
 
   componentWillReceiveProps (nextProps) {
+    console.log('new props');
     if (nextProps.sigmet && this.props.sigmet && nextProps.geojson && this.props.geojson) {
       if (nextProps.sigmet !== this.props.sigmet || nextProps.geojson !== this.props.geojson) {
         this.verifySigmetDebounced(nextProps.sigmet);
@@ -234,6 +260,7 @@ class SigmetEditMode extends PureComponent {
     const { dispatch, actions, availablePhenomena, hasStartCoordinates, hasEndCoordinates, feedbackStart, feedbackEnd, isNoVolcanicAshExpected,
       availableFirs, levelinfo, movement, movementType, focus, tac, uuid, locationIndicatorMwo, change, isVolcanicAsh, volcanoName, volcanoCoordinates,
       phenomenon, isObserved, obsFcTime, validdate, maxHoursInAdvance, maxHoursDuration, validdateEnd, locationIndicatorIcao, distributionType } = this.props;
+    const { isAtOrAboveDropDownOpen, isBetweenLowerDropDownOpen, isBetweenUpperDropDownOpen } = this.state;
     const now = moment.utc();
     const dateLimits = dateRanges(now, validdate, validdateEnd, maxHoursInAdvance, maxHoursDuration);
     const selectedPhenomenon = availablePhenomena.find((ph) => ph.code === phenomenon);
@@ -425,7 +452,7 @@ class SigmetEditMode extends PureComponent {
               (!levelinfo.levels[0].value || levelinfo.levels[0].value > this.maxLevelPerUnit(levelinfo.levels[0].unit)) ? 'missing' : null}
             disabled={isLevelBetween}>
             <InputGroupAddon addonType='prepend'>
-              <ButtonDropdown toggle={() => this.toggleDropDown('Toggle1')}>
+              <ButtonDropdown toggle={() => this.toggleDropDown(DROP_DOWN_NAMES.AT_OR_ABOVE)} isOpen={isAtOrAboveDropDownOpen}>
                 <DropdownToggle caret disabled={isLevelBetween}>
                   {this.getUnitLabel(levelinfo.levels[0].unit)}
                 </DropdownToggle>
@@ -451,7 +478,7 @@ class SigmetEditMode extends PureComponent {
               optionId: 'lvl',
               label: <InputGroup className='label'>
                 <InputGroupAddon addonType='prepend'>
-                  <ButtonDropdown toggle={() => this.toggleDropDown('Toggle2')}>
+                  <ButtonDropdown toggle={() => this.toggleDropDown(DROP_DOWN_NAMES.BETWEEN_LOWER)} isOpen={isBetweenLowerDropDownOpen}>
                     <DropdownToggle caret disabled={!isLevelBetween || levelMode.hasSurface}>
                       {this.getUnitLabel(levelinfo.levels[0].unit)}
                     </DropdownToggle>
@@ -481,7 +508,7 @@ class SigmetEditMode extends PureComponent {
             className={isLevelBetween && levelinfo && levelinfo.levels && levelinfo.levels[1] && !levelinfo.levels[1].value ? 'missing' : null}
             disabled={!isLevelBetween}>
             <InputGroupAddon addonType='prepend'>
-              <ButtonDropdown toggle={() => this.toggleDropDown('Toggle3')}>
+              <ButtonDropdown toggle={() => this.toggleDropDown(DROP_DOWN_NAMES.BETWEEN_UPPER)} isOpen={isBetweenUpperDropDownOpen}>
                 <DropdownToggle caret disabled={!isLevelBetween}>
                   {this.getUnitLabel(levelinfo.levels[1].unit)}
                 </DropdownToggle>
