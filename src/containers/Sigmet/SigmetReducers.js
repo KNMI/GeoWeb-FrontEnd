@@ -18,6 +18,7 @@ const WARN_MSG = {
 const ERROR_MSG = {
   RETRIEVE_SIGMETS: 'Could not retrieve SIGMETs:',
   POST_SIGMET: 'Could not post SIGMET:',
+  SELECT_SIGMET: 'The SIGMET to set the focus to, could not be found',
   RETRIEVE_PARAMS: 'Could not retrieve SIGMET parameters',
   RETRIEVE_PHENOMENA: 'Could not retrieve SIGMET phenomena',
   RETRIEVE_TACS: 'Could not retrieve SIGMET TAC:',
@@ -433,10 +434,15 @@ const focusSigmet = (evt, uuid, container) => {
     const sigmet = state.categories[indices.categoryIndex].sigmets[indices.sigmetIndex];
     if (sigmet) {
       selection.push(sigmet);
+    } else {
+      return Promise.reject(new Error(`${ERROR_MSG.SELECT_SIGMET}`));
     }
+  } else {
+    return Promise.reject(new Error(`${ERROR_MSG.SELECT_SIGMET}`));
   }
   selectSigmet(selection, container).then(() => {
     dispatch(mapActions.setMapMode('pan'));
+    return Promise.resolve(uuid);
   });
 };
 
@@ -809,7 +815,7 @@ const updateSigmetLevel = (uuid, dataField, context, container) => {
           }
         });
       }
-      draftState.focussedSigmet.hasEdits = true;
+      draftState.selectedAuxiliaryInfo.hasEdits = true;
     }
   }));
 };
@@ -828,7 +834,7 @@ const clearRelatedIntersection = (featureId, features, dispatch, drawActions) =>
 
 const drawSigmet = (event, uuid, container, action, featureFunction) => {
   const { dispatch, mapActions, drawActions, drawProperties } = container.props;
-  const { focussedSigmet } = container.state;
+  const { selectedAuxiliaryInfo } = container.state;
   const features = drawProperties.adagucMapDraw.geojson.features;
   // Select relevant polygon to edit, this assumes there is ONE start and ONE end feature.
   const featureIndex = features.findIndex((feature) =>
@@ -843,7 +849,7 @@ const drawSigmet = (event, uuid, container, action, featureFunction) => {
     properties: { selectionType: null },
     featureId: featureId
   };
-  if (action === focussedSigmet[drawMode]) {
+  if (action === selectedAuxiliaryInfo[drawMode]) {
     updatableFeatureProps.geometry.coordinates.push(...features[featureIndex].geometry.coordinates);
   }
   switch (action) {
@@ -854,7 +860,7 @@ const drawSigmet = (event, uuid, container, action, featureFunction) => {
       updatableFeatureProps.properties.selectionType = MODES_GEO_SELECTION.POINT;
       dispatch(drawActions.setFeature(updatableFeatureProps));
       clearRelatedIntersection(featureId, features, dispatch, drawActions);
-      modifyFocussedSigmet(drawMode, action, container);
+      setStatePromise(container, { selectedAuxiliaryInfo: { [drawMode]: action } });
       break;
     case 'select-region':
       dispatch(mapActions.setMapMode('draw'));
@@ -863,7 +869,7 @@ const drawSigmet = (event, uuid, container, action, featureFunction) => {
       updatableFeatureProps.properties.selectionType = MODES_GEO_SELECTION.BOX;
       dispatch(drawActions.setFeature(updatableFeatureProps));
       clearRelatedIntersection(featureId, features, dispatch, drawActions);
-      modifyFocussedSigmet(drawMode, action, container);
+      setStatePromise(container, { selectedAuxiliaryInfo: { [drawMode]: action } });
       break;
     case 'select-shape':
       dispatch(mapActions.setMapMode('draw'));
@@ -872,7 +878,7 @@ const drawSigmet = (event, uuid, container, action, featureFunction) => {
       updatableFeatureProps.properties.selectionType = MODES_GEO_SELECTION.POLY;
       dispatch(drawActions.setFeature(updatableFeatureProps));
       clearRelatedIntersection(featureId, features, dispatch, drawActions);
-      modifyFocussedSigmet(drawMode, action, container);
+      setStatePromise(container, { selectedAuxiliaryInfo: { [drawMode]: action } });
       break;
     case 'select-fir':
       dispatch(mapActions.setMapMode('pan'));
@@ -880,13 +886,13 @@ const drawSigmet = (event, uuid, container, action, featureFunction) => {
       updatableFeatureProps.properties.selectionType = MODES_GEO_SELECTION.FIR;
       dispatch(drawActions.setFeature(updatableFeatureProps));
       clearRelatedIntersection(featureId, features, dispatch, drawActions);
-      modifyFocussedSigmet(drawMode, action, container);
+      setStatePromise(container, { selectedAuxiliaryInfo: { [drawMode]: action } });
       break;
     case 'delete-selection':
       dispatch(mapActions.setMapMode('pan'));
       dispatch(drawActions.setFeature(updatableFeatureProps));
       clearRelatedIntersection(featureId, features, dispatch, drawActions);
-      modifyFocussedSigmet(drawMode, null, container);
+      setStatePromise(container, { selectedAuxiliaryInfo: { [drawMode]: action } });
       break;
     default:
       console.error(`Selection method ${action} unknown and not implemented`);
@@ -961,7 +967,7 @@ const createFirIntersection = (featureId, geojson, container) => {
         const { featureFunction } = featureToIntersect.properties;
         const feedbackProperty = `feedback${featureFunction.charAt(0).toUpperCase()}${featureFunction.slice(1)}`;
         container.setState(produce(container.state, draftState => {
-          draftState.focussedSigmet[feedbackProperty] = responseMessage;
+          draftState.selectedAuxiliaryInfo[feedbackProperty] = responseMessage;
         }), () => {
           if (responseSucceeded === true) {
             dispatch(drawActions.setFeature({
@@ -978,15 +984,6 @@ const createFirIntersection = (featureId, geojson, container) => {
   } else {
     console.warn('The intersection feature was not found');
   }
-};
-
-const modifyFocussedSigmet = (dataField, value, container) => {
-  const { state } = container;
-  container.setState(produce(state, draftState => {
-    draftState.focussedSigmet[dataField] = value;
-    draftState.focussedSigmet.hasEdits = true;
-  }), () => {
-  });
 };
 
 const clearSigmet = (event, uuid, container) => {
@@ -1014,8 +1011,8 @@ const discardSigmet = (event, uuid, container) => {
   }));
   retrieveSigmets(container, () => {
     container.setState(produce(container.state, draftState => {
-      draftState.focussedSigmet.mode = SIGMET_MODES.READ;
-      draftState.focussedSigmet.hasEdits = false;
+      draftState.selectedAuxiliaryInfo.mode = SIGMET_MODES.READ;
+      draftState.selectedAuxiliaryInfo.hasEdits = false;
       dispatch(mapActions.setMapMode('pan'));
       setSigmetDrawing(uuid, container);
     }));
@@ -1088,32 +1085,71 @@ const postSigmet = (container) => {
 };
 
 const saveSigmet = (event, container) => {
-  postSigmet(container).then((result) => {
-    console.log('Save Result', result);
+  const { dispatch, notify } = container.props;
+  postSigmet(container).then((uuid) => {
+    dispatch(notify({
+      title: 'Sigmet saved',
+      message: `Sigmet ${uuid} was successfully saved`,
+      status: 'success',
+      position: 'bl',
+      dismissible: true,
+      dismissAfter: 3000
+    }));
+    synchronizeSigmets(container).then(() => focusSigmet(event, uuid, container));
+  }, (error) => {
+    const errMsg = `Could not save Sigmet: ${error.message}`;
+    console.error(errMsg);
+    dispatch(notify({
+      title: 'Error',
+      message: errMsg,
+      status: 'error',
+      position: 'bl',
+      dismissible: true,
+      dismissAfter: 3000
+    }));
   });
-  /* const { drawProperties, urls, dispatch, mapActions } = container.props;
-  const { selectedSigmet } = container.state;
+};
 
+/**
+ * Switch SIGMET mode to edit
+ * @param {Event} event The event which triggered the switch
+ * @param {Element} container The container on which the switch was triggered
+ */
+const editSigmet = (event, container) => {
+  const { dispatch, mapActions } = container.props;
+  return setStatePromise(container, {
+    selectedAuxiliaryInfo: {
+      mode: SIGMET_MODES.EDIT,
+      hasEdits: false
+    }
+  }).then(() => dispatch(mapActions.setMapMode('pan')));
+};
+
+/**
+* Deleting Sigmet from backend
+* @param {object} event The event that triggered deleting
+* @param {Element} container The container in which the delete action was triggered
+*/
+const deleteSigmet = (event, container) => {
+  const { state, props } = container;
+  const { dispatch, mapActions } = props;
+  const { BACKEND_SERVER_URL } = props.urls;
+  const { selectedSigmet } = state;
   const affectedSigmet = Array.isArray(selectedSigmet) && selectedSigmet.length === 1
     ? selectedSigmet[0]
     : null;
-  if (!affectedSigmet) {
+  if (!affectedSigmet || !affectedSigmet.uuid || !BACKEND_SERVER_URL || affectedSigmet.status !== STATUSES.CONCEPT) {
     return;
   }
-  const cleanedFeatures = cleanFeatures(drawProperties.adagucMapDraw.geojson.features);
-  const complementedSigmet = sanitizeSigmet(affectedSigmet, cleanedFeatures);
-
   axios({
-    method: 'post',
-    url: `${urls.BACKEND_SERVER_URL}/sigmets`,
+    method: 'delete',
+    url: `${BACKEND_SERVER_URL}/sigmets/${affectedSigmet.uuid}`,
     withCredentials: true,
-    responseType: 'json',
-    data: complementedSigmet
+    responseType: 'json'
   }).then(response => {
-    let responseUuid = response.data.uuid;
     dispatch(notify({
-      title: 'Sigmet saved',
-      message: `Sigmet ${responseUuid} was successfully saved`,
+      title: 'Sigmet deleted',
+      message: `Sigmet ${affectedSigmet.uuid} was successfully deleted`,
       status: 'success',
       position: 'bl',
       dismissible: true,
@@ -1121,113 +1157,26 @@ const saveSigmet = (event, container) => {
     }));
     retrieveSigmets(container, () => {
       // Set mode to READ, set focus of category and Sigmet, and clear new Sigmet
-      let shouldUpdateFocussed = false;
-      let indices = findCategoryAndSigmetIndex(responseUuid, container.state);
-      if (indices.isFound) {
-        shouldUpdateFocussed = true;
-        const sigmet = container.state.categories[indices.categoryIndex].sigmets[indices.sigmetIndex];
-        if (sigmet.status === STATUSES.CANCELED) {
-          const publishedCategory = container.state.categories.find((category) => category.ref === CATEGORY_REFS.ACTIVE_SIGMETS);
-          if (publishedCategory) {
-            const relatedCancelSigmet = publishedCategory.sigmets.find((cancelSigmet) => cancelSigmet.cancels === sigmet.sequence);
-            if (relatedCancelSigmet) {
-              responseUuid = relatedCancelSigmet.responseUuid;
-              indices = findCategoryAndSigmetIndex(responseUuid, container.state);
-            }
-          }
-        }
-      }
       container.setState(produce(container.state, draftState => {
-        draftState.focussedSigmet.mode = SIGMET_MODES.READ;
-        draftState.focussedSigmet.hasEdits = false;
+        draftState.selectedAuxiliaryInfo.mode = SIGMET_MODES.READ;
+        draftState.selectedSigmet.length = 0;
         draftState.displayModal = null;
-        if (shouldUpdateFocussed) {
-          const catRef = draftState.categories[indices.categoryIndex].ref;
-          if (catRef && catRef !== draftState.focussedCategoryRef) {
-            draftState.focussedCategoryRef = catRef;
-          }
-          draftState.focussedSigmet.uuid = responseUuid;
-        }
       }), () => {
         dispatch(mapActions.setMapMode('pan'));
-        setSigmetDrawing(responseUuid, container);
+        setSigmetDrawing(null, container);
       });
     });
   }).catch(error => {
-    console.error(`Could not save Sigmet identified by ${affectedSigmet.uuid}`, error);
+    console.error('Couldn\'t delete Sigmet', error);
     dispatch(notify({
       title: 'Error',
-      message: error.response.data.error,
+      message: `An error occurred while deleting the Sigmet: ${error.response.data.error}`,
       status: 'error',
       position: 'bl',
       dismissible: true,
       dismissAfter: 3000
     }));
-  }); */
-};
-// FIXME: left here!
-const editSigmet = (event, container) => {
-  /* const { dispatch, mapActions } = container.props;
-  container.setState(produce(container.state, draftState => {
-    draftState.focussedSigmet.uuid = uuid;
-    draftState.focussedSigmet.mode = SIGMET_MODES.EDIT;
-  }), () => dispatch(mapActions.setMapMode('pan'))); */
-};
-
-/**
-* Deleting Sigmet from backend
-* @param {object} event The event that triggered deleting
-* @param {string} uuid The identifier of the Sigmet to be deleted
-* @param {Element} container The container in which the delete action was triggered
-*/
-const deleteSigmet = (event, container) => {
-  const { state, props } = container;
-  const { dispatch, mapActions } = props;
-  const { BACKEND_SERVER_URL } = props.urls;
-  const { uuid } = state.focussedSigmet;
-  if (!uuid || !BACKEND_SERVER_URL) {
-    return;
-  }
-  const indices = findCategoryAndSigmetIndex(uuid, state);
-  if (indices.isFound &&
-      state.categories[indices.categoryIndex].sigmets[indices.sigmetIndex].status === STATUSES.CONCEPT) {
-    axios({
-      method: 'delete',
-      url: `${BACKEND_SERVER_URL}/sigmets/${uuid}`,
-      withCredentials: true,
-      responseType: 'json'
-    }).then(response => {
-      dispatch(notify({
-        title: 'Sigmet deleted',
-        message: `Sigmet ${uuid} was successfully deleted`,
-        status: 'success',
-        position: 'bl',
-        dismissible: true,
-        dismissAfter: 3000
-      }));
-      retrieveSigmets(container, () => {
-        // Set mode to READ, set focus of category and Sigmet, and clear new Sigmet
-        container.setState(produce(container.state, draftState => {
-          draftState.focussedSigmet.mode = SIGMET_MODES.READ;
-          draftState.focussedSigmet.uuid = null;
-          draftState.displayModal = null;
-        }), () => {
-          dispatch(mapActions.setMapMode('pan'));
-          setSigmetDrawing(null, container);
-        });
-      });
-    }).catch(error => {
-      console.error('Couldn\'t delete Sigmet', error);
-      dispatch(notify({
-        title: 'Error',
-        message: `An error occurred while deleting the Sigmet: ${error.response.data.error}`,
-        status: 'error',
-        position: 'bl',
-        dismissible: true,
-        dismissAfter: 3000
-      }));
-    });
-  }
+  });
 };
 
 /**
@@ -1236,24 +1185,37 @@ const deleteSigmet = (event, container) => {
  * @param {string} uuid The identifier for the Sigmet to copy
  * @param {Element} container The container in which the copy action was triggered
  */
-const copySigmet = (event, uuid, container) => {
-  const { state } = container;
-  const { dispatch } = container.props;
-  const indices = findCategoryAndSigmetIndex(uuid, state);
-  if (indices.isFound) {
-    container.setState(produce(state, draftState => {
-      draftState.copiedSigmetRef = uuid;
-    }), () => {
-      dispatch(notify({
-        title: 'Sigmet copied',
-        message: 'The properties of this Sigmet have been copied successfully' + uuid,
-        status: 'success',
-        position: 'bl',
-        dismissible: true,
-        dismissAfter: 3000
-      }));
-    });
+const copySigmet = (event, container) => {
+  const { state, props } = container;
+  const { dispatch } = props;
+  const { selectedSigmet } = state;
+  const affectedSigmet = Array.isArray(selectedSigmet) && selectedSigmet.length === 1
+    ? selectedSigmet[0]
+    : null;
+  if (!affectedSigmet || !affectedSigmet.uuid) {
+    dispatch(notify({
+      title: 'Sigmet could not be copied',
+      message: `The properties of SIGMET ${affectedSigmet.uuid} could not be copied`,
+      status: 'error',
+      position: 'bl',
+      dismissible: true,
+      dismissAfter: 3000
+    }));
+    return;
   }
+
+  setStatePromise(container, {
+    copiedSigmetRef: affectedSigmet.uuid
+  }).then(() => {
+    dispatch(notify({
+      title: 'Sigmet copied',
+      message: `The properties of SIGMET ${affectedSigmet.uuid} have been copied successfully`,
+      status: 'success',
+      position: 'bl',
+      dismissible: true,
+      dismissAfter: 3000
+    }));
+  });
 };
 
 /**
@@ -1262,71 +1224,143 @@ const copySigmet = (event, uuid, container) => {
  * @param {Element} container The container in which the paste action was triggered
  */
 const pasteSigmet = (event, container) => {
-  const { state } = container;
-  const { dispatch, drawActions } = container.props;
+  const { state, props } = container;
+  const { selectedSigmet, categories, focussedCategoryRef } = state;
+  const { dispatch, drawActions } = props;
   const indicesCopiedSigmet = findCategoryAndSigmetIndex(state.copiedSigmetRef, state);
-  const indicesCurrentSigmet = findCategoryAndSigmetIndex(state.focussedSigmet.uuid, state);
-  if (indicesCopiedSigmet.isFound && indicesCurrentSigmet.isFound) {
-    const copiedSigmet = state.categories[indicesCopiedSigmet.categoryIndex].sigmets[indicesCopiedSigmet.sigmetIndex];
-    if (!copiedSigmet && state.categories[indicesCurrentSigmet.categoryIndex].ref !== CATEGORY_REFS.ADD_SIGMET) {
-      return;
+  const affectedSigmet = Array.isArray(selectedSigmet) && selectedSigmet.length === 1
+    ? selectedSigmet[0]
+    : null;
+  if (!affectedSigmet || !affectedSigmet.uuid || !indicesCopiedSigmet.isFound) {
+    return;
+  }
+  const copiedSigmet = categories[indicesCopiedSigmet.categoryIndex].sigmets[indicesCopiedSigmet.sigmetIndex];
+  if (!copiedSigmet && focussedCategoryRef !== CATEGORY_REFS.ADD_SIGMET) {
+    return;
+  }
+  const propertiesToCopy = [
+    'phenomenon',
+    'obs_or_forecast',
+    'geojson',
+    'levelinfo',
+    'firname',
+    'validdate',
+    'validdate_end',
+    'change',
+    'movement',
+    'movement_type',
+    'forecast_position_time',
+    'location_indicator_icao',
+    'location_indicator_mwo',
+    'va_extra_fields'
+  ];
+  const newPartialState = {};
+  propertiesToCopy.forEach((property) => {
+    if (copiedSigmet.hasOwnProperty(property) && copiedSigmet[property] !== null && typeof copiedSigmet[property] !== 'undefined') {
+      newPartialState[property] = copiedSigmet[property];
     }
-    const propertiesToCopy = [
-      'phenomenon',
-      'obs_or_forecast',
-      'geojson',
-      'levelinfo',
-      'firname',
-      'validdate',
-      'validdate_end',
-      'change',
-      'movement',
-      'movement_type',
-      'forecast_position_time',
-      'location_indicator_icao',
-      'location_indicator_mwo',
-      'va_extra_fields'
-    ];
-    container.setState(produce(state, draftState => {
-      propertiesToCopy.forEach((property) => {
-        if (copiedSigmet.hasOwnProperty(property) && copiedSigmet[property] !== null && typeof copiedSigmet[property] !== 'undefined') {
-          draftState.categories[indicesCurrentSigmet.categoryIndex].sigmets[indicesCurrentSigmet.sigmetIndex][property] = copiedSigmet[property];
-        }
-      });
-      draftState.copiedSigmetRef = null;
-    }), () => {
-      dispatch(drawActions.setGeoJSON(copiedSigmet.geojson));
+  });
+  setStatePromise(container, {
+    selectedSigmet: [newPartialState],
+    copiedSigmetRef: null
+  }).then(() => {
+    dispatch(drawActions.setGeoJSON(copiedSigmet.geojson));
+    dispatch(notify({
+      title: 'Sigmet pasted',
+      message: 'The copied properties have been pasted successfully into the current Sigmet',
+      status: 'success',
+      position: 'bl',
+      dismissible: true,
+      dismissAfter: 3000
+    }));
+  });
+};
+
+const publishSigmet = (event, uuid, container) => {
+  const { selectedSigmet } = container.state;
+  const { dispatch, notify } = container.props;
+  const affectedSigmet = Array.isArray(selectedSigmet) && selectedSigmet.length === 1
+    ? selectedSigmet[0]
+    : null;
+  if (!affectedSigmet) {
+    return;
+  }
+  setStatePromise(container, {
+    selectedSigmet: [{ status: STATUSES.PUBLISHED }]
+  }).then(() => postSigmet(container))
+    .then((uuid) => {
       dispatch(notify({
-        title: 'Sigmet pasted',
-        message: 'The copied properties have been pasted successfully into the current Sigmet',
+        title: 'Sigmet published',
+        message: `Sigmet ${uuid} was successfully published`,
         status: 'success',
         position: 'bl',
         dismissible: true,
         dismissAfter: 3000
       }));
+      return synchronizeSigmets(container).then(() => focusSigmet(event, affectedSigmet.uuid, container));
+    }, (error) => {
+      const errMsg = `Could not publish Sigmet: ${error.message}`;
+      console.error(errMsg);
+      dispatch(notify({
+        title: 'Error',
+        message: errMsg,
+        status: 'error',
+        position: 'bl',
+        dismissible: true,
+        dismissAfter: 3000
+      }));
+      return Promise.reject(new Error(errMsg));
     });
-  }
-};
-
-const publishSigmet = (event, uuid, container) => {
-  container.setState(produce(container.state, draftState => {
-    const indices = findCategoryAndSigmetIndex(uuid, draftState);
-    if (indices.isFound) {
-      draftState.categories[indices.categoryIndex].sigmets[indices.sigmetIndex].status = STATUSES.PUBLISHED;
-    }
-  }), () => saveSigmet(event, container));
 };
 
 const cancelSigmet = (event, container) => {
-  const { uuid } = container.state.focussedSigmet;
-  container.setState(produce(container.state, draftState => {
-    const indices = findCategoryAndSigmetIndex(uuid, draftState);
-    if (indices.isFound) {
-      draftState.categories[indices.categoryIndex].sigmets[indices.sigmetIndex].status = STATUSES.CANCELED;
-    }
-  }), () => {
-    saveSigmet(event, container);
-  });
+  const { selectedSigmet } = container.state;
+  const { dispatch, notify } = container.props;
+  const affectedSigmet = Array.isArray(selectedSigmet) && selectedSigmet.length === 1
+    ? selectedSigmet[0]
+    : null;
+  if (!affectedSigmet) {
+    return;
+  }
+  setStatePromise(container, {
+    selectedSigmet: [ { status: STATUSES.CANCELED } ]
+  }).then(() => postSigmet(container))
+    .then((uuid) => {
+      dispatch(notify({
+        title: 'Sigmet canceled',
+        message: `Sigmet ${uuid} was successfully canceled`,
+        status: 'success',
+        position: 'bl',
+        dismissible: true,
+        dismissAfter: 3000
+      }));
+      return synchronizeSigmets(container);
+    }, (error) => {
+      const errMsg = `Could not cancel Sigmet: ${error.message}`;
+      console.error(errMsg);
+      dispatch(notify({
+        title: 'Error',
+        message: errMsg,
+        status: 'error',
+        position: 'bl',
+        dismissible: true,
+        dismissAfter: 3000
+      }));
+      return Promise.reject(new Error(errMsg));
+    }).then(() => {
+      const { state } = container;
+      const { categories } = state;
+      const indices = findCategoryAndSigmetIndex(affectedSigmet.uuid, state);
+      const publishedCategory = categories.find((category) => category.ref === CATEGORY_REFS.ACTIVE_SIGMETS);
+      if (indices.isFound && publishedCategory) {
+        const canceledSigmet = categories[indices.categoryIndex][indices.sigmetIndex];
+        const cancelSigmet = publishedCategory.sigmets.find((sigmet) => sigmet.cancels === canceledSigmet.sequence &&
+        sigmet.phenomenon === canceledSigmet.phenomenon);
+        if (cancelSigmet) {
+          focusSigmet(event, cancelSigmet.uuid, container);
+        }
+      }
+    });
 };
 
 const setSigmetDrawing = (geojson, firName, container) => {
@@ -1448,7 +1482,7 @@ export default (localAction, container) => {
       deleteSigmet(localAction.event, container);
       break;
     case LOCAL_ACTION_TYPES.COPY_SIGMET:
-      copySigmet(localAction.event, localAction.uuid, container);
+      copySigmet(localAction.event, container);
       break;
     case LOCAL_ACTION_TYPES.PASTE_SIGMET:
       pasteSigmet(localAction.event, container);
