@@ -5,15 +5,11 @@ import Icon from 'react-fa';
 import CollapseOmni from '../components/CollapseOmni';
 import PropTypes from 'prop-types';
 import axios from 'axios';
-import { notify } from 'reapop';
 
 class TriggerCreateTestCategory extends Component {
   constructor (props) {
     super(props);
     this.addTrigger = this.addTrigger.bind(this);
-    this.getTriggerFile = this.getTriggerFile.bind(this);
-    this.showTriggerMessage = this.showTriggerMessage.bind(this);
-    this.setTriggerMessage = this.setTriggerMessage.bind(this);
     this.handleOnLimitChange = this.handleOnLimitChange.bind(this);
     this.handleOnSourceTypeaheadChange = this.handleOnSourceTypeaheadChange.bind(this);
     this.handleOnParameterTypeaheadChange = this.handleOnParameterTypeaheadChange.bind(this);
@@ -38,58 +34,6 @@ class TriggerCreateTestCategory extends Component {
     }
   }
 
-  // setServiceURL () {
-  //   const { sourceOption } = this.state;
-  //   let source = '';
-  //   const currentdate = new Date();
-  //   const year = currentdate.getUTCFullYear();
-  //   let month = currentdate.getUTCMonth() + 1;
-  //   let day = currentdate.getUTCDate();
-  //   let hours = currentdate.getUTCHours();
-  //   let minutes = Math.floor(currentdate.getUTCMinutes() / 10);
-  //   if (month.toString().length < 2) {
-  //     month = '0' + month;
-  //   }
-  //   if (day.toString().length < 2) {
-  //     day = '0' + day;
-  //   }
-  //   if (minutes !== 0) {
-  //     minutes = minutes - 1;
-  //   } else {
-  //     minutes = 5;
-  //     hours = hours - 1;
-  //   }
-  //   // eslint-disable-next-line eqeqeq
-  //   if (sourceOption == 'OBS') {
-  //     if (hours.toString().length < 2) {
-  //       hours = '0' + hours;
-  //     }
-  //     source = 'http://birdexp07.knmi.nl/geoweb/data/OBS/kmds_alle_stations_10001_' + year + month + day + hours + minutes + '0.nc';
-  //   }
-  //   // // eslint-disable-next-line eqeqeq
-  //   // if (sourceOption == 'HARM_N25') {
-  //   //   if (hours > 0 || hours < 3) {
-  //   //     hours = 21;
-  //   //   } else if (hours > 3 || hours < 6) {
-  //   //     hours = '00';
-  //   //   } else if (hours > 6 || hours < 9) {
-  //   //     hours = '0' + 3;
-  //   //   } else if (hours > 9 || hours < 12) {
-  //   //     hours = '0' + 6;
-  //   //   } else if (hours > 12 || hours < 15) {
-  //   //     hours = '0' + 9;
-  //   //   } else if (hours > 15 || hours < 18) {
-  //   //     hours = 12;
-  //   //   } else if (hours > 18 || hours < 21) {
-  //   //     hours = 15;
-  //   //   } else if (hours > 21) {
-  //   //     hours = 18;
-  //   //   }
-  //   //   source = 'http://birdexp07.knmi.nl/geoweb/data/HARM_N25/HARM_N25_2018' + month + day + hours + '00.nc';
-  //   // }
-  //   return source;
-  // }
-
   addTrigger () {
     const triggerinfo = {
       parameter: this.state.parameterOption.toString(),
@@ -102,45 +46,6 @@ class TriggerCreateTestCategory extends Component {
       url: this.props.urls.BACKEND_SERVER_URL + '/triggers/triggercreate',
       data: triggerinfo
     });
-    // setTimeout(this.getTriggerFile, 100);
-  }
-
-  getTriggerFile () {
-    axios({
-      method: 'get',
-      url: this.props.urls.BACKEND_SERVER_URL + '/triggers/triggerget'
-    }).then((res) => {
-      this.showTriggerMessage(res.data);
-    }).catch((error) => {
-      console.error(error);
-    });
-  }
-
-  setTriggerMessage (data) {
-    let locationamount = '';
-    const { locations, phenomenon } = data;
-    // eslint-disable-next-line camelcase
-    const { long_name, operator, limit, unit } = phenomenon;
-    if (locations.length === 1) {
-      locationamount = 'location';
-    } else {
-      locationamount = 'locations';
-    }
-    // eslint-disable-next-line camelcase
-    return `${long_name} ${operator} than ${limit} ${unit} detected at ${locations.length} ` + locationamount;
-  }
-
-  showTriggerMessage (data) {
-    const { dispatch } = this.props;
-    dispatch(notify({
-      title: data.phenomenon.long_name,
-      message: this.setTriggerMessage(data),
-      status: 'warning',
-      image: 'https://static.wixstatic.com/media/73705d_91d9fa48770e4ed283fc30da3b178041~mv2.gif',
-      position: 'bl',
-      dismissAfter: 0,
-      dismissible: true
-    }));
   }
 
   handleOnLimitChange (value) {
@@ -272,7 +177,6 @@ class TriggerCreateTestCategory extends Component {
 }
 
 TriggerCreateTestCategory.propTypes = {
-  dispatch      : PropTypes.func,
   isOpen        : PropTypes.bool,
   title         : PropTypes.string.isRequired,
   icon          : PropTypes.string,
