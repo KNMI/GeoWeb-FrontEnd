@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Col, Badge, Button, Card, CardBody, CardHeader, CardText, Row, CardGroup } from 'reactstrap';
+import { Col, Badge, Card, CardBody, CardHeader, CardText, Row, CardGroup } from 'reactstrap';
 import Icon from 'react-fa';
 import PropTypes from 'prop-types';
 import CollapseOmni from '../components/CollapseOmni';
@@ -12,14 +12,12 @@ class TriggerActiveTestCategory extends Component {
   constructor (props) {
     super(props);
     this.getActiveTriggers = this.getActiveTriggers.bind(this);
-    this._getActiveTriggersTimer = this._getActiveTriggersTimer.bind(this);
     this.getTriggers = this.getTriggers.bind(this);
     this.setActiveTriggerInfo = this.setActiveTriggerInfo.bind(this);
     this.calculateActiveTriggers = this.calculateActiveTriggers.bind(this);
     this.showTriggerMessage = this.showTriggerMessage.bind(this);
     this.setTriggerMessage = this.setTriggerMessage.bind(this);
     this.setWebSocket = this.setWebSocket.bind(this);
-    // this.setSseEmitter = this.setSseEmitter.bind(this);
     this.state = {
       isOpen: props.isOpen,
       activeList: []
@@ -33,76 +31,31 @@ class TriggerActiveTestCategory extends Component {
   }
 
   componentDidMount () {
-    // console.log('componentDidmount');
-    this.getActiveTriggers();
-    // this.setWebSocket();
-    // this.setSseEmitter();
-    // var sock = new SockJS(this.props.urls.BACKEND_SERVER_URL + '/chatWS');
-
-    // sock.onopen = function () {
-    //   console.log('open socket ');
-    //   sock.send('test');
-    // };
-
-    // sock.onmessage = function (e) {
-    //   console.log('message');
-    //   console.log('message', e.data);
-    //   sock.close();
-    // };
-
-    // sock.onclose = function () {
-    //   console.log('close');
-    // };
+    // const { setWebSocket, getActiveTriggers } = this;
+    // setWebSocket();
+    // getActiveTriggers();
   }
 
   setWebSocket () {
+    const { calculateActiveTriggers, getActiveTriggers } = this;
     var stompClient = null;
     var socket = new SockJS(this.props.urls.BACKEND_SERVER_URL + '/websockettest');
 
-    // socket.onopen = function () {
-    //   console.log('Socket did open');
-    // };
-    // socket.onmessage = function (event) {
-    //   console.log(event.data);
-    // };
-    // socket.onclose = function () {
-    //   console.log('Socket did close');
-    // };
-
     stompClient = Stomp.over(socket);
-    stompClient.connect({}, function (frame) {
-      // setConnected(true);
-      stompClient.subscribe('/topic/messages', function (greeting) {
-        // showGreeting(JSON.parse(greeting.body).content);
-        console.log(greeting.body);
+    stompClient.connect({}, function () {
+      stompClient.subscribe('/topic/messages', function (message) {
+        console.log(message.body);
+        if (message.body === 'Notifications') {
+          calculateActiveTriggers();
+        }
+        if (message.body === 'Active Triggers') {
+          getActiveTriggers();
+        }
       });
     });
   }
 
-  // setSseEmitter () {
-  //   const sse = new EventSource(this.props.urls.BACKEND_SERVER_URL + '/triggers/sse');
-  //   sse.onmessage = function (evt) {
-  //     console.log(evt.data);
-  //   };
-  // }
-
   getActiveTriggers () {
-    if (this.getIntervalTimerIsRunning) {
-      // console.log('Timer is running');
-    } else {
-      this.getIntervalTimerIsRunning = true;
-      // console.log('Calling _getActiveTriggersTimer with getActiveTriggers');
-      this._getActiveTriggersTimer();
-    }
-  }
-
-  _getActiveTriggersTimer () {
-    // console.log('_getActiveTriggersTimer called');
-    if (!this.props.urls) {
-      // console.log('No urls set, Skipping');
-      this.getIntervalTimerIsRunning = false;
-      return;
-    }
     axios({
       method: 'get',
       url: this.props.urls.BACKEND_SERVER_URL + '/triggers/gettriggers'
@@ -110,9 +63,6 @@ class TriggerActiveTestCategory extends Component {
       this.setState({ activeList: res.data });
     }).catch((error) => {
       console.error(error);
-    }).finally(() => {
-      // console.log('Calling _getActiveTriggersTimer with setInterval');
-      setTimeout(this._getActiveTriggersTimer, 1000);
     });
   }
 
@@ -216,7 +166,6 @@ class TriggerActiveTestCategory extends Component {
                     );
                   })
                 }
-                <Button color='primary' onClick={this.calculateActiveTriggers}>Check</Button>
               </Card>
             </Row>
           </CardGroup>
