@@ -43,7 +43,7 @@ class TriggerActiveTestCategory extends Component {
 
     stompClient = Stomp.over(socket);
     stompClient.connect({}, function () {
-      stompClient.subscribe('/topic/messages', function (message) {
+      stompClient.subscribe('/trigger/messages', function (message) {
         console.log(message.body);
         if (message.body === 'Notifications') {
           calculateActiveTriggers();
