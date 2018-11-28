@@ -27,7 +27,13 @@ const TEMPLATES = {
   MOVE_TO: [null], // string values, one or more adjacent_firs identifiers, only applicable for Cancel-SIGMET
   TROPICAL_CYCLONE: {
     name: null // string
-  }
+  },
+  PHENOMENON: {
+    code: null, // string
+    name: null, // string
+    layerpreset: null // string
+  },
+  ADJACENT_FIRS: [null] // string values
 };
 
 TEMPLATES.FEATURE = {

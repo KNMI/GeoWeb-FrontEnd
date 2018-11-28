@@ -96,12 +96,13 @@ class SigmetsContainer extends Component {
           <Panel className='Panel' title={header}>
             <Col xs='auto' className='accordionsWrapper' style={{ minWidth: isContainerOpen ? maxSize - 32 : 'unset' }}>
               { categories.map((category) => {
+                const isCreateCategory = category.ref === CATEGORY_REFS.ADD_SIGMET;
                 return isContainerOpen
                   ? <SigmetsCategory key={category.ref}
                     typeRef={category.ref}
                     title={category.title}
                     icon={category.icon}
-                    isOpen={focussedCategoryRef === category.ref && category.sigmets.length > 0}
+                    isOpen={focussedCategoryRef === category.ref && (category.sigmets.length > 0 || isCreateCategory)}
                     abilities={category.abilities}
                     sigmets={category.sigmets}
                     geojson={drawProperties.adagucMapDraw.geojson}
@@ -120,7 +121,7 @@ class SigmetsContainer extends Component {
                   />
                   : <MinifiedCategory key={category.ref}
                     icon={category.icon}
-                    sigmetCount={(category.ref === CATEGORY_REFS.ADD_SIGMET) ? 0 : category.sigmets.length} />;
+                    sigmetCount={isCreateCategory ? 0 : category.sigmets.length} />;
               })}
             </Col>
           </Panel>

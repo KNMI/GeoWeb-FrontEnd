@@ -438,7 +438,6 @@ describe('(Reducer) Taf/TafReducers', () => {
                       amount: 'BKN',
                       height: 20
                     },
-                    null,
                     {
                       height: 30,
                       mod: 'CB'
@@ -475,7 +474,6 @@ describe('(Reducer) Taf/TafReducers', () => {
             caVOK: false,
             clouds: [
               { amount: 'BKN', height: 20, mod: null },
-              { amount: null, height: null, mod: null },
               { amount: null, height: 30, mod: 'CB' }
             ],
             vertical_visibility: null,

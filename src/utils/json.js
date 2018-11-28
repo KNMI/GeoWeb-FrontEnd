@@ -20,6 +20,8 @@ const MODES_GEO_MAPPING = {
   [MODES_GEO_SELECTION.FIR]: 'select-fir'
 };
 
+const PATTERN_INDICATOR = 'pattern_';
+
 /**
  * Merges the values into (nested) templates
  * @param {any} incomingValues The object with values to merge into templates, same hierarchy as template
@@ -29,8 +31,6 @@ const MODES_GEO_MAPPING = {
  */
 const mergeInTemplate = (incomingValues, parentName, templates) => {
   // TODO: add param 'invalid callback', to be used for e.g. promise rejection
-  // TODO: store pointer - value pair in a level-js / level-mem db?
-  // TODO: compare on base of JSON-pointers
   if (!templates || !templates.hasOwnProperty(parentName)) {
     return null;
   }
@@ -39,14 +39,22 @@ const mergeInTemplate = (incomingValues, parentName, templates) => {
     field === null ||
     ((!Array.isArray(field) || field.length === 0) && (typeof field !== 'object' || field.constructor !== Object)), incomingPointers);
   return produce(templates[parentName], draftState => {
+    // find patternProperties in template
+    const patternPropertyParentPointers = [];
+    getJsonPointers(draftState, (field) => (
+      field !== null && typeof field === 'object' &&
+      field.constructor === Object && Object.keys(field).some((key) => key.startsWith(PATTERN_INDICATOR))
+    ),
+    patternPropertyParentPointers);
+
     incomingPointers.forEach((pointer) => {
       const pathParts = pointer.split('/');
       pathParts.shift();
       if (hasNestedProperty(draftState, pathParts)) {
-        const templateValue = getNestedProperty(draftState, pathParts);
+        const templateValue = produce(getNestedProperty(draftState, pathParts), () => {});
         const nextValue = getNestedProperty(incomingValues, pathParts);
         // check for allowed type changes
-        if (templateValue === null ||
+        if (templateValue === null || nextValue === null ||
           (!Array.isArray(templateValue) && (typeof templateValue !== 'object' || templateValue.constructor !== Object) &&
           typeof templateValue === typeof nextValue)) {
           setNestedProperty(draftState, pathParts, nextValue);
@@ -56,13 +64,61 @@ const mergeInTemplate = (incomingValues, parentName, templates) => {
           affectedArray.length = 0;
         }
       } else {
-        // deal with possible item additions for an intermediate array in the data structure
+        // deal with situations where the path doesn't match exactly, but can be resolved
+        // Option 1: deal with properties with a matching name pattern
+        const matchingPatternParentPointers = patternPropertyParentPointers.filter((parentPointer) => pointer.startsWith(parentPointer));
+        if (matchingPatternParentPointers.length > 0) {
+          // is there a patternProperty for this pointer
+          const patternPaths = [];
+          matchingPatternParentPointers.forEach((parentPointer) => {
+            const parentPathParts = parentPointer.split('/');
+            parentPathParts.shift();
+            Object.keys(getNestedProperty(draftState, parentPathParts))
+              .filter((possiblePatternKey) => possiblePatternKey.startsWith(PATTERN_INDICATOR))
+              .forEach((patternKey) =>
+                patternPaths.push([...parentPathParts, patternKey])
+              );
+            ;
+          });
+          const patternMatches = patternPaths.filter((path) => {
+            const patternIndex = path.length - 1;
+            const patternRegEx = new RegExp(path[patternIndex].substring(PATTERN_INDICATOR.length));
+            return patternRegEx.test(pathParts[patternIndex]);
+          });
+          const matchedPathParts = pathParts.slice(0, patternMatches[0].length);
+
+          if (patternMatches.length === 1 && !hasNestedProperty(draftState, matchedPathParts)) {
+            setNestedProperty(draftState,
+              matchedPathParts,
+              cloneDeep(getNestedProperty(draftState, patternMatches[0]))
+            );
+            if (hasNestedProperty(draftState, pathParts)) {
+              const templateValue = getNestedProperty(draftState, pathParts);
+
+              const nextValue = getNestedProperty(incomingValues, pathParts);
+              // check for allowed type changes
+              if (templateValue === null || nextValue === null ||
+                (!Array.isArray(templateValue) && (typeof templateValue !== 'object' || templateValue.constructor !== Object) &&
+                  typeof templateValue === typeof nextValue)) {
+                setNestedProperty(draftState, pathParts, nextValue);
+                // allows for emptying arrays
+              } else if (Array.isArray(templateValue) && templateValue.length > 0 && Array.isArray(nextValue) && nextValue.length === 0) {
+                const affectedArray = getNestedProperty(draftState, pathParts);
+                affectedArray.length = 0;
+              }
+              return;
+            }
+          }
+        }
+
+        // Option 2: deal with possible item additions for an intermediate array in the data structure
         const numericIndices = [];
         pathParts.forEach((part, partIndex) => {
           if (!isNaN(part)) {
             numericIndices.push(partIndex);
           }
         });
+
         if (!numericIndices || !Array.isArray(numericIndices) || numericIndices.length === 0) {
           return;
         }
@@ -135,7 +191,7 @@ const mergeInTemplate = (incomingValues, parentName, templates) => {
             const templateValue = getNestedProperty(affectedArray, pathParts.slice(numericIndex));
             const nextValue = getNestedProperty(incomingValues, pathParts);
             // check for allowed type changes
-            if (templateValue === null ||
+            if (templateValue === null || nextValue === null ||
                 (!Array.isArray(templateValue) && (typeof templateValue !== 'object' || templateValue.constructor !== Object) &&
                   typeof templateValue === typeof nextValue)) {
               setNestedProperty(draftState, pathParts, nextValue);

@@ -7,7 +7,6 @@ import { clearEmptyPointersAndAncestors, mergeInTemplate, isFeatureGeoJsonComple
   MODES_GEO_SELECTION, MODES_GEO_MAPPING, isObject } from '../../utils/json';
 import { getPresetForPhenomenon } from '../../components/Sigmet/SigmetPresets';
 import axios from 'axios';
-import { notify } from 'reapop';
 import cloneDeep from 'lodash.clonedeep';
 import uuidv4 from 'uuid/v4';
 
@@ -26,37 +25,18 @@ const ERROR_MSG = {
   FIND_CATEGORY: 'Could not find category'
 };
 
+const FEEDBACK_STATUS = {
+  OK: 'success',
+  WARN: 'warning',
+  ERROR: 'error'
+};
+
 /**
 * Generate a 'next-half-hour-rounded now Moment object
 * @return {moment} Moment-object with the current now in UTC rounded to the next half hour
 */
 const getRoundedNow = () => {
   return moment.utc().minutes() < 30 ? moment.utc().startOf('hour').minutes(30) : moment.utc().startOf('hour').add(1, 'hour');
-};
-
-const toggleContainer = (evt, container) => {
-  setStatePromise(container, {
-    isContainerOpen: !container.state.isContainerOpen
-  });
-};
-
-const toggleCategory = (evt, ref, container) => {
-  const isChangeToCategoryAddSigmet = ref !== container.state.focussedCategoryRef && ref === CATEGORY_REFS.ADD_SIGMET;
-  container.setState(produce(container.state, draftState => {
-    draftState.focussedCategoryRef = (draftState.focussedCategoryRef === ref)
-      ? null
-      : ref;
-  }), () => {
-    if (isChangeToCategoryAddSigmet) {
-      selectSigmet([getEmptySigmet(container)], container).then(() => {
-        setStatePromise(container, {
-          selectedAuxiliaryInfo: {
-            mode: SIGMET_MODES.EDIT
-          }
-        });
-      });
-    }
-  });
 };
 
 /**
@@ -71,8 +51,8 @@ const toggleCategory = (evt, ref, container) => {
  */
 const byValidDate = (sigmetA, sigmetB) => {
   let result = 0;
-  const { validdate : startA, validdate_end : endA } = sigmetA;
-  const { validdate : startB, validdate_end : endB } = sigmetB;
+  const { validdate: startA, validdate_end: endA } = sigmetA;
+  const { validdate: startB, validdate_end: endB } = sigmetB;
   if (endA && endB) {
     result = moment(endA).valueOf() - moment(endB).valueOf();
   }
@@ -80,6 +60,44 @@ const byValidDate = (sigmetA, sigmetB) => {
     result = moment(startA).valueOf() - moment(startB).valueOf();
   }
   return result;
+};
+
+const showFeedback = (container, title, message, status) => {
+  const { dispatch, notify } = container.props;
+  dispatch(notify({
+    title: title,
+    message: message,
+    status: status,
+    position: 'bl',
+    dismissible: true,
+    dismissAfter: 3000
+  }));
+};
+
+const toggleContainer = (evt, container) => {
+  setStatePromise(container, {
+    isContainerOpen: !container.state.isContainerOpen
+  });
+};
+
+const toggleCategory = (evt, ref, container) => {
+  const { state } = container;
+  const isChangeToCategoryAddSigmet = ref !== state.focussedCategoryRef && ref === CATEGORY_REFS.ADD_SIGMET;
+  setStatePromise(container, {
+    focussedCategoryRef: (ref === state.focussedCategoryRef)
+      ? null
+      : ref
+  }).then(() => {
+    if (isChangeToCategoryAddSigmet) {
+      selectSigmet([getEmptySigmet(container)], container).then(() =>
+        setStatePromise(container, {
+          selectedAuxiliaryInfo: {
+            mode: SIGMET_MODES.EDIT
+          }
+        })
+      );
+    }
+  });
 };
 
 const retrieveParameters = (container) => {
@@ -91,24 +109,22 @@ const retrieveParameters = (container) => {
     withCredentials: true,
     responseType: 'json'
   }).then(response => {
-    receivedParametersCallback(response, container);
+    if (response.status === 200 && response.data) {
+      return updateParameters(response.data, container);
+    } else {
+      console.error(ERROR_MSG.RETRIEVE_PARAMS, response.status, response.data);
+      Promise.reject(new Error(`${ERROR_MSG.RETRIEVE_PARAMS}: ${response.status} - ${response.data}`));
+    }
   }).catch(error => {
     console.error(ERROR_MSG.RETRIEVE_PARAMS, error);
+    Promise.reject(error);
   });
 };
 
-const receivedParametersCallback = (response, container) => {
-  if (response.status === 200 && response.data) {
-    updateParameters(response.data, container, () => addSigmet(CATEGORY_REFS.ADD_SIGMET, container));
-  } else {
-    console.error(ERROR_MSG.RETRIEVE_PARAMS, response.status, response.data);
-  }
-};
-
-const updateParameters = (parameters, container, callback) => {
-  container.setState(produce(container.state, draftState => {
-    draftState.parameters = parameters;
-  }), callback);
+const updateParameters = (parameters, container) => {
+  return setStatePromise(container, {
+    parameters: parameters
+  });
 };
 
 const retrievePhenomena = (container) => {
@@ -121,60 +137,79 @@ const retrievePhenomena = (container) => {
     withCredentials: true,
     responseType: 'json'
   }).then(response => {
-    receivedPhenomenaCallback(response, container);
+    if (response.status === 200 && response.data) {
+      return updatePhenomena(response.data, container);
+    } else {
+      console.error(ERROR_MSG.RETRIEVE_PHENOMENA, response.status, response.data);
+      Promise.reject(new Error(`${ERROR_MSG.RETRIEVE_PHENOMENA}: ${response.status} - ${response.data}`));
+    }
   }).catch(error => {
     console.error(ERROR_MSG.RETRIEVE_PHENOMENA, error);
+    Promise.reject(error);
   });
 };
 
-const receivedPhenomenaCallback = (response, container) => {
-  if (response.status === 200 && response.data) {
-    updatePhenomena(response.data, container, () => addSigmet(CATEGORY_REFS.ADD_SIGMET, container));
-  } else {
-    console.error(ERROR_MSG.RETRIEVE_PHENOMENA, response.status, response.data);
+/**
+ * Expand all combinations of variants and additions (flatten the phenomenon)
+ * @param {object} phenomenonData A data structure containing phenomenons, variants and additions
+ * @returns {Array} An array of all variations for this phenomenon
+ */
+const expandPhenomenonCombinatorics = (phenomenonData) => {
+  const SEPARATOR = '_';
+  const { variants, phenomenon, additions } = phenomenonData;
+  const combinatorics = [];
+
+  // possible names:
+  // phenName, phenName addName, varName lowerCase(phenName), varName lowerCase(phenName) addName
+  const combineNames = (varName, phenName, addName) => {
+    return `${varName ? `${varName} ` : ''}${varName ? phenName.toLowerCase() : phenName}${addName ? ` ${addName}` : ''}`;
+  };
+
+  // possible codes:
+  // phenCode, phenCodeSEPARATORaddCode, varCodeSEPARATORphenCode, varCodeSEPARATORphenCodeaddCode
+  const combineCodes = (varCode, phenCode, addCode) => {
+    return `${varCode ? `${varCode}${SEPARATOR}` : ''}${phenCode}${addCode
+      ? varCode
+        ? addCode
+        : `${SEPARATOR}${addCode}`
+      : ''}`;
+  };
+
+  const insertCombination = (variant, phenomenon, addition) => {
+    combinatorics.push({
+      name: combineNames(variant && variant.name, phenomenon.name, addition && addition.name),
+      code: combineCodes(variant && variant.code, phenomenon.code, addition && addition.code),
+      layerpreset: phenomenon.layerpreset
+    });
+  };
+
+  if (variants.length === 0) {
+    variants.push(null);
   }
+
+  variants.forEach((variant) => {
+    additions.forEach((addition) => {
+      insertCombination(variant, phenomenon, addition);
+    });
+    insertCombination(variant, phenomenon, null);
+  });
+  return combinatorics;
 };
 
-const updatePhenomena = (phenomena, container, callback) => {
-  const SEPARATOR = '_';
-  container.setState(produce(container.state, draftState => {
-    if (Array.isArray(phenomena)) {
-      draftState.phenomena.length = 0;
-      phenomena.forEach((item) => {
-        if (item.variants.length === 0) {
-          const res = {
-            name: item.phenomenon.name,
-            code: item.phenomenon.code,
-            layerpreset: item.phenomenon.layerpreset
-          };
-          item.additions.forEach((addition) => {
-            draftState.phenomena.push({
-              name: res.name + ' ' + addition.name,
-              code: res.code + SEPARATOR + addition.code,
-              layerpreset: item.phenomenon.layerpreset
-            });
-          });
-          draftState.phenomena.push(res);
-        } else {
-          item.variants.forEach((variant) => {
-            const res = {
-              name: variant.name + ' ' + item.phenomenon.name.toLowerCase(),
-              code: variant.code + SEPARATOR + item.phenomenon.code,
-              layerpreset: item.phenomenon.layerpreset
-            };
-            item.additions.forEach((addition) => {
-              draftState.phenomena.push({
-                name: res.name + ' ' + addition.name,
-                code: res.code + addition.code,
-                layerpreset: item.phenomenon.layerpreset
-              });
-            });
-            draftState.phenomena.push(res);
-          });
-        }
-      });
-    }
-  }), callback);
+const updatePhenomena = (rawPhenomenaData, container) => {
+  if (!Array.isArray(rawPhenomenaData)) {
+    return Promise.resolve();
+  }
+
+  const processedPhenomena = [];
+  rawPhenomenaData.forEach((rawPhenomenonData) => {
+    processedPhenomena.push(...expandPhenomenonCombinatorics(rawPhenomenonData));
+  });
+
+  // first empty existing phenomena, then add the new ones
+  return setStatePromise(container, {
+    phenomena: processedPhenomena
+  });
 };
 
 /**
@@ -303,17 +338,7 @@ const synchronizeSigmets = (container) => {
     retrieveCategorizedSigmets(container, category).then(categorizedSigmets => refreshCategoryState(container, categorizedSigmets))
   );
 
-  return new Promise((resolve, reject) => {
-    Promise.all(refreshedSigmetCategories).then(() => {
-      console.log('Result');
-    });
-  });
-};
-
-const retrieveSigmets = (container) => {
-  synchronizeSigmets(container).then((result) => {
-    console.log('Result', result);
-  });
+  return Promise.all(refreshedSigmetCategories);
 };
 
 /**
@@ -342,7 +367,9 @@ const setStatePromise = (container, newProps) => {
           templateWithDefaults.SIGMET
         ],
         'coordinates-poly': produce(SIGMET_TEMPLATES.POLYGON_COORDINATES, () => {}),
-        'coordinates-point': produce(SIGMET_TEMPLATES.POINT_COORDINATE, () => {})
+        'coordinates-point': produce(SIGMET_TEMPLATES.POINT_COORDINATE, () => {}),
+        'phenomena': [produce(SIGMET_TEMPLATES.PHENOMENON, () => {})],
+        'adjacent_firs': produce(SIGMET_TEMPLATES.ADJACENT_FIRS, () => { })
       }
     ),
     () => { resolve(); });
@@ -462,9 +489,11 @@ const updateFir = (firName, container) => {
     }).then(res => {
       fir = res.data;
       if (fir !== null) {
-        container.setState(produce(container.state, draftState => {
-          draftState.firs[trimmedFirname] = fir;
-        }));
+        setStatePromise(container, {
+          firs: {
+            [trimmedFirname]: fir
+          }
+        });
       }
     }).catch(ex => {
       console.error('Error!: ', ex);
@@ -599,7 +628,6 @@ const findCategoryAndSigmetIndex = (uuid, state) => {
 };
 
 const updateDisplayedPreset = (preset, container) => {
-  // FIXME: how to properly chain all these asynchronous dispatches?
   // FIXME: this code closely resembles the TitleBarContainer.setPreset, it should be generalized
   const { dispatch, panelsActions, mapActions, adagucActions } = container.props;
   if (!preset) {
@@ -987,36 +1015,13 @@ const createFirIntersection = (featureId, geojson, container) => {
 };
 
 const clearSigmet = (event, uuid, container) => {
-  const { dispatch } = container.props;
   addSigmet(container.state.focussedCategoryRef, container);
-  dispatch(notify({
-    title: 'Sigmet cleared',
-    message: 'The input on this Sigmet has been cleared successfully',
-    status: 'success',
-    position: 'bl',
-    dismissible: true,
-    dismissAfter: 3000
-  }));
+  showFeedback(container, 'Sigmet cleared', 'The input on this Sigmet has been cleared successfully', FEEDBACK_STATUS.OK);
 };
 
 const discardSigmet = (event, uuid, container) => {
-  const { dispatch, mapActions } = container.props;
-  dispatch(notify({
-    title: 'Changes discarded',
-    message: 'The changes are successfully discarded',
-    status: 'success',
-    position: 'bl',
-    dismissible: true,
-    dismissAfter: 3000
-  }));
-  retrieveSigmets(container, () => {
-    container.setState(produce(container.state, draftState => {
-      draftState.selectedAuxiliaryInfo.mode = SIGMET_MODES.READ;
-      draftState.selectedAuxiliaryInfo.hasEdits = false;
-      dispatch(mapActions.setMapMode('pan'));
-      setSigmetDrawing(uuid, container);
-    }));
-  });
+  showFeedback(container, 'Changes discarded', 'The changes are successfully discarded', FEEDBACK_STATUS.OK);
+  synchronizeSigmets(container).then(() => focusSigmet(event, null, container));
 };
 
 /**
@@ -1085,28 +1090,13 @@ const postSigmet = (container) => {
 };
 
 const saveSigmet = (event, container) => {
-  const { dispatch, notify } = container.props;
   postSigmet(container).then((uuid) => {
-    dispatch(notify({
-      title: 'Sigmet saved',
-      message: `Sigmet ${uuid} was successfully saved`,
-      status: 'success',
-      position: 'bl',
-      dismissible: true,
-      dismissAfter: 3000
-    }));
+    showFeedback(container, 'Sigmet saved', `Sigmet ${uuid} was successfully saved`, FEEDBACK_STATUS.OK);
     synchronizeSigmets(container).then(() => focusSigmet(event, uuid, container));
   }, (error) => {
     const errMsg = `Could not save Sigmet: ${error.message}`;
     console.error(errMsg);
-    dispatch(notify({
-      title: 'Error',
-      message: errMsg,
-      status: 'error',
-      position: 'bl',
-      dismissible: true,
-      dismissAfter: 3000
-    }));
+    showFeedback(container, 'Error', errMsg, FEEDBACK_STATUS.ERROR);
   });
 };
 
@@ -1132,7 +1122,6 @@ const editSigmet = (event, container) => {
 */
 const deleteSigmet = (event, container) => {
   const { state, props } = container;
-  const { dispatch, mapActions } = props;
   const { BACKEND_SERVER_URL } = props.urls;
   const { selectedSigmet } = state;
   const affectedSigmet = Array.isArray(selectedSigmet) && selectedSigmet.length === 1
@@ -1147,35 +1136,11 @@ const deleteSigmet = (event, container) => {
     withCredentials: true,
     responseType: 'json'
   }).then(response => {
-    dispatch(notify({
-      title: 'Sigmet deleted',
-      message: `Sigmet ${affectedSigmet.uuid} was successfully deleted`,
-      status: 'success',
-      position: 'bl',
-      dismissible: true,
-      dismissAfter: 3000
-    }));
-    retrieveSigmets(container, () => {
-      // Set mode to READ, set focus of category and Sigmet, and clear new Sigmet
-      container.setState(produce(container.state, draftState => {
-        draftState.selectedAuxiliaryInfo.mode = SIGMET_MODES.READ;
-        draftState.selectedSigmet.length = 0;
-        draftState.displayModal = null;
-      }), () => {
-        dispatch(mapActions.setMapMode('pan'));
-        setSigmetDrawing(null, container);
-      });
-    });
+    showFeedback(container, 'Sigmet deleted', `Sigmet ${affectedSigmet.uuid} was successfully deleted`, FEEDBACK_STATUS.OK);
+    synchronizeSigmets(container).then(() => focusSigmet(event, null, container));
   }).catch(error => {
     console.error('Couldn\'t delete Sigmet', error);
-    dispatch(notify({
-      title: 'Error',
-      message: `An error occurred while deleting the Sigmet: ${error.response.data.error}`,
-      status: 'error',
-      position: 'bl',
-      dismissible: true,
-      dismissAfter: 3000
-    }));
+    showFeedback(container, 'Error', `An error occurred while deleting the Sigmet: ${error.response.data.error}`, FEEDBACK_STATUS.ERROR);
   });
 };
 
@@ -1186,35 +1151,22 @@ const deleteSigmet = (event, container) => {
  * @param {Element} container The container in which the copy action was triggered
  */
 const copySigmet = (event, container) => {
-  const { state, props } = container;
-  const { dispatch } = props;
+  const { state } = container;
   const { selectedSigmet } = state;
   const affectedSigmet = Array.isArray(selectedSigmet) && selectedSigmet.length === 1
     ? selectedSigmet[0]
     : null;
   if (!affectedSigmet || !affectedSigmet.uuid) {
-    dispatch(notify({
-      title: 'Sigmet could not be copied',
-      message: `The properties of SIGMET ${affectedSigmet.uuid} could not be copied`,
-      status: 'error',
-      position: 'bl',
-      dismissible: true,
-      dismissAfter: 3000
-    }));
+    showFeedback(container, 'Sigmet could not be copied',
+      `The properties of SIGMET ${affectedSigmet.uuid} could not be copied`, FEEDBACK_STATUS.ERROR);
     return;
   }
 
   setStatePromise(container, {
     copiedSigmetRef: affectedSigmet.uuid
   }).then(() => {
-    dispatch(notify({
-      title: 'Sigmet copied',
-      message: `The properties of SIGMET ${affectedSigmet.uuid} have been copied successfully`,
-      status: 'success',
-      position: 'bl',
-      dismissible: true,
-      dismissAfter: 3000
-    }));
+    showFeedback(container, 'Sigmet copied',
+      `The properties of SIGMET ${affectedSigmet.uuid} have been copied successfully`, FEEDBACK_STATUS.OK);
   });
 };
 
@@ -1265,20 +1217,13 @@ const pasteSigmet = (event, container) => {
     copiedSigmetRef: null
   }).then(() => {
     dispatch(drawActions.setGeoJSON(copiedSigmet.geojson));
-    dispatch(notify({
-      title: 'Sigmet pasted',
-      message: 'The copied properties have been pasted successfully into the current Sigmet',
-      status: 'success',
-      position: 'bl',
-      dismissible: true,
-      dismissAfter: 3000
-    }));
+    showFeedback(container, 'Sigmet pasted',
+      'The copied properties have been pasted successfully into the current Sigmet', FEEDBACK_STATUS.OK);
   });
 };
 
 const publishSigmet = (event, uuid, container) => {
   const { selectedSigmet } = container.state;
-  const { dispatch, notify } = container.props;
   const affectedSigmet = Array.isArray(selectedSigmet) && selectedSigmet.length === 1
     ? selectedSigmet[0]
     : null;
@@ -1289,33 +1234,18 @@ const publishSigmet = (event, uuid, container) => {
     selectedSigmet: [{ status: STATUSES.PUBLISHED }]
   }).then(() => postSigmet(container))
     .then((uuid) => {
-      dispatch(notify({
-        title: 'Sigmet published',
-        message: `Sigmet ${uuid} was successfully published`,
-        status: 'success',
-        position: 'bl',
-        dismissible: true,
-        dismissAfter: 3000
-      }));
+      showFeedback(container, 'Sigmet published', `Sigmet ${uuid} was successfully published`, FEEDBACK_STATUS.OK);
       return synchronizeSigmets(container).then(() => focusSigmet(event, affectedSigmet.uuid, container));
     }, (error) => {
       const errMsg = `Could not publish Sigmet: ${error.message}`;
       console.error(errMsg);
-      dispatch(notify({
-        title: 'Error',
-        message: errMsg,
-        status: 'error',
-        position: 'bl',
-        dismissible: true,
-        dismissAfter: 3000
-      }));
+      showFeedback(container, 'Error', errMsg, FEEDBACK_STATUS.ERROR);
       return Promise.reject(new Error(errMsg));
     });
 };
 
 const cancelSigmet = (event, container) => {
   const { selectedSigmet } = container.state;
-  const { dispatch, notify } = container.props;
   const affectedSigmet = Array.isArray(selectedSigmet) && selectedSigmet.length === 1
     ? selectedSigmet[0]
     : null;
@@ -1326,26 +1256,12 @@ const cancelSigmet = (event, container) => {
     selectedSigmet: [ { status: STATUSES.CANCELED } ]
   }).then(() => postSigmet(container))
     .then((uuid) => {
-      dispatch(notify({
-        title: 'Sigmet canceled',
-        message: `Sigmet ${uuid} was successfully canceled`,
-        status: 'success',
-        position: 'bl',
-        dismissible: true,
-        dismissAfter: 3000
-      }));
+      showFeedback(container, 'Sigmet canceled', `Sigmet ${uuid} was successfully canceled`, FEEDBACK_STATUS.OK);
       return synchronizeSigmets(container);
     }, (error) => {
       const errMsg = `Could not cancel Sigmet: ${error.message}`;
       console.error(errMsg);
-      dispatch(notify({
-        title: 'Error',
-        message: errMsg,
-        status: 'error',
-        position: 'bl',
-        dismissible: true,
-        dismissAfter: 3000
-      }));
+      showFeedback(container, 'Error', errMsg, FEEDBACK_STATUS.ERROR);
       return Promise.reject(new Error(errMsg));
     }).then(() => {
       const { state } = container;
@@ -1446,13 +1362,11 @@ export default (localAction, container) => {
       toggleCategory(localAction.event, localAction.ref, container);
       break;
     case LOCAL_ACTION_TYPES.RETRIEVE_PARAMETERS:
-      retrieveParameters(container);
-      break;
+      return retrieveParameters(container);
     case LOCAL_ACTION_TYPES.RETRIEVE_PHENOMENA:
-      retrievePhenomena(container);
-      break;
+      return retrievePhenomena(container);
     case LOCAL_ACTION_TYPES.RETRIEVE_SIGMETS:
-      retrieveSigmets(container);
+      synchronizeSigmets(container);
       break;
     case LOCAL_ACTION_TYPES.FOCUS_SIGMET:
       focusSigmet(localAction.event, localAction.uuid, container);

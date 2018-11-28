@@ -56,7 +56,6 @@ class SigmetEditMode extends PureComponent {
   }
 
   toggleDropDown (dropDownName) {
-    console.log(dropDownName);
     let flag = null;
     switch (dropDownName) {
       case DROP_DOWN_NAMES.AT_OR_ABOVE:
@@ -82,7 +81,6 @@ class SigmetEditMode extends PureComponent {
   }
 
   componentWillReceiveProps (nextProps) {
-    console.log('new props');
     if (nextProps.sigmet && this.props.sigmet && nextProps.geojson && this.props.geojson) {
       if (nextProps.sigmet !== this.props.sigmet || nextProps.geojson !== this.props.geojson) {
         this.verifySigmetDebounced(nextProps.sigmet);
@@ -401,7 +399,6 @@ class SigmetEditMode extends PureComponent {
             onFocus={() => {
               dispatch(actions.updateSigmetAction(uuid, 'firname', null));
               dispatch(actions.updateSigmetAction(uuid, 'location_indicator_icao', null));
-              dispatch(actions.updateFir(null));
             }}
             onChange={(firList) => {
               let firname = null;
@@ -412,7 +409,6 @@ class SigmetEditMode extends PureComponent {
               }
               dispatch(actions.updateSigmetAction(uuid, 'firname', firname));
               dispatch(actions.updateSigmetAction(uuid, 'location_indicator_icao', locationIndicatorIcao));
-              dispatch(actions.updateFir(firname));
             }}
             selected={selectedFir ? [selectedFir] : []} placeholder={'Select FIR'}
             className={!selectedFir ? 'missing' : null}

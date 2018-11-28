@@ -45,7 +45,8 @@ class SigmetsCategory extends PureComponent {
       phenomena, parameters, displayModal, hasStartCoordinates, hasStartIntersectionCoordinates, hasEndCoordinates, hasEndIntersectionCoordinates } = this.props;
     const maxSize = 10000; // for now, arbitrairy big
     const itemLimit = 25;
-    const isOpenable = (isOpen || (!isOpen && sigmets.length > 0));
+    const isCreateCategory = typeRef === CATEGORY_REFS.ADD_SIGMET;
+    const isOpenable = (isOpen || sigmets.length > 0 || isCreateCategory);
 
     console.log('Category', sigmets);
 
@@ -60,10 +61,10 @@ class SigmetsCategory extends PureComponent {
           </Col>
           <Col xs='auto'>
             {sigmets.length > 0
-              ? (sigmets.length === 1 && typeRef === CATEGORY_REFS.ADD_SIGMET)
+              ? <Badge color='danger' pill>{sigmets.length}</Badge>
+              : isCreateCategory
                 ? <Badge color='danger' pill><Icon name='plus' /></Badge>
-                : <Badge color='danger' pill>{sigmets.length}</Badge>
-              : null
+                : null
             }
           </Col>
         </CardHeader>
