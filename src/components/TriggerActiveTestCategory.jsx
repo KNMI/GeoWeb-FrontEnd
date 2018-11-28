@@ -14,7 +14,6 @@ class TriggerActiveTestCategory extends Component {
     this.getActiveTriggers = this.getActiveTriggers.bind(this);
     this.getTriggers = this.getTriggers.bind(this);
     this.setActiveTriggerInfo = this.setActiveTriggerInfo.bind(this);
-    this.calculateActiveTriggers = this.calculateActiveTriggers.bind(this);
     this.showTriggerMessage = this.showTriggerMessage.bind(this);
     this.setTriggerMessage = this.setTriggerMessage.bind(this);
     this.setWebSocket = this.setWebSocket.bind(this);
@@ -37,16 +36,22 @@ class TriggerActiveTestCategory extends Component {
   }
 
   setWebSocket () {
-    const { calculateActiveTriggers, getActiveTriggers } = this;
-    var stompClient = null;
-    var socket = new SockJS(this.props.urls.BACKEND_SERVER_URL + '/websockettest');
+    const { showTriggerMessage, getActiveTriggers } = this;
+    let stompClient = null;
+    const socket = new SockJS(this.props.urls.BACKEND_SERVER_URL + '/websocket');
 
     stompClient = Stomp.over(socket);
     stompClient.connect({}, function () {
       stompClient.subscribe('/trigger/messages', function (message) {
-        console.log(message.body);
-        if (message.body === 'Notifications') {
-          calculateActiveTriggers();
+        if (message.body !== 'Active Triggers') {
+          const json = JSON.parse(message.body);
+          const { Notifications } = json;
+          if (Notifications) {
+            for (let i = 0; i < Notifications.length; i++) {
+              console.log('calc', Notifications[i]);
+              showTriggerMessage(Notifications[i]);
+            };
+          }
         }
         if (message.body === 'Active Triggers') {
           getActiveTriggers();
@@ -71,8 +76,8 @@ class TriggerActiveTestCategory extends Component {
     if (!this.state.activeList || this.state.activeList.length < 1) {
       return infoList;
     }
-    for (var i = 0; i < this.state.activeList.length; i++) {
-      var triggersInfo = this.state.activeList[i];
+    for (let i = 0; i < this.state.activeList.length; i++) {
+      const triggersInfo = this.state.activeList[i];
       infoList.push(this.setActiveTriggerInfo(triggersInfo));
     }
     return infoList;
@@ -86,32 +91,18 @@ class TriggerActiveTestCategory extends Component {
     return `${long_name} ${operator} than ${limit} ${unit}`;
   }
 
-  calculateActiveTriggers () {
-    axios({
-      method: 'get',
-      url: this.props.urls.BACKEND_SERVER_URL + '/triggers/triggercalculate'
-    }).then((res) => {
-      for (let i = 0; i < res.data.length; i++) {
-        console.log('calc', res.data[i]);
-        this.showTriggerMessage(res.data[i]);
-      };
-    }).catch((error) => {
-      console.error(error);
-    });
-  }
-
   setTriggerMessage (data) {
-    let locationamount = '';
+    let locationmultiplicity = '';
     const { locations, phenomenon } = data;
     // eslint-disable-next-line camelcase
     const { long_name, operator, limit, unit } = phenomenon;
     if (locations.length === 1) {
-      locationamount = 'location';
+      locationmultiplicity = 'location';
     } else {
-      locationamount = 'locations';
+      locationmultiplicity = 'locations';
     }
     // eslint-disable-next-line camelcase
-    return `${long_name} ${operator} than ${limit} ${unit} detected at ${locations.length} ` + locationamount;
+    return `${long_name} ${operator} than ${limit} ${unit} detected at ${locations.length} ` + locationmultiplicity;
   }
 
   showTriggerMessage (data) {

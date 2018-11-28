@@ -4,7 +4,7 @@ import { mount } from 'enzyme';
 
 describe('(Container) TriggerCreateTestCategory', () => {
   it('Renders a TriggerCreateTestCategory', () => {
-    const _component = mount(<TriggerCreateTestCategory icon='star' notify={() => {}} />);
+    const _component = mount(<TriggerCreateTestCategory icon='star' />);
     expect(_component.type()).to.eql(TriggerCreateTestCategory);
   });
 });

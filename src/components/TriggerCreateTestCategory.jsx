@@ -15,7 +15,6 @@ class TriggerCreateTestCategory extends Component {
     this.handleOnParameterTypeaheadChange = this.handleOnParameterTypeaheadChange.bind(this);
     this.getParameterOptions = this.getParameterOptions.bind(this);
     this.setParameterOptions = this.setParameterOptions.bind(this);
-    // this.setServiceURL = this.setServiceURL.bind(this);
     this.getUnit = this.getUnit.bind(this);
     this.state = {
       isOpen: props.isOpen,
