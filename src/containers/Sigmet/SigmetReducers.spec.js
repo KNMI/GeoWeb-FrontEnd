@@ -1,7 +1,6 @@
 import dispatch from './SigmetReducers';
 import { LOCAL_ACTIONS, CATEGORY_REFS, SIGMET_MODES } from './SigmetActions';
 import { MODES_GEO_SELECTION } from '../../utils/json';
-import produce from 'immer';
 import moxios from 'moxios';
 
 describe('(Reducer) Sigmet/SigmetReducers', () => {
@@ -335,16 +334,6 @@ describe('(Reducer) Sigmet/SigmetReducers', () => {
     const sigmetsResponse = {
       'sigmets': [sigmet]
     };
-    const resultSigmet = produce(sigmet, draftState => {
-      draftState.geojson.features[0].properties.relatesTo = null;
-      draftState.geojson.features[0].properties.stroke = null;
-      draftState.geojson.features[0].properties['stroke-opacity'] = null;
-      draftState.forecast_position_time = null;
-      draftState.issuedate = null;
-      draftState.movement.dir = null;
-      draftState.movement.speed = null;
-      draftState.obs_or_forecast.obsFcTime = null;
-    });
     const container = {
       props: {
         urls: {
