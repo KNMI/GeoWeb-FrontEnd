@@ -14,8 +14,8 @@ import { Route, IndexRoute } from 'react-router';
 import { connect } from 'react-redux';
 
 import TasksContainer from '../containers/TasksContainer';
+import OldTriggersContainer from '../containers/OldTriggersContainer';
 import TriggersContainer from '../containers/TriggersContainer';
-import TriggersTestContainer from '../containers/TriggersTestContainer';
 
 import ProgtempManagementPanel from '../components/Management/ProgtempManagementPanel';
 import TafValidationManagementPanel from '../components/Management/TafValidationManagementPanel';
@@ -163,9 +163,9 @@ export const createRoutes = (store) => {
     urls: state.urls,
     sources: state.adagucProperties.sources
   }), mapDispatchToSigmetProps)(SigmetsContainer));
-  const triggerTest = React.createElement(connect(mapStateToLayerManagerProps, mapDispatchToLayerManagerProps)(TriggersTestContainer));
-  const taf = connect(mapStateToTafsContainerProps, mapDispatchToLayerManagerProps)(TafsContainer);
   const trigger = React.createElement(connect(mapStateToLayerManagerProps, mapDispatchToLayerManagerProps)(TriggersContainer));
+  const taf = connect(mapStateToTafsContainerProps, mapDispatchToLayerManagerProps)(TafsContainer);
+  const oldtrigger = React.createElement(connect(mapStateToLayerManagerProps, mapDispatchToLayerManagerProps)(OldTriggersContainer));
   const manageLeft = React.createElement(SidebarContainer);
   // Location
   const progmanPanel = connect(mapStateToManagementPanelProps)(ProgtempManagementPanel);
@@ -218,14 +218,14 @@ export const createRoutes = (store) => {
         <Route path='triggers_test' title='Triggers'>
           {/* Here all trigger routes */}
           <Route component={FooteredLayout} footer={layerManager} >
-            <Route component={SidebarredLayout} secondLeftSidebar={triggerTest} leftSidebar={leftSidebar} rightSidebar={rightSidebar}>
+            <Route component={SidebarredLayout} secondLeftSidebar={trigger} leftSidebar={leftSidebar} rightSidebar={rightSidebar}>
               <IndexRoute component={map} />
             </Route>
           </Route>
 
         </Route>
         <Route path='monitoring_and_triggers' title='Monitoring & Triggers'>
-          <Route component={SidebarredLayout} secondLeftSidebar={trigger} leftSidebar={leftSidebar}>
+          <Route component={SidebarredLayout} secondLeftSidebar={oldtrigger} leftSidebar={leftSidebar}>
             <Route component={FooteredLayout} footer={layerManager} >
               <Route component={SidebarredLayout} rightSidebar={rightSidebar}>
                 <IndexRoute component={map} />
