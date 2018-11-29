@@ -40,6 +40,50 @@ class SigmetsCategory extends PureComponent {
     return 0;
   }
 
+  derivedSigmetProperties (sigmet, selectedSigmet, parameters) {
+    const isSelectedSigmet = selectedSigmet && sigmet.uuid === selectedSigmet.uuid;
+    const sigmetToShow = isSelectedSigmet ? selectedSigmet : sigmet;
+    const isCancelFor = sigmetToShow.cancels !== null && !isNaN(sigmetToShow.cancels)
+      ? parseInt(sigmetToShow.cancels)
+      : null;
+    const isVolcanicAsh = sigmetToShow.phenomenon ? sigmetToShow.phenomenon === PHENOMENON_CODE_VOLCANIC_ASH : false;
+    const isTropicalCyclone = false;
+    const prefix = isVolcanicAsh
+      ? SIGMET_VARIANTS_PREFIXES.VOLCANIC_ASH
+      : isTropicalCyclone
+        ? SIGMET_VARIANTS_PREFIXES.TROPICAL_CYCLONE
+        : SIGMET_VARIANTS_PREFIXES.NORMAL;
+    const activeFirEntry = Object.entries(parameters.firareas).filter((entry) => entry[1].firname === sigmetToShow.firname &&
+      entry[1].location_indicator_icao === sigmetToShow.location_indicator_icao);
+    const activeFir = Array.isArray(activeFirEntry) && activeFirEntry.length === 1
+      ? activeFirEntry[0][1]
+      : null;
+
+    const maxHoursInAdvance = activeFir
+      ? activeFir[`${prefix}hoursbeforevalidity`]
+      : null;
+    const maxHoursDuration = activeFir
+      ? activeFir[`${prefix}maxhoursofvalidity`]
+      : null;
+    const adjacentFirs = activeFir
+      ? activeFir['adjacent_firs']
+      : null;
+    const volcanoCoordinates = Array.isArray(sigmetToShow.va_extra_fields.volcano.position) && sigmetToShow.va_extra_fields.volcano.position.length > 1
+      ? sigmetToShow.va_extra_fields.volcano.position
+      : [null, null];
+    return {
+      isSelectedSigmet,
+      sigmetToShow,
+      isCancelFor,
+      isVolcanicAsh,
+      isTropicalCyclone,
+      maxHoursInAdvance,
+      maxHoursDuration,
+      adjacentFirs,
+      volcanoCoordinates
+    };
+  }
+
   render () {
     const { typeRef, title, icon, sigmets, selectedSigmet, selectedAuxiliaryInfo, geojson, copiedSigmetRef, isOpen, dispatch, actions, abilities,
       phenomena, parameters, displayModal, hasStartCoordinates, hasStartIntersectionCoordinates, hasEndCoordinates, hasEndIntersectionCoordinates } = this.props;
@@ -47,8 +91,21 @@ class SigmetsCategory extends PureComponent {
     const itemLimit = 25;
     const isCreateCategory = typeRef === CATEGORY_REFS.ADD_SIGMET;
     const isOpenable = (isOpen || sigmets.length > 0 || isCreateCategory);
+    const availableFirs = parameters.active_firs.map((firKey) => parameters.firareas[firKey]);
+    const availablePhenomena = phenomena.slice().sort((phA, phB) => {
+      const nameA = phA.name.toUpperCase();
+      const nameB = phB.name.toUpperCase();
+      return nameA < nameB
+        ? -1
+        : nameA > nameB
+          ? 1
+          : 0;
+    });
+    const sigmetCollection = sigmets.length === 0 && isCreateCategory && selectedSigmet
+      ? [selectedSigmet]
+      : sigmets.slice().sort(this.byStartAndSequence).slice(0, itemLimit);
 
-    console.log('Category', sigmets);
+    console.log('Category', sigmetCollection);
 
     return <Card className={`SigmetsCategory row accordion${isOpen ? ' open' : ''}${isOpenable ? ' openable' : ''}`}>
       <Col>
@@ -74,46 +131,10 @@ class SigmetsCategory extends PureComponent {
               <CardBody>
                 <Row>
                   <Col className='btn-group-vertical'>
-                    {sigmets.slice().sort(this.byStartAndSequence).slice(0, itemLimit).map((sigmet, index) => {
-                      const isSelectedSigmet = selectedSigmet && sigmet.uuid === selectedSigmet.uuid;
-                      const sigmetToShow = isSelectedSigmet ? selectedSigmet : sigmet;
-                      const isCancelFor = sigmetToShow.cancels !== null && !isNaN(sigmetToShow.cancels)
-                        ? parseInt(sigmetToShow.cancels)
-                        : null;
-                      const isVolcanicAsh = sigmetToShow.phenomenon ? sigmetToShow.phenomenon === PHENOMENON_CODE_VOLCANIC_ASH : false;
-                      const isTropicalCyclone = false;
-                      const prefix = isVolcanicAsh
-                        ? SIGMET_VARIANTS_PREFIXES.VOLCANIC_ASH
-                        : isTropicalCyclone
-                          ? SIGMET_VARIANTS_PREFIXES.TROPICAL_CYCLONE
-                          : SIGMET_VARIANTS_PREFIXES.NORMAL;
-                      const activeFirEntry = Object.entries(parameters.firareas).filter((entry) => entry[1].firname === sigmetToShow.firname &&
-                          entry[1].location_indicator_icao === sigmetToShow.location_indicator_icao);
-                      const activeFir = Array.isArray(activeFirEntry) && activeFirEntry.length === 1
-                        ? activeFirEntry[0][1]
-                        : null;
-                      const availableFirs = parameters.active_firs.map((firKey) => parameters.firareas[firKey]);
-                      const availablePhenomena = phenomena.slice().sort((phA, phB) => {
-                        const nameA = phA.name.toUpperCase();
-                        const nameB = phB.name.toUpperCase();
-                        return nameA < nameB
-                          ? -1
-                          : nameA > nameB
-                            ? 1
-                            : 0;
-                      });
-                      const maxHoursInAdvance = activeFir
-                        ? activeFir[`${prefix}hoursbeforevalidity`]
-                        : null;
-                      const maxHoursDuration = activeFir
-                        ? activeFir[`${prefix}maxhoursofvalidity`]
-                        : null;
-                      const adjacentFirs = activeFir
-                        ? activeFir['adjacent_firs']
-                        : null;
-                      const volcanoCoordinates = Array.isArray(sigmetToShow.va_extra_fields.volcano.position) && sigmetToShow.va_extra_fields.volcano.position.length > 1
-                        ? sigmetToShow.va_extra_fields.volcano.position
-                        : [null, null];
+                    {sigmetCollection.map((sigmet) => {
+                      const { isSelectedSigmet, isVolcanicAsh, isCancelFor, volcanoCoordinates,
+                        maxHoursInAdvance, maxHoursDuration,
+                        adjacentFirs, sigmetToShow } = this.derivedSigmetProperties(sigmet, selectedSigmet, parameters);
 
                       // Render selected SIGMET
                       if (isSelectedSigmet) {
@@ -126,28 +147,10 @@ class SigmetsCategory extends PureComponent {
                           hasEdits={selectedAuxiliaryInfo.hasEdits}
                           isVolcanicAsh={isVolcanicAsh}
                           availablePhenomena={availablePhenomena}
-                          phenomenon={sigmetToShow.phenomenon}
-                          volcanoName={sigmetToShow.va_extra_fields.volcano.name || null}
                           volcanoCoordinates={volcanoCoordinates}
-                          isNoVolcanicAshExpected={sigmetToShow.va_extra_fields.no_va_expected}
                           focus
-                          uuid={sigmetToShow.uuid}
-                          distributionType={sigmetToShow.type}
                           sigmet={sigmetToShow}
                           geojson={geojson}
-                          obsFcTime={sigmetToShow.obs_or_forecast ? sigmetToShow.obs_or_forecast.obsFcTime : null}
-                          validdate={sigmetToShow.validdate}
-                          validdateEnd={sigmetToShow.validdate_end}
-                          issuedate={sigmetToShow.issuedate}
-                          sequence={sigmetToShow.sequence}
-                          firname={sigmetToShow.firname}
-                          locationIndicatorIcao={sigmetToShow.location_indicator_icao}
-                          locationIndicatorMwo={sigmetToShow.location_indicator_mwo}
-                          levelinfo={sigmetToShow.levelinfo}
-                          movementType={sigmetToShow.movement_type}
-                          movement={sigmetToShow.movement}
-                          change={sigmetToShow.change}
-                          isObserved={sigmetToShow.obs_or_forecast ? sigmetToShow.obs_or_forecast.obs : null}
                           drawModeStart={selectedAuxiliaryInfo.drawModeStart}
                           drawModeEnd={selectedAuxiliaryInfo.drawModeEnd}
                           feedbackStart={selectedAuxiliaryInfo.feedbackStart}
@@ -162,8 +165,6 @@ class SigmetsCategory extends PureComponent {
                           isCancelFor={isCancelFor}
                           displayModal={displayModal}
                           adjacentFirs={adjacentFirs}
-                          moveTo={sigmetToShow.va_extra_fields.move_to}
-                          tac={sigmetToShow.tac}
                         />;
                       }
 

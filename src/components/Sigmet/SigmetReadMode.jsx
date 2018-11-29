@@ -92,7 +92,7 @@ class SigmetReadMode extends PureComponent {
   };
 
   showProgress () {
-    const { movementType } = this.props;
+    const { movement_type: movementType } = this.props.sigmet;
     switch (movementType) {
       case MOVEMENT_TYPES.STATIONARY:
         return 'Stationary';
@@ -150,7 +150,7 @@ class SigmetReadMode extends PureComponent {
    * @returns {boolean} The result
    */
   isLevelInfoValid () {
-    const { levelinfo } = this.props;
+    const { levelinfo } = this.props.sigmet;
     switch (levelinfo.mode) {
       case MODES_LVL.ABV:
       case MODES_LVL.AT:
@@ -176,7 +176,8 @@ class SigmetReadMode extends PureComponent {
    * @returns {boolean} The result
    */
   isMovementValid () {
-    const { movementType, movement, hasEndCoordinates, hasEndIntersectionCoordinates } = this.props;
+    const { hasEndCoordinates, hasEndIntersectionCoordinates } = this.props;
+    const { movement_type: movementType, movement } = this.props.sigmet;
     switch (movementType) {
       case MOVEMENT_TYPES.STATIONARY:
         return true;
@@ -195,8 +196,8 @@ class SigmetReadMode extends PureComponent {
    * @returns {boolean} Whether or not the basic values in this specific Sigmet are valid
    */
   isValid () {
-    const { validdate, validdateEnd, maxHoursInAdvance, maxHoursDuration, phenomenon, firname,
-      change, hasStartCoordinates, hasStartIntersectionCoordinates, distributionType } = this.props;
+    const { maxHoursInAdvance, maxHoursDuration, hasStartCoordinates, hasStartIntersectionCoordinates } = this.props;
+    const { validdate, validdate_end: validdateEnd, phenomenon, firname, change, type: distributionType } = this.props.sigmet;
     const now = moment.utc();
     const startTimestamp = moment.utc(validdate);
     const endTimestamp = moment.utc(validdateEnd);
@@ -220,7 +221,8 @@ class SigmetReadMode extends PureComponent {
   * @returns {boolean} Whether or not is should be disabled
   */
   getDisabledFlag (abilityRef, isInValidityPeriod) {
-    const { uuid, copiedSigmetRef } = this.props;
+    const { copiedSigmetRef } = this.props;
+    const { uuid } = this.props.sigmet;
     if (!abilityRef) {
       return false;
     }
@@ -241,7 +243,8 @@ class SigmetReadMode extends PureComponent {
    * @returns {array} The remaining abilities for this specific Sigmet
    */
   reduceAbilities () {
-    const { abilities, validdate, validdateEnd, isCancelFor } = this.props;
+    const { abilities, isCancelFor } = this.props;
+    const { validdate, validdate_end: validdateEnd } = this.props.sigmet;
     const abilitiesCtAs = []; // CtA = Call To Action
     const now = moment.utc();
     const isInValidityPeriod = !now.isBefore(validdate) && !now.isAfter(validdateEnd);
@@ -258,9 +261,18 @@ class SigmetReadMode extends PureComponent {
   }
 
   render () {
-    const { dispatch, actions, focus, uuid, phenomenon, isObserved, obsFcTime, validdate, validdateEnd, firname, locationIndicatorIcao, issuedate,
-      locationIndicatorMwo, levelinfo, movement, movementType, change, sequence, tac, isCancelFor, distributionType,
-      isNoVolcanicAshExpected, volcanoName, volcanoCoordinates, isVolcanicAsh, displayModal, adjacentFirs, moveTo } = this.props;
+    const { dispatch, actions, sigmet, focus, isCancelFor, displayModal, isVolcanicAsh, volcanoCoordinates, adjacentFirs } = this.props;
+    const { phenomenon, uuid, type: distributionType, validdate, validdate_end: validdateEnd,
+      location_indicator_icao: locationIndicatorIcao, location_indicator_mwo: locationIndicatorMwo,
+      levelinfo, movement_type: movementType, movement, change, tac, va_extra_fields: vaExtraFields, obs_or_forecast: obsOrForecast,
+      issuedate, sequence, firname } = sigmet;
+
+    const { no_va_expected: isNoVolcanicAshExpected, volcano } = vaExtraFields;
+    const volcanoName = volcano.name || null;
+    const obsFcTime = obsOrForecast ? obsOrForecast.obsFcTime : null;
+    const isObserved = obsOrForecast ? obsOrForecast.obs : null;
+    const moveTo = vaExtraFields.move_to;
+
     const abilityCtAs = this.reduceAbilities(); // CtA = Call To Action
     const selectedDirection = movement && DIRECTIONS.find((obj) => obj.shortName === movement.dir);
     const directionLongName = selectedDirection ? selectedDirection.longName : null;
@@ -384,30 +396,7 @@ SigmetReadMode.propTypes = {
   }),
   abilities: PropTypes.shape(abilitiesPropTypes),
   focus: PropTypes.bool,
-  uuid: PropTypes.string,
-  distributionType: SIGMET_TYPES.TYPE,
-  tac: PropTypes.string,
   copiedSigmetRef: PropTypes.string,
-  phenomenon: PropTypes.string,
-  isObserved: PropTypes.bool,
-  obsFcTime: PropTypes.string,
-  issuedate: PropTypes.string,
-  validdate: PropTypes.string,
-  validdateEnd: PropTypes.string,
-  levelinfo: PropTypes.shape({
-    mode: PropTypes.string,
-    levels: PropTypes.arrayOf(PropTypes.shape({
-      value: PropTypes.number,
-      unit: PropTypes.string
-    }))
-  }),
-  movementType: SIGMET_TYPES.MOVEMENT_TYPE,
-  movement: SIGMET_TYPES.MOVEMENT,
-  change: PropTypes.string,
-  sequence: PropTypes.number,
-  locationIndicatorIcao: PropTypes.string,
-  locationIndicatorMwo: PropTypes.string,
-  firname: PropTypes.string,
   maxHoursInAdvance: PropTypes.number,
   maxHoursDuration: PropTypes.number,
   hasStartCoordinates: PropTypes.bool,
@@ -415,13 +404,11 @@ SigmetReadMode.propTypes = {
   hasEndCoordinates: PropTypes.bool,
   hasEndIntersectionCoordinates: PropTypes.bool,
   isCancelFor: PropTypes.number,
-  volcanoName: PropTypes.string,
   volcanoCoordinates: PropTypes.arrayOf(PropTypes.number),
   isVolcanicAsh: PropTypes.bool,
-  isNoVolcanicAshExpected: PropTypes.bool,
   displayModal: PropTypes.string,
   adjacentFirs: PropTypes.arrayOf(PropTypes.string),
-  moveTo: PropTypes.arrayOf(PropTypes.string)
+  sigmet: SIGMET_TYPES.SIGMET
 };
 
 export default SigmetReadMode;

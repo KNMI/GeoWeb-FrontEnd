@@ -75,7 +75,7 @@ const showFeedback = (container, title, message, status) => {
 };
 
 const toggleContainer = (evt, container) => {
-  setStatePromise(container, {
+  return setStatePromise(container, {
     isContainerOpen: !container.state.isContainerOpen
   });
 };
@@ -83,21 +83,21 @@ const toggleContainer = (evt, container) => {
 const toggleCategory = (evt, ref, container) => {
   const { state } = container;
   const isChangeToCategoryAddSigmet = ref !== state.focussedCategoryRef && ref === CATEGORY_REFS.ADD_SIGMET;
-  setStatePromise(container, {
-    focussedCategoryRef: (ref === state.focussedCategoryRef)
-      ? null
-      : ref
-  }).then(() => {
-    if (isChangeToCategoryAddSigmet) {
-      selectSigmet([getEmptySigmet(container)], container).then(() =>
-        setStatePromise(container, {
-          selectedAuxiliaryInfo: {
-            mode: SIGMET_MODES.EDIT
-          }
-        })
-      );
-    }
-  });
+  const sigmetSelection = isChangeToCategoryAddSigmet
+    ? [getEmptySigmet(container)]
+    : [];
+  return selectSigmet(sigmetSelection, container).then(() =>
+    setStatePromise(container, {
+      focussedCategoryRef: (ref === state.focussedCategoryRef)
+        ? null
+        : ref,
+      selectedAuxiliaryInfo: {
+        mode: isChangeToCategoryAddSigmet
+          ? SIGMET_MODES.EDIT
+          : SIGMET_MODES.READ
+      }
+    })
+  );
 };
 
 const retrieveParameters = (container) => {
@@ -1204,7 +1204,8 @@ const pasteSigmet = (event, container) => {
     'forecast_position_time',
     'location_indicator_icao',
     'location_indicator_mwo',
-    'va_extra_fields'
+    'va_extra_fields',
+    'type'
   ];
   const newPartialState = {};
   propertiesToCopy.forEach((property) => {
@@ -1359,15 +1360,13 @@ export default (localAction, container) => {
       toggleContainer(localAction.event, container);
       break;
     case LOCAL_ACTION_TYPES.TOGGLE_CATEGORY:
-      toggleCategory(localAction.event, localAction.ref, container);
-      break;
+      return toggleCategory(localAction.event, localAction.ref, container);
     case LOCAL_ACTION_TYPES.RETRIEVE_PARAMETERS:
       return retrieveParameters(container);
     case LOCAL_ACTION_TYPES.RETRIEVE_PHENOMENA:
       return retrievePhenomena(container);
     case LOCAL_ACTION_TYPES.RETRIEVE_SIGMETS:
-      synchronizeSigmets(container);
-      break;
+      return synchronizeSigmets(container);
     case LOCAL_ACTION_TYPES.FOCUS_SIGMET:
       focusSigmet(localAction.event, localAction.uuid, container);
       break;

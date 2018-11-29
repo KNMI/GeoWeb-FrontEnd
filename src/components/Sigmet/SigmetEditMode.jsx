@@ -93,7 +93,8 @@ class SigmetEditMode extends PureComponent {
   }
 
   setMode (evt, selectedOption = null) {
-    const { dispatch, actions, uuid } = this.props;
+    const { dispatch, actions } = this.props;
+    const { uuid } = this.props.sigmet;
     const currentMode = this.getMode();
     if (!evt || !evt.target) {
       return;
@@ -133,7 +134,7 @@ class SigmetEditMode extends PureComponent {
   };
 
   getMode () {
-    const { levelinfo } = this.props;
+    const { levelinfo } = this.props.sigmet;
     const result = {
       extent: MODES_LVL.AT,
       hasTops: false,
@@ -215,7 +216,9 @@ class SigmetEditMode extends PureComponent {
 *          and {string} property message to explain why...
 */
   getDisabledFlag (abilityRef, isInValidityPeriod, selectedPhenomenon) {
-    const { copiedSigmetRef, hasEdits, validdate, validdateEnd, obsFcTime } = this.props;
+    const { copiedSigmetRef, hasEdits } = this.props;
+    const { validdate, validdate_end: validdateEnd, obs_or_forecast: obsOrForecast } = this.props.sigmet;
+    const obsFcTime = obsOrForecast ? obsOrForecast.obsFcTime : null;
     if (!abilityRef) {
       return false;
     }
@@ -238,7 +241,8 @@ class SigmetEditMode extends PureComponent {
    * @returns {array} The remaining abilities for this specific Sigmet
    */
   reduceAbilities (selectedPhenomenon) {
-    const { abilities, validdate, validdateEnd } = this.props;
+    const { abilities } = this.props;
+    const { validdate, validdate_end: validdateEnd } = this.props.sigmet;
     const abilitiesCtAs = []; // CtA = Call To Action
     const now = moment.utc();
     const isInValidityPeriod = !now.isBefore(validdate) && !now.isAfter(validdateEnd);
@@ -255,10 +259,18 @@ class SigmetEditMode extends PureComponent {
   }
 
   render () {
-    const { dispatch, actions, availablePhenomena, hasStartCoordinates, hasEndCoordinates, feedbackStart, feedbackEnd, isNoVolcanicAshExpected,
-      availableFirs, levelinfo, movement, movementType, focus, tac, uuid, locationIndicatorMwo, change, isVolcanicAsh, volcanoName, volcanoCoordinates,
-      phenomenon, isObserved, obsFcTime, validdate, maxHoursInAdvance, maxHoursDuration, validdateEnd, locationIndicatorIcao, distributionType } = this.props;
+    const { dispatch, actions, sigmet, availablePhenomena, hasStartCoordinates, hasEndCoordinates, feedbackStart, feedbackEnd,
+      availableFirs, focus, isVolcanicAsh, volcanoCoordinates, maxHoursInAdvance, maxHoursDuration } = this.props;
     const { isAtOrAboveDropDownOpen, isBetweenLowerDropDownOpen, isBetweenUpperDropDownOpen } = this.state;
+
+    const { phenomenon, uuid, type: distributionType, validdate, validdate_end: validdateEnd,
+      location_indicator_icao: locationIndicatorIcao, location_indicator_mwo: locationIndicatorMwo,
+      levelinfo, movement_type: movementType, movement, change, tac, va_extra_fields: vaExtraFields, obs_or_forecast: obsOrForecast } = sigmet;
+    const { no_va_expected: isNoVolcanicAshExpected, volcano } = vaExtraFields;
+    const volcanoName = volcano.name || null;
+    const obsFcTime = obsOrForecast ? obsOrForecast.obsFcTime : null;
+    const isObserved = obsOrForecast ? obsOrForecast.obs : null;
+
     const now = moment.utc();
     const dateLimits = dateRanges(now, validdate, validdateEnd, maxHoursInAdvance, maxHoursDuration);
     const selectedPhenomenon = availablePhenomena.find((ph) => ph.code === phenomenon);
@@ -642,11 +654,6 @@ SigmetEditMode.propTypes = {
   hasEdits: PropTypes.bool,
   availablePhenomena: PropTypes.array,
   focus: PropTypes.bool,
-  uuid: PropTypes.string,
-  distributionType: SIGMET_TYPES.TYPE,
-  phenomenon: PropTypes.string,
-  isObserved: PropTypes.bool,
-  obsFcTime: PropTypes.string,
   drawModeStart: PropTypes.string,
   drawModeEnd: PropTypes.string,
   feedbackStart: PropTypes.string,
@@ -654,23 +661,12 @@ SigmetEditMode.propTypes = {
   hasStartCoordinates: PropTypes.bool,
   hasEndCoordinates: PropTypes.bool,
   availableFirs: PropTypes.array,
-  levelinfo: SIGMET_TYPES.LEVELINFO,
-  movementType: SIGMET_TYPES.MOVEMENT_TYPE,
-  movement: SIGMET_TYPES.MOVEMENT,
-  locationIndicatorMwo: PropTypes.string,
-  change: PropTypes.string,
-  validdate: PropTypes.string,
-  validdateEnd: PropTypes.string,
   maxHoursDuration: PropTypes.number,
   maxHoursInAdvance: PropTypes.number,
-  locationIndicatorIcao: PropTypes.string,
-  volcanoName: PropTypes.string,
   volcanoCoordinates: PropTypes.arrayOf(PropTypes.number),
-  isNoVolcanicAshExpected: PropTypes.bool,
   isVolcanicAsh: PropTypes.bool,
-  sigmet: PropTypes.object,
-  geojson: PropTypes.object,
-  tac: PropTypes.string
+  sigmet: SIGMET_TYPES.SIGMET,
+  geojson: PropTypes.object
 };
 
 export default SigmetEditMode;

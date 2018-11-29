@@ -102,17 +102,23 @@ describe('(Reducer) Sigmet/SigmetReducers', () => {
       });
       callback();
     };
-    dispatch(LOCAL_ACTIONS.toggleCategoryAction(null, CATEGORY_REFS.ADD_SIGMET), container);
-    expect(container.state).to.be.a('object');
-    expect(container.state).to.have.property('focussedCategoryRef', CATEGORY_REFS.ADD_SIGMET);
-    expect(container.state).to.have.property('selectedAuxiliaryInfo');
-    expect(container.state.selectedAuxiliaryInfo).to.be.a('object');
-    // expect(container.state.selectedAuxiliaryInfo).to.have.property('mode', SIGMET_MODES.EDIT);
-    dispatch(LOCAL_ACTIONS.toggleCategoryAction(null, CATEGORY_REFS.ACTIVE_SIGMETS), container);
-    expect(container.state).to.have.property('focussedCategoryRef', CATEGORY_REFS.ACTIVE_SIGMETS);
-    dispatch(LOCAL_ACTIONS.toggleCategoryAction(null, CATEGORY_REFS.ACTIVE_SIGMETS), container);
-    expect(container.state).to.have.property('focussedCategoryRef', null);
-    done();
+    dispatch(LOCAL_ACTIONS.toggleCategoryAction(null, CATEGORY_REFS.ADD_SIGMET), container).then(() => {
+      expect(container.state).to.be.a('object');
+      expect(container.state).to.have.property('focussedCategoryRef', CATEGORY_REFS.ADD_SIGMET);
+      expect(container.state).to.have.property('selectedAuxiliaryInfo');
+      expect(container.state.selectedAuxiliaryInfo).to.be.a('object');
+      expect(container.state.selectedAuxiliaryInfo).to.have.property('mode', SIGMET_MODES.EDIT);
+      return dispatch(LOCAL_ACTIONS.toggleCategoryAction(null, CATEGORY_REFS.ACTIVE_SIGMETS), container);
+    }).then(() => {
+      expect(container.state).to.have.property('focussedCategoryRef', CATEGORY_REFS.ACTIVE_SIGMETS);
+      expect(container.state).to.have.property('selectedAuxiliaryInfo');
+      expect(container.state.selectedAuxiliaryInfo).to.be.a('object');
+      expect(container.state.selectedAuxiliaryInfo).to.have.property('mode', SIGMET_MODES.READ);
+      return dispatch(LOCAL_ACTIONS.toggleCategoryAction(null, CATEGORY_REFS.ACTIVE_SIGMETS), container);
+    }).then(() => {
+      expect(container.state).to.have.property('focussedCategoryRef', null);
+      done();
+    });
   });
   it('should handle retrieveParameters', (done) => {
     const initialParameters = {
@@ -348,7 +354,7 @@ describe('(Reducer) Sigmet/SigmetReducers', () => {
       state: {
         categories: [
           { ref: CATEGORY_REFS.ACTIVE_SIGMETS, sigmets: [] },
-          { ref: CATEGORY_REFS.CONCEPT_SIGMETS, sigmets: [] },
+          { ref: CATEGORY_REFS.CONCEPT_SIGMETS, sigmets: [sigmet] },
           { ref: CATEGORY_REFS.ADD_SIGMET, sigmets: [] },
           { ref: CATEGORY_REFS.ARCHIVED_SIGMETS, sigmets: [] }
         ],
@@ -383,34 +389,15 @@ describe('(Reducer) Sigmet/SigmetReducers', () => {
         expect(container.state).to.have.property('categories');
         expect(container.state.categories).to.be.a('array');
         expect(container.state.categories).to.have.length(4);
+        expect(container.state.categories[0]).to.have.property('sigmets');
+        expect(container.state.categories[0].sigmets).to.have.length(0);
+        expect(container.state.categories[1]).to.have.property('sigmets');
+        expect(container.state.categories[1].sigmets).to.have.length(1);
+        expect(container.state.categories[1].sigmets[0]).to.eql(sigmet);
+        expect(container.state.categories[2]).to.have.property('sigmets');
+        expect(container.state.categories[2].sigmets).to.have.length(0);
         expect(container.state.categories[3]).to.have.property('sigmets');
-        /* expect(container.state.categories[3].sigmets).to.have.length(1);
-        expect(container.state.categories[3].sigmets[0]).to.have.property('phenomenon', resultSigmet.phenomenon);
-        expect(container.state.categories[3].sigmets[0]).to.have.property('change', resultSigmet.change);
-        expect(container.state.categories[3].sigmets[0]).to.have.property('validdate', resultSigmet.validdate);
-        expect(container.state.categories[3].sigmets[0]).to.have.property('validdate_end', resultSigmet.validdate_end);
-        expect(container.state.categories[3].sigmets[0]).to.have.property('firname', resultSigmet.firname);
-        expect(container.state.categories[3].sigmets[0]).to.have.property('location_indicator_icao', resultSigmet.location_indicator_icao);
-        expect(container.state.categories[3].sigmets[0]).to.have.property('location_indicator_mwo', resultSigmet.location_indicator_mwo);
-        expect(container.state.categories[3].sigmets[0]).to.have.property('uuid', resultSigmet.uuid);
-        expect(container.state.categories[3].sigmets[0]).to.have.property('status', resultSigmet.status);
-        expect(container.state.categories[3].sigmets[0]).to.have.property('sequence', resultSigmet.sequence);
-        expect(container.state.categories[3].sigmets[0]).to.have.property('cancels', resultSigmet.cancels);
-        expect(container.state.categories[3].sigmets[0]).to.have.property('forecast_position_time', resultSigmet.forecast_position_time);
-        expect(container.state.categories[3].sigmets[0]).to.have.property('issuedate', resultSigmet.issuedate);
-        expect(container.state.categories[3].sigmets[0]).to.have.property('obs_or_forecast');
-        expect(container.state.categories[3].sigmets[0].obs_or_forecast).to.eql(resultSigmet.obs_or_forecast);
-        expect(container.state.categories[3].sigmets[0]).to.have.property('levelinfo');
-        expect(container.state.categories[3].sigmets[0].levelinfo).to.eql(resultSigmet.levelinfo);
-        expect(container.state.categories[3].sigmets[0]).to.have.property('movement');
-        expect(container.state.categories[3].sigmets[0].movement).to.eql(resultSigmet.movement);
-        expect(container.state.categories[3].sigmets[0]).to.have.property('geojson');
-        expect(container.state.categories[3].sigmets[0].geojson).to.have.property('features');
-        expect(container.state.categories[3].sigmets[0].geojson.features).to.have.length(4);
-        expect(container.state.categories[3].sigmets[0].geojson.features[0]).to.eql(resultSigmet.geojson.features[0]);
-        expect(container.state.categories[3].sigmets[0].geojson.features[1].properties.featureFunction).to.eql('end');
-        expect(container.state.categories[3].sigmets[0].geojson.features[2].properties.featureFunction).to.eql('intersection');
-        expect(container.state.categories[3].sigmets[0].geojson.features[3].properties.featureFunction).to.eql('intersection'); */
+        expect(container.state.categories[3].sigmets).to.have.length(0);
         done();
       }).catch(done);
     });
