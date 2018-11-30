@@ -3,20 +3,15 @@ import { Col, Badge, Card, CardBody, CardHeader, CardText, Row, CardGroup } from
 import Icon from 'react-fa';
 import PropTypes from 'prop-types';
 import CollapseOmni from '../CollapseOmni';
-import { notify } from 'reapop';
 import axios from 'axios';
-import SockJS from 'sockjs-client';
-import { Stomp } from '@stomp/stompjs';
 
 class TriggerActiveCategory extends Component {
   constructor (props) {
     super(props);
     this.getActiveTriggers = this.getActiveTriggers.bind(this);
+    this._getActiveTriggersTimer = this._getActiveTriggersTimer.bind(this);
     this.getTriggers = this.getTriggers.bind(this);
     this.setActiveTriggerInfo = this.setActiveTriggerInfo.bind(this);
-    this.showTriggerMessage = this.showTriggerMessage.bind(this);
-    this.setTriggerMessage = this.setTriggerMessage.bind(this);
-    this.setWebSocket = this.setWebSocket.bind(this);
     this.state = {
       isOpen: props.isOpen,
       activeList: []
@@ -30,36 +25,22 @@ class TriggerActiveCategory extends Component {
   }
 
   componentDidMount () {
-    // const { setWebSocket, getActiveTriggers } = this;
-    // getActiveTriggers();
-    // setWebSocket();
-  }
-
-  setWebSocket () {
-    const { showTriggerMessage, getActiveTriggers } = this;
-    const socket = new SockJS(this.props.urls.BACKEND_SERVER_URL + '/websocket');
-
-    const stompClient = Stomp.over(socket);
-    stompClient.connect({}, function () {
-      stompClient.subscribe('/trigger/messages', function (message) {
-        if (message.body !== 'Active Triggers') {
-          const json = JSON.parse(message.body);
-          const { Notifications } = json;
-          if (Notifications) {
-            for (let i = 0; i < Notifications.length; i++) {
-              console.log('calc', Notifications[i]);
-              showTriggerMessage(Notifications[i]);
-            };
-          }
-        }
-        if (message.body === 'Active Triggers') {
-          getActiveTriggers();
-        }
-      });
-    });
+    this.getActiveTriggers();
   }
 
   getActiveTriggers () {
+    if (this.getIntervalTimerIsRunning) {
+    } else {
+      this.getIntervalTimerIsRunning = true;
+      this._getActiveTriggersTimer();
+    }
+  }
+
+  _getActiveTriggersTimer () {
+    if (!this.props.urls) {
+      this.getIntervalTimerIsRunning = false;
+      return;
+    }
     axios({
       method: 'get',
       url: this.props.urls.BACKEND_SERVER_URL + '/triggers/gettriggers'
@@ -67,6 +48,8 @@ class TriggerActiveCategory extends Component {
       this.setState({ activeList: res.data });
     }).catch((error) => {
       console.error(error);
+    }).finally(() => {
+      setTimeout(this._getActiveTriggersTimer, 60000);
     });
   }
 
@@ -88,34 +71,6 @@ class TriggerActiveCategory extends Component {
     const { long_name, operator, limit, unit } = phenomenon;
     // eslint-disable-next-line camelcase
     return `${long_name} ${operator} than ${limit} ${unit}`;
-  }
-
-  setTriggerMessage (data) {
-    let locationmultiplicity = '';
-    const { locations, phenomenon } = data;
-    // eslint-disable-next-line camelcase
-    const { long_name, operator, limit, unit } = phenomenon;
-    if (locations.length === 1) {
-      locationmultiplicity = 'location';
-    } else {
-      locationmultiplicity = 'locations';
-    }
-    // eslint-disable-next-line camelcase
-    return `${long_name} ${operator} than ${limit} ${unit} detected at ${locations.length} ` + locationmultiplicity;
-  }
-
-  showTriggerMessage (data) {
-    console.log('show', data);
-    const { dispatch } = this.props;
-    dispatch(notify({
-      title: data.phenomenon.long_name,
-      message: this.setTriggerMessage(data),
-      status: 'warning',
-      image: 'https://static.wixstatic.com/media/73705d_91d9fa48770e4ed283fc30da3b178041~mv2.gif',
-      position: 'bl',
-      dismissAfter: 0,
-      dismissible: true
-    }));
   }
 
   render () {
@@ -165,7 +120,6 @@ class TriggerActiveCategory extends Component {
 }
 
 TriggerActiveCategory.propTypes = {
-  dispatch      : PropTypes.func,
   isOpen        : PropTypes.bool,
   title         : PropTypes.string.isRequired,
   icon          : PropTypes.string,

@@ -18,10 +18,12 @@ import { Link, hashHistory } from 'react-router';
 import PropTypes from 'prop-types';
 import moment from 'moment';
 import cloneDeep from 'lodash.clonedeep';
-// import { notify } from 'reapop';
 import { Typeahead } from 'react-bootstrap-typeahead';
 import { GetServices } from '../utils/getServiceByName';
 import { version } from '../../package.json';
+import SockJS from 'sockjs-client';
+import { Stomp } from '@stomp/stompjs';
+import { notify } from 'reapop';
 const timeFormat = 'ddd DD MMM YYYY HH:mm [UTC]';
 const browserFullScreenRequests = [
   'mozRequestFullScreen',
@@ -33,6 +35,9 @@ class TitleBarContainer extends PureComponent {
   constructor (props) {
     super(props);
     this.setTime = this.setTime.bind(this);
+    this.setWebSocket = this.setWebSocket.bind(this);
+    this.showTriggerMessage = this.showTriggerMessage.bind(this);
+    this.setTriggerMessage = this.setTriggerMessage.bind(this);
     this.doLogin = this.doLogin.bind(this);
     this.doLogout = this.doLogout.bind(this);
     this.savePreset = this.savePreset.bind(this);
@@ -62,6 +67,7 @@ class TitleBarContainer extends PureComponent {
     // this.addTriggerTest = this.addTriggerTest.bind(this);
     // this.setTriggerTestMessage = this.setTriggerTestMessage.bind(this);
     // this.readJSONFileTest = this.readJSONFileTest.bind(this);
+    this.socket = new SockJS(this.props.urls.BACKEND_SERVER_URL + '/websocket');
     this.inputfieldUserName = '';
     this.inputfieldPassword = '';
     this.timer = -1;
@@ -241,6 +247,7 @@ class TitleBarContainer extends PureComponent {
   componentWillUnmount () {
     clearInterval(this.timer);
     clearInterval(this.triggerIntervalId);
+    this.socket.close();
   }
 
   componentDidMount () {
@@ -250,6 +257,7 @@ class TitleBarContainer extends PureComponent {
     this.checkCredentials();
     this.fieldToFocus = 'username';
     this.fetchVersionInfo();
+    // this.setWebSocket();
   }
 
   componentDidUpdate () {
@@ -259,6 +267,49 @@ class TitleBarContainer extends PureComponent {
         this.focussedField = this.fieldToFocus;
       }
     }
+  }
+
+  setWebSocket () {
+    const { showTriggerMessage } = this;
+
+    const stompClient = Stomp.over(this.socket);
+    stompClient.connect({}, function () {
+      stompClient.subscribe('/trigger/messages', function (message) {
+        const json = JSON.parse(message.body);
+        const { Notifications } = json;
+        for (let i = 0; i < Notifications.length; i++) {
+          showTriggerMessage(Notifications[i]);
+        };
+      });
+    });
+  }
+
+  setTriggerMessage (data) {
+    let locationmultiplicity = '';
+    const { locations, phenomenon } = data;
+    // eslint-disable-next-line camelcase
+    const { long_name, operator, limit, unit } = phenomenon;
+    if (locations.length === 1) {
+      locationmultiplicity = 'location';
+    } else {
+      locationmultiplicity = 'locations';
+    }
+    // eslint-disable-next-line camelcase
+    return `${long_name} ${operator} than ${limit} ${unit} detected at ${locations.length} ` + locationmultiplicity;
+  }
+
+  showTriggerMessage (data) {
+    console.log('show', data);
+    const { dispatch } = this.props;
+    dispatch(notify({
+      title: data.phenomenon.long_name,
+      message: this.setTriggerMessage(data),
+      status: 'warning',
+      image: 'https://static.wixstatic.com/media/73705d_91d9fa48770e4ed283fc30da3b178041~mv2.gif',
+      position: 'bl',
+      dismissAfter: 0,
+      dismissible: true
+    }));
   }
 
   doLogin () {
