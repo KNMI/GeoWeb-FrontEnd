@@ -129,7 +129,7 @@ class SigmetEditMode extends PureComponent {
             return;
         }
       }
-      dispatch(actions.updateSigmetLevelAction(uuid, 'mode', result));
+      dispatch(actions.updateSigmetAction(uuid, 'levelinfo.mode', result));
     }
   };
 
@@ -329,7 +329,8 @@ class SigmetEditMode extends PureComponent {
         ? `${messagePrefix} expected to be at the end of the valid period.`
         : feedbackEnd || '';
     const abilityCtAs = this.reduceAbilities(selectedPhenomenon); // CtA = Call To Action
-    return <Button tag='div' className={`Sigmet row${focus ? ' focus' : ''}`} id={uuid} onClick={!focus ? (evt) => dispatch(actions.focusSigmetAction(evt, uuid)) : null}>
+    return <Button tag='div' className={`Sigmet row${focus ? ' focus' : ''}`} id={uuid}
+      onClick={!focus ? (evt) => dispatch(actions.focusSigmetAction(evt, uuid)) : null}>
       <Col>
         <HeaderSection />
         <WhatSection>
@@ -467,7 +468,7 @@ class SigmetEditMode extends PureComponent {
                 <DropdownMenu>
                   {UNITS_ALT.map((unit, index) =>
                     <DropdownItem key={`unitDropDown-${index}`}
-                      onClick={(evt) => dispatch(actions.updateSigmetLevelAction(uuid, 'unit', { unit: unit, isUpperLevel: false }))}>{unit.label}</DropdownItem>
+                      onClick={(evt) => dispatch(actions.updateSigmetAction(uuid, 'levelinfo.levels.0.unit', unit))}>{unit.label}</DropdownItem>
                   )}
                 </DropdownMenu>
               </ButtonDropdown>
@@ -475,7 +476,7 @@ class SigmetEditMode extends PureComponent {
             <Input placeholder='Level' disabled={isLevelBetween} type='number' pattern='\d{0,5}'
               min='0' step={this.stepLevelPerUnit(levelinfo.levels[0].unit)} max={this.maxLevelPerUnit(levelinfo.levels[0].unit)}
               value={(isLevelBetween || !levelinfo.levels[0].value) ? '' : this.formatLevelPerUnit(levelinfo.levels[0].value, levelinfo.levels[0].unit)}
-              onChange={(evt) => dispatch(actions.updateSigmetLevelAction(uuid, 'value', { value: evt.target.value, isUpperLevel: false }))} />
+              onChange={(evt) => dispatch(actions.updateSigmetAction(uuid, 'levelinfo.levels.0.value', evt.target.value))} />
           </InputGroup>
           <Switch
             className={isLevelBetween && !levelMode.hasSurface &&
@@ -493,7 +494,10 @@ class SigmetEditMode extends PureComponent {
                     <DropdownMenu>
                       {UNITS_ALT.map((unit, index) =>
                         <DropdownItem key={`unitDropDown-${index}`}
-                          onClick={(evt) => dispatch(actions.updateSigmetLevelAction(uuid, 'unit', { unit: unit, isUpperLevel: false }))}>{unit.label}</DropdownItem>
+                          onClick={(evt) => {
+                            evt.preventDefault(); // prevent the switch from being triggered
+                            return dispatch(actions.updateSigmetAction(uuid, 'levelinfo.levels.0.unit', unit));
+                          }}>{unit.label}</DropdownItem>
                       )}
                     </DropdownMenu>
                   </ButtonDropdown>
@@ -503,7 +507,7 @@ class SigmetEditMode extends PureComponent {
                   value={(!isLevelBetween || levelMode.hasSurface || !levelinfo.levels[0].value)
                     ? ''
                     : this.formatLevelPerUnit(levelinfo.levels[0].value, levelinfo.levels[0].unit)}
-                  onChange={(evt) => dispatch(actions.updateSigmetLevelAction(uuid, 'value', { value: evt.target.value, isUpperLevel: false }))} />
+                  onChange={(evt) => dispatch(actions.updateSigmetAction(uuid, 'levelinfo.levels.0.value', evt.target.value))} />
               </InputGroup>
             }}
             unCheckedOption={{ optionId: 'sfc', label: 'SFC' }}
@@ -523,7 +527,7 @@ class SigmetEditMode extends PureComponent {
                 <DropdownMenu>
                   {UNITS_ALT.map((unit, index) =>
                     <DropdownItem key={`unitDropDown-${index}`}
-                      onClick={(evt) => dispatch(actions.updateSigmetLevelAction(uuid, 'unit', { unit: unit, isUpperLevel: true }))}>{unit.label}</DropdownItem>
+                      onClick={(evt) => dispatch(actions.updateSigmetAction(uuid, 'levelinfo.levels.1.unit', unit))}>{unit.label}</DropdownItem>
                   )}
                 </DropdownMenu>
               </ButtonDropdown>
@@ -531,7 +535,7 @@ class SigmetEditMode extends PureComponent {
             <Input placeholder='Level' disabled={!isLevelBetween} type='number'
               min='0' step={this.stepLevelPerUnit(levelinfo.levels[1].unit)} max={this.maxLevelPerUnit(levelinfo.levels[1].unit)}
               value={(!isLevelBetween || !levelinfo.levels[1].value) ? '' : this.formatLevelPerUnit(levelinfo.levels[1].value, levelinfo.levels[1].unit)}
-              onChange={(evt) => dispatch(actions.updateSigmetLevelAction(uuid, 'value', { value: evt.target.value, isUpperLevel: true }))} />
+              onChange={(evt) => dispatch(actions.updateSigmetAction(uuid, 'levelinfo.levels.1.value', evt.target.value))} />
           </InputGroup>
         </HeightsSection>
 

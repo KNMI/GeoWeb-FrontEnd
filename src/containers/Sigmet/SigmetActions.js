@@ -35,7 +35,6 @@ export const LOCAL_ACTIONS = {
   focusSigmetAction: (evt, uuid) => ({ type: LOCAL_ACTION_TYPES.FOCUS_SIGMET, event: evt, uuid: uuid }),
   addSigmetAction: (ref) => ({ type: LOCAL_ACTION_TYPES.ADD_SIGMET, ref: ref }),
   updateSigmetAction: (uuid, dataField, value) => ({ type: LOCAL_ACTION_TYPES.UPDATE_SIGMET, uuid: uuid, dataField: dataField, value: value }),
-  updateSigmetLevelAction: (uuid, dataField, context) => ({ type: LOCAL_ACTION_TYPES.UPDATE_SIGMET_LEVEL, uuid: uuid, dataField: dataField, context: context }),
   clearSigmetAction: (evt, uuid) => ({ type: LOCAL_ACTION_TYPES.CLEAR_SIGMET, event: evt, uuid: uuid }),
   discardSigmetAction: (evt, uuid) => ({ type: LOCAL_ACTION_TYPES.DISCARD_SIGMET, event: evt, uuid: uuid }),
   saveSigmetAction: (evt, uuid) => ({ type: LOCAL_ACTION_TYPES.SAVE_SIGMET, event: evt, uuid: uuid }),
@@ -266,7 +265,7 @@ const STATE = {
     feedbackStart: null,
     feedbackEnd: null,
     hasEdits: false,
-    tacRepresentation: null
+    tacRepresentation: null // FIXME: tac is also stored in sigmet
   },
   copiedSigmetRef: null,
   isContainerOpen: true,

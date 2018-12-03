@@ -54,9 +54,9 @@ const mergeInTemplate = (incomingValues, parentName, templates) => {
         const templateValue = produce(getNestedProperty(draftState, pathParts), () => {});
         const nextValue = getNestedProperty(incomingValues, pathParts);
         // check for allowed type changes
-        if (templateValue === null || nextValue === null ||
+        if (templateValue === null ||
           (!Array.isArray(templateValue) && (typeof templateValue !== 'object' || templateValue.constructor !== Object) &&
-          typeof templateValue === typeof nextValue)) {
+          (typeof templateValue === typeof nextValue || nextValue === null))) {
           setNestedProperty(draftState, pathParts, nextValue);
         // allows for emptying arrays
         } else if (Array.isArray(templateValue) && templateValue.length > 0 && Array.isArray(nextValue) && nextValue.length === 0) {
@@ -97,9 +97,9 @@ const mergeInTemplate = (incomingValues, parentName, templates) => {
 
               const nextValue = getNestedProperty(incomingValues, pathParts);
               // check for allowed type changes
-              if (templateValue === null || nextValue === null ||
+              if (templateValue === null ||
                 (!Array.isArray(templateValue) && (typeof templateValue !== 'object' || templateValue.constructor !== Object) &&
-                  typeof templateValue === typeof nextValue)) {
+                  (typeof templateValue === typeof nextValue || nextValue === null))) {
                 setNestedProperty(draftState, pathParts, nextValue);
                 // allows for emptying arrays
               } else if (Array.isArray(templateValue) && templateValue.length > 0 && Array.isArray(nextValue) && nextValue.length === 0) {
@@ -148,16 +148,21 @@ const mergeInTemplate = (incomingValues, parentName, templates) => {
             return;
           }
 
+          console.log('Check (1)');
+          console.log('Tmpl1', pointer, JSON.stringify(templateForArray, null, 2));
           if (!Array.isArray(templateForArray) || templateForArray.length === 0) {
             // next, look up an alternative template
             // find closest ancestor in the data structure with a provided template
             // 1) find indices of path parts for which a template is available (i.e. template key starts with property name)
+            console.log('Check (2)');
+
             const templateKeys = Object.keys(templates);
             const partsWithTemplateIndices = templateKeys
               .map((key) => pathParts.slice(0, numericIndex).lastIndexOf(key.split('-')[0]))
               .filter((index) => index !== -1);
             if (Array.isArray(partsWithTemplateIndices) && partsWithTemplateIndices.length > 0) {
               // 2) sort (descending) the indices to determine the closest ancestor template(s) in line
+              console.log('Check (3)');
               partsWithTemplateIndices.sort((a, b) => b - a);
               const relativeTemplatePath = templatePath.slice(partsWithTemplateIndices[0] + 1); // path from ancestor to template
               const ancestorProperty = pathParts[partsWithTemplateIndices[0]];
@@ -191,9 +196,9 @@ const mergeInTemplate = (incomingValues, parentName, templates) => {
             const templateValue = getNestedProperty(affectedArray, pathParts.slice(numericIndex));
             const nextValue = getNestedProperty(incomingValues, pathParts);
             // check for allowed type changes
-            if (templateValue === null || nextValue === null ||
-                (!Array.isArray(templateValue) && (typeof templateValue !== 'object' || templateValue.constructor !== Object) &&
-                  typeof templateValue === typeof nextValue)) {
+            if (templateValue === null ||
+              (!Array.isArray(templateValue) && (typeof templateValue !== 'object' || templateValue.constructor !== Object) &&
+                (typeof templateValue === typeof nextValue || nextValue === null))) {
               setNestedProperty(draftState, pathParts, nextValue);
             }
           }

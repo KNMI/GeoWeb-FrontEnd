@@ -1,5 +1,6 @@
 import produce from 'immer';
 import moment from 'moment';
+import { notify } from 'reapop';
 import { SIGMET_TEMPLATES, UNITS, UNITS_ALT, MODES_LVL, MOVEMENT_TYPES,
   PHENOMENON_CODE_VOLCANIC_ASH, SIGMET_VARIANTS_PREFIXES } from '../../components/Sigmet/SigmetTemplates';
 import { SIGMET_MODES, LOCAL_ACTION_TYPES, CATEGORY_REFS, STATUSES } from './SigmetActions';
@@ -9,10 +10,6 @@ import { getPresetForPhenomenon } from '../../components/Sigmet/SigmetPresets';
 import axios from 'axios';
 import cloneDeep from 'lodash.clonedeep';
 import uuidv4 from 'uuid/v4';
-
-const WARN_MSG = {
-  PREREQUISITES_NOT_MET: 'Not all prerequisites are met yet:'
-};
 
 const ERROR_MSG = {
   RETRIEVE_SIGMETS: 'Could not retrieve SIGMETs:',
@@ -63,7 +60,7 @@ const byValidDate = (sigmetA, sigmetB) => {
 };
 
 const showFeedback = (container, title, message, status) => {
-  const { dispatch, notify } = container.props;
+  const { dispatch } = container.props;
   dispatch(notify({
     title: title,
     message: message,
@@ -74,17 +71,19 @@ const showFeedback = (container, title, message, status) => {
   }));
 };
 
-const toggleContainer = (evt, container) => {
+const toggleContainer = (container) => {
   return setStatePromise(container, {
     isContainerOpen: !container.state.isContainerOpen
   });
 };
 
-const toggleCategory = (evt, ref, container) => {
+const toggleCategory = (ref, container) => {
   const { state } = container;
   const isChangeToCategoryAddSigmet = ref !== state.focussedCategoryRef && ref === CATEGORY_REFS.ADD_SIGMET;
   const sigmetSelection = isChangeToCategoryAddSigmet
-    ? [getEmptySigmet(container)]
+    ? [ produce(getEmptySigmet(container), draftState => {
+      draftState.geojson = initialGeoJson();
+    })]
     : [];
   return selectSigmet(sigmetSelection, container).then(() =>
     setStatePromise(container, {
@@ -276,7 +275,7 @@ const retrieveCategorizedSigmets = (container, retrievableCategory) => {
           incomingSigmets.push(...response.data.sigmets);
         }
         incomingSigmets.sort(byValidDate);
-        // temporary functionality to add TAC to SIGMET
+        // FIXME: temporary functionality to add TAC to SIGMET
         const augmentedSigmets = incomingSigmets.map((incomingSigmet) =>
           retrieveSigmetTac(container, incomingSigmet.uuid).then(tacResult => {
             incomingSigmet.tac = tacResult.code;
@@ -286,6 +285,8 @@ const retrieveCategorizedSigmets = (container, retrievableCategory) => {
         Promise.all(augmentedSigmets).then((sigmets) =>
           resolve({ ref: retrievableCategory.ref, sigmets })
         );
+        // FIXME: replace code below previous FIXME with the next line
+        // resolve({ ref: retrievableCategory.ref, sigmets: incomingSigmets });
       } else {
         reject(new Error(`${ERROR_MSG.RETRIEVE_SIGMETS} for ${retrievableCategory.ref} `,
           `because ${response.status === 200 ? 'no response data could be retrieved' : `status was not OK [${response.status}]`}`));
@@ -313,11 +314,7 @@ const refreshCategoryState = (container, categorizedSigmets) => {
   if (isNaN(categoryIndex) || categoryIndex === -1) {
     return Promise.reject(new Error(`${ERROR_MSG.FIND_CATEGORY}`));
   }
-
-  const newCategories = [];
-  newCategories.push(...Array(categoryIndex).fill({}));
-  newCategories.push({ sigmets });
-
+  const newCategories = [...Array(categoryIndex).fill({}), { sigmets }];
   return setStatePromise(container, { categories: newCategories });
 };
 
@@ -351,7 +348,7 @@ const setStatePromise = (container, newProps) => {
   const templateWithDefaults = {
     'SIGMET': getEmptySigmet(container)
   };
-  templateWithDefaults['SIGMET'] = produce(templateWithDefaults['SIGMET'], draftState => {
+  templateWithDefaults.SIGMET = produce(templateWithDefaults.SIGMET, draftState => {
     draftState.geojson = initialGeoJson();
   });
   return new Promise((resolve, reject) => {
@@ -448,18 +445,18 @@ const selectSigmet = (selection, container) => {
     .then((preset) => updateDisplayedPreset(preset, container));
 };
 
-const focusSigmet = (evt, uuid, container) => {
+const focusSigmet = (uuid, container) => {
   const { dispatch, mapActions } = container.props;
   const { state } = container;
-  if (evt && evt.target && evt.target.tagName === 'BUTTON') {
-    return;
-  }
   const selection = [];
   const indices = findCategoryAndSigmetIndex(uuid, state);
+  let categoryRef = null;
 
   if (indices.isFound) {
-    const sigmet = state.categories[indices.categoryIndex].sigmets[indices.sigmetIndex];
+    const category = state.categories[indices.categoryIndex];
+    const sigmet = category.sigmets[indices.sigmetIndex];
     if (sigmet) {
+      categoryRef = category.ref;
       selection.push(sigmet);
     } else {
       return Promise.reject(new Error(`${ERROR_MSG.SELECT_SIGMET}`));
@@ -467,10 +464,16 @@ const focusSigmet = (evt, uuid, container) => {
   } else {
     return Promise.reject(new Error(`${ERROR_MSG.SELECT_SIGMET}`));
   }
-  selectSigmet(selection, container).then(() => {
-    dispatch(mapActions.setMapMode('pan'));
-    return Promise.resolve(uuid);
-  });
+  const categoryTogglePromise = categoryRef !== state.focussedCategoryRef
+    ? toggleCategory(categoryRef, container)
+    : Promise.resolve();
+
+  categoryTogglePromise
+    .then(() => selectSigmet(selection, container))
+    .then(() => {
+      dispatch(mapActions.setMapMode('pan'));
+      return Promise.resolve(uuid);
+    });
 };
 
 const updateFir = (firName, container) => {
@@ -599,25 +602,6 @@ const getEmptySigmet = (container) => produce(SIGMET_TEMPLATES.SIGMET, draftSigm
   }
 });
 
-const addSigmet = (ref, container) => {
-  if (container.state.parameters && Array.isArray(container.state.phenomena) && container.state.phenomena.length > 0) {
-    const newSigmet = getEmptySigmet(container);
-    container.setState(produce(container.state, draftState => {
-      const categoryIndex = draftState.categories.findIndex((category) => category.ref === ref);
-      if (!isNaN(categoryIndex) && categoryIndex !== -1) {
-        if (ref === CATEGORY_REFS.ADD_SIGMET) {
-          draftState.categories[categoryIndex].sigmets.length = 0; // ensures always just one new sigmet
-        }
-        draftState.categories[categoryIndex].sigmets.push(newSigmet);
-      }
-    }), () => container.props.dispatch(container.props.drawActions.setGeoJSON(initialGeoJson())));
-  } else {
-    !container.state.parameters
-      ? console.warn(WARN_MSG.PREREQUISITES_NOT_MET, 'parameters:', container.state.parameters)
-      : console.warn(WARN_MSG.PREREQUISITES_NOT_MET, 'phenomena:', container.state.phenomena);
-  }
-};
-
 const findCategoryAndSigmetIndex = (uuid, state) => {
   let sigmetIndex = -1;
   const categoryIndex = state.categories.findIndex((category) => {
@@ -707,145 +691,124 @@ const updateDisplayedPreset = (preset, container) => {
   }
 };
 
-const updateSigmet = (uuid, dataField, value, container) => {
-  const { state, props } = container;
-  const { drawProperties, dispatch, drawActions } = props;
+const updateSigmet = (dataField, value, container) => {
+  const { props } = container;
+  const { drawProperties, dispatch, drawActions, sources } = props;
+  const { selectedSigmet, parameters } = container.state;
+
+  const affectedSigmet = Array.isArray(selectedSigmet) && selectedSigmet.length === 1
+    ? selectedSigmet[0]
+    : null;
+  if (!affectedSigmet) {
+    return Promise.reject(new Error(`To enable updating a SIGMET, there must be a SIGMET selected (selectedSigmet must be a non-empty array)`));
+  }
+
   const shouldCleanEndFeature = dataField === 'movement_type' && value !== MOVEMENT_TYPES.FORECAST_POSITION;
   const shouldCleanMovement = dataField === 'movement_type' && value !== MOVEMENT_TYPES.MOVEMENT;
-  let updateMaxHoursDuration = null;
-  const indices = findCategoryAndSigmetIndex(uuid, state);
-  if (!dataField || !indices.isFound) {
-    return;
-  }
+  let preset = null;
+  const shouldUpdatePreset = (preset) => !!preset;
+  let maxHoursDuration = null;
+  const shouldUpdateMaxHoursDuration = (maxHoursDuration) => !!maxHoursDuration;
+  let shouldCleanLevels = false;
+
   const dataFieldParts = dataField.split('.');
   const fieldToUpdate = dataFieldParts.length > 0 && dataFieldParts.pop();
-  if (fieldToUpdate === 'phenomenon') {
-    if (Array.isArray(value)) {
-      if (value.length === 0) {
-        value = '';
-      } else {
-        value = value[0].code;
-      }
-    }
+  const isPhenomenonUpdate = fieldToUpdate === 'phenomenon';
+  if (isPhenomenonUpdate) {
+    value = Array.isArray(value) && value.length > 0
+      ? value[0].code
+      : null;
+
     if (value) {
-      const { sources } = props;
-      const { parameters } = state;
-      const sigmet = container.state.categories[indices.categoryIndex].sigmets[indices.sigmetIndex];
       const isVolcanicAsh = value === PHENOMENON_CODE_VOLCANIC_ASH;
       const prefix = isVolcanicAsh
         ? SIGMET_VARIANTS_PREFIXES.VOLCANIC_ASH
         : SIGMET_VARIANTS_PREFIXES.NORMAL;
-      const activeFirEntry = Object.entries(parameters.firareas).filter((entry) => entry[1].firname === sigmet.firname &&
-        entry[1].location_indicator_icao === sigmet.location_indicator_icao);
+      const activeFirEntry = Object.entries(parameters.firareas).filter((entry) => entry[1].firname === affectedSigmet.firname &&
+        entry[1].location_indicator_icao === affectedSigmet.location_indicator_icao);
       const activeFir = Array.isArray(activeFirEntry) && activeFirEntry.length === 1
         ? activeFirEntry[0][1]
         : null;
-      updateMaxHoursDuration = activeFir
+      maxHoursDuration = activeFir
         ? activeFir[`${prefix}maxhoursofvalidity`]
         : null;
-      const preset = getPresetForPhenomenon(value, sources);
-      updateDisplayedPreset(preset, container);
+      preset = getPresetForPhenomenon(value, sources);
     }
   }
   if (dataField.indexOf('volcano.position') !== -1) {
-    value = value !== null && !isNaN(value) ? parseFloat(value) : null;
+    value = (value !== null && !isNaN(value))
+      ? parseFloat(value)
+      : null;
   }
-  container.setState(produce(state, draftState => {
-    const parentToUpdate = dataFieldParts.reduce(
-      (traverser, propertyKey) => traverser && traverser[propertyKey],
-      draftState.categories[indices.categoryIndex].sigmets[indices.sigmetIndex]
-    );
-    parentToUpdate[!isNaN(fieldToUpdate) ? parseInt(fieldToUpdate) : fieldToUpdate] = value;
-    if (shouldCleanMovement) {
-      draftState.categories[indices.categoryIndex].sigmets[indices.sigmetIndex]['movement'] = produce(SIGMET_TEMPLATES.MOVEMENT, () => {});
+  if (dataField.indexOf('levelinfo') !== -1) {
+    switch (fieldToUpdate) {
+      case 'unit':
+        value = UNITS_ALT.includes(value)
+          ? value.unit
+          : UNITS.FL.unit;
+        break;
+      case 'value':
+        value = value !== null && !isNaN(value) ? parseInt(value) : null;
+        break;
+      case 'mode':
+        const betweenModes = [MODES_LVL.BETW, MODES_LVL.BETW_SFC];
+        const isCurrentModeABetween = betweenModes.includes(affectedSigmet.levelinfo.mode);
+        const isNextModeABetween = betweenModes.includes(value);
+        if ((isCurrentModeABetween && !isNextModeABetween) || (!isCurrentModeABetween && isNextModeABetween)) {
+          shouldCleanLevels = true;
+        }
+        break;
     }
-    if (updateMaxHoursDuration !== null) {
-      draftState.categories[indices.categoryIndex].sigmets[indices.sigmetIndex]['validdate'] = getRoundedNow().format();
-      draftState.categories[indices.categoryIndex].sigmets[indices.sigmetIndex]['validdate_end'] = getRoundedNow().add(updateMaxHoursDuration, 'hour').format();
-    }
-    draftState.selectedAuxiliaryInfo.hasEdits = true;
-  }), () => {
-    if (shouldCleanEndFeature === true) {
-      const features = cloneDeep(drawProperties.adagucMapDraw.geojson.features);
-      const endFeature = features.find((potentialEndFeature) => potentialEndFeature.properties.featureFunction === 'end');
-      if (endFeature && endFeature.id) {
-        dispatch(drawActions.setFeature({
-          geometry: { coordinates: [], type: null },
-          properties: { selectionType: null },
-          featureId: endFeature.id }));
-        clearRelatedIntersection(endFeature.id, features, dispatch, drawActions);
-      }
-    }
-  });
-};
+  }
 
-const updateSigmetLevel = (uuid, dataField, context, container) => {
-  const indices = findCategoryAndSigmetIndex(uuid, container.state);
-  if (!indices.isFound) {
-    return;
+  const toStructure = (key, value) =>
+    !isNaN(key)
+      ? [...Array(parseInt(key)).fill({}), value]
+      : { [key]: value };
+
+  const selectedSigmetUpdate = dataFieldParts.reduceRight(
+    (traverser, propertyKey) => toStructure(propertyKey, traverser),
+    toStructure(fieldToUpdate, value)
+  );
+
+  if (shouldCleanMovement) {
+    selectedSigmetUpdate.movement = produce(SIGMET_TEMPLATES.MOVEMENT, () => { });
   }
-  let newLevelInfo = {};
-  switch (dataField) {
-    case 'mode':
-      newLevelInfo.mode = context;
-      const betwModes = [MODES_LVL.BETW, MODES_LVL.BETW_SFC];
-      const prevLevelInfo = container.state.categories[indices.categoryIndex].sigmets[indices.sigmetIndex].levelinfo;
-      let modeCatChange = false;
-      if ((betwModes.includes(context) && !betwModes.includes(prevLevelInfo.mode)) ||
-          (!betwModes.includes(context) && betwModes.includes(prevLevelInfo.mode))) {
-        modeCatChange = true;
-      }
-      newLevelInfo = produce(SIGMET_TEMPLATES.LEVELINFO, (draftLevelInfo) => {
-        draftLevelInfo.mode = context;
-        draftLevelInfo.levels.length = 0;
-        [0, 1].forEach((index) => {
-          draftLevelInfo.levels.push(produce(SIGMET_TEMPLATES.LEVEL, (draftLevel) => {
-            if (modeCatChange !== true && prevLevelInfo.levels[index]) {
-              Object.entries(draftLevel).forEach((entry) => {
-                draftLevel[entry[0]] = prevLevelInfo.levels[index][entry[0]];
-              });
-            } else {
-              draftLevel.unit = UNITS.FL;
-            }
+  if (shouldUpdateMaxHoursDuration(maxHoursDuration)) {
+    selectedSigmetUpdate.validdate = getRoundedNow().format();
+    selectedSigmetUpdate.validdate_end = getRoundedNow().add(maxHoursDuration, 'hour').format();
+  }
+  if (shouldCleanLevels) {
+    selectedSigmetUpdate.levelinfo.levels = [...Array(2).fill(produce(SIGMET_TEMPLATES.LEVEL, (draftLevel) => {
+      draftLevel.unit = UNITS.FL;
+    }))];
+  }
+
+  setStatePromise(container, {
+    selectedSigmet: [
+      selectedSigmetUpdate
+    ],
+    selectedAuxiliaryInfo: {
+      hasEdits: true
+    }
+  }).then(() => shouldUpdatePreset(preset)
+    ? updateDisplayedPreset(preset, container)
+    : Promise.resolve())
+    .then(() => {
+      if (shouldCleanEndFeature === true) {
+        const features = cloneDeep(drawProperties.adagucMapDraw.geojson.features);
+        const endFeature = features.find((potentialEndFeature) => potentialEndFeature.properties.featureFunction === 'end');
+        if (endFeature && endFeature.id) {
+          dispatch(drawActions.setFeature({
+            geometry: { coordinates: [], type: null },
+            properties: { selectionType: null },
+            featureId: endFeature.id
           }));
-        });
-      });
-      break;
-    case 'unit':
-      if (UNITS_ALT.includes(context.unit) && typeof context.isUpperLevel === 'boolean') {
-        newLevelInfo.levels = [];
-        newLevelInfo.levels[context.isUpperLevel ? 1 : 0] = { unit: context.unit.unit };
-      }
-      break;
-    case 'value':
-      if (typeof context.isUpperLevel === 'boolean') {
-        newLevelInfo.levels = [];
-        newLevelInfo.levels[context.isUpperLevel ? 1 : 0] = { value: context.value !== null && !isNaN(context.value) ? parseInt(context.value) : null };
-      }
-      break;
-    default:
-      console.error(`Level dataField ${dataField} is unknown and not implemented.`);
-  }
-  container.setState(produce(container.state, draftState => {
-    if (Object.keys(newLevelInfo).length > 0) {
-      if (newLevelInfo.mode && typeof newLevelInfo.mode === 'string') {
-        draftState.categories[indices.categoryIndex].sigmets[indices.sigmetIndex]['levelinfo']['mode'] = newLevelInfo.mode;
-        if (newLevelInfo.mode !== MODES_LVL.BETW) {
-          draftState.categories[indices.categoryIndex].sigmets[indices.sigmetIndex]['levelinfo']['levels'][1].value = null;
+          clearRelatedIntersection(endFeature.id, features, dispatch, drawActions);
         }
       }
-      if (newLevelInfo.levels && Array.isArray(newLevelInfo.levels)) {
-        newLevelInfo.levels.map((level, index) => {
-          if (typeof level === 'object') {
-            Object.entries(level).map((entry) => {
-              draftState.categories[indices.categoryIndex].sigmets[indices.sigmetIndex]['levelinfo']['levels'][index][entry[0]] = entry[1];
-            });
-          }
-        });
-      }
-      draftState.selectedAuxiliaryInfo.hasEdits = true;
-    }
-  }));
+      return Promise.resolve();
+    });
 };
 
 const clearRelatedIntersection = (featureId, features, dispatch, drawActions) => {
@@ -994,13 +957,15 @@ const createFirIntersection = (featureId, geojson, container) => {
         const responseMessage = typeof message === 'string' ? message : null;
         const { featureFunction } = featureToIntersect.properties;
         const feedbackProperty = `feedback${featureFunction.charAt(0).toUpperCase()}${featureFunction.slice(1)}`;
-        container.setState(produce(container.state, draftState => {
-          draftState.selectedAuxiliaryInfo[feedbackProperty] = responseMessage;
-        }), () => {
+        setStatePromise(container, {
+          selectedAuxiliaryInfo: {
+            [feedbackProperty]: responseMessage
+          }
+        }).then(() => {
           if (responseSucceeded === true) {
             dispatch(drawActions.setFeature({
               geometry: { coordinates: responseFeature.geometry.coordinates, type: responseFeature.geometry.type },
-              properties: { selectionType:  responseFeature.properties.selectionType },
+              properties: { selectionType: responseFeature.properties.selectionType },
               featureId: intersectionFeature.id
             }));
           }
@@ -1015,13 +980,15 @@ const createFirIntersection = (featureId, geojson, container) => {
 };
 
 const clearSigmet = (event, uuid, container) => {
-  addSigmet(container.state.focussedCategoryRef, container);
-  showFeedback(container, 'Sigmet cleared', 'The input on this Sigmet has been cleared successfully', FEEDBACK_STATUS.OK);
+  selectSigmet([getEmptySigmet(container)]).then(() =>
+    showFeedback(container, 'Sigmet cleared',
+      'The input on this Sigmet has been cleared successfully', FEEDBACK_STATUS.OK)
+  );
 };
 
 const discardSigmet = (event, uuid, container) => {
   showFeedback(container, 'Changes discarded', 'The changes are successfully discarded', FEEDBACK_STATUS.OK);
-  synchronizeSigmets(container).then(() => focusSigmet(event, null, container));
+  synchronizeSigmets(container).then(() => focusSigmet(null, container));
 };
 
 /**
@@ -1074,7 +1041,9 @@ const postSigmet = (container) => {
     }).then(response => {
       if (response.status === 200 && response.data) {
         let responseUuid = response.data.uuid;
-        resolve(responseUuid);
+        setStatePromise(container, {
+          displayModal: null
+        }).then(() => resolve(responseUuid));
       } else {
         reject(new Error(`${ERROR_MSG.POST_SIGMET} ${complementedSigmet.uuid}`,
           `because ${response.status === 200 ? 'no response data could be retrieved' : `status was not OK [${response.status}]`}`));
@@ -1092,7 +1061,7 @@ const postSigmet = (container) => {
 const saveSigmet = (event, container) => {
   postSigmet(container).then((uuid) => {
     showFeedback(container, 'Sigmet saved', `Sigmet ${uuid} was successfully saved`, FEEDBACK_STATUS.OK);
-    synchronizeSigmets(container).then(() => focusSigmet(event, uuid, container));
+    synchronizeSigmets(container).then(() => focusSigmet(uuid, container));
   }, (error) => {
     const errMsg = `Could not save Sigmet: ${error.message}`;
     console.error(errMsg);
@@ -1137,7 +1106,7 @@ const deleteSigmet = (event, container) => {
     responseType: 'json'
   }).then(response => {
     showFeedback(container, 'Sigmet deleted', `Sigmet ${affectedSigmet.uuid} was successfully deleted`, FEEDBACK_STATUS.OK);
-    synchronizeSigmets(container).then(() => focusSigmet(event, null, container));
+    synchronizeSigmets(container).then(() => focusSigmet(null, container));
   }).catch(error => {
     console.error('Couldn\'t delete Sigmet', error);
     showFeedback(container, 'Error', `An error occurred while deleting the Sigmet: ${error.response.data.error}`, FEEDBACK_STATUS.ERROR);
@@ -1236,7 +1205,7 @@ const publishSigmet = (event, uuid, container) => {
   }).then(() => postSigmet(container))
     .then((uuid) => {
       showFeedback(container, 'Sigmet published', `Sigmet ${uuid} was successfully published`, FEEDBACK_STATUS.OK);
-      return synchronizeSigmets(container).then(() => focusSigmet(event, affectedSigmet.uuid, container));
+      return synchronizeSigmets(container).then(() => focusSigmet(affectedSigmet.uuid, container));
     }, (error) => {
       const errMsg = `Could not publish Sigmet: ${error.message}`;
       console.error(errMsg);
@@ -1274,7 +1243,7 @@ const cancelSigmet = (event, container) => {
         const cancelSigmet = publishedCategory.sigmets.find((sigmet) => sigmet.cancels === canceledSigmet.sequence &&
         sigmet.phenomenon === canceledSigmet.phenomenon);
         if (cancelSigmet) {
-          focusSigmet(event, cancelSigmet.uuid, container);
+          focusSigmet(cancelSigmet.uuid, container);
         }
       }
     });
@@ -1297,38 +1266,37 @@ const verifySigmet = (sigmetObject, container) => {
   const { drawProperties, urls } = container.props;
   const cleanedFeatures = cleanFeatures(drawProperties.adagucMapDraw.geojson.features);
   const complementedSigmet = sanitizeSigmet(sigmetObject, cleanedFeatures);
-  container.setState(produce(container.state, draftState => {
-    draftState.selectedAuxiliaryInfo.tacRepresentation = '... retrieving TAC ...';
-  }));
-  axios({
-    method: 'post',
-    url: `${urls.BACKEND_SERVER_URL}/sigmets/verify`,
-    withCredentials: true,
-    responseType: 'json',
-    data: complementedSigmet
-  }).then(
-    response => {
-      if (response.data) {
-        let responseJson = response.data;
-        if (responseJson.TAC) {
-          container.setState(produce(container.state, draftState => {
-            draftState.selectedAuxiliaryInfo.tacRepresentation = responseJson.TAC;
-          }));
-        } else {
-          container.setState(produce(container.state, draftState => {
-            draftState.selectedAuxiliaryInfo.tacRepresentation = 'No TAC received from server';
-          }));
-        }
-      } else {
-        console.error('sigmet/verify has no response.data');
+  const setTacRepresentation = (representation) =>
+    setStatePromise(container, {
+      selectedAuxiliaryInfo: {
+        tacRepresentation: representation
       }
-    }
-  ).catch(error => {
-    console.error('sigmet/verify', error);
-    container.setState(produce(container.state, draftState => {
-      draftState.selectedAuxiliaryInfo.tacRepresentation = 'Unable to make TAC request';
-    }));
-  });
+    });
+  setTacRepresentation('... retrieving TAC ...').then(() =>
+    axios({
+      method: 'post',
+      url: `${urls.BACKEND_SERVER_URL}/sigmets/verify`,
+      withCredentials: true,
+      responseType: 'json',
+      data: complementedSigmet
+    }).then(
+      response => {
+        if (response.data) {
+          let responseJson = response.data;
+          if (responseJson.TAC) {
+            setTacRepresentation(responseJson.TAC);
+          } else {
+            setTacRepresentation('No TAC received from server');
+          }
+        } else {
+          console.error('sigmet/verify has no response.data');
+        }
+      }
+    ).catch(error => {
+      console.error('sigmet/verify', error);
+      setTacRepresentation('Unable to make TAC request');
+    })
+  );
 };
 
 /**
@@ -1342,9 +1310,9 @@ const toggleSigmetModal = (event, type, container) => {
   if (event) {
     event.stopPropagation();
   }
-  container.setState(produce(state, draftState => {
-    draftState.displayModal = draftState.displayModal === type ? null : type;
-  }));
+  return setStatePromise(container, {
+    displayModal: state.displayModal === type ? null : type
+  });
 };
 
 /**
@@ -1357,10 +1325,10 @@ const toggleSigmetModal = (event, type, container) => {
 export default (localAction, container) => {
   switch (localAction.type) {
     case LOCAL_ACTION_TYPES.TOGGLE_CONTAINER:
-      toggleContainer(localAction.event, container);
+      toggleContainer(container);
       break;
     case LOCAL_ACTION_TYPES.TOGGLE_CATEGORY:
-      return toggleCategory(localAction.event, localAction.ref, container);
+      return toggleCategory(localAction.ref, container);
     case LOCAL_ACTION_TYPES.RETRIEVE_PARAMETERS:
       return retrieveParameters(container);
     case LOCAL_ACTION_TYPES.RETRIEVE_PHENOMENA:
@@ -1368,16 +1336,18 @@ export default (localAction, container) => {
     case LOCAL_ACTION_TYPES.RETRIEVE_SIGMETS:
       return synchronizeSigmets(container);
     case LOCAL_ACTION_TYPES.FOCUS_SIGMET:
-      focusSigmet(localAction.event, localAction.uuid, container);
+      if (localAction.event && localAction.event.target && localAction.event.target.tagName === 'BUTTON') {
+        return;
+      }
+      focusSigmet(localAction.uuid, container);
       break;
     case LOCAL_ACTION_TYPES.ADD_SIGMET:
-      addSigmet(localAction.ref, container);
+      console.error('ADD_SIGMET is deprecated');
       break;
     case LOCAL_ACTION_TYPES.UPDATE_SIGMET:
-      updateSigmet(localAction.uuid, localAction.dataField, localAction.value, container);
-      break;
+      return updateSigmet(localAction.dataField, localAction.value, container);
     case LOCAL_ACTION_TYPES.UPDATE_SIGMET_LEVEL:
-      updateSigmetLevel(localAction.uuid, localAction.dataField, localAction.context, container);
+      console.error('UPDATE_SIGMET_LEVEL is deprecated');
       break;
     case LOCAL_ACTION_TYPES.CLEAR_SIGMET:
       clearSigmet(localAction.event, localAction.uuid, container);

@@ -257,54 +257,6 @@ describe('(Reducer) Sigmet/SigmetReducers', () => {
       }).catch(done);
     });
   });
-  it('should handle addSigmet', (done) => {
-    const container = {
-      props: {
-        urls: {
-          BACKEND_SERVER_URL: 'http://localhost'
-        },
-        drawActions: {
-          setGeoJSON: () => { }
-        },
-        dispatch: () => { }
-      },
-      state: {
-        phenomena: [{
-          'code': 'OBSC_TSGR',
-          'layerpreset': 'sigmet_layer_TS',
-          'name': 'Obscured thunderstorm with hail'
-        }],
-        parameters: {
-          'maxhoursofvalidity': 4.0,
-          'hoursbeforevalidity': 4.0,
-          'firareas': [{ 'location_indicator_icao': 'EHAA', 'firname': 'FIR AMSTERDAM', 'areapreset': 'NL_FIR' }],
-          'location_indicator_wmo': 'EHDB'
-        },
-        firs: {},
-        categories: [{
-          ref: CATEGORY_REFS.ADD_SIGMET,
-          sigmets: [{ test: null }, { test: null }]
-        }]
-      }
-    };
-    container.setState = (partialState) => {
-      Object.entries(partialState).forEach((entry) => {
-        container.state[entry[0]] = entry[1];
-      });
-    };
-    expect(container.state).to.be.a('object');
-    expect(container.state).to.have.property('categories');
-    expect(container.state.categories).to.have.length(1);
-    expect(container.state.categories[0]).to.have.property('sigmets');
-    expect(container.state.categories[0].sigmets).to.have.length(2);
-    dispatch(LOCAL_ACTIONS.addSigmetAction(CATEGORY_REFS.ADD_SIGMET), container);
-    expect(container.state).to.be.a('object');
-    expect(container.state).to.have.property('categories');
-    expect(container.state.categories).to.have.length(1);
-    expect(container.state.categories[0]).to.have.property('sigmets');
-    expect(container.state.categories[0].sigmets).to.have.length(1);
-    done();
-  });
   it('should handle retrieveSigmets', (done) => {
     const sigmet = {
       'geojson': {
