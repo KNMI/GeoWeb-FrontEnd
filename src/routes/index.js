@@ -9,7 +9,7 @@ import { actions as mapActions } from '../redux/modules/mapReducer';
 import { actions as adagucActions } from '../redux/modules/adagucReducer';
 import { actions as panelsActions } from '../redux/modules/panelsReducer';
 import { actions as drawActions } from '../redux/modules/drawReducer';
-import { actions as triggerActions } from '../redux/modules/recentTriggerReducer';
+// import { actions as triggerActions } from '../redux/modules/recentTriggerReducer';
 import { Route, IndexRoute } from 'react-router';
 import { connect } from 'react-redux';
 
@@ -59,8 +59,8 @@ const mapDispatchToHeaderProps = function (dispatch) {
     mapActions,
     adagucActions,
     userActions,
-    panelsActions,
-    triggerActions
+    panelsActions
+    // triggerActions
   });
 };
 const mapStateToSidebarProps = state => ({
@@ -97,8 +97,8 @@ const mapDispatchToLayerManagerProps = function (dispatch) {
   return ({
     dispatch,
     panelsActions,
-    adagucActions,
-    triggerActions
+    adagucActions
+    // triggerActions
   });
 };
 const mapDispatchToSigmetProps = function (dispatch) {

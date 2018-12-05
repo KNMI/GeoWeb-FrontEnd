@@ -36,6 +36,7 @@ class TitleBarContainer extends PureComponent {
     super(props);
     this.setTime = this.setTime.bind(this);
     this.setWebSocket = this.setWebSocket.bind(this);
+    this.handleOnWebSocketMessage = this.handleOnWebSocketMessage.bind(this);
     this.showTriggerMessage = this.showTriggerMessage.bind(this);
     this.setTriggerMessage = this.setTriggerMessage.bind(this);
     this.doLogin = this.doLogin.bind(this);
@@ -74,6 +75,7 @@ class TitleBarContainer extends PureComponent {
     this.inputRefs = {};
     this.state = {
       currentTime: moment().utc().format(timeFormat).toString(),
+      triggerNotifications: [],
       loginModal: this.props.loginModal,
       loginModalMessage: '',
       feedbackModalOpen: false,
@@ -270,18 +272,24 @@ class TitleBarContainer extends PureComponent {
   }
 
   setWebSocket () {
-    const { showTriggerMessage } = this;
+    const { handleOnWebSocketMessage } = this;
 
     const stompClient = Stomp.over(this.socket);
     stompClient.connect({}, function () {
       stompClient.subscribe('/trigger/messages', function (message) {
         const json = JSON.parse(message.body);
         const { Notifications } = json;
-        for (let i = 0; i < Notifications.length; i++) {
-          showTriggerMessage(Notifications[i]);
-        };
+        handleOnWebSocketMessage(Notifications);
       });
     });
+  }
+
+  handleOnWebSocketMessage (Notifications) {
+    const { showTriggerMessage } = this;
+
+    this.setState({ triggerNotifications: Notifications });
+    console.log('In WebSocket Handler', this.state.triggerNotifications);
+    showTriggerMessage();
   }
 
   setTriggerMessage (data) {
@@ -298,18 +306,23 @@ class TitleBarContainer extends PureComponent {
     return `${long_name} ${operator} than ${limit} ${unit} detected at ${locations.length} ` + locationmultiplicity;
   }
 
-  showTriggerMessage (data) {
-    console.log('show', data);
+  showTriggerMessage () {
+    const { triggerNotifications } = this.state;
+    console.log('In show', triggerNotifications);
     const { dispatch } = this.props;
-    dispatch(notify({
-      title: data.phenomenon.long_name,
-      message: this.setTriggerMessage(data),
-      status: 'warning',
-      image: 'https://static.wixstatic.com/media/73705d_91d9fa48770e4ed283fc30da3b178041~mv2.gif',
-      position: 'bl',
-      dismissAfter: 0,
-      dismissible: true
-    }));
+    for (let i = 0; i < triggerNotifications.length; i++) {
+      console.log('In for loop', triggerNotifications[i]);
+      let trigger = triggerNotifications[i];
+      dispatch(notify({
+        title: trigger.phenomenon.long_name,
+        message: this.setTriggerMessage(trigger),
+        status: 'warning',
+        image: 'https://static.wixstatic.com/media/73705d_91d9fa48770e4ed283fc30da3b178041~mv2.gif',
+        position: 'bl',
+        dismissAfter: 0,
+        dismissible: true
+      }));
+    };
   }
 
   doLogin () {

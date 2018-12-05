@@ -21,7 +21,7 @@ describe('(Component) TitleBarContainer', () => {
     moxios.install();
     _component = mount(<TitleBarContainer urls={{ BACKEND_SERVER_URL: 'http://localhost:8080' }} mapProperties={{ boundingBox: emptyObj, projection: emptyObj }}
       user={{ roles: [], isLoggedIn: false }} userActions={{ login: _loginaction, logout: _logoutaction }}
-      adagucProperties={emptyObj} dispatch={emptyFunc} routes={[{ path: 'testpath' }]} />);
+      adagucProperties={emptyObj} dispatch={emptyFunc} routes={[{ path: 'testpath' }]} triggerNotifications={[]} />);
   });
   afterEach(() => {
     moxios.uninstall();
