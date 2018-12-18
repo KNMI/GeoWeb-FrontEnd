@@ -2,6 +2,11 @@ import PropTypes from 'prop-types';
 import cloneDeep from 'lodash.clonedeep';
 import moment from 'moment';
 
+const SIGMET_MODES = {
+  EDIT: 'EDIT',
+  READ: 'READ'
+};
+
 /**
  * TEMPLATES
  */
@@ -100,6 +105,92 @@ TEMPLATES.SIGMET = {
   location_indicator_icao: null, // string
   location_indicator_mwo: null, // string
   tac: null // string
+};
+TEMPLATES.ABILITIES = {
+  [SIGMET_MODES.READ]: {
+    isEditable: false,
+    isDeletable: false,
+    isCopyable: false,
+    isPublishable: false,
+    isCancelable: false
+  },
+  [SIGMET_MODES.EDIT]: {
+    isClearable: false,
+    isDiscardable: false,
+    isPastable: false,
+    isSavable: false
+  }
+};
+TEMPLATES.CATEGORY = {
+  ref: null, // string
+  title: null, // string
+  icon: null, // string
+  sigmets: [cloneDeep(TEMPLATES.SIGMET)],
+  abilities: cloneDeep(TEMPLATES.ABILITIES)
+};
+TEMPLATES.CONTAINER = {
+  categories: [
+    {
+      title: 'Open active SIGMETs',
+      icon: 'folder-open',
+      sigmets: [],
+      abilities: {}
+    },
+    {
+      title: 'Open concept SIGMETs',
+      icon: 'folder-open-o',
+      sigmets: [],
+      abilities: {}
+    },
+    {
+      title: 'Create new SIGMET',
+      icon: 'star-o',
+      sigmets: [],
+      abilities: {}
+    },
+    {
+      title: 'Open archived SIGMETs',
+      icon: 'archive',
+      sigmets: [],
+      abilities: {}
+    }
+  ],
+  phenomena: [cloneDeep(TEMPLATES.PHENOMENON)],
+  parameters: {
+    active_firs: [null], // string values
+    firareas: {
+      'pattern_^[A-Z]{4}$': {
+        adjacent_firs: cloneDeep(TEMPLATES.ADJACENT_FIRS),
+        areapreset: null, // string
+        firname: null, // string
+        location_indicator_icao: null, // string
+        hoursbeforevalidity: null, // number
+        maxhoursofvalidity: null, // number
+        tc_hoursbeforevalidity: null, // number
+        tc_maxhoursofvalidity: null, // number
+        va_hoursbeforevalidity: null, // number
+        va_maxhoursofvalidity: null // number
+      }
+    },
+    location_indicator_wmo: null // string
+  },
+  firs: {
+    'pattern_^[A-Z]+[ ](FIR|UIR|CTA)$': cloneDeep(TEMPLATES.FEATURE)
+  },
+  focussedCategoryRef: null, // string (uuid)
+  selectedSigmet: [cloneDeep(TEMPLATES.SIGMET)],
+  selectedAuxiliaryInfo: {
+    mode: null, // string
+    drawModeStart: null, // string
+    drawModeEnd: null, // string
+    feedbackStart: null, // string
+    feedbackEnd: null, // string
+    hasEdits: false, // boolean
+    tacRepresentation: null // string FIXME: tac is also stored in sigmet
+  },
+  copiedSigmetRef: null, // string
+  isContainerOpen: true, // boolean
+  displayModal: null // string
 };
 
 /**
@@ -352,6 +443,7 @@ const dateRanges = (now, startTimestamp, endTimestamp, maxHoursInAdvance, maxHou
 });
 
 module.exports = {
+  SIGMET_MODES: SIGMET_MODES,
   SIGMET_TEMPLATES: TEMPLATES,
   SIGMET_TYPES: TYPES,
   MOVEMENT_TYPES: MOVEMENT_TYPES,

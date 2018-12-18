@@ -1,10 +1,11 @@
 import produce from 'immer';
 import moment from 'moment';
 import { notify } from 'reapop';
-import { SIGMET_TEMPLATES, UNITS, UNITS_ALT, MODES_LVL, MOVEMENT_TYPES,
+import {
+  SIGMET_TEMPLATES, UNITS, UNITS_ALT, MODES_LVL, MOVEMENT_TYPES, DISTRIBUTION_TYPES,
   PHENOMENON_CODE_VOLCANIC_ASH, SIGMET_VARIANTS_PREFIXES } from '../../components/Sigmet/SigmetTemplates';
 import { SIGMET_MODES, LOCAL_ACTION_TYPES, CATEGORY_REFS, STATUSES } from './SigmetActions';
-import { clearEmptyPointersAndAncestors, mergeInTemplate, isFeatureGeoJsonComplete,
+import { clearEmptyPointersAndAncestors, safeMerge, isFeatureGeoJsonComplete,
   MODES_GEO_SELECTION, MODES_GEO_MAPPING, isObject } from '../../utils/json';
 import { getPresetForPhenomenon } from '../../components/Sigmet/SigmetPresets';
 import axios from 'axios';
@@ -352,11 +353,11 @@ const setStatePromise = (container, newProps) => {
     draftState.geojson = initialGeoJson();
   });
   return new Promise((resolve, reject) => {
-    container.setState(mergeInTemplate(
+    container.setState(safeMerge(
       newProps,
-      'stateStructure',
+      'containerState',
       {
-        'stateStructure': container.state,
+        'containerState': SIGMET_TEMPLATES.CONTAINER,
         'selectedSigmet': [
           templateWithDefaults.SIGMET
         ],
@@ -367,7 +368,8 @@ const setStatePromise = (container, newProps) => {
         'coordinates-point': produce(SIGMET_TEMPLATES.POINT_COORDINATE, () => {}),
         'phenomena': [produce(SIGMET_TEMPLATES.PHENOMENON, () => {})],
         'adjacent_firs': produce(SIGMET_TEMPLATES.ADJACENT_FIRS, () => { })
-      }
+      },
+      container.state
     ),
     () => { resolve(); });
   });
@@ -578,6 +580,7 @@ const addFirFeature = (geojson, firName, container) => {
 const getEmptySigmet = (container) => produce(SIGMET_TEMPLATES.SIGMET, draftSigmet => {
   const { parameters } = container.state;
   draftSigmet.status = STATUSES.CONCEPT;
+  draftSigmet.type = DISTRIBUTION_TYPES.TEST;
   draftSigmet.levelinfo.mode = MODES_LVL.AT;
   draftSigmet.levelinfo.levels[0].unit = UNITS.FL;
   draftSigmet.levelinfo.levels.push(cloneDeep(SIGMET_TEMPLATES.LEVEL));

@@ -1,5 +1,5 @@
 import produce from 'immer';
-import { SIGMET_TEMPLATES } from '../../components/Sigmet/SigmetTemplates';
+import { SIGMET_TEMPLATES, SIGMET_MODES } from '../../components/Sigmet/SigmetTemplates';
 
 export const LOCAL_ACTION_TYPES = {
   TOGGLE_CONTAINER: 'TOGGLE_CONTAINER',
@@ -49,11 +49,6 @@ export const LOCAL_ACTIONS = {
   createFirIntersectionAction: (featureId, geoJson) => ({ type: LOCAL_ACTION_TYPES.CREATE_FIR_INTERSECTION, featureId: featureId, geoJson: geoJson }),
   verifySigmetAction: (sigmetObject) => ({ type: LOCAL_ACTION_TYPES.VERIFY_SIGMET, sigmetObject: sigmetObject }),
   toggleSigmetModalAction: (evt, uuid, type) => ({ type: LOCAL_ACTION_TYPES.TOGGLE_SIGMET_MODAL, event: evt, uuid: uuid, modalType: type })
-};
-
-export const SIGMET_MODES = {
-  EDIT: 'EDIT',
-  READ: 'READ'
 };
 
 export const MODAL_TYPES = {
