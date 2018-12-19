@@ -48,8 +48,14 @@ const validate = (propertyKey, incomingStructure, existingStructure, templateStr
   const isPathPresent = isPropertyPresent(existingStructure, propertyKey);
   const isTemplatePresent = isPropertyPresent(templateStructure, Number.isInteger(propertyKey) ? 0 : propertyKey);
 
-  if (isPathPresent && !isTemplatePresent) {
+  if (!isTemplatePresent) {
+    // handle pattern properties, i.e. when the propertyKey matches a property name pattern
+    const matchingPatternKeys = Object.keys(templateStructure)
+      .filter((possiblePatternKey) => possiblePatternKey.startsWith(PATTERN_INDICATOR))
+      .filter((patternKey) => new RegExp(patternKey.substring(PATTERN_INDICATOR.length)).test(propertyKey));
+    if (matchingPatternKeys.length > 0) {
 
+    }
   }
 
   if (isPathPresent && isTemplatePresent && isSameTypeOrNull(incomingStructure[propertyKey], templateStructure[propertyKey])) {
@@ -80,6 +86,14 @@ const merge = (structure, key, value) => {
   });
 };
 
+/**
+ * Parallel traverse the incoming structure, the existing structure and the base template structure
+ * to merge the incoming values in the existing structure
+ * @param {Object|Array} incomingStructure - The data structure with values to merge into existing structure
+ * @param {Object|Array} existingStructure - The data structure to use as base structure for the merge
+ * @param {Object|Array} templateStructure - The base template structure to use as reference for validating and complementing
+ * @param {Object} optionalTemplates - Additional templates to use as reference for validating and complementing
+ */
 const parallelTraverse = (incomingStructure, existingStructure, templateStructure, optionalTemplates) => {
   // determine properties
   const incomingPropertyKeyList = Array.isArray(incomingStructure)
@@ -87,7 +101,7 @@ const parallelTraverse = (incomingStructure, existingStructure, templateStructur
     : isObject(incomingStructure)
       ? Object.keys(incomingStructure)
       : [];
-  // validate - and if necessary complement and merge - each property
+  // validate - and if necessary complement and if eventually valid, merge - each property
   incomingPropertyKeyList.forEach((incomingPropertyKey) => {
     const validationResult = {
       isValid: false,
@@ -117,6 +131,7 @@ const parallelTraverse = (incomingStructure, existingStructure, templateStructur
       }
     }
   });
+  // return blah;
 };
 
 /**
@@ -125,33 +140,33 @@ const parallelTraverse = (incomingStructure, existingStructure, templateStructur
  * @param {string} baseName - The property name of the top level incomingValues entity / base template
  * @param {Object} templates - A map of templates, with keys equal to the property names
  * @param {Object|Array} [existingData=null] - The data structure to use as alternative starting point for the merge
- * @returns {Promise} - A promise which resolves to the data structure template with the incoming values merged
+ * @returns {Object|Array} - The data structure template with the incoming values merged
  */
 const safeMerge = (incomingValues, baseName, templates, existingData = null) => {
   // input validation
   if (!templates || !isObject(templates)) {
-    return Promise.reject(new Error(`Argument 'templates' is missing a proper value`));
+    throw new Error(`Argument 'templates' is missing a proper value`);
   }
   if (!baseName || typeof baseName !== 'string') {
-    return Promise.reject(new Error(`Argument 'baseName' is missing a proper value`));
+    throw new Error(`Argument 'baseName' is missing a proper value`);
   }
   if (!templates.hasOwnProperty(baseName)) {
-    return Promise.reject(new Error(`Template for ${baseName} is missing`));
+    throw new Error(`Template for ${baseName} is missing`);
   }
 
   const hasExistingData = !!existingData;
   if (hasExistingData && (!isObject(existingData) && !Array.isArray(existingData))) {
-    return Promise.reject(new Error(`Argument 'existingData' is missing a proper value`));
+    throw new Error(`Argument 'existingData' is missing a proper value`);
   }
 
   const hasIncomingValues = !!incomingValues;
   if (hasIncomingValues && (!isObject(incomingValues) && !Array.isArray(incomingValues))) {
-    return Promise.reject(new Error(`Argument 'incomingValues' is missing a proper value`));
+    throw new Error(`Argument 'incomingValues' is missing a proper value`);
   }
 
   const baseData = existingData || templates[baseName];
   if (!incomingValues) {
-    return Promise.resolve(produce(baseData, () => { }));
+    return produce(baseData, () => { });
   }
 
   // determine all incoming value pointers
@@ -172,7 +187,7 @@ const safeMerge = (incomingValues, baseName, templates, existingData = null) => 
   );
 
   // create the new data structure with merged values
-  return Promise.resolve(produce(baseData, draftState => {
+  return produce(baseData, draftState => {
     // handle each incoming value
     incomingPointers.forEach((pointer) => {
       const pathParts = pointer.split('/');
@@ -329,7 +344,7 @@ const safeMerge = (incomingValues, baseName, templates, existingData = null) => 
         });
       }
     });
-  }));
+  });
 };
 
 /**

@@ -4,7 +4,7 @@ import moment from 'moment';
 import { arrayMove } from 'react-sortable-hoc';
 import setNestedProperty from 'lodash.set';
 import getNestedProperty from 'lodash.get';
-import { mergeInTemplate, removeNestedProperty, getJsonPointers, clearEmptyPointersAndAncestors } from '../../utils/json';
+import { safeMerge, removeNestedProperty, getJsonPointers, clearEmptyPointersAndAncestors } from '../../utils/json';
 import { notify } from 'reapop';
 import cloneDeep from 'lodash.clonedeep';
 import { ReadLocations } from '../../utils/admin';
@@ -264,7 +264,7 @@ const updateFeedback = (title, status, category, subTitle, list, container, call
  * @returns {any} The template with the incoming values merged or null
  */
 const mergeInTemplateTaf = (incomingValues, parentName, templates) => {
-  let mergedTaf = mergeInTemplate(incomingValues, parentName, templates);
+  let mergedTaf = safeMerge(incomingValues, parentName, templates);
   if (parentName === 'FORECAST') {
     if (incomingValues && incomingValues.clouds && typeof incomingValues.clouds === 'string' && incomingValues.clouds === 'NSC') {
       mergedTaf = produce(mergedTaf, draftState => { draftState.clouds = 'NSC'; });

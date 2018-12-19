@@ -1,5 +1,6 @@
 import dispatch from './SigmetReducers';
-import { LOCAL_ACTIONS, CATEGORY_REFS, SIGMET_MODES } from './SigmetActions';
+import { LOCAL_ACTIONS, CATEGORY_REFS } from './SigmetActions';
+import { SIGMET_MODES } from '../../components/Sigmet/SigmetTemplates';
 import { MODES_GEO_SELECTION } from '../../utils/json';
 import moxios from 'moxios';
 
