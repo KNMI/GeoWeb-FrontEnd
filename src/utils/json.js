@@ -22,15 +22,15 @@ const MODES_GEO_MAPPING = {
 
 const PATTERN_INDICATOR = 'pattern_';
 
-// Goal: to have guaranteed data structures
+// Goal: to have guaranteed, immutable, data structures
 //                       templates
 //                           │
-// incomingValues ──┐        ▼
-//                ┌─┼──▶ validate() ──────▶ merge()
-//                │ │      │  ▲
-//                │ │      │  │
-//                │ │      ▼  │
-//                ├─┴──▶ complement()
+// incomingValue ───┐        ▼
+//                ┌─┴──▶ validate() ──────▶ merge()
+//                │        │  ▲
+//                │        │  │
+//                │        ▼  │
+//                ├────▶ complement()
 // existingData ──┘          ▲
 //                           │
 //                       templates
@@ -41,10 +41,12 @@ const PATTERN_INDICATOR = 'pattern_';
  * @param {Object|Array} incomingStructure - The incoming structure containing the property to validate
  * @param {Object|Array} existingStructure - The existing structure to use as reference
  * @param {Object|Array} templateStructure - The template structure to use as specification
+ * @param {Object} optionalTemplates - Additional template snippets to provide multiple specification options
  * @param {Object} [result={isValid: false, matchedKey: null}] - An object to store the result
  * @returns {Object} - A bounce of the completed result object
  */
-const validate = (propertyKey, incomingStructure, existingStructure, templateStructure, result = { isValid: false, matchedKey: null }) => {
+const validate = (propertyKey, incomingStructure, existingStructure, templateStructure,
+  optionalTemplates = {}, result = { isValid: false, matchedKey: null }) => {
   const isPathPresent = isPropertyPresent(existingStructure, propertyKey);
   let isTemplatePresent = isPropertyPresent(templateStructure, propertyKey);
 
@@ -60,8 +62,7 @@ const validate = (propertyKey, incomingStructure, existingStructure, templateStr
     // 2.) handle pattern properties, i.e. when the propertyKey matches a property name pattern
       const matchingPatternKeys = Object.keys(templateStructure)
         .filter((possiblePatternKey) => possiblePatternKey.startsWith(PATTERN_INDICATOR))
-        .filter((patternKey) => new RegExp(patternKey.substring(PATTERN_INDICATOR.length)).test(propertyKey))
-        .filter((key) => isSameTypeOrNull(incomingStructure[propertyKey], templateStructure[key]));
+        .filter((patternKey) => new RegExp(patternKey.substring(PATTERN_INDICATOR.length)).test(propertyKey));
       if (matchingPatternKeys.length === 1) {
         // for now, we use the first one: in case of more matches, determining the correct one would
         // involve an expensive deep inspection, while there is currently no usecase for it)
@@ -84,7 +85,7 @@ const validate = (propertyKey, incomingStructure, existingStructure, templateStr
  * @param {string|number} propertyKey - The key of the property to complement
  * @param {Object|Array} existingStructure - The existing structure to complement
  * @param {Object|Array} templateStructure - The base template structure as a base for complementation
- * @param {Object} optionalTemplates - Addtional templates to search for possible matches to be used as base for complementation
+ * @param {Object} optionalTemplates - Additional template snippets to provide multiple specification options
  * @param {Object} [result={isComplemented: false, structure: null}] - The result object
  */
 const complement = (propertyKey, existingStructure, templateStructure, optionalTemplates, result = { isComplemented: false, structure: null }) => {
@@ -205,7 +206,7 @@ const safeMerge = (incomingValues, baseName, templates, existingData = null) => 
       pathParts.shift();
       if (hasNestedProperty(draftState, pathParts)) {
         // 1). incoming value and its position do exist in the base data structure
-        const templateValue = produce(getNestedProperty(templates[baseName], pathParts), () => {});
+        const templateValue = cloneDeep(getNestedProperty(templates[baseName], pathParts));
         const nextValue = getNestedProperty(incomingValues, pathParts);
         if (templateValue === null ||
             (!Array.isArray(templateValue) && (typeof templateValue !== 'object' || templateValue.constructor !== Object) &&
@@ -221,13 +222,14 @@ const safeMerge = (incomingValues, baseName, templates, existingData = null) => 
         // 2). incoming value and its position don't match exactly, but could be resolved
         // 2.1) incoming pointer matches a name pattern
         const matchingPatternParentPointers = patternPropertyParentPointers.filter((parentPointer) => pointer.startsWith(parentPointer));
+        console.log('matchPat', matchingPatternParentPointers, pointer);
         if (matchingPatternParentPointers.length > 0) {
           // there are name patterns for this pointer
           const patternPaths = [];
           matchingPatternParentPointers.forEach((parentPointer) => {
             const parentPathParts = parentPointer.split('/');
             parentPathParts.shift();
-            Object.keys(getNestedProperty(draftState, parentPathParts))
+            Object.keys(getNestedProperty(templates[baseName], parentPathParts))
               .filter((possiblePatternKey) => possiblePatternKey.startsWith(PATTERN_INDICATOR))
               .forEach((patternKey) =>
                 patternPaths.push([...parentPathParts, patternKey])
@@ -239,28 +241,30 @@ const safeMerge = (incomingValues, baseName, templates, existingData = null) => 
             const patternRegEx = new RegExp(path[patternIndex].substring(PATTERN_INDICATOR.length));
             return patternRegEx.test(pathParts[patternIndex]);
           });
-          const matchedPathParts = pathParts.slice(0, patternMatches[0].length);
+          console.log('pM', patternMatches, patternPaths);
+          if (patternMatches.length === 1) {
+            const matchedPathParts = pathParts.slice(0, patternMatches[0].length);
+            if (!hasNestedProperty(draftState, matchedPathParts)) {
+              setNestedProperty(draftState,
+                matchedPathParts,
+                cloneDeep(getNestedProperty(templates[baseName], patternMatches[0]))
+              );
+              if (hasNestedProperty(draftState, pathParts)) {
+                const templateValue = getNestedProperty(templates[baseName], pathParts);
 
-          if (patternMatches.length === 1 && !hasNestedProperty(draftState, matchedPathParts)) {
-            setNestedProperty(draftState,
-              matchedPathParts,
-              cloneDeep(getNestedProperty(draftState, patternMatches[0]))
-            );
-            if (hasNestedProperty(draftState, pathParts)) {
-              const templateValue = getNestedProperty(draftState, pathParts);
-
-              const nextValue = getNestedProperty(incomingValues, pathParts);
-              // check for allowed type changes
-              if (templateValue === null ||
-                (!Array.isArray(templateValue) && (typeof templateValue !== 'object' || templateValue.constructor !== Object) &&
-                  (typeof templateValue === typeof nextValue || nextValue === null))) {
-                setNestedProperty(draftState, pathParts, nextValue);
-                // allows for emptying arrays
-              } else if (Array.isArray(templateValue) && templateValue.length > 0 && Array.isArray(nextValue) && nextValue.length === 0) {
-                const affectedArray = getNestedProperty(draftState, pathParts);
-                affectedArray.length = 0;
+                const nextValue = getNestedProperty(incomingValues, pathParts);
+                // check for allowed type changes
+                if (templateValue === null ||
+                  (!Array.isArray(templateValue) && (typeof templateValue !== 'object' || templateValue.constructor !== Object) &&
+                    (typeof templateValue === typeof nextValue || nextValue === null))) {
+                  setNestedProperty(draftState, pathParts, nextValue);
+                  // allows for emptying arrays
+                } else if (Array.isArray(templateValue) && templateValue.length > 0 && Array.isArray(nextValue) && nextValue.length === 0) {
+                  const affectedArray = getNestedProperty(draftState, pathParts);
+                  affectedArray.length = 0;
+                }
+                return;
               }
-              return;
             }
           }
         }
@@ -322,7 +326,7 @@ const safeMerge = (incomingValues, baseName, templates, existingData = null) => 
                 ? ancestorTemplateKeys.map(key => getNestedProperty(templates[key], relativeTemplatePath))
                 : ancestorTemplateKeys.map(key => templates[key]);
               if (templateOptions.length === 1) {
-                templateForArray = templateOptions[0];
+                templateForArray = cloneDeep(templateOptions[0]);
               } else if (templateOptions.length > 1) {
                 // multiple template options, check existence and type of field in the template
                 const pathInsideTemplate = pathParts.slice(numericIndex).map((part) => !isNaN(part) ? 0 : part); // path from template to field
@@ -333,17 +337,16 @@ const safeMerge = (incomingValues, baseName, templates, existingData = null) => 
                   }
                   return false;
                 });
-                templateForArray = filteredTemplateOptions[0];
+                templateForArray = cloneDeep(filteredTemplateOptions[0]);
               }
             }
           }
-
           if (Array.isArray(templateForArray) && templateForArray.length > 0) {
             affectedArray.push(...Array(additionalOccurrences).fill(cloneDeep(templateForArray[0])));
           }
 
           if (hasNestedProperty(affectedArray, pathParts.slice(numericIndex))) {
-            const templateValue = getNestedProperty(affectedArray, pathParts.slice(numericIndex));
+            const templateValue = getNestedProperty(cloneDeep(templateForArray), ['0', ...pathParts.slice(numericIndex + 1)]);
             const nextValue = getNestedProperty(incomingValues, pathParts);
             // check for allowed type changes
             if (templateValue === null ||

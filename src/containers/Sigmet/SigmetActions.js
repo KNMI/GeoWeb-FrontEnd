@@ -1,5 +1,4 @@
-import produce from 'immer';
-import { SIGMET_TEMPLATES, SIGMET_MODES } from '../../components/Sigmet/SigmetTemplates';
+import { SIGMET_MODES } from '../../components/Sigmet/SigmetTemplates';
 
 export const LOCAL_ACTION_TYPES = {
   TOGGLE_CONTAINER: 'TOGGLE_CONTAINER',
@@ -232,25 +231,10 @@ const STATE = {
   phenomena: [],
   parameters: {
     active_firs: [null], // string values
-    firareas: {
-      'pattern_^[A-Z]{4}$': {
-        adjacent_firs: produce(SIGMET_TEMPLATES.ADJACENT_FIRS, () => { }),
-        areapreset: null, // string
-        firname: null, // string
-        location_indicator_icao: null, // string
-        hoursbeforevalidity: null, // number
-        maxhoursofvalidity: null, // number
-        tc_hoursbeforevalidity: null, // number
-        tc_maxhoursofvalidity: null, // number
-        va_hoursbeforevalidity: null, // number
-        va_maxhoursofvalidity: null // number
-      }
-    },
+    firareas: {},
     location_indicator_wmo: null // string
   },
-  firs: {
-    'pattern_^[A-Z]+[ ](FIR|UIR|CTA)$': produce(SIGMET_TEMPLATES.FEATURE, () => {})
-  },
+  firs: {},
   focussedCategoryRef: null,
   selectedSigmet: [],
   selectedAuxiliaryInfo: {

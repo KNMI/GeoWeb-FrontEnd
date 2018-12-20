@@ -123,7 +123,7 @@ const retrieveParameters = (container) => {
 
 const updateParameters = (parameters, container) => {
   return setStatePromise(container, {
-    parameters: parameters
+    parameters
   });
 };
 

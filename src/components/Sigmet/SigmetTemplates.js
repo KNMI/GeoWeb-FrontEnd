@@ -38,6 +38,9 @@ const TEMPLATES = {
     name: null, // string
     layerpreset: null // string
   },
+  PARAMETER: {
+
+  },
   ADJACENT_FIRS: [null] // string values
 };
 

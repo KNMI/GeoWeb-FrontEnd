@@ -123,20 +123,7 @@ describe('(Reducer) Sigmet/SigmetReducers', () => {
   it('should handle retrieveParameters', (done) => {
     const initialParameters = {
       active_firs: [null],
-      firareas: {
-        'pattern_^[A-Z]{4}$': {
-          adjacent_firs: [null],
-          areapreset: null,
-          firname: null,
-          location_indicator_icao: null,
-          hoursbeforevalidity: null,
-          maxhoursofvalidity: null,
-          tc_hoursbeforevalidity: null,
-          tc_maxhoursofvalidity: null,
-          va_hoursbeforevalidity: null,
-          va_maxhoursofvalidity: null
-        }
-      },
+      firareas: {},
       location_indicator_wmo: null
     };
     const parameters = {
