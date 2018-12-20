@@ -22,7 +22,7 @@ const MODES_GEO_MAPPING = {
 
 const PATTERN_INDICATOR = 'pattern_';
 
-// Goal: to have a guaranteed data structures
+// Goal: to have guaranteed data structures
 //                       templates
 //                           │
 // incomingValues ──┐        ▼
@@ -38,30 +38,41 @@ const PATTERN_INDICATOR = 'pattern_';
 /**
  * Validate (shallow) a property (path, type) using existing and template structure
  * @param {string|number} propertyKey - The key of the property to validate
- * @param {*} incomingStructure - The incoming structure containing the property to validate
- * @param {*} existingStructure - The existing structure to use as reference
- * @param {*} templateStructure - The template structure to use as specification
+ * @param {Object|Array} incomingStructure - The incoming structure containing the property to validate
+ * @param {Object|Array} existingStructure - The existing structure to use as reference
+ * @param {Object|Array} templateStructure - The template structure to use as specification
  * @param {Object} [result={isValid: false, matchedKey: null}] - An object to store the result
- * @returns {Object} - The result object
+ * @returns {Object} - A bounce of the completed result object
  */
 const validate = (propertyKey, incomingStructure, existingStructure, templateStructure, result = { isValid: false, matchedKey: null }) => {
   const isPathPresent = isPropertyPresent(existingStructure, propertyKey);
-  const isTemplatePresent = isPropertyPresent(templateStructure, Number.isInteger(propertyKey) ? 0 : propertyKey);
+  let isTemplatePresent = isPropertyPresent(templateStructure, propertyKey);
 
   if (!isTemplatePresent) {
-    // handle pattern properties, i.e. when the propertyKey matches a property name pattern
-    const matchingPatternKeys = Object.keys(templateStructure)
-      .filter((possiblePatternKey) => possiblePatternKey.startsWith(PATTERN_INDICATOR))
-      .filter((patternKey) => new RegExp(patternKey.substring(PATTERN_INDICATOR.length)).test(propertyKey));
-    if (matchingPatternKeys.length > 0) {
-
+  // fallbacks for array indices and pattern properties
+    if (Number.isInteger(propertyKey)) {
+    // 1.) handle array indices
+      isTemplatePresent = isPropertyPresent(templateStructure, 0);
+      if (isTemplatePresent) {
+        result.matchedKey = 0;
+      }
+    } else {
+    // 2.) handle pattern properties, i.e. when the propertyKey matches a property name pattern
+      const matchingPatternKeys = Object.keys(templateStructure)
+        .filter((possiblePatternKey) => possiblePatternKey.startsWith(PATTERN_INDICATOR))
+        .filter((patternKey) => new RegExp(patternKey.substring(PATTERN_INDICATOR.length)).test(propertyKey))
+        .filter((key) => isSameTypeOrNull(incomingStructure[propertyKey], templateStructure[key]));
+      if (matchingPatternKeys.length === 1) {
+        // for now, we use the first one: in case of more matches, determining the correct one would
+        // involve an expensive deep inspection, while there is currently no usecase for it)
+        isTemplatePresent = true;
+        result.matchedKey = matchingPatternKeys[0];
+      }
     }
   }
 
-  if (isPathPresent && isTemplatePresent && isSameTypeOrNull(incomingStructure[propertyKey], templateStructure[propertyKey])) {
-    if (Number.isInteger(propertyKey)) {
-      result.matchedKey = 0;
-    }
+  if (isPathPresent && isTemplatePresent &&
+    isSameTypeOrNull(incomingStructure[propertyKey], templateStructure[result.matchedKey !== null ? result.matchedKey : propertyKey])) {
     result.isValid = true;
     return result;
   }
@@ -71,10 +82,10 @@ const validate = (propertyKey, incomingStructure, existingStructure, templateStr
 /**
  * Try to complement a structure, based on a base template, additional templates, array increments, and property pattern matching
  * @param {string|number} propertyKey - The key of the property to complement
- * @param {*} existingStructure - The existing structure to complement
- * @param {*} templateStructure - The base template structure as a base for complementation
- * @param {*} optionalTemplates - Addtional templates to search for possible matches to be used as base for complementation
- * @param {*} [result={isComplemented: false, structure: null}] - The result object
+ * @param {Object|Array} existingStructure - The existing structure to complement
+ * @param {Object|Array} templateStructure - The base template structure as a base for complementation
+ * @param {Object} optionalTemplates - Addtional templates to search for possible matches to be used as base for complementation
+ * @param {Object} [result={isComplemented: false, structure: null}] - The result object
  */
 const complement = (propertyKey, existingStructure, templateStructure, optionalTemplates, result = { isComplemented: false, structure: null }) => {
   return result;

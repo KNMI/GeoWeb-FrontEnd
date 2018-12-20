@@ -1,6 +1,56 @@
-import { safeMerge, clearNullPointersAndAncestors } from './json';
+import { validate, complement, safeMerge, clearNullPointersAndAncestors } from './json';
 
 describe('(Utils) json', () => {
+  it('.validate should be a function', () => {
+    expect(validate).to.be.a('function');
+  });
+  it('.validate should return default when no result object provided', () => {
+    const defaultResult = {
+      isValid: false,
+      matchedKey: null
+    };
+    const result = validate('test', {}, {}, {});
+    expect(result).to.eql(defaultResult);
+  });
+  it('.validate should mark as valid', () => {
+    const expectedResult = {
+      isValid: true,
+      matchedKey: null
+    };
+    let result = validate('test', { test: 'tester' }, { test: 'previous' }, { test: null });
+    expect(result).to.eql(expectedResult);
+    result = validate(1, ['test0', 'test1'], [null, null], [null]);
+    expectedResult.matchedKey = 0;
+    expect(result).to.eql(expectedResult);
+    result = validate('test', { test: 'tester' }, { test: 'previous' }, { 'pattern_^[a-z]{4}$': null });
+    expectedResult.matchedKey = 'pattern_^[a-z]{4}$';
+    expect(result).to.eql(expectedResult);
+  });
+  it('.validate should mark as invalid', () => {
+    const expectedResult = {
+      isValid: false,
+      matchedKey: null
+    };
+    let result = validate('test', { test: 'tester' }, { tester: 'previous' }, { tester: null });
+    expect(result).to.eql(expectedResult);
+    result = validate(1, ['test0', 'test1'], [null], [null]);
+    expectedResult.matchedKey = 0;
+    expect(result).to.eql(expectedResult);
+    result = validate('test', { test: 'tester' }, { test: 'previous' }, { 'pattern_^[A-Z]{4}$': null });
+    expectedResult.matchedKey = null;
+    expect(result).to.eql(expectedResult);
+  });
+  it('.complement should be a function', () => {
+    expect(complement).to.be.a('function');
+  });
+  it('.complement should return default when no result object provided', () => {
+    const defaultResult = {
+      isComplemented: false,
+      structure: null
+    };
+    let result = complement();
+    expect(result).to.eql(defaultResult);
+  });
   it('.safeMerge should be a function', () => {
     expect(safeMerge).to.be.a('function');
   });
