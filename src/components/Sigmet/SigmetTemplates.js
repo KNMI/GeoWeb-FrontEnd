@@ -132,32 +132,7 @@ TEMPLATES.CATEGORY = {
   abilities: cloneDeep(TEMPLATES.ABILITIES)
 };
 TEMPLATES.CONTAINER = {
-  categories: [
-    {
-      title: 'Open active SIGMETs',
-      icon: 'folder-open',
-      sigmets: [],
-      abilities: {}
-    },
-    {
-      title: 'Open concept SIGMETs',
-      icon: 'folder-open-o',
-      sigmets: [],
-      abilities: {}
-    },
-    {
-      title: 'Create new SIGMET',
-      icon: 'star-o',
-      sigmets: [],
-      abilities: {}
-    },
-    {
-      title: 'Open archived SIGMETs',
-      icon: 'archive',
-      sigmets: [],
-      abilities: {}
-    }
-  ],
+  categories: [cloneDeep(TEMPLATES.CATEGORY)],
   phenomena: [cloneDeep(TEMPLATES.PHENOMENON)],
   parameters: {
     active_firs: [null], // string values

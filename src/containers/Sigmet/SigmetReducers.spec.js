@@ -122,7 +122,7 @@ describe('(Reducer) Sigmet/SigmetReducers', () => {
   });
   it('should handle retrieveParameters', (done) => {
     const initialParameters = {
-      active_firs: [null],
+      active_firs: [],
       firareas: {},
       location_indicator_wmo: null
     };
@@ -179,7 +179,7 @@ describe('(Reducer) Sigmet/SigmetReducers', () => {
         expect(container.state.parameters).to.have.property('active_firs');
         expect(container.state.parameters['active_firs']).to.eql(parameters['active_firs']);
         expect(container.state.parameters).to.have.property('firareas');
-        expect(container.state.parameters.firareas).to.eql(Object.assign({}, parameters.firareas, initialParameters.firareas));
+        expect(container.state.parameters.firareas).to.eql(Object.assign({}, parameters.firareas));
         done();
       }).catch(done);
     });

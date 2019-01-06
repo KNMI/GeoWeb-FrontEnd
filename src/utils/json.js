@@ -181,6 +181,10 @@ const safeMerge = (incomingValues, baseName, templates, existingData = null) => 
     return produce(baseData, () => { });
   }
 
+  // console.log('safeMerge incomingValues', JSON.stringify(incomingValues, null, 2));
+  // console.log('safeMerge templates', JSON.stringify(templates.containerState.parameters, null, 2));
+  // console.log('safeMerge existingData', JSON.stringify(existingData.parameters, null, 2));
+
   // determine all incoming value pointers
   const incomingPointers = [];
   getJsonPointers(incomingValues, (field) =>
@@ -204,25 +208,32 @@ const safeMerge = (incomingValues, baseName, templates, existingData = null) => 
     incomingPointers.forEach((pointer) => {
       const pathParts = pointer.split('/');
       pathParts.shift();
+      // FIXME: since we've changed the template source from the existing structure to the external templates,
+      // the priority in testing should be changed as well: check / lookup the template first!
       if (hasNestedProperty(draftState, pathParts)) {
         // 1). incoming value and its position do exist in the base data structure
         const templateValue = cloneDeep(getNestedProperty(templates[baseName], pathParts));
+        if (typeof templateValue === 'undefined') {
+
+        }
         const nextValue = getNestedProperty(incomingValues, pathParts);
         if (templateValue === null ||
             (!Array.isArray(templateValue) && (typeof templateValue !== 'object' || templateValue.constructor !== Object) &&
             (typeof templateValue === typeof nextValue || nextValue === null))) {
           // 1.1) incoming data type is allowed
           setNestedProperty(draftState, pathParts, nextValue);
+          console.log('Found value', pointer);
         } else if (Array.isArray(templateValue) && templateValue.length > 0 && Array.isArray(nextValue) && nextValue.length === 0) {
           // 1.2) emptying arrays is allowed
           const affectedArray = getNestedProperty(draftState, pathParts);
           affectedArray.length = 0;
+          console.log('Found array', pointer);
         }
       } else {
         // 2). incoming value and its position don't match exactly, but could be resolved
         // 2.1) incoming pointer matches a name pattern
         const matchingPatternParentPointers = patternPropertyParentPointers.filter((parentPointer) => pointer.startsWith(parentPointer));
-        console.log('matchPat', matchingPatternParentPointers, pointer);
+        console.log('matchPat', matchingPatternParentPointers, pointer, patternPropertyParentPointers);
         if (matchingPatternParentPointers.length > 0) {
           // there are name patterns for this pointer
           const patternPaths = [];
