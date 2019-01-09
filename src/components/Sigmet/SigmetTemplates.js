@@ -38,9 +38,6 @@ const TEMPLATES = {
     name: null, // string
     layerpreset: null // string
   },
-  PARAMETER: {
-
-  },
   ADJACENT_FIRS: [null] // string values
 };
 
@@ -58,8 +55,8 @@ TEMPLATES.FEATURE = {
     'fill-opacity': null // number
   },
   geometry: {
-    type: null, // string
-    coordinates: cloneDeep(TEMPLATES.POLYGON_COORDINATES)
+    type: null, // string,
+    '{oneOf}_coordinates': [cloneDeep(TEMPLATES.POLYGON_COORDINATES), cloneDeep(TEMPLATES.POINT_COORDINATE)]
   }
 };
 
@@ -137,7 +134,7 @@ TEMPLATES.CONTAINER = {
   parameters: {
     active_firs: [null], // string values
     firareas: {
-      'pattern_^[A-Z]{4}$': {
+      '{patternProperties}_^[A-Z]{4}$': {
         adjacent_firs: cloneDeep(TEMPLATES.ADJACENT_FIRS),
         areapreset: null, // string
         firname: null, // string
@@ -153,7 +150,7 @@ TEMPLATES.CONTAINER = {
     location_indicator_wmo: null // string
   },
   firs: {
-    'pattern_^[A-Z]+[ ](FIR|UIR|CTA)$': cloneDeep(TEMPLATES.FEATURE)
+    '{patternProperties}_^[A-Z]+[ ](FIR|UIR|CTA)$': cloneDeep(TEMPLATES.FEATURE)
   },
   focussedCategoryRef: null, // string (uuid)
   selectedSigmet: [cloneDeep(TEMPLATES.SIGMET)],

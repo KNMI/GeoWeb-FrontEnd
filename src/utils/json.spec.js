@@ -22,8 +22,8 @@ describe('(Utils) json', () => {
     result = validate(1, ['test0', 'test1'], [null, null], [null]);
     expectedResult.matchedKey = 0;
     expect(result).to.eql(expectedResult);
-    result = validate('test', { test: 'tester' }, { test: 'previous' }, { 'pattern_^[a-z]{4}$': null });
-    expectedResult.matchedKey = 'pattern_^[a-z]{4}$';
+    result = validate('test', { test: 'tester' }, { test: 'previous' }, { '{patternProperties}_^[a-z]{4}$': null });
+    expectedResult.matchedKey = '{patternProperties}_^[a-z]{4}$';
     expect(result).to.eql(expectedResult);
   });
   it('.validate should mark as invalid', () => {
@@ -36,7 +36,7 @@ describe('(Utils) json', () => {
     result = validate(1, ['test0', 'test1'], [null], [null]);
     expectedResult.matchedKey = 0;
     expect(result).to.eql(expectedResult);
-    result = validate('test', { test: 'tester' }, { test: 'previous' }, { 'pattern_^[A-Z]{4}$': null });
+    result = validate('test', { test: 'tester' }, { test: 'previous' }, { '{patternProperties}_^[A-Z]{4}$': null });
     expectedResult.matchedKey = null;
     expect(result).to.eql(expectedResult);
   });
