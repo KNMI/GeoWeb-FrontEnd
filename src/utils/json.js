@@ -21,7 +21,6 @@ const MODES_GEO_MAPPING = {
 };
 
 const PATTERN_INDICATOR = '{patternProperties}_';
-
 /**
  * Purpose: to have guaranteed, immutable, data structures
  * Pattern: use (the same) templates to validate and to complement the data structure
@@ -38,9 +37,53 @@ const PATTERN_INDICATOR = '{patternProperties}_';
  *                           │
  *                       templates
  *
- * Currently the following flow is used:
- * incomingValue ──▶ incomingPointer ──▶ templatePointer ──▶
  */
+
+/**
+ * Complements data structure for pattern properties
+ * @param {Object|Array} parentStructure - The data structure to complement
+ * @param {Object|Array} template - The template to inject
+ * @param {string} complementKey - The index key at which the template will be injected
+ * @param {Array} pointerPath - The prefixing path
+ */
+const complementForPattern = (parentStructure, template, complementKey, pointerPath) => {
+  parentStructure[complementKey] = cloneDeep(getNestedProperty(template, pointerPath));
+};
+
+/**
+ * Complements data structure for numeric properties
+ * @param {Object|Array} parentStructure - The data structure to complement
+ * @param {Object|Array} template - The template to inject
+ * @param {string} complementKey - The index key at which the template will be injected
+ * @param {Array} pointerPath - The prefixing path
+ */
+const complementForNumeric = (parentStructure, template, complementKey, pointerPath) => {
+  if (!isNaN(complementKey) && Array.isArray(parentStructure)) {
+    const additionalOccurrences = parseInt(complementKey) + 1 - parentStructure.length;
+    const templateForArray = cloneDeep(getNestedProperty(template, pointerPath));
+    if (additionalOccurrences > 0) {
+      parentStructure.push(...Array(additionalOccurrences).fill(cloneDeep(templateForArray)));
+    }
+  }
+};
+
+/**
+ * Filter possible solutions (paths) to match a given path partially:
+ * for the last path part it implies testing against a RegExp in the sollution,
+ * for other parts it implies string equality
+ * @param {Array} solutions - An array of paths to be filtered
+ * @param {Array} path - The path to filter against
+ * @returns {Array} - a subset of the solutions array
+ */
+const filterSolutions = (solutions, path) =>
+  solutions.filter((solutionPath) => {
+    const lastIndex = solutionPath.length - 1;
+    return solutionPath.length <= path.length &&
+      solutionPath.every((part, index) =>
+        (index < lastIndex && part === path[index]) ||
+        (index === lastIndex && isRegExp(part.regEx) && part.regEx.test(path[index]))
+      );
+  });
 
 /**
  * Immutably merges the values into data structure templates
@@ -77,10 +120,6 @@ const safeMerge = (incomingValues, baseName, templates, existingData = null) => 
     return produce(baseData, () => { });
   }
 
-  // console.log('safeMerge incomingValues', JSON.stringify(incomingValues, null, 2));
-  // console.log('safeMerge templates', JSON.stringify(templates.containerState.parameters, null, 2));
-  // console.log('safeMerge existingData', JSON.stringify(existingData.parameters, null, 2));
-
   // determine all incoming value pointers
   const incomingPointers = [];
   getJsonPointers(incomingValues, (field) =>
@@ -94,17 +133,19 @@ const safeMerge = (incomingValues, baseName, templates, existingData = null) => 
     (value, pointer) => (typeof pointer === 'string' && pointer.substring(pointer.lastIndexOf('/') + 1).startsWith(PATTERN_INDICATOR)),
     templatePatternKeyPointers
   );
-  const templatePatternKeyPaths = templatePatternKeyPointers.map((pointer) => {
+  const patternKeySolutions = templatePatternKeyPointers.map((pointer) => {
     const pointerPath = pointer.split('/');
     pointerPath.shift();
     const key = pointerPath.pop();
     pointerPath.push({
       key,
-      regEx: new RegExp(key.substring(PATTERN_INDICATOR.length))
+      regEx: new RegExp(key.substring(PATTERN_INDICATOR.length)),
+      complement: (parentStructure, complementKey) => {
+        complementForPattern(parentStructure, templates[baseName], complementKey, pointerPath.slice(0, -1).concat(key));
+      }
     });
     return pointerPath;
   });
-  console.log('Pattern Pointers', JSON.stringify(templatePatternKeyPaths.map((path) => path.join('/')), null, 2));
 
   // find numeric properties (keys) in the base template hierarchy
   const templateNumericKeyPointers = [];
@@ -113,38 +154,19 @@ const safeMerge = (incomingValues, baseName, templates, existingData = null) => 
     (value, pointer) => ((typeof pointer === 'string' || typeof pointer === 'number') && !isNaN(pointer)),
     templateNumericKeyPointers
   );
-  const templateNumericKeyPaths = templateNumericKeyPointers.map((pointer) => {
+  const numericKeySolutions = templateNumericKeyPointers.map((pointer) => {
     const pointerPath = pointer.split('/');
     pointerPath.shift();
     const key = pointerPath.pop();
     pointerPath.push({
       key,
       regEx: new RegExp('^\\d+$'),
-      complement: () => {
-
+      complement: (parentStructure, complementKey) => {
+        complementForNumeric(parentStructure, templates[baseName], complementKey, pointerPath.slice(0, -1).concat(key));
       }
     });
     return pointerPath;
   });
-  console.log('Numeric Pointers', JSON.stringify(templateNumericKeyPaths.map((path) => path.join('/')), null, 2));
-
-  /**
-   * Filter possible solutions (paths) to match a given path partially:
-   * for the last path part it implies testing against a RegExp in the sollution,
-   * for other parts it implies string equality
-   * @param {Array} solutions - An array of paths to be filtered
-   * @param {Array} path - The path to filter against
-   * @returns {Array} - a subset of the solutions array
-   */
-  const filterSolutions = (solutions, path) =>
-    solutions.filter((solutionPath) => {
-      const lastIndex = solutionPath.length - 1;
-      return solutionPath.length <= path.length &&
-        solutionPath.every((part, index) =>
-          (index < lastIndex && part === path[index]) ||
-          (index === lastIndex && isRegExp(part.regEx) && part.regEx.test(path[index]))
-        );
-    });
 
   /**
    * Find a solution from all possible ones, matching the problematic path
@@ -152,7 +174,8 @@ const safeMerge = (incomingValues, baseName, templates, existingData = null) => 
    * @returns {Object} - An object with properties cardinality and path of the solution
    */
   const getSolutionSpace = (path) => {
-    const solutionDimensions = [templatePatternKeyPaths, templateNumericKeyPaths];
+    const solutionDimensions = [patternKeySolutions, numericKeySolutions];
+    console.log('num', numericKeySolutions);
     const filteredSolutionDimensions = solutionDimensions.map((dimension) => filterSolutions(dimension, path));
     const cardinality = filteredSolutionDimensions.reduce((accumulator, dimension) => accumulator + dimension.length, 0);
     const solutionPath = cardinality === 1
@@ -174,17 +197,22 @@ const safeMerge = (incomingValues, baseName, templates, existingData = null) => 
       const templatePathSolutions = [];
       if (typeof templateValue === 'undefined') {
         let solutionSpace = getSolutionSpace(templatePath);
-        while (typeof templateValue === 'undefined' && solutionSpace.cardinality === 1) {
+        console.log('Space', solutionSpace);
+        // quit, when either: templateValue is resolved, there is no solution, or the same solution is presented again
+        while (typeof templateValue === 'undefined' && solutionSpace.cardinality === 1 &&
+          (templatePathSolutions.length === 0 || solutionSpace.path.length > templatePathSolutions.slice(-1)[0].length)) {
           const lastSolutionPathIndex = solutionSpace.path.length - 1;
           templatePathSolutions.push(solutionSpace.path);
           templatePath[lastSolutionPathIndex] = solutionSpace.path[lastSolutionPathIndex].key;
           templateValue = cloneDeep(getNestedProperty(templates[baseName], templatePath));
           solutionSpace = getSolutionSpace(templatePath);
         };
+      } else {
+        templatePathSolutions.push(getSolutionSpace(templatePath).path);
       }
 
       // TODO: resolve alternative templates?
-      console.log('1). Template Path', templatePath.join('/'), templatePathSolutions);
+      console.log('1). Template Path', templatePath.join('/'));
 
       if (typeof templateValue === 'undefined') {
         console.warn(`No template value found for ${pointer}. This value will be skipped.`);
@@ -194,75 +222,19 @@ const safeMerge = (incomingValues, baseName, templates, existingData = null) => 
       // 2). Complement data structure
 
       if (!hasNestedProperty(draftState, pathParts) && templatePathSolutions.length > 0) {
-        console.log('Complement', pointer, templateValue, templatePathSolutions);
         templatePathSolutions.forEach((solutionPath) => {
-          console.log('Solution Path', solutionPath);
           const index = solutionPath.length - 1;
-          const existingProperty = getNestedProperty(draftState, pathParts.slice(0, index + 1));
+          const parentPath = index > 0 ? pathParts.slice(0, index) : [];
+          const existingParentProperty = parentPath.length > 0 ? getNestedProperty(draftState, parentPath) : draftState;
+          const existingProperty = existingParentProperty[pathParts[index]];
           if (typeof existingProperty !== 'undefined') {
             return;
           }
-          console.log('Should be complemented', templatePath.slice(0, index + 1));
-          // setNestedProperty(
-          //   draftState,
-          //   pathParts.slice(0, index + 1),
-          //   cloneDeep(patternTemplateValue)
-          // );
-          // const incomingIndex = pathParts[index];
-          // const affectedArray = getNestedProperty(draftState, pathParts.slice(0, index));
-          // console.log('incoming', incomingIndex, affectedArray);
-          // if (!isNaN(incomingIndex) && Array.isArray(affectedArray)) {
-          //   const additionalOccurrences = parseInt(incomingIndex) + 1 - affectedArray.length;
-          //   const templateForArray = cloneDeep(getNestedProperty(templates[baseName], templatePath.slice(0, index)));
-          //   if (additionalOccurrences > 0 && Array.isArray(templateForArray) && templateForArray.length > 0) {
-          //     affectedArray.push(...Array(additionalOccurrences).fill(cloneDeep(templateForArray[0])));
-          //     console.log('Result A', JSON.stringify(draftState));
-          //   }
-          // }
+          solutionPath[index].complement(existingParentProperty, pathParts[index]);
         });
-
-        // determine all path part indices for which part there are differences between data pointer and template pointer
-        // FIXME: data pointer and template pointer can be the same, but still not available in structure
-        // const sortedPaths = [templatePath, pathParts].sort((arrayA, arrayB) => arrayA.length - arrayB.length);
-        // const isPathPartDiff = sortedPaths[0]
-        //   .map((item, index) => item !== sortedPaths[1][index])
-        //   .concat(...Array(sortedPaths[1].length - sortedPaths[0].length).fill(true)) // fill the remaining items
-        //   .map((isDiff, index) => isDiff ? index : -1)
-        //   .filter((index) => index !== -1);
-        // isPathPartDiff.forEach((index) => {
-        //   const templateKey = templatePath[index];
-        //   if (templateKey === 'undefined') {
-        //     return;
-        //   }
-        //   const existingProperty = getNestedProperty(draftState, pathParts.slice(0, index + 1));
-        //   if (typeof existingProperty === 'undefined') {
-        //     // if (patternTemplatePath && templateKey === patternTemplatePath[index]) {
-        //     //   setNestedProperty(
-        //     //     draftState,
-        //     //     pathParts.slice(0, index + 1),
-        //     //     cloneDeep(patternTemplateValue)
-        //     //   );
-        //     //   console.log('Result P', JSON.stringify(draftState));
-        //     // }
-        //     if (!isNaN(templateKey)) {
-        //       console.log('array template key', templateKey);
-        //       const incomingIndex = pathParts[index];
-        //       const affectedArray = getNestedProperty(draftState, pathParts.slice(0, index));
-        //       console.log('incoming', incomingIndex, affectedArray);
-        //       if (!isNaN(incomingIndex) && Array.isArray(affectedArray)) {
-        //         const additionalOccurrences = parseInt(incomingIndex) + 1 - affectedArray.length;
-        //         const templateForArray = cloneDeep(getNestedProperty(templates[baseName], templatePath.slice(0, index)));
-        //         if (additionalOccurrences > 0 && Array.isArray(templateForArray) && templateForArray.length > 0) {
-        //           affectedArray.push(...Array(additionalOccurrences).fill(cloneDeep(templateForArray[0])));
-        //           console.log('Result A', JSON.stringify(draftState));
-        //         }
-        //       }
-        //     }
-        //   }
-        // });
-        // console.log('diff', isPathPartDiff);
-        // console.log('diff2', isPathPartDiff.map((index) => templatePath[index]));
       }
+
+      console.log('2). Complemented State', JSON.stringify(draftState, null, 2));
 
       // m 3). Merge the value when it is valid
 
@@ -282,95 +254,6 @@ const safeMerge = (incomingValues, baseName, templates, existingData = null) => 
           console.log('Found array', pointer);
         }
       }
-      // else {
-      //   // Option 2: deal with possible item additions for an intermediate array in the data structure
-      //   const numericIndices = [];
-      //   pathParts.forEach((part, partIndex) => {
-      //     if (!isNaN(part)) {
-      //       numericIndices.push(partIndex);
-      //     }
-      //   });
-
-      //   if (!numericIndices || !Array.isArray(numericIndices) || numericIndices.length === 0) {
-      //     return;
-      //   }
-      //   numericIndices.sort((a, b) => a - b);
-      //   numericIndices.forEach((numericIndex) => {
-      //     let affectedArray = draftState;
-      //     let templateForArray = templates[baseName];
-      //     let templatePath = [];
-      //     if (numericIndex > 0) {
-      //       // first try to find a template by setting all the intermediate indices to 0
-      //       affectedArray = getNestedProperty(draftState, pathParts.slice(0, numericIndex));
-      //       templatePath = pathParts.slice(0, numericIndex);
-      //       numericIndices.forEach((otherNumericIndex) => {
-      //         if (otherNumericIndex < numericIndex && templatePath[otherNumericIndex] !== 0) {
-      //           templatePath[otherNumericIndex] = 0;
-      //         }
-      //       });
-      //       templateForArray = cloneDeep(getNestedProperty(templates[baseName], templatePath));
-      //     }
-
-      //     if (!Array.isArray(affectedArray)) {
-      //       return;
-      //     }
-
-      //     const additionalOccurrences = parseInt(pathParts[numericIndex]) + 1 - affectedArray.length;
-      //     if (additionalOccurrences < 1) {
-      //       return;
-      //     }
-
-      //     if (!Array.isArray(templateForArray) || templateForArray.length === 0) {
-      //       // next, look up an alternative template
-      //       // find closest ancestor in the data structure with a provided template
-      //       // 1) find indices of path parts for which a template is available (i.e. template key starts with property name)
-
-      //       const templateKeys = Object.keys(templates);
-      //       const partsWithTemplateIndices = templateKeys
-      //         .map((key) => pathParts.slice(0, numericIndex).lastIndexOf(key.split('-')[0]))
-      //         .filter((index) => index !== -1);
-      //       if (Array.isArray(partsWithTemplateIndices) && partsWithTemplateIndices.length > 0) {
-      //         // 2) sort (descending) the indices to determine the closest ancestor template(s) in line
-      //         partsWithTemplateIndices.sort((a, b) => b - a);
-      //         const relativeTemplatePath = templatePath.slice(partsWithTemplateIndices[0] + 1); // path from ancestor to template
-      //         const ancestorProperty = pathParts[partsWithTemplateIndices[0]];
-      //         // 3) check which ancestor templates provide the nested path
-      //         const ancestorTemplateKeys = templateKeys.filter((key) => key.startsWith(ancestorProperty));
-      //         const templateOptions = relativeTemplatePath.length > 0
-      //           ? ancestorTemplateKeys.map(key => getNestedProperty(templates[key], relativeTemplatePath))
-      //           : ancestorTemplateKeys.map(key => templates[key]);
-      //         if (templateOptions.length === 1) {
-      //           templateForArray = cloneDeep(templateOptions[0]);
-      //         } else if (templateOptions.length > 1) {
-      //           // multiple template options, check existence and type of field in the template
-      //           const pathInsideTemplate = pathParts.slice(numericIndex).map((part) => !isNaN(part) ? 0 : part); // path from template to field
-      //           const filteredTemplateOptions = templateOptions.filter((option) => {
-      //             const targetField = getNestedProperty(option, pathInsideTemplate);
-      //             if (typeof targetField !== 'undefined' && !Array.isArray(targetField)) {
-      //               return true;
-      //             }
-      //             return false;
-      //           });
-      //           templateForArray = cloneDeep(filteredTemplateOptions[0]);
-      //         }
-      //       }
-      //     }
-      //     if (Array.isArray(templateForArray) && templateForArray.length > 0) {
-      //       affectedArray.push(...Array(additionalOccurrences).fill(cloneDeep(templateForArray[0])));
-      //     }
-
-      //     if (hasNestedProperty(affectedArray, pathParts.slice(numericIndex))) {
-      //       const templateValue = getNestedProperty(cloneDeep(templateForArray), ['0', ...pathParts.slice(numericIndex + 1)]);
-      //       const nextValue = getNestedProperty(incomingValues, pathParts);
-      //       // check for allowed type changes
-      //       if (templateValue === null ||
-      //         (!Array.isArray(templateValue) && (typeof templateValue !== 'object' || templateValue.constructor !== Object) &&
-      //           (typeof templateValue === typeof nextValue || nextValue === null))) {
-      //         setNestedProperty(draftState, pathParts, nextValue);
-      //       }
-      //     }
-      // });
-      // }
     });
   });
 };
