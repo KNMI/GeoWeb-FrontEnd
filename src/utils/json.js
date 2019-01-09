@@ -73,15 +73,17 @@ const complementForNumeric = (parentStructure, template, complementKey, pointerP
  * for other parts it implies string equality
  * @param {Array} solutions - An array of paths to be filtered
  * @param {Array} path - The path to filter against
+ * @param {boolean} [skipTemplateValueCheck] - Whether or not the exact template value should be filtered
  * @returns {Array} - a subset of the solutions array
  */
-const filterSolutions = (solutions, path) =>
+const filterSolutions = (solutions, path, skipTemplateValueCheck = false) =>
   solutions.filter((solutionPath) => {
     const lastIndex = solutionPath.length - 1;
     return solutionPath.length <= path.length &&
       solutionPath.every((part, index) =>
         (index < lastIndex && part === path[index]) ||
-        (index === lastIndex && isRegExp(part.regEx) && part.regEx.test(path[index]))
+        (index === lastIndex && isRegExp(part.regEx) && part.regEx.test(path[index]) &&
+          (skipTemplateValueCheck || part.key !== path[index]))
       );
   });
 
@@ -171,12 +173,14 @@ const safeMerge = (incomingValues, baseName, templates, existingData = null) => 
   /**
    * Find a solution from all possible ones, matching the problematic path
    * @param {Array} path - The path to find a solution for the problems
+   * @param {boolean} [skipTemplateValueCheck] - Whether or not the exact template value should be checked
    * @returns {Object} - An object with properties cardinality and path of the solution
    */
-  const getSolutionSpace = (path) => {
+  const getSolutionSpace = (path, skipTemplateValueCheck = false) => {
     const solutionDimensions = [patternKeySolutions, numericKeySolutions];
-    console.log('num', numericKeySolutions);
-    const filteredSolutionDimensions = solutionDimensions.map((dimension) => filterSolutions(dimension, path));
+    const filteredSolutionDimensions = solutionDimensions.map((dimension) =>
+      filterSolutions(dimension, path, skipTemplateValueCheck)
+    );
     const cardinality = filteredSolutionDimensions.reduce((accumulator, dimension) => accumulator + dimension.length, 0);
     const solutionPath = cardinality === 1
       ? filteredSolutionDimensions.filter((dimension) => dimension.length === 1)[0][0]
@@ -197,7 +201,6 @@ const safeMerge = (incomingValues, baseName, templates, existingData = null) => 
       const templatePathSolutions = [];
       if (typeof templateValue === 'undefined') {
         let solutionSpace = getSolutionSpace(templatePath);
-        console.log('Space', solutionSpace);
         // quit, when either: templateValue is resolved, there is no solution, or the same solution is presented again
         while (typeof templateValue === 'undefined' && solutionSpace.cardinality === 1 &&
           (templatePathSolutions.length === 0 || solutionSpace.path.length > templatePathSolutions.slice(-1)[0].length)) {
@@ -208,7 +211,12 @@ const safeMerge = (incomingValues, baseName, templates, existingData = null) => 
           solutionSpace = getSolutionSpace(templatePath);
         };
       } else {
-        templatePathSolutions.push(getSolutionSpace(templatePath).path);
+        // this is to device a solution for pointers which exist in the incoming and template structures,
+        // but are still missing in the data structure
+        const solutionSpace = getSolutionSpace(templatePath, true);
+        if (solutionSpace.cardinality === 1) {
+          templatePathSolutions.push(solutionSpace.path);
+        }
       }
 
       // TODO: resolve alternative templates?
