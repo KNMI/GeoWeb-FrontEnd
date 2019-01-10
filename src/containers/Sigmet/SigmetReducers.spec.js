@@ -93,7 +93,8 @@ describe('(Reducer) Sigmet/SigmetReducers', () => {
               coordinates: [[[4.9999984, 54.9999982], [5, 55], [4.33191389, 55.33264444], [4.9999984, 54.9999982]]]
             }
           }
-        }
+        },
+        selectedSigmet: []
       }
     };
     container.setState = (partialState, callback) => {

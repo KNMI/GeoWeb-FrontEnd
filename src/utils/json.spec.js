@@ -218,6 +218,34 @@ describe('(Utils) json', () => {
       d: [[[{ a: 1, b: null }, { a: null, b: 3 }]]]
     }]);
   });
+  it('.safeMerge should merge pattern properties', () => {
+    const incoming = {
+      a: [
+        { 'TEST': [1, 2] },
+        { 'TESTER': [2, 4] }
+      ]
+    };
+    const template = {
+      test: {
+        a: [
+          { '{patternProperties}_^[A-Z]{4}$': [null] }
+        ]
+      }
+    };
+    let result = safeMerge(incoming, 'test', template);
+    expect(template).to.eql({
+      test: {
+        a: [
+          { '{patternProperties}_^[A-Z]{4}$': [null] }
+        ]
+      }
+    });
+    expect(result).to.eql({
+      a: [
+        { 'TEST': [1, 2] }
+      ]
+    });
+  });
   it('.safeMerge should clean deep nested array-objects', () => {
     let incoming = [
       [[[]]]

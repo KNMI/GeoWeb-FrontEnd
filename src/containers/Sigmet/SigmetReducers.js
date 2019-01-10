@@ -363,11 +363,7 @@ const setStatePromise = (container, newProps) => {
         ],
         'sigmets': [
           templateWithDefaults.SIGMET
-        ],
-        'coordinates-poly': produce(SIGMET_TEMPLATES.POLYGON_COORDINATES, () => {}),
-        'coordinates-point': produce(SIGMET_TEMPLATES.POINT_COORDINATE, () => {}),
-        'phenomena': [produce(SIGMET_TEMPLATES.PHENOMENON, () => {})],
-        'adjacent_firs': produce(SIGMET_TEMPLATES.ADJACENT_FIRS, () => { })
+        ]
       },
       container.state
     ),
