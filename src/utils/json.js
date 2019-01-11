@@ -105,7 +105,7 @@ const complementForNumeric = (parentStructure, template, complementKey, pointerP
  * @param {Array} placeholderPaths - The paths to placeholders
  */
 const complementForOneOf = (parentStructure, template, complementKey, pointerPath, placeholderPaths) => {
-  console.log('cFO1', parentStructure);
+  console.log('cFO1', parentStructure, getComplement(template, pointerPath, placeholderPaths));
   parentStructure[complementKey] = getComplement(template, pointerPath, placeholderPaths);
   console.log('cFO2', parentStructure);
 };
@@ -120,13 +120,12 @@ const complementForOneOf = (parentStructure, template, complementKey, pointerPat
  * @returns {Array} - a subset of the solutions array
  */
 const filterSolutions = (solutions, path, skipTemplateValueCheck = false) =>
-  solutions.filter((solutionPath) => {
-    const lastIndex = solutionPath.length - 1;
-    return solutionPath.length <= path.length &&
-      solutionPath.every((part, index) =>
-        (index < lastIndex && part === path[index]) ||
-        (index === lastIndex && isRegExp(part.regEx) && part.regEx.test(path[index]) &&
-          (skipTemplateValueCheck || part.key !== path[index]))
+  solutions.filter((solution) => {
+    return solution.index < path.length &&
+      solution.path.every((part, index) =>
+        (index < solution.index && part === path[index]) ||
+        (index === solution.index && solution.test(path[index]) &&
+          (skipTemplateValueCheck || part !== path[index]))
       );
   });
 
@@ -140,9 +139,9 @@ const getSolutionSpace = (path, dimensions, skipTemplateValueCheck = false) => {
   const filteredSolutionDimensions = dimensions.map((dimension) =>
     filterSolutions(dimension, path, skipTemplateValueCheck)
   );
-  const solutionPaths = filteredSolutionDimensions.reduce((accumulator, dimension) => accumulator.concat(dimension), []);
-  const cardinality = solutionPaths.length;
-  return { cardinality, paths: solutionPaths };
+  const solutions = filteredSolutionDimensions.reduce((accumulator, dimension) => accumulator.concat(dimension), []);
+  const cardinality = solutions.length;
+  return { cardinality, solutions };
 };
 
 /**
@@ -212,40 +211,46 @@ const safeMerge = (incomingValues, baseName, templates, existingData = null) => 
 
   // create solution paths for pattern properties and numeric keys
   const patternKeySolutions = templatePatternKeyPaths.map((path) => {
-    const pointerPath = path.slice();
-    const key = pointerPath.pop();
-    pointerPath.push({
-      key,
-      regEx: new RegExp(key.substring(PATTERN_INDICATOR.length)),
-      complement: (parentStructure, complementKey) => {
-        complementForPattern(parentStructure, templates[baseName], complementKey, path, placeholderPaths);
-      }
-    });
-    return pointerPath;
+    const key = path.slice(-1)[0];
+    const regExp = new RegExp(key.substring(PATTERN_INDICATOR.length));
+    const index = path.length - 1;
+    return {
+      index,
+      path,
+      test: (value) => regExp.test(value),
+      complement: (parentStructure, complementKey) =>
+        complementForPattern(parentStructure, templates[baseName], complementKey, path, placeholderPaths),
+      rewritePath: (pointerPath) =>
+        pointerPath.slice(0, index).concat(key).concat(pointerPath.slice(index + 1))
+    };
   });
   const numericKeySolutions = templateNumericKeyPaths.map((path) => {
-    const pointerPath = path.slice();
-    const key = pointerPath.pop();
-    pointerPath.push({
-      key,
-      regEx: new RegExp('^\\d+$'),
-      complement: (parentStructure, complementKey) => {
-        complementForNumeric(parentStructure, templates[baseName], complementKey, path, placeholderPaths);
-      }
-    });
-    return pointerPath;
+    const key = path.slice(-1)[0];
+    const regExp = new RegExp('^\\d+$');
+    const index = path.length - 1;
+    return {
+      index,
+      path,
+      test: (value) => regExp.test(value),
+      complement: (parentStructure, complementKey) =>
+        complementForNumeric(parentStructure, templates[baseName], complementKey, path, placeholderPaths),
+      rewritePath: (pointerPath) =>
+        pointerPath.slice(0, index).concat(key).concat(pointerPath.slice(index + 1))
+    };
   });
   const oneOfKeySolutions = templateOneOfKeyPaths.map((path) => {
-    const pointerPath = path.slice();
-    const key = pointerPath.pop();
-    pointerPath.push({
-      key,
-      regEx: new RegExp(key.substring(ONE_OF_INDICATOR.length)),
-      complement: (parentStructure, complementKey) => {
-        complementForOneOf(parentStructure, templates[baseName], complementKey, path, placeholderPaths);
-      }
-    });
-    return pointerPath;
+    const key = path.slice(-1)[0];
+    const regExp = new RegExp(key.substring(ONE_OF_INDICATOR.length));
+    const index = path.length - 1;
+    return {
+      index,
+      path,
+      test: (value) => regExp.test(value),
+      complement: (parentStructure, complementKey) =>
+        complementForOneOf(parentStructure, templates[baseName], complementKey, path, placeholderPaths),
+      rewritePath: (pointerPath) =>
+        pointerPath.slice(0, index).concat(key).concat(1).concat(pointerPath.slice(index + 1))
+    };
   });
 
   const solutionDimensions = [patternKeySolutions, numericKeySolutions, oneOfKeySolutions];
@@ -265,8 +270,8 @@ const safeMerge = (incomingValues, baseName, templates, existingData = null) => 
       pathParts.shift();
 
       // 1). Resolve template
-      const templatePath = pathParts.slice();
-      let templateValue = cloneDeep(getNestedProperty(templates[baseName], templatePath));
+      let templatePath = pathParts.slice();
+      let templateValue = getNestedProperty(templates[baseName], templatePath);
       const templatePathSolutions = [];
       if (typeof templateValue === 'undefined') {
         // the incoming pointer may have parts that are not literally equal, but that match the pattern for that part
@@ -275,11 +280,11 @@ const safeMerge = (incomingValues, baseName, templates, existingData = null) => 
         let solutionSpace = getSolutionSpace(templatePath, solutionDimensions);
         // quit when either: templateValue is resolved, there is no solution, or the same solution is presented again
         while (typeof templateValue === 'undefined' && solutionSpace.cardinality === 1 &&
-          (templatePathSolutions.length === 0 || solutionSpace.paths[0].length > templatePathSolutions.slice(-1)[0].length)) {
-          const lastSolutionPathIndex = solutionSpace.paths[0].length - 1;
-          templatePathSolutions.push(solutionSpace.paths[0]);
-          templatePath[lastSolutionPathIndex] = solutionSpace.paths[0][lastSolutionPathIndex].key;
-          templateValue = cloneDeep(getNestedProperty(templates[baseName], templatePath));
+          (templatePathSolutions.length === 0 || solutionSpace.solutions[0].index > templatePathSolutions.slice(-1)[0].index)) {
+          const solution = solutionSpace.solutions[0];
+          templatePathSolutions.push(solution);
+          templatePath = solution.rewritePath(templatePath);
+          templateValue = getNestedProperty(templates[baseName], templatePath);
           solutionSpace = getSolutionSpace(templatePath, solutionDimensions);
         };
       }
@@ -287,10 +292,10 @@ const safeMerge = (incomingValues, baseName, templates, existingData = null) => 
       // devise a solution for pointers which exist in the incoming and template structures,
       // but are still missing in the data structure
       const solutionSpace = getSolutionSpace(templatePath, solutionDimensions, true);
-      templatePathSolutions.push(...solutionSpace.paths);
+      templatePathSolutions.push(...solutionSpace.solutions);
 
       // TODO: resolve alternative templates?
-      console.log('1). Template Path', templatePath.join('/'));
+      console.log('1). Template Path', templatePath.join('/'), pathParts.join('/'));
 
       if (typeof templateValue === 'undefined') {
         console.warn(`No template value found for ${pointer}. This value will be skipped.`);
@@ -319,20 +324,17 @@ const safeMerge = (incomingValues, baseName, templates, existingData = null) => 
       // 3). Complement data structure
 
       if (!hasNestedProperty(draftState, pathParts) && templatePathSolutions.length > 0) {
-        templatePathSolutions.sort((solutionA, solutionB) => solutionA.length - solutionB.length);
-        templatePathSolutions.forEach((solutionPath) => {
-          const index = solutionPath.length - 1;
-          const parentPath = index > 0 ? pathParts.slice(0, index) : [];
+        templatePathSolutions.sort((solutionA, solutionB) => solutionA.index - solutionB.index);
+        templatePathSolutions.forEach((solution) => {
+          const parentPath = solution.index > 0 ? pathParts.slice(0, solution.index) : [];
           console.log(pathParts, parentPath);
-          console.log(solutionPath);
-          console.log(JSON.stringify(draftState, null, 2));
           console.log('ePp', JSON.stringify(getNestedProperty(draftState, parentPath), null, 2));
           const existingParentProperty = parentPath.length > 0 ? getNestedProperty(draftState, parentPath) : draftState;
-          const existingProperty = existingParentProperty[pathParts[index]];
+          const existingProperty = existingParentProperty[pathParts[solution.index]];
           if (typeof existingProperty !== 'undefined') {
             return;
           }
-          solutionPath[index].complement(existingParentProperty, pathParts[index]);
+          solution.complement(existingParentProperty, pathParts[solution.index]);
         });
       }
 
@@ -365,14 +367,6 @@ const isDefinedFalsy = (value) =>
  */
 const isObject = (structure) =>
   (structure !== null && typeof structure === 'object' && structure.constructor === Object);
-
-/**
- * Check if structure is an regular expression object
- * @param {*} structure The data structure to check
- * @returns {Boolean} True when structure is an regular expression object, false otherwise
- */
-const isRegExp = (structure) =>
-  (structure !== null && typeof structure === 'object' && structure.constructor === RegExp);
 
 /**
  * Check if structure is empty

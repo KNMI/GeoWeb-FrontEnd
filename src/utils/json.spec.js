@@ -147,7 +147,7 @@ describe('(Utils) json', () => {
   });
   it('.safeMerge should merge directly nested array-objects', () => {
     const incoming = [
-      [{ a: 1, c: 2 }, { b:3 }]
+      [{ a: 1, c: 2 }, { b: 3 }]
     ];
     const template = {
       test: [
