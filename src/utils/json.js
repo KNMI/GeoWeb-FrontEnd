@@ -20,6 +20,12 @@ const MODES_GEO_MAPPING = {
   [MODES_GEO_SELECTION.FIR]: 'select-fir'
 };
 
+const NODE_TYPES = {
+  ARRAY: 'array',
+  OBJECT: 'object',
+  LEAF: 'leaf'
+};
+
 const PATTERN_INDICATOR = '{patternProperties}_';
 const ONE_OF_INDICATOR = '{oneOf}_';
 /**
@@ -178,7 +184,7 @@ const safeMerge = (incomingValues, baseName, templates, existingData = null) => 
   const incomingPointers = [];
   getJsonPointers(incomingValues, (field) =>
     field === null ||
-    ((!Array.isArray(field) || field.length === 0) && (typeof field !== 'object' || field.constructor !== Object)), incomingPointers);
+    ((!Array.isArray(field) || field.length === 0) && !isObject(field)), incomingPointers);
 
   // find pattern properties (keys) in the base template hierarchy
   const templatePatternKeyPointers = [];
@@ -242,14 +248,31 @@ const safeMerge = (incomingValues, baseName, templates, existingData = null) => 
     const key = path.slice(-1)[0];
     const regExp = new RegExp(key.substring(ONE_OF_INDICATOR.length));
     const index = path.length - 1;
+    const downStreamTypes = getNestedProperty(templates[baseName], path).map((template) =>
+      Array.isArray(template)
+        ? NODE_TYPES.ARRAY
+        : isObject(template)
+          ? NODE_TYPES.OBJECT
+          : NODE_TYPES.LEAF
+    );
     return {
       index,
       path,
       test: (value) => regExp.test(value),
-      complement: (parentStructure, complementKey) =>
-        complementForOneOf(parentStructure, templates[baseName], complementKey, path, placeholderPaths),
-      rewritePath: (pointerPath) =>
-        pointerPath.slice(0, index).concat(key).concat(1).concat(pointerPath.slice(index + 1))
+      complement: (parentStructure, complementKey, templatePath) => {
+        console.log('Complement', templatePath, templatePath[path.length]);
+        return complementForOneOf(parentStructure, templates[baseName], complementKey,
+          path.concat(templatePath[path.length]), placeholderPaths);
+      },
+      rewritePath: (pointerPath) => {
+        const downStreamPointerPath = pointerPath.slice(index + 1);
+        const matchingTypeIndex = downStreamTypes.findIndex((type) =>
+          (type === NODE_TYPES.ARRAY && downStreamPointerPath.length > 0 && !isNaN(downStreamPointerPath[0])) ||
+          (type === NODE_TYPES.OBJECT && downStreamPointerPath.length > 0 && isNaN(downStreamPointerPath[0])) ||
+          (type === NODE_TYPES.LEAF && downStreamPointerPath.length === 0)
+        );
+        return pointerPath.slice(0, index).concat(key).concat(`${matchingTypeIndex}`).concat(pointerPath.slice(index + 1));
+      }
     };
   });
 
@@ -327,14 +350,14 @@ const safeMerge = (incomingValues, baseName, templates, existingData = null) => 
         templatePathSolutions.sort((solutionA, solutionB) => solutionA.index - solutionB.index);
         templatePathSolutions.forEach((solution) => {
           const parentPath = solution.index > 0 ? pathParts.slice(0, solution.index) : [];
-          console.log(pathParts, parentPath);
+          console.log('pP', pathParts, parentPath);
           console.log('ePp', JSON.stringify(getNestedProperty(draftState, parentPath), null, 2));
           const existingParentProperty = parentPath.length > 0 ? getNestedProperty(draftState, parentPath) : draftState;
           const existingProperty = existingParentProperty[pathParts[solution.index]];
           if (typeof existingProperty !== 'undefined') {
             return;
           }
-          solution.complement(existingParentProperty, pathParts[solution.index]);
+          solution.complement(existingParentProperty, pathParts[solution.index], templatePath);
         });
       }
 
