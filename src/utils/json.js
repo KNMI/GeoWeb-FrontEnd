@@ -89,9 +89,9 @@ const complementForNumeric = (parentStructure, template, complementKey, pointerP
     const additionalOccurrences = parseInt(complementKey) + 1 - parentStructure.length;
     const templateForArray = getComplement(template, pointerPath, placeholderPaths);
     console.log('cFN1', parentStructure);
-    if (additionalOccurrences > 0) {
-      parentStructure.push(...Array(additionalOccurrences).fill(cloneDeep(templateForArray)));
-    }
+    Array(additionalOccurrences).fill(null).forEach((occurrence, index) => {
+      parentStructure.push(cloneDeep(templateForArray));
+    });
     console.log('cFN2', parentStructure);
   }
 };
@@ -297,19 +297,36 @@ const safeMerge = (incomingValues, baseName, templates, existingData = null) => 
         return;
       }
 
-      // 2). Complement data structure
+      // 2). Validate incoming type
+      const nextValue = getNestedProperty(incomingValues, pathParts);
+      let isNextEmptyArray = false;
+      // 2.1). incoming data type is directly allowed
+      let isValid = (templateValue === null ||
+        (!Array.isArray(templateValue) && !isObject(templateValue) &&
+          (typeof templateValue === typeof nextValue || nextValue === null)));
+      // 2.2). emptying arrays is allowed
+      if (!isValid && Array.isArray(templateValue) && templateValue.length > 0 &&
+        Array.isArray(nextValue) && nextValue.length === 0) {
+        isValid = true;
+        isNextEmptyArray = true;
+      }
+
+      if (!isValid) {
+        console.warn(`New value for ${pointer} is not of a valid type. This value will be skipped.`);
+        return;
+      }
+
+      // 3). Complement data structure
 
       if (!hasNestedProperty(draftState, pathParts) && templatePathSolutions.length > 0) {
         templatePathSolutions.sort((solutionA, solutionB) => solutionA.length - solutionB.length);
         templatePathSolutions.forEach((solutionPath) => {
           const index = solutionPath.length - 1;
           const parentPath = index > 0 ? pathParts.slice(0, index) : [];
-          // if (templatePath.join('/') === 'selectedSigmet/0/phenomenon') {
-            console.log(pathParts, parentPath);
-            console.log(solutionPath);
-            console.log(JSON.stringify(draftState, null, 2));
-            console.log('ePp', JSON.stringify(getNestedProperty(draftState, parentPath), null, 2));
-          // }
+          console.log(pathParts, parentPath);
+          console.log(solutionPath);
+          console.log(JSON.stringify(draftState, null, 2));
+          console.log('ePp', JSON.stringify(getNestedProperty(draftState, parentPath), null, 2));
           const existingParentProperty = parentPath.length > 0 ? getNestedProperty(draftState, parentPath) : draftState;
           const existingProperty = existingParentProperty[pathParts[index]];
           if (typeof existingProperty !== 'undefined') {
@@ -319,22 +336,14 @@ const safeMerge = (incomingValues, baseName, templates, existingData = null) => 
         });
       }
 
-      // console.log('2). Complemented State', JSON.stringify(draftState, null, 2));
-
-      // 3). Merge the value when it is valid
+      // 4). Merge the value when it exists (after the completion) in the structure
 
       if (hasNestedProperty(draftState, pathParts)) {
-        // 1). incoming value, its position (and a template value) do exist in the base data structure
-        const nextValue = getNestedProperty(incomingValues, pathParts);
-        if (templateValue === null ||
-          (!Array.isArray(templateValue) && !isObject(templateValue) &&
-            (typeof templateValue === typeof nextValue || nextValue === null))) {
-          // 1.1) incoming data type is allowed
-          setNestedProperty(draftState, pathParts, nextValue);
-        } else if (Array.isArray(templateValue) && templateValue.length > 0 && Array.isArray(nextValue) && nextValue.length === 0) {
-          // 1.2) emptying arrays is allowed
+        if (isNextEmptyArray) {
           const affectedArray = getNestedProperty(draftState, pathParts);
           affectedArray.length = 0;
+        } else {
+          setNestedProperty(draftState, pathParts, nextValue);
         }
       }
     });
@@ -385,7 +394,7 @@ const clearRecursive = (objectToClear, pathParts) => {
     return;
   }
   pathParts.pop();
-  const parent = pathParts.length === 0 ? cloneDeep(objectToClear) : getNestedProperty(objectToClear, pathParts);
+  const parent = pathParts.length === 0 ? produce(objectToClear, () => { }) : getNestedProperty(objectToClear, pathParts);
   if (typeof parent === 'undefined') {
     return;
   }
@@ -404,7 +413,7 @@ const clearRecursive = (objectToClear, pathParts) => {
       removeNestedProperty(objectToClear, pathParts);
       pathParts.pop();
     });
-  } else if (parent && typeof parent === 'object') {
+  } else if (isObject(parent)) {
     Object.entries(parent).forEach(([key, value]) => {
       if (isEmptyStructure(value)) {
         pathParts.push(key);
@@ -415,7 +424,7 @@ const clearRecursive = (objectToClear, pathParts) => {
   }
 
   // Clear parent and recur
-  const cleanedParent = pathParts.length === 0 ? cloneDeep(objectToClear) : getNestedProperty(objectToClear, pathParts);
+  const cleanedParent = pathParts.length === 0 ? produce(objectToClear, () => { }) : getNestedProperty(objectToClear, pathParts);
 
   if (isEmptyStructure(cleanedParent)) {
     clearRecursive(objectToClear, pathParts);

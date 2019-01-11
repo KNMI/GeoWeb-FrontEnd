@@ -34,6 +34,14 @@ describe('(Utils) json', () => {
       2,
       3
     ]);
+    const newIncoming = [4];
+    newIncoming[2] = 6;
+    result = safeMerge(newIncoming, 'test', template, result);
+    expect(result).to.eql([
+      4,
+      2,
+      6
+    ]);
   });
   it('.safeMerge should merge a \'flat\' object', () => {
     const incoming = {
@@ -63,7 +71,8 @@ describe('(Utils) json', () => {
     const incoming = [
       { a: 1 },
       { a: 2, b: 3 },
-      { a: 4, b: 5, c: 6 }
+      { a: 4, b: 5, c: 6 },
+      { b: 7 }
     ];
     const template = {
       test: [
@@ -125,15 +134,9 @@ describe('(Utils) json', () => {
       ]
     });
     expect(result).to.eql([
-      { a: [
-        { b: { c: null } }
-      ] },
-      { a: [
-        { b: { c: null } }
-      ] },
-      { a: [
-        { b: { c: null } }
-      ] },
+      { a: [] },
+      { a: [] },
+      { a: [] },
       { a: [
         { b: { c: 6 } }
       ] },
@@ -243,6 +246,36 @@ describe('(Utils) json', () => {
     expect(result).to.eql({
       a: [
         { 'TEST': [1, 2] }
+      ]
+    });
+  });
+  it('.safeMerge should merge oneOf properties', () => {
+    const incoming = {
+      a: [
+        { 'testing': 'first' },
+        { 'testing': ['second'] },
+        { 'TESTER': [2, 4] }
+      ]
+    };
+    const template = {
+      test: {
+        a: [
+          { '{oneOf}_testing': [null, [null]] }
+        ]
+      }
+    };
+    let result = safeMerge(incoming, 'test', template);
+    expect(template).to.eql({
+      test: {
+        a: [
+          { '{oneOf}_testing': [null, [null]] }
+        ]
+      }
+    });
+    expect(result).to.eql({
+      a: [
+        { 'testing': 'first' },
+        { 'testing': ['second'] }
       ]
     });
   });
