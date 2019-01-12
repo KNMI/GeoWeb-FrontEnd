@@ -260,9 +260,9 @@ const safeMerge = (incomingValues, baseName, templates, existingData = null) => 
       path,
       test: (value) => regExp.test(value),
       complement: (parentStructure, complementKey, templatePath) => {
-        console.log('Complement', templatePath, templatePath[path.length]);
+        console.log('Complement', templatePath, path, templatePath[path.length], path.concat(templatePath[path.length]));
         return complementForOneOf(parentStructure, templates[baseName], complementKey,
-          path.concat(templatePath[path.length]), placeholderPaths);
+          path.slice(0, -1), placeholderPaths);
       },
       rewritePath: (pointerPath) => {
         const downStreamPointerPath = pointerPath.slice(index + 1);
@@ -296,6 +296,7 @@ const safeMerge = (incomingValues, baseName, templates, existingData = null) => 
       let templatePath = pathParts.slice();
       let templateValue = getNestedProperty(templates[baseName], templatePath);
       const templatePathSolutions = [];
+      const offsets = [];
       if (typeof templateValue === 'undefined') {
         // the incoming pointer may have parts that are not literally equal, but that match the pattern for that part
         // in the template. To find such part, a 'solution space' - with possible solutions extracted from the template -
@@ -305,13 +306,20 @@ const safeMerge = (incomingValues, baseName, templates, existingData = null) => 
         while (typeof templateValue === 'undefined' && solutionSpace.cardinality === 1 &&
           (templatePathSolutions.length === 0 || solutionSpace.solutions[0].index > templatePathSolutions.slice(-1)[0].index)) {
           const solution = solutionSpace.solutions[0];
+          const rewrittenPath = solution.rewritePath(templatePath);
+          console.log('Rewr', rewrittenPath.length, templatePath.length);
+          const pathLengthDiff = rewrittenPath.length - templatePath.length;
+          if (pathLengthDiff > 0) {
+            offsets.push({ start: solution.index, length: pathLengthDiff });
+            solution.index += pathLengthDiff;
+          }
+          templatePath = rewrittenPath;
           templatePathSolutions.push(solution);
-          templatePath = solution.rewritePath(templatePath);
           templateValue = getNestedProperty(templates[baseName], templatePath);
           solutionSpace = getSolutionSpace(templatePath, solutionDimensions);
         };
       }
-
+      console.log('TPS0', JSON.stringify(templatePathSolutions, null, 2));
       // devise a solution for pointers which exist in the incoming and template structures,
       // but are still missing in the data structure
       const solutionSpace = getSolutionSpace(templatePath, solutionDimensions, true);
@@ -348,6 +356,7 @@ const safeMerge = (incomingValues, baseName, templates, existingData = null) => 
 
       if (!hasNestedProperty(draftState, pathParts) && templatePathSolutions.length > 0) {
         templatePathSolutions.sort((solutionA, solutionB) => solutionA.index - solutionB.index);
+        console.log('TPS', JSON.stringify(templatePathSolutions, null, 2));
         templatePathSolutions.forEach((solution) => {
           const parentPath = solution.index > 0 ? pathParts.slice(0, solution.index) : [];
           console.log('pP', pathParts, parentPath);
