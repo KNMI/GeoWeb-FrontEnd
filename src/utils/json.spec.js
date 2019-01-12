@@ -249,6 +249,25 @@ describe('(Utils) json', () => {
       ]
     });
   });
+  it('.safeMerge should merge oneOfSimple properties', () => {
+    const incoming = {
+      a: { 'testing': 'first' }
+    };
+    const template = {
+      test: {
+        a: { '{oneOf}_testing': [null, [null]] }
+      }
+    };
+    let result = safeMerge(incoming, 'test', template);
+    expect(template).to.eql({
+      test: {
+        a: { '{oneOf}_testing': [null, [null]] }
+      }
+    });
+    expect(result).to.eql({
+      a: { 'testing': 'first' }
+    });
+  });
   it('.safeMerge should merge oneOf properties', () => {
     const incoming = {
       a: [

@@ -61,36 +61,34 @@ const getComplement = (template, pointerPath, placeholderPaths) => {
     pointerPath.every((part, index) => part === path[index])
   );
   strippablePlaceholders.forEach((placeholderPath) => {
-    console.log('PlH', pointerPath, placeholderPath, complement);
     removeNestedProperty(complement, placeholderPath.slice(pointerPath.length));
-    console.log('PlHa', complement);
   });
   return complement;
 };
 
 /**
- * Complements data structure for pattern properties
+ * Complements data structure for dynamic property keys
  * @param {Object|Array} parentStructure - The data structure to complement
  * @param {Object|Array} template - The template to inject
- * @param {string} complementKey - The index key at which the template will be injected
+ * @param {string} complementKey - The dynamic key at which the template will be injected
  * @param {Array} pointerPath - The prefixing path
  * @param {Array} placeholderPaths - The paths to placeholders
  */
-const complementForPattern = (parentStructure, template, complementKey, pointerPath, placeholderPaths) => {
+const complementForKey = (parentStructure, template, complementKey, pointerPath, placeholderPaths) => {
   console.log('cFP1', parentStructure);
   parentStructure[complementKey] = getComplement(template, pointerPath, placeholderPaths);
   console.log('cFP2', parentStructure);
 };
 
 /**
- * Complements data structure for numeric properties
+ * Complements data structure for additions (i.e. numeric properties -> array)
  * @param {Object|Array} parentStructure - The data structure to complement
  * @param {Object|Array} template - The template to inject
  * @param {string} complementKey - The index key at which the template will be injected
  * @param {Array} pointerPath - The prefixing path
  * @param {Array} placeholderPaths - The paths to placeholders
  */
-const complementForNumeric = (parentStructure, template, complementKey, pointerPath, placeholderPaths) => {
+const complementForAdditions = (parentStructure, template, complementKey, pointerPath, placeholderPaths) => {
   if (!isNaN(complementKey) && Array.isArray(parentStructure)) {
     const additionalOccurrences = parseInt(complementKey) + 1 - parentStructure.length;
     const templateForArray = getComplement(template, pointerPath, placeholderPaths);
@@ -100,20 +98,6 @@ const complementForNumeric = (parentStructure, template, complementKey, pointerP
     });
     console.log('cFN2', parentStructure);
   }
-};
-
-/**
- * Complements data structure for properties which can contain different data types
- * @param {Object|Array} parentStructure - The data structure to complement
- * @param {Object|Array} template - The template to inject
- * @param {string} complementKey - The index key at which the template will be injected
- * @param {Array} pointerPath - The prefixing path
- * @param {Array} placeholderPaths - The paths to placeholders
- */
-const complementForOneOf = (parentStructure, template, complementKey, pointerPath, placeholderPaths) => {
-  console.log('cFO1', parentStructure, getComplement(template, pointerPath, placeholderPaths));
-  parentStructure[complementKey] = getComplement(template, pointerPath, placeholderPaths);
-  console.log('cFO2', parentStructure);
 };
 
 /**
@@ -127,10 +111,10 @@ const complementForOneOf = (parentStructure, template, complementKey, pointerPat
  */
 const filterSolutions = (solutions, path, skipTemplateValueCheck = false) =>
   solutions.filter((solution) => {
-    return solution.index < path.length &&
+    return solution.templateValueIndex() < path.length &&
       solution.path.every((part, index) =>
-        (index < solution.index && part === path[index]) ||
-        (index === solution.index && solution.test(path[index]) &&
+        (index < solution.templateValueIndex() && part === path[index]) ||
+        (index === solution.templateValueIndex() && solution.test(path[index]) &&
           (skipTemplateValueCheck || part !== path[index]))
       );
   });
@@ -217,63 +201,77 @@ const safeMerge = (incomingValues, baseName, templates, existingData = null) => 
 
   // create solution paths for pattern properties and numeric keys
   const patternKeySolutions = templatePatternKeyPaths.map((path) => {
-    const key = path.slice(-1)[0];
-    const regExp = new RegExp(key.substring(PATTERN_INDICATOR.length));
-    const index = path.length - 1;
-    return {
-      index,
-      path,
-      test: (value) => regExp.test(value),
-      complement: (parentStructure, complementKey) =>
-        complementForPattern(parentStructure, templates[baseName], complementKey, path, placeholderPaths),
-      rewritePath: (pointerPath) =>
-        pointerPath.slice(0, index).concat(key).concat(pointerPath.slice(index + 1))
-    };
+    return (() => {
+      const _key = path.slice(-1)[0];
+      const _regExp = new RegExp(_key.substring(PATTERN_INDICATOR.length));
+      const _templateIndex = path.length - 1;
+      const _incomingIndex = _templateIndex;
+      return {
+        templateValueIndex: () => _templateIndex,
+        incomingValueIndex: () => _incomingIndex,
+        path,
+        test: (value) => _regExp.test(value),
+        complement: (parentStructure, complementKey) =>
+          complementForKey(parentStructure, templates[baseName], complementKey, path, placeholderPaths),
+        rewritePath: (pointerPath) =>
+          pointerPath.slice(0, _templateIndex).concat(_key).concat(pointerPath.slice(_templateIndex + 1))
+      };
+    })();
   });
   const numericKeySolutions = templateNumericKeyPaths.map((path) => {
-    const key = path.slice(-1)[0];
-    const regExp = new RegExp('^\\d+$');
-    const index = path.length - 1;
-    return {
-      index,
-      path,
-      test: (value) => regExp.test(value),
-      complement: (parentStructure, complementKey) =>
-        complementForNumeric(parentStructure, templates[baseName], complementKey, path, placeholderPaths),
-      rewritePath: (pointerPath) =>
-        pointerPath.slice(0, index).concat(key).concat(pointerPath.slice(index + 1))
-    };
+    return (() => {
+      const _key = path.slice(-1)[0];
+      const _regExp = new RegExp('^\\d+$');
+      const _templateIndex = path.length - 1;
+      const _incomingIndex = _templateIndex;
+      return {
+        templateValueIndex: () => _templateIndex,
+        incomingValueIndex: () => _incomingIndex,
+        path,
+        test: (value) => _regExp.test(value),
+        complement: (parentStructure, complementKey) =>
+          complementForAdditions(parentStructure, templates[baseName], complementKey, path, placeholderPaths),
+        rewritePath: (pointerPath) =>
+          pointerPath.slice(0, _templateIndex).concat(_key).concat(pointerPath.slice(_templateIndex + 1))
+      };
+    })();
   });
   const oneOfKeySolutions = templateOneOfKeyPaths.map((path) => {
-    const key = path.slice(-1)[0];
-    const regExp = new RegExp(key.substring(ONE_OF_INDICATOR.length));
-    const index = path.length - 1;
-    const downStreamTypes = getNestedProperty(templates[baseName], path).map((template) =>
-      Array.isArray(template)
-        ? NODE_TYPES.ARRAY
-        : isObject(template)
-          ? NODE_TYPES.OBJECT
-          : NODE_TYPES.LEAF
-    );
-    return {
-      index,
-      path,
-      test: (value) => regExp.test(value),
-      complement: (parentStructure, complementKey, templatePath) => {
-        console.log('Complement', templatePath, path, templatePath[path.length], path.concat(templatePath[path.length]));
-        return complementForOneOf(parentStructure, templates[baseName], complementKey,
-          path.slice(0, -1), placeholderPaths);
-      },
-      rewritePath: (pointerPath) => {
-        const downStreamPointerPath = pointerPath.slice(index + 1);
-        const matchingTypeIndex = downStreamTypes.findIndex((type) =>
-          (type === NODE_TYPES.ARRAY && downStreamPointerPath.length > 0 && !isNaN(downStreamPointerPath[0])) ||
-          (type === NODE_TYPES.OBJECT && downStreamPointerPath.length > 0 && isNaN(downStreamPointerPath[0])) ||
-          (type === NODE_TYPES.LEAF && downStreamPointerPath.length === 0)
-        );
-        return pointerPath.slice(0, index).concat(key).concat(`${matchingTypeIndex}`).concat(pointerPath.slice(index + 1));
-      }
-    };
+    return (() => {
+      const _key = path.slice(-1)[0];
+      const _regExp = new RegExp(_key.substring(ONE_OF_INDICATOR.length));
+      let _templateIndex = path.length - 1;
+      const _incomingIndex = _templateIndex;
+      const downStreamTypes = getNestedProperty(templates[baseName], path).map((template) =>
+        Array.isArray(template)
+          ? NODE_TYPES.ARRAY
+          : isObject(template)
+            ? NODE_TYPES.OBJECT
+            : NODE_TYPES.LEAF
+      );
+      return {
+        templateValueIndex: () => _templateIndex,
+        incomingValueIndex: () => _incomingIndex,
+        path,
+        test: (value) => _regExp.test(value),
+        complement: (parentStructure, complementKey) => {
+          return complementForKey(parentStructure, templates[baseName], complementKey,
+            path.slice(0, -1), placeholderPaths);
+        },
+        rewritePath: (pointerPath) => {
+          const downStreamPointerPath = pointerPath.slice(_templateIndex + 1);
+          const matchingTypeIndex = downStreamTypes.findIndex((type) =>
+            (type === NODE_TYPES.ARRAY && downStreamPointerPath.length > 0 && !isNaN(downStreamPointerPath[0])) ||
+            (type === NODE_TYPES.OBJECT && downStreamPointerPath.length > 0 && isNaN(downStreamPointerPath[0])) ||
+            (type === NODE_TYPES.LEAF && downStreamPointerPath.length === 0)
+          );
+          const resultPath = pointerPath.slice(0, _templateIndex).concat(_key).concat(`${matchingTypeIndex}`)
+            .concat(pointerPath.slice(_templateIndex + 1));
+          _templateIndex += 1;
+          return resultPath;
+        }
+      };
+    })();
   });
 
   const solutionDimensions = [patternKeySolutions, numericKeySolutions, oneOfKeySolutions];
@@ -295,8 +293,7 @@ const safeMerge = (incomingValues, baseName, templates, existingData = null) => 
       // 1). Resolve template
       let templatePath = pathParts.slice();
       let templateValue = getNestedProperty(templates[baseName], templatePath);
-      const templatePathSolutions = [];
-      const offsets = [];
+      const pathPartSolutions = [];
       if (typeof templateValue === 'undefined') {
         // the incoming pointer may have parts that are not literally equal, but that match the pattern for that part
         // in the template. To find such part, a 'solution space' - with possible solutions extracted from the template -
@@ -304,28 +301,26 @@ const safeMerge = (incomingValues, baseName, templates, existingData = null) => 
         let solutionSpace = getSolutionSpace(templatePath, solutionDimensions);
         // quit when either: templateValue is resolved, there is no solution, or the same solution is presented again
         while (typeof templateValue === 'undefined' && solutionSpace.cardinality === 1 &&
-          (templatePathSolutions.length === 0 || solutionSpace.solutions[0].index > templatePathSolutions.slice(-1)[0].index)) {
+          (pathPartSolutions.length === 0 || solutionSpace.solutions[0].templateValueIndex() > pathPartSolutions.slice(-1)[0].templateValueIndex())) {
           const solution = solutionSpace.solutions[0];
-          const rewrittenPath = solution.rewritePath(templatePath);
-          console.log('Rewr', rewrittenPath.length, templatePath.length);
-          const pathLengthDiff = rewrittenPath.length - templatePath.length;
-          if (pathLengthDiff > 0) {
-            offsets.push({ start: solution.index, length: pathLengthDiff });
-            solution.index += pathLengthDiff;
-          }
-          templatePath = rewrittenPath;
-          templatePathSolutions.push(solution);
+          console.log('tP', templatePath);
+          templatePath = solution.rewritePath(templatePath);
+          console.log('tP', templatePath);
+          pathPartSolutions.push(solution);
           templateValue = getNestedProperty(templates[baseName], templatePath);
           solutionSpace = getSolutionSpace(templatePath, solutionDimensions);
         };
       }
-      console.log('TPS0', JSON.stringify(templatePathSolutions, null, 2));
       // devise a solution for pointers which exist in the incoming and template structures,
       // but are still missing in the data structure
       const solutionSpace = getSolutionSpace(templatePath, solutionDimensions, true);
-      templatePathSolutions.push(...solutionSpace.solutions);
+      solutionSpace.solutions.forEach((solution) => {
+        if (pathPartSolutions.filter((foundSolution) => foundSolution.templateValueIndex() === solution.templateValueIndex() &&
+            foundSolution.incomingValueIndex() === solution.incomingValueIndex()).length === 0) {
+          pathPartSolutions.push(...solutionSpace.solutions);
+        }
+      });
 
-      // TODO: resolve alternative templates?
       console.log('1). Template Path', templatePath.join('/'), pathParts.join('/'));
 
       if (typeof templateValue === 'undefined') {
@@ -354,19 +349,20 @@ const safeMerge = (incomingValues, baseName, templates, existingData = null) => 
 
       // 3). Complement data structure
 
-      if (!hasNestedProperty(draftState, pathParts) && templatePathSolutions.length > 0) {
-        templatePathSolutions.sort((solutionA, solutionB) => solutionA.index - solutionB.index);
-        console.log('TPS', JSON.stringify(templatePathSolutions, null, 2));
-        templatePathSolutions.forEach((solution) => {
-          const parentPath = solution.index > 0 ? pathParts.slice(0, solution.index) : [];
+      if (!hasNestedProperty(draftState, pathParts) && pathPartSolutions.length > 0) {
+        pathPartSolutions.sort((solutionA, solutionB) => solutionA.index - solutionB.index);
+        console.log('TPS', JSON.stringify(pathPartSolutions, null, 2));
+        pathPartSolutions.forEach((solution) => {
+          const parentPath = solution.incomingValueIndex() > 0 ? pathParts.slice(0, solution.incomingValueIndex()) : [];
           console.log('pP', pathParts, parentPath);
           console.log('ePp', JSON.stringify(getNestedProperty(draftState, parentPath), null, 2));
           const existingParentProperty = parentPath.length > 0 ? getNestedProperty(draftState, parentPath) : draftState;
-          const existingProperty = existingParentProperty[pathParts[solution.index]];
+          const incomingPropertyKey = pathParts[solution.incomingValueIndex()];
+          const existingProperty = existingParentProperty[incomingPropertyKey];
           if (typeof existingProperty !== 'undefined') {
             return;
           }
-          solution.complement(existingParentProperty, pathParts[solution.index], templatePath);
+          solution.complement(existingParentProperty, incomingPropertyKey);
         });
       }
 
