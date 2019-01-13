@@ -256,35 +256,6 @@ const updateFeedback = (title, status, category, subTitle, list, container, call
 };
 
 /**
- * Merges the values into (nested) templates, but with TAF quirks for NSC / NSW
- * TODO: (MP 2018-08-17): Discuss with Wim how to solve this more nicely.
- * @param {any} incomingValues The object with values to merge into templates, same hierarchy as template
- * @param {string} parentName The property name of the top level incomingValues entity
- * @param {object} templates A map of templates, with keys equal to the property names
- * @returns {any} The template with the incoming values merged or null
- */
-const mergeInTemplateTaf = (incomingValues, parentName, templates) => {
-  let mergedTaf = safeMerge(incomingValues, parentName, templates);
-  if (parentName === 'FORECAST') {
-    if (incomingValues && incomingValues.clouds && typeof incomingValues.clouds === 'string' && incomingValues.clouds === 'NSC') {
-      mergedTaf = produce(mergedTaf, draftState => { draftState.clouds = 'NSC'; });
-    }
-    if (incomingValues && incomingValues.weather && typeof incomingValues.weather === 'string' && incomingValues.weather === 'NSW') {
-      mergedTaf = produce(mergedTaf, draftState => { draftState.weather = 'NSW'; });
-    }
-  }
-  if (parentName === 'CHANGE_GROUP') {
-    if (incomingValues && incomingValues.forecast && incomingValues.forecast.clouds && typeof incomingValues.forecast.clouds === 'string' && incomingValues.forecast.clouds === 'NSC') {
-      mergedTaf = produce(mergedTaf, draftState => { draftState.forecast.clouds = 'NSC'; });
-    }
-    if (incomingValues && incomingValues.forecast && incomingValues.forecast.weather && typeof incomingValues.forecast.weather === 'string' && incomingValues.forecast.weather === 'NSW') {
-      mergedTaf = produce(mergedTaf, draftState => { draftState.forecast.weather = 'NSW'; });
-    }
-  }
-  return mergedTaf;
-};
-
-/**
  * Creates a selectable TAF object out of a regular TAF object
  * @param {object} tafData The TAF object to wrap
  * @returns A selectable TAF corresponding to the incoming TAF
@@ -316,11 +287,11 @@ const wrapIntoSelectableTaf = (tafData) => {
         draftSelectable.tafData.metadata[entry[0]] = tafData.metadata[entry[0]];
       }
     });
-    draftSelectable.tafData.forecast = mergeInTemplateTaf(tafData.forecast, 'FORECAST', TAF_TEMPLATES);
+    draftSelectable.tafData.forecast = safeMerge(tafData.forecast, TAF_TEMPLATES.FORECAST);
     if (Array.isArray(tafData.changegroups) && tafData.changegroups.length > 0) {
       draftSelectable.tafData.changegroups.length = 0;
       tafData.changegroups.forEach((changeGroup) => {
-        draftSelectable.tafData.changegroups.push(mergeInTemplateTaf(changeGroup, 'CHANGE_GROUP', TAF_TEMPLATES));
+        draftSelectable.tafData.changegroups.push(safeMerge(changeGroup, TAF_TEMPLATES.CHANGE_GROUP));
       });
     }
   });

@@ -119,7 +119,7 @@ describe('(Reducer) Sigmet/SigmetReducers', () => {
     }).then(() => {
       expect(container.state).to.have.property('focussedCategoryRef', null);
       done();
-    });
+    }).catch(done);
   });
   it('should handle retrieveParameters', (done) => {
     const initialParameters = {
@@ -159,7 +159,8 @@ describe('(Reducer) Sigmet/SigmetReducers', () => {
         }
       },
       state: {
-        parameters: initialParameters
+        parameters: initialParameters,
+        firs: { 'AMSTERDAM FIR': {} }
       }
     };
     container.setState = (partialState) => {

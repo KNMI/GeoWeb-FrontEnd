@@ -122,6 +122,17 @@ const retrieveParameters = (container) => {
 };
 
 const updateParameters = (parameters, container) => {
+  const { active_firs : activeFirs, firareas } = parameters;
+  if (Array.isArray(activeFirs)) {
+    activeFirs.forEach((firKey) => {
+      const firData = firareas
+        ? firareas[firKey]
+        : null;
+      if (firData) {
+        updateFir(firData.firname, container);
+      }
+    });
+  }
   return setStatePromise(container, {
     parameters
   });
@@ -206,7 +217,6 @@ const updatePhenomena = (rawPhenomenaData, container) => {
     processedPhenomena.push(...expandPhenomenonCombinatorics(rawPhenomenonData));
   });
 
-  // first empty existing phenomena, then add the new ones
   return setStatePromise(container, {
     phenomena: processedPhenomena
   });
@@ -276,7 +286,7 @@ const retrieveCategorizedSigmets = (container, retrievableCategory) => {
           incomingSigmets.push(...response.data.sigmets);
         }
         incomingSigmets.sort(byValidDate);
-        // FIXME: temporary functionality to add TAC to SIGMET
+        // temporary functionality to add TAC to SIGMET
         const augmentedSigmets = incomingSigmets.map((incomingSigmet) =>
           retrieveSigmetTac(container, incomingSigmet.uuid).then(tacResult => {
             incomingSigmet.tac = tacResult.code;
@@ -286,7 +296,7 @@ const retrieveCategorizedSigmets = (container, retrievableCategory) => {
         Promise.all(augmentedSigmets).then((sigmets) =>
           resolve({ ref: retrievableCategory.ref, sigmets })
         );
-        // FIXME: replace code below previous FIXME with the next line
+        // FIXME: replace code below previous comment with the next line
         // resolve({ ref: retrievableCategory.ref, sigmets: incomingSigmets });
       } else {
         reject(new Error(`${ERROR_MSG.RETRIEVE_SIGMETS} for ${retrievableCategory.ref} `,
@@ -346,25 +356,10 @@ const synchronizeSigmets = (container) => {
  * @returns {Promise} The promise of setting the state in the context
  */
 const setStatePromise = (container, newProps) => {
-  const templateWithDefaults = {
-    'SIGMET': getEmptySigmet(container)
-  };
-  templateWithDefaults.SIGMET = produce(templateWithDefaults.SIGMET, draftState => {
-    draftState.geojson = initialGeoJson();
-  });
   return new Promise((resolve, reject) => {
     container.setState(safeMerge(
       newProps,
-      'containerState',
-      {
-        'containerState': SIGMET_TEMPLATES.CONTAINER,
-        'selectedSigmet': [
-          templateWithDefaults.SIGMET
-        ],
-        'sigmets': [
-          templateWithDefaults.SIGMET
-        ]
-      },
+      SIGMET_TEMPLATES.CONTAINER,
       container.state
     ),
     () => { resolve(); });
@@ -586,7 +581,7 @@ const getEmptySigmet = (container) => produce(SIGMET_TEMPLATES.SIGMET, draftSigm
   draftSigmet.location_indicator_mwo = parameters.location_indicator_wmo;
   draftSigmet.validdate = getRoundedNow().format();
   const defaultFirKey = Array.isArray(parameters.active_firs) && parameters.active_firs.length > 0 ? parameters.active_firs[0] : null;
-  const defaultFirData = defaultFirKey !== null && parameters.firareas[defaultFirKey]
+  const defaultFirData = (defaultFirKey !== null && parameters.firareas[defaultFirKey])
     ? parameters.firareas[defaultFirKey]
     : parameters.firareas && Object.keys(parameters.firareas).length > 0
       ? parameters.firareas[Object.keys(parameters.firareas)[0]]
@@ -596,9 +591,7 @@ const getEmptySigmet = (container) => produce(SIGMET_TEMPLATES.SIGMET, draftSigm
     draftSigmet.location_indicator_icao = defaultFirData.location_indicator_icao;
     draftSigmet.firname = defaultFirData.firname;
   }
-  if (draftSigmet.firname) {
-    updateFir(draftSigmet.firname, container);
-  }
+  draftSigmet.geojson = initialGeoJson();
 });
 
 const findCategoryAndSigmetIndex = (uuid, state) => {
@@ -1267,9 +1260,7 @@ const verifySigmet = (sigmetObject, container) => {
   const complementedSigmet = sanitizeSigmet(sigmetObject, cleanedFeatures);
   const setTacRepresentation = (representation) =>
     setStatePromise(container, {
-      selectedAuxiliaryInfo: {
-        tacRepresentation: representation
-      }
+      selectedSigmet: [{ tac: representation }]
     });
   setTacRepresentation('... retrieving TAC ...').then(() =>
     axios({

@@ -10,10 +10,10 @@ describe('(Utils) json', () => {
       b: 0
     };
     try {
-      safeMerge(incoming, 'test');
+      safeMerge(incoming);
       expect(true).to.eql(false);
     } catch (error) {
-      expect(error.message).to.eql(`Argument 'templates' is missing a proper value`);
+      expect(error.message).to.eql(`Argument 'baseTemplate' is missing a proper value`);
     };
   });
   it('.safeMerge should merge a \'flat\' array', () => {
@@ -22,13 +22,9 @@ describe('(Utils) json', () => {
       2,
       3
     ];
-    const template = {
-      test: [null]
-    };
-    let result = safeMerge(incoming, 'test', template);
-    expect(template).to.eql({
-      test: [null]
-    });
+    const template = [null];
+    let result = safeMerge(incoming, template);
+    expect(template).to.eql([null]);
     expect(result).to.eql([
       1,
       2,
@@ -36,7 +32,7 @@ describe('(Utils) json', () => {
     ]);
     const newIncoming = [4];
     newIncoming[2] = 6;
-    result = safeMerge(newIncoming, 'test', template, result);
+    result = safeMerge(newIncoming, template, result);
     expect(result).to.eql([
       4,
       2,
@@ -50,17 +46,13 @@ describe('(Utils) json', () => {
       c: 3
     };
     const template = {
-      test: {
-        a: null,
-        b: null
-      }
+      a: null,
+      b: null
     };
-    let result = safeMerge(incoming, 'test', template);
+    let result = safeMerge(incoming, template);
     expect(template).to.eql({
-      test: {
-        a: null,
-        b: null
-      }
+      a: null,
+      b: null
     });
     expect(result).to.eql({
       a: 1,
@@ -74,17 +66,13 @@ describe('(Utils) json', () => {
       { a: 4, b: 5, c: 6 },
       { b: 7 }
     ];
-    const template = {
-      test: [
-        { a: null }
-      ]
-    };
-    let result = safeMerge(incoming, 'test', template);
-    expect(template).to.eql({
-      test: [
-        { a: null }
-      ]
-    });
+    const template = [
+      { a: null }
+    ];
+    let result = safeMerge(incoming, template);
+    expect(template).to.eql([
+      { a: null }
+    ]);
     expect(result).to.eql([
       { a: 1 },
       { a: 2 },
@@ -114,25 +102,21 @@ describe('(Utils) json', () => {
         ]
       }
     ];
-    const template = {
-      test: [
-        { a: [
-          { b: {
-            c: null
-          } }
-        ] }
-      ]
-    };
-    let result = safeMerge(incoming, 'test', template);
-    expect(template).to.eql({
-      test: [
-        { a: [
-          { b: {
-            c: null
-          } }
-        ] }
-      ]
-    });
+    const template = [
+      { a: [
+        { b: {
+          c: null
+        } }
+      ] }
+    ];
+    let result = safeMerge(incoming, template);
+    expect(template).to.eql([
+      { a: [
+        { b: {
+          c: null
+        } }
+      ] }
+    ]);
     expect(result).to.eql([
       { a: [] },
       { a: [] },
@@ -149,17 +133,13 @@ describe('(Utils) json', () => {
     const incoming = [
       [{ a: 1, c: 2 }, { b: 3 }]
     ];
-    const template = {
-      test: [
-        [{ a: null, b: null }]
-      ]
-    };
-    let result = safeMerge(incoming, 'test', template);
-    expect(template).to.eql({
-      test: [
-        [{ a: null, b: null }]
-      ]
-    });
+    const template = [
+      [{ a: null, b: null }]
+    ];
+    let result = safeMerge(incoming, template);
+    expect(template).to.eql([
+      [{ a: null, b: null }]
+    ]);
     expect(result).to.eql([
       [{ a: 1, b: null }, { a: null, b: 3 }]
     ]);
@@ -168,17 +148,13 @@ describe('(Utils) json', () => {
     let incoming = [
       [[[{ a: 1, c: 2 }, { b: 3 }]]]
     ];
-    let template = {
-      test: [
-        [[[{ a: null, b: null }]]]
-      ]
-    };
-    let result = safeMerge(incoming, 'test', template);
-    expect(template).to.eql({
-      test: [
-        [[[{ a: null, b: null }]]]
-      ]
-    });
+    let template = [
+      [[[{ a: null, b: null }]]]
+    ];
+    let result = safeMerge(incoming, template);
+    expect(template).to.eql([
+      [[[{ a: null, b: null }]]]
+    ]);
     expect(result).to.eql([
       [[[{ a: 1, b: null }, { a: null, b: 3 }]]]
     ]);
@@ -188,15 +164,9 @@ describe('(Utils) json', () => {
     template = {
       d: [[[{ a: null, b: null }]]]
     };
-    template.test = {
-      d: template.d
-    };
-    result = safeMerge(incoming, 'test', template);
+    result = safeMerge(incoming, template);
     expect(template).to.eql({
-      d: [[[{ a: null, b: null }]]],
-      test: {
-        d: [[[{ a: null, b: null }]]]
-      }
+      d: [[[{ a: null, b: null }]]]
     });
     expect(result).to.eql({
       d: [[[{ a: 1, b: null }, { a: null, b: 3 }]]]
@@ -204,19 +174,13 @@ describe('(Utils) json', () => {
     incoming = [{
       d: [[[{ a: 1, c: 2 }, { b: 3 }]]]
     }];
-    template = {
+    template = [{
       d: [[[{ a: null, b: null }]]]
-    };
-    template.test = [{
-      d: template.d
     }];
-    result = safeMerge(incoming, 'test', template);
-    expect(template).to.eql({
-      d: [[[{ a: null, b: null }]]],
-      test: [{
-        d: [[[{ a: null, b: null }]]]
-      }]
-    });
+    result = safeMerge(incoming, template);
+    expect(template).to.eql([{
+      d: [[[{ a: null, b: null }]]]
+    }]);
     expect(result).to.eql([{
       d: [[[{ a: 1, b: null }, { a: null, b: 3 }]]]
     }]);
@@ -229,19 +193,15 @@ describe('(Utils) json', () => {
       ]
     };
     const template = {
-      test: {
-        a: [
-          { '{patternProperties}_^[A-Z]{4}$': [null] }
-        ]
-      }
+      a: [
+        { '{patternProperties}_^[A-Z]{4}$': [null] }
+      ]
     };
-    let result = safeMerge(incoming, 'test', template);
+    let result = safeMerge(incoming, template);
     expect(template).to.eql({
-      test: {
-        a: [
-          { '{patternProperties}_^[A-Z]{4}$': [null] }
-        ]
-      }
+      a: [
+        { '{patternProperties}_^[A-Z]{4}$': [null] }
+      ]
     });
     expect(result).to.eql({
       a: [
@@ -254,15 +214,11 @@ describe('(Utils) json', () => {
       a: { 'testing': 'first' }
     };
     const template = {
-      test: {
-        a: { '{oneOf}_testing': [null, [null]] }
-      }
+      a: { '{oneOf}_testing': [null, [null]] }
     };
-    let result = safeMerge(incoming, 'test', template);
+    let result = safeMerge(incoming, template);
     expect(template).to.eql({
-      test: {
-        a: { '{oneOf}_testing': [null, [null]] }
-      }
+      a: { '{oneOf}_testing': [null, [null]] }
     });
     expect(result).to.eql({
       a: { 'testing': 'first' }
@@ -277,19 +233,15 @@ describe('(Utils) json', () => {
       ]
     };
     const template = {
-      test: {
-        a: [
-          { '{oneOf}_testing': [null, [null]] }
-        ]
-      }
+      a: [
+        { '{oneOf}_testing': [null, [null]] }
+      ]
     };
-    let result = safeMerge(incoming, 'test', template);
+    let result = safeMerge(incoming, template);
     expect(template).to.eql({
-      test: {
-        a: [
-          { '{oneOf}_testing': [null, [null]] }
-        ]
-      }
+      a: [
+        { '{oneOf}_testing': [null, [null]] }
+      ]
     });
     expect(result).to.eql({
       a: [
@@ -302,17 +254,13 @@ describe('(Utils) json', () => {
     let incoming = [
       [[[]]]
     ];
-    let template = {
-      test: [
-        [[[{ a: 1 }, { b: null }]]]
-      ]
-    };
-    let result = safeMerge(incoming, 'test', template);
-    expect(template).to.eql({
-      test: [
-        [[[{ a: 1 }, { b: null }]]]
-      ]
-    });
+    let template = [
+      [[[{ a: 1 }, { b: null }]]]
+    ];
+    let result = safeMerge(incoming, template);
+    expect(template).to.eql([
+      [[[{ a: 1 }, { b: null }]]]
+    ]);
     expect(result).to.eql([
       [[[]]]
     ]);

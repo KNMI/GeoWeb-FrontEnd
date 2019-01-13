@@ -50,10 +50,10 @@ const TEMPLATES = {
 
 TEMPLATES.FORECAST = {
   caVOK: false,
-  clouds: cloneDeep(TEMPLATES.CLOUDS),
+  '{oneOf}_clouds': [null, cloneDeep(TEMPLATES.CLOUDS)], // ability for NSC
   vertical_visibility: null, // number
   visibility: cloneDeep(TEMPLATES.VISIBILITY),
-  weather: cloneDeep(TEMPLATES.WEATHER),
+  '{oneOf}_weather': [null, cloneDeep(TEMPLATES.WEATHER)], // ability for NSW
   wind: cloneDeep(TEMPLATES.WIND),
   temperature: cloneDeep(TEMPLATES.TEMPERATURE)
 };

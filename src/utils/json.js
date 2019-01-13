@@ -135,21 +135,14 @@ const getSolutionSpace = (path, dimensions, startIndex, skipTemplateValueCheck =
 /**
  * Immutably merges the values into data structure templates
  * @param {Object|Array} incomingValues - The data structure with values to merge into templates, same hierarchy as template
- * @param {string} baseName - The property name of the top level incomingValues entity / base template
- * @param {Object} templates - A map of templates, with keys equal to the property names
+ * @param {Object|Array} baseTemplate - A template, describing the data structure and possible types
  * @param {Object|Array} [existingData=null] - The data structure to use as alternative starting point for the merge
  * @returns {Object|Array} - The data structure template with the incoming values merged
  */
-const safeMerge = (incomingValues, baseName, templates, existingData = null) => {
+const safeMerge = (incomingValues, baseTemplate, existingData = null) => {
   // input validation
-  if (!templates || !isObject(templates)) {
-    throw new Error(`Argument 'templates' is missing a proper value`);
-  }
-  if (!baseName || typeof baseName !== 'string') {
-    throw new Error(`Argument 'baseName' is missing a proper value`);
-  }
-  if (!templates.hasOwnProperty(baseName)) {
-    throw new Error(`Template for ${baseName} is missing`);
+  if (!baseTemplate || (!isObject(baseTemplate) && !Array.isArray(baseTemplate))) {
+    throw new Error(`Argument 'baseTemplate' is missing a proper value`);
   }
 
   const hasExistingData = !!existingData;
@@ -171,7 +164,7 @@ const safeMerge = (incomingValues, baseName, templates, existingData = null) => 
   // find pattern properties (keys) in the base template hierarchy
   const templatePatternKeyPointers = [];
   getJsonPointers(
-    templates[baseName],
+    baseTemplate,
     (value, pointer) => (typeof pointer === 'string' && pointer.substring(pointer.lastIndexOf('/') + 1).startsWith(PATTERN_INDICATOR)),
     templatePatternKeyPointers
   );
@@ -180,7 +173,7 @@ const safeMerge = (incomingValues, baseName, templates, existingData = null) => 
   // find numeric properties (keys) in the base template hierarchy
   const templateNumericKeyPointers = [];
   getJsonPointers(
-    templates[baseName],
+    baseTemplate,
     (value, pointer) => ((typeof pointer === 'string' || typeof pointer === 'number') && !isNaN(pointer)),
     templateNumericKeyPointers
   );
@@ -189,7 +182,7 @@ const safeMerge = (incomingValues, baseName, templates, existingData = null) => 
   // find pattern properties (keys) in the base template hierarchy
   const templateOneOfKeyPointers = [];
   getJsonPointers(
-    templates[baseName],
+    baseTemplate,
     (value, pointer) => (typeof pointer === 'string' && pointer.substring(pointer.lastIndexOf('/') + 1).startsWith(ONE_OF_INDICATOR)),
     templateOneOfKeyPointers
   );
@@ -210,7 +203,7 @@ const safeMerge = (incomingValues, baseName, templates, existingData = null) => 
         path,
         test: (value) => _regExp.test(value),
         complement: (parentStructure, complementKey) => {
-          complementForKey(parentStructure, templates[baseName], complementKey, path, placeholderPaths);
+          complementForKey(parentStructure, baseTemplate, complementKey, path, placeholderPaths);
         },
         rewritePath: (pointerPath) =>
           pointerPath.slice(0, _templateIndex).concat(_key).concat(pointerPath.slice(_templateIndex + 1)),
@@ -230,7 +223,7 @@ const safeMerge = (incomingValues, baseName, templates, existingData = null) => 
         path,
         test: (value) => _regExp.test(value),
         complement: (parentStructure, complementKey) => {
-          complementForAdditions(parentStructure, templates[baseName], complementKey, path, placeholderPaths);
+          complementForAdditions(parentStructure, baseTemplate, complementKey, path, placeholderPaths);
         },
         rewritePath: (pointerPath) =>
           pointerPath.slice(0, _templateIndex).concat(_key).concat(pointerPath.slice(_templateIndex + 1)),
@@ -245,7 +238,7 @@ const safeMerge = (incomingValues, baseName, templates, existingData = null) => 
       const _regExp = new RegExp(_key.substring(ONE_OF_INDICATOR.length));
       let _templateIndex = path.length - 1;
       const _incomingIndex = _templateIndex;
-      const downStreamTypes = getNestedProperty(templates[baseName], path).map((template) =>
+      const downStreamTypes = getNestedProperty(baseTemplate, path).map((template) =>
         Array.isArray(template)
           ? NODE_TYPES.ARRAY
           : isObject(template)
@@ -258,7 +251,7 @@ const safeMerge = (incomingValues, baseName, templates, existingData = null) => 
         path,
         test: (value) => _regExp.test(value),
         complement: (parentStructure, complementKey) => {
-          complementForKey(parentStructure, templates[baseName], complementKey,
+          complementForKey(parentStructure, baseTemplate, complementKey,
             _matchingIndex !== null ? path.concat(`${_matchingIndex}`) : path, placeholderPaths);
         },
         rewritePath: (pointerPath) => {
@@ -282,7 +275,7 @@ const safeMerge = (incomingValues, baseName, templates, existingData = null) => 
 
   // handle situations without incoming data
   const baseData = existingData ||
-    getComplement(templates[baseName], [], placeholderPaths);
+    getComplement(baseTemplate, [], placeholderPaths);
   if (!incomingValues) {
     return produce(baseData, () => { });
   }
@@ -296,7 +289,7 @@ const safeMerge = (incomingValues, baseName, templates, existingData = null) => 
 
       // 1). Resolve template
       let templatePath = pathParts.slice();
-      let templateValue = getNestedProperty(templates[baseName], templatePath);
+      let templateValue = getNestedProperty(baseTemplate, templatePath);
       const pathPartSolutions = [];
       if (typeof templateValue === 'undefined') {
         // the incoming pointer may have parts that are not literally equal, but that match the pattern for that part
@@ -308,7 +301,7 @@ const safeMerge = (incomingValues, baseName, templates, existingData = null) => 
           const solution = solutionSpace.solutions[0];
           templatePath = solution.rewritePath(templatePath);
           pathPartSolutions.push(solution);
-          templateValue = getNestedProperty(templates[baseName], templatePath);
+          templateValue = getNestedProperty(baseTemplate, templatePath);
           solutionSpace = getSolutionSpace(templatePath, solutionDimensions, solution.templateValueIndex() + 1);
         };
       }

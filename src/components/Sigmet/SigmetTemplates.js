@@ -160,8 +160,7 @@ TEMPLATES.CONTAINER = {
     drawModeEnd: null, // string
     feedbackStart: null, // string
     feedbackEnd: null, // string
-    hasEdits: false, // boolean
-    tacRepresentation: null // string FIXME: tac is also stored in sigmet
+    hasEdits: false // boolean
   },
   copiedSigmetRef: null, // string
   isContainerOpen: true, // boolean
