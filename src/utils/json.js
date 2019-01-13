@@ -29,7 +29,7 @@ const NODE_TYPES = {
 const PATTERN_INDICATOR = '{patternProperties}_';
 const ONE_OF_INDICATOR = '{oneOf}_';
 /**
- * Purpose: to have guaranteed, immutable, data structures
+ * Purpose: to have guaranteed, immutable, consistent, incorruptable data structures
  * Pattern: use (the same) templates to validate and to complement the data structure
  *
  *                       templates
@@ -75,9 +75,7 @@ const getComplement = (template, pointerPath, placeholderPaths) => {
  * @param {Array} placeholderPaths - The paths to placeholders
  */
 const complementForKey = (parentStructure, template, complementKey, pointerPath, placeholderPaths) => {
-  console.log('cFP1', parentStructure);
   parentStructure[complementKey] = getComplement(template, pointerPath, placeholderPaths);
-  console.log('cFP2', parentStructure);
 };
 
 /**
@@ -92,11 +90,9 @@ const complementForAdditions = (parentStructure, template, complementKey, pointe
   if (!isNaN(complementKey) && Array.isArray(parentStructure)) {
     const additionalOccurrences = parseInt(complementKey) + 1 - parentStructure.length;
     const templateForArray = getComplement(template, pointerPath, placeholderPaths);
-    console.log('cFN1', parentStructure);
     Array(additionalOccurrences).fill(null).forEach((occurrence, index) => {
       parentStructure.push(cloneDeep(templateForArray));
     });
-    console.log('cFN2', parentStructure);
   }
 };
 
@@ -109,9 +105,9 @@ const complementForAdditions = (parentStructure, template, complementKey, pointe
  * @param {boolean} [skipTemplateValueCheck] - Whether or not the exact template value should be filtered
  * @returns {Array} - a subset of the solutions array
  */
-const filterSolutions = (solutions, path, skipTemplateValueCheck = false) =>
+const filterSolutions = (solutions, path, startIndex, skipTemplateValueCheck = false) =>
   solutions.filter((solution) => {
-    return solution.templateValueIndex() < path.length &&
+    return solution.templateValueIndex() < path.length && solution.templateValueIndex() >= startIndex &&
       solution.path.every((part, index) =>
         (index < solution.templateValueIndex() && part === path[index]) ||
         (index === solution.templateValueIndex() && solution.test(path[index]) &&
@@ -122,12 +118,14 @@ const filterSolutions = (solutions, path, skipTemplateValueCheck = false) =>
 /**
    * Find a solution from all possible ones, matching the problematic path
    * @param {Array} path - The path to find a solution for the problems
+   * @param {Array} dimensions - The solution collections of various type
+   * @param {number} startIndex - The path index to start from
    * @param {boolean} [skipTemplateValueCheck] - Whether or not the exact template value should be checked
    * @returns {Object} - An object with properties cardinality and path of the solution
    */
-const getSolutionSpace = (path, dimensions, skipTemplateValueCheck = false) => {
+const getSolutionSpace = (path, dimensions, startIndex, skipTemplateValueCheck = false) => {
   const filteredSolutionDimensions = dimensions.map((dimension) =>
-    filterSolutions(dimension, path, skipTemplateValueCheck)
+    filterSolutions(dimension, path, startIndex, skipTemplateValueCheck)
   );
   const solutions = filteredSolutionDimensions.reduce((accumulator, dimension) => accumulator.concat(dimension), []);
   const cardinality = solutions.length;
@@ -212,10 +210,11 @@ const safeMerge = (incomingValues, baseName, templates, existingData = null) => 
         path,
         test: (value) => _regExp.test(value),
         complement: (parentStructure, complementKey) => {
-          complementForKey(parentStructure, templates[baseName], complementKey, path, placeholderPaths)
+          complementForKey(parentStructure, templates[baseName], complementKey, path, placeholderPaths);
         },
         rewritePath: (pointerPath) =>
-          pointerPath.slice(0, _templateIndex).concat(_key).concat(pointerPath.slice(_templateIndex + 1))
+          pointerPath.slice(0, _templateIndex).concat(_key).concat(pointerPath.slice(_templateIndex + 1)),
+        done: () => {}
       };
     })();
   });
@@ -231,16 +230,18 @@ const safeMerge = (incomingValues, baseName, templates, existingData = null) => 
         path,
         test: (value) => _regExp.test(value),
         complement: (parentStructure, complementKey) => {
-          complementForAdditions(parentStructure, templates[baseName], complementKey, path, placeholderPaths)
+          complementForAdditions(parentStructure, templates[baseName], complementKey, path, placeholderPaths);
         },
         rewritePath: (pointerPath) =>
-          pointerPath.slice(0, _templateIndex).concat(_key).concat(pointerPath.slice(_templateIndex + 1))
+          pointerPath.slice(0, _templateIndex).concat(_key).concat(pointerPath.slice(_templateIndex + 1)),
+        done: () => {}
       };
     })();
   });
   const oneOfKeySolutions = templateOneOfKeyPaths.map((path) => {
     return (() => {
       const _key = path.slice(-1)[0];
+      let _matchingIndex = null;
       const _regExp = new RegExp(_key.substring(ONE_OF_INDICATOR.length));
       let _templateIndex = path.length - 1;
       const _incomingIndex = _templateIndex;
@@ -258,20 +259,21 @@ const safeMerge = (incomingValues, baseName, templates, existingData = null) => 
         test: (value) => _regExp.test(value),
         complement: (parentStructure, complementKey) => {
           complementForKey(parentStructure, templates[baseName], complementKey,
-            path.slice(0, -1), placeholderPaths);
+            _matchingIndex !== null ? path.concat(`${_matchingIndex}`) : path, placeholderPaths);
         },
         rewritePath: (pointerPath) => {
           const downStreamPointerPath = pointerPath.slice(_templateIndex + 1);
-          const matchingTypeIndex = downStreamTypes.findIndex((type) =>
+          _matchingIndex = downStreamTypes.findIndex((type) =>
             (type === NODE_TYPES.ARRAY && downStreamPointerPath.length > 0 && !isNaN(downStreamPointerPath[0])) ||
             (type === NODE_TYPES.OBJECT && downStreamPointerPath.length > 0 && isNaN(downStreamPointerPath[0])) ||
             (type === NODE_TYPES.LEAF && downStreamPointerPath.length === 0)
           );
-          const resultPath = pointerPath.slice(0, _templateIndex).concat(_key).concat(`${matchingTypeIndex}`)
+          const resultPath = pointerPath.slice(0, _templateIndex).concat(_key).concat(`${_matchingIndex}`)
             .concat(pointerPath.slice(_templateIndex + 1));
           _templateIndex += 1;
           return resultPath;
-        }
+        },
+        done: () => { _templateIndex = _incomingIndex; _matchingIndex = null; }
       };
     })();
   });
@@ -300,53 +302,28 @@ const safeMerge = (incomingValues, baseName, templates, existingData = null) => 
         // the incoming pointer may have parts that are not literally equal, but that match the pattern for that part
         // in the template. To find such part, a 'solution space' - with possible solutions extracted from the template -
         // is minimized and the solution applied.
-        let solutionSpace = getSolutionSpace(templatePath, solutionDimensions);
-        console.log('PRE', solutionSpace.solutions.map((solution) => ({
-          inc: solution.incomingValueIndex(),
-          tmp: solution.templateValueIndex(),
-          path: solution.path
-        })));
-        // quit when either: templateValue is resolved, there is no solution, or the same solution is presented again
-        while (typeof templateValue === 'undefined' && solutionSpace.cardinality === 1 &&
-          (pathPartSolutions.length === 0 || solutionSpace.solutions[0].incomingValueIndex() > pathPartSolutions.slice(-1)[0].incomingValueIndex())) {
+        let solutionSpace = getSolutionSpace(templatePath, solutionDimensions, 0);
+        // quit when either: templateValue is resolved or there is no solution
+        while (typeof templateValue === 'undefined' && solutionSpace.cardinality === 1) {
           const solution = solutionSpace.solutions[0];
-          console.log('tP', templatePath);
           templatePath = solution.rewritePath(templatePath);
-          console.log('tP', templatePath);
           pathPartSolutions.push(solution);
           templateValue = getNestedProperty(templates[baseName], templatePath);
-          solutionSpace = getSolutionSpace(templatePath, solutionDimensions);
-          console.log('WH', solutionDimensions.reduce((accumulator, dimension) => accumulator.concat(dimension), [])
-            .map((solution) => ({
-              inc: solution.incomingValueIndex(),
-              tmp: solution.templateValueIndex(),
-              path: solution.path
-            })));
-          console.log('WH2', solutionSpace.solutions
-            .map((solution) => ({
-              inc: solution.incomingValueIndex(),
-              tmp: solution.templateValueIndex(),
-              path: solution.path
-            })));
+          solutionSpace = getSolutionSpace(templatePath, solutionDimensions, solution.templateValueIndex() + 1);
         };
       }
-      console.log('TPS', pathPartSolutions.map((solution) => ({
-        inc: solution.incomingValueIndex(),
-        tmp: solution.templateValueIndex(),
-        path: solution.path
-      })));
 
       // devise a solution for pointers which exist in the incoming and template structures,
       // but are still missing in the data structure
-      const solutionSpace = getSolutionSpace(templatePath, solutionDimensions, true);
+      const solutionSpace = getSolutionSpace(templatePath, solutionDimensions, 0, true);
       solutionSpace.solutions.forEach((solution) => {
         if (!pathPartSolutions.some((prevSolution) =>
-          prevSolution.incomingValueIndex() === solution.incomingValueIndex())) {
+          prevSolution.templateValueIndex() === solution.templateValueIndex())) {
           pathPartSolutions.push(solution);
         }
       });
 
-      console.log('1). Template Path', templatePath.join('/'), pathParts.join('/'));
+      // console.log('1). Template Path', templatePath.join('/'));
 
       if (typeof templateValue === 'undefined') {
         console.warn(`No template value found for ${pointer}. This value will be skipped.`);
@@ -375,23 +352,31 @@ const safeMerge = (incomingValues, baseName, templates, existingData = null) => 
       // 3). Complement data structure
 
       if (!hasNestedProperty(draftState, pathParts) && pathPartSolutions.length > 0) {
+        // sort, so complementing starts from the beginning of the path
         pathPartSolutions.sort((solutionA, solutionB) => solutionA.templateValueIndex() - solutionB.templateValueIndex());
-        console.log('TPS', pathPartSolutions.map((solution) => ({
-          inc: solution.incomingValueIndex(),
-          tmp: solution.templateValueIndex(),
-          path: solution.path
-        })));
+        // some solutions might have adjusted the template path length
+        const indexOffsets = pathPartSolutions.filter((solution) => solution.templateValueIndex() !== solution.incomingValueIndex())
+          .map((adjustedSolution) => ({
+            index: adjustedSolution.templateValueIndex(),
+            offset: adjustedSolution.templateValueIndex() - adjustedSolution.incomingValueIndex()
+          }));
+
         pathPartSolutions.forEach((solution) => {
-          const parentPath = solution.incomingValueIndex() > 0 ? pathParts.slice(0, solution.incomingValueIndex()) : [];
-          console.log('pP', pathParts, parentPath);
-          console.log('ePp', JSON.stringify(getNestedProperty(draftState, parentPath), null, 2));
+          const solutionIndex = indexOffsets.reduce(
+            (accumulator, offsetItem) =>
+              offsetItem.index < solution.incomingValueIndex() ? accumulator - offsetItem.offset : accumulator,
+            solution.incomingValueIndex()
+          );
+          const parentPath = solutionIndex > 0 ? pathParts.slice(0, solutionIndex) : [];
           const existingParentProperty = parentPath.length > 0 ? getNestedProperty(draftState, parentPath) : draftState;
           const incomingPropertyKey = pathParts[solution.incomingValueIndex()];
           const existingProperty = existingParentProperty[incomingPropertyKey];
           if (typeof existingProperty !== 'undefined') {
+            solution.done();
             return;
           }
           solution.complement(existingParentProperty, incomingPropertyKey);
+          solution.done();
         });
       }
 
