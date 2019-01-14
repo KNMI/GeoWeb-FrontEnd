@@ -540,32 +540,33 @@ const initialGeoJson = () => {
   return draftState;
 };
 
-// FIXME: Should be Immutable, but AdagucMapDraw can't handle this ATM. Fix this.
 const addFirFeature = (geojson, firName, container) => {
   const { firs: availableFirs } = container.state;
   if (!geojson || !firName) {
     return null;
   }
-  const draftState = cloneDeep(geojson);
-  if (!Array.isArray(geojson.features)) {
-    return null;
-  }
   if (!availableFirs.hasOwnProperty(firName)) {
     return null;
   }
-  const firFeature = availableFirs[firName];
-  const newFeatureIndex = draftState.features.push(cloneDeep(SIGMET_TEMPLATES.FEATURE)) - 1;
-  draftState.features[newFeatureIndex].type = firFeature.type;
-  draftState.features[newFeatureIndex].properties.featureFunction = 'base-fir';
-  draftState.features[newFeatureIndex].properties.selectionType = 'fir';
-  draftState.features[newFeatureIndex].properties.fill = 'transparent';
-  draftState.features[newFeatureIndex].properties['fill-opacity'] = 0.01;
-  draftState.features[newFeatureIndex].properties.stroke = '#017daf';
-  draftState.features[newFeatureIndex].properties['stroke-width'] = 1.2;
-  draftState.features[newFeatureIndex].geometry.type = firFeature.geometry.type;
-  draftState.features[newFeatureIndex].geometry.coordinates.length = 0;
-  draftState.features[newFeatureIndex].geometry.coordinates.push(...firFeature.geometry.coordinates);
-  return draftState;
+  const featureForFir = availableFirs[firName];
+  const currentLastFeatureIndex = geojson.features.length - 1;
+  return safeMerge({
+    features: Array(currentLastFeatureIndex).concat({
+      type: featureForFir.type,
+      properties: {
+        featureFunction: 'base-fir',
+        selectionType: 'fir',
+        fill: 'transparent',
+        'fill-opacity': 0.01,
+        stroke: '#017daf',
+        'stroke-width': 1.2
+      },
+      geometry: {
+        type: featureForFir.geometry.type,
+        coordinates: featureForFir.geometry.coordinates
+      }
+    })
+  }, SIGMET_TEMPLATES.GEOJSON, geojson);
 };
 
 const getEmptySigmet = (container) => produce(SIGMET_TEMPLATES.SIGMET, draftSigmet => {
