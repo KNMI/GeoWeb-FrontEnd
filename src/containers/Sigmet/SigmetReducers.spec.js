@@ -27,6 +27,14 @@ describe('(Reducer) Sigmet/SigmetReducers', () => {
           location_indicator_mwo: 'EHDB',
           active_firs: ['EHAA'],
           firareas: { EHAA: {} }
+        },
+        selectedAuxiliaryInfo: {
+          mode: null,
+          drawModeStart: null,
+          drawModeEnd: null,
+          feedbackStart: null,
+          feedbackEnd: null,
+          hasEdits: false
         }
       }
     };
@@ -62,7 +70,12 @@ describe('(Reducer) Sigmet/SigmetReducers', () => {
       },
       state: {
         selectedAuxiliaryInfo: {
-          mode: SIGMET_MODES.READ
+          mode: SIGMET_MODES.READ,
+          drawModeStart: null,
+          drawModeEnd: null,
+          feedbackStart: null,
+          feedbackEnd: null,
+          hasEdits: false
         },
         focussedCategoryRef: CATEGORY_REFS.CONCEPT_SIGMETS,
         parameters: {

@@ -203,7 +203,9 @@ export const CATEGORY_REFS = {
 };
 
 const STATE = cloneDeep(SIGMET_TEMPLATES.CONTAINER);
-STATE.categories.push(...Array(3).fill(cloneDeep(SIGMET_TEMPLATES.CATEGORY)));
+Array(3).fill(null).forEach((occurrence) => {
+  STATE.categories.push(cloneDeep(SIGMET_TEMPLATES.CATEGORY));
+});
 
 // active-sigmets
 STATE.categories[0].ref = CATEGORY_REFS.ACTIVE_SIGMETS;
