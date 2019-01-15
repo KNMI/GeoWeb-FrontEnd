@@ -346,7 +346,7 @@ const safeMerge = (incomingValues, baseTemplate, existingData = null) => {
         }
       });
 
-      // console.log('1). Template Path:', templatePath.join('/'), '| incoming path:', pathParts.join('/'));
+      console.log('1). Template Path:', templatePath.join('/'), '| incoming path:', pathParts.join('/'));
 
       if (typeof templateValue === 'undefined') {
         console.warn(`safeMerge: No template value found for ${pointer}. This incoming value will be skipped.`);
