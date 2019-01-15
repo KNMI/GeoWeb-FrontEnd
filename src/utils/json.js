@@ -47,6 +47,19 @@ const ONE_OF_INDICATOR = '{oneOf}_';
  */
 
 /**
+ * Determines type for structure and for arrays: first descendant
+ * @param {*} structure - The structure to determine the type for
+ * @param {boolean} stop - Whether or not to stop at this level
+ * @returns {Object} - True when it should not descent into children, false otherwise
+ */
+const getNodeType = (structure, stop = false) =>
+  Array.isArray(structure)
+    ? { parent: NODE_TYPES.ARRAY, child: stop ? null : getNodeType(structure[0], true).parent }
+    : isObject(structure)
+      ? { parent: NODE_TYPES.OBJECT, child: null }
+      : { parent: NODE_TYPES.LEAF, child: null };
+
+/**
  * Successively extracts a nested template, strips placeholders and complements with default information
  * @param {Object|Array} template - The (top level) template
  * @param {Array} pointerPath - The pointer as array to the structure part which needs to be complemented
@@ -59,9 +72,18 @@ const getComplement = (template, pointerPath, placeholderPaths) => {
     : cloneDeep(template);
   const strippablePlaceholders = placeholderPaths.filter((path) =>
     pointerPath.every((part, index) => part === path[index])
-  );
+  ).sort((placeholderPathA, placeholderPathB) => (placeholderPathB.length - placeholderPathA.length));
   strippablePlaceholders.forEach((placeholderPath) => {
-    removeNestedProperty(complement, placeholderPath.slice(pointerPath.length));
+    const lastKey = placeholderPath.slice(-1)[0];
+    const secondLastKey = placeholderPath.slice(-2, -1)[0];
+    if (lastKey.startsWith(ONE_OF_INDICATOR)) {
+      const renamedKey = lastKey.substring(ONE_OF_INDICATOR.length);
+      const placeholderValue = cloneDeep(getNestedProperty(complement, placeholderPath.slice(pointerPath.length).concat('0')));
+      setNestedProperty(complement, placeholderPath.slice(pointerPath.length, -1).concat(renamedKey), placeholderValue);
+    }
+    if (!secondLastKey || (!secondLastKey.startsWith(ONE_OF_INDICATOR) || lastKey !== '0')) {
+      removeNestedProperty(complement, placeholderPath.slice(pointerPath.length));
+    }
   });
   return complement;
 };
@@ -102,18 +124,19 @@ const complementForAdditions = (parentStructure, template, complementKey, pointe
  * for other parts it implies string equality
  * @param {Array} solutions - An array of paths to be filtered
  * @param {Array} path - The path to filter against
+ * @param {number} startIndex - The path index to start from
  * @param {boolean} [skipTemplateValueCheck] - Whether or not the exact template value should be filtered
  * @returns {Array} - a subset of the solutions array
  */
 const filterSolutions = (solutions, path, startIndex, skipTemplateValueCheck = false) =>
-  solutions.filter((solution) => {
-    return solution.templateValueIndex() < path.length && solution.templateValueIndex() >= startIndex &&
+  solutions.filter((solution) => solution.incomingValueIndex() < path.length &&
+      solution.incomingValueIndex() >= startIndex &&
       solution.path.every((part, index) =>
-        (index < solution.templateValueIndex() && part === path[index]) ||
-        (index === solution.templateValueIndex() && solution.test(path[index]) &&
+        (index < solution.incomingValueIndex() && part === path[index]) ||
+        (index === solution.incomingValueIndex() && solution.test(path[index]) &&
           (skipTemplateValueCheck || part !== path[index]))
-      );
-  });
+      )
+  );
 
 /**
    * Find a solution from all possible ones, matching the problematic path
@@ -131,6 +154,14 @@ const getSolutionSpace = (path, dimensions, startIndex, skipTemplateValueCheck =
   const cardinality = solutions.length;
   return { cardinality, solutions };
 };
+
+/**
+ * Reset all solutions, so they can be reused
+ * @param {Array} solutionSpace - The soltution space which was applied
+ */
+const resetAppliedSolutions = (solutionSpace) => solutionSpace.forEach((solution) => {
+  solution.done();
+});
 
 /**
  * Immutably merges the values into data structure templates
@@ -236,15 +267,10 @@ const safeMerge = (incomingValues, baseTemplate, existingData = null) => {
       const _key = path.slice(-1)[0];
       let _matchingIndex = null;
       const _regExp = new RegExp(_key.substring(ONE_OF_INDICATOR.length));
+      const _numRegEx = /^\d+$/;
       let _templateIndex = path.length - 1;
       const _incomingIndex = _templateIndex;
-      const downStreamTypes = getNestedProperty(baseTemplate, path).map((template) =>
-        Array.isArray(template)
-          ? NODE_TYPES.ARRAY
-          : isObject(template)
-            ? NODE_TYPES.OBJECT
-            : NODE_TYPES.LEAF
-      );
+      const downStreamTypes = getNestedProperty(baseTemplate, path).map((template) => getNodeType(template));
       return {
         templateValueIndex: () => _templateIndex,
         incomingValueIndex: () => _incomingIndex,
@@ -255,15 +281,19 @@ const safeMerge = (incomingValues, baseTemplate, existingData = null) => {
             _matchingIndex !== null ? path.concat(`${_matchingIndex}`) : path, placeholderPaths);
         },
         rewritePath: (pointerPath) => {
-          const downStreamPointerPath = pointerPath.slice(_templateIndex + 1);
-          _matchingIndex = downStreamTypes.findIndex((type) =>
-            (type === NODE_TYPES.ARRAY && downStreamPointerPath.length > 0 && !isNaN(downStreamPointerPath[0])) ||
-            (type === NODE_TYPES.OBJECT && downStreamPointerPath.length > 0 && isNaN(downStreamPointerPath[0])) ||
-            (type === NODE_TYPES.LEAF && downStreamPointerPath.length === 0)
-          );
-          const resultPath = pointerPath.slice(0, _templateIndex).concat(_key).concat(`${_matchingIndex}`)
-            .concat(pointerPath.slice(_templateIndex + 1));
           _templateIndex += 1;
+          const downStreamPointerPath = pointerPath.slice(_templateIndex);
+          _matchingIndex = downStreamTypes.findIndex((type) =>
+            ((type.parent === NODE_TYPES.ARRAY && downStreamPointerPath.length > 0 && _numRegEx.test(downStreamPointerPath[0]) &&
+              ((type.child === NODE_TYPES.ARRAY && downStreamPointerPath.length > 1 && _numRegEx.test(downStreamPointerPath[1])) ||
+              (type.child === NODE_TYPES.OBJECT && downStreamPointerPath.length > 1 && !_numRegEx.test(downStreamPointerPath[1])) ||
+              (type.child === NODE_TYPES.LEAF && downStreamPointerPath.length === 1))) ||
+            (type.parent === NODE_TYPES.OBJECT && downStreamPointerPath.length > 0 && !_numRegEx.test(downStreamPointerPath[0])) ||
+            (type.parent === NODE_TYPES.LEAF && downStreamPointerPath.length === 0))
+          );
+          const resultPath = pointerPath.slice(0, _incomingIndex).concat(_key).concat(`${_matchingIndex}`)
+            .concat(pointerPath.slice(_templateIndex));
+
           return resultPath;
         },
         done: () => { _templateIndex = _incomingIndex; _matchingIndex = null; }
@@ -316,10 +346,11 @@ const safeMerge = (incomingValues, baseTemplate, existingData = null) => {
         }
       });
 
-      // console.log('1). Template Path', templatePath.join('/'));
+      // console.log('1). Template Path:', templatePath.join('/'), '| incoming path:', pathParts.join('/'));
 
       if (typeof templateValue === 'undefined') {
-        console.warn(`No template value found for ${pointer}. This value will be skipped.`);
+        console.warn(`safeMerge: No template value found for ${pointer}. This incoming value will be skipped.`);
+        resetAppliedSolutions(pathPartSolutions);
         return;
       }
 
@@ -338,7 +369,8 @@ const safeMerge = (incomingValues, baseTemplate, existingData = null) => {
       }
 
       if (!isValid) {
-        console.warn(`New value for ${pointer} is not of a valid type. This value will be skipped.`);
+        console.warn(`safeMerge: New value for ${pointer} is not of a valid type. This incoming value will be skipped.`);
+        resetAppliedSolutions(pathPartSolutions);
         return;
       }
 
@@ -362,7 +394,7 @@ const safeMerge = (incomingValues, baseTemplate, existingData = null) => {
           );
           const parentPath = solutionIndex > 0 ? pathParts.slice(0, solutionIndex) : [];
           const existingParentProperty = parentPath.length > 0 ? getNestedProperty(draftState, parentPath) : draftState;
-          const incomingPropertyKey = pathParts[solution.incomingValueIndex()];
+          const incomingPropertyKey = pathParts[solutionIndex];
           const existingProperty = existingParentProperty[incomingPropertyKey];
           if (typeof existingProperty !== 'undefined') {
             solution.done();
@@ -371,6 +403,8 @@ const safeMerge = (incomingValues, baseTemplate, existingData = null) => {
           solution.complement(existingParentProperty, incomingPropertyKey);
           solution.done();
         });
+      } else {
+        resetAppliedSolutions(pathPartSolutions);
       }
 
       // 4). Merge the value when it exists (after the completion) in the structure
@@ -382,6 +416,8 @@ const safeMerge = (incomingValues, baseTemplate, existingData = null) => {
         } else {
           setNestedProperty(draftState, pathParts, nextValue);
         }
+      } else {
+        console.warn(`safeMerge: Data structure could not be complemented for ${pointer}. This incoming value will be skipped.`);
       }
     });
   });

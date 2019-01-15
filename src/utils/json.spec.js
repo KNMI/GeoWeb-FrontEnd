@@ -214,11 +214,11 @@ describe('(Utils) json', () => {
       a: { 'testing': 'first' }
     };
     const template = {
-      a: { '{oneOf}_testing': [null, [null]] }
+      a: { '{oneOf}_testing': [[null], null] }
     };
     let result = safeMerge(incoming, template);
     expect(template).to.eql({
-      a: { '{oneOf}_testing': [null, [null]] }
+      a: { '{oneOf}_testing': [[null], null] }
     });
     expect(result).to.eql({
       a: { 'testing': 'first' }
@@ -234,19 +234,44 @@ describe('(Utils) json', () => {
     };
     const template = {
       a: [
-        { '{oneOf}_testing': [null, [null]] }
+        { '{oneOf}_testing': [[null], null] }
       ]
     };
     let result = safeMerge(incoming, template);
     expect(template).to.eql({
       a: [
-        { '{oneOf}_testing': [null, [null]] }
+        { '{oneOf}_testing': [[null], null] }
       ]
     });
     expect(result).to.eql({
       a: [
         { 'testing': 'first' },
         { 'testing': ['second'] }
+      ]
+    });
+  });
+  it('.safeMerge should merge nested array in oneOf properties', () => {
+    const incoming = {
+      a: [
+        { 'testing': ['first'] },
+        { 'testing': [['second']] }
+      ]
+    };
+    const template = {
+      a: [
+        { '{oneOf}_testing': [[[null]], [null]] }
+      ]
+    };
+    let result = safeMerge(incoming, template);
+    expect(template).to.eql({
+      a: [
+        { '{oneOf}_testing': [[[null]], [null]] }
+      ]
+    });
+    expect(result).to.eql({
+      a: [
+        { 'testing': ['first'] },
+        { 'testing': [['second']] }
       ]
     });
   });

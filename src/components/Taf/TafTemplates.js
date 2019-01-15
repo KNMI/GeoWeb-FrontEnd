@@ -50,10 +50,10 @@ const TEMPLATES = {
 
 TEMPLATES.FORECAST = {
   caVOK: false,
-  '{oneOf}_clouds': [null, cloneDeep(TEMPLATES.CLOUDS)], // ability for NSC
+  '{oneOf}_clouds': [cloneDeep(TEMPLATES.CLOUDS), null], // ability for NSC
   vertical_visibility: null, // number
   visibility: cloneDeep(TEMPLATES.VISIBILITY),
-  '{oneOf}_weather': [null, cloneDeep(TEMPLATES.WEATHER)], // ability for NSW
+  '{oneOf}_weather': [cloneDeep(TEMPLATES.WEATHER), null], // ability for NSW
   wind: cloneDeep(TEMPLATES.WIND),
   temperature: cloneDeep(TEMPLATES.TEMPERATURE)
 };
@@ -73,7 +73,7 @@ TEMPLATES.TAF = {
 TEMPLATES.SELECTABLE_TAF = {
   location: null, // string
   timestamp: null, // moment
-  uuid: null, // moment
+  uuid: null, // string
   hasEdits: false, // boolean
   label: {
     time: null, // string

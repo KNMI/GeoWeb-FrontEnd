@@ -261,40 +261,36 @@ const updateFeedback = (title, status, category, subTitle, list, container, call
  * @returns A selectable TAF corresponding to the incoming TAF
  */
 const wrapIntoSelectableTaf = (tafData) => {
-  return produce(TAF_TEMPLATES.SELECTABLE_TAF, (draftSelectable) => {
-    draftSelectable.location = tafData.metadata.location.toUpperCase();
-    draftSelectable.uuid = tafData.metadata.uuid;
-    draftSelectable.timestamp = moment.utc(tafData.metadata.validityStart);
-    draftSelectable.label.time = draftSelectable.timestamp.format(TIMELABEL_FORMAT);
-    draftSelectable.label.text = `${draftSelectable.location} ${draftSelectable.label.time}`;
-    draftSelectable.label.status = `${tafData.metadata.status} / ${tafData.metadata.type}`;
-    let iconName = STATUS_ICONS.CONCEPT;
-    if (tafData.metadata.status && typeof tafData.metadata.status === 'string') {
-      const tafStatus = tafData.metadata.status.toLowerCase();
-      switch (tafStatus) {
-        case STATUSES.PUBLISHED:
-          iconName = STATUS_ICONS.PUBLISHED;
-          break;
-        case STATUSES.CONCEPT:
-          break;
-        default:
-          break;
-      }
+  let iconName = STATUS_ICONS.CONCEPT;
+  if (tafData.metadata.status && typeof tafData.metadata.status === 'string') {
+    const tafStatus = tafData.metadata.status.toLowerCase();
+    switch (tafStatus) {
+      case STATUSES.PUBLISHED:
+        iconName = STATUS_ICONS.PUBLISHED;
+        break;
+      case STATUSES.CONCEPT:
+        break;
+      default:
+        break;
     }
-    draftSelectable.label.icon = iconName;
-    Object.entries(draftSelectable.tafData.metadata).forEach((entry) => {
-      if (tafData.metadata.hasOwnProperty(entry[0])) {
-        draftSelectable.tafData.metadata[entry[0]] = tafData.metadata[entry[0]];
-      }
-    });
-    draftSelectable.tafData.forecast = safeMerge(tafData.forecast, TAF_TEMPLATES.FORECAST);
-    if (Array.isArray(tafData.changegroups) && tafData.changegroups.length > 0) {
-      draftSelectable.tafData.changegroups.length = 0;
-      tafData.changegroups.forEach((changeGroup) => {
-        draftSelectable.tafData.changegroups.push(safeMerge(changeGroup, TAF_TEMPLATES.CHANGE_GROUP));
-      });
-    }
-  });
+  }
+  const location = tafData.metadata.location.toUpperCase();
+  const timestamp = moment.utc(tafData.metadata.validityStart);
+  const time = timestamp.format(TIMELABEL_FORMAT);
+
+  const newProperties = {
+    location: location,
+    uuid: tafData.metadata.uuid,
+    timestamp: timestamp,
+    label: {
+      time: time,
+      text: `${location} ${time}`,
+      status: `${tafData.metadata.status} / ${tafData.metadata.type}`,
+      icon: iconName
+    },
+    tafData
+  };
+  return safeMerge(newProperties, TAF_TEMPLATES.SELECTABLE_TAF);
 };
 
 /** Validate taf
