@@ -1,4 +1,4 @@
-import cloneDeep from 'lodash.clonedeep';
+import { safeMerge } from '../../utils/json';
 import { SIGMET_MODES, SIGMET_TEMPLATES } from '../../components/Sigmet/SigmetTemplates';
 
 export const LOCAL_ACTION_TYPES = {
@@ -202,81 +202,84 @@ export const CATEGORY_REFS = {
   ARCHIVED_SIGMETS: 'ARCHIVED_SIGMETS'
 };
 
-const STATE = cloneDeep(SIGMET_TEMPLATES.CONTAINER);
-Array(3).fill(null).forEach((occurrence) => {
-  STATE.categories.push(cloneDeep(SIGMET_TEMPLATES.CATEGORY));
-});
-
-// active-sigmets
-STATE.categories[0].ref = CATEGORY_REFS.ACTIVE_SIGMETS;
-STATE.categories[0].title = 'Open active SIGMETs';
-STATE.categories[0].icon = 'folder-open';
-STATE.categories[0].sigmets.length = 0;
-STATE.categories[0].abilities[SIGMET_MODES.READ] = {
-  [READ_ABILITIES.CANCEL.check]: true,
-  [READ_ABILITIES.DELETE.check]: false,
-  [READ_ABILITIES.EDIT.check]: false,
-  [READ_ABILITIES.COPY.check]: true,
-  [READ_ABILITIES.PUBLISH.check]: false
+const initialStateProps = {
+  categories: [
+    {
+      // active-sigmets
+      ref: CATEGORY_REFS.ACTIVE_SIGMETS,
+      title: 'Open active SIGMETs',
+      icon: 'folder-open',
+      abilities: {
+        [SIGMET_MODES.READ]: {
+          [READ_ABILITIES.CANCEL.check]: true,
+          [READ_ABILITIES.DELETE.check]: false,
+          [READ_ABILITIES.EDIT.check]: false,
+          [READ_ABILITIES.COPY.check]: true,
+          [READ_ABILITIES.PUBLISH.check]: false
+        }
+      }
+    },
+    {
+      // concept-sigmets
+      ref: CATEGORY_REFS.CONCEPT_SIGMETS,
+      title: 'Open concept SIGMETs',
+      icon: 'folder-open-o',
+      abilities: {
+        [SIGMET_MODES.READ]: {
+          [READ_ABILITIES.CANCEL.check]: false,
+          [READ_ABILITIES.DELETE.check]: true,
+          [READ_ABILITIES.EDIT.check]: true,
+          [READ_ABILITIES.COPY.check]: true,
+          [READ_ABILITIES.PUBLISH.check]: true
+        },
+        [SIGMET_MODES.EDIT]: {
+          [EDIT_ABILITIES.CLEAR.check]: false,
+          [EDIT_ABILITIES.DISCARD.check]: true,
+          [EDIT_ABILITIES.SAVE.check]: true
+        }
+      }
+    },
+    {
+      // add-sigmets
+      ref: CATEGORY_REFS.ADD_SIGMET,
+      title: 'Create new SIGMET',
+      icon: 'star-o',
+      abilities: {
+        [SIGMET_MODES.READ]: {
+          [READ_ABILITIES.CANCEL.check]: false,
+          [READ_ABILITIES.DELETE.check]: false,
+          [READ_ABILITIES.EDIT.check]: true,
+          [READ_ABILITIES.COPY.check]: false,
+          [READ_ABILITIES.PUBLISH.check]: false
+        },
+        [SIGMET_MODES.EDIT]: {
+          [EDIT_ABILITIES.CLEAR.check]: true,
+          [EDIT_ABILITIES.DISCARD.check]: false,
+          [EDIT_ABILITIES.PASTE.check]: true,
+          [EDIT_ABILITIES.SAVE.check]: true
+        }
+      }
+    },
+    {
+      // archived-sigmets
+      ref: CATEGORY_REFS.ARCHIVED_SIGMETS,
+      title: 'Open archived SIGMETs',
+      icon: 'archive',
+      abilities: {
+        [SIGMET_MODES.READ]: {
+          [READ_ABILITIES.CANCEL.check]: false,
+          [READ_ABILITIES.DELETE.check]: false,
+          [READ_ABILITIES.EDIT.check]: false,
+          [READ_ABILITIES.COPY.check]: true,
+          [READ_ABILITIES.PUBLISH.check]: false
+        }
+      }
+    }
+  ],
+  selectedAuxiliaryInfo: {
+    mode: SIGMET_MODES.READ
+  }
 };
-STATE.categories[0].abilities[SIGMET_MODES.EDIT] = {};
 
-// concept-sigmets
-STATE.categories[1].ref = CATEGORY_REFS.CONCEPT_SIGMETS;
-STATE.categories[1].title = 'Open concept SIGMETs';
-STATE.categories[1].icon = 'folder-open-o';
-STATE.categories[1].sigmets.length = 0;
-STATE.categories[1].abilities[SIGMET_MODES.READ] = {
-  [READ_ABILITIES.CANCEL.check]: false,
-  [READ_ABILITIES.DELETE.check]: true,
-  [READ_ABILITIES.EDIT.check]: true,
-  [READ_ABILITIES.COPY.check]: true,
-  [READ_ABILITIES.PUBLISH.check]: true
-};
-STATE.categories[1].abilities[SIGMET_MODES.EDIT] = {
-  [EDIT_ABILITIES.CLEAR.check]: false,
-  [EDIT_ABILITIES.DISCARD.check]: true,
-  [EDIT_ABILITIES.SAVE.check]: true
-};
-
-// add-sigmets
-STATE.categories[2].ref = CATEGORY_REFS.ADD_SIGMET;
-STATE.categories[2].title = 'Create new SIGMET';
-STATE.categories[2].icon = 'star-o';
-STATE.categories[2].sigmets.length = 0;
-STATE.categories[2].abilities[SIGMET_MODES.READ] = {
-  [READ_ABILITIES.CANCEL.check]: false,
-  [READ_ABILITIES.DELETE.check]: false,
-  [READ_ABILITIES.EDIT.check]: true,
-  [READ_ABILITIES.COPY.check]: false,
-  [READ_ABILITIES.PUBLISH.check]: false
-};
-STATE.categories[2].abilities[SIGMET_MODES.EDIT] = {
-  [EDIT_ABILITIES.CLEAR.check]: true,
-  [EDIT_ABILITIES.DISCARD.check]: false,
-  [EDIT_ABILITIES.PASTE.check]: true,
-  [EDIT_ABILITIES.SAVE.check]: true
-};
-
-// archived-sigmets
-STATE.categories[3].ref = CATEGORY_REFS.ARCHIVED_SIGMETS;
-STATE.categories[3].title = 'Open archived SIGMETs';
-STATE.categories[3].icon = 'archive';
-STATE.categories[3].sigmets.length = 0;
-STATE.categories[3].abilities[SIGMET_MODES.READ] = {
-  [READ_ABILITIES.CANCEL.check]: false,
-  [READ_ABILITIES.DELETE.check]: false,
-  [READ_ABILITIES.EDIT.check]: false,
-  [READ_ABILITIES.COPY.check]: true,
-  [READ_ABILITIES.PUBLISH.check]: false
-};
-STATE.categories[3].abilities[SIGMET_MODES.EDIT] = {};
-
-STATE.phenomena.length = 0;
-STATE.parameters.active_firs.length = 0;
-STATE.parameters.firareas = {};
-STATE.firs = {};
-STATE.selectedSigmet.length = 0;
-STATE.selectedAuxiliaryInfo.mode = SIGMET_MODES.READ;
-
+const STATE = safeMerge(initialStateProps, SIGMET_TEMPLATES.CONTAINER);
 export const INITIAL_STATE = STATE;

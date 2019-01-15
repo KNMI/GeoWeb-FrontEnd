@@ -797,9 +797,11 @@ const updateSigmet = (dataField, value, container) => {
     selectedSigmetUpdate.validdate_end = getRoundedNow().add(maxHoursDuration, 'hour').format();
   }
   if (shouldCleanLevels) {
-    selectedSigmetUpdate.levelinfo.levels = [...Array(2).fill(produce(SIGMET_TEMPLATES.LEVEL, (draftLevel) => {
-      draftLevel.unit = UNITS.FL;
-    }))];
+    selectedSigmetUpdate.levelinfo.levels.length = 0;
+    Array(2).fill(null).forEach((item) => {
+      selectedSigmetUpdate.levelinfo.levels.push(
+        produce(SIGMET_TEMPLATES.LEVEL, (draftLevel) => (draftLevel.unit = UNITS.FL)));
+    });
   }
 
   setStatePromise(container, {
