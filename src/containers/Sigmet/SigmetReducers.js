@@ -497,47 +497,69 @@ const updateFir = (firName, container) => {
   }
 };
 
-// FIXME: Should be Immutable, but AdagucMapDraw can't handle this ATM. Fix this.
 const initialGeoJson = () => {
-  const draftState = cloneDeep(SIGMET_TEMPLATES.GEOJSON);
-  draftState.features.push(cloneDeep(SIGMET_TEMPLATES.FEATURE), cloneDeep(SIGMET_TEMPLATES.FEATURE), cloneDeep(SIGMET_TEMPLATES.FEATURE));
   const startId = uuidv4();
   const endId = uuidv4();
-  draftState.features[0].id = startId;
-  draftState.features[0].properties.featureFunction = 'start';
-  draftState.features[0].properties.selectionType = null;
-  draftState.features[0].properties['fill-opacity'] = 0.2;
-  draftState.features[0].properties.fill = '#0f0';
-  draftState.features[0].properties['stroke-width'] = 0.8;
-  draftState.features[0].geometry.type = null;
-
-  draftState.features[1].id = endId;
-  draftState.features[1].properties.featureFunction = 'end';
-  draftState.features[1].properties.relatesTo = startId;
-  draftState.features[1].properties.selectionType = null;
-  draftState.features[1].properties['fill-opacity'] = 0.2;
-  draftState.features[1].properties.fill = '#f00';
-  draftState.features[1].properties['stroke-width'] = 0.8;
-  draftState.features[1].geometry.type = null;
-
-  draftState.features[2].id = uuidv4();
-  draftState.features[2].properties.featureFunction = 'intersection';
-  draftState.features[2].properties.relatesTo = startId;
-  draftState.features[2].properties.selectionType = null;
-  draftState.features[2].properties['fill-opacity'] = 0.33;
-  draftState.features[2].properties.fill = '#2a2';
-  draftState.features[2].properties['stroke-width'] = 2;
-  draftState.features[2].geometry.type = null;
-
-  draftState.features[3].id = uuidv4();
-  draftState.features[3].properties.featureFunction = 'intersection';
-  draftState.features[3].properties.relatesTo = endId;
-  draftState.features[3].properties.selectionType = null;
-  draftState.features[3].properties['fill-opacity'] = 0.33;
-  draftState.features[3].properties.fill = '#a22';
-  draftState.features[3].properties['stroke-width'] = 2;
-  draftState.features[3].geometry.type = null;
-  return draftState;
+  const newProps = {
+    features: [
+      {
+        id: startId,
+        properties: {
+          featureFunction: 'start',
+          selectionType: null,
+          'fill-opacity': 0.2,
+          fill: '#0f0',
+          'stroke-width': 0.8
+        },
+        geometry: {
+          type: null
+        }
+      },
+      {
+        id: endId,
+        properties: {
+          featureFunction: 'end',
+          relatesTo: startId,
+          selectionType: null,
+          'fill-opacity': 0.2,
+          fill: '#f00',
+          'stroke-width': 0.8
+        },
+        geometry: {
+          type: null
+        }
+      },
+      {
+        id: uuidv4(),
+        properties: {
+          featureFunction: 'intersection',
+          relatesTo: startId,
+          selectionType: null,
+          'fill-opacity': 0.33,
+          fill: '#2a2',
+          'stroke-width': 2
+        },
+        geometry: {
+          type: null
+        }
+      },
+      {
+        id: uuidv4(),
+        properties: {
+          featureFunction: 'intersection',
+          relatesTo: endId,
+          selectionType: null,
+          'fill-opacity': 0.33,
+          fill: '#a22',
+          'stroke-width': 2
+        },
+        geometry: {
+          type: null
+        }
+      }
+    ]
+  };
+  return safeMerge(newProps, SIGMET_TEMPLATES.GEOJSON);
 };
 
 const addFirFeature = (geojson, firName, container) => {
@@ -569,31 +591,34 @@ const addFirFeature = (geojson, firName, container) => {
   }, SIGMET_TEMPLATES.GEOJSON, geojson);
 };
 
-const getEmptySigmet = (container) => produce(SIGMET_TEMPLATES.SIGMET, draftSigmet => {
+const getEmptySigmet = (container) => {
   const { parameters } = container.state;
-  draftSigmet.status = STATUSES.CONCEPT;
-  draftSigmet.type = DISTRIBUTION_TYPES.TEST;
-  draftSigmet.levelinfo.mode = MODES_LVL.AT;
-  draftSigmet.levelinfo.levels[0].unit = UNITS.FL;
-  draftSigmet.levelinfo.levels.push(cloneDeep(SIGMET_TEMPLATES.LEVEL));
-  draftSigmet.levelinfo.levels[1].unit = UNITS.FL;
-  draftSigmet.va_extra_fields.volcano.position.push(null);
-  draftSigmet.movement_type = MOVEMENT_TYPES.STATIONARY;
-  draftSigmet.location_indicator_mwo = parameters.location_indicator_wmo;
-  draftSigmet.validdate = getRoundedNow().format();
   const defaultFirKey = Array.isArray(parameters.active_firs) && parameters.active_firs.length > 0 ? parameters.active_firs[0] : null;
   const defaultFirData = (defaultFirKey !== null && parameters.firareas[defaultFirKey])
     ? parameters.firareas[defaultFirKey]
     : parameters.firareas && Object.keys(parameters.firareas).length > 0
       ? parameters.firareas[Object.keys(parameters.firareas)[0]]
       : null;
-  if (defaultFirData) {
-    draftSigmet.validdate_end = getRoundedNow().add(defaultFirData.maxhoursofvalidity, 'hour').format();
-    draftSigmet.location_indicator_icao = defaultFirData.location_indicator_icao;
-    draftSigmet.firname = defaultFirData.firname;
-  }
-  draftSigmet.geojson = initialGeoJson();
-});
+  const newProps = {
+    status: STATUSES.CONCEPT,
+    type: DISTRIBUTION_TYPES.TEST,
+    levelinfo: {
+      mode: MODES_LVL.AT,
+      levels: [
+        { unit: UNITS.FL },
+        { unit: UNITS.FL }
+      ]
+    },
+    movement_type: MOVEMENT_TYPES.STATIONARY,
+    location_indicator_mwo: parameters.location_indicator_wmo,
+    validdate: getRoundedNow().format(),
+    validdate_end: defaultFirData ? getRoundedNow().add(defaultFirData.maxhoursofvalidity, 'hour').format() : null,
+    location_indicator_icao: defaultFirData ? defaultFirData.location_indicator_icao : null,
+    firname: defaultFirData ? defaultFirData.firname : null,
+    geojson: initialGeoJson()
+  };
+  return safeMerge(newProps, SIGMET_TEMPLATES.SIGMET);
+};
 
 const findCategoryAndSigmetIndex = (uuid, state) => {
   let sigmetIndex = -1;
