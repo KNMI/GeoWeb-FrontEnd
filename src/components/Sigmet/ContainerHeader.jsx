@@ -11,13 +11,19 @@ class ContainerHeader extends PureComponent {
       <Button
         color='primary'
         onClick={(evt) => dispatch(actions.toggleContainerAction(evt))}
-        title={isContainerOpen ? 'Collapse Sigmet panel' : 'Expand Sigmet panel'}>
+        title={isContainerOpen ? 'Collapse SIGMET panel' : 'Expand SIGMET panel'}>
         <Icon name={isContainerOpen ? 'angle-double-left' : 'angle-double-right'} />
       </Button>
       <Button
         color='primary'
         onClick={() => hashHistory.push('/')}
-        title='Close Sigmet panel'>
+        title='Close SIGMET panel'>
+        <Icon name={'times'} />
+      </Button>
+      <Button
+        color='primary'
+        onClick={(evt) => dispatch(actions.retrieveSigmetsAction())}
+        title='Synchronize SIGMETs from server'>
         <Icon name={'times'} />
       </Button>
     </Row>;

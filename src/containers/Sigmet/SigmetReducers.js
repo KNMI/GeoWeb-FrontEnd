@@ -10,6 +10,7 @@ import { clearEmptyPointersAndAncestors, safeMerge, isFeatureGeoJsonComplete,
 import { getPresetForPhenomenon } from '../../components/Sigmet/SigmetPresets';
 import axios from 'axios';
 import cloneDeep from 'lodash.clonedeep';
+import isEqual from 'lodash.isequal';
 import uuidv4 from 'uuid/v4';
 
 const ERROR_MSG = {
@@ -82,9 +83,7 @@ const toggleCategory = (ref, container) => {
   const { state } = container;
   const isChangeToCategoryAddSigmet = ref !== state.focussedCategoryRef && ref === CATEGORY_REFS.ADD_SIGMET;
   const sigmetSelection = isChangeToCategoryAddSigmet
-    ? [ produce(getEmptySigmet(container), draftState => {
-      draftState.geojson = initialGeoJson();
-    })]
+    ? [getEmptySigmet(container)]
     : [];
   return selectSigmet(sigmetSelection, container).then(() =>
     setStatePromise(container, {
@@ -320,11 +319,41 @@ const retrieveCategorizedSigmets = (container, retrievableCategory) => {
  */
 const refreshCategoryState = (container, categorizedSigmets) => {
   const { ref: categoryRef, sigmets } = categorizedSigmets;
+  const { categories, focussedCategoryRef, selectedSigmet, selectedAuxiliaryInfo } = container.state;
 
-  const categoryIndex = container.state.categories.findIndex((category) => category.ref === categoryRef);
+  const categoryIndex = categories.findIndex((category) => category.ref === categoryRef);
   if (isNaN(categoryIndex) || categoryIndex === -1) {
     return Promise.reject(new Error(`${ERROR_MSG.FIND_CATEGORY}`));
   }
+
+  if (categoryRef === focussedCategoryRef) {
+    const selectedId = selectedSigmet.length > 0 ? selectedSigmet[0].uuid : null;
+    if (selectedId !== null) {
+      const incomingSelected = sigmets.filter((possibleSelected) =>
+        possibleSelected.uuid === selectedId);
+      if (incomingSelected.length === 0) {
+        // no longer in this category
+        showFeedback(container,
+          'Selected Sigmet no longer exists in category',
+          `The status has changed, so this Sigmet doesn't exist anymore in the ${categories[categoryIndex].title}`,
+          FEEDBACK_STATUS.WARN
+        );
+      } else {
+        const baseSelected = categories[categoryIndex].sigmets.filter((possibleSelected) =>
+          possibleSelected.uuid === selectedId);
+        if (baseSelected.length === 1 && !isEqual(baseSelected[0], incomingSelected[0]) &&
+          selectedAuxiliaryInfo.hasEdits) {
+          // base SIGMET changed locally and remotely
+          showFeedback(container,
+            'Selected Sigmet has been changed remotely',
+            'Reselect the Sigmet to update, or click [Save] to override',
+            FEEDBACK_STATUS.WARN
+          );
+        }
+      }
+    }
+  }
+
   const newCategories = [...Array(categoryIndex).fill({}), { sigmets }];
   return setStatePromise(container, { categories: newCategories });
 };
@@ -512,7 +541,8 @@ const initialGeoJson = () => {
           'stroke-width': 0.8
         },
         geometry: {
-          type: null
+          type: null,
+          coordinates: [[]]
         }
       },
       {
@@ -526,7 +556,8 @@ const initialGeoJson = () => {
           'stroke-width': 0.8
         },
         geometry: {
-          type: null
+          type: null,
+          coordinates: [[]]
         }
       },
       {
@@ -540,7 +571,8 @@ const initialGeoJson = () => {
           'stroke-width': 2
         },
         geometry: {
-          type: null
+          type: null,
+          coordinates: [[]]
         }
       },
       {
@@ -554,7 +586,8 @@ const initialGeoJson = () => {
           'stroke-width': 2
         },
         geometry: {
-          type: null
+          type: null,
+          coordinates: [[]]
         }
       }
     ]
@@ -1338,7 +1371,6 @@ const toggleSigmetModal = (event, type, container) => {
  * @param {object} localAction Action-object containing the type and additional, action specific, parameters
  * @param {object} state Object reference for the actual state
  * @param {component} container The component to update the state
- }}
  */
 export default (localAction, container) => {
   switch (localAction.type) {
