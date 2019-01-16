@@ -259,7 +259,7 @@ class TitleBarContainer extends PureComponent {
     this.checkCredentials();
     this.fieldToFocus = 'username';
     this.fetchVersionInfo();
-    // this.setWebSocket();
+    this.setWebSocket();
   }
 
   componentDidUpdate () {
@@ -288,7 +288,7 @@ class TitleBarContainer extends PureComponent {
     const { showTriggerMessage } = this;
 
     this.setState({ triggerNotifications: Notifications });
-    console.log('In WebSocket Handler', this.state.triggerNotifications);
+    // console.log('In WebSocket Handler', this.state.triggerNotifications);
     showTriggerMessage();
   }
 
@@ -308,10 +308,10 @@ class TitleBarContainer extends PureComponent {
 
   showTriggerMessage () {
     const { triggerNotifications } = this.state;
-    console.log('In show', triggerNotifications);
+    // console.log('In show', triggerNotifications);
     const { dispatch } = this.props;
     for (let i = 0; i < triggerNotifications.length; i++) {
-      console.log('In for loop', triggerNotifications[i]);
+      // console.log('In for loop', triggerNotifications[i]);
       let trigger = triggerNotifications[i];
       dispatch(notify({
         title: trigger.phenomenon.long_name,
@@ -363,6 +363,7 @@ class TitleBarContainer extends PureComponent {
     }).catch(error => {
       this.setLoggedOutCallback(error.response.data.message);
     });
+    this.socket.close();
   }
 
   checkCredentials (callback) {

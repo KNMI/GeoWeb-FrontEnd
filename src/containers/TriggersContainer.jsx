@@ -36,7 +36,7 @@ class TriggersContainer extends Component {
     this.select = this.select.bind(this);
     this.getActiveTriggers = this.getActiveTriggers.bind(this);
     this._getActiveTriggersTimer = this._getActiveTriggersTimer.bind(this);
-    this.getActiveTriggersOnCreate = this.getActiveTriggersOnCreate.bind(this);
+    this.getActiveTriggersOnChange = this.getActiveTriggersOnChange.bind(this);
     let isOpenCategory = {};
     ITEMS.forEach((item, index) => {
       isOpenCategory[item.ref] = false;
@@ -90,7 +90,7 @@ class TriggersContainer extends Component {
     });
   }
 
-  getActiveTriggersOnCreate () {
+  getActiveTriggersOnChange () {
     axios({
       method: 'get',
       url: this.props.urls.BACKEND_SERVER_URL + '/triggers/gettriggers'
@@ -134,13 +134,13 @@ class TriggersContainer extends Component {
                   return <TriggerCreateCategory
                     key={index} onClick={this.toggle} title={item.title} parentCollapsed={!this.state.isOpen}
                     icon={item.icon} source={item.source} isOpen={this.state.isOpen && this.state.isOpenCategory[item.ref]}
-                    dispatch={this.props.dispatch} urls={urls} getActiveTriggersOnCreate={() => this.getActiveTriggersOnCreate()}
+                    dispatch={this.props.dispatch} urls={urls} getActiveTriggersOnChange={() => this.getActiveTriggersOnChange()}
                     selectMethod={(index, geo) => this.select(item.ref, index, geo)} toggleMethod={() => this.toggleCategory(item.ref)} />;
                 } else if (item.title === 'Active triggers') {
                   return <TriggerActiveCategory
                     key={index} onClick={this.toggle} title={item.title} parentCollapsed={!this.state.isOpen}
                     icon={item.icon} source={item.source} isOpen={this.state.isOpen && this.state.isOpenCategory[item.ref]}
-                    dispatch={this.props.dispatch} urls={urls} activeTriggersList={activeTriggersList}
+                    dispatch={this.props.dispatch} urls={urls} activeTriggersList={activeTriggersList} getActiveTriggersOnChange={() => this.getActiveTriggersOnChange()}
                     selectMethod={(index, geo) => this.select(item.ref, index, geo)} toggleMethod={() => this.toggleCategory(item.ref)} />;
                 } else if (item.title === 'Inactive triggers') {
                   return <TriggerInactiveCategory

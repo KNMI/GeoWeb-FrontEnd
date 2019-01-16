@@ -1,14 +1,17 @@
 import React, { Component } from 'react';
-import { Col, Badge, Card, CardBody, CardHeader, CardText, Row, CardGroup } from 'reactstrap';
+import { Col, Badge, Button, Card, CardBody, CardHeader, CardText, Row, CardGroup } from 'reactstrap';
 import Icon from 'react-fa';
 import PropTypes from 'prop-types';
 import CollapseOmni from '../CollapseOmni';
+import axios from 'axios';
 
 class TriggerActiveCategory extends Component {
   constructor (props) {
     super(props);
     this.getTriggers = this.getTriggers.bind(this);
     this.setActiveTriggerInfo = this.setActiveTriggerInfo.bind(this);
+    this.deleteTrigger = this.deleteTrigger.bind(this);
+    this.demo = this.demo.bind(this);
     this.state = {
       isOpen: props.isOpen
     };
@@ -40,9 +43,29 @@ class TriggerActiveCategory extends Component {
     return `${long_name} ${operator} than ${limit} ${unit}`;
   }
 
+  deleteTrigger (trigger) {
+    const triggerinfo = {
+      uuid: this.props.activeTriggersList[trigger].phenomenon.UUID.toString()
+    };
+    axios({
+      method: 'post',
+      url: this.props.urls.BACKEND_SERVER_URL + '/triggers/triggerdelete',
+      data: triggerinfo
+    }).then(() => {
+      this.props.getActiveTriggersOnChange();
+    });
+  }
+
+  demo () {
+    axios({
+      method: 'get',
+      url: this.props.urls.BACKEND_SERVER_URL + '/demotask/demo'
+    });
+  }
+
   render () {
     const { title, icon, toggleMethod, activeTriggersList } = this.props;
-    let triggers = this.getTriggers().sort();
+    let triggers = this.getTriggers();
     const maxSize = 500;
     return (
       <Card className='row accordion'>
@@ -71,12 +94,15 @@ class TriggerActiveCategory extends Component {
                             <CardText style={{ margin: '0.5rem' }}>
                               {item}
                             </CardText>
+                            <Button onClick={() => this.deleteTrigger(index)} style={{ border: '0rem', margin: '0.5rem', background: 'transparent' }}>
+                              <Icon name={'times'} style={{ color: '#017daf' }} /></Button>
                           </CardBody>
                         </Card>
                       </CardGroup>
                     );
                   })
                 }
+                <Button color='primary' onClick={() => this.demo()} >Calculate</Button>
               </Card>
             </Row>
           </CardGroup>
@@ -91,7 +117,8 @@ TriggerActiveCategory.propTypes = {
   icon          : PropTypes.string,
   toggleMethod  : PropTypes.func,
   urls          : PropTypes.shape({ BACKEND_SERVER_URL:PropTypes.string }).isRequired,
-  activeTriggersList  : PropTypes.array
+  activeTriggersList  : PropTypes.array,
+  getActiveTriggersOnChange : PropTypes.func
 };
 
 export default TriggerActiveCategory;

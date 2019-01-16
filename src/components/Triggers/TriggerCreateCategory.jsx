@@ -45,7 +45,7 @@ class TriggerCreateCategory extends Component {
       url: this.props.urls.BACKEND_SERVER_URL + '/triggers/triggercreate',
       data: triggerinfo
     }).then(() => {
-      this.props.getActiveTriggersOnCreate();
+      this.props.getActiveTriggersOnChange();
     });
   }
 
@@ -183,7 +183,7 @@ TriggerCreateCategory.propTypes = {
   icon          : PropTypes.string,
   toggleMethod  : PropTypes.func,
   urls          : PropTypes.shape({ BACKEND_SERVER_URL:PropTypes.string }).isRequired,
-  getActiveTriggersOnCreate : PropTypes.func
+  getActiveTriggersOnChange : PropTypes.func
 };
 
 export default TriggerCreateCategory;
