@@ -24,7 +24,7 @@ class ContainerHeader extends PureComponent {
         color='primary'
         onClick={(evt) => dispatch(actions.retrieveSigmetsAction())}
         title='Synchronize SIGMETs from server'>
-        <Icon name={'times'} />
+        <Icon name={'refresh'} />
       </Button>
     </Row>;
   }
