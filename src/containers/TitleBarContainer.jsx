@@ -30,6 +30,7 @@ const browserFullScreenRequests = [
   'msRequestFullscreen',
   'webkitRequestFullScreen'
 ];
+let stompClient = '';
 
 class TitleBarContainer extends PureComponent {
   constructor (props) {
@@ -68,7 +69,6 @@ class TitleBarContainer extends PureComponent {
     // this.addTriggerTest = this.addTriggerTest.bind(this);
     // this.setTriggerTestMessage = this.setTriggerTestMessage.bind(this);
     // this.readJSONFileTest = this.readJSONFileTest.bind(this);
-    this.socket = new SockJS(this.props.urls.BACKEND_SERVER_URL + '/websocket');
     this.inputfieldUserName = '';
     this.inputfieldPassword = '';
     this.timer = -1;
@@ -259,7 +259,6 @@ class TitleBarContainer extends PureComponent {
     this.checkCredentials();
     this.fieldToFocus = 'username';
     this.fetchVersionInfo();
-    this.setWebSocket();
   }
 
   componentDidUpdate () {
@@ -271,17 +270,22 @@ class TitleBarContainer extends PureComponent {
     }
   }
 
-  setWebSocket () {
+  setWebSocket (message) {
     const { handleOnWebSocketMessage } = this;
 
-    const stompClient = Stomp.over(this.socket);
-    stompClient.connect({}, function () {
-      stompClient.subscribe('/trigger/messages', function (message) {
-        const json = JSON.parse(message.body);
-        const { Notifications } = json;
-        handleOnWebSocketMessage(Notifications);
+    if (message === 'connect') {
+      const socket = new SockJS(this.props.urls.BACKEND_SERVER_URL + '/websocket');
+      stompClient = Stomp.over(socket);
+      stompClient.connect({}, function () {
+        stompClient.subscribe('/trigger/messages', function (message) {
+          const json = JSON.parse(message.body);
+          const { Notifications } = json;
+          handleOnWebSocketMessage(Notifications);
+        });
       });
-    });
+    } else if (message === 'close') {
+      stompClient.disconnect();
+    }
   }
 
   handleOnWebSocketMessage (Notifications) {
@@ -329,6 +333,7 @@ class TitleBarContainer extends PureComponent {
     const { user, urls } = this.props;
     const { isLoggedIn } = user;
     if (!isLoggedIn) {
+      this.setWebSocket('connect');
       axios({
         method: 'get',
         url: urls.BACKEND_SERVER_URL + '/login?username=' + this.inputfieldUserName + '&password=' + this.inputfieldPassword,
@@ -363,7 +368,7 @@ class TitleBarContainer extends PureComponent {
     }).catch(error => {
       this.setLoggedOutCallback(error.response.data.message);
     });
-    this.socket.close();
+    // this.setWebSocket('close');
   }
 
   checkCredentials (callback) {
