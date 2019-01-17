@@ -101,6 +101,7 @@ TEMPLATES.SIGMET = {
   status: null, // string
   type: null, // string
   cancels: null, // number
+  cancelsStart: null, // string
   /* Metadata */
   location_indicator_icao: null, // string
   location_indicator_mwo: null, // string

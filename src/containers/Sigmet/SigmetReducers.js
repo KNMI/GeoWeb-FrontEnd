@@ -483,6 +483,8 @@ const focusSigmet = (uuid, container) => {
     } else {
       return Promise.reject(new Error(`${ERROR_MSG.SELECT_SIGMET}`));
     }
+  } else if (uuid === null) {
+    categoryRef = state.focussedCategoryRef;
   } else {
     return Promise.reject(new Error(`${ERROR_MSG.SELECT_SIGMET}`));
   }
@@ -604,9 +606,9 @@ const addFirFeature = (geojson, firName, container) => {
     return null;
   }
   const featureForFir = availableFirs[firName];
-  const currentLastFeatureIndex = geojson.features.length - 1;
+  const lastFeatureIndex = geojson.features.length;
   return safeMerge({
-    features: Array(currentLastFeatureIndex).concat({
+    features: Array(lastFeatureIndex).concat({
       type: featureForFir.type,
       properties: {
         featureFunction: 'base-fir',
@@ -945,6 +947,7 @@ const drawSigmet = (event, uuid, container, action, featureFunction) => {
 };
 
 const cleanFeatures = (features) => {
+  console.log('cleanFeaturesBefore', JSON.stringify(features, null, 2));
   // features with featureFunction equal to 'base-fir' should be filtered
   const isNotBaseFirFeature = (feature) => (!feature || !feature.properties || feature.properties.featureFunction !== 'base-fir');
 
@@ -962,6 +965,7 @@ const cleanFeatures = (features) => {
     }
     clearEmptyPointersAndAncestors(feature);
   });
+  console.log('cleanFeaturesAfter', JSON.stringify(cleanedFeatures, null, 2));
   return Array.isArray(features)
     ? cleanedFeatures
     : cleanedFeatures.length > 0
@@ -1051,6 +1055,8 @@ const discardSigmet = (event, uuid, container) => {
  @return {object} Object with taf and report properties
 */
 const sanitizeSigmet = (sigmetAsObject, cleanedFeatures) => {
+  // console.log('Sanitize', JSON.stringify(sigmetAsObject.geojson, null, 2));
+  // console.log('Sanitize2', JSON.stringify(cleanedFeatures, null, 2));
   const volcanoPosition = sigmetAsObject.va_extra_fields.volcano.position;
   const hasVolcanoPosition = volcanoPosition.some((coordinate) => typeof coordinate === 'number');
   return produce(sigmetAsObject, draftState => {
@@ -1095,6 +1101,9 @@ const postSigmet = (container) => {
       if (response.status === 200 && response.data) {
         let responseUuid = response.data.uuid;
         setStatePromise(container, {
+          selectedAuxiliaryInfo: {
+            hasEdits: false
+          },
           displayModal: null
         }).then(() => resolve(responseUuid));
       } else {
@@ -1345,7 +1354,7 @@ const verifySigmet = (sigmetObject, container) => {
       }
     ).catch(error => {
       console.error('sigmet/verify', error);
-      setTacRepresentation('Unable to make TAC request');
+      setTacRepresentation('Unable to generate TAC');
     })
   );
 };

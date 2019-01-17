@@ -68,7 +68,7 @@ class SigmetsCategory extends PureComponent {
     const adjacentFirs = activeFir
       ? activeFir['adjacent_firs']
       : null;
-    const volcanoCoordinates = Array.isArray(sigmetToShow.va_extra_fields.volcano.position) && sigmetToShow.va_extra_fields.volcano.position.length > 1
+    const volcanoCoordinates = Array.isArray(sigmetToShow.va_extra_fields.volcano.position) && sigmetToShow.va_extra_fields.volcano.position.length > 0
       ? sigmetToShow.va_extra_fields.volcano.position
       : [null, null];
     return {

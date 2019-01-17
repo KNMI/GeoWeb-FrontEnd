@@ -28,7 +28,6 @@ import HeightsSection from './Sections/HeightsSection';
 import {
   DIRECTIONS, UNITS_ALT, UNITS, MODES_LVL, MODES_LVL_OPTIONS, CHANGES, MOVEMENT_TYPES, MOVEMENT_OPTIONS, SIGMET_TYPES,
   DATETIME_FORMAT, DISTRIBUTION_OPTIONS, dateRanges } from './SigmetTemplates';
-import { debounce } from '../../utils/debounce';
 import EndPositionSection from './Sections/EndPositionSection';
 
 const DROP_DOWN_NAMES = {
@@ -47,7 +46,6 @@ class SigmetEditMode extends PureComponent {
     this.maxLevelPerUnit = this.maxLevelPerUnit.bind(this);
     this.stepLevelPerUnit = this.stepLevelPerUnit.bind(this);
     this.formatLevelPerUnit = this.formatLevelPerUnit.bind(this);
-    this.verifySigmetDebounced = debounce(this.verifySigmetDebounced.bind(this), 250, false);
     this.state = {
       isAtOrAboveDropDownOpen: false,
       isBetweenLowerDropDownOpen: false,
@@ -73,23 +71,6 @@ class SigmetEditMode extends PureComponent {
         [flag]: !this.state[flag]
       });
     }
-  }
-
-  verifySigmetDebounced (sigmetObject) {
-    const { dispatch, actions } = this.props;
-    dispatch(actions.verifySigmetAction(sigmetObject));
-  }
-
-  componentWillReceiveProps (nextProps) {
-    if (nextProps.sigmet && this.props.sigmet && nextProps.geojson && this.props.geojson) {
-      if (nextProps.sigmet !== this.props.sigmet || nextProps.geojson !== this.props.geojson) {
-        this.verifySigmetDebounced(nextProps.sigmet);
-      }
-    }
-  }
-
-  componentDidMount () {
-    this.verifySigmetDebounced(this.props.sigmet);
   }
 
   setMode (evt, selectedOption = null) {
@@ -364,8 +345,8 @@ class SigmetEditMode extends PureComponent {
             : null
           }
           {isVolcanicAsh
-            ? <Input type='number' placeholder='000.0' step='0.1'
-              value={Array.isArray(volcanoCoordinates) && volcanoCoordinates.length > 1 && volcanoCoordinates[0] !== null ? volcanoCoordinates[0] : ''}
+            ? <Input type='number' placeholder='00.0' step='0.1'
+              value={Array.isArray(volcanoCoordinates) && volcanoCoordinates.length > 0 && volcanoCoordinates[0] !== null ? volcanoCoordinates[0] : ''}
               data-field='volcano_coordinates_lat'
               onChange={(evt) => dispatch(actions.updateSigmetAction(uuid, 'va_extra_fields.volcano.position.0', evt.target.value || null))}
             />
