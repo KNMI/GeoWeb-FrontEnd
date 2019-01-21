@@ -30,7 +30,6 @@ const browserFullScreenRequests = [
   'msRequestFullscreen',
   'webkitRequestFullScreen'
 ];
-let stompClient = '';
 
 class TitleBarContainer extends PureComponent {
   constructor (props) {
@@ -69,6 +68,7 @@ class TitleBarContainer extends PureComponent {
     // this.addTriggerTest = this.addTriggerTest.bind(this);
     // this.setTriggerTestMessage = this.setTriggerTestMessage.bind(this);
     // this.readJSONFileTest = this.readJSONFileTest.bind(this);
+    this.stompClient = null;
     this.inputfieldUserName = '';
     this.inputfieldPassword = '';
     this.timer = -1;
@@ -275,16 +275,16 @@ class TitleBarContainer extends PureComponent {
 
     if (message === 'connect') {
       const socket = new SockJS(this.props.urls.BACKEND_SERVER_URL + '/websocket');
-      stompClient = Stomp.over(socket);
-      stompClient.connect({}, function () {
-        stompClient.subscribe('/trigger/messages', function (message) {
+      this.stompClient = Stomp.over(socket);
+      this.stompClient.connect({}, () => {
+        this.stompClient.subscribe('/trigger/messages', function (message) {
           const json = JSON.parse(message.body);
           const { Notifications } = json;
           handleOnWebSocketMessage(Notifications);
         });
       });
     } else if (message === 'close') {
-      stompClient.disconnect();
+      if (this.stompClient) this.stompClient.disconnect();
     }
   }
 
@@ -368,7 +368,7 @@ class TitleBarContainer extends PureComponent {
     }).catch(error => {
       this.setLoggedOutCallback(error.response.data.message);
     });
-    // this.setWebSocket('close');
+    this.setWebSocket('close');
   }
 
   checkCredentials (callback) {

@@ -4,7 +4,7 @@ import Icon from 'react-fa';
 import CollapseOmni from '../components/CollapseOmni';
 import TriggerCreateCategory from '../components/Triggers/TriggerCreateCategory';
 import TriggerActiveCategory from '../components/Triggers/TriggerActiveCategory';
-import TriggerInactiveCategory from '../components/Triggers/TriggerInactiveCategory';
+// import TriggerInactiveCategory from '../components/Triggers/TriggerInactiveCategory';
 import Panel from '../components/Panel';
 import cloneDeep from 'lodash.clonedeep';
 import moment from 'moment';
@@ -142,12 +142,13 @@ class TriggersContainer extends Component {
                     icon={item.icon} source={item.source} isOpen={this.state.isOpen && this.state.isOpenCategory[item.ref]}
                     dispatch={this.props.dispatch} urls={urls} activeTriggersList={activeTriggersList} getActiveTriggersOnChange={() => this.getActiveTriggersOnChange()}
                     selectMethod={(index, geo) => this.select(item.ref, index, geo)} toggleMethod={() => this.toggleCategory(item.ref)} />;
-                } else if (item.title === 'Inactive triggers') {
-                  return <TriggerInactiveCategory
-                    key={index} onClick={this.toggle} title={item.title} parentCollapsed={!this.state.isOpen}
-                    icon={item.icon} source={item.source} isOpen={this.state.isOpen && this.state.isOpenCategory[item.ref]}
-                    dispatch={this.props.dispatch} urls={urls}
-                    selectMethod={(index, geo) => this.select(item.ref, index, geo)} toggleMethod={() => this.toggleCategory(item.ref)} />;
+                // } else if (item.title === 'Inactive triggers') {
+                //   return <TriggerInactiveCategory
+                //     key={index} onClick={this.toggle} title={item.title} parentCollapsed={!this.state.isOpen}
+                //     icon={item.icon} source={item.source} isOpen={this.state.isOpen && this.state.isOpenCategory[item.ref]}
+                //     dispatch={this.props.dispatch} urls={urls}
+                //     selectMethod={(index, geo) => this.select(item.ref, index, geo)} toggleMethod={() => this.toggleCategory(item.ref)} />;
+                // }
                 }
               })}
             </Col>
