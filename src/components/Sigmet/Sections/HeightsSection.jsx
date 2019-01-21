@@ -41,25 +41,25 @@ export default class HeightsSection extends PureComponent {
             </Col>
           </Row>
           <Row className={!isLevelBetween ? 'disabled' : null}>
-            <Col xs={{ size: 2, offset: 3 }}>
+            <Col xs={{ size: 2, offset: 5 }}>
               <label>Between</label>
-            </Col>
-            <Col xs={{ size: 7 }}>
-              {localChildren['between-lev-1']}
-              {!hasSurface && localChildren['between-lev-1'] && localChildren['between-lev-1'].props && !localChildren['between-lev-1'].props.disabled
-                ? <span className={localChildren['between-lev-1'].props.className === 'missing' ? 'required missing' : 'required'} />
-                : null
-              }
-            </Col>
-          </Row>
-          <Row className={!isLevelBetween ? 'disabled' : null}>
-            <Col xs={{ size: 1, offset: 6 }}>
-              <label>and</label>
             </Col>
             <Col xs='5'>
               {localChildren['between-lev-2']}
               {localChildren['between-lev-2'] && localChildren['between-lev-2'].props && !localChildren['between-lev-2'].props.disabled
                 ? <span className={localChildren['between-lev-2'].props.className === 'missing' ? 'required missing' : 'required'} />
+                : null
+              }
+            </Col>
+          </Row>
+          <Row className={!isLevelBetween ? 'disabled' : null}>
+            <Col xs={{ size: 1, offset: 4 }}>
+              <label>and</label>
+            </Col>
+            <Col xs={{ size: 7 }}>
+              {localChildren['between-lev-1']}
+              {!hasSurface && localChildren['between-lev-1'] && localChildren['between-lev-1'].props && !localChildren['between-lev-1'].props.disabled
+                ? <span className={localChildren['between-lev-1'].props.className === 'missing' ? 'required missing' : 'required'} />
                 : null
               }
             </Col>

@@ -27,7 +27,7 @@ class SigmetsContainer extends Component {
   }
 
   localDispatch (localAction) {
-    dispatch(localAction, this);
+    return dispatch(localAction, this);
   };
 
   findFeatureByFunction (functionName, containerProperties = this.props) {
@@ -37,31 +37,45 @@ class SigmetsContainer extends Component {
     return null;
   }
 
-  componentWillReceiveProps (nextProps) {
-    if (nextProps.drawProperties.adagucMapDraw.geojson.features && this.props.drawProperties.adagucMapDraw.geojson.features) {
+  componentDidUpdate (prevProps) {
+    if (prevProps.drawProperties.adagucMapDraw.geojson.features && this.props.drawProperties.adagucMapDraw.geojson.features) {
+      const prevStartFeature = this.findFeatureByFunction('start', prevProps);
+      const prevEndFeature = this.findFeatureByFunction('end', prevProps);
       const currentStartFeature = this.findFeatureByFunction('start');
       const currentEndFeature = this.findFeatureByFunction('end');
-      const nextStartFeature = this.findFeatureByFunction('start', nextProps);
-      const nextEndFeature = this.findFeatureByFunction('end', nextProps);
-      if (!currentStartFeature || !nextStartFeature) {
+      if (!prevStartFeature || !currentStartFeature) {
         return;
       }
-      if (currentStartFeature.id !== nextStartFeature.id) {
+      if (currentStartFeature.id !== prevStartFeature.id) {
         console.warn(ERROR_MSG.FEATURE_ID_MISMATCH, 'start');
         return;
       }
-      if (!currentEndFeature || !nextEndFeature) {
+      if (!prevEndFeature || !currentEndFeature) {
         return;
       }
-      if (currentEndFeature.id !== nextEndFeature.id) {
+      if (currentEndFeature.id !== prevEndFeature.id) {
         console.warn(ERROR_MSG.FEATURE_ID_MISMATCH, 'end');
         return;
       }
-      if (!isEqual(currentStartFeature, nextStartFeature)) {
-        this.localDispatch(LOCAL_ACTIONS.createFirIntersectionAction(nextStartFeature.id, nextProps.drawProperties.adagucMapDraw.geojson));
+      if (!isEqual(prevStartFeature, currentStartFeature)) {
+        this.localDispatch(LOCAL_ACTIONS.createFirIntersectionAction(currentStartFeature.id, this.props.drawProperties.adagucMapDraw.geojson))
+          .then((hasCreatedFirIntersection) => {
+            if (hasCreatedFirIntersection && this.state.selectedSigmet.length > 0) {
+              this.localDispatch(LOCAL_ACTIONS.verifySigmetAction(this.state.selectedSigmet[0]));
+            }
+          }).catch((error) => {
+            console.warn(error);
+          });
       }
-      if (!isEqual(currentEndFeature, nextEndFeature)) {
-        this.localDispatch(LOCAL_ACTIONS.createFirIntersectionAction(nextEndFeature.id, nextProps.drawProperties.adagucMapDraw.geojson));
+      if (!isEqual(prevEndFeature, currentEndFeature)) {
+        this.localDispatch(LOCAL_ACTIONS.createFirIntersectionAction(currentEndFeature.id, this.props.drawProperties.adagucMapDraw.geojson))
+          .then((hasCreatedFirIntersection) => {
+            if (hasCreatedFirIntersection && this.state.selectedSigmet.length > 0) {
+              this.localDispatch(LOCAL_ACTIONS.verifySigmetAction(this.state.selectedSigmet[0]));
+            }
+          }).catch((error) => {
+            console.warn(error);
+          });
       }
     }
   }

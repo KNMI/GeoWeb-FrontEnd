@@ -474,7 +474,9 @@ const focusSigmet = (uuid, container) => {
   const indices = findCategoryAndSigmetIndex(uuid, state);
   let categoryRef = null;
 
-  if (indices.isFound) {
+  if (uuid == null) {
+    categoryRef = state.focussedCategoryRef;
+  } else if (indices.isFound) {
     const category = state.categories[indices.categoryIndex];
     const sigmet = category.sigmets[indices.sigmetIndex];
     if (sigmet) {
@@ -483,8 +485,6 @@ const focusSigmet = (uuid, container) => {
     } else {
       return Promise.reject(new Error(`${ERROR_MSG.SELECT_SIGMET}`));
     }
-  } else if (uuid === null) {
-    categoryRef = state.focussedCategoryRef;
   } else {
     return Promise.reject(new Error(`${ERROR_MSG.SELECT_SIGMET}`));
   }
@@ -492,7 +492,7 @@ const focusSigmet = (uuid, container) => {
     ? toggleCategory(categoryRef, container)
     : Promise.resolve();
 
-  categoryTogglePromise
+  return categoryTogglePromise
     .then(() => selectSigmet(selection, container))
     .then(() => {
       dispatch(mapActions.setMapMode('pan'));
@@ -745,6 +745,7 @@ const updateDisplayedPreset = (preset, container) => {
 };
 
 const updateSigmet = (dataField, value, container) => {
+  console.log(dataField, value);
   const { props } = container;
   const { drawProperties, dispatch, drawActions, sources } = props;
   const { selectedSigmet, parameters } = container.state;
@@ -818,7 +819,6 @@ const updateSigmet = (dataField, value, container) => {
     !isNaN(key)
       ? [...Array(parseInt(key)).fill({}), value]
       : { [key]: value };
-
   const selectedSigmetUpdate = dataFieldParts.reduceRight(
     (traverser, propertyKey) => toStructure(propertyKey, traverser),
     toStructure(fieldToUpdate, value)
@@ -832,14 +832,13 @@ const updateSigmet = (dataField, value, container) => {
     selectedSigmetUpdate.validdate_end = getRoundedNow().add(maxHoursDuration, 'hour').format();
   }
   if (shouldCleanLevels) {
-    selectedSigmetUpdate.levelinfo.levels.length = 0;
-    Array(2).fill(null).forEach((item) => {
-      selectedSigmetUpdate.levelinfo.levels.push(
-        produce(SIGMET_TEMPLATES.LEVEL, (draftLevel) => (draftLevel.unit = UNITS.FL)));
-    });
+    selectedSigmetUpdate.levelinfo.levels = [
+      { value: null, unit: UNITS.FL },
+      { value: null, unit: UNITS.FL }
+    ];
   }
-
-  setStatePromise(container, {
+  console.log(selectedSigmetUpdate);
+  return setStatePromise(container, {
     selectedSigmet: [
       selectedSigmetUpdate
     ],
@@ -848,22 +847,27 @@ const updateSigmet = (dataField, value, container) => {
     }
   }).then(() => shouldUpdatePreset(preset)
     ? updateDisplayedPreset(preset, container)
-    : Promise.resolve())
-    .then(() => {
-      if (shouldCleanEndFeature === true) {
-        const features = cloneDeep(drawProperties.adagucMapDraw.geojson.features);
-        const endFeature = features.find((potentialEndFeature) => potentialEndFeature.properties.featureFunction === 'end');
-        if (endFeature && endFeature.id) {
-          dispatch(drawActions.setFeature({
-            geometry: { coordinates: [], type: null },
-            properties: { selectionType: null },
-            featureId: endFeature.id
-          }));
-          clearRelatedIntersection(endFeature.id, features, dispatch, drawActions);
-        }
+    : Promise.resolve()
+  ).then(() => {
+    if (shouldCleanEndFeature === true) {
+      const features = cloneDeep(drawProperties.adagucMapDraw.geojson.features);
+      const endFeature = features.find((potentialEndFeature) => potentialEndFeature.properties.featureFunction === 'end');
+      if (endFeature && endFeature.id) {
+        dispatch(drawActions.setFeature({
+          geometry: { coordinates: [], type: null },
+          properties: { selectionType: null },
+          featureId: endFeature.id
+        }));
+        clearRelatedIntersection(endFeature.id, features, dispatch, drawActions);
       }
-      return Promise.resolve();
-    });
+    }
+    return Promise.resolve();
+  }).then(() => {
+    if (container.state.selectedSigmet.length > 0) {
+      return verifySigmet(container.state.selectedSigmet[0], container);
+    }
+    return Promise.resolve();
+  });
 };
 
 const clearRelatedIntersection = (featureId, features, dispatch, drawActions) => {
@@ -947,7 +951,6 @@ const drawSigmet = (event, uuid, container, action, featureFunction) => {
 };
 
 const cleanFeatures = (features) => {
-  console.log('cleanFeaturesBefore', JSON.stringify(features, null, 2));
   // features with featureFunction equal to 'base-fir' should be filtered
   const isNotBaseFirFeature = (feature) => (!feature || !feature.properties || feature.properties.featureFunction !== 'base-fir');
 
@@ -965,7 +968,6 @@ const cleanFeatures = (features) => {
     }
     clearEmptyPointersAndAncestors(feature);
   });
-  console.log('cleanFeaturesAfter', JSON.stringify(cleanedFeatures, null, 2));
   return Array.isArray(features)
     ? cleanedFeatures
     : cleanedFeatures.length > 0
@@ -985,13 +987,13 @@ const createFirIntersection = (featureId, geojson, container) => {
   const { selectedSigmet, categories, focussedCategoryRef } = container.state;
   const activeCategory = categories.find((category) => category.ref === focussedCategoryRef);
   if (!activeCategory) {
-    return;
+    return Promise.reject(new Error('No selected category found to create an intersection in'));
   }
   const affectedSigmet = Array.isArray(selectedSigmet) && selectedSigmet.length === 1
     ? selectedSigmet[0]
     : null;
   if (!affectedSigmet) {
-    return;
+    return Promise.reject(new Error('No selected SIGMET found to create an intersection in'));
   }
   const featureToIntersect = geojson.features.find((feature) =>
     feature.id === featureId);
@@ -1000,7 +1002,7 @@ const createFirIntersection = (featureId, geojson, container) => {
     return iSFeature.properties.relatesTo === featureId && iSFeature.properties.featureFunction === 'intersection';
   });
   if (intersectionData && intersectionFeature) {
-    axios({
+    return axios({
       method: 'post',
       url: `${urls.BACKEND_SERVER_URL}/sigmets/sigmetintersections`,
       withCredentials: true,
@@ -1014,7 +1016,7 @@ const createFirIntersection = (featureId, geojson, container) => {
         const responseMessage = typeof message === 'string' ? message : null;
         const { featureFunction } = featureToIntersect.properties;
         const feedbackProperty = `feedback${featureFunction.charAt(0).toUpperCase()}${featureFunction.slice(1)}`;
-        setStatePromise(container, {
+        return setStatePromise(container, {
           selectedAuxiliaryInfo: {
             [feedbackProperty]: responseMessage
           }
@@ -1026,13 +1028,14 @@ const createFirIntersection = (featureId, geojson, container) => {
               featureId: intersectionFeature.id
             }));
           }
+          return Promise.resolve(true);
         });
       }
-    }).catch(error => {
-      console.error('Couldn\'t retrieve intersection for feature', error, featureId);
-    });
+      Promise.reject(new Error(`Couldn't retrieve intersection for feature ${featureId}`));
+    }).catch(error => Promise.reject(new Error(`Couldn't retrieve intersection for feature ${featureId}: ${error}`)));
   } else {
     console.warn('The intersection feature was not found');
+    return Promise.resolve(false);
   }
 };
 
@@ -1045,7 +1048,7 @@ const clearSigmet = (event, uuid, container) => {
 
 const discardSigmet = (event, uuid, container) => {
   showFeedback(container, 'Changes discarded', 'The changes are successfully discarded', FEEDBACK_STATUS.OK);
-  synchronizeSigmets(container).then(() => focusSigmet(null, container));
+  focusSigmet(null, container).then(() => synchronizeSigmets(container));
 };
 
 /**
@@ -1055,8 +1058,6 @@ const discardSigmet = (event, uuid, container) => {
  @return {object} Object with taf and report properties
 */
 const sanitizeSigmet = (sigmetAsObject, cleanedFeatures) => {
-  // console.log('Sanitize', JSON.stringify(sigmetAsObject.geojson, null, 2));
-  // console.log('Sanitize2', JSON.stringify(cleanedFeatures, null, 2));
   const volcanoPosition = sigmetAsObject.va_extra_fields.volcano.position;
   const hasVolcanoPosition = volcanoPosition.some((coordinate) => typeof coordinate === 'number');
   return produce(sigmetAsObject, draftState => {
@@ -1123,7 +1124,9 @@ const postSigmet = (container) => {
 const saveSigmet = (event, container) => {
   postSigmet(container).then((uuid) => {
     showFeedback(container, 'Sigmet saved', `Sigmet ${uuid} was successfully saved`, FEEDBACK_STATUS.OK);
-    synchronizeSigmets(container).then(() => focusSigmet(uuid, container));
+    focusSigmet(null, container)
+      .then(() => synchronizeSigmets(container))
+      .then(() => focusSigmet(uuid, container));
   }, (error) => {
     const errMsg = `Could not save Sigmet: ${error.message}`;
     console.error(errMsg);
@@ -1168,7 +1171,7 @@ const deleteSigmet = (event, container) => {
     responseType: 'json'
   }).then(response => {
     showFeedback(container, 'Sigmet deleted', `Sigmet ${affectedSigmet.uuid} was successfully deleted`, FEEDBACK_STATUS.OK);
-    synchronizeSigmets(container).then(() => focusSigmet(null, container));
+    focusSigmet(null, container).then(() => synchronizeSigmets(container));
   }).catch(error => {
     console.error('Couldn\'t delete Sigmet', error);
     showFeedback(container, 'Error', `An error occurred while deleting the Sigmet: ${error.response.data.error}`, FEEDBACK_STATUS.ERROR);
@@ -1267,7 +1270,9 @@ const publishSigmet = (event, uuid, container) => {
   }).then(() => postSigmet(container))
     .then((uuid) => {
       showFeedback(container, 'Sigmet published', `Sigmet ${uuid} was successfully published`, FEEDBACK_STATUS.OK);
-      return synchronizeSigmets(container).then(() => focusSigmet(affectedSigmet.uuid, container));
+      return focusSigmet(null, container)
+        .then(() => synchronizeSigmets(container))
+        .then(() => focusSigmet(affectedSigmet.uuid, container));
     }, (error) => {
       const errMsg = `Could not publish Sigmet: ${error.message}`;
       console.error(errMsg);
@@ -1439,8 +1444,7 @@ export default (localAction, container) => {
       drawSigmet(localAction.event, localAction.uuid, container, localAction.action, localAction.featureFunction);
       break;
     case LOCAL_ACTION_TYPES.CREATE_FIR_INTERSECTION:
-      createFirIntersection(localAction.featureId, localAction.geoJson, container);
-      break;
+      return createFirIntersection(localAction.featureId, localAction.geoJson, container);
     case LOCAL_ACTION_TYPES.UPDATE_FIR:
       updateFir(localAction.firName, container);
       break;

@@ -220,6 +220,23 @@
     .row:nth-child(3) {
       margin-top: 0.05rem;
       > div:first-child {
+        margin-top: 0.5rem;
+        label {
+          width: 100%;
+          padding: 0;
+          padding-right: 0.33rem;
+          margin: 0;
+          text-align: right;
+        }
+      }
+      > div:nth-child(2) {
+        padding-left: 0.2rem;
+      }
+    }
+
+    .row:nth-child(4) {
+      margin-top: 0.05rem;
+      > div:first-child {
         margin-top: 0.6rem;
       }
 
@@ -239,23 +256,6 @@
             margin-right: 0;
           }
         }
-      }
-    }
-
-    .row:nth-child(4) {
-      margin-top: 0.05rem;
-      > div:first-child {
-        margin-top: 0.5rem;
-        label {
-          width: 100%;
-          padding: 0;
-          padding-right: 0.33rem;
-          margin: 0;
-          text-align: right;
-        }
-      }
-      > div:nth-child(2) {
-        padding-left: 0.2rem;
       }
     }
   }

@@ -483,7 +483,7 @@ class SigmetEditMode extends PureComponent {
                     </DropdownMenu>
                   </ButtonDropdown>
                 </InputGroupAddon>
-                <Input placeholder='Level' disabled={!isLevelBetween || levelMode.hasSurface} type='number'
+                <Input placeholder='Lower level' disabled={!isLevelBetween || levelMode.hasSurface} type='number'
                   min='0' step={this.stepLevelPerUnit(levelinfo.levels[0].unit)} max={this.maxLevelPerUnit(levelinfo.levels[0].unit)}
                   value={(!isLevelBetween || levelMode.hasSurface || !levelinfo.levels[0].value)
                     ? ''
@@ -513,7 +513,7 @@ class SigmetEditMode extends PureComponent {
                 </DropdownMenu>
               </ButtonDropdown>
             </InputGroupAddon>
-            <Input placeholder='Level' disabled={!isLevelBetween} type='number'
+            <Input placeholder='Upper level' disabled={!isLevelBetween} type='number'
               min='0' step={this.stepLevelPerUnit(levelinfo.levels[1].unit)} max={this.maxLevelPerUnit(levelinfo.levels[1].unit)}
               value={(!isLevelBetween || !levelinfo.levels[1].value) ? '' : this.formatLevelPerUnit(levelinfo.levels[1].value, levelinfo.levels[1].unit)}
               onChange={(evt) => dispatch(actions.updateSigmetAction(uuid, 'levelinfo.levels.1.value', evt.target.value))} />
