@@ -650,8 +650,7 @@ SigmetEditMode.propTypes = {
   maxHoursInAdvance: PropTypes.number,
   volcanoCoordinates: PropTypes.arrayOf(PropTypes.number),
   isVolcanicAsh: PropTypes.bool,
-  sigmet: SIGMET_TYPES.SIGMET,
-  geojson: PropTypes.object
+  sigmet: SIGMET_TYPES.SIGMET
 };
 
 export default SigmetEditMode;

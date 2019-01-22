@@ -745,7 +745,6 @@ const updateDisplayedPreset = (preset, container) => {
 };
 
 const updateSigmet = (dataField, value, container) => {
-  console.log(dataField, value);
   const { props } = container;
   const { drawProperties, dispatch, drawActions, sources } = props;
   const { selectedSigmet, parameters } = container.state;
@@ -837,7 +836,6 @@ const updateSigmet = (dataField, value, container) => {
       { value: null, unit: UNITS.FL }
     ];
   }
-  console.log(selectedSigmetUpdate);
   return setStatePromise(container, {
     selectedSigmet: [
       selectedSigmetUpdate
@@ -1400,7 +1398,7 @@ export default (localAction, container) => {
     case LOCAL_ACTION_TYPES.RETRIEVE_SIGMETS:
       return synchronizeSigmets(container);
     case LOCAL_ACTION_TYPES.FOCUS_SIGMET:
-      if (localAction.event && localAction.event.target && localAction.event.target.tagName === 'BUTTON') {
+      if (localAction.event && localAction.event.target && ['BUTTON', 'INPUT'].includes(localAction.event.target.tagName)) {
         return;
       }
       focusSigmet(localAction.uuid, container);
