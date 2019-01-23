@@ -11,7 +11,6 @@ class TriggerActiveCategory extends Component {
     this.getTriggers = this.getTriggers.bind(this);
     this.setActiveTriggerInfo = this.setActiveTriggerInfo.bind(this);
     this.deleteTrigger = this.deleteTrigger.bind(this);
-    this.demo = this.demo.bind(this);
     this.state = {
       isOpen: props.isOpen
     };
@@ -56,13 +55,6 @@ class TriggerActiveCategory extends Component {
     });
   }
 
-  demo () {
-    axios({
-      method: 'get',
-      url: this.props.urls.BACKEND_SERVER_URL + '/demotask/demo'
-    });
-  }
-
   render () {
     const { title, icon, toggleMethod, activeTriggersList } = this.props;
     let triggers = this.getTriggers();
@@ -102,7 +94,6 @@ class TriggerActiveCategory extends Component {
                     );
                   })
                 }
-                <Button color='primary' onClick={() => this.demo()} >Calculate</Button>
               </Card>
             </Row>
           </CardGroup>
