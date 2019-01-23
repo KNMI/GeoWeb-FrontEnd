@@ -105,8 +105,6 @@ class SigmetsCategory extends PureComponent {
       ? [selectedSigmet]
       : sigmets.slice().sort(this.byStartAndSequence).slice(0, itemLimit);
 
-    // console.log('Category', sigmetCollection);
-
     return <Card className={`SigmetsCategory row accordion${isOpen ? ' open' : ''}${isOpenable ? ' openable' : ''}`}>
       <Col>
         <CardHeader className='row' title={title} onClick={isOpenable ? (evt) => dispatch(actions.toggleCategoryAction(evt, typeRef)) : null}>
