@@ -14,10 +14,6 @@ import SigmetsCategory from '../../components/Sigmet/SigmetsCategory';
 import MinifiedCategory from '../../components/Sigmet/MinifiedCategory';
 import { isFeatureGeoJsonComplete } from '../../utils/json';
 
-const ERROR_MSG = {
-  FEATURE_ID_MISMATCH: 'GeoJson: the %s feature has a mutated id'
-};
-
 class SigmetsContainer extends Component {
   constructor (props) {
     super(props);
@@ -47,24 +43,16 @@ class SigmetsContainer extends Component {
       if (!prevStartFeature || !currentStartFeature) {
         return;
       }
-      // if (currentStartFeature.id !== prevStartFeature.id) {
-      //   console.warn(ERROR_MSG.FEATURE_ID_MISMATCH, 'start');
-      //   return;
-      // }
       if (!prevEndFeature || !currentEndFeature) {
         return;
       }
-      // if (currentEndFeature.id !== prevEndFeature.id) {
-      //   console.warn(ERROR_MSG.FEATURE_ID_MISMATCH, 'end');
-      //   return;
-      // }
       if (!isEqual(prevStartFeature, currentStartFeature)) {
         this.localDispatch(LOCAL_ACTIONS.toggleHasEdits(null, true))
           .then(() =>
             this.localDispatch(LOCAL_ACTIONS.createFirIntersectionAction(currentStartFeature.id, currentGeoJson)))
           .then((hasCreatedFirIntersection) => {
             if (hasCreatedFirIntersection && this.state.selectedSigmet.length > 0) {
-              this.localDispatch(LOCAL_ACTIONS.verifySigmetAction(this.state.selectedSigmet[0]))
+              this.localDispatch(LOCAL_ACTIONS.verifySigmetAction(this.state.selectedSigmet[0]));
             }
           }).catch((error) => {
             console.warn(error);
