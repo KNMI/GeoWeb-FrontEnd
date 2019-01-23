@@ -38,7 +38,8 @@ class SigmetsContainer extends Component {
   }
 
   componentDidUpdate (prevProps) {
-    if (prevProps.drawProperties.adagucMapDraw.geojson.features && this.props.drawProperties.adagucMapDraw.geojson.features) {
+    const { geojson: currentGeoJson } = this.props.drawProperties.adagucMapDraw;
+    if (prevProps.drawProperties.adagucMapDraw.geojson.features && currentGeoJson.features) {
       const prevStartFeature = this.findFeatureByFunction('start', prevProps);
       const prevEndFeature = this.findFeatureByFunction('end', prevProps);
       const currentStartFeature = this.findFeatureByFunction('start');
@@ -46,29 +47,33 @@ class SigmetsContainer extends Component {
       if (!prevStartFeature || !currentStartFeature) {
         return;
       }
-      if (currentStartFeature.id !== prevStartFeature.id) {
-        console.warn(ERROR_MSG.FEATURE_ID_MISMATCH, 'start');
-        return;
-      }
+      // if (currentStartFeature.id !== prevStartFeature.id) {
+      //   console.warn(ERROR_MSG.FEATURE_ID_MISMATCH, 'start');
+      //   return;
+      // }
       if (!prevEndFeature || !currentEndFeature) {
         return;
       }
-      if (currentEndFeature.id !== prevEndFeature.id) {
-        console.warn(ERROR_MSG.FEATURE_ID_MISMATCH, 'end');
-        return;
-      }
+      // if (currentEndFeature.id !== prevEndFeature.id) {
+      //   console.warn(ERROR_MSG.FEATURE_ID_MISMATCH, 'end');
+      //   return;
+      // }
       if (!isEqual(prevStartFeature, currentStartFeature)) {
-        this.localDispatch(LOCAL_ACTIONS.createFirIntersectionAction(currentStartFeature.id, this.props.drawProperties.adagucMapDraw.geojson))
+        this.localDispatch(LOCAL_ACTIONS.toggleHasEdits(null, true))
+          .then(() =>
+            this.localDispatch(LOCAL_ACTIONS.createFirIntersectionAction(currentStartFeature.id, currentGeoJson)))
           .then((hasCreatedFirIntersection) => {
             if (hasCreatedFirIntersection && this.state.selectedSigmet.length > 0) {
-              this.localDispatch(LOCAL_ACTIONS.verifySigmetAction(this.state.selectedSigmet[0]));
+              this.localDispatch(LOCAL_ACTIONS.verifySigmetAction(this.state.selectedSigmet[0]))
             }
           }).catch((error) => {
             console.warn(error);
           });
       }
       if (!isEqual(prevEndFeature, currentEndFeature)) {
-        this.localDispatch(LOCAL_ACTIONS.createFirIntersectionAction(currentEndFeature.id, this.props.drawProperties.adagucMapDraw.geojson))
+        this.localDispatch(LOCAL_ACTIONS.toggleHasEdits(null, true))
+          .then(() =>
+            this.localDispatch(LOCAL_ACTIONS.createFirIntersectionAction(currentEndFeature.id, currentGeoJson)))
           .then((hasCreatedFirIntersection) => {
             if (hasCreatedFirIntersection && this.state.selectedSigmet.length > 0) {
               this.localDispatch(LOCAL_ACTIONS.verifySigmetAction(this.state.selectedSigmet[0]));

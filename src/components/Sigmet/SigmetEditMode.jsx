@@ -364,22 +364,18 @@ class SigmetEditMode extends PureComponent {
 
         <ValiditySection>
           <TimePicker data-field='validdate' utc required
-            value={validdate === null
-              ? now.clone()
-              : moment(validdate, DATETIME_FORMAT).isValid()
-                ? moment.utc(validdate, DATETIME_FORMAT)
-                : validdate
+            value={moment(validdate, DATETIME_FORMAT).isValid()
+              ? moment.utc(validdate, DATETIME_FORMAT)
+              : validdate
             }
             onChange={(evt, timestamp) => dispatch(actions.updateSigmetAction(uuid, 'validdate', timestamp))}
             min={dateLimits.validDate.min}
             max={dateLimits.validDate.max}
           />
           <TimePicker data-field='validdate_end' utc required
-            value={validdateEnd === null
-              ? now.clone()
-              : moment(validdateEnd, DATETIME_FORMAT).isValid()
-                ? moment.utc(validdateEnd, DATETIME_FORMAT)
-                : validdateEnd
+            value={moment(validdateEnd, DATETIME_FORMAT).isValid()
+              ? moment.utc(validdateEnd, DATETIME_FORMAT)
+              : validdateEnd
             }
             onChange={(evt, timestamp) => dispatch(actions.updateSigmetAction(uuid, 'validdate_end', timestamp))}
             min={dateLimits.validDateEnd.min}

@@ -342,6 +342,37 @@ describe('(Utils) json', () => {
       ]
     });
   });
+  it('.safeMerge should clean nested array in oneOf properties', () => {
+    const incoming = {
+      a: [
+        { 'testing': [] },
+        { 'testing': [['newsecond']] }
+      ]
+    };
+    const template = {
+      a: [
+        { '{oneOf}_testing': [[[null]], [null]] }
+      ]
+    };
+    const existing = {
+      a: [
+        { 'testing': [['first']] },
+        { 'testing': ['second'] }
+      ]
+    };
+    let result = safeMerge(incoming, template, existing);
+    expect(template).to.eql({
+      a: [
+        { '{oneOf}_testing': [[[null]], [null]] }
+      ]
+    });
+    expect(result).to.eql({
+      a: [
+        { 'testing': [] },
+        { 'testing': [['newsecond']] }
+      ]
+    });
+  });
   it('.safeMerge should clean deep nested array-objects', () => {
     let incoming = [
       [[[]]]

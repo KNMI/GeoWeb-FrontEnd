@@ -283,6 +283,7 @@ const safeMerge = (incomingValues, baseTemplate, existingData = null) => {
         rewritePath: (pointerPath) => {
           _templateIndex += 1;
           const downStreamPointerPath = pointerPath.slice(_templateIndex);
+          // an array is either empty or has child of some type
           _matchingIndex = downStreamTypes.findIndex((type) =>
             ((type.parent === NODE_TYPES.ARRAY && downStreamPointerPath.length > 0 && _numRegEx.test(downStreamPointerPath[0]) &&
               ((type.child === NODE_TYPES.ARRAY && downStreamPointerPath.length > 1 && _numRegEx.test(downStreamPointerPath[1])) ||
@@ -291,6 +292,10 @@ const safeMerge = (incomingValues, baseTemplate, existingData = null) => {
             (type.parent === NODE_TYPES.OBJECT && downStreamPointerPath.length > 0 && !_numRegEx.test(downStreamPointerPath[0])) ||
             (type.parent === NODE_TYPES.LEAF && downStreamPointerPath.length === 0))
           );
+          // allowing for setting empty arrays
+          if (_matchingIndex === -1 && downStreamPointerPath.length === 0) {
+            _matchingIndex = downStreamTypes.findIndex((type) => type.parent === NODE_TYPES.ARRAY);
+          }
           const resultPath = pointerPath.slice(0, _incomingIndex).concat(_key).concat(`${_matchingIndex}`)
             .concat(pointerPath.slice(_templateIndex));
 

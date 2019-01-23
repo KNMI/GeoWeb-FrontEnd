@@ -3,7 +3,7 @@ import moment from 'moment';
 import { notify } from 'reapop';
 import {
   SIGMET_MODES, SIGMET_TEMPLATES, UNITS, UNITS_ALT, MODES_LVL, MOVEMENT_TYPES, DISTRIBUTION_TYPES,
-  PHENOMENON_CODE_VOLCANIC_ASH, SIGMET_VARIANTS_PREFIXES } from '../../components/Sigmet/SigmetTemplates';
+  PHENOMENON_CODE_VOLCANIC_ASH, SIGMET_VARIANTS_PREFIXES, DATETIME_FORMAT } from '../../components/Sigmet/SigmetTemplates';
 import { LOCAL_ACTION_TYPES, CATEGORY_REFS, STATUSES } from './SigmetActions';
 import { clearEmptyPointersAndAncestors, safeMerge, isFeatureGeoJsonComplete,
   MODES_GEO_SELECTION, MODES_GEO_MAPPING, isObject } from '../../utils/json';
@@ -354,8 +354,10 @@ const refreshCategoryState = (container, categorizedSigmets) => {
     }
   }
 
+  const emptyCategories = [...Array(categoryIndex).fill({}), { sigmets: [] }];
   const newCategories = [...Array(categoryIndex).fill({}), { sigmets }];
-  return setStatePromise(container, { categories: newCategories });
+  return setStatePromise(container, { categories: emptyCategories })
+    .then(() => setStatePromise(container, { categories: newCategories }));
 };
 
 /**
@@ -544,7 +546,7 @@ const initialGeoJson = () => {
         },
         geometry: {
           type: null,
-          coordinates: [[]]
+          coordinates: []
         }
       },
       {
@@ -559,7 +561,7 @@ const initialGeoJson = () => {
         },
         geometry: {
           type: null,
-          coordinates: [[]]
+          coordinates: []
         }
       },
       {
@@ -574,7 +576,7 @@ const initialGeoJson = () => {
         },
         geometry: {
           type: null,
-          coordinates: [[]]
+          coordinates: []
         }
       },
       {
@@ -589,7 +591,7 @@ const initialGeoJson = () => {
         },
         geometry: {
           type: null,
-          coordinates: [[]]
+          coordinates: []
         }
       }
     ]
@@ -787,6 +789,9 @@ const updateSigmet = (dataField, value, container) => {
         : null;
       preset = getPresetForPhenomenon(value, sources);
     }
+  }
+  if ((dataField === 'validdate' || dataField === 'validdate_end') && value === null) {
+    value = moment.utc().add(1, 'minute').format(DATETIME_FORMAT);
   }
   if (dataField.indexOf('volcano.position') !== -1) {
     value = (value !== null && !isNaN(value))
@@ -1169,7 +1174,9 @@ const deleteSigmet = (event, container) => {
     responseType: 'json'
   }).then(response => {
     showFeedback(container, 'Sigmet deleted', `Sigmet ${affectedSigmet.uuid} was successfully deleted`, FEEDBACK_STATUS.OK);
-    focusSigmet(null, container).then(() => synchronizeSigmets(container));
+    setStatePromise(container, { displayModal: null })
+      .then(() => focusSigmet(null, container))
+      .then(() => synchronizeSigmets(container));
   }).catch(error => {
     console.error('Couldn\'t delete Sigmet', error);
     showFeedback(container, 'Error', `An error occurred while deleting the Sigmet: ${error.response.data.error}`, FEEDBACK_STATUS.ERROR);
@@ -1379,6 +1386,25 @@ const toggleSigmetModal = (event, type, container) => {
 };
 
 /**
+ * Toggles  on and off the hasEdits flag in the selected auxiliary info
+ * @param {Event} event The event which triggered the toggling
+ * @param {string} type The modal type to toggle
+ * @param {component} container The container in which the SIGMET modal should be toggled
+ */
+const toggleHasEdits = (event, value, container) => {
+  const { hasEdits : prevHasEdits } = container.state.selectedAuxiliaryInfo;
+  const newValue = typeof value === 'boolean' ? value : !prevHasEdits;
+  if (event) {
+    event.stopPropagation();
+  }
+  return setStatePromise(container, {
+    selectedAuxiliaryInfo: {
+      hasEdits: newValue
+    }
+  });
+};
+
+/**
  * SigmetsContainer has its own state, this is the dispatch for updating the state
  * @param {object} localAction Action-object containing the type and additional, action specific, parameters
  * @param {object} state Object reference for the actual state
@@ -1423,6 +1449,8 @@ export default (localAction, container) => {
     case LOCAL_ACTION_TYPES.EDIT_SIGMET:
       editSigmet(localAction.event, container);
       break;
+    case LOCAL_ACTION_TYPES.TOGGLE_HAS_EDITS:
+      return toggleHasEdits(localAction.event, localAction.value, container);
     case LOCAL_ACTION_TYPES.DELETE_SIGMET:
       deleteSigmet(localAction.event, container);
       break;
