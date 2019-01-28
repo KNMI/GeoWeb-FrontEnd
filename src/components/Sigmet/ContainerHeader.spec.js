@@ -22,7 +22,7 @@ describe('(Container) ContainerHeader', () => {
     const _component = mount(<ContainerHeader isContainerOpen dispatch={testDispatch} actions={testActions} />);
     expect('everything').to.be.ok();
     const buttons = _component.find('button');
-    expect(buttons).to.have.length(2);
+    expect(buttons).to.have.length(3);
     buttons.first().simulate('click');
     expect(testDispatch).to.have.been.calledOnce();
     expect(testDispatch).to.have.been.calledWith(TOGGLE_ACTION);

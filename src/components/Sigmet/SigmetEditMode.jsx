@@ -28,8 +28,13 @@ import HeightsSection from './Sections/HeightsSection';
 import {
   DIRECTIONS, UNITS_ALT, UNITS, MODES_LVL, MODES_LVL_OPTIONS, CHANGES, MOVEMENT_TYPES, MOVEMENT_OPTIONS, SIGMET_TYPES,
   DATETIME_FORMAT, DISTRIBUTION_OPTIONS, dateRanges } from './SigmetTemplates';
-import { debounce } from '../../utils/debounce';
 import EndPositionSection from './Sections/EndPositionSection';
+
+const DROP_DOWN_NAMES = {
+  AT_OR_ABOVE: 'atOrAbove',
+  BETWEEN_LOWER: 'betweenLower',
+  BETWEEN_UPPER: 'betweenUpper'
+};
 
 class SigmetEditMode extends PureComponent {
   constructor (props) {
@@ -41,35 +46,36 @@ class SigmetEditMode extends PureComponent {
     this.maxLevelPerUnit = this.maxLevelPerUnit.bind(this);
     this.stepLevelPerUnit = this.stepLevelPerUnit.bind(this);
     this.formatLevelPerUnit = this.formatLevelPerUnit.bind(this);
-    this.verifySigmetDebounced = debounce(this.verifySigmetDebounced.bind(this), 250, false);
+    this.state = {
+      isAtOrAboveDropDownOpen: false,
+      isBetweenLowerDropDownOpen: false,
+      isBetweenUpperDropDownOpen: false
+    };
   }
 
-  toggleDropDown (evt) {
-    console.log(evt);
-    /* this.setState({
-      typeIsOpen: !this.state.typeIsOpen
-    }); */
-  }
-
-  verifySigmetDebounced (sigmetObject) {
-    const { dispatch, actions } = this.props;
-    dispatch(actions.verifySigmetAction(sigmetObject));
-  }
-
-  componentWillReceiveProps (nextProps) {
-    if (nextProps.sigmet && this.props.sigmet && nextProps.geojson && this.props.geojson) {
-      if (nextProps.sigmet !== this.props.sigmet || nextProps.geojson !== this.props.geojson) {
-        this.verifySigmetDebounced(nextProps.sigmet);
-      }
+  toggleDropDown (dropDownName) {
+    let flag = null;
+    switch (dropDownName) {
+      case DROP_DOWN_NAMES.AT_OR_ABOVE:
+        flag = 'isAtOrAboveDropDownOpen';
+        break;
+      case DROP_DOWN_NAMES.BETWEEN_LOWER:
+        flag = 'isBetweenLowerDropDownOpen';
+        break;
+      case DROP_DOWN_NAMES.BETWEEN_UPPER:
+        flag = 'isBetweenUpperDropDownOpen';
+        break;
+    }
+    if (flag) {
+      this.setState({
+        [flag]: !this.state[flag]
+      });
     }
   }
 
-  componentDidMount () {
-    this.verifySigmetDebounced(this.props.sigmet);
-  }
-
   setMode (evt, selectedOption = null) {
-    const { dispatch, actions, uuid } = this.props;
+    const { dispatch, actions } = this.props;
+    const { uuid } = this.props.sigmet;
     const currentMode = this.getMode();
     if (!evt || !evt.target) {
       return;
@@ -104,12 +110,12 @@ class SigmetEditMode extends PureComponent {
             return;
         }
       }
-      dispatch(actions.updateSigmetLevelAction(uuid, 'mode', result));
+      dispatch(actions.updateSigmetAction(uuid, 'levelinfo.mode', result));
     }
   };
 
   getMode () {
-    const { levelinfo } = this.props;
+    const { levelinfo } = this.props.sigmet;
     const result = {
       extent: MODES_LVL.AT,
       hasTops: false,
@@ -191,7 +197,9 @@ class SigmetEditMode extends PureComponent {
 *          and {string} property message to explain why...
 */
   getDisabledFlag (abilityRef, isInValidityPeriod, selectedPhenomenon) {
-    const { copiedSigmetRef, hasEdits, validdate, validdateEnd, obsFcTime } = this.props;
+    const { copiedSigmetRef, hasEdits } = this.props;
+    const { validdate, validdate_end: validdateEnd, obs_or_forecast: obsOrForecast } = this.props.sigmet;
+    const obsFcTime = obsOrForecast ? obsOrForecast.obsFcTime : null;
     if (!abilityRef) {
       return false;
     }
@@ -214,7 +222,8 @@ class SigmetEditMode extends PureComponent {
    * @returns {array} The remaining abilities for this specific Sigmet
    */
   reduceAbilities (selectedPhenomenon) {
-    const { abilities, validdate, validdateEnd } = this.props;
+    const { abilities } = this.props;
+    const { validdate, validdate_end: validdateEnd } = this.props.sigmet;
     const abilitiesCtAs = []; // CtA = Call To Action
     const now = moment.utc();
     const isInValidityPeriod = !now.isBefore(validdate) && !now.isAfter(validdateEnd);
@@ -231,9 +240,18 @@ class SigmetEditMode extends PureComponent {
   }
 
   render () {
-    const { dispatch, actions, availablePhenomena, hasStartCoordinates, hasEndCoordinates, feedbackStart, feedbackEnd, isNoVolcanicAshExpected,
-      availableFirs, levelinfo, movement, movementType, focus, tac, uuid, locationIndicatorMwo, change, isVolcanicAsh, volcanoName, volcanoCoordinates,
-      phenomenon, isObserved, obsFcTime, validdate, maxHoursInAdvance, maxHoursDuration, validdateEnd, locationIndicatorIcao, distributionType } = this.props;
+    const { dispatch, actions, sigmet, availablePhenomena, hasStartCoordinates, hasEndCoordinates, feedbackStart, feedbackEnd,
+      availableFirs, focus, isVolcanicAsh, volcanoCoordinates, maxHoursInAdvance, maxHoursDuration } = this.props;
+    const { isAtOrAboveDropDownOpen, isBetweenLowerDropDownOpen, isBetweenUpperDropDownOpen } = this.state;
+
+    const { phenomenon, uuid, type: distributionType, validdate, validdate_end: validdateEnd,
+      location_indicator_icao: locationIndicatorIcao, location_indicator_mwo: locationIndicatorMwo,
+      levelinfo, movement_type: movementType, movement, change, tac, va_extra_fields: vaExtraFields, obs_or_forecast: obsOrForecast } = sigmet;
+    const { no_va_expected: isNoVolcanicAshExpected, volcano } = vaExtraFields;
+    const volcanoName = volcano.name || null;
+    const obsFcTime = obsOrForecast ? obsOrForecast.obsFcTime : null;
+    const isObserved = obsOrForecast ? obsOrForecast.obs : null;
+
     const now = moment.utc();
     const dateLimits = dateRanges(now, validdate, validdateEnd, maxHoursInAdvance, maxHoursDuration);
     const selectedPhenomenon = availablePhenomena.find((ph) => ph.code === phenomenon);
@@ -292,7 +310,8 @@ class SigmetEditMode extends PureComponent {
         ? `${messagePrefix} expected to be at the end of the valid period.`
         : feedbackEnd || '';
     const abilityCtAs = this.reduceAbilities(selectedPhenomenon); // CtA = Call To Action
-    return <Button tag='div' className={`Sigmet row${focus ? ' focus' : ''}`} id={uuid} onClick={!focus ? (evt) => dispatch(actions.focusSigmetAction(evt, uuid)) : null}>
+    return <Button tag='div' className={`Sigmet row${focus ? ' focus' : ''}`} id={uuid}
+      onClick={!focus ? (evt) => dispatch(actions.focusSigmetAction(evt, uuid)) : null}>
       <Col>
         <HeaderSection />
         <WhatSection>
@@ -326,8 +345,8 @@ class SigmetEditMode extends PureComponent {
             : null
           }
           {isVolcanicAsh
-            ? <Input type='number' placeholder='000.0' step='0.1'
-              value={Array.isArray(volcanoCoordinates) && volcanoCoordinates.length > 1 && volcanoCoordinates[0] !== null ? volcanoCoordinates[0] : ''}
+            ? <Input type='number' placeholder='00.0' step='0.1'
+              value={Array.isArray(volcanoCoordinates) && volcanoCoordinates.length > 0 && volcanoCoordinates[0] !== null ? volcanoCoordinates[0] : ''}
               data-field='volcano_coordinates_lat'
               onChange={(evt) => dispatch(actions.updateSigmetAction(uuid, 'va_extra_fields.volcano.position.0', evt.target.value || null))}
             />
@@ -345,22 +364,18 @@ class SigmetEditMode extends PureComponent {
 
         <ValiditySection>
           <TimePicker data-field='validdate' utc required
-            value={validdate === null
-              ? now.clone()
-              : moment(validdate, DATETIME_FORMAT).isValid()
-                ? moment.utc(validdate, DATETIME_FORMAT)
-                : validdate
+            value={moment(validdate, DATETIME_FORMAT).isValid()
+              ? moment.utc(validdate, DATETIME_FORMAT)
+              : validdate
             }
             onChange={(evt, timestamp) => dispatch(actions.updateSigmetAction(uuid, 'validdate', timestamp))}
             min={dateLimits.validDate.min}
             max={dateLimits.validDate.max}
           />
           <TimePicker data-field='validdate_end' utc required
-            value={validdateEnd === null
-              ? now.clone()
-              : moment(validdateEnd, DATETIME_FORMAT).isValid()
-                ? moment.utc(validdateEnd, DATETIME_FORMAT)
-                : validdateEnd
+            value={moment(validdateEnd, DATETIME_FORMAT).isValid()
+              ? moment.utc(validdateEnd, DATETIME_FORMAT)
+              : validdateEnd
             }
             onChange={(evt, timestamp) => dispatch(actions.updateSigmetAction(uuid, 'validdate_end', timestamp))}
             min={dateLimits.validDateEnd.min}
@@ -374,7 +389,6 @@ class SigmetEditMode extends PureComponent {
             onFocus={() => {
               dispatch(actions.updateSigmetAction(uuid, 'firname', null));
               dispatch(actions.updateSigmetAction(uuid, 'location_indicator_icao', null));
-              dispatch(actions.updateFir(null));
             }}
             onChange={(firList) => {
               let firname = null;
@@ -385,7 +399,6 @@ class SigmetEditMode extends PureComponent {
               }
               dispatch(actions.updateSigmetAction(uuid, 'firname', firname));
               dispatch(actions.updateSigmetAction(uuid, 'location_indicator_icao', locationIndicatorIcao));
-              dispatch(actions.updateFir(firname));
             }}
             selected={selectedFir ? [selectedFir] : []} placeholder={'Select FIR'}
             className={!selectedFir ? 'missing' : null}
@@ -425,14 +438,14 @@ class SigmetEditMode extends PureComponent {
               (!levelinfo.levels[0].value || levelinfo.levels[0].value > this.maxLevelPerUnit(levelinfo.levels[0].unit)) ? 'missing' : null}
             disabled={isLevelBetween}>
             <InputGroupAddon addonType='prepend'>
-              <ButtonDropdown toggle={() => this.toggleDropDown('Toggle1')}>
+              <ButtonDropdown toggle={() => this.toggleDropDown(DROP_DOWN_NAMES.AT_OR_ABOVE)} isOpen={isAtOrAboveDropDownOpen}>
                 <DropdownToggle caret disabled={isLevelBetween}>
                   {this.getUnitLabel(levelinfo.levels[0].unit)}
                 </DropdownToggle>
                 <DropdownMenu>
                   {UNITS_ALT.map((unit, index) =>
                     <DropdownItem key={`unitDropDown-${index}`}
-                      onClick={(evt) => dispatch(actions.updateSigmetLevelAction(uuid, 'unit', { unit: unit, isUpperLevel: false }))}>{unit.label}</DropdownItem>
+                      onClick={(evt) => dispatch(actions.updateSigmetAction(uuid, 'levelinfo.levels.0.unit', unit))}>{unit.label}</DropdownItem>
                   )}
                 </DropdownMenu>
               </ButtonDropdown>
@@ -440,7 +453,7 @@ class SigmetEditMode extends PureComponent {
             <Input placeholder='Level' disabled={isLevelBetween} type='number' pattern='\d{0,5}'
               min='0' step={this.stepLevelPerUnit(levelinfo.levels[0].unit)} max={this.maxLevelPerUnit(levelinfo.levels[0].unit)}
               value={(isLevelBetween || !levelinfo.levels[0].value) ? '' : this.formatLevelPerUnit(levelinfo.levels[0].value, levelinfo.levels[0].unit)}
-              onChange={(evt) => dispatch(actions.updateSigmetLevelAction(uuid, 'value', { value: evt.target.value, isUpperLevel: false }))} />
+              onChange={(evt) => dispatch(actions.updateSigmetAction(uuid, 'levelinfo.levels.0.value', evt.target.value))} />
           </InputGroup>
           <Switch
             className={isLevelBetween && !levelMode.hasSurface &&
@@ -451,24 +464,27 @@ class SigmetEditMode extends PureComponent {
               optionId: 'lvl',
               label: <InputGroup className='label'>
                 <InputGroupAddon addonType='prepend'>
-                  <ButtonDropdown toggle={() => this.toggleDropDown('Toggle2')}>
+                  <ButtonDropdown toggle={() => this.toggleDropDown(DROP_DOWN_NAMES.BETWEEN_LOWER)} isOpen={isBetweenLowerDropDownOpen}>
                     <DropdownToggle caret disabled={!isLevelBetween || levelMode.hasSurface}>
                       {this.getUnitLabel(levelinfo.levels[0].unit)}
                     </DropdownToggle>
                     <DropdownMenu>
                       {UNITS_ALT.map((unit, index) =>
                         <DropdownItem key={`unitDropDown-${index}`}
-                          onClick={(evt) => dispatch(actions.updateSigmetLevelAction(uuid, 'unit', { unit: unit, isUpperLevel: false }))}>{unit.label}</DropdownItem>
+                          onClick={(evt) => {
+                            evt.preventDefault(); // prevent the switch from being triggered
+                            return dispatch(actions.updateSigmetAction(uuid, 'levelinfo.levels.0.unit', unit));
+                          }}>{unit.label}</DropdownItem>
                       )}
                     </DropdownMenu>
                   </ButtonDropdown>
                 </InputGroupAddon>
-                <Input placeholder='Level' disabled={!isLevelBetween || levelMode.hasSurface} type='number'
+                <Input placeholder='Lower level' disabled={!isLevelBetween || levelMode.hasSurface} type='number'
                   min='0' step={this.stepLevelPerUnit(levelinfo.levels[0].unit)} max={this.maxLevelPerUnit(levelinfo.levels[0].unit)}
                   value={(!isLevelBetween || levelMode.hasSurface || !levelinfo.levels[0].value)
                     ? ''
                     : this.formatLevelPerUnit(levelinfo.levels[0].value, levelinfo.levels[0].unit)}
-                  onChange={(evt) => dispatch(actions.updateSigmetLevelAction(uuid, 'value', { value: evt.target.value, isUpperLevel: false }))} />
+                  onChange={(evt) => dispatch(actions.updateSigmetAction(uuid, 'levelinfo.levels.0.value', evt.target.value))} />
               </InputGroup>
             }}
             unCheckedOption={{ optionId: 'sfc', label: 'SFC' }}
@@ -481,22 +497,22 @@ class SigmetEditMode extends PureComponent {
             className={isLevelBetween && levelinfo && levelinfo.levels && levelinfo.levels[1] && !levelinfo.levels[1].value ? 'missing' : null}
             disabled={!isLevelBetween}>
             <InputGroupAddon addonType='prepend'>
-              <ButtonDropdown toggle={() => this.toggleDropDown('Toggle3')}>
+              <ButtonDropdown toggle={() => this.toggleDropDown(DROP_DOWN_NAMES.BETWEEN_UPPER)} isOpen={isBetweenUpperDropDownOpen}>
                 <DropdownToggle caret disabled={!isLevelBetween}>
                   {this.getUnitLabel(levelinfo.levels[1].unit)}
                 </DropdownToggle>
                 <DropdownMenu>
                   {UNITS_ALT.map((unit, index) =>
                     <DropdownItem key={`unitDropDown-${index}`}
-                      onClick={(evt) => dispatch(actions.updateSigmetLevelAction(uuid, 'unit', { unit: unit, isUpperLevel: true }))}>{unit.label}</DropdownItem>
+                      onClick={(evt) => dispatch(actions.updateSigmetAction(uuid, 'levelinfo.levels.1.unit', unit))}>{unit.label}</DropdownItem>
                   )}
                 </DropdownMenu>
               </ButtonDropdown>
             </InputGroupAddon>
-            <Input placeholder='Level' disabled={!isLevelBetween} type='number'
+            <Input placeholder='Upper level' disabled={!isLevelBetween} type='number'
               min='0' step={this.stepLevelPerUnit(levelinfo.levels[1].unit)} max={this.maxLevelPerUnit(levelinfo.levels[1].unit)}
               value={(!isLevelBetween || !levelinfo.levels[1].value) ? '' : this.formatLevelPerUnit(levelinfo.levels[1].value, levelinfo.levels[1].unit)}
-              onChange={(evt) => dispatch(actions.updateSigmetLevelAction(uuid, 'value', { value: evt.target.value, isUpperLevel: true }))} />
+              onChange={(evt) => dispatch(actions.updateSigmetAction(uuid, 'levelinfo.levels.1.value', evt.target.value))} />
           </InputGroup>
         </HeightsSection>
 
@@ -576,7 +592,7 @@ class SigmetEditMode extends PureComponent {
         <IssueSection className={`required${typeof distributionType !== 'string' || distributionType.length === 0 ? ' missing' : ''}`}>
           <span data-field='issuedate'>(Not yet published)</span>
           <span data-field='issueLocation'>{locationIndicatorMwo}</span>
-          <span className='tac' data-field='tac' title={tac && tac.code}>{tac && tac.code}</span>
+          <span className='tac' data-field='tac' title={tac}>{tac}</span>
           <RadioGroup
             value={distributionType}
             options={DISTRIBUTION_OPTIONS}
@@ -619,11 +635,6 @@ SigmetEditMode.propTypes = {
   hasEdits: PropTypes.bool,
   availablePhenomena: PropTypes.array,
   focus: PropTypes.bool,
-  uuid: PropTypes.string,
-  distributionType: SIGMET_TYPES.TYPE,
-  phenomenon: PropTypes.string,
-  isObserved: PropTypes.bool,
-  obsFcTime: PropTypes.string,
   drawModeStart: PropTypes.string,
   drawModeEnd: PropTypes.string,
   feedbackStart: PropTypes.string,
@@ -631,26 +642,11 @@ SigmetEditMode.propTypes = {
   hasStartCoordinates: PropTypes.bool,
   hasEndCoordinates: PropTypes.bool,
   availableFirs: PropTypes.array,
-  levelinfo: SIGMET_TYPES.LEVELINFO,
-  movementType: SIGMET_TYPES.MOVEMENT_TYPE,
-  movement: SIGMET_TYPES.MOVEMENT,
-  locationIndicatorMwo: PropTypes.string,
-  change: PropTypes.string,
-  validdate: PropTypes.string,
-  validdateEnd: PropTypes.string,
   maxHoursDuration: PropTypes.number,
   maxHoursInAdvance: PropTypes.number,
-  locationIndicatorIcao: PropTypes.string,
-  volcanoName: PropTypes.string,
   volcanoCoordinates: PropTypes.arrayOf(PropTypes.number),
-  isNoVolcanicAshExpected: PropTypes.bool,
   isVolcanicAsh: PropTypes.bool,
-  sigmet: PropTypes.object,
-  geojson: PropTypes.object,
-  tac: PropTypes.shape({
-    uuid: PropTypes.string,
-    code: PropTypes.string
-  })
+  sigmet: SIGMET_TYPES.SIGMET
 };
 
 export default SigmetEditMode;

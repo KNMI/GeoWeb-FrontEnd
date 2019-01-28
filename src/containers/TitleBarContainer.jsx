@@ -18,7 +18,6 @@ import { Link, hashHistory } from 'react-router';
 import PropTypes from 'prop-types';
 import moment from 'moment';
 import cloneDeep from 'lodash.clonedeep';
-import { addNotification } from 'reapop';
 import { Typeahead } from 'react-bootstrap-typeahead';
 import { GetServices } from '../utils/getServiceByName';
 import { version } from '../../package.json';
@@ -38,11 +37,7 @@ class TitleBarContainer extends PureComponent {
     this.savePreset = this.savePreset.bind(this);
     this.makePresetObj = this.makePresetObj.bind(this);
     this.sendFeedback = this.sendFeedback.bind(this);
-    this.triggerService = this.triggerService.bind(this);
-    this.retrieveTriggers = this.retrieveTriggers.bind(this);
-    this.gotTriggersCallback = this.gotTriggersCallback.bind(this);
     this.fetchPresets = this.fetchPresets.bind(this);
-    this.errorTriggersCallback = this.errorTriggersCallback.bind(this);
     this.toggleLoginModal = this.toggleLoginModal.bind(this);
     this.toggleFeedbackModal = this.toggleFeedbackModal.bind(this);
     this.toggleSharePresetModal = this.toggleSharePresetModal.bind(this);
@@ -78,92 +73,6 @@ class TitleBarContainer extends PureComponent {
     };
   }
 
-  triggerService () {
-    if (!this.triggerIntervalId) {
-      this.retrieveTriggers();
-      this.triggerIntervalId = setInterval(this.retrieveTriggers, moment.duration(2, 'minute').asMilliseconds());
-    }
-  }
-
-  retrieveTriggers () {
-    const { urls } = this.props;
-    axios({
-      method: 'get',
-      url: urls.BACKEND_SERVER_URL + '/triggers/gettriggers?startdate=' + moment().subtract(1, 'hours').utc().format() + '&duration=3600',
-      withCredentials: true,
-      responseType: 'json'
-    }).then(this.gotTriggersCallback)
-      .catch(this.errorTriggersCallback);
-  }
-
-  getTriggerTitle (trigger) {
-    return trigger.phenomenon.parameter + ' (' + trigger.phenomenon.source + ')';
-  }
-  getTriggerMessage (trigger) {
-    let retStr = '';
-    const { phenomenon, triggerdate } = trigger;
-    const { parameter, operator, threshold, units } = phenomenon;
-    const formattedDate = moment.utc(triggerdate).format('HH:mm');
-    if (phenomenon.source === 'OBS') {
-      retStr = `${parameter} of ${operator}${threshold} ${units} observed at ${formattedDate}`;
-    }
-
-    return retStr;
-  }
-
-  seen (notification) {
-    if (!this.props.recentTriggers) {
-      return false;
-    }
-    return this.props.recentTriggers.some((trigger) => trigger.uuid === notification.uuid);
-  }
-
-  handleTriggerClick (locations) {
-    if (locations !== this.props.adagucProperties.triggerLocations) {
-      this.props.dispatch(this.props.actions.setTriggerLocations(locations));
-    } else {
-      this.props.dispatch(this.props.actions.setTriggerLocations([]));
-    }
-  }
-
-  diffWrtNow (adate, bdate) {
-    const adiff = moment.utc().diff(moment.utc(adate), 'seconds');
-    const bdiff = moment.utc().diff(moment.utc(bdate), 'seconds');
-    return adiff - bdiff;
-  }
-
-  gotTriggersCallback (result) {
-    if (result.data.length > 0) {
-      result.data.filter((notification) => !this.seen(notification)).filter((trigger) =>
-        !this.props.notifications.some((not) => not.id === trigger.uuid)).sort((a, b) => this.diffWrtNow(a.triggerdate, b.triggerdate)).slice(0, 3).forEach((trigger, i) => {
-        this.props.dispatch(addNotification({
-          title: this.getTriggerTitle(trigger),
-          message: this.getTriggerMessage(trigger),
-          position: 'bl',
-          id: trigger.uuid,
-          raw: trigger,
-          status: 'error',
-          buttons: [
-            {
-              name: 'Discard',
-              primary: true
-            }, {
-              name: 'Where',
-              onClick: (e) => { e.stopPropagation(); this.handleTriggerClick(trigger.locations); }
-            }
-          ],
-          dismissible: false,
-          dismissAfter: 0,
-          allowHTML: true
-        }));
-      });
-    }
-  }
-
-  errorTriggersCallback (error) {
-    console.error('Error occurred while retrieving triggers', error);
-  }
-
   getServices () {
     const { urls, dispatch, adagucActions } = this.props;
 
@@ -195,11 +104,9 @@ class TitleBarContainer extends PureComponent {
 
   componentWillUnmount () {
     clearInterval(this.timer);
-    clearInterval(this.triggerIntervalId);
   }
 
   componentDidMount () {
-    this.triggerService();
     this.timer = setInterval(this.setTime, 15000);
     this.setState({ currentTime: moment().utc().format(timeFormat).toString() });
     this.checkCredentials();
@@ -1148,13 +1055,9 @@ LayoutDropDown.propTypes = {
 };
 
 TitleBarContainer.propTypes = {
-  adagucProperties: PropTypes.object,
-  recentTriggers: PropTypes.array,
-  notifications: PropTypes.array,
   loginModal: PropTypes.bool,
   routes: PropTypes.array,
   dispatch: PropTypes.func,
-  actions: PropTypes.object,
   panelsProperties: PropTypes.object,
   user: PropTypes.object,
   userActions: PropTypes.object,

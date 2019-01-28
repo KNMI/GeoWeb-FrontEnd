@@ -22,6 +22,7 @@ export default class NumberInput extends PureComponent {
   }
 
   // TODO: Following is experimental technology implementation and should be tested thoroughly!
+  // TODO: Should't we use the safeMerge here?
   /**
    * Set state in an asynchronous, controlled and immutable way
    * @param {Object} state The new state properties

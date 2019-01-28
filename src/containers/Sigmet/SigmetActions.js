@@ -1,3 +1,6 @@
+import { safeMerge } from '../../utils/json';
+import { SIGMET_MODES, SIGMET_TEMPLATES } from '../../components/Sigmet/SigmetTemplates';
+
 export const LOCAL_ACTION_TYPES = {
   TOGGLE_CONTAINER: 'TOGGLE_CONTAINER',
   TOGGLE_CATEGORY: 'TOGGLE_CATEGORY',
@@ -20,9 +23,8 @@ export const LOCAL_ACTION_TYPES = {
   DRAW_SIGMET: 'DRAW_SIGMET',
   UPDATE_FIR: 'UPDATE_FIR',
   CREATE_FIR_INTERSECTION: 'CREATE_FIR_INTERSECTION',
-  MODIFY_FOCUSSED_SIGMET: 'MODIFY_FOCUSSED_SIGMET',
-  SET_DRAWING: 'SET_DRAWING',
-  VERIFY_SIGMET: 'VERIFY_SIGMET'
+  VERIFY_SIGMET: 'VERIFY_SIGMET',
+  TOGGLE_HAS_EDITS: 'TOGGLE_HAS_EDITS'
 };
 
 export const LOCAL_ACTIONS = {
@@ -34,7 +36,6 @@ export const LOCAL_ACTIONS = {
   focusSigmetAction: (evt, uuid) => ({ type: LOCAL_ACTION_TYPES.FOCUS_SIGMET, event: evt, uuid: uuid }),
   addSigmetAction: (ref) => ({ type: LOCAL_ACTION_TYPES.ADD_SIGMET, ref: ref }),
   updateSigmetAction: (uuid, dataField, value) => ({ type: LOCAL_ACTION_TYPES.UPDATE_SIGMET, uuid: uuid, dataField: dataField, value: value }),
-  updateSigmetLevelAction: (uuid, dataField, context) => ({ type: LOCAL_ACTION_TYPES.UPDATE_SIGMET_LEVEL, uuid: uuid, dataField: dataField, context: context }),
   clearSigmetAction: (evt, uuid) => ({ type: LOCAL_ACTION_TYPES.CLEAR_SIGMET, event: evt, uuid: uuid }),
   discardSigmetAction: (evt, uuid) => ({ type: LOCAL_ACTION_TYPES.DISCARD_SIGMET, event: evt, uuid: uuid }),
   saveSigmetAction: (evt, uuid) => ({ type: LOCAL_ACTION_TYPES.SAVE_SIGMET, event: evt, uuid: uuid }),
@@ -47,15 +48,9 @@ export const LOCAL_ACTIONS = {
   drawAction: (evt, uuid, action, featureFunction) => ({ type: LOCAL_ACTION_TYPES.DRAW_SIGMET, uuid: uuid, event: evt, action: action, featureFunction: featureFunction }),
   updateFir: (firName) => ({ type: LOCAL_ACTION_TYPES.UPDATE_FIR, firName: firName }),
   createFirIntersectionAction: (featureId, geoJson) => ({ type: LOCAL_ACTION_TYPES.CREATE_FIR_INTERSECTION, featureId: featureId, geoJson: geoJson }),
-  modifyFocussedSigmetAction: (dataField, value) => ({ type: LOCAL_ACTION_TYPES.MODIFY_FOCUSSED_SIGMET, dataField: dataField, value: value }),
-  setSigmetDrawing: (uuid) => ({ type: LOCAL_ACTION_TYPES.SET_DRAWING, uuid: uuid }),
   verifySigmetAction: (sigmetObject) => ({ type: LOCAL_ACTION_TYPES.VERIFY_SIGMET, sigmetObject: sigmetObject }),
-  toggleSigmetModalAction: (evt, uuid, type) => ({ type: LOCAL_ACTION_TYPES.TOGGLE_SIGMET_MODAL, event: evt, uuid: uuid, modalType: type })
-};
-
-export const SIGMET_MODES = {
-  EDIT: 'EDIT',
-  READ: 'READ'
+  toggleSigmetModalAction: (evt, uuid, type) => ({ type: LOCAL_ACTION_TYPES.TOGGLE_SIGMET_MODAL, event: evt, uuid: uuid, modalType: type }),
+  toggleHasEdits: (evt, val) => ({ type: LOCAL_ACTION_TYPES.TOGGLE_HAS_EDITS, event: evt, value: val })
 };
 
 export const MODAL_TYPES = {
@@ -209,97 +204,84 @@ export const CATEGORY_REFS = {
   ARCHIVED_SIGMETS: 'ARCHIVED_SIGMETS'
 };
 
-const STATE = {
+const initialStateProps = {
   categories: [
     {
+      // active-sigmets
+      ref: CATEGORY_REFS.ACTIVE_SIGMETS,
       title: 'Open active SIGMETs',
       icon: 'folder-open',
-      sigmets: [],
-      abilities: {}
+      abilities: {
+        [SIGMET_MODES.READ]: {
+          [READ_ABILITIES.CANCEL.check]: true,
+          [READ_ABILITIES.DELETE.check]: false,
+          [READ_ABILITIES.EDIT.check]: false,
+          [READ_ABILITIES.COPY.check]: true,
+          [READ_ABILITIES.PUBLISH.check]: false
+        }
+      }
     },
     {
+      // concept-sigmets
+      ref: CATEGORY_REFS.CONCEPT_SIGMETS,
       title: 'Open concept SIGMETs',
       icon: 'folder-open-o',
-      sigmets: [],
-      abilities: {}
+      abilities: {
+        [SIGMET_MODES.READ]: {
+          [READ_ABILITIES.CANCEL.check]: false,
+          [READ_ABILITIES.DELETE.check]: true,
+          [READ_ABILITIES.EDIT.check]: true,
+          [READ_ABILITIES.COPY.check]: true,
+          [READ_ABILITIES.PUBLISH.check]: true
+        },
+        [SIGMET_MODES.EDIT]: {
+          [EDIT_ABILITIES.CLEAR.check]: false,
+          [EDIT_ABILITIES.DISCARD.check]: true,
+          [EDIT_ABILITIES.SAVE.check]: true
+        }
+      }
     },
     {
+      // add-sigmets
+      ref: CATEGORY_REFS.ADD_SIGMET,
       title: 'Create new SIGMET',
       icon: 'star-o',
-      sigmets: [],
-      abilities: {}
+      abilities: {
+        [SIGMET_MODES.READ]: {
+          [READ_ABILITIES.CANCEL.check]: false,
+          [READ_ABILITIES.DELETE.check]: false,
+          [READ_ABILITIES.EDIT.check]: true,
+          [READ_ABILITIES.COPY.check]: false,
+          [READ_ABILITIES.PUBLISH.check]: false
+        },
+        [SIGMET_MODES.EDIT]: {
+          [EDIT_ABILITIES.CLEAR.check]: true,
+          [EDIT_ABILITIES.DISCARD.check]: false,
+          [EDIT_ABILITIES.PASTE.check]: true,
+          [EDIT_ABILITIES.SAVE.check]: true
+        }
+      }
     },
     {
+      // archived-sigmets
+      ref: CATEGORY_REFS.ARCHIVED_SIGMETS,
       title: 'Open archived SIGMETs',
       icon: 'archive',
-      sigmets: [],
-      abilities: {}
+      abilities: {
+        [SIGMET_MODES.READ]: {
+          [READ_ABILITIES.CANCEL.check]: false,
+          [READ_ABILITIES.DELETE.check]: false,
+          [READ_ABILITIES.EDIT.check]: false,
+          [READ_ABILITIES.COPY.check]: true,
+          [READ_ABILITIES.PUBLISH.check]: false
+        }
+      }
     }
   ],
-  phenomena: [],
-  parameters: {},
-  tacs: [],
-  firs: {},
-  focussedCategoryRef: null,
-  focussedSigmet: {
-    uuid: null,
-    mode: SIGMET_MODES.READ,
-    drawModeStart: null,
-    drawModeEnd: null,
-    feedbackStart: null,
-    feedbackEnd: null,
-    hasEdits: false
-  },
-  copiedSigmetRef: null,
-  isContainerOpen: true,
-  displayModal: null
+  selectedAuxiliaryInfo: {
+    mode: SIGMET_MODES.READ
+  }
 };
 
-// active-sigmets
-STATE.categories[0].ref = CATEGORY_REFS.ACTIVE_SIGMETS;
-STATE.categories[0].abilities[SIGMET_MODES.READ] = {};
-STATE.categories[0].abilities[SIGMET_MODES.READ][READ_ABILITIES.CANCEL.check] = true;
-STATE.categories[0].abilities[SIGMET_MODES.READ][READ_ABILITIES.DELETE.check] = false;
-STATE.categories[0].abilities[SIGMET_MODES.READ][READ_ABILITIES.EDIT.check] = false;
-STATE.categories[0].abilities[SIGMET_MODES.READ][READ_ABILITIES.COPY.check] = true;
-STATE.categories[0].abilities[SIGMET_MODES.READ][READ_ABILITIES.PUBLISH.check] = false;
-STATE.categories[0].abilities[SIGMET_MODES.EDIT] = {};
-
-// concept-sigmets
-STATE.categories[1].ref = CATEGORY_REFS.CONCEPT_SIGMETS;
-STATE.categories[1].abilities[SIGMET_MODES.READ] = {};
-STATE.categories[1].abilities[SIGMET_MODES.READ][READ_ABILITIES.CANCEL.check] = false;
-STATE.categories[1].abilities[SIGMET_MODES.READ][READ_ABILITIES.DELETE.check] = true;
-STATE.categories[1].abilities[SIGMET_MODES.READ][READ_ABILITIES.EDIT.check] = true;
-STATE.categories[1].abilities[SIGMET_MODES.READ][READ_ABILITIES.COPY.check] = true;
-STATE.categories[1].abilities[SIGMET_MODES.READ][READ_ABILITIES.PUBLISH.check] = true;
-STATE.categories[1].abilities[SIGMET_MODES.EDIT] = {};
-STATE.categories[1].abilities[SIGMET_MODES.EDIT][EDIT_ABILITIES.CLEAR.check] = false;
-STATE.categories[1].abilities[SIGMET_MODES.EDIT][EDIT_ABILITIES.DISCARD.check] = true;
-STATE.categories[1].abilities[SIGMET_MODES.EDIT][EDIT_ABILITIES.SAVE.check] = true;
-
-// add-sigmets
-STATE.categories[2].ref = CATEGORY_REFS.ADD_SIGMET;
-STATE.categories[2].abilities[SIGMET_MODES.READ] = {};
-STATE.categories[2].abilities[SIGMET_MODES.READ][READ_ABILITIES.CANCEL.check] = false;
-STATE.categories[2].abilities[SIGMET_MODES.READ][READ_ABILITIES.DELETE.check] = false;
-STATE.categories[2].abilities[SIGMET_MODES.READ][READ_ABILITIES.EDIT.check] = true;
-STATE.categories[2].abilities[SIGMET_MODES.READ][READ_ABILITIES.COPY.check] = false;
-STATE.categories[2].abilities[SIGMET_MODES.READ][READ_ABILITIES.PUBLISH.check] = false;
-STATE.categories[2].abilities[SIGMET_MODES.EDIT] = {};
-STATE.categories[2].abilities[SIGMET_MODES.EDIT][EDIT_ABILITIES.CLEAR.check] = true;
-STATE.categories[2].abilities[SIGMET_MODES.EDIT][EDIT_ABILITIES.DISCARD.check] = false;
-STATE.categories[2].abilities[SIGMET_MODES.EDIT][EDIT_ABILITIES.PASTE.check] = true;
-STATE.categories[2].abilities[SIGMET_MODES.EDIT][EDIT_ABILITIES.SAVE.check] = true;
-
-// archived-sigmets
-STATE.categories[3].ref = CATEGORY_REFS.ARCHIVED_SIGMETS;
-STATE.categories[3].abilities[SIGMET_MODES.READ] = {};
-STATE.categories[3].abilities[SIGMET_MODES.READ][READ_ABILITIES.CANCEL.check] = false;
-STATE.categories[3].abilities[SIGMET_MODES.READ][READ_ABILITIES.DELETE.check] = false;
-STATE.categories[3].abilities[SIGMET_MODES.READ][READ_ABILITIES.EDIT.check] = false;
-STATE.categories[3].abilities[SIGMET_MODES.READ][READ_ABILITIES.COPY.check] = true;
-STATE.categories[3].abilities[SIGMET_MODES.READ][READ_ABILITIES.PUBLISH.check] = false;
-STATE.categories[3].abilities[SIGMET_MODES.EDIT] = {};
-
+const STATE = safeMerge(initialStateProps, SIGMET_TEMPLATES.CONTAINER);
 export const INITIAL_STATE = STATE;

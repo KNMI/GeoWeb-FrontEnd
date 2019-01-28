@@ -438,7 +438,6 @@ describe('(Reducer) Taf/TafReducers', () => {
                       amount: 'BKN',
                       height: 20
                     },
-                    null,
                     {
                       height: 30,
                       mod: 'CB'
@@ -475,12 +474,11 @@ describe('(Reducer) Taf/TafReducers', () => {
             caVOK: false,
             clouds: [
               { amount: 'BKN', height: 20, mod: null },
-              { amount: null, height: null, mod: null },
               { amount: null, height: 30, mod: 'CB' }
             ],
             vertical_visibility: null,
             visibility: { unit: null, value: null },
-            weather: [{ descriptor: null, phenomena: [null], qualifier: null }],
+            weather: [],
             wind: {
               direction: null,
               gusts: null,
@@ -489,7 +487,7 @@ describe('(Reducer) Taf/TafReducers', () => {
               speedOperator: null,
               unit: null
             },
-            temperature: [{ minimum: null, maximum: null }]
+            temperature: []
           }
         });
         done();

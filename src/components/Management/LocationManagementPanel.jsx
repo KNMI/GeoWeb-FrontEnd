@@ -1,7 +1,7 @@
 
 import React from 'react';
 import Panel from '../Panel';
-import { Input, Card, Button, CardTitle, CardText, Row, Col, Label } from 'reactstrap';
+import { Input, Button, Row, Col, Label } from 'reactstrap';
 import { Icon } from 'react-fa';
 import cloneDeep from 'lodash.clonedeep';
 import PropTypes from 'prop-types';
@@ -175,52 +175,4 @@ LocationMapper.propTypes = {
   urls: PropTypes.shape({
     BACKEND_SERVER_URL: PropTypes.string
   })
-};
-
-class LocationCard extends React.Component {
-  render () {
-    const { edit, name, x, y, i, doneEditing } = this.props;
-    return (edit
-      ? <Col><EditCard i={i} name={name} x={x} y={y} doneEditing={doneEditing} /></Col>
-      : null);
-  }
-}
-LocationCard.propTypes = {
-  name: PropTypes.string,
-  x: PropTypes.number,
-  y: PropTypes.number,
-  i: PropTypes.number.isRequired,
-  edit: PropTypes.bool,
-  doneEditing: PropTypes.func.isRequired
-};
-
-class EditCard extends React.Component {
-  render () {
-    const { name, x, y, i, doneEditing } = this.props;
-    return <Card className='col-auto loc-card' key={i} style={{ border:'2px solid black' }} >
-      <CardTitle><Input style={{ margin: 0 }} id={'nameinput' + i} placeholder='Location name' defaultValue={name} required /></CardTitle>
-      <CardText>
-        <table style={{ display: 'table', width: '100%' }}>
-          <tbody>
-            <tr>
-              <td>Latitude</td>
-              <td><Input type='number' step='any' id={'latinput' + i} placeholder='Latitude' defaultValue={y} required /></td>
-            </tr>
-            <tr>
-              <td>Longtitude</td>
-              <td><Input type='number' step='any' id={'loninput' + i} placeholder='Longitude' defaultValue={x} required /></td>
-            </tr>
-          </tbody>
-        </table>
-        <Icon name='check' onClick={() => doneEditing(i)} style={{ float:'right', cursor:'pointer' }} />
-      </CardText>
-    </Card>;
-  }
-}
-EditCard.propTypes = {
-  name: PropTypes.string,
-  x: PropTypes.number,
-  y: PropTypes.number,
-  i: PropTypes.number.isRequired,
-  doneEditing: PropTypes.func.isRequired
 };

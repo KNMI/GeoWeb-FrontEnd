@@ -1,86 +1,85 @@
-import { mergeInTemplate, clearNullPointersAndAncestors } from './json';
+import { safeMerge, clearNullPointersAndAncestors } from './json';
 
 describe('(Utils) json', () => {
-  it('.mergeInTemplate should be a function', () => {
-    expect(mergeInTemplate).to.be.a('function');
+  it('.safeMerge should be a function', () => {
+    expect(safeMerge).to.be.a('function');
   });
-  it('.mergeInTemplate should fail without template', () => {
+  it('.safeMerge should fail without template', () => {
     const incoming = {
       a: 0,
       b: 0
     };
-    let result = mergeInTemplate(incoming, 'test');
-    expect(result).to.eql(null);
-    result = mergeInTemplate(incoming, 'test', { another: 'value' });
-    expect(result).to.eql(null);
+    try {
+      safeMerge(incoming);
+      expect(true).to.eql(false);
+    } catch (error) {
+      expect(error.message).to.eql(`Argument 'baseTemplate' is missing a proper value`);
+    };
   });
-  it('.mergeInTemplate should merge a \'flat\' array', () => {
+  it('.safeMerge should merge a \'flat\' array', () => {
     const incoming = [
       1,
       2,
       3
     ];
-    const template = {
-      test: [null]
-    };
-    let result = mergeInTemplate(incoming, 'test', template);
-    expect(template).to.eql({
-      test: [null]
-    });
+    const template = [null];
+    let result = safeMerge(incoming, template);
+    expect(template).to.eql([null]);
     expect(result).to.eql([
       1,
       2,
       3
     ]);
+    const newIncoming = [4];
+    newIncoming[2] = 6;
+    result = safeMerge(newIncoming, template, result);
+    expect(result).to.eql([
+      4,
+      2,
+      6
+    ]);
   });
-  it('.mergeInTemplate should merge a \'flat\' object', () => {
+  it('.safeMerge should merge a \'flat\' object', () => {
     const incoming = {
       a: 1,
       b: 2,
       c: 3
     };
     const template = {
-      test: {
-        a: null,
-        b: null
-      }
+      a: null,
+      b: null
     };
-    let result = mergeInTemplate(incoming, 'test', template);
+    let result = safeMerge(incoming, template);
     expect(template).to.eql({
-      test: {
-        a: null,
-        b: null
-      }
+      a: null,
+      b: null
     });
     expect(result).to.eql({
       a: 1,
       b: 2
     });
   });
-  it('.mergeInTemplate should merge an array of \'flat\' objects', () => {
+  it('.safeMerge should merge an array of \'flat\' objects', () => {
     const incoming = [
       { a: 1 },
       { a: 2, b: 3 },
-      { a: 4, b: 5, c: 6 }
+      { a: 4, b: 5, c: 6 },
+      { b: 7 }
     ];
-    const template = {
-      test: [
-        { a: null }
-      ]
-    };
-    let result = mergeInTemplate(incoming, 'test', template);
-    expect(template).to.eql({
-      test: [
-        { a: null }
-      ]
-    });
+    const template = [
+      { a: null }
+    ];
+    let result = safeMerge(incoming, template);
+    expect(template).to.eql([
+      { a: null }
+    ]);
     expect(result).to.eql([
       { a: 1 },
       { a: 2 },
       { a: 4 }
     ]);
   });
-  it('.mergeInTemplate should merge a doubly nested array-objects', () => {
+  it('.safeMerge should merge a doubly nested array-objects', () => {
     const incoming = [
       { a: 1 },
       {
@@ -103,35 +102,25 @@ describe('(Utils) json', () => {
         ]
       }
     ];
-    const template = {
-      test: [
-        { a: [
-          { b: {
-            c: null
-          } }
-        ] }
-      ]
-    };
-    let result = mergeInTemplate(incoming, 'test', template);
-    expect(template).to.eql({
-      test: [
-        { a: [
-          { b: {
-            c: null
-          } }
-        ] }
-      ]
-    });
+    const template = [
+      { a: [
+        { b: {
+          c: null
+        } }
+      ] }
+    ];
+    let result = safeMerge(incoming, template);
+    expect(template).to.eql([
+      { a: [
+        { b: {
+          c: null
+        } }
+      ] }
+    ]);
     expect(result).to.eql([
-      { a: [
-        { b: { c: null } }
-      ] },
-      { a: [
-        { b: { c: null } }
-      ] },
-      { a: [
-        { b: { c: null } }
-      ] },
+      { a: [] },
+      { a: [] },
+      { a: [] },
       { a: [
         { b: { c: 6 } }
       ] },
@@ -140,83 +129,264 @@ describe('(Utils) json', () => {
       ] }
     ]);
   });
-  it('.mergeInTemplate should merge directly nested array-objects', () => {
+  it('.safeMerge should merge directly nested array-objects', () => {
     const incoming = [
-      [{ a: 1, c: 2 }, { b:3 }]
+      [{ a: 1, c: 2 }, { b: 3 }]
     ];
-    const template = {
-      test: [
-        [{ a: null, b: null }]
-      ]
-    };
-    let result = mergeInTemplate(incoming, 'test', template);
-    expect(template).to.eql({
-      test: [
-        [{ a: null, b: null }]
-      ]
-    });
+    const template = [
+      [{ a: null, b: null }]
+    ];
+    let result = safeMerge(incoming, template);
+    expect(template).to.eql([
+      [{ a: null, b: null }]
+    ]);
     expect(result).to.eql([
       [{ a: 1, b: null }, { a: null, b: 3 }]
     ]);
   });
-  it('.mergeInTemplate should merge deep nested array-objects', () => {
+  it('.safeMerge should merge deep nested array-objects', () => {
     let incoming = [
       [[[{ a: 1, c: 2 }, { b: 3 }]]]
     ];
-    let template = {
-      test: [
-        [[[{ a: null, b: null }]]]
-      ]
-    };
-    let result = mergeInTemplate(incoming, 'test', template);
-    expect(template).to.eql({
-      test: [
-        [[[{ a: null, b: null }]]]
-      ]
-    });
+    let template = [
+      [[[{ a: null, b: null }]]]
+    ];
+    let result = safeMerge(incoming, template);
+    expect(template).to.eql([
+      [[[{ a: null, b: null }]]]
+    ]);
     expect(result).to.eql([
       [[[{ a: 1, b: null }, { a: null, b: 3 }]]]
     ]);
-
     incoming = {
       d: [[[{ a: 1, c: 2 }, { b: 3 }]]]
     };
     template = {
       d: [[[{ a: null, b: null }]]]
     };
-    template.test = {
-      d: template.d
-    };
-    result = mergeInTemplate(incoming, 'test', template);
+    result = safeMerge(incoming, template);
     expect(template).to.eql({
-      d: [[[{ a: null, b: null }]]],
-      test: {
-        d: [[[{ a: null, b: null }]]]
-      }
+      d: [[[{ a: null, b: null }]]]
     });
     expect(result).to.eql({
       d: [[[{ a: 1, b: null }, { a: null, b: 3 }]]]
     });
-
     incoming = [{
       d: [[[{ a: 1, c: 2 }, { b: 3 }]]]
     }];
-    template = {
+    template = [{
       d: [[[{ a: null, b: null }]]]
-    };
-    template.test = [{
-      d: template.d
     }];
-    result = mergeInTemplate(incoming, 'test', template);
-    expect(template).to.eql({
-      d: [[[{ a: null, b: null }]]],
-      test: [{
-        d: [[[{ a: null, b: null }]]]
-      }]
-    });
+    result = safeMerge(incoming, template);
+    expect(template).to.eql([{
+      d: [[[{ a: null, b: null }]]]
+    }]);
     expect(result).to.eql([{
       d: [[[{ a: 1, b: null }, { a: null, b: 3 }]]]
     }]);
+  });
+  it('.safeMerge should merge pattern properties', () => {
+    const incoming = {
+      a: [
+        { 'TEST': [1, 2] },
+        { 'TESTER': [2, 4] }
+      ]
+    };
+    const template = {
+      a: [
+        { '{patternProperties}_^[A-Z]{4}$': [null] }
+      ]
+    };
+    let result = safeMerge(incoming, template);
+    expect(template).to.eql({
+      a: [
+        { '{patternProperties}_^[A-Z]{4}$': [null] }
+      ]
+    });
+    expect(result).to.eql({
+      a: [
+        { 'TEST': [1, 2] }
+      ]
+    });
+  });
+  it('.safeMerge should merge oneOfSimple properties', () => {
+    const incoming = {
+      a: { 'testing': 'first' }
+    };
+    const template = {
+      a: { '{oneOf}_testing': [[null], null] }
+    };
+    let result = safeMerge(incoming, template);
+    expect(template).to.eql({
+      a: { '{oneOf}_testing': [[null], null] }
+    });
+    expect(result).to.eql({
+      a: { 'testing': 'first' }
+    });
+  });
+  it('.safeMerge should merge oneOf properties', () => {
+    const incoming = {
+      a: [
+        { 'testing': 'first' },
+        { 'testing': ['second'] },
+        { 'TESTER': [2, 4] }
+      ]
+    };
+    const template = {
+      a: [
+        { '{oneOf}_testing': [[null], null] }
+      ]
+    };
+    let result = safeMerge(incoming, template);
+    expect(template).to.eql({
+      a: [
+        { '{oneOf}_testing': [[null], null] }
+      ]
+    });
+    expect(result).to.eql({
+      a: [
+        { 'testing': 'first' },
+        { 'testing': ['second'] }
+      ]
+    });
+  });
+  it('.safeMerge should merge nested array in oneOf properties', () => {
+    const incoming = {
+      a: [
+        { 'testing': ['first'] },
+        { 'testing': [['second']] }
+      ]
+    };
+    const template = {
+      a: [
+        { '{oneOf}_testing': [[[null]], [null]] }
+      ]
+    };
+    let result = safeMerge(incoming, template);
+    expect(template).to.eql({
+      a: [
+        { '{oneOf}_testing': [[[null]], [null]] }
+      ]
+    });
+    expect(result).to.eql({
+      a: [
+        { 'testing': ['first'] },
+        { 'testing': [['second']] }
+      ]
+    });
+  });
+  it('.safeMerge should update oneOf properties', () => {
+    const incoming = {
+      a: [
+        { 'testing': 'newfirst' },
+        { 'testing': ['newsecond'] },
+        { 'TESTER': [2, 4] }
+      ]
+    };
+    const template = {
+      a: [
+        { '{oneOf}_testing': [[null], null] }
+      ]
+    };
+    const existing = {
+      a: [
+        { 'testing': ['first', 'half'] },
+        { 'testing': 'second' },
+        { 'testing': 'third' },
+        { 'testing': ['fourth'] }
+      ]
+    };
+    let result = safeMerge(incoming, template, existing);
+    expect(template).to.eql({
+      a: [
+        { '{oneOf}_testing': [[null], null] }
+      ]
+    });
+    expect(result).to.eql({
+      a: [
+        { 'testing': 'newfirst' },
+        { 'testing': ['newsecond'] },
+        { 'testing': 'third' },
+        { 'testing': ['fourth'] }
+      ]
+    });
+  });
+  it('.safeMerge should update nested array in oneOf properties', () => {
+    const incoming = {
+      a: [
+        { 'testing': ['newfirst'] },
+        { 'testing': [['newsecond']] }
+      ]
+    };
+    const template = {
+      a: [
+        { '{oneOf}_testing': [[[null]], [null]] }
+      ]
+    };
+    const existing = {
+      a: [
+        { 'testing': [['first']] },
+        { 'testing': ['second'] }
+      ]
+    };
+    let result = safeMerge(incoming, template, existing);
+    expect(template).to.eql({
+      a: [
+        { '{oneOf}_testing': [[[null]], [null]] }
+      ]
+    });
+    expect(result).to.eql({
+      a: [
+        { 'testing': ['newfirst'] },
+        { 'testing': [['newsecond']] }
+      ]
+    });
+  });
+  it('.safeMerge should clean nested array in oneOf properties', () => {
+    const incoming = {
+      a: [
+        { 'testing': [] },
+        { 'testing': [['newsecond']] }
+      ]
+    };
+    const template = {
+      a: [
+        { '{oneOf}_testing': [[[null]], [null]] }
+      ]
+    };
+    const existing = {
+      a: [
+        { 'testing': [['first']] },
+        { 'testing': ['second'] }
+      ]
+    };
+    let result = safeMerge(incoming, template, existing);
+    expect(template).to.eql({
+      a: [
+        { '{oneOf}_testing': [[[null]], [null]] }
+      ]
+    });
+    expect(result).to.eql({
+      a: [
+        { 'testing': [] },
+        { 'testing': [['newsecond']] }
+      ]
+    });
+  });
+  it('.safeMerge should clean deep nested array-objects', () => {
+    let incoming = [
+      [[[]]]
+    ];
+    let template = [
+      [[[{ a: 1 }, { b: null }]]]
+    ];
+    let result = safeMerge(incoming, template);
+    expect(template).to.eql([
+      [[[{ a: 1 }, { b: null }]]]
+    ]);
+    expect(result).to.eql([
+      [[[]]]
+    ]);
   });
 
   it('.clearNullPointersAndAncestors should be a function', () => {

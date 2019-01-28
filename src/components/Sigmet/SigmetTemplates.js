@@ -2,6 +2,11 @@ import PropTypes from 'prop-types';
 import cloneDeep from 'lodash.clonedeep';
 import moment from 'moment';
 
+const SIGMET_MODES = {
+  EDIT: 'EDIT',
+  READ: 'READ'
+};
+
 /**
  * TEMPLATES
  */
@@ -10,24 +15,8 @@ const TEMPLATES = {
     obs: true, // boolean
     obsFcTime: null // string
   },
-  FEATURE: {
-    type: 'Feature',
-    id: null, // string
-    properties: {
-      selectionType: null, // string
-      featureFunction: null, // string
-      relatesTo: null, // string
-      stroke: null, // string
-      'stroke-width': null, // number
-      'stroke-opacity': null, // number
-      fill: null, // string
-      'fill-opacity': null // number
-    },
-    geometry: {
-      type: null, // string
-      coordinates: [[[null]]] // array (polygons) of array (lines) of array (coordinates) of number values
-    }
-  },
+  POLYGON_COORDINATES: [[[null]]], // array (polygons) of array (lines) of array (coordinates) of number values
+  POINT_COORDINATE: [null],
   LEVEL: {
     value: null, // number
     unit: null // string
@@ -43,6 +32,31 @@ const TEMPLATES = {
   MOVE_TO: [null], // string values, one or more adjacent_firs identifiers, only applicable for Cancel-SIGMET
   TROPICAL_CYCLONE: {
     name: null // string
+  },
+  PHENOMENON: {
+    code: null, // string
+    name: null, // string
+    layerpreset: null // string
+  },
+  ADJACENT_FIRS: [null] // string values
+};
+
+TEMPLATES.FEATURE = {
+  type: 'Feature',
+  id: null, // string
+  properties: {
+    selectionType: null, // string
+    featureFunction: null, // string
+    relatesTo: null, // string
+    stroke: null, // string
+    'stroke-width': null, // number
+    'stroke-opacity': null, // number
+    fill: null, // string
+    'fill-opacity': null // number
+  },
+  geometry: {
+    type: null, // string,
+    '{oneOf}_coordinates': [cloneDeep(TEMPLATES.POLYGON_COORDINATES), cloneDeep(TEMPLATES.POINT_COORDINATE)]
   }
 };
 
@@ -87,9 +101,71 @@ TEMPLATES.SIGMET = {
   status: null, // string
   type: null, // string
   cancels: null, // number
+  cancelsStart: null, // string
   /* Metadata */
   location_indicator_icao: null, // string
-  location_indicator_mwo: null // string
+  location_indicator_mwo: null, // string
+  tac: null // string
+};
+TEMPLATES.ABILITIES = {
+  [SIGMET_MODES.READ]: {
+    isEditable: false,
+    isDeletable: false,
+    isCopyable: false,
+    isPublishable: false,
+    isCancelable: false
+  },
+  [SIGMET_MODES.EDIT]: {
+    isClearable: false,
+    isDiscardable: false,
+    isPastable: false,
+    isSavable: false
+  }
+};
+TEMPLATES.CATEGORY = {
+  ref: null, // string
+  title: null, // string
+  icon: null, // string
+  sigmets: [cloneDeep(TEMPLATES.SIGMET)],
+  abilities: cloneDeep(TEMPLATES.ABILITIES)
+};
+TEMPLATES.CONTAINER = {
+  categories: [cloneDeep(TEMPLATES.CATEGORY)],
+  phenomena: [cloneDeep(TEMPLATES.PHENOMENON)],
+  parameters: {
+    active_firs: [null], // string values
+    firareas: {
+      '{patternProperties}_^[A-Z]{4}$': {
+        adjacent_firs: cloneDeep(TEMPLATES.ADJACENT_FIRS),
+        areapreset: null, // string
+        firname: null, // string
+        location_indicator_icao: null, // string
+        hoursbeforevalidity: null, // number
+        maxhoursofvalidity: null, // number
+        tc_hoursbeforevalidity: null, // number
+        tc_maxhoursofvalidity: null, // number
+        va_hoursbeforevalidity: null, // number
+        va_maxhoursofvalidity: null // number
+      }
+    },
+    location_indicator_wmo: null // string
+  },
+  firs: {
+    '{patternProperties}_^[A-Z]+[ ](FIR|UIR|CTA)$': cloneDeep(TEMPLATES.FEATURE)
+  },
+  focussedCategoryRef: null, // string (uuid)
+  selectedSigmet: [cloneDeep(TEMPLATES.SIGMET)],
+  selectedAuxiliaryInfo: {
+    mode: null, // string
+    drawModeStart: null, // string
+    drawModeEnd: null, // string
+    feedbackStart: null, // string
+    feedbackEnd: null, // string
+    hasEdits: false // boolean
+  },
+  copiedSigmetRef: null, // string
+  isContainerOpen: true, // boolean
+  displayModal: null // string
 };
 
 /**
@@ -130,7 +206,10 @@ const TYPES = {
     }),
     geometry: PropTypes.shape({
       type: PropTypes.string,
-      coordinates: PropTypes.arrayOf(PropTypes.arrayOf(PropTypes.arrayOf(PropTypes.number)))
+      coordinates: PropTypes.arrayOf(PropTypes.oneOfType([
+        PropTypes.arrayOf(PropTypes.arrayOf(PropTypes.number)),
+        PropTypes.number
+      ]))
     })
   }),
   LEVEL: PropTypes.shape({
@@ -154,7 +233,8 @@ const TYPES = {
   TYPE: PropTypes.string,
   CANCELS: PropTypes.number,
   LOCATION_INDICATOR_ICAO: PropTypes.string,
-  LOCATION_INDICATOR_MWO: PropTypes.string
+  LOCATION_INDICATOR_MWO: PropTypes.string,
+  TAC: PropTypes.string
 };
 TYPES.GEOJSON = PropTypes.shape({
   type: PropTypes.string,
@@ -163,6 +243,38 @@ TYPES.GEOJSON = PropTypes.shape({
 TYPES.LEVELINFO = PropTypes.shape({
   mode: PropTypes.string,
   levels: PropTypes.arrayOf(TYPES.LEVEL)
+});
+TYPES.SIGMET = PropTypes.shape({
+  phenomenon: TYPES.PHENOMENON,
+  va_extra_fields: TYPES.VA_EXTRA_FIELDS,
+  tc_extra_fields: TYPES.TC_EXTRA_FIELDS,
+  geojson: TYPES.GEOJSON,
+  levelinfo: TYPES.LEVELINFO,
+  firname: TYPES.FIR_NAME,
+  validdate: TYPES.VALID_DATE,
+  validdate_end: TYPES.VALID_DATE_END,
+  change: TYPES.CHANGE,
+  movement_type: TYPES.MOVEMENT_TYPE,
+  movement: TYPES.MOVEMENT,
+  forecast_position_time: TYPES.FORECAST_POSITION_TIME,
+  issuedate: TYPES.ISSUE_DATE,
+  uuid: TYPES.UUID,
+  sequence: TYPES.SEQUENCE,
+  status: TYPES.STATUS,
+  type: TYPES.TYPE,
+  cancels: TYPES.CANCELS,
+  location_indicator_icao: TYPES.LOCATION_INDICATOR_ICAO,
+  location_indicator_mwo: TYPES.LOCATION_INDICATOR_MWO,
+  tac: TYPES.TAC
+});
+
+TYPES.AUXILIARY_INFO = PropTypes.shape({
+  mode: PropTypes.string,
+  drawModeStart: PropTypes.string,
+  drawModeEnd: PropTypes.string,
+  feedbackStart: PropTypes.string,
+  feedbackEnd: PropTypes.string,
+  hasEdits: PropTypes.bool
 });
 
 /**
@@ -306,6 +418,7 @@ const dateRanges = (now, startTimestamp, endTimestamp, maxHoursInAdvance, maxHou
 });
 
 module.exports = {
+  SIGMET_MODES: SIGMET_MODES,
   SIGMET_TEMPLATES: TEMPLATES,
   SIGMET_TYPES: TYPES,
   MOVEMENT_TYPES: MOVEMENT_TYPES,

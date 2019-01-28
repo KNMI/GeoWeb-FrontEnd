@@ -4,7 +4,7 @@ import moment from 'moment';
 import { arrayMove } from 'react-sortable-hoc';
 import setNestedProperty from 'lodash.set';
 import getNestedProperty from 'lodash.get';
-import { mergeInTemplate, removeNestedProperty, getJsonPointers, clearEmptyPointersAndAncestors } from '../../utils/json';
+import { safeMerge, removeNestedProperty, getJsonPointers, clearEmptyPointersAndAncestors } from '../../utils/json';
 import { notify } from 'reapop';
 import cloneDeep from 'lodash.clonedeep';
 import { ReadLocations } from '../../utils/admin';
@@ -256,74 +256,41 @@ const updateFeedback = (title, status, category, subTitle, list, container, call
 };
 
 /**
- * Merges the values into (nested) templates, but with TAF quirks for NSC / NSW
- * TODO: (MP 2018-08-17): Discuss with Wim how to solve this more nicely.
- * @param {any} incomingValues The object with values to merge into templates, same hierarchy as template
- * @param {string} parentName The property name of the top level incomingValues entity
- * @param {object} templates A map of templates, with keys equal to the property names
- * @returns {any} The template with the incoming values merged or null
- */
-const mergeInTemplateTaf = (incomingValues, parentName, templates) => {
-  let mergedTaf = mergeInTemplate(incomingValues, parentName, templates);
-  if (parentName === 'FORECAST') {
-    if (incomingValues && incomingValues.clouds && typeof incomingValues.clouds === 'string' && incomingValues.clouds === 'NSC') {
-      mergedTaf = produce(mergedTaf, draftState => { draftState.clouds = 'NSC'; });
-    }
-    if (incomingValues && incomingValues.weather && typeof incomingValues.weather === 'string' && incomingValues.weather === 'NSW') {
-      mergedTaf = produce(mergedTaf, draftState => { draftState.weather = 'NSW'; });
-    }
-  }
-  if (parentName === 'CHANGE_GROUP') {
-    if (incomingValues && incomingValues.forecast && incomingValues.forecast.clouds && typeof incomingValues.forecast.clouds === 'string' && incomingValues.forecast.clouds === 'NSC') {
-      mergedTaf = produce(mergedTaf, draftState => { draftState.forecast.clouds = 'NSC'; });
-    }
-    if (incomingValues && incomingValues.forecast && incomingValues.forecast.weather && typeof incomingValues.forecast.weather === 'string' && incomingValues.forecast.weather === 'NSW') {
-      mergedTaf = produce(mergedTaf, draftState => { draftState.forecast.weather = 'NSW'; });
-    }
-  }
-  return mergedTaf;
-};
-
-/**
  * Creates a selectable TAF object out of a regular TAF object
  * @param {object} tafData The TAF object to wrap
  * @returns A selectable TAF corresponding to the incoming TAF
  */
 const wrapIntoSelectableTaf = (tafData) => {
-  return produce(TAF_TEMPLATES.SELECTABLE_TAF, (draftSelectable) => {
-    draftSelectable.location = tafData.metadata.location.toUpperCase();
-    draftSelectable.uuid = tafData.metadata.uuid;
-    draftSelectable.timestamp = moment.utc(tafData.metadata.validityStart);
-    draftSelectable.label.time = draftSelectable.timestamp.format(TIMELABEL_FORMAT);
-    draftSelectable.label.text = `${draftSelectable.location} ${draftSelectable.label.time}`;
-    draftSelectable.label.status = `${tafData.metadata.status} / ${tafData.metadata.type}`;
-    let iconName = STATUS_ICONS.CONCEPT;
-    if (tafData.metadata.status && typeof tafData.metadata.status === 'string') {
-      const tafStatus = tafData.metadata.status.toLowerCase();
-      switch (tafStatus) {
-        case STATUSES.PUBLISHED:
-          iconName = STATUS_ICONS.PUBLISHED;
-          break;
-        case STATUSES.CONCEPT:
-          break;
-        default:
-          break;
-      }
+  let iconName = STATUS_ICONS.CONCEPT;
+  if (tafData.metadata.status && typeof tafData.metadata.status === 'string') {
+    const tafStatus = tafData.metadata.status.toLowerCase();
+    switch (tafStatus) {
+      case STATUSES.PUBLISHED:
+        iconName = STATUS_ICONS.PUBLISHED;
+        break;
+      case STATUSES.CONCEPT:
+        break;
+      default:
+        break;
     }
-    draftSelectable.label.icon = iconName;
-    Object.entries(draftSelectable.tafData.metadata).forEach((entry) => {
-      if (tafData.metadata.hasOwnProperty(entry[0])) {
-        draftSelectable.tafData.metadata[entry[0]] = tafData.metadata[entry[0]];
-      }
-    });
-    draftSelectable.tafData.forecast = mergeInTemplateTaf(tafData.forecast, 'FORECAST', TAF_TEMPLATES);
-    if (Array.isArray(tafData.changegroups) && tafData.changegroups.length > 0) {
-      draftSelectable.tafData.changegroups.length = 0;
-      tafData.changegroups.forEach((changeGroup) => {
-        draftSelectable.tafData.changegroups.push(mergeInTemplateTaf(changeGroup, 'CHANGE_GROUP', TAF_TEMPLATES));
-      });
-    }
-  });
+  }
+  const location = tafData.metadata.location.toUpperCase();
+  const timestamp = moment.utc(tafData.metadata.validityStart);
+  const time = timestamp.format(TIMELABEL_FORMAT);
+
+  const newProperties = {
+    location: location,
+    uuid: tafData.metadata.uuid,
+    timestamp: timestamp,
+    label: {
+      time: time,
+      text: `${location} ${time}`,
+      status: `${tafData.metadata.status} / ${tafData.metadata.type}`,
+      icon: iconName
+    },
+    tafData
+  };
+  return safeMerge(newProperties, TAF_TEMPLATES.SELECTABLE_TAF);
 };
 
 /** Validate taf

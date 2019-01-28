@@ -1,5 +1,5 @@
 import React from 'react';
-import SigmetReadMode from './SigmetReadMode';
+import SigmetMinifiedMode from './SigmetMinifiedMode';
 import { mount, shallow } from 'enzyme';
 import { Button } from 'reactstrap';
 
@@ -11,16 +11,16 @@ const sigmet = {
   }
 };
 
-describe('(Component) SigmetReadMode', () => {
-  it('mount renders a SigmetReadMode', () => {
+describe('(Component) SigmetMinifiedMode', () => {
+  it('mount renders a SigmetMinifiedMode', () => {
     const abilities = { isCancelable: false, isDeletable: true, isEditable: true, isCopyable: true, isPublishable: true };
-    const _component = mount(<SigmetReadMode sigmet={sigmet} abilities={abilities} />);
-    expect(_component.type()).to.eql(SigmetReadMode);
+    const _component = mount(<SigmetMinifiedMode sigmet={sigmet} abilities={abilities} />);
+    expect(_component.type()).to.eql(SigmetMinifiedMode);
   });
 
   it('shallow renders a ReactStrap Button', () => {
     const abilities = { isCancelable: false, isDeletable: true, isEditable: true, isCopyable: true, isPublishable: true };
-    const _component = shallow(<SigmetReadMode sigmet={sigmet} abilities={abilities} />);
+    const _component = shallow(<SigmetMinifiedMode sigmet={sigmet} abilities={abilities} />);
     expect(_component.type()).to.eql(Button);
   });
 });
