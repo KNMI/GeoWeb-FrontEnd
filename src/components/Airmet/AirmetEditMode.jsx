@@ -9,7 +9,7 @@ import moment from 'moment';
 import classNames from 'classnames';
 import cloneDeep from 'lodash.clonedeep';
 import PropTypes from 'prop-types';
-import { EDIT_ABILITIES, byEditAbilities } from '../../containers/Sigmet/SigmetActions';
+import { EDIT_ABILITIES, byEditAbilities } from '../../containers/Airmet/AirmetActions';
 import Icon from 'react-fa';
 import Checkbox from '../Basis/Checkbox';
 import RadioGroup from '../Basis/RadioGroup';
@@ -26,9 +26,8 @@ import IssueSection from '../SectionTemplates/IssueSection';
 import ChangeSection from '../SectionTemplates/ChangeSection';
 import HeightsSection from '../SectionTemplates/HeightsSection';
 import {
-  DIRECTIONS, UNITS_ALT, UNITS, MODES_LVL, MODES_LVL_OPTIONS, CHANGES, MOVEMENT_TYPES, MOVEMENT_OPTIONS, SIGMET_TYPES,
-  DATETIME_FORMAT, DISTRIBUTION_OPTIONS, dateRanges } from './SigmetTemplates';
-import EndPositionSection from '../SectionTemplates/EndPositionSection';
+  DIRECTIONS, UNITS_ALT, UNITS, MODES_LVL, MODES_LVL_OPTIONS, CHANGES, MOVEMENT_TYPES, MOVEMENT_OPTIONS, AIRMET_TYPES,
+  DATETIME_FORMAT, DISTRIBUTION_OPTIONS, dateRanges } from './AirmetTemplates';
 
 const DROP_DOWN_NAMES = {
   AT_OR_ABOVE: 'atOrAbove',
@@ -36,7 +35,7 @@ const DROP_DOWN_NAMES = {
   BETWEEN_UPPER: 'betweenUpper'
 };
 
-class SigmetEditMode extends PureComponent {
+class AirmetEditMode extends PureComponent {
   constructor (props) {
     super(props);
     this.toggleDropDown = this.toggleDropDown.bind(this);
@@ -75,7 +74,7 @@ class SigmetEditMode extends PureComponent {
 
   setMode (evt, selectedOption = null) {
     const { dispatch, actions } = this.props;
-    const { uuid } = this.props.sigmet;
+    const { uuid } = this.props.airmet;
     const currentMode = this.getMode();
     if (!evt || !evt.target) {
       return;
@@ -110,12 +109,12 @@ class SigmetEditMode extends PureComponent {
             return;
         }
       }
-      dispatch(actions.updateSigmetAction(uuid, 'levelinfo.mode', result));
+      dispatch(actions.updateAirmetAction(uuid, 'levelinfo.mode', result));
     }
   };
 
   getMode () {
-    const { levelinfo } = this.props.sigmet;
+    const { levelinfo } = this.props.airmet;
     const result = {
       extent: MODES_LVL.AT,
       hasTops: false,
@@ -191,21 +190,21 @@ class SigmetEditMode extends PureComponent {
   /**
 * Add disabled flag to abilities
 * @param {object} ability The ability to provide the flag for
-* @param {boolean} isInValidityPeriod Whether or not the referred Sigmet is active
+* @param {boolean} isInValidityPeriod Whether or not the referred Airmet is active
 * @param {string} selectedPhenomenon The phenomenon which is selected
 * @returns {object} Object with {boolean} property disable, indicating whether or not is should be disabled
 *          and {string} property message to explain why...
 */
   getDisabledFlag (abilityRef, isInValidityPeriod, selectedPhenomenon) {
-    const { copiedSigmetRef, hasEdits } = this.props;
-    const { validdate, validdate_end: validdateEnd, obs_or_forecast: obsOrForecast } = this.props.sigmet;
+    const { copiedAirmetRef, hasEdits } = this.props;
+    const { validdate, validdate_end: validdateEnd, obs_or_forecast: obsOrForecast } = this.props.airmet;
     const obsFcTime = obsOrForecast ? obsOrForecast.obsFcTime : null;
     if (!abilityRef) {
       return false;
     }
     switch (abilityRef) {
       case EDIT_ABILITIES.PASTE['dataField']:
-        return !copiedSigmetRef;
+        return !copiedAirmetRef;
       case EDIT_ABILITIES.DISCARD['dataField']:
         return !hasEdits;
       case EDIT_ABILITIES.SAVE['dataField']:
@@ -217,13 +216,13 @@ class SigmetEditMode extends PureComponent {
   }
 
   /**
-   * Reduce the available abilities for this specific Sigmet
+   * Reduce the available abilities for this specific Airmet
    * @param {string} selectedPhenomenon The selectedPhenomenon
-   * @returns {array} The remaining abilities for this specific Sigmet
+   * @returns {array} The remaining abilities for this specific Airmet
    */
   reduceAbilities (selectedPhenomenon) {
     const { abilities } = this.props;
-    const { validdate, validdate_end: validdateEnd } = this.props.sigmet;
+    const { validdate, validdate_end: validdateEnd } = this.props.airmet;
     const abilitiesCtAs = []; // CtA = Call To Action
     const now = moment.utc();
     const isInValidityPeriod = !now.isBefore(validdate) && !now.isAfter(validdateEnd);
@@ -240,15 +239,13 @@ class SigmetEditMode extends PureComponent {
   }
 
   render () {
-    const { dispatch, actions, sigmet, availablePhenomena, hasStartCoordinates, hasEndCoordinates, feedbackStart, feedbackEnd,
-      availableFirs, focus, isVolcanicAsh, volcanoCoordinates, maxHoursInAdvance, maxHoursDuration } = this.props;
+    const { dispatch, actions, airmet, availablePhenomena, hasStartCoordinates, feedbackStart,
+      availableFirs, focus, maxHoursInAdvance, maxHoursDuration } = this.props;
     const { isAtOrAboveDropDownOpen, isBetweenLowerDropDownOpen, isBetweenUpperDropDownOpen } = this.state;
 
     const { phenomenon, uuid, type: distributionType, validdate, validdate_end: validdateEnd,
       location_indicator_icao: locationIndicatorIcao, location_indicator_mwo: locationIndicatorMwo,
-      levelinfo, movement_type: movementType, movement, change, tac, va_extra_fields: vaExtraFields, obs_or_forecast: obsOrForecast } = sigmet;
-    const { no_va_expected: isNoVolcanicAshExpected, volcano } = vaExtraFields;
-    const volcanoName = volcano.name || null;
+      levelinfo, movement_type: movementType, movement, change, tac, obs_or_forecast: obsOrForecast } = airmet;
     const obsFcTime = obsOrForecast ? obsOrForecast.obsFcTime : null;
     const isObserved = obsOrForecast ? obsOrForecast.obs : null;
 
@@ -263,12 +260,6 @@ class SigmetEditMode extends PureComponent {
     const atOrAboveOption = MODES_LVL_OPTIONS.find((option) => option.optionId === levelMode.extent && option.optionId !== MODES_LVL.BETW);
     const atOrAboveLabel = atOrAboveOption ? atOrAboveOption.label : '';
     const movementOptions = cloneDeep(MOVEMENT_OPTIONS);
-    if (isVolcanicAsh && isNoVolcanicAshExpected === true) {
-      const forecastOptionIndex = movementOptions.findIndex((item) => item.optionId === MOVEMENT_TYPES.FORECAST_POSITION);
-      if (forecastOptionIndex !== -1) {
-        movementOptions[forecastOptionIndex].disabled = true;
-      }
-    }
     const drawActions = (isEndFeature = false) => [
       {
         title: `Draw point${!selectedFir ? ' (select a FIR first)' : ''}`,
@@ -295,30 +286,27 @@ class SigmetEditMode extends PureComponent {
         disabled: !selectedFir
       },
       {
-        title: `Delete drawing${(isEndFeature ? hasEndCoordinates : hasStartCoordinates) ? '' : ' (nothing to delete)'}`,
+        title: `Delete drawing${hasStartCoordinates ? '' : ' (nothing to delete)'}`,
         action: 'delete-selection',
         icon: 'trash',
-        disabled: isEndFeature ? !hasEndCoordinates : !hasStartCoordinates
+        disabled: !hasStartCoordinates
       }
     ];
     const messagePrefix = 'Use one of these drawing tools to indicate on the map where the phenomenon is';
-    const drawMessage = (isEndDrawing) => !isEndDrawing
-      ? !hasStartCoordinates
-        ? `${messagePrefix} ${isObserved ? 'observed' : 'expected to occur'}.`
-        : feedbackStart || ''
-      : movementType === MOVEMENT_TYPES.FORECAST_POSITION && !hasEndCoordinates
-        ? `${messagePrefix} expected to be at the end of the valid period.`
-        : feedbackEnd || '';
+    const drawMessage = () => !hasStartCoordinates
+      ? `${messagePrefix} ${isObserved ? 'observed' : 'expected to occur'}.`
+      : feedbackStart || '';
+
     const abilityCtAs = this.reduceAbilities(selectedPhenomenon); // CtA = Call To Action
-    return <Button tag='div' className={`Sigmet row${focus ? ' focus' : ''}`} id={uuid}
-      onClick={!focus ? (evt) => dispatch(actions.focusSigmetAction(evt, uuid)) : null}>
+    return <Button tag='div' className={`Airmet row${focus ? ' focus' : ''}`} id={uuid}
+      onClick={!focus ? (evt) => dispatch(actions.focusAirmetAction(evt, uuid)) : null}>
       <Col>
-        <HeaderSection label={'SIGMET'} />
+        <HeaderSection label={'AIRMET'} />
         <WhatSection>
           <Typeahead filterBy={['name', 'code']} labelKey='name' data-field='phenomenon'
             options={availablePhenomena} placeholder={'Select phenomenon'}
-            onFocus={() => dispatch(actions.updateSigmetAction(uuid, 'phenomenon', []))}
-            onChange={(selectedValues) => dispatch(actions.updateSigmetAction(uuid, 'phenomenon', selectedValues))}
+            onFocus={() => dispatch(actions.updateAirmetAction(uuid, 'phenomenon', []))}
+            onChange={(selectedValues) => dispatch(actions.updateAirmetAction(uuid, 'phenomenon', selectedValues))}
             selected={selectedPhenomenon ? [selectedPhenomenon] : []}
             className={!selectedPhenomenon ? 'missing' : null}
             clearButton />
@@ -326,7 +314,7 @@ class SigmetEditMode extends PureComponent {
             value={isObserved ? 'obs' : 'fcst'}
             checkedOption={{ optionId: 'fcst', label: 'Forecast' }}
             unCheckedOption={{ optionId: 'obs', label: 'Observed' }}
-            onChange={(evt) => dispatch(actions.updateSigmetAction(uuid, 'obs_or_forecast', { obs: !evt.target.checked, obsFcTime: obsFcTime }))}
+            onChange={(evt) => dispatch(actions.updateAirmetAction(uuid, 'obs_or_forecast', { obs: !evt.target.checked, obsFcTime: obsFcTime }))}
             data-field='obs_or_fcst'
           />
           <TimePicker data-field='obsFcTime' utc
@@ -334,32 +322,10 @@ class SigmetEditMode extends PureComponent {
               ? moment.utc(obsFcTime, DATETIME_FORMAT)
               : obsFcTime
             }
-            onChange={(evt, timestamp) => dispatch(actions.updateSigmetAction(uuid, 'obs_or_forecast', { obs: isObserved, obsFcTime: timestamp }))}
+            onChange={(evt, timestamp) => dispatch(actions.updateAirmetAction(uuid, 'obs_or_forecast', { obs: isObserved, obsFcTime: timestamp }))}
             min={dateLimits.obsFcTime.min}
             max={dateLimits.obsFcTime.max}
           />
-          {isVolcanicAsh
-            ? <Input type='text' value={volcanoName || ''} data-field='volcano_name' placeholder='Volcano name'
-              onChange={(evt) => dispatch(actions.updateSigmetAction(uuid, 'va_extra_fields.volcano.name', evt.target.value))}
-            />
-            : null
-          }
-          {isVolcanicAsh
-            ? <Input type='number' placeholder='00.0' step='0.1'
-              value={Array.isArray(volcanoCoordinates) && volcanoCoordinates.length > 0 && volcanoCoordinates[0] !== null ? volcanoCoordinates[0] : ''}
-              data-field='volcano_coordinates_lat'
-              onChange={(evt) => dispatch(actions.updateSigmetAction(uuid, 'va_extra_fields.volcano.position.0', evt.target.value || null))}
-            />
-            : null
-          }
-          {isVolcanicAsh
-            ? <Input type='number' placeholder='000.0' step='0.1'
-              value={Array.isArray(volcanoCoordinates) && volcanoCoordinates.length > 1 && volcanoCoordinates[1] !== null ? volcanoCoordinates[1] : ''}
-              data-field='volcano_coordinates_lon'
-              onChange={(evt) => dispatch(actions.updateSigmetAction(uuid, 'va_extra_fields.volcano.position.1', evt.target.value || null))}
-            />
-            : null
-          }
         </WhatSection>
 
         <ValiditySection>
@@ -368,7 +334,7 @@ class SigmetEditMode extends PureComponent {
               ? moment.utc(validdate, DATETIME_FORMAT)
               : validdate
             }
-            onChange={(evt, timestamp) => dispatch(actions.updateSigmetAction(uuid, 'validdate', timestamp))}
+            onChange={(evt, timestamp) => dispatch(actions.updateAirmetAction(uuid, 'validdate', timestamp))}
             min={dateLimits.validDate.min}
             max={dateLimits.validDate.max}
           />
@@ -377,7 +343,7 @@ class SigmetEditMode extends PureComponent {
               ? moment.utc(validdateEnd, DATETIME_FORMAT)
               : validdateEnd
             }
-            onChange={(evt, timestamp) => dispatch(actions.updateSigmetAction(uuid, 'validdate_end', timestamp))}
+            onChange={(evt, timestamp) => dispatch(actions.updateAirmetAction(uuid, 'validdate_end', timestamp))}
             min={dateLimits.validDateEnd.min}
             max={dateLimits.validDateEnd.max}
           />
@@ -387,8 +353,8 @@ class SigmetEditMode extends PureComponent {
           <Typeahead filterBy={['firname', 'location_indicator_icao']} labelKey='firname' data-field='firname'
             options={availableFirs}
             onFocus={() => {
-              dispatch(actions.updateSigmetAction(uuid, 'firname', null));
-              dispatch(actions.updateSigmetAction(uuid, 'location_indicator_icao', null));
+              dispatch(actions.updateAirmetAction(uuid, 'firname', null));
+              dispatch(actions.updateAirmetAction(uuid, 'location_indicator_icao', null));
             }}
             onChange={(firList) => {
               let firname = null;
@@ -397,8 +363,8 @@ class SigmetEditMode extends PureComponent {
                 firname = firList[0].firname;
                 locationIndicatorIcao = firList[0].location_indicator_icao;
               }
-              dispatch(actions.updateSigmetAction(uuid, 'firname', firname));
-              dispatch(actions.updateSigmetAction(uuid, 'location_indicator_icao', locationIndicatorIcao));
+              dispatch(actions.updateAirmetAction(uuid, 'firname', firname));
+              dispatch(actions.updateAirmetAction(uuid, 'location_indicator_icao', locationIndicatorIcao));
             }}
             selected={selectedFir ? [selectedFir] : []} placeholder={'Select FIR'}
             className={!selectedFir ? 'missing' : null}
@@ -445,7 +411,7 @@ class SigmetEditMode extends PureComponent {
                 <DropdownMenu>
                   {UNITS_ALT.map((unit, index) =>
                     <DropdownItem key={`unitDropDown-${index}`}
-                      onClick={(evt) => dispatch(actions.updateSigmetAction(uuid, 'levelinfo.levels.0.unit', unit))}>{unit.label}</DropdownItem>
+                      onClick={(evt) => dispatch(actions.updateAirmetAction(uuid, 'levelinfo.levels.0.unit', unit))}>{unit.label}</DropdownItem>
                   )}
                 </DropdownMenu>
               </ButtonDropdown>
@@ -453,7 +419,7 @@ class SigmetEditMode extends PureComponent {
             <Input placeholder='Level' disabled={isLevelBetween} type='number' pattern='\d{0,5}'
               min='0' step={this.stepLevelPerUnit(levelinfo.levels[0].unit)} max={this.maxLevelPerUnit(levelinfo.levels[0].unit)}
               value={(isLevelBetween || !levelinfo.levels[0].value) ? '' : this.formatLevelPerUnit(levelinfo.levels[0].value, levelinfo.levels[0].unit)}
-              onChange={(evt) => dispatch(actions.updateSigmetAction(uuid, 'levelinfo.levels.0.value', evt.target.value))} />
+              onChange={(evt) => dispatch(actions.updateAirmetAction(uuid, 'levelinfo.levels.0.value', evt.target.value))} />
           </InputGroup>
           <Switch
             className={isLevelBetween && !levelMode.hasSurface &&
@@ -473,7 +439,7 @@ class SigmetEditMode extends PureComponent {
                         <DropdownItem key={`unitDropDown-${index}`}
                           onClick={(evt) => {
                             evt.preventDefault(); // prevent the switch from being triggered
-                            return dispatch(actions.updateSigmetAction(uuid, 'levelinfo.levels.0.unit', unit));
+                            return dispatch(actions.updateAirmetAction(uuid, 'levelinfo.levels.0.unit', unit));
                           }}>{unit.label}</DropdownItem>
                       )}
                     </DropdownMenu>
@@ -484,7 +450,7 @@ class SigmetEditMode extends PureComponent {
                   value={(!isLevelBetween || levelMode.hasSurface || !levelinfo.levels[0].value)
                     ? ''
                     : this.formatLevelPerUnit(levelinfo.levels[0].value, levelinfo.levels[0].unit)}
-                  onChange={(evt) => dispatch(actions.updateSigmetAction(uuid, 'levelinfo.levels.0.value', evt.target.value))} />
+                  onChange={(evt) => dispatch(actions.updateAirmetAction(uuid, 'levelinfo.levels.0.value', evt.target.value))} />
               </InputGroup>
             }}
             unCheckedOption={{ optionId: 'sfc', label: 'SFC' }}
@@ -504,7 +470,7 @@ class SigmetEditMode extends PureComponent {
                 <DropdownMenu>
                   {UNITS_ALT.map((unit, index) =>
                     <DropdownItem key={`unitDropDown-${index}`}
-                      onClick={(evt) => dispatch(actions.updateSigmetAction(uuid, 'levelinfo.levels.1.unit', unit))}>{unit.label}</DropdownItem>
+                      onClick={(evt) => dispatch(actions.updateAirmetAction(uuid, 'levelinfo.levels.1.unit', unit))}>{unit.label}</DropdownItem>
                   )}
                 </DropdownMenu>
               </ButtonDropdown>
@@ -512,24 +478,15 @@ class SigmetEditMode extends PureComponent {
             <Input placeholder='Upper level' disabled={!isLevelBetween} type='number'
               min='0' step={this.stepLevelPerUnit(levelinfo.levels[1].unit)} max={this.maxLevelPerUnit(levelinfo.levels[1].unit)}
               value={(!isLevelBetween || !levelinfo.levels[1].value) ? '' : this.formatLevelPerUnit(levelinfo.levels[1].value, levelinfo.levels[1].unit)}
-              onChange={(evt) => dispatch(actions.updateSigmetAction(uuid, 'levelinfo.levels.1.value', evt.target.value))} />
+              onChange={(evt) => dispatch(actions.updateAirmetAction(uuid, 'levelinfo.levels.1.value', evt.target.value))} />
           </InputGroup>
         </HeightsSection>
 
         <ProgressSection>
-          {isVolcanicAsh
-            ? <Checkbox
-              value={isNoVolcanicAshExpected ? 'noVA' : ''}
-              option={{ optionId: 'noVA', label: 'No volcanic ash expected' }}
-              onChange={(evt, selectedOption = null) => dispatch(actions.updateSigmetAction(uuid, 'va_extra_fields.no_va_expected', !!evt.target.checked))}
-              data-field='no_va_expected'
-            />
-            : null
-          }
           <RadioGroup
             value={movementType}
             options={movementOptions}
-            onChange={(evt, selectedOption = null) => dispatch(actions.updateSigmetAction(uuid, 'movement_type', selectedOption))}
+            onChange={(evt, selectedOption = null) => dispatch(actions.updateAirmetAction(uuid, 'movement_type', selectedOption))}
             data-field='movement'
           />
         </ProgressSection>
@@ -537,9 +494,9 @@ class SigmetEditMode extends PureComponent {
         <MovementSection disabled={movementType !== MOVEMENT_TYPES.MOVEMENT}>
           <Typeahead filterBy={['shortName', 'longName']} labelKey='longName' data-field='direction'
             options={DIRECTIONS} placeholder={'Set direction'} disabled={movementType !== MOVEMENT_TYPES.MOVEMENT}
-            onFocus={() => dispatch(actions.updateSigmetAction(uuid, 'movement', { ...movement, dir: null }))}
+            onFocus={() => dispatch(actions.updateAirmetAction(uuid, 'movement', { ...movement, dir: null }))}
             onChange={(selectedval) =>
-              dispatch(actions.updateSigmetAction(uuid, 'movement', { ...movement, dir: selectedval.length > 0 ? selectedval[0].shortName : null }))}
+              dispatch(actions.updateAirmetAction(uuid, 'movement', { ...movement, dir: selectedval.length > 0 ? selectedval[0].shortName : null }))}
             selected={selectedDirection ? [selectedDirection] : []}
             className={classNames({
               required: movementType === MOVEMENT_TYPES.MOVEMENT,
@@ -553,7 +510,7 @@ class SigmetEditMode extends PureComponent {
               missing: movementType === MOVEMENT_TYPES.MOVEMENT && !movement.speed
             })}
             disabled={movementType !== MOVEMENT_TYPES.MOVEMENT}>
-            <Input onChange={(evt) => dispatch(actions.updateSigmetAction(uuid, 'movement', { ...movement, speed: parseInt(evt.target.value) }))}
+            <Input onChange={(evt) => dispatch(actions.updateAirmetAction(uuid, 'movement', { ...movement, speed: parseInt(evt.target.value) }))}
               value={(!movement || !movement.speed) ? '' : movement.speed} placeholder={'Set speed'}
               type='number' disabled={movementType !== MOVEMENT_TYPES.MOVEMENT}
               step='1' min='1'
@@ -561,29 +518,12 @@ class SigmetEditMode extends PureComponent {
             <InputGroupAddon addonType='append'>KT</InputGroupAddon>
           </InputGroup>
         </MovementSection>
-        <EndPositionSection disabled={movementType !== MOVEMENT_TYPES.FORECAST_POSITION}>
-          <DrawSection data-field='drawbar' title={drawMessage(true)}
-            className={movementType === MOVEMENT_TYPES.FORECAST_POSITION ? `required${hasEndCoordinates ? '' : ' missing'}${feedbackEnd ? ' warning' : ''}` : ''}>
-            {
-              drawActions(true).map((actionItem, index) =>
-                <Button color='primary' key={actionItem.action + '_button'} data-field={actionItem.action + '_button'}
-                  active={actionItem.action === this.props.drawModeEnd}
-                  disabled={actionItem.disabled || movementType !== MOVEMENT_TYPES.FORECAST_POSITION}
-                  id={actionItem.action + '_button'}
-                  title={`${actionItem.title}${movementType !== MOVEMENT_TYPES.FORECAST_POSITION ? ' (select position mode first)' : ''}`}
-                  onClick={(evt) => dispatch(actions.drawAction(evt, uuid, actionItem.action, 'end'))}>
-                  <Icon name={actionItem.icon} />
-                </Button>
-              )
-            }
-          </DrawSection>
-        </EndPositionSection>
 
         <ChangeSection>
           <Typeahead filterBy={['shortName', 'longName']} labelKey='longName' data-field='change'
             options={CHANGES} placeholder={'Select change'}
-            onFocus={() => dispatch(actions.updateSigmetAction(uuid, 'change', null))}
-            onChange={(selectedValues) => dispatch(actions.updateSigmetAction(uuid, 'change', selectedValues.length > 0 ? selectedValues[0].shortName : null))}
+            onFocus={() => dispatch(actions.updateAirmetAction(uuid, 'change', null))}
+            onChange={(selectedValues) => dispatch(actions.updateAirmetAction(uuid, 'change', selectedValues.length > 0 ? selectedValues[0].shortName : null))}
             selected={selectedChange ? [selectedChange] : []}
             className={!selectedChange ? 'missing' : null}
             clearButton />
@@ -596,12 +536,12 @@ class SigmetEditMode extends PureComponent {
           <RadioGroup
             value={distributionType}
             options={DISTRIBUTION_OPTIONS}
-            onChange={(evt, selectedOption = null) => dispatch(actions.updateSigmetAction(uuid, 'type', selectedOption))}
+            onChange={(evt, selectedOption = null) => dispatch(actions.updateAirmetAction(uuid, 'type', selectedOption))}
             data-field='distribution_type'
           />
           <button className='clear close' title={typeof distributionType === 'string' ? 'Clear' : null}
             disabled={typeof distributionType !== 'string' || distributionType.length === 0} data-field='clear_distribution_type'
-            onClick={(evt) => dispatch(actions.updateSigmetAction(uuid, 'type', null))}><span>×</span></button>
+            onClick={(evt) => dispatch(actions.updateAirmetAction(uuid, 'type', null))}><span>×</span></button>
         </IssueSection>
 
         <ActionSection colSize={3}>
@@ -625,28 +565,23 @@ Object.values(EDIT_ABILITIES).map(ability => {
   abilitiesPropTypes[ability.check] = PropTypes.bool;
 });
 
-SigmetEditMode.propTypes = {
+AirmetEditMode.propTypes = {
   dispatch: PropTypes.func,
   actions: PropTypes.shape({
-    saveSigmetAction: PropTypes.func
+    saveAirmetAction: PropTypes.func
   }),
   abilities: PropTypes.shape(abilitiesPropTypes),
-  copiedSigmetRef: PropTypes.string,
+  copiedAirmetRef: PropTypes.string,
   hasEdits: PropTypes.bool,
   availablePhenomena: PropTypes.array,
   focus: PropTypes.bool,
   drawModeStart: PropTypes.string,
-  drawModeEnd: PropTypes.string,
   feedbackStart: PropTypes.string,
-  feedbackEnd: PropTypes.string,
   hasStartCoordinates: PropTypes.bool,
-  hasEndCoordinates: PropTypes.bool,
   availableFirs: PropTypes.array,
   maxHoursDuration: PropTypes.number,
   maxHoursInAdvance: PropTypes.number,
-  volcanoCoordinates: PropTypes.arrayOf(PropTypes.number),
-  isVolcanicAsh: PropTypes.bool,
-  sigmet: SIGMET_TYPES.SIGMET
+  airmet: AIRMET_TYPES.AIRMET
 };
 
-export default SigmetEditMode;
+export default AirmetEditMode;

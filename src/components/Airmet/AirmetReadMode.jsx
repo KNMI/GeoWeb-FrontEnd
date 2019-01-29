@@ -4,8 +4,8 @@ import Moment from 'react-moment';
 import moment from 'moment';
 import produce from 'immer';
 import PropTypes from 'prop-types';
-import { READ_ABILITIES, byReadAbilities, MODALS, MODAL_TYPES } from '../../containers/Sigmet/SigmetActions';
-import { UNITS, UNITS_ALT, DIRECTIONS, CHANGES, MODES_LVL, MOVEMENT_TYPES, SIGMET_TYPES, DATETIME_LABEL_FORMAT_UTC, dateRanges } from './SigmetTemplates';
+import { READ_ABILITIES, byReadAbilities, MODALS, MODAL_TYPES } from '../../containers/Airmet/AirmetActions';
+import { UNITS, UNITS_ALT, DIRECTIONS, CHANGES, MODES_LVL, MOVEMENT_TYPES, AIRMET_TYPES, DATETIME_LABEL_FORMAT_UTC, dateRanges } from './AirmetTemplates';
 
 import HeaderSection from '../SectionTemplates/HeaderSection';
 import WhatSection from '../SectionTemplates/WhatSection';
@@ -19,7 +19,7 @@ import IssueSection from '../SectionTemplates/IssueSection';
 import ConfirmationModal from '../ConfirmationModal';
 import MovementSection from '../SectionTemplates/MovementSection';
 
-class SigmetReadMode extends PureComponent {
+class AirmetReadMode extends PureComponent {
   getUnitLabel (unitName) {
     return UNITS_ALT.find((unit) => unit.unit === unitName).label;
   };
@@ -92,14 +92,12 @@ class SigmetReadMode extends PureComponent {
   };
 
   showProgress () {
-    const { movement_type: movementType } = this.props.sigmet;
+    const { movement_type: movementType } = this.props.airmet;
     switch (movementType) {
       case MOVEMENT_TYPES.STATIONARY:
         return 'Stationary';
       case MOVEMENT_TYPES.MOVEMENT:
         return 'Moving';
-      case MOVEMENT_TYPES.FORECAST_POSITION:
-        return 'Movement is defined by area';
       default:
         return '(movement type is not (properly) set)';
     }
@@ -108,28 +106,15 @@ class SigmetReadMode extends PureComponent {
   /**
    * Compose the specific configuration for the confirmation modal
    * @param {string} displayModal The name of the modal to display
-   * @param {string} uuid The identifier for the focussed SIGMET
-   * @param {boolean} isVolcanicAsh Whether or not the focussed SIGMET describes a VA
+   * @param {string} uuid The identifier for the focussed AIRMET
    * @param {string[]} adjacentFirs A list of identifiers for the adjacent FIRs
    * @returns {Object} The configuration for the confirmation modal
    */
-  getModalConfig (displayModal, uuid, isVolcanicAsh, adjacentFirs, moveTo) {
+  getModalConfig (displayModal, uuid, adjacentFirs, moveTo) {
     const modalEntries = Object.entries(MODALS).filter((modalEntry) => modalEntry[1].type === displayModal);
     return Array.isArray(modalEntries) && modalEntries.length > 0 ? produce(modalEntries[0][1], draftState => {
-      if (draftState.button) draftState.button.arguments = uuid; /* Used in action dispatch with right arguments */
-      if (isVolcanicAsh && draftState && draftState.type === MODAL_TYPES.TYPE_CONFIRM_CANCEL && draftState.optional && Array.isArray(adjacentFirs)) {
-        if (Array.isArray(draftState.optional.options)) {
-          draftState.optional.options.push(...adjacentFirs.map((firCode) => ({
-            optionId: firCode, label: firCode, disabled: false
-          })));
-        }
-        if (Array.isArray(draftState.optional.parameters)) {
-          draftState.optional.parameters.push(uuid);
-          draftState.optional.parameters.push('va_extra_fields.move_to');
-        }
-        if (Array.isArray(moveTo) && moveTo.length > 0) {
-          draftState.optional.selectedOption = moveTo[0];
-        }
+      if (draftState.button) {
+        draftState.button.arguments = uuid; /* Used in action dispatch with right arguments */
       }
     }) : null;
   }
@@ -150,7 +135,7 @@ class SigmetReadMode extends PureComponent {
    * @returns {boolean} The result
    */
   isLevelInfoValid () {
-    const { levelinfo } = this.props.sigmet;
+    const { levelinfo } = this.props.airmet;
     switch (levelinfo.mode) {
       case MODES_LVL.ABV:
       case MODES_LVL.AT:
@@ -176,28 +161,25 @@ class SigmetReadMode extends PureComponent {
    * @returns {boolean} The result
    */
   isMovementValid () {
-    const { hasEndCoordinates, hasEndIntersectionCoordinates } = this.props;
-    const { movement_type: movementType, movement } = this.props.sigmet;
+    const { movement_type: movementType, movement } = this.props.airmet;
     switch (movementType) {
       case MOVEMENT_TYPES.STATIONARY:
         return true;
       case MOVEMENT_TYPES.MOVEMENT:
         return movement && typeof movement.speed === 'number' &&
         typeof movement.dir === 'string' && movement.dir.length > 0;
-      case MOVEMENT_TYPES.FORECAST_POSITION:
-        return hasEndCoordinates && hasEndIntersectionCoordinates;
       default:
         return false;
     }
   }
 
   /**
-   * Check whether or not the basic values for this specific Sigmet are valid
-   * @returns {boolean} Whether or not the basic values in this specific Sigmet are valid
+   * Check whether or not the basic values for this specific Airmet are valid
+   * @returns {boolean} Whether or not the basic values in this specific Airmet are valid
    */
   isValid () {
     const { maxHoursInAdvance, maxHoursDuration, hasStartCoordinates, hasStartIntersectionCoordinates } = this.props;
-    const { validdate, validdate_end: validdateEnd, phenomenon, firname, change, type: distributionType } = this.props.sigmet;
+    const { validdate, validdate_end: validdateEnd, phenomenon, firname, change, type: distributionType } = this.props.airmet;
     const now = moment.utc();
     const startTimestamp = moment.utc(validdate);
     const endTimestamp = moment.utc(validdateEnd);
@@ -217,18 +199,18 @@ class SigmetReadMode extends PureComponent {
   /**
   * Add disabled flag to abilities
   * @param {object} ability The ability to provide the flag for
-  * @param {boolean} isInValidityPeriod Whether or not the referred Sigmet is active
+  * @param {boolean} isInValidityPeriod Whether or not the referred Airmet is active
   * @returns {boolean} Whether or not is should be disabled
   */
   getDisabledFlag (abilityRef, isInValidityPeriod) {
-    const { copiedSigmetRef } = this.props;
-    const { uuid } = this.props.sigmet;
+    const { copiedAirmetRef } = this.props;
+    const { uuid } = this.props.airmet;
     if (!abilityRef) {
       return false;
     }
     switch (abilityRef) {
       case READ_ABILITIES.COPY['dataField']:
-        return copiedSigmetRef === uuid;
+        return copiedAirmetRef === uuid;
       case READ_ABILITIES.PUBLISH['dataField']:
         return !this.isValid();
       case READ_ABILITIES.CANCEL['dataField']:
@@ -239,12 +221,12 @@ class SigmetReadMode extends PureComponent {
   }
 
   /**
-   * Reduce the available abilities for this specific Sigmet
-   * @returns {array} The remaining abilities for this specific Sigmet
+   * Reduce the available abilities for this specific Airmet
+   * @returns {array} The remaining abilities for this specific Airmet
    */
   reduceAbilities () {
     const { abilities, isCancelFor } = this.props;
-    const { validdate, validdate_end: validdateEnd } = this.props.sigmet;
+    const { validdate, validdate_end: validdateEnd } = this.props.airmet;
     const abilitiesCtAs = []; // CtA = Call To Action
     const now = moment.utc();
     const isInValidityPeriod = !now.isBefore(validdate) && !now.isAfter(validdateEnd);
@@ -261,14 +243,12 @@ class SigmetReadMode extends PureComponent {
   }
 
   render () {
-    const { dispatch, actions, sigmet, focus, isCancelFor, displayModal, isVolcanicAsh, volcanoCoordinates, adjacentFirs } = this.props;
+    const { dispatch, actions, airmet, focus, isCancelFor, displayModal, adjacentFirs } = this.props;
     const { phenomenon, uuid, type: distributionType, validdate, validdate_end: validdateEnd,
       location_indicator_icao: locationIndicatorIcao, location_indicator_mwo: locationIndicatorMwo,
       levelinfo, movement_type: movementType, movement, change, tac, va_extra_fields: vaExtraFields, obs_or_forecast: obsOrForecast,
-      issuedate, sequence, firname } = sigmet;
+      issuedate, sequence, firname } = airmet;
 
-    const { no_va_expected: isNoVolcanicAshExpected, volcano } = vaExtraFields;
-    const volcanoName = volcano.name || null;
     const obsFcTime = obsOrForecast ? obsOrForecast.obsFcTime : null;
     const isObserved = obsOrForecast ? obsOrForecast.obs : null;
     const moveTo = vaExtraFields.move_to;
@@ -276,10 +256,10 @@ class SigmetReadMode extends PureComponent {
     const abilityCtAs = this.reduceAbilities(); // CtA = Call To Action
     const selectedDirection = movement && DIRECTIONS.find((obj) => obj.shortName === movement.dir);
     const directionLongName = selectedDirection ? selectedDirection.longName : null;
-    const modalConfig = this.getModalConfig(displayModal, uuid, isVolcanicAsh, adjacentFirs, moveTo);
-    return <Button tag='div' className={`Sigmet row${focus ? ' focus' : ''}`} onClick={(evt) => dispatch(actions.focusSigmetAction(evt, uuid))}>
+    const modalConfig = this.getModalConfig(displayModal, uuid, adjacentFirs, moveTo);
+    return <Button tag='div' className={`Airmet row${focus ? ' focus' : ''}`} onClick={(evt) => dispatch(actions.focusAirmetAction(evt, uuid))}>
       <Col>
-        <HeaderSection isCancelFor={isCancelFor} label={'SIGMET'} />
+        <HeaderSection isCancelFor={isCancelFor} label={'AIRMET'} />
         <WhatSection>
           <span data-field='phenomenon'>{phenomenon}</span>
           <span data-field='obs_or_fcst'>{isObserved ? 'Observed' : 'Forecast'}</span>
@@ -291,18 +271,6 @@ class SigmetReadMode extends PureComponent {
                 : '(no forecasted time provided)'
               }
             </span>
-          }
-          {isVolcanicAsh
-            ? <span data-field='volcano_name'>{volcanoName}</span>
-            : null
-          }
-          {isVolcanicAsh
-            ? <span data-field='volcano_coordinates_lat'>{Array.isArray(volcanoCoordinates) && volcanoCoordinates.length > 1 ? volcanoCoordinates[0] : null}</span>
-            : null
-          }
-          {isVolcanicAsh
-            ? <span data-field='volcano_coordinates_lon'>{Array.isArray(volcanoCoordinates) && volcanoCoordinates.length > 1 ? volcanoCoordinates[1] : null}</span>
-            : null
           }
         </WhatSection>
 
@@ -324,14 +292,6 @@ class SigmetReadMode extends PureComponent {
           <span data-field='movement'>
             {this.showProgress()}
           </span>
-          {isVolcanicAsh && isNoVolcanicAshExpected
-            ? <span data-field='no_va_expected'>No volcanic ash is expected at the end.</span>
-            : null
-          }
-          {isVolcanicAsh && Array.isArray(moveTo) && moveTo.length > 0 && typeof moveTo[0] === 'string' && moveTo[0].length > 0
-            ? <span data-field='move_to_fir'>{`Moving to ${moveTo[0]} FIR`}</span>
-            : null
-          }
         </ProgressSection>
         {movementType === MOVEMENT_TYPES.MOVEMENT
           ? <MovementSection>
@@ -373,7 +333,7 @@ class SigmetReadMode extends PureComponent {
       </Col>
       {modalConfig
         ? <ConfirmationModal config={modalConfig} dispatch={dispatch} actions={actions}
-          identifier={`this${modalConfig.type === MODAL_TYPES.TYPE_CONFIRM_PUBLISH ? ` [ ${distributionType.toLowerCase()} ] -` : ''} SIGMET for ${phenomenon}`} />
+          identifier={`this${modalConfig.type === MODAL_TYPES.TYPE_CONFIRM_PUBLISH ? ` [ ${distributionType.toLowerCase()} ] -` : ''} AIRMET for ${phenomenon}`} />
         : null
       }
     </Button>;
@@ -385,30 +345,26 @@ Object.values(READ_ABILITIES).map(ability => {
   abilitiesPropTypes[ability.check] = PropTypes.bool;
 });
 
-SigmetReadMode.propTypes = {
+AirmetReadMode.propTypes = {
   dispatch: PropTypes.func,
   actions: PropTypes.shape({
-    editSigmetAction: PropTypes.func,
-    publishSigmetAction: PropTypes.func,
-    cancelSigmetAction: PropTypes.func,
-    deleteSigmetAction: PropTypes.func,
-    focusSigmetAction: PropTypes.func
+    editAirmetAction: PropTypes.func,
+    publishAirmetAction: PropTypes.func,
+    cancelAirmetAction: PropTypes.func,
+    deleteAirmetAction: PropTypes.func,
+    focusAirmetAction: PropTypes.func
   }),
   abilities: PropTypes.shape(abilitiesPropTypes),
   focus: PropTypes.bool,
-  copiedSigmetRef: PropTypes.string,
+  copiedAirmetRef: PropTypes.string,
   maxHoursInAdvance: PropTypes.number,
   maxHoursDuration: PropTypes.number,
   hasStartCoordinates: PropTypes.bool,
   hasStartIntersectionCoordinates: PropTypes.bool,
-  hasEndCoordinates: PropTypes.bool,
-  hasEndIntersectionCoordinates: PropTypes.bool,
   isCancelFor: PropTypes.number,
-  volcanoCoordinates: PropTypes.arrayOf(PropTypes.number),
-  isVolcanicAsh: PropTypes.bool,
   displayModal: PropTypes.string,
   adjacentFirs: PropTypes.arrayOf(PropTypes.string),
-  sigmet: SIGMET_TYPES.SIGMET
+  airmet: AIRMET_TYPES.AIRMET
 };
 
-export default SigmetReadMode;
+export default AirmetReadMode;

@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import hasClass from '../../../utils/hasclass';
+import hasClass from '../../utils/hasclass';
 import classNames from 'classnames';
 import { Row, Col, Badge } from 'reactstrap';
 import PropTypes from 'prop-types';
