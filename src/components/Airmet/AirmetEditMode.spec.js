@@ -8,9 +8,6 @@ describe('(Component) AirmetEditMode', () => {
     const airmet = {
       phenomenon: 'TEST',
       levelinfo: { levels: [{ unit: 'FL', value: 4 }, { unit: 'M', value: 4 }] },
-      va_extra_fields: {
-        volcano: {}
-      }
     };
     const abilities = { isClearable: true, isDiscardable: true, isPastable: true, isSavable: true };
     const actions = { verifyAirmetAction: () => {} };
@@ -23,9 +20,6 @@ describe('(Component) AirmetEditMode', () => {
     const airmet = {
       phenomenon: 'TEST',
       levelinfo: { levels: [{ unit: 'FL', value: 4 }, { unit: 'M', value: 4 }] },
-      va_extra_fields: {
-        volcano: {}
-      }
     };
     const abilities = { isClearable: true, isDiscardable: true, isPastable: true, isSavable: true };
     const actions = { verifyAirmetAction: () => {} };

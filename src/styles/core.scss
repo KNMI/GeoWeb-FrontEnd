@@ -312,6 +312,7 @@ button.search-clear.btn.btn-secondary:disabled {
 }
 
 .missing {
+  &.form-control,
   .form-control, .form-control.rbt-input {
     border-color: #d9534f;
   }

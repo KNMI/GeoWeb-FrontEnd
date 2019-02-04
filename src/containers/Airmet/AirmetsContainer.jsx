@@ -76,6 +76,7 @@ class AirmetsContainer extends Component {
   componentDidMount () {
     this.localDispatch(LOCAL_ACTIONS.retrieveParametersAction());
     this.localDispatch(LOCAL_ACTIONS.retrievePhenomenaAction());
+    this.localDispatch(LOCAL_ACTIONS.retrieveObscuringPhenomenaAction());
     this.localDispatch(LOCAL_ACTIONS.retrieveAirmetsAction());
   }
 

@@ -2,7 +2,7 @@ import produce from 'immer';
 import moment from 'moment';
 import { notify } from 'reapop';
 import {
-  AIRMET_MODES, AIRMET_TEMPLATES, UNITS, UNITS_ALT, MODES_LVL, MOVEMENT_TYPES, DISTRIBUTION_TYPES,
+  AIRMET_MODES, AIRMET_TEMPLATES, UNITS, UNITS_ALT, UNITS_WIND_SPEED, MODES_LVL, MOVEMENT_TYPES, DISTRIBUTION_TYPES,
   AIRMET_VARIANTS_PREFIXES, DATETIME_FORMAT } from '../../components/Airmet/AirmetTemplates';
 import { LOCAL_ACTION_TYPES, CATEGORY_REFS, STATUSES } from './AirmetActions';
 import { clearEmptyPointersAndAncestors, safeMerge, isFeatureGeoJsonComplete,
@@ -19,6 +19,7 @@ const ERROR_MSG = {
   SELECT_AIRMET: 'The AIRMET to set the focus to, could not be found',
   RETRIEVE_PARAMS: 'Could not retrieve AIRMET parameters',
   RETRIEVE_PHENOMENA: 'Could not retrieve AIRMET phenomena',
+  RETRIEVE_OBSCURING_PHENOMENA: 'Could not retrieve AIRMET obscuring phenomena',
   RETRIEVE_TACS: 'Could not retrieve AIRMET TAC:',
   FEATURE_ID_MISMATCH: 'GeoJson: the %s feature has a mutated id',
   FIND_CATEGORY: 'Could not find category'
@@ -101,7 +102,7 @@ const toggleCategory = (ref, container) => {
 
 const retrieveParameters = (container) => {
   const { urls } = container.props;
-  const endpoint = `${urls.BACKEND_SERVER_URL}/sigmets/getsigmetparameters`;
+  const endpoint = `${urls.BACKEND_SERVER_URL}/airmets/getairmetparameters`;
   axios({
     method: 'get',
     url: endpoint,
@@ -139,7 +140,7 @@ const updateParameters = (parameters, container) => {
 
 const retrievePhenomena = (container) => {
   const { urls } = container.props;
-  const endpoint = `${urls.BACKEND_SERVER_URL}/sigmets/getsigmetphenomena`;
+  const endpoint = `${urls.BACKEND_SERVER_URL}/airmets/getairmetphenomena`;
 
   axios({
     method: 'get',
@@ -159,65 +160,47 @@ const retrievePhenomena = (container) => {
   });
 };
 
-/**
- * Expand all combinations of variants and additions (flatten the phenomenon)
- * @param {object} phenomenonData A data structure containing phenomenons, variants and additions
- * @returns {Array} An array of all variations for this phenomenon
- */
-const expandPhenomenonCombinatorics = (phenomenonData) => {
-  const SEPARATOR = '_';
-  const { variants, phenomenon, additions } = phenomenonData;
-  const combinatorics = [];
-
-  // possible names:
-  // phenName, phenName addName, varName lowerCase(phenName), varName lowerCase(phenName) addName
-  const combineNames = (varName, phenName, addName) => {
-    return `${varName ? `${varName} ` : ''}${varName ? phenName.toLowerCase() : phenName}${addName ? ` ${addName}` : ''}`;
-  };
-
-  // possible codes:
-  // phenCode, phenCodeSEPARATORaddCode, varCodeSEPARATORphenCode, varCodeSEPARATORphenCodeaddCode
-  const combineCodes = (varCode, phenCode, addCode) => {
-    return `${varCode ? `${varCode}${SEPARATOR}` : ''}${phenCode}${addCode
-      ? varCode
-        ? addCode
-        : `${SEPARATOR}${addCode}`
-      : ''}`;
-  };
-
-  const insertCombination = (variant, phenomenon, addition) => {
-    combinatorics.push({
-      name: combineNames(variant && variant.name, phenomenon.name, addition && addition.name),
-      code: combineCodes(variant && variant.code, phenomenon.code, addition && addition.code),
-      layerpreset: phenomenon.layerpreset
-    });
-  };
-
-  if (variants.length === 0) {
-    variants.push(null);
-  }
-
-  variants.forEach((variant) => {
-    additions.forEach((addition) => {
-      insertCombination(variant, phenomenon, addition);
-    });
-    insertCombination(variant, phenomenon, null);
-  });
-  return combinatorics;
-};
-
 const updatePhenomena = (rawPhenomenaData, container) => {
+  // TODO: discuss with Wim
   if (!Array.isArray(rawPhenomenaData)) {
     return Promise.resolve();
   }
 
-  const processedPhenomena = [];
-  rawPhenomenaData.forEach((rawPhenomenonData) => {
-    processedPhenomena.push(...expandPhenomenonCombinatorics(rawPhenomenonData));
+  return setStatePromise(container, {
+    phenomena: rawPhenomenaData
   });
+};
+
+const retrieveObscuringPhenomena = (container) => {
+  const { urls } = container.props;
+  const endpoint = `${urls.BACKEND_SERVER_URL}/airmets/getobscuringphenomena`;
+
+  axios({
+    method: 'get',
+    url: endpoint,
+    withCredentials: true,
+    responseType: 'json'
+  }).then(response => {
+    if (response.status === 200 && response.data) {
+      return updateObscuringPhenomena(response.data, container);
+    } else {
+      console.error(ERROR_MSG.RETRIEVE_OBSCURING_PHENOMENA, response.status, response.data);
+      Promise.reject(new Error(`${ERROR_MSG.RETRIEVE_OBSCURING_PHENOMENA}: ${response.status} - ${response.data}`));
+    }
+  }).catch(error => {
+    console.error(ERROR_MSG.RETRIEVE_OBSCURING_PHENOMENA, error);
+    Promise.reject(error);
+  });
+};
+
+const updateObscuringPhenomena = (rawObscuringPhenomenaData, container) => {
+  // TODO: discuss with Wim
+  if (!Array.isArray(rawObscuringPhenomenaData)) {
+    return Promise.resolve();
+  }
 
   return setStatePromise(container, {
-    phenomena: processedPhenomena
+    obscuringPhenomena: rawObscuringPhenomenaData
   });
 };
 
@@ -237,7 +220,7 @@ const retrieveAirmetTac = (container, uuid) => {
   return new Promise((resolve, reject) =>
     axios({
       method: 'get',
-      url: `${urls.BACKEND_SERVER_URL}/sigmets/${uuid}`,
+      url: `${urls.BACKEND_SERVER_URL}/airmets/${uuid}`,
       withCredentials: true,
       responseType: 'text',
       headers: {
@@ -248,7 +231,7 @@ const retrieveAirmetTac = (container, uuid) => {
         resolve({ uuid, code: response.data });
       } else {
         console.warn(`${ERROR_MSG.RETRIEVE_TACS} for AIRMET ${uuid}`,
-          `because ${response.status === 200 ? 'no response data could be retrieved' : `status was not OK [${response.status}]`}`);
+        `because ${response.status === 200 ? 'no response data could be retrieved' : `status was not OK [${response.status}]`}`);
         resolve({ uuid, code: null });
       }
     }, (error) => {
@@ -270,7 +253,7 @@ const retrieveAirmetTac = (container, uuid) => {
  */
 const retrieveCategorizedAirmets = (container, retrievableCategory) => {
   const { urls } = container.props;
-  const endpoint = `${urls.BACKEND_SERVER_URL}/sigmets`;
+  const endpoint = `${urls.BACKEND_SERVER_URL}/airmets`;
   return new Promise((resolve, reject) =>
     axios({
       method: 'get',
@@ -500,7 +483,7 @@ const updateFir = (firName, container) => {
   }
   if (trimmedFirname && !Object.keys(container.state.firs).includes(trimmedFirname)) {
     const { BACKEND_SERVER_URL } = container.props.urls;
-    axios.get(`${BACKEND_SERVER_URL}/sigmets/getfir`, {
+    axios.get(`${BACKEND_SERVER_URL}/airmets/getfir`, {
       withCredentials: true,
       params: {
         name: trimmedFirname
@@ -604,6 +587,24 @@ const getEmptyAirmet = (container) => {
         { unit: UNITS.FL },
         { unit: UNITS.FL }
       ]
+    },
+    phenomenon_specific_information: {
+      wind: {
+        speed: {
+          unit: UNITS.KT
+        },
+        direction: {
+          unit: UNITS.DEGREES
+        }
+      },
+      cloudLevels: {
+        lower: {
+          unit: UNITS.FT
+        },
+        upper: {
+          unit: UNITS.FT
+        }
+      }
     },
     movement_type: MOVEMENT_TYPES.STATIONARY,
     location_indicator_mwo: parameters.location_indicator_wmo,
@@ -709,6 +710,7 @@ const updateAirmet = (dataField, value, container) => {
   const { props } = container;
   const { sources } = props;
   const { selectedAirmet, parameters } = container.state;
+  console.log(dataField, value);
 
   const affectedAirmet = Array.isArray(selectedAirmet) && selectedAirmet.length === 1
     ? selectedAirmet[0]
@@ -747,12 +749,7 @@ const updateAirmet = (dataField, value, container) => {
   }
   if ((dataField === 'validdate' || dataField === 'validdate_end') && value === null) {
     value = moment.utc().add(1, 'minute').format(DATETIME_FORMAT);
-  }
-  if (dataField.indexOf('volcano.position') !== -1) {
-    value = (value !== null && !isNaN(value))
-      ? parseFloat(value)
-      : null;
-  }
+  }        
   if (dataField.indexOf('levelinfo') !== -1) {
     switch (fieldToUpdate) {
       case 'unit':
@@ -782,7 +779,13 @@ const updateAirmet = (dataField, value, container) => {
     (traverser, propertyKey) => toStructure(propertyKey, traverser),
     toStructure(fieldToUpdate, value)
   );
-
+  if (isPhenomenonUpdate) {
+    selectedAirmetUpdate.phenomenon_specific_information = produce(AIRMET_TEMPLATES.PHENOMENON_SPECIFIC_INFO, () => { });
+    selectedAirmetUpdate.phenomenon_specific_information.wind.speed.unit = UNITS.KT;
+    selectedAirmetUpdate.phenomenon_specific_information.wind.direction.unit = UNITS.DEGREES;
+    selectedAirmetUpdate.phenomenon_specific_information.cloudLevels.lower.unit = UNITS.FT;
+    selectedAirmetUpdate.phenomenon_specific_information.cloudLevels.upper.unit = UNITS.FT;
+  }
   if (shouldCleanMovement) {
     selectedAirmetUpdate.movement = produce(AIRMET_TEMPLATES.MOVEMENT, () => { });
   }
@@ -948,7 +951,7 @@ const createFirIntersection = (featureId, geojson, container) => {
   if (intersectionData && intersectionFeature) {
     return axios({
       method: 'post',
-      url: `${urls.BACKEND_SERVER_URL}/sigmets/sigmetintersections`,
+      url: `${urls.BACKEND_SERVER_URL}/airmets/airmetintersections`,
       withCredentials: true,
       responseType: 'json',
       data: intersectionData
@@ -1002,14 +1005,14 @@ const discardAirmet = (event, uuid, container) => {
  @return {object} Object with taf and report properties
 */
 const sanitizeAirmet = (airmetAsObject, cleanedFeatures) => {
-  const volcanoPosition = airmetAsObject.va_extra_fields.volcano.position;
-  const hasVolcanoPosition = volcanoPosition.some((coordinate) => typeof coordinate === 'number');
+  // const volcanoPosition = airmetAsObject.va_extra_fields.volcano.position;
+  // const hasVolcanoPosition = volcanoPosition.some((coordinate) => typeof coordinate === 'number');
   return produce(airmetAsObject, draftState => {
     draftState.tac = null;
     clearEmptyPointersAndAncestors(draftState);
     draftState.geojson.features.length = 0;
     draftState.geojson.features.push(...cleanedFeatures);
-    if (hasVolcanoPosition) {
+    /* if (hasVolcanoPosition) {
       if (!draftState.va_extra_fields.volcano) {
         draftState.va_extra_fields['volcano'] = {};
         if (!draftState.va_extra_fields.volcano.position) {
@@ -1018,7 +1021,7 @@ const sanitizeAirmet = (airmetAsObject, cleanedFeatures) => {
       }
       draftState.va_extra_fields.volcano.position.length = 0;
       draftState.va_extra_fields.volcano.position.push(...volcanoPosition);
-    }
+    } */
   });
 };
 
@@ -1038,7 +1041,7 @@ const postAirmet = (container) => {
   return new Promise((resolve, reject) =>
     axios({
       method: 'post',
-      url: `${urls.BACKEND_SERVER_URL}/sigmets`,
+      url: `${urls.BACKEND_SERVER_URL}/airmets`,
       withCredentials: true,
       responseType: 'json',
       data: complementedAirmet
@@ -1110,7 +1113,7 @@ const deleteAirmet = (event, container) => {
   }
   axios({
     method: 'delete',
-    url: `${BACKEND_SERVER_URL}/sigmets/${affectedAirmet.uuid}`,
+    url: `${BACKEND_SERVER_URL}/airmets/${affectedAirmet.uuid}`,
     withCredentials: true,
     responseType: 'json'
   }).then(response => {
@@ -1286,7 +1289,7 @@ const verifyAirmet = (airmetObject, container) => {
   setTacRepresentation('... retrieving TAC ...').then(() =>
     axios({
       method: 'post',
-      url: `${urls.BACKEND_SERVER_URL}/sigmets/verify`,
+      url: `${urls.BACKEND_SERVER_URL}/airmets/verify`,
       withCredentials: true,
       responseType: 'json',
       data: complementedAirmet
@@ -1362,6 +1365,8 @@ export default (localAction, container) => {
       return retrieveParameters(container);
     case LOCAL_ACTION_TYPES.RETRIEVE_PHENOMENA:
       return retrievePhenomena(container);
+    case LOCAL_ACTION_TYPES.RETRIEVE_OBSCURING_PHENOMENA:
+      return retrieveObscuringPhenomena(container);
     case LOCAL_ACTION_TYPES.RETRIEVE_AIRMETS:
       return synchronizeAirmets(container);
     case LOCAL_ACTION_TYPES.FOCUS_AIRMET:

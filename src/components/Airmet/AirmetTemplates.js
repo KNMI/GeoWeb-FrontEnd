@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import cloneDeep from 'lodash.clonedeep';
 import moment from 'moment';
+import { types } from 'util';
 
 const AIRMET_MODES = {
   EDIT: 'EDIT',
@@ -25,17 +26,40 @@ const TEMPLATES = {
     dir: null, // string
     speed: null // number
   },
-  VOLCANO: {
-    name: null, // string
-    position: [null] // number values, [lat, lon]
+  CLOUD_LEVELS: {
+    lower: {
+      surface: false, // bool
+      val: null, // number
+      unit: null // string
+    },
+    upper: {
+      above: false, // bool
+      val: null, // number
+      unit: null // string
+    }
   },
-  MOVE_TO: [null], // string values, one or more adjacent_firs identifiers, only applicable for Cancel-AIRMET
-  TROPICAL_CYCLONE: {
-    name: null // string
+  WIND: {
+    speed: {
+      val: null, // number
+      unit: null // string
+    },
+    direction: {
+      val: null, // number
+      unit: null // string
+    }
+  },
+  OBSCURING: {
+    name: null, // string
+    code: null // string
+  },
+  VISIBILITY: {
+    val: null, // number
+    unit: null // string
   },
   PHENOMENON: {
     code: null, // string
     name: null, // string
+    paraminfo: null, // string
     layerpreset: null // string
   },
   ADJACENT_FIRS: [null] // string values
@@ -68,20 +92,18 @@ TEMPLATES.LEVELINFO = {
   mode: null, // string, one of AT, ABV, BETW, BETW_SFC, TOPS, TOPS_ABV, TOPS_BLW
   levels: [cloneDeep(TEMPLATES.LEVEL)]
 };
-TEMPLATES.VA_EXTRA_FIELDS = {
-  volcano: cloneDeep(TEMPLATES.VOLCANO),
-  no_va_expected: false,
-  move_to: cloneDeep(TEMPLATES.MOVE_TO)
+TEMPLATES.PHENOMENON_SPECIFIC_INFO = {
+  wind: cloneDeep(TEMPLATES.WIND),
+  cloudLevels: cloneDeep(TEMPLATES.CLOUD_LEVELS),
+  obscuring: cloneDeep(TEMPLATES.OBSCURING),
+  visibility: cloneDeep(TEMPLATES.VISIBILITY)
 };
-TEMPLATES.TC_EXTRA_FIELDS = {
-  tropical_cyclone: cloneDeep(TEMPLATES.TROPICAL_CYCLONE)
-};
+
 TEMPLATES.AIRMET = {
   /* What */
   phenomenon: null, // string
+  phenomenon_specific_information: cloneDeep(TEMPLATES.PHENOMENON_SPECIFIC_INFO),
   obs_or_forecast: cloneDeep(TEMPLATES.OBS_OR_FORECAST),
-  va_extra_fields: cloneDeep(TEMPLATES.VA_EXTRA_FIELDS),
-  tc_extra_fields: cloneDeep(TEMPLATES.TC_EXTRA_FIELDS),
   /* Where */
   geojson: cloneDeep(TEMPLATES.GEOJSON),
   levelinfo: cloneDeep(TEMPLATES.LEVELINFO),
@@ -132,6 +154,7 @@ TEMPLATES.CATEGORY = {
 TEMPLATES.CONTAINER = {
   categories: [cloneDeep(TEMPLATES.CATEGORY)],
   phenomena: [cloneDeep(TEMPLATES.PHENOMENON)],
+  obscuringPhenomena: [cloneDeep(TEMPLATES.OBSCURING)],
   parameters: {
     active_firs: [null], // string values
     firareas: {
@@ -175,18 +198,35 @@ const TYPES = {
     obs: PropTypes.bool,
     obsFcTime: PropTypes.string
   }),
-  VA_EXTRA_FIELDS: PropTypes.shape({
-    volcano: PropTypes.shape({
-      name: PropTypes.string,
-      position: PropTypes.arrayOf(PropTypes.number)
+  CLOUD_LEVELS: PropTypes.shape({
+    lower: PropTypes.shape({
+      surface: PropTypes.bool, // bool
+      val: PropTypes.number, // number
+      unit: PropTypes.string // string
     }),
-    no_va_expected: PropTypes.bool,
-    move_to: PropTypes.arrayOf(PropTypes.string)
-  }),
-  TC_EXTRA_FIELDS: PropTypes.shape({
-    tropical_cyclone: PropTypes.shape({
-      name: PropTypes.string
+    upper: PropTypes.shape({
+      above: PropTypes.bool, // bool
+      val: PropTypes.number, // number
+      unit: PropTypes.string // string
     })
+  }),
+  WIND: PropTypes.shape({
+    speed: PropTypes.shape({
+      val: PropTypes.number, // number
+      unit: PropTypes.string, // string
+    }),
+    direction: PropTypes.shape({
+      val: PropTypes.number, // number
+      unit: PropTypes.string, // string
+    })   
+  }),
+  OBSCURING_PHENOMENON: PropTypes.shape({
+    name: PropTypes.string, // string
+    code: PropTypes.string // string
+  }),
+  VISIBILITY: PropTypes.shape({
+    val: PropTypes.number, // number
+    unit: PropTypes.string // string
   }),
   FEATURE: PropTypes.shape({
     type: PropTypes.string,
@@ -242,10 +282,15 @@ TYPES.LEVELINFO = PropTypes.shape({
   mode: PropTypes.string,
   levels: PropTypes.arrayOf(TYPES.LEVEL)
 });
+TYPES.OBSCURING = PropTypes.arrayOf(TYPES.OBSCURING_PHENOMENON);
 TYPES.AIRMET = PropTypes.shape({
   phenomenon: TYPES.PHENOMENON,
-  va_extra_fields: TYPES.VA_EXTRA_FIELDS,
-  tc_extra_fields: TYPES.TC_EXTRA_FIELDS,
+  phenomenon_specific_information: PropTypes.shape({
+    wind: TYPES.WIND,
+    cloudLevels: TYPES.CLOUD_LEVELS,
+    obscuring: TYPES.OBSCURING,
+    visibility: TYPES.VISIBILITY
+  }),
   geojson: TYPES.GEOJSON,
   levelinfo: TYPES.LEVELINFO,
   firname: TYPES.FIR_NAME,
@@ -287,6 +332,13 @@ const MOVEMENT_OPTIONS = [
   { optionId: MOVEMENT_TYPES.MOVEMENT, label: 'Movement', disabled: false }
 ];
 
+const PARAMS_NEEDED = {
+  NEEDS_NONE: 'NEEDS_NONE',
+  NEEDS_WIND: 'NEEDS_WIND',
+  NEEDS_CLOUDLEVELS: 'NEEDS_CLOUDLEVELS',
+  NEEDS_OBSCURATION: 'NEEDS_OBSCURATION'
+};
+
 // Cardinal, intercardinal and named points for directions of wind
 const DIRECTIONS = [
   { shortName: 'N', longName: 'North' },
@@ -317,7 +369,10 @@ const CHANGES = [
 const UNITS = {
   FL: 'FL',
   FT: 'FT',
-  M: 'M'
+  M: 'M',
+  KT: 'KT',
+  MPS: 'MPS',
+  DEGREES: 'degrees'
 };
 
 // Units for altitude
@@ -325,6 +380,12 @@ const UNITS_ALT = [
   { unit: UNITS.FL, label: 'FL' },
   { unit: UNITS.FT, label: 'ft' },
   { unit: UNITS.M, label: 'm' }
+];
+
+// Units for wind speed
+const UNITS_WIND_SPEED = [
+  { unit: UNITS.KT, label: 'KT' },
+  { unit: UNITS.MPS, label: 'MPS' }
 ];
 
 // Modes for levels
@@ -365,9 +426,7 @@ const CALENDAR_FORMAT = {
 };
 
 const AIRMET_VARIANTS = {
-  NORMAL: 'NORMAL',
-  VOLCANIC_ASH: 'VOLCANIC_ASH',
-  TROPICAL_CYCLONE: 'TROPICAL_CYCLONE'
+  NORMAL: 'NORMAL'
 };
 
 // Airmet distribution types
@@ -383,12 +442,8 @@ const DISTRIBUTION_OPTIONS = [
   { optionId: DISTRIBUTION_TYPES.TEST, label: 'Test', disabled: false }
 ];
 
-const PHENOMENON_CODE_VOLCANIC_ASH = 'VA_CLD';
-
 const AIRMET_VARIANTS_PREFIXES = {};
 AIRMET_VARIANTS_PREFIXES[AIRMET_VARIANTS.NORMAL] = '';
-AIRMET_VARIANTS_PREFIXES[AIRMET_VARIANTS.VOLCANIC_ASH] = 'va_';
-AIRMET_VARIANTS_PREFIXES[AIRMET_VARIANTS.TROPICAL_CYCLONE] = 'tc_';
 
 const dateRanges = (now, startTimestamp, endTimestamp, maxHoursInAdvance, maxHoursDuration) => ({
   obsFcTime: {
@@ -421,7 +476,9 @@ module.exports = {
   DISTRIBUTION_OPTIONS: DISTRIBUTION_OPTIONS,
   DIRECTIONS: DIRECTIONS,
   CHANGES: CHANGES,
+  PARAMS_NEEDED: PARAMS_NEEDED,
   UNITS_ALT: UNITS_ALT,
+  UNITS_WIND_SPEED: UNITS_WIND_SPEED,
   UNITS: UNITS,
   MODES_LVL: MODES_LVL,
   MODES_LVL_OPTIONS: MODES_LVL_OPTIONS,
@@ -437,6 +494,5 @@ module.exports = {
   DATETIME_FORMAT: DATETIME_FORMAT,
   CALENDAR_FORMAT: CALENDAR_FORMAT,
   AIRMET_VARIANTS_PREFIXES: AIRMET_VARIANTS_PREFIXES,
-  PHENOMENON_CODE_VOLCANIC_ASH: PHENOMENON_CODE_VOLCANIC_ASH,
   dateRanges: dateRanges
 };

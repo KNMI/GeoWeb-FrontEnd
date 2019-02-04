@@ -4,7 +4,7 @@ import CollapseOmni from '../../components/CollapseOmni';
 import Icon from 'react-fa';
 import PropTypes from 'prop-types';
 import { CATEGORY_REFS, READ_ABILITIES } from '../../containers/Airmet/AirmetActions';
-import { AIRMET_MODES, AIRMET_VARIANTS_PREFIXES, AIRMET_TYPES } from './AirmetTemplates';
+import { AIRMET_MODES, AIRMET_VARIANTS_PREFIXES, AIRMET_TYPES, PARAMS_NEEDED } from './AirmetTemplates';
 import AirmetEditMode from './AirmetEditMode';
 import AirmetReadMode from './AirmetReadMode';
 import AirmetMinifiedMode from './AirmetMinifiedMode';
@@ -40,12 +40,25 @@ class AirmetsCategory extends PureComponent {
     return 0;
   }
 
-  derivedAirmetProperties (airmet, selectedAirmet, parameters) {
+  derivedAirmetProperties (airmet, selectedAirmet, parameters, availablePhenomena) {
     const isSelectedAirmet = selectedAirmet && airmet.uuid === selectedAirmet.uuid;
     const airmetToShow = isSelectedAirmet ? selectedAirmet : airmet;
     const isCancelFor = airmetToShow.cancels !== null && !isNaN(airmetToShow.cancels)
       ? parseInt(airmetToShow.cancels)
       : null;
+    const isWindNeeded = true; 
+    const filteredPhenomena = availablePhenomena.filter((entry) => entry.code === airmet.phenomenon);
+    const specificPhenomena = filteredPhenomena.length > 0 
+    ? {
+      isWindNeeded: filteredPhenomena[0].paraminfo === PARAMS_NEEDED.NEEDS_WIND,
+      isCloudLevelsNeeded: filteredPhenomena[0].paraminfo === PARAMS_NEEDED.NEEDS_CLOUDLEVELS,
+      isObsuringNeeded: filteredPhenomena[0].paraminfo === PARAMS_NEEDED.NEEDS_OBSCURATION
+    }
+    :{
+      isWindNeeded: false,
+      isCloudLevelsNeeded: false,
+      isObsuringNeeded: false
+    }
     const prefix = AIRMET_VARIANTS_PREFIXES.NORMAL;
     const activeFirEntry = Object.entries(parameters.firareas).filter((entry) => entry[1].firname === airmetToShow.firname &&
       entry[1].location_indicator_icao === airmetToShow.location_indicator_icao);
@@ -62,17 +75,16 @@ class AirmetsCategory extends PureComponent {
     const adjacentFirs = activeFir
       ? activeFir['adjacent_firs']
       : null;
-    const volcanoCoordinates = Array.isArray(airmetToShow.va_extra_fields.volcano.position) && airmetToShow.va_extra_fields.volcano.position.length > 0
-      ? airmetToShow.va_extra_fields.volcano.position
-      : [null, null];
     return {
       isSelectedAirmet,
       airmetToShow,
       isCancelFor,
       maxHoursInAdvance,
       maxHoursDuration,
-      adjacentFirs,
-      volcanoCoordinates
+      isWindNeeded : specificPhenomena.isWindNeeded,
+      isCloudLevelsNeeded : specificPhenomena.isCloudLevelsNeeded,
+      isObsuringNeeded : specificPhenomena.isObsuringNeeded,
+      adjacentFirs
     };
   }
 
@@ -122,8 +134,8 @@ class AirmetsCategory extends PureComponent {
                 <Row>
                   <Col className='btn-group-vertical'>
                     {airmetCollection.map((airmet) => {
-                      const { isSelectedAirmet, isCancelFor, maxHoursInAdvance, maxHoursDuration,
-                        adjacentFirs, airmetToShow } = this.derivedAirmetProperties(airmet, selectedAirmet, parameters);
+                      const { isSelectedAirmet, isWindNeeded, isCloudLevelsNeeded, isObsuringNeeded, isCancelFor, maxHoursInAdvance, maxHoursDuration,
+                        adjacentFirs, airmetToShow } = this.derivedAirmetProperties(airmet, selectedAirmet, parameters, availablePhenomena);
 
                       // Render selected AIRMET
                       if (isSelectedAirmet) {
@@ -134,6 +146,9 @@ class AirmetsCategory extends PureComponent {
                           abilities={abilities[selectedAuxiliaryInfo.mode]}
                           copiedAirmetRef={copiedAirmetRef}
                           hasEdits={selectedAuxiliaryInfo.hasEdits}
+                          isWindNeeded={isWindNeeded}
+                          isCloudLevelsNeeded={isCloudLevelsNeeded}
+                          isObsuringNeeded={isObsuringNeeded}
                           availablePhenomena={availablePhenomena}
                           focus
                           airmet={airmetToShow}

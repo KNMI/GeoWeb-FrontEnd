@@ -196,14 +196,29 @@ describe('(Reducer) Airmet/AirmetReducers', () => {
     });
   });
   it('should handle retrievePhenomena', (done) => {
-    const phenomena = [{
-      'phenomenon': {
-        'name': 'Thunderstorm',
-        'code': 'TS',
-        'layerpreset': 'airmet_layer_TS'
-      },
-      'variants': [{ 'name': 'Obscured', 'code': 'OBSC' }, { 'name': 'Embedded', 'code': 'EMBD' }],
-      'additions': [{ 'name': 'with hail', 'code': 'GR' }]
+    const phenomena = [{      
+      "name": "Isolated thunderstorms",
+      "code": "ISOL_TS",
+      "paraminfo": "NEEDS_NONE",
+      "layerpreset": "Airmet_layer_TS"
+    },
+    {
+      "name": "Isolated thunderstorms with hail",
+      "code": "ISOL_TSGR",
+      "paraminfo": "NEEDS_NONE",
+      "layerpreset": "Airmet_layer_TS"
+    },
+    {
+      "name": "Occasional thunderstorms",
+      "code": "OCNL_TS",
+      "paraminfo": "NEEDS_NONE",
+      "layerpreset": "Airmet_layer_TS"
+    },
+    {
+      "name": "Occasional thunderstorms with hail",
+      "code": "OCNL_TSGR",
+      "paraminfo": "NEEDS_NONE",
+      "layerpreset": "Airmet_layer_TS"
     }];
     const container = {
       props: {
@@ -230,28 +245,7 @@ describe('(Reducer) Airmet/AirmetReducers', () => {
       }).then(() => {
         expect(container.state).to.be.a('object');
         expect(container.state).to.have.property('phenomena');
-        expect(container.state.phenomena).to.eql([
-          {
-            'code': 'OBSC_TSGR',
-            'layerpreset': 'airmet_layer_TS',
-            'name': 'Obscured thunderstorm with hail'
-          },
-          {
-            'code': 'OBSC_TS',
-            'layerpreset': 'airmet_layer_TS',
-            'name': 'Obscured thunderstorm'
-          },
-          {
-            'code': 'EMBD_TSGR',
-            'layerpreset': 'airmet_layer_TS',
-            'name': 'Embedded thunderstorm with hail'
-          },
-          {
-            'code': 'EMBD_TS',
-            'layerpreset': 'airmet_layer_TS',
-            'name': 'Embedded thunderstorm'
-          }
-        ]);
+        expect(container.state.phenomena).to.eql(phenomena);
         done();
       }).catch(done);
     });

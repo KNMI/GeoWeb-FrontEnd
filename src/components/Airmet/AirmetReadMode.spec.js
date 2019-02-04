@@ -5,10 +5,7 @@ import { Button } from 'reactstrap';
 
 const airmet = {
   phenomenon: 'TEST',
-  levelinfo: { levels: [{ unit: 'FL', value: 4 }, { unit: 'M', value: 4 }] },
-  va_extra_fields: {
-    volcano: {}
-  }
+  levelinfo: { levels: [{ unit: 'FL', value: 4 }, { unit: 'M', value: 4 }] }
 };
 
 describe('(Component) AirmetReadMode', () => {

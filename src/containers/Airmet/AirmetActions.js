@@ -32,6 +32,7 @@ export const LOCAL_ACTIONS = {
   toggleCategoryAction: (evt, ref) => ({ type: LOCAL_ACTION_TYPES.TOGGLE_CATEGORY, event: evt, ref: ref }),
   retrieveParametersAction: () => ({ type: LOCAL_ACTION_TYPES.RETRIEVE_PARAMETERS }),
   retrievePhenomenaAction: () => ({ type: LOCAL_ACTION_TYPES.RETRIEVE_PHENOMENA }),
+  retrieveObscuringPhenomenaAction: () => ({ type: LOCAL_ACTION_TYPES.RETRIEVE_OBSCURING_PHENOMENA }),
   retrieveAirmetsAction: () => ({ type: LOCAL_ACTION_TYPES.RETRIEVE_AIRMETS }),
   focusAirmetAction: (evt, uuid) => ({ type: LOCAL_ACTION_TYPES.FOCUS_AIRMET, event: evt, uuid: uuid }),
   addAirmetAction: (ref) => ({ type: LOCAL_ACTION_TYPES.ADD_AIRMET, ref: ref }),

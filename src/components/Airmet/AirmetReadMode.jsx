@@ -246,13 +246,12 @@ class AirmetReadMode extends PureComponent {
     const { dispatch, actions, airmet, focus, isCancelFor, displayModal, adjacentFirs } = this.props;
     const { phenomenon, uuid, type: distributionType, validdate, validdate_end: validdateEnd,
       location_indicator_icao: locationIndicatorIcao, location_indicator_mwo: locationIndicatorMwo,
-      levelinfo, movement_type: movementType, movement, change, tac, va_extra_fields: vaExtraFields, obs_or_forecast: obsOrForecast,
+      levelinfo, movement_type: movementType, movement, change, tac, obs_or_forecast: obsOrForecast,
       issuedate, sequence, firname } = airmet;
 
     const obsFcTime = obsOrForecast ? obsOrForecast.obsFcTime : null;
     const isObserved = obsOrForecast ? obsOrForecast.obs : null;
-    const moveTo = vaExtraFields.move_to;
-
+  
     const abilityCtAs = this.reduceAbilities(); // CtA = Call To Action
     const selectedDirection = movement && DIRECTIONS.find((obj) => obj.shortName === movement.dir);
     const directionLongName = selectedDirection ? selectedDirection.longName : null;

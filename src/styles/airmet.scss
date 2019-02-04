@@ -158,6 +158,10 @@
       margin-right: 0.2rem;
     }
 
+    [data-field=above-toggle] input {
+      margin-right: 0.2rem;
+    }
+
     .Switch > .col-auto {
       flex-basis: 0;
       flex-grow: 1;
@@ -407,7 +411,7 @@
     }
   }
 
-  .required {
+  span.required {
     margin-left: -0.9rem;
     padding-top: 0.33rem;
     color: #888;

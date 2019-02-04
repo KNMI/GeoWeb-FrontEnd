@@ -1,7 +1,8 @@
 import React, { PureComponent } from 'react';
 import {
   Button, Col, InputGroup, InputGroupAddon, Input, ButtonDropdown,
-  DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap';
+  DropdownToggle, DropdownMenu, DropdownItem
+} from 'reactstrap';
 import { Typeahead } from 'react-bootstrap-typeahead';
 import TimePicker from '../Basis/DateTimePicker';
 import produce from 'immer';
@@ -26,8 +27,9 @@ import IssueSection from '../SectionTemplates/IssueSection';
 import ChangeSection from '../SectionTemplates/ChangeSection';
 import HeightsSection from '../SectionTemplates/HeightsSection';
 import {
-  DIRECTIONS, UNITS_ALT, UNITS, MODES_LVL, MODES_LVL_OPTIONS, CHANGES, MOVEMENT_TYPES, MOVEMENT_OPTIONS, AIRMET_TYPES,
-  DATETIME_FORMAT, DISTRIBUTION_OPTIONS, dateRanges } from './AirmetTemplates';
+  DIRECTIONS, UNITS_ALT, UNITS_WIND_SPEED, UNITS, MODES_LVL, MODES_LVL_OPTIONS, CHANGES, MOVEMENT_TYPES, MOVEMENT_OPTIONS, AIRMET_TYPES,
+  DATETIME_FORMAT, DISTRIBUTION_OPTIONS, dateRanges
+} from './AirmetTemplates';
 
 const DROP_DOWN_NAMES = {
   AT_OR_ABOVE: 'atOrAbove',
@@ -36,12 +38,13 @@ const DROP_DOWN_NAMES = {
 };
 
 class AirmetEditMode extends PureComponent {
-  constructor (props) {
+  constructor(props) {
     super(props);
     this.toggleDropDown = this.toggleDropDown.bind(this);
     this.setMode = this.setMode.bind(this);
     this.getMode = this.getMode.bind(this);
     this.getUnitLabel = this.getUnitLabel.bind(this);
+    this.getWindSpeedUnitLabel = this.getWindSpeedUnitLabel.bind(this);
     this.maxLevelPerUnit = this.maxLevelPerUnit.bind(this);
     this.stepLevelPerUnit = this.stepLevelPerUnit.bind(this);
     this.formatLevelPerUnit = this.formatLevelPerUnit.bind(this);
@@ -52,7 +55,7 @@ class AirmetEditMode extends PureComponent {
     };
   }
 
-  toggleDropDown (dropDownName) {
+  toggleDropDown(dropDownName) {
     let flag = null;
     switch (dropDownName) {
       case DROP_DOWN_NAMES.AT_OR_ABOVE:
@@ -72,7 +75,7 @@ class AirmetEditMode extends PureComponent {
     }
   }
 
-  setMode (evt, selectedOption = null) {
+  setMode(evt, selectedOption = null) {
     const { dispatch, actions } = this.props;
     const { uuid } = this.props.airmet;
     const currentMode = this.getMode();
@@ -113,7 +116,7 @@ class AirmetEditMode extends PureComponent {
     }
   };
 
-  getMode () {
+  getMode() {
     const { levelinfo } = this.props.airmet;
     const result = {
       extent: MODES_LVL.AT,
@@ -138,11 +141,16 @@ class AirmetEditMode extends PureComponent {
     return result;
   }
 
-  getUnitLabel (unitName) {
+  getWindSpeedUnitLabel(unitName) {
+    console.log(unitName);
+    return UNITS_WIND_SPEED.find((unit) => unit.unit === unitName).label;
+  }
+
+  getUnitLabel(unitName) {
     return UNITS_ALT.find((unit) => unit.unit === unitName).label;
   };
 
-  maxLevelPerUnit (unit) {
+  maxLevelPerUnit(unit) {
     switch (unit) {
       case UNITS.FL:
         return 999;
@@ -155,7 +163,7 @@ class AirmetEditMode extends PureComponent {
     }
   };
 
-  stepLevelPerUnit (unit) {
+  stepLevelPerUnit(unit) {
     switch (unit) {
       case UNITS.FL:
         return 10;
@@ -167,7 +175,7 @@ class AirmetEditMode extends PureComponent {
     }
   };
 
-  formatLevelPerUnit (value, unit) {
+  formatLevelPerUnit(value, unit) {
     if (typeof value !== 'number') {
       return value;
     }
@@ -195,7 +203,7 @@ class AirmetEditMode extends PureComponent {
 * @returns {object} Object with {boolean} property disable, indicating whether or not is should be disabled
 *          and {string} property message to explain why...
 */
-  getDisabledFlag (abilityRef, isInValidityPeriod, selectedPhenomenon) {
+  getDisabledFlag(abilityRef, isInValidityPeriod, selectedPhenomenon) {
     const { copiedAirmetRef, hasEdits } = this.props;
     const { validdate, validdate_end: validdateEnd, obs_or_forecast: obsOrForecast } = this.props.airmet;
     const obsFcTime = obsOrForecast ? obsOrForecast.obsFcTime : null;
@@ -220,7 +228,7 @@ class AirmetEditMode extends PureComponent {
    * @param {string} selectedPhenomenon The selectedPhenomenon
    * @returns {array} The remaining abilities for this specific Airmet
    */
-  reduceAbilities (selectedPhenomenon) {
+  reduceAbilities(selectedPhenomenon) {
     const { abilities } = this.props;
     const { validdate, validdate_end: validdateEnd } = this.props.airmet;
     const abilitiesCtAs = []; // CtA = Call To Action
@@ -238,14 +246,15 @@ class AirmetEditMode extends PureComponent {
     return abilitiesCtAs;
   }
 
-  render () {
+  render() {
     const { dispatch, actions, airmet, availablePhenomena, hasStartCoordinates, feedbackStart,
-      availableFirs, focus, maxHoursInAdvance, maxHoursDuration } = this.props;
+      availableFirs, focus, maxHoursInAdvance, maxHoursDuration, isWindNeeded, isCloudLevelsNeeded, isObscuringNeeded } = this.props;
     const { isAtOrAboveDropDownOpen, isBetweenLowerDropDownOpen, isBetweenUpperDropDownOpen } = this.state;
 
     const { phenomenon, uuid, type: distributionType, validdate, validdate_end: validdateEnd,
       location_indicator_icao: locationIndicatorIcao, location_indicator_mwo: locationIndicatorMwo,
-      levelinfo, movement_type: movementType, movement, change, tac, obs_or_forecast: obsOrForecast } = airmet;
+      levelinfo, movement_type: movementType, movement, change, tac, obs_or_forecast: obsOrForecast,
+      phenomenon_specific_information } = airmet;
     const obsFcTime = obsOrForecast ? obsOrForecast.obsFcTime : null;
     const isObserved = obsOrForecast ? obsOrForecast.obs : null;
 
@@ -260,6 +269,15 @@ class AirmetEditMode extends PureComponent {
     const atOrAboveOption = MODES_LVL_OPTIONS.find((option) => option.optionId === levelMode.extent && option.optionId !== MODES_LVL.BETW);
     const atOrAboveLabel = atOrAboveOption ? atOrAboveOption.label : '';
     const movementOptions = cloneDeep(MOVEMENT_OPTIONS);
+    const specificWind = phenomenon_specific_information && phenomenon_specific_information.wind
+      ? phenomenon_specific_information.wind
+      : null;
+    const specificCloudLevels = phenomenon_specific_information && phenomenon_specific_information.cloudLevels
+      ? phenomenon_specific_information.cloudLevels
+      : null;
+    const specificObscuring = phenomenon_specific_information && phenomenon_specific_information.obscuring
+      ? phenomenon_specific_information.obscuring
+      : null;
     const drawActions = (isEndFeature = false) => [
       {
         title: `Draw point${!selectedFir ? ' (select a FIR first)' : ''}`,
@@ -296,7 +314,6 @@ class AirmetEditMode extends PureComponent {
     const drawMessage = () => !hasStartCoordinates
       ? `${messagePrefix} ${isObserved ? 'observed' : 'expected to occur'}.`
       : feedbackStart || '';
-
     const abilityCtAs = this.reduceAbilities(selectedPhenomenon); // CtA = Call To Action
     return <Button tag='div' className={`Airmet row${focus ? ' focus' : ''}`} id={uuid}
       onClick={!focus ? (evt) => dispatch(actions.focusAirmetAction(evt, uuid)) : null}>
@@ -326,6 +343,82 @@ class AirmetEditMode extends PureComponent {
             min={dateLimits.obsFcTime.min}
             max={dateLimits.obsFcTime.max}
           />
+          {isWindNeeded
+            ? <Input data-field='wind_direction' onChange={(evt) => dispatch(actions.updateAirmetAction(uuid, 'phenomenon_specific_information.wind.direction.val',
+              typeof evt.target.value === 'string' && evt.target.value.length > 0 ? parseInt(evt.target.value) : null))}
+              value={(!specificWind || !specificWind.direction || !Number.isInteger(specificWind.direction.val)) ? '' : `${specificWind.direction.val}`} placeholder={'Set direction'}
+              type='number'
+              step='1' min='0' max='360'
+              className={classNames({
+                required: true,
+                missing: !specificWind || !specificWind.direction || !Number.isInteger(specificWind.direction.val)
+              })}
+              />
+            : null
+          }
+          {/*isWindNeeded
+            ? <InputGroup data-field='wind_speed' className={wind.speed ? 'required' : 'required missing'}>
+              <Input placeholder={'Set wind speed'}
+                onChange={(selectedValues) => dispatch(actions.updateAirmetAction(uuid, 'wind', selectedValues))}
+                type='number' step='1' min='1' />
+              <InputGroupAddon addonType='append'>
+                <ButtonDropdown>
+                  <DropdownToggle caret>
+                    {this.getWindSpeedUnitLabel(wind.unit)}
+                  </DropdownToggle>
+                  <DropdownMenu>
+                    {UNITS_WIND_SPEED.map((unit, index) =>
+                      <DropdownItem key={`unitDropDown-${index}`}
+                        onClick={(evt) => dispatch(actions.updateAirmetAction(uuid, 'wind', unit))}>{unit.label}
+                      </DropdownItem>
+                    )}
+                  </DropdownMenu>
+                </ButtonDropdown>
+              </InputGroupAddon>
+            </InputGroup>
+            : null*/
+          }
+          {isObscuringNeeded
+            ? <Input data-field='visibility' placeholder={'Set visibility'}
+              onChange={(selectedValues) => dispatch(actions.updateAirmetAction(uuid, 'visibility', selectedValues))}
+              type='number' step='1' min='1' />
+            : null
+          }
+          {isObscuringNeeded
+            ? <Input data-field='cause' placeholder={'Select cause'}
+              /* onChange={(selectedValues) => dispatch(actions.updateAirmetAction(uuid, 'visibility', selectedValues))}
+              type='number' step='1' min='1' */ />
+            : null
+          }
+          <Checkbox
+            value={levelMode.hasTops ? 'above' : ''}
+            option={{ optionId: 'above', label: 'Above' }}
+            onChange={this.setMode}
+            data-field='above-toggle'
+          /*disabled={isLevelNeeded}*/
+          />
+          <InputGroup data-field='at-above-altitude'
+            className={!isLevelBetween && levelinfo && levelinfo.levels && levelinfo.levels[0] &&
+              (!levelinfo.levels[0].value || levelinfo.levels[0].value > this.maxLevelPerUnit(levelinfo.levels[0].unit)) ? 'missing' : null}
+            disabled={isLevelBetween}>
+            <InputGroupAddon addonType='prepend'>
+              <ButtonDropdown toggle={() => this.toggleDropDown(DROP_DOWN_NAMES.AT_OR_ABOVE)} isOpen={isAtOrAboveDropDownOpen}>
+                <DropdownToggle caret disabled={isLevelBetween}>
+                  {this.getUnitLabel(levelinfo.levels[0].unit)}
+                </DropdownToggle>
+                <DropdownMenu>
+                  {UNITS_ALT.map((unit, index) =>
+                    <DropdownItem key={`unitDropDown-${index}`}
+                      onClick={(evt) => dispatch(actions.updateAirmetAction(uuid, 'levelinfo.levels.0.unit', unit))}>{unit.label}</DropdownItem>
+                  )}
+                </DropdownMenu>
+              </ButtonDropdown>
+            </InputGroupAddon>
+            <Input placeholder='Level' disabled={isLevelBetween} type='number' pattern='\d{0,5}'
+              min='0' step={this.stepLevelPerUnit(levelinfo.levels[0].unit)} max={this.maxLevelPerUnit(levelinfo.levels[0].unit)}
+              value={(isLevelBetween || !levelinfo.levels[0].value) ? '' : this.formatLevelPerUnit(levelinfo.levels[0].value, levelinfo.levels[0].unit)}
+              onChange={(evt) => dispatch(actions.updateAirmetAction(uuid, 'levelinfo.levels.0.value', evt.target.value))} />
+          </InputGroup>
         </WhatSection>
 
         <ValiditySection>
@@ -581,7 +674,8 @@ AirmetEditMode.propTypes = {
   availableFirs: PropTypes.array,
   maxHoursDuration: PropTypes.number,
   maxHoursInAdvance: PropTypes.number,
-  airmet: AIRMET_TYPES.AIRMET
+  airmet: AIRMET_TYPES.AIRMET,
+  isWindNeeded: PropTypes.bool
 };
 
 export default AirmetEditMode;
