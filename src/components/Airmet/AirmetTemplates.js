@@ -1,7 +1,6 @@
 import PropTypes from 'prop-types';
 import cloneDeep from 'lodash.clonedeep';
 import moment from 'moment';
-import { types } from 'util';
 
 const AIRMET_MODES = {
   EDIT: 'EDIT',
@@ -161,11 +160,7 @@ TEMPLATES.CONTAINER = {
         firname: null, // string
         location_indicator_icao: null, // string
         hoursbeforevalidity: null, // number
-        maxhoursofvalidity: null, // number
-        tc_hoursbeforevalidity: null, // number
-        tc_maxhoursofvalidity: null, // number
-        va_hoursbeforevalidity: null, // number
-        va_maxhoursofvalidity: null // number
+        maxhoursofvalidity: null // number
       }
     },
     location_indicator_wmo: null // string
@@ -210,12 +205,12 @@ const TYPES = {
   WIND: PropTypes.shape({
     speed: PropTypes.shape({
       val: PropTypes.number, // number
-      unit: PropTypes.string, // string
+      unit: PropTypes.string // string
     }),
     direction: PropTypes.shape({
       val: PropTypes.number, // number
-      unit: PropTypes.string, // string
-    })   
+      unit: PropTypes.string // string
+    })
   }),
   OBSCURING_PHENOMENON: PropTypes.shape({
     name: PropTypes.string, // string

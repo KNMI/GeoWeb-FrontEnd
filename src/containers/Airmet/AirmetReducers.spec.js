@@ -83,11 +83,7 @@ describe('(Reducer) Airmet/AirmetReducers', () => {
               firname: 'TEST FIR',
               location_indicator_icao: 'TSME',
               hoursbeforevalidity: 2,
-              maxhoursofvalidity: 3,
-              tc_hoursbeforevalidity: 4,
-              tc_maxhoursofvalidity: 5,
-              va_hoursbeforevalidity: 6,
-              va_maxhoursofvalidity: 7
+              maxhoursofvalidity: 3
             }
           },
           location_indicator_wmo: 'TSMF'
@@ -145,10 +141,6 @@ describe('(Reducer) Airmet/AirmetReducers', () => {
           'areapreset': 'NL_FIR',
           'maxhoursofvalidity': 4,
           'hoursbeforevalidity': 4,
-          'tc_maxhoursofvalidity': 0,
-          'tc_hoursbeforevalidity': 0,
-          'va_maxhoursofvalidity': 12,
-          'va_hoursbeforevalidity': 6,
           'adjacent_firs': [
             'EKDK',
             'EDWW',
@@ -196,29 +188,29 @@ describe('(Reducer) Airmet/AirmetReducers', () => {
     });
   });
   it('should handle retrievePhenomena', (done) => {
-    const phenomena = [{      
-      "name": "Isolated thunderstorms",
-      "code": "ISOL_TS",
-      "paraminfo": "NEEDS_NONE",
-      "layerpreset": "Airmet_layer_TS"
+    const phenomena = [{
+      'name': 'Isolated thunderstorms',
+      'code': 'ISOL_TS',
+      'paraminfo': 'NEEDS_NONE',
+      'layerpreset': 'Airmet_layer_TS'
     },
     {
-      "name": "Isolated thunderstorms with hail",
-      "code": "ISOL_TSGR",
-      "paraminfo": "NEEDS_NONE",
-      "layerpreset": "Airmet_layer_TS"
+      'name': 'Isolated thunderstorms with hail',
+      'code': 'ISOL_TSGR',
+      'paraminfo': 'NEEDS_NONE',
+      'layerpreset': 'Airmet_layer_TS'
     },
     {
-      "name": "Occasional thunderstorms",
-      "code": "OCNL_TS",
-      "paraminfo": "NEEDS_NONE",
-      "layerpreset": "Airmet_layer_TS"
+      'name': 'Occasional thunderstorms',
+      'code': 'OCNL_TS',
+      'paraminfo': 'NEEDS_NONE',
+      'layerpreset': 'Airmet_layer_TS'
     },
     {
-      "name": "Occasional thunderstorms with hail",
-      "code": "OCNL_TSGR",
-      "paraminfo": "NEEDS_NONE",
-      "layerpreset": "Airmet_layer_TS"
+      'name': 'Occasional thunderstorms with hail',
+      'code': 'OCNL_TSGR',
+      'paraminfo': 'NEEDS_NONE',
+      'layerpreset': 'Airmet_layer_TS'
     }];
     const container = {
       props: {
