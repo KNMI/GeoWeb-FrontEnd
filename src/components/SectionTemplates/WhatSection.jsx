@@ -82,54 +82,42 @@ export default class WhatSection extends PureComponent {
           </Row>
           : null
         }
-        {children.wind_direction
+        {children.wind_direction && children.wind_speed
           ? <Row>
             <Col xs={{ size: 2, offset: 1 }}>
-              <Badge>Direction</Badge>
+              <Badge>Wind</Badge>
             </Col>
-            <Col xs='9'>
-            {children.wind_direction}
-            {children.wind_direction && hasClass(children.wind_direction.props.className, 'required')
-              ? <span className={classNames('required', { missing: hasClass(children.wind_direction.props.className, 'missing') })} />
-              : null
-            }
-            </Col>
-          </Row>
-          : null
-        }
-        {children.wind_speed
-          ? <Row className={isWindNeeded ? 'disabled' : null}>
-            <Col xs={{ size: 2, offset: 1 }}>
-              <Badge>Speed</Badge>
-            </Col>
-            <Col xs='9'>
-              {children.wind_speed}
-              {children.wind_speed && children.wind_speed.props.selected
-                ? <span className={children.wind_speed.props.selected.length > 0 ? 'required' : 'required missing'} />
+            <Col xs='4'>
+              {children.wind_direction}
+              {children.wind_direction && hasClass(children.wind_direction.props.className, 'required')
+                ? <span className={classNames('required', { missing: hasClass(children.wind_direction.props.className, 'missing') })} />
                 : null
               }
+            </Col>
+            <Col xs={{ size: 4, offset: 1 }}>
+              {children.wind_speed}
             </Col>
           </Row>
           : null
         }
         {children.visibility
-          ? <Row /*className={isVisibilityNeeded ? 'disabled' : null}*/>
+          ? <Row>
             <Col xs={{ size: 2, offset: 1 }}>
               <Badge>Visibility</Badge>
             </Col>
-            <Col xs='9'>
+            <Col xs='4'>
               {children.visibility}
+              {children.visibility && hasClass(children.visibility.props.className, 'required')
+              ? <span className={classNames('required', { missing: hasClass(children.visibility.props.className, 'missing') })} />
+              : null
+            }
             </Col>
-          </Row>
-          : null
-        }
-        {children.cause
-          ? <Row /*className={isVisibilityNeeded ? 'disabled' : null}*/>
-            <Col xs={{ size: 2, offset: 1 }}>
-              <Badge>Cause</Badge>
-            </Col>
-            <Col xs='9'>
-              {children.cause}
+            <Col xs={{ size: 4, offset: 1 }}>
+              {children.oscuring}
+              {children.oscuring && hasClass(children.oscuring.props.className, 'required')
+              ? <span className={classNames('required', { missing: hasClass(children.oscuring.props.className, 'missing') })} />
+              : null
+            }
             </Col>
           </Row>
           : null
@@ -162,7 +150,4 @@ WhatSection.propTypes = {
     PropTypes.element,
     PropTypes.object
   ])),
-  isWindNeeded: PropTypes.bool,
-  //isVisibilityNeeded: PropTypes.bool,
-  isLevelNeeded: PropTypes.bool
 };

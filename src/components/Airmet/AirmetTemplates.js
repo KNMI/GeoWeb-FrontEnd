@@ -92,17 +92,14 @@ TEMPLATES.LEVELINFO = {
   mode: null, // string, one of AT, ABV, BETW, BETW_SFC, TOPS, TOPS_ABV, TOPS_BLW
   levels: [cloneDeep(TEMPLATES.LEVEL)]
 };
-TEMPLATES.PHENOMENON_SPECIFIC_INFO = {
-  wind: cloneDeep(TEMPLATES.WIND),
-  cloudLevels: cloneDeep(TEMPLATES.CLOUD_LEVELS),
-  obscuring: cloneDeep(TEMPLATES.OBSCURING),
-  visibility: cloneDeep(TEMPLATES.VISIBILITY)
-};
 
 TEMPLATES.AIRMET = {
   /* What */
   phenomenon: null, // string
-  phenomenon_specific_information: cloneDeep(TEMPLATES.PHENOMENON_SPECIFIC_INFO),
+  wind: cloneDeep(TEMPLATES.WIND),
+  cloudLevels: cloneDeep(TEMPLATES.CLOUD_LEVELS),
+  obscuring: [cloneDeep(TEMPLATES.OBSCURING)],
+  visibility: cloneDeep(TEMPLATES.VISIBILITY),
   obs_or_forecast: cloneDeep(TEMPLATES.OBS_OR_FORECAST),
   /* Where */
   geojson: cloneDeep(TEMPLATES.GEOJSON),
@@ -285,12 +282,10 @@ TYPES.LEVELINFO = PropTypes.shape({
 TYPES.OBSCURING = PropTypes.arrayOf(TYPES.OBSCURING_PHENOMENON);
 TYPES.AIRMET = PropTypes.shape({
   phenomenon: TYPES.PHENOMENON,
-  phenomenon_specific_information: PropTypes.shape({
-    wind: TYPES.WIND,
-    cloudLevels: TYPES.CLOUD_LEVELS,
-    obscuring: TYPES.OBSCURING,
-    visibility: TYPES.VISIBILITY
-  }),
+  wind: TYPES.WIND,
+  cloudLevels: TYPES.CLOUD_LEVELS,
+  obscuring: TYPES.OBSCURING,
+  visibility: TYPES.VISIBILITY,
   geojson: TYPES.GEOJSON,
   levelinfo: TYPES.LEVELINFO,
   firname: TYPES.FIR_NAME,

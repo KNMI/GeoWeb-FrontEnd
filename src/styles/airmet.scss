@@ -83,6 +83,36 @@
   }
 
   .What {
+    .row:nth-child(4) {
+      // > :nth-child(2) {
+      //   padding-right: 0.2rem;
+      // }
+      > :nth-child(3) {
+        z-index: 110;
+      }
+      .btn-group .dropdown-menu {
+        margin: 0;
+        min-width: 4rem;
+        padding: 0.3rem;
+      }
+      .input-group-append .btn {
+        min-width: 4rem;
+      }
+      :not(span).required {
+        margin: 0;
+        padding: 0;
+        
+        &:after {
+          width: 1rem;
+          z-index: 100;
+        }
+        &.unitAfter:after {
+          padding-top: 0.35rem;
+          margin-left: -5rem;
+          margin-right: 4rem;
+        }
+      }
+    }
     .row:not(:first-of-type) {
       margin-top: 0.2rem;
     }
@@ -411,9 +441,9 @@
     }
   }
 
-  span.required {
+  .required {
     margin-left: -0.9rem;
-    padding-top: 0.33rem;
+    padding-top: 0.35rem;
     color: #888;
     z-index: 100;
   }

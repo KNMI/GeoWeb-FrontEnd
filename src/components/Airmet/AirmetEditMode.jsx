@@ -34,7 +34,8 @@ import {
 const DROP_DOWN_NAMES = {
   AT_OR_ABOVE: 'atOrAbove',
   BETWEEN_LOWER: 'betweenLower',
-  BETWEEN_UPPER: 'betweenUpper'
+  BETWEEN_UPPER: 'betweenUpper',
+  WIND_SPEED: 'windSpeed'
 };
 
 class AirmetEditMode extends PureComponent {
@@ -51,7 +52,8 @@ class AirmetEditMode extends PureComponent {
     this.state = {
       isAtOrAboveDropDownOpen: false,
       isBetweenLowerDropDownOpen: false,
-      isBetweenUpperDropDownOpen: false
+      isBetweenUpperDropDownOpen: false,
+      isWindSpeedDropDownOpen: false
     };
   }
 
@@ -66,6 +68,9 @@ class AirmetEditMode extends PureComponent {
         break;
       case DROP_DOWN_NAMES.BETWEEN_UPPER:
         flag = 'isBetweenUpperDropDownOpen';
+        break;
+      case DROP_DOWN_NAMES.WIND_SPEED:
+        flag = 'isWindSpeedDropDownOpen';
         break;
     }
     if (flag) {
@@ -142,12 +147,15 @@ class AirmetEditMode extends PureComponent {
   }
 
   getWindSpeedUnitLabel(unitName) {
-    console.log(unitName);
-    return UNITS_WIND_SPEED.find((unit) => unit.unit === unitName).label;
+    return typeof unitName === 'string'
+      ? UNITS_WIND_SPEED.find((unit) => unit.unit === unitName).label
+      : UNITS_WIND_SPEED[0].label;
   }
 
   getUnitLabel(unitName) {
-    return UNITS_ALT.find((unit) => unit.unit === unitName).label;
+    return typeof unitName === 'string'
+      ? UNITS_ALT.find((unit) => unit.unit === unitName).label
+      : UNITS_ALT[0].label;
   };
 
   maxLevelPerUnit(unit) {
@@ -249,12 +257,12 @@ class AirmetEditMode extends PureComponent {
   render() {
     const { dispatch, actions, airmet, availablePhenomena, hasStartCoordinates, feedbackStart,
       availableFirs, focus, maxHoursInAdvance, maxHoursDuration, isWindNeeded, isCloudLevelsNeeded, isObscuringNeeded } = this.props;
-    const { isAtOrAboveDropDownOpen, isBetweenLowerDropDownOpen, isBetweenUpperDropDownOpen } = this.state;
+    const { isAtOrAboveDropDownOpen, isBetweenLowerDropDownOpen, isBetweenUpperDropDownOpen, isWindSpeedDropDownOpen } = this.state;
 
     const { phenomenon, uuid, type: distributionType, validdate, validdate_end: validdateEnd,
       location_indicator_icao: locationIndicatorIcao, location_indicator_mwo: locationIndicatorMwo,
       levelinfo, movement_type: movementType, movement, change, tac, obs_or_forecast: obsOrForecast,
-      phenomenon_specific_information } = airmet;
+      wind, cloudLevels, obscuring, visibility } = airmet;
     const obsFcTime = obsOrForecast ? obsOrForecast.obsFcTime : null;
     const isObserved = obsOrForecast ? obsOrForecast.obs : null;
 
@@ -269,15 +277,6 @@ class AirmetEditMode extends PureComponent {
     const atOrAboveOption = MODES_LVL_OPTIONS.find((option) => option.optionId === levelMode.extent && option.optionId !== MODES_LVL.BETW);
     const atOrAboveLabel = atOrAboveOption ? atOrAboveOption.label : '';
     const movementOptions = cloneDeep(MOVEMENT_OPTIONS);
-    const specificWind = phenomenon_specific_information && phenomenon_specific_information.wind
-      ? phenomenon_specific_information.wind
-      : null;
-    const specificCloudLevels = phenomenon_specific_information && phenomenon_specific_information.cloudLevels
-      ? phenomenon_specific_information.cloudLevels
-      : null;
-    const specificObscuring = phenomenon_specific_information && phenomenon_specific_information.obscuring
-      ? phenomenon_specific_information.obscuring
-      : null;
     const drawActions = (isEndFeature = false) => [
       {
         title: `Draw point${!selectedFir ? ' (select a FIR first)' : ''}`,
@@ -344,39 +343,44 @@ class AirmetEditMode extends PureComponent {
             max={dateLimits.obsFcTime.max}
           />
           {isWindNeeded
-            ? <Input data-field='wind_direction' onChange={(evt) => dispatch(actions.updateAirmetAction(uuid, 'phenomenon_specific_information.wind.direction.val',
+            ? <Input data-field='wind_direction' onChange={(evt) => dispatch(actions.updateAirmetAction(uuid, 'wind.direction.val',
               typeof evt.target.value === 'string' && evt.target.value.length > 0 ? parseInt(evt.target.value) : null))}
-              value={(!specificWind || !specificWind.direction || !Number.isInteger(specificWind.direction.val)) ? '' : `${specificWind.direction.val}`} placeholder={'Set direction'}
+              value={(!wind || !wind.direction || !Number.isInteger(wind.direction.val)) ? '' : `${wind.direction.val}`} placeholder={'Set direction'}
               type='number'
               step='1' min='0' max='360'
               className={classNames({
                 required: true,
-                missing: !specificWind || !specificWind.direction || !Number.isInteger(specificWind.direction.val)
+                missing: !wind || !wind.direction || !Number.isInteger(wind.direction.val)
               })}
               />
             : null
           }
-          {/*isWindNeeded
-            ? <InputGroup data-field='wind_speed' className={wind.speed ? 'required' : 'required missing'}>
-              <Input placeholder={'Set wind speed'}
-                onChange={(selectedValues) => dispatch(actions.updateAirmetAction(uuid, 'wind', selectedValues))}
-                type='number' step='1' min='1' />
-              <InputGroupAddon addonType='append'>
-                <ButtonDropdown>
-                  <DropdownToggle caret>
-                    {this.getWindSpeedUnitLabel(wind.unit)}
-                  </DropdownToggle>
-                  <DropdownMenu>
-                    {UNITS_WIND_SPEED.map((unit, index) =>
-                      <DropdownItem key={`unitDropDown-${index}`}
-                        onClick={(evt) => dispatch(actions.updateAirmetAction(uuid, 'wind', unit))}>{unit.label}
-                      </DropdownItem>
-                    )}
-                  </DropdownMenu>
-                </ButtonDropdown>
-              </InputGroupAddon>
-            </InputGroup>
-            : null*/
+          {isWindNeeded
+            ? <InputGroup data-field='wind_speed'
+                className={classNames('required', 'unitAfter', {
+                  missing: !wind || !wind.speed || !Number.isInteger(wind.speed.val)
+                  })} >              
+                <Input onChange={(evt) => dispatch(actions.updateAirmetAction(uuid, 'wind.speed.val',
+                typeof evt.target.value === 'string' && evt.target.value.length > 0 ? parseInt(evt.target.value) : null))}
+                value={(!wind || !wind.speed || !Number.isInteger(wind.speed.val)) ? '' : `${wind.speed.val}`} 
+                placeholder={'Set speed'} type='number' step='1' min='0' max='99'                      
+                />
+                <InputGroupAddon addonType='append'>
+                  <ButtonDropdown toggle={() => this.toggleDropDown(DROP_DOWN_NAMES.WIND_SPEED)} isOpen={isWindSpeedDropDownOpen}>
+                    <DropdownToggle caret>
+                      {this.getWindSpeedUnitLabel(wind.speed.unit)}
+                    </DropdownToggle>
+                    <DropdownMenu>
+                      {UNITS_WIND_SPEED.map((unit, index) =>
+                        <DropdownItem key={`unitDropDown-${index}`}
+                          onClick={(evt) => dispatch(actions.updateAirmetAction(uuid, 'wind.speed.unit', unit.unit))}>{unit.label}
+                        </DropdownItem>
+                      )}
+                    </DropdownMenu>
+                  </ButtonDropdown>
+                </InputGroupAddon>                                          
+              </InputGroup>
+            : null
           }
           {isObscuringNeeded
             ? <Input data-field='visibility' placeholder={'Set visibility'}

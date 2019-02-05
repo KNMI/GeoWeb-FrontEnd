@@ -588,22 +588,20 @@ const getEmptyAirmet = (container) => {
         { unit: UNITS.FL }
       ]
     },
-    phenomenon_specific_information: {
-      wind: {
-        speed: {
-          unit: UNITS.KT
-        },
-        direction: {
-          unit: UNITS.DEGREES
-        }
+    wind: {
+      speed: {
+        unit: UNITS.KT
       },
-      cloudLevels: {
-        lower: {
-          unit: UNITS.FT
-        },
-        upper: {
-          unit: UNITS.FT
-        }
+      direction: {
+        unit: UNITS.DEGREES
+      }
+    },
+    cloudLevels: {
+      lower: {
+        unit: UNITS.FT
+      },
+      upper: {
+        unit: UNITS.FT
       }
     },
     movement_type: MOVEMENT_TYPES.STATIONARY,
@@ -710,7 +708,6 @@ const updateAirmet = (dataField, value, container) => {
   const { props } = container;
   const { sources } = props;
   const { selectedAirmet, parameters } = container.state;
-  console.log(dataField, value);
 
   const affectedAirmet = Array.isArray(selectedAirmet) && selectedAirmet.length === 1
     ? selectedAirmet[0]
@@ -780,11 +777,14 @@ const updateAirmet = (dataField, value, container) => {
     toStructure(fieldToUpdate, value)
   );
   if (isPhenomenonUpdate) {
-    selectedAirmetUpdate.phenomenon_specific_information = produce(AIRMET_TEMPLATES.PHENOMENON_SPECIFIC_INFO, () => { });
-    selectedAirmetUpdate.phenomenon_specific_information.wind.speed.unit = UNITS.KT;
-    selectedAirmetUpdate.phenomenon_specific_information.wind.direction.unit = UNITS.DEGREES;
-    selectedAirmetUpdate.phenomenon_specific_information.cloudLevels.lower.unit = UNITS.FT;
-    selectedAirmetUpdate.phenomenon_specific_information.cloudLevels.upper.unit = UNITS.FT;
+    selectedAirmetUpdate.wind = produce(AIRMET_TEMPLATES.WIND, (draftState) => {
+      draftState.speed.unit = UNITS.KT;
+      draftState.direction.unit = UNITS.DEGREES;
+    });
+    selectedAirmetUpdate.cloudLevels = produce(AIRMET_TEMPLATES.CLOUD_LEVELS, (draftState) => {
+      draftState.lower.unit = UNITS.FT;
+      draftState.upper.unit = UNITS.FT;
+    });
   }
   if (shouldCleanMovement) {
     selectedAirmetUpdate.movement = produce(AIRMET_TEMPLATES.MOVEMENT, () => { });

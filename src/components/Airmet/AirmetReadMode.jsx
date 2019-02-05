@@ -32,12 +32,17 @@ class AirmetReadMode extends PureComponent {
     let minimalCharactersCount = 0;
     switch (unit) {
       case UNITS.FL:
+      case UNITS.DEGREES:
         minimalCharactersCount = 3;
         break;
       case UNITS.M:
       case UNITS.FT:
         minimalCharactersCount = 4;
         break;
+      case UNITS.KT:
+      case UNITS.MPS:
+          minimalCharactersCount = 2;
+          break;  
       default:
         break;
     }
@@ -243,11 +248,12 @@ class AirmetReadMode extends PureComponent {
   }
 
   render () {
-    const { dispatch, actions, airmet, focus, isCancelFor, displayModal, adjacentFirs } = this.props;
+    const { dispatch, actions, airmet, focus, isCancelFor, isWindNeeded, isCloudLevelsNeeded, isObsuringNeeded,
+      displayModal, adjacentFirs } = this.props;
     const { phenomenon, uuid, type: distributionType, validdate, validdate_end: validdateEnd,
       location_indicator_icao: locationIndicatorIcao, location_indicator_mwo: locationIndicatorMwo,
       levelinfo, movement_type: movementType, movement, change, tac, obs_or_forecast: obsOrForecast,
-      issuedate, sequence, firname } = airmet;
+      issuedate, sequence, firname, wind, cloudLevels, obscuring, visibility } = airmet;
 
     const obsFcTime = obsOrForecast ? obsOrForecast.obsFcTime : null;
     const isObserved = obsOrForecast ? obsOrForecast.obs : null;
@@ -270,6 +276,25 @@ class AirmetReadMode extends PureComponent {
                 : '(no forecasted time provided)'
               }
             </span>
+          }
+          {isWindNeeded
+            ? <span data-field='wind_direction'>
+              {wind && wind.direction && Number.isInteger(wind.direction.val)
+                ? this.getValueLabel(wind.direction.val, UNITS.DEGREES) 
+                : '(no direction provided)'
+              }
+            </span>
+            : null
+          }
+          {isWindNeeded
+            ? <span data-field='wind_speed'>
+              {wind && wind.speed && Number.isInteger(wind.speed.val) &&
+                  typeof wind.speed.unit === 'string'
+                ? `${this.getValueLabel(wind.speed.val, wind.speed.unit)} ${wind.speed.unit}`
+                : '(no speed provided)'
+              }
+            </span>
+            : null
           }
         </WhatSection>
 

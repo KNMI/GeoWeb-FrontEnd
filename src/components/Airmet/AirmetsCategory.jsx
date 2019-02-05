@@ -46,8 +46,9 @@ class AirmetsCategory extends PureComponent {
     const isCancelFor = airmetToShow.cancels !== null && !isNaN(airmetToShow.cancels)
       ? parseInt(airmetToShow.cancels)
       : null;
-    const isWindNeeded = true; 
-    const filteredPhenomena = availablePhenomena.filter((entry) => entry.code === airmet.phenomenon);
+    const filteredPhenomena = isSelectedAirmet
+      ? availablePhenomena.filter((entry) => entry.code === selectedAirmet.phenomenon)
+      : [];
     const specificPhenomena = filteredPhenomena.length > 0 
     ? {
       isWindNeeded: filteredPhenomena[0].paraminfo === PARAMS_NEEDED.NEEDS_WIND,
