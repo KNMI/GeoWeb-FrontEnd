@@ -2,7 +2,7 @@ import produce from 'immer';
 import moment from 'moment';
 import { notify } from 'reapop';
 import {
-  AIRMET_MODES, AIRMET_TEMPLATES, UNITS, UNITS_ALT, UNITS_WIND_SPEED, MODES_LVL, MOVEMENT_TYPES, DISTRIBUTION_TYPES,
+  AIRMET_MODES, AIRMET_TEMPLATES, UNITS, UNITS_ALT, MODES_LVL, MOVEMENT_TYPES, DISTRIBUTION_TYPES,
   AIRMET_VARIANTS_PREFIXES, DATETIME_FORMAT } from '../../components/Airmet/AirmetTemplates';
 import { LOCAL_ACTION_TYPES, CATEGORY_REFS, STATUSES } from './AirmetActions';
 import { clearEmptyPointersAndAncestors, safeMerge, isFeatureGeoJsonComplete,
@@ -231,7 +231,7 @@ const retrieveAirmetTac = (container, uuid) => {
         resolve({ uuid, code: response.data });
       } else {
         console.warn(`${ERROR_MSG.RETRIEVE_TACS} for AIRMET ${uuid}`,
-        `because ${response.status === 200 ? 'no response data could be retrieved' : `status was not OK [${response.status}]`}`);
+          `because ${response.status === 200 ? 'no response data could be retrieved' : `status was not OK [${response.status}]`}`);
         resolve({ uuid, code: null });
       }
     }, (error) => {
@@ -746,7 +746,7 @@ const updateAirmet = (dataField, value, container) => {
   }
   if ((dataField === 'validdate' || dataField === 'validdate_end') && value === null) {
     value = moment.utc().add(1, 'minute').format(DATETIME_FORMAT);
-  }        
+  }
   if (dataField.indexOf('levelinfo') !== -1) {
     switch (fieldToUpdate) {
       case 'unit':

@@ -6,7 +6,6 @@ import PropTypes from 'prop-types';
 
 export default class WhatSection extends PureComponent {
   render () {
-    const {isWindNeeded, isVisibilityNeeded, isLevelNeeded} = this.props;
     const children = {};
     if (!Array.isArray(this.props.children)) {
       children[this.props.children.props['data-field']] = this.props.children;
@@ -108,16 +107,16 @@ export default class WhatSection extends PureComponent {
             <Col xs='4'>
               {children.visibility}
               {children.visibility && hasClass(children.visibility.props.className, 'required')
-              ? <span className={classNames('required', { missing: hasClass(children.visibility.props.className, 'missing') })} />
-              : null
-            }
+                ? <span className={classNames('required', { missing: hasClass(children.visibility.props.className, 'missing') })} />
+                : null
+              }
             </Col>
             <Col xs={{ size: 4, offset: 1 }}>
               {children.oscuring}
               {children.oscuring && hasClass(children.oscuring.props.className, 'required')
-              ? <span className={classNames('required', { missing: hasClass(children.oscuring.props.className, 'missing') })} />
-              : null
-            }
+                ? <span className={classNames('required', { missing: hasClass(children.oscuring.props.className, 'missing') })} />
+                : null
+              }
             </Col>
           </Row>
           : null
@@ -136,7 +135,7 @@ export default class WhatSection extends PureComponent {
                 : null
               }
             </Col>
-          </Row> 
+          </Row>
           : null
         }
       </Col>
@@ -149,5 +148,5 @@ WhatSection.propTypes = {
     PropTypes.arrayOf(PropTypes.element),
     PropTypes.element,
     PropTypes.object
-  ])),
+  ]))
 };

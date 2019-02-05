@@ -53,12 +53,14 @@ class AirmetsCategory extends PureComponent {
     ? {
       isWindNeeded: filteredPhenomena[0].paraminfo === PARAMS_NEEDED.NEEDS_WIND,
       isCloudLevelsNeeded: filteredPhenomena[0].paraminfo === PARAMS_NEEDED.NEEDS_CLOUDLEVELS,
-      isObsuringNeeded: filteredPhenomena[0].paraminfo === PARAMS_NEEDED.NEEDS_OBSCURATION
+      isObsuringNeeded: filteredPhenomena[0].paraminfo === PARAMS_NEEDED.NEEDS_OBSCURATION,
+      isLevelFieldNeeded: filteredPhenomena[0].paraminfo === PARAMS_NEEDED.NEEDS_NONE
     }
     :{
       isWindNeeded: false,
       isCloudLevelsNeeded: false,
-      isObsuringNeeded: false
+      isObsuringNeeded: false,
+      isLevelFieldNeeded: false,
     }
     const prefix = AIRMET_VARIANTS_PREFIXES.NORMAL;
     const activeFirEntry = Object.entries(parameters.firareas).filter((entry) => entry[1].firname === airmetToShow.firname &&
@@ -85,6 +87,7 @@ class AirmetsCategory extends PureComponent {
       isWindNeeded : specificPhenomena.isWindNeeded,
       isCloudLevelsNeeded : specificPhenomena.isCloudLevelsNeeded,
       isObsuringNeeded : specificPhenomena.isObsuringNeeded,
+      isLevelFieldNeeded : specificPhenomena.isLevelFieldNeeded,
       adjacentFirs
     };
   }
@@ -135,7 +138,7 @@ class AirmetsCategory extends PureComponent {
                 <Row>
                   <Col className='btn-group-vertical'>
                     {airmetCollection.map((airmet) => {
-                      const { isSelectedAirmet, isWindNeeded, isCloudLevelsNeeded, isObsuringNeeded, isCancelFor, maxHoursInAdvance, maxHoursDuration,
+                      const { isSelectedAirmet, isWindNeeded, isCloudLevelsNeeded, isObsuringNeeded, isLevelFieldNeeded, isCancelFor, maxHoursInAdvance, maxHoursDuration,
                         adjacentFirs, airmetToShow } = this.derivedAirmetProperties(airmet, selectedAirmet, parameters, availablePhenomena);
 
                       // Render selected AIRMET
@@ -150,6 +153,7 @@ class AirmetsCategory extends PureComponent {
                           isWindNeeded={isWindNeeded}
                           isCloudLevelsNeeded={isCloudLevelsNeeded}
                           isObsuringNeeded={isObsuringNeeded}
+                          isLevelFieldNeeded={isLevelFieldNeeded}
                           availablePhenomena={availablePhenomena}
                           focus
                           airmet={airmetToShow}

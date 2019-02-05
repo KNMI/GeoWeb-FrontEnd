@@ -41,8 +41,8 @@ class AirmetReadMode extends PureComponent {
         break;
       case UNITS.KT:
       case UNITS.MPS:
-          minimalCharactersCount = 2;
-          break;  
+        minimalCharactersCount = 2;
+        break;
       default:
         break;
     }
@@ -172,7 +172,7 @@ class AirmetReadMode extends PureComponent {
         return true;
       case MOVEMENT_TYPES.MOVEMENT:
         return movement && typeof movement.speed === 'number' &&
-        typeof movement.dir === 'string' && movement.dir.length > 0;
+          typeof movement.dir === 'string' && movement.dir.length > 0;
       default:
         return false;
     }
@@ -248,7 +248,7 @@ class AirmetReadMode extends PureComponent {
   }
 
   render () {
-    const { dispatch, actions, airmet, focus, isCancelFor, isWindNeeded, isCloudLevelsNeeded, isObsuringNeeded,
+    const { dispatch, actions, airmet, focus, isCancelFor, isWindNeeded, isCloudLevelsNeeded, isObsuringNeeded, isLevelFieldNeeded,
       displayModal, adjacentFirs } = this.props;
     const { phenomenon, uuid, type: distributionType, validdate, validdate_end: validdateEnd,
       location_indicator_icao: locationIndicatorIcao, location_indicator_mwo: locationIndicatorMwo,
@@ -257,7 +257,6 @@ class AirmetReadMode extends PureComponent {
 
     const obsFcTime = obsOrForecast ? obsOrForecast.obsFcTime : null;
     const isObserved = obsOrForecast ? obsOrForecast.obs : null;
-  
     const abilityCtAs = this.reduceAbilities(); // CtA = Call To Action
     const selectedDirection = movement && DIRECTIONS.find((obj) => obj.shortName === movement.dir);
     const directionLongName = selectedDirection ? selectedDirection.longName : null;
@@ -280,7 +279,7 @@ class AirmetReadMode extends PureComponent {
           {isWindNeeded
             ? <span data-field='wind_direction'>
               {wind && wind.direction && Number.isInteger(wind.direction.val)
-                ? this.getValueLabel(wind.direction.val, UNITS.DEGREES) 
+                ? this.getValueLabel(wind.direction.val, UNITS.DEGREES)
                 : '(no direction provided)'
               }
             </span>
@@ -289,7 +288,7 @@ class AirmetReadMode extends PureComponent {
           {isWindNeeded
             ? <span data-field='wind_speed'>
               {wind && wind.speed && Number.isInteger(wind.speed.val) &&
-                  typeof wind.speed.unit === 'string'
+                typeof wind.speed.unit === 'string'
                 ? `${this.getValueLabel(wind.speed.val, wind.speed.unit)} ${wind.speed.unit}`
                 : '(no speed provided)'
               }
@@ -308,9 +307,12 @@ class AirmetReadMode extends PureComponent {
           <span data-field='location_indicator_icao'>{locationIndicatorIcao}</span>
         </FirSection>
 
-        <HeightSection>
-          <span data-field='level'>{this.showLevels(levelinfo)}</span>
-        </HeightSection>
+        {isLevelFieldNeeded
+          ? <HeightSection>
+            <span data-field='level'>{this.showLevels(levelinfo)}</span>
+          </HeightSection>
+          : null
+        }
 
         <ProgressSection>
           <span data-field='movement'>
@@ -388,7 +390,11 @@ AirmetReadMode.propTypes = {
   isCancelFor: PropTypes.number,
   displayModal: PropTypes.string,
   adjacentFirs: PropTypes.arrayOf(PropTypes.string),
-  airmet: AIRMET_TYPES.AIRMET
+  airmet: AIRMET_TYPES.AIRMET,
+  isWindNeeded: PropTypes.bool,
+  isCloudLevelsNeeded: PropTypes.bool,
+  isObsuringNeeded: PropTypes.bool,
+  isLevelFieldNeeded: PropTypes.bool
 };
 
 export default AirmetReadMode;

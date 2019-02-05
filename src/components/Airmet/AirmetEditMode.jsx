@@ -39,7 +39,7 @@ const DROP_DOWN_NAMES = {
 };
 
 class AirmetEditMode extends PureComponent {
-  constructor(props) {
+  constructor (props) {
     super(props);
     this.toggleDropDown = this.toggleDropDown.bind(this);
     this.setMode = this.setMode.bind(this);
@@ -57,7 +57,7 @@ class AirmetEditMode extends PureComponent {
     };
   }
 
-  toggleDropDown(dropDownName) {
+  toggleDropDown (dropDownName) {
     let flag = null;
     switch (dropDownName) {
       case DROP_DOWN_NAMES.AT_OR_ABOVE:
@@ -80,7 +80,7 @@ class AirmetEditMode extends PureComponent {
     }
   }
 
-  setMode(evt, selectedOption = null) {
+  setMode (evt, selectedOption = null) {
     const { dispatch, actions } = this.props;
     const { uuid } = this.props.airmet;
     const currentMode = this.getMode();
@@ -121,7 +121,7 @@ class AirmetEditMode extends PureComponent {
     }
   };
 
-  getMode() {
+  getMode () {
     const { levelinfo } = this.props.airmet;
     const result = {
       extent: MODES_LVL.AT,
@@ -146,19 +146,19 @@ class AirmetEditMode extends PureComponent {
     return result;
   }
 
-  getWindSpeedUnitLabel(unitName) {
+  getWindSpeedUnitLabel (unitName) {
     return typeof unitName === 'string'
       ? UNITS_WIND_SPEED.find((unit) => unit.unit === unitName).label
       : UNITS_WIND_SPEED[0].label;
   }
 
-  getUnitLabel(unitName) {
+  getUnitLabel (unitName) {
     return typeof unitName === 'string'
       ? UNITS_ALT.find((unit) => unit.unit === unitName).label
       : UNITS_ALT[0].label;
   };
 
-  maxLevelPerUnit(unit) {
+  maxLevelPerUnit (unit) {
     switch (unit) {
       case UNITS.FL:
         return 999;
@@ -171,7 +171,7 @@ class AirmetEditMode extends PureComponent {
     }
   };
 
-  stepLevelPerUnit(unit) {
+  stepLevelPerUnit (unit) {
     switch (unit) {
       case UNITS.FL:
         return 10;
@@ -183,7 +183,7 @@ class AirmetEditMode extends PureComponent {
     }
   };
 
-  formatLevelPerUnit(value, unit) {
+  formatLevelPerUnit (value, unit) {
     if (typeof value !== 'number') {
       return value;
     }
@@ -211,7 +211,7 @@ class AirmetEditMode extends PureComponent {
 * @returns {object} Object with {boolean} property disable, indicating whether or not is should be disabled
 *          and {string} property message to explain why...
 */
-  getDisabledFlag(abilityRef, isInValidityPeriod, selectedPhenomenon) {
+  getDisabledFlag (abilityRef, isInValidityPeriod, selectedPhenomenon) {
     const { copiedAirmetRef, hasEdits } = this.props;
     const { validdate, validdate_end: validdateEnd, obs_or_forecast: obsOrForecast } = this.props.airmet;
     const obsFcTime = obsOrForecast ? obsOrForecast.obsFcTime : null;
@@ -236,7 +236,7 @@ class AirmetEditMode extends PureComponent {
    * @param {string} selectedPhenomenon The selectedPhenomenon
    * @returns {array} The remaining abilities for this specific Airmet
    */
-  reduceAbilities(selectedPhenomenon) {
+  reduceAbilities (selectedPhenomenon) {
     const { abilities } = this.props;
     const { validdate, validdate_end: validdateEnd } = this.props.airmet;
     const abilitiesCtAs = []; // CtA = Call To Action
@@ -254,9 +254,9 @@ class AirmetEditMode extends PureComponent {
     return abilitiesCtAs;
   }
 
-  render() {
+  render () {
     const { dispatch, actions, airmet, availablePhenomena, hasStartCoordinates, feedbackStart,
-      availableFirs, focus, maxHoursInAdvance, maxHoursDuration, isWindNeeded, isCloudLevelsNeeded, isObscuringNeeded } = this.props;
+      availableFirs, focus, maxHoursInAdvance, maxHoursDuration, isWindNeeded, isCloudLevelsNeeded, isObscuringNeeded, isLevelFieldNeeded } = this.props;
     const { isAtOrAboveDropDownOpen, isBetweenLowerDropDownOpen, isBetweenUpperDropDownOpen, isWindSpeedDropDownOpen } = this.state;
 
     const { phenomenon, uuid, type: distributionType, validdate, validdate_end: validdateEnd,
@@ -343,43 +343,52 @@ class AirmetEditMode extends PureComponent {
             max={dateLimits.obsFcTime.max}
           />
           {isWindNeeded
-            ? <Input data-field='wind_direction' onChange={(evt) => dispatch(actions.updateAirmetAction(uuid, 'wind.direction.val',
-              typeof evt.target.value === 'string' && evt.target.value.length > 0 ? parseInt(evt.target.value) : null))}
-              value={(!wind || !wind.direction || !Number.isInteger(wind.direction.val)) ? '' : `${wind.direction.val}`} placeholder={'Set direction'}
-              type='number'
-              step='1' min='0' max='360'
+            ? <Input data-field='wind_direction'
+              onChange={(evt) => dispatch(actions.updateAirmetAction(uuid, 'wind.direction.val',
+                typeof evt.target.value === 'string' && evt.target.value.length > 0
+                  ? parseInt(evt.target.value)
+                  : null))}
+              value={(!wind || !wind.direction || !Number.isInteger(wind.direction.val))
+                ? ''
+                : `${wind.direction.val}`} placeholder={'Set direction'}
+              type='number' step='1' min='0' max='360'
               className={classNames({
                 required: true,
                 missing: !wind || !wind.direction || !Number.isInteger(wind.direction.val)
               })}
-              />
+            />
             : null
           }
           {isWindNeeded
             ? <InputGroup data-field='wind_speed'
-                className={classNames('required', 'unitAfter', {
-                  missing: !wind || !wind.speed || !Number.isInteger(wind.speed.val)
-                  })} >              
-                <Input onChange={(evt) => dispatch(actions.updateAirmetAction(uuid, 'wind.speed.val',
-                typeof evt.target.value === 'string' && evt.target.value.length > 0 ? parseInt(evt.target.value) : null))}
-                value={(!wind || !wind.speed || !Number.isInteger(wind.speed.val)) ? '' : `${wind.speed.val}`} 
-                placeholder={'Set speed'} type='number' step='1' min='0' max='99'                      
-                />
-                <InputGroupAddon addonType='append'>
-                  <ButtonDropdown toggle={() => this.toggleDropDown(DROP_DOWN_NAMES.WIND_SPEED)} isOpen={isWindSpeedDropDownOpen}>
-                    <DropdownToggle caret>
-                      {this.getWindSpeedUnitLabel(wind.speed.unit)}
-                    </DropdownToggle>
-                    <DropdownMenu>
-                      {UNITS_WIND_SPEED.map((unit, index) =>
-                        <DropdownItem key={`unitDropDown-${index}`}
-                          onClick={(evt) => dispatch(actions.updateAirmetAction(uuid, 'wind.speed.unit', unit.unit))}>{unit.label}
-                        </DropdownItem>
-                      )}
-                    </DropdownMenu>
-                  </ButtonDropdown>
-                </InputGroupAddon>                                          
-              </InputGroup>
+              className={classNames('required', 'unitAfter', {
+                missing: !wind || !wind.speed || !Number.isInteger(wind.speed.val)
+              })} >
+              <Input
+                onChange={(evt) => dispatch(actions.updateAirmetAction(uuid, 'wind.speed.val',
+                  typeof evt.target.value === 'string' && evt.target.value.length > 0
+                    ? parseInt(evt.target.value)
+                    : null))}
+                value={(!wind || !wind.speed || !Number.isInteger(wind.speed.val))
+                  ? ''
+                  : `${wind.speed.val}`}
+                placeholder={'Set speed'} type='number' step='1' min='0' max='99'
+              />
+              <InputGroupAddon addonType='append'>
+                <ButtonDropdown toggle={() => this.toggleDropDown(DROP_DOWN_NAMES.WIND_SPEED)} isOpen={isWindSpeedDropDownOpen}>
+                  <DropdownToggle caret>
+                    {this.getWindSpeedUnitLabel(wind.speed.unit)}
+                  </DropdownToggle>
+                  <DropdownMenu>
+                    {UNITS_WIND_SPEED.map((unit, index) =>
+                      <DropdownItem key={`unitDropDown-${index}`}
+                        onClick={(evt) => dispatch(actions.updateAirmetAction(uuid, 'wind.speed.unit', unit.unit))}>{unit.label}
+                      </DropdownItem>
+                    )}
+                  </DropdownMenu>
+                </ButtonDropdown>
+              </InputGroupAddon>
+            </InputGroup>
             : null
           }
           {isObscuringNeeded
@@ -399,7 +408,6 @@ class AirmetEditMode extends PureComponent {
             option={{ optionId: 'above', label: 'Above' }}
             onChange={this.setMode}
             data-field='above-toggle'
-          /*disabled={isLevelNeeded}*/
           />
           <InputGroup data-field='at-above-altitude'
             className={!isLevelBetween && levelinfo && levelinfo.levels && levelinfo.levels[0] &&
@@ -481,103 +489,106 @@ class AirmetEditMode extends PureComponent {
           }
         </DrawSection>
 
-        <HeightsSection isLevelBetween={isLevelBetween} hasSurface={levelMode.hasSurface}>
-          <RadioGroup
-            value={levelMode.extent}
-            options={MODES_LVL_OPTIONS}
-            onChange={this.setMode}
-            data-field='level-mode-toggle'
-          />
-          <Checkbox
-            value={levelMode.hasTops ? 'tops' : ''}
-            option={{ optionId: 'tops', label: 'Tops' }}
-            onChange={this.setMode}
-            data-field='tops-toggle'
-            disabled={isLevelBetween}
-          />
-          <label data-field='at-above-toggle'>{atOrAboveLabel}</label>
-          <InputGroup data-field='at-above-altitude'
-            className={!isLevelBetween && levelinfo && levelinfo.levels && levelinfo.levels[0] &&
-              (!levelinfo.levels[0].value || levelinfo.levels[0].value > this.maxLevelPerUnit(levelinfo.levels[0].unit)) ? 'missing' : null}
-            disabled={isLevelBetween}>
-            <InputGroupAddon addonType='prepend'>
-              <ButtonDropdown toggle={() => this.toggleDropDown(DROP_DOWN_NAMES.AT_OR_ABOVE)} isOpen={isAtOrAboveDropDownOpen}>
-                <DropdownToggle caret disabled={isLevelBetween}>
-                  {this.getUnitLabel(levelinfo.levels[0].unit)}
-                </DropdownToggle>
-                <DropdownMenu>
-                  {UNITS_ALT.map((unit, index) =>
-                    <DropdownItem key={`unitDropDown-${index}`}
-                      onClick={(evt) => dispatch(actions.updateAirmetAction(uuid, 'levelinfo.levels.0.unit', unit))}>{unit.label}</DropdownItem>
-                  )}
-                </DropdownMenu>
-              </ButtonDropdown>
-            </InputGroupAddon>
-            <Input placeholder='Level' disabled={isLevelBetween} type='number' pattern='\d{0,5}'
-              min='0' step={this.stepLevelPerUnit(levelinfo.levels[0].unit)} max={this.maxLevelPerUnit(levelinfo.levels[0].unit)}
-              value={(isLevelBetween || !levelinfo.levels[0].value) ? '' : this.formatLevelPerUnit(levelinfo.levels[0].value, levelinfo.levels[0].unit)}
-              onChange={(evt) => dispatch(actions.updateAirmetAction(uuid, 'levelinfo.levels.0.value', evt.target.value))} />
-          </InputGroup>
-          <Switch
-            className={isLevelBetween && !levelMode.hasSurface &&
-              levelinfo && levelinfo.levels && levelinfo.levels[0] &&
-              (!levelinfo.levels[0].value || levelinfo.levels[0].value > this.maxLevelPerUnit(levelinfo.levels[0].unit)) ? 'missing' : null}
-            value={levelMode.hasSurface ? 'sfc' : 'lvl'}
-            checkedOption={{
-              optionId: 'lvl',
-              label: <InputGroup className='label'>
-                <InputGroupAddon addonType='prepend'>
-                  <ButtonDropdown toggle={() => this.toggleDropDown(DROP_DOWN_NAMES.BETWEEN_LOWER)} isOpen={isBetweenLowerDropDownOpen}>
-                    <DropdownToggle caret disabled={!isLevelBetween || levelMode.hasSurface}>
-                      {this.getUnitLabel(levelinfo.levels[0].unit)}
-                    </DropdownToggle>
-                    <DropdownMenu>
-                      {UNITS_ALT.map((unit, index) =>
-                        <DropdownItem key={`unitDropDown-${index}`}
-                          onClick={(evt) => {
-                            evt.preventDefault(); // prevent the switch from being triggered
-                            return dispatch(actions.updateAirmetAction(uuid, 'levelinfo.levels.0.unit', unit));
-                          }}>{unit.label}</DropdownItem>
-                      )}
-                    </DropdownMenu>
-                  </ButtonDropdown>
-                </InputGroupAddon>
-                <Input placeholder='Lower level' disabled={!isLevelBetween || levelMode.hasSurface} type='number'
-                  min='0' step={this.stepLevelPerUnit(levelinfo.levels[0].unit)} max={this.maxLevelPerUnit(levelinfo.levels[0].unit)}
-                  value={(!isLevelBetween || levelMode.hasSurface || !levelinfo.levels[0].value)
-                    ? ''
-                    : this.formatLevelPerUnit(levelinfo.levels[0].value, levelinfo.levels[0].unit)}
-                  onChange={(evt) => dispatch(actions.updateAirmetAction(uuid, 'levelinfo.levels.0.value', evt.target.value))} />
-              </InputGroup>
-            }}
-            unCheckedOption={{ optionId: 'sfc', label: 'SFC' }}
-            onChange={this.setMode}
-            disabled={!isLevelBetween}
-            data-field='between-lev-1'
-          />
-          <InputGroup
-            data-field='between-lev-2'
-            className={isLevelBetween && levelinfo && levelinfo.levels && levelinfo.levels[1] && !levelinfo.levels[1].value ? 'missing' : null}
-            disabled={!isLevelBetween}>
-            <InputGroupAddon addonType='prepend'>
-              <ButtonDropdown toggle={() => this.toggleDropDown(DROP_DOWN_NAMES.BETWEEN_UPPER)} isOpen={isBetweenUpperDropDownOpen}>
-                <DropdownToggle caret disabled={!isLevelBetween}>
-                  {this.getUnitLabel(levelinfo.levels[1].unit)}
-                </DropdownToggle>
-                <DropdownMenu>
-                  {UNITS_ALT.map((unit, index) =>
-                    <DropdownItem key={`unitDropDown-${index}`}
-                      onClick={(evt) => dispatch(actions.updateAirmetAction(uuid, 'levelinfo.levels.1.unit', unit))}>{unit.label}</DropdownItem>
-                  )}
-                </DropdownMenu>
-              </ButtonDropdown>
-            </InputGroupAddon>
-            <Input placeholder='Upper level' disabled={!isLevelBetween} type='number'
-              min='0' step={this.stepLevelPerUnit(levelinfo.levels[1].unit)} max={this.maxLevelPerUnit(levelinfo.levels[1].unit)}
-              value={(!isLevelBetween || !levelinfo.levels[1].value) ? '' : this.formatLevelPerUnit(levelinfo.levels[1].value, levelinfo.levels[1].unit)}
-              onChange={(evt) => dispatch(actions.updateAirmetAction(uuid, 'levelinfo.levels.1.value', evt.target.value))} />
-          </InputGroup>
-        </HeightsSection>
+        {isLevelFieldNeeded
+          ? <HeightsSection isLevelBetween={isLevelBetween} hasSurface={levelMode.hasSurface}>
+            <RadioGroup
+              value={levelMode.extent}
+              options={MODES_LVL_OPTIONS}
+              onChange={this.setMode}
+              data-field='level-mode-toggle'
+            />
+            <Checkbox
+              value={levelMode.hasTops ? 'tops' : ''}
+              option={{ optionId: 'tops', label: 'Tops' }}
+              onChange={this.setMode}
+              data-field='tops-toggle'
+              disabled={isLevelBetween}
+            />
+            <label data-field='at-above-toggle'>{atOrAboveLabel}</label>
+            <InputGroup data-field='at-above-altitude'
+              className={!isLevelBetween && levelinfo && levelinfo.levels && levelinfo.levels[0] &&
+                (!levelinfo.levels[0].value || levelinfo.levels[0].value > this.maxLevelPerUnit(levelinfo.levels[0].unit)) ? 'missing' : null}
+              disabled={isLevelBetween}>
+              <InputGroupAddon addonType='prepend'>
+                <ButtonDropdown toggle={() => this.toggleDropDown(DROP_DOWN_NAMES.AT_OR_ABOVE)} isOpen={isAtOrAboveDropDownOpen}>
+                  <DropdownToggle caret disabled={isLevelBetween}>
+                    {this.getUnitLabel(levelinfo.levels[0].unit)}
+                  </DropdownToggle>
+                  <DropdownMenu>
+                    {UNITS_ALT.map((unit, index) =>
+                      <DropdownItem key={`unitDropDown-${index}`}
+                        onClick={(evt) => dispatch(actions.updateAirmetAction(uuid, 'levelinfo.levels.0.unit', unit))}>{unit.label}</DropdownItem>
+                    )}
+                  </DropdownMenu>
+                </ButtonDropdown>
+              </InputGroupAddon>
+              <Input placeholder='Level' disabled={isLevelBetween} type='number' pattern='\d{0,5}'
+                min='0' step={this.stepLevelPerUnit(levelinfo.levels[0].unit)} max={this.maxLevelPerUnit(levelinfo.levels[0].unit)}
+                value={(isLevelBetween || !levelinfo.levels[0].value) ? '' : this.formatLevelPerUnit(levelinfo.levels[0].value, levelinfo.levels[0].unit)}
+                onChange={(evt) => dispatch(actions.updateAirmetAction(uuid, 'levelinfo.levels.0.value', evt.target.value))} />
+            </InputGroup>
+            <Switch
+              className={isLevelBetween && !levelMode.hasSurface &&
+                levelinfo && levelinfo.levels && levelinfo.levels[0] &&
+                (!levelinfo.levels[0].value || levelinfo.levels[0].value > this.maxLevelPerUnit(levelinfo.levels[0].unit)) ? 'missing' : null}
+              value={levelMode.hasSurface ? 'sfc' : 'lvl'}
+              checkedOption={{
+                optionId: 'lvl',
+                label: <InputGroup className='label'>
+                  <InputGroupAddon addonType='prepend'>
+                    <ButtonDropdown toggle={() => this.toggleDropDown(DROP_DOWN_NAMES.BETWEEN_LOWER)} isOpen={isBetweenLowerDropDownOpen}>
+                      <DropdownToggle caret disabled={!isLevelBetween || levelMode.hasSurface}>
+                        {this.getUnitLabel(levelinfo.levels[0].unit)}
+                      </DropdownToggle>
+                      <DropdownMenu>
+                        {UNITS_ALT.map((unit, index) =>
+                          <DropdownItem key={`unitDropDown-${index}`}
+                            onClick={(evt) => {
+                              evt.preventDefault(); // prevent the switch from being triggered
+                              return dispatch(actions.updateAirmetAction(uuid, 'levelinfo.levels.0.unit', unit));
+                            }}>{unit.label}</DropdownItem>
+                        )}
+                      </DropdownMenu>
+                    </ButtonDropdown>
+                  </InputGroupAddon>
+                  <Input placeholder='Lower level' disabled={!isLevelBetween || levelMode.hasSurface} type='number'
+                    min='0' step={this.stepLevelPerUnit(levelinfo.levels[0].unit)} max={this.maxLevelPerUnit(levelinfo.levels[0].unit)}
+                    value={(!isLevelBetween || levelMode.hasSurface || !levelinfo.levels[0].value)
+                      ? ''
+                      : this.formatLevelPerUnit(levelinfo.levels[0].value, levelinfo.levels[0].unit)}
+                    onChange={(evt) => dispatch(actions.updateAirmetAction(uuid, 'levelinfo.levels.0.value', evt.target.value))} />
+                </InputGroup>
+              }}
+              unCheckedOption={{ optionId: 'sfc', label: 'SFC' }}
+              onChange={this.setMode}
+              disabled={!isLevelBetween}
+              data-field='between-lev-1'
+            />
+            <InputGroup
+              data-field='between-lev-2'
+              className={isLevelBetween && levelinfo && levelinfo.levels && levelinfo.levels[1] && !levelinfo.levels[1].value ? 'missing' : null}
+              disabled={!isLevelBetween}>
+              <InputGroupAddon addonType='prepend'>
+                <ButtonDropdown toggle={() => this.toggleDropDown(DROP_DOWN_NAMES.BETWEEN_UPPER)} isOpen={isBetweenUpperDropDownOpen}>
+                  <DropdownToggle caret disabled={!isLevelBetween}>
+                    {this.getUnitLabel(levelinfo.levels[1].unit)}
+                  </DropdownToggle>
+                  <DropdownMenu>
+                    {UNITS_ALT.map((unit, index) =>
+                      <DropdownItem key={`unitDropDown-${index}`}
+                        onClick={(evt) => dispatch(actions.updateAirmetAction(uuid, 'levelinfo.levels.1.unit', unit))}>{unit.label}</DropdownItem>
+                    )}
+                  </DropdownMenu>
+                </ButtonDropdown>
+              </InputGroupAddon>
+              <Input placeholder='Upper level' disabled={!isLevelBetween} type='number'
+                min='0' step={this.stepLevelPerUnit(levelinfo.levels[1].unit)} max={this.maxLevelPerUnit(levelinfo.levels[1].unit)}
+                value={(!isLevelBetween || !levelinfo.levels[1].value) ? '' : this.formatLevelPerUnit(levelinfo.levels[1].value, levelinfo.levels[1].unit)}
+                onChange={(evt) => dispatch(actions.updateAirmetAction(uuid, 'levelinfo.levels.1.value', evt.target.value))} />
+            </InputGroup>
+          </HeightsSection>
+          : null
+        }
 
         <ProgressSection>
           <RadioGroup
@@ -679,7 +690,8 @@ AirmetEditMode.propTypes = {
   maxHoursDuration: PropTypes.number,
   maxHoursInAdvance: PropTypes.number,
   airmet: AIRMET_TYPES.AIRMET,
-  isWindNeeded: PropTypes.bool
+  isWindNeeded: PropTypes.bool,
+  isLevelFieldNeeded: PropTypes.bool
 };
 
 export default AirmetEditMode;
