@@ -5,7 +5,7 @@ import moment from 'moment';
 import produce from 'immer';
 import PropTypes from 'prop-types';
 import { READ_ABILITIES, byReadAbilities, MODALS, MODAL_TYPES } from '../../containers/Airmet/AirmetActions';
-import { UNITS, UNITS_ALT, DIRECTIONS, CHANGES, MODES_LVL, MOVEMENT_TYPES, AIRMET_TYPES, DATETIME_LABEL_FORMAT_UTC, dateRanges } from './AirmetTemplates';
+import { UNITS, UNITS_LABELED, DIRECTIONS, CHANGES, MODES_LVL, MOVEMENT_TYPES, AIRMET_TYPES, DATETIME_LABEL_FORMAT_UTC, dateRanges } from './AirmetTemplates';
 
 import HeaderSection from '../SectionTemplates/HeaderSection';
 import WhatSection from '../SectionTemplates/WhatSection';
@@ -21,7 +21,10 @@ import MovementSection from '../SectionTemplates/MovementSection';
 
 class AirmetReadMode extends PureComponent {
   getUnitLabel (unitName) {
-    return UNITS_ALT.find((unit) => unit.unit === unitName).label;
+    const unit = UNITS_LABELED.find((unit) => unit.unit === unitName);
+    return typeof unit !== 'undefined'
+      ? unit.label
+      : '';
   };
 
   getValueLabel (value, unit) {
@@ -248,13 +251,14 @@ class AirmetReadMode extends PureComponent {
   }
 
   render () {
-    const { dispatch, actions, airmet, focus, isCancelFor, isWindNeeded, isCloudLevelsNeeded, isObsuringNeeded, isLevelFieldNeeded,
+    const { dispatch, actions, airmet, focus, isCancelFor, isWindNeeded, isCloudLevelsNeeded, isObscuringNeeded, isLevelFieldNeeded,
       displayModal, adjacentFirs } = this.props;
     const { phenomenon, uuid, type: distributionType, validdate, validdate_end: validdateEnd,
       location_indicator_icao: locationIndicatorIcao, location_indicator_mwo: locationIndicatorMwo,
       levelinfo, movement_type: movementType, movement, change, tac, obs_or_forecast: obsOrForecast,
       issuedate, sequence, firname, wind, cloudLevels, obscuring, visibility } = airmet;
 
+    const selectedObscuringPhenomenon = Array.isArray(obscuring) && obscuring.length > 0 ? obscuring[0] : null;
     const obsFcTime = obsOrForecast ? obsOrForecast.obsFcTime : null;
     const isObserved = obsOrForecast ? obsOrForecast.obs : null;
     const abilityCtAs = this.reduceAbilities(); // CtA = Call To Action
@@ -279,7 +283,7 @@ class AirmetReadMode extends PureComponent {
           {isWindNeeded
             ? <span data-field='wind_direction'>
               {wind && wind.direction && Number.isInteger(wind.direction.val)
-                ? this.getValueLabel(wind.direction.val, UNITS.DEGREES)
+                ? `${this.getValueLabel(wind.direction.val, wind.direction.unit)} ${this.getUnitLabel(wind.direction.unit)}`
                 : '(no direction provided)'
               }
             </span>
@@ -289,8 +293,26 @@ class AirmetReadMode extends PureComponent {
             ? <span data-field='wind_speed'>
               {wind && wind.speed && Number.isInteger(wind.speed.val) &&
                 typeof wind.speed.unit === 'string'
-                ? `${this.getValueLabel(wind.speed.val, wind.speed.unit)} ${wind.speed.unit}`
+                ? `${this.getValueLabel(wind.speed.val, wind.speed.unit)} ${this.getUnitLabel(wind.speed.unit)}`
                 : '(no speed provided)'
+              }
+            </span>
+            : null
+          }
+          {isObscuringNeeded
+            ? <span data-field='visibility'>
+              {visibility && Number.isInteger(visibility.val)
+                ? `${this.getValueLabel(visibility.val, visibility.unit)} ${this.getUnitLabel(visibility.unit)}`
+                : '(no visibility provided)'
+              }
+            </span>
+            : null
+          }
+          {isObscuringNeeded
+            ? <span data-field='obscuring'>
+              {selectedObscuringPhenomenon && typeof selectedObscuringPhenomenon.code === 'string'
+                ? selectedObscuringPhenomenon.code
+                : '(no cause provided)'
               }
             </span>
             : null
@@ -393,7 +415,7 @@ AirmetReadMode.propTypes = {
   airmet: AIRMET_TYPES.AIRMET,
   isWindNeeded: PropTypes.bool,
   isCloudLevelsNeeded: PropTypes.bool,
-  isObsuringNeeded: PropTypes.bool,
+  isObscuringNeeded: PropTypes.bool,
   isLevelFieldNeeded: PropTypes.bool
 };
 

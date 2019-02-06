@@ -27,7 +27,7 @@ import IssueSection from '../SectionTemplates/IssueSection';
 import ChangeSection from '../SectionTemplates/ChangeSection';
 import HeightsSection from '../SectionTemplates/HeightsSection';
 import {
-  DIRECTIONS, UNITS_ALT, UNITS_WIND_SPEED, UNITS, MODES_LVL, MODES_LVL_OPTIONS, CHANGES, MOVEMENT_TYPES, MOVEMENT_OPTIONS, AIRMET_TYPES,
+  DIRECTIONS, UNITS_LABELED, UNITS, MODES_LVL, MODES_LVL_OPTIONS, CHANGES, MOVEMENT_TYPES, MOVEMENT_OPTIONS, AIRMET_TYPES,
   DATETIME_FORMAT, DISTRIBUTION_OPTIONS, dateRanges
 } from './AirmetTemplates';
 
@@ -148,14 +148,14 @@ class AirmetEditMode extends PureComponent {
 
   getWindSpeedUnitLabel (unitName) {
     return typeof unitName === 'string'
-      ? UNITS_WIND_SPEED.find((unit) => unit.unit === unitName).label
-      : UNITS_WIND_SPEED[0].label;
+      ? UNITS_LABELED.find((unit) => unit.unit === unitName).label
+      : UNITS_LABELED[0].label;
   }
 
   getUnitLabel (unitName) {
     return typeof unitName === 'string'
-      ? UNITS_ALT.find((unit) => unit.unit === unitName).label
-      : UNITS_ALT[0].label;
+      ? UNITS_LABELED.find((unit) => unit.unit === unitName).label
+      : UNITS_LABELED[0].label;
   };
 
   maxLevelPerUnit (unit) {
@@ -255,7 +255,7 @@ class AirmetEditMode extends PureComponent {
   }
 
   render () {
-    const { dispatch, actions, airmet, availablePhenomena, hasStartCoordinates, feedbackStart,
+    const { dispatch, actions, airmet, availablePhenomena, obscuringPhenomena, hasStartCoordinates, feedbackStart,
       availableFirs, focus, maxHoursInAdvance, maxHoursDuration, isWindNeeded, isCloudLevelsNeeded, isObscuringNeeded, isLevelFieldNeeded } = this.props;
     const { isAtOrAboveDropDownOpen, isBetweenLowerDropDownOpen, isBetweenUpperDropDownOpen, isWindSpeedDropDownOpen } = this.state;
 
@@ -269,6 +269,7 @@ class AirmetEditMode extends PureComponent {
     const now = moment.utc();
     const dateLimits = dateRanges(now, validdate, validdateEnd, maxHoursInAdvance, maxHoursDuration);
     const selectedPhenomenon = availablePhenomena.find((ph) => ph.code === phenomenon);
+    const selectedObscuringPhenomenon = Array.isArray(obscuring) && obscuring.length > 0 ? obscuring[0] : null;
     const selectedFir = availableFirs.find((fir) => fir.location_indicator_icao === locationIndicatorIcao);
     const selectedChange = change ? CHANGES.find((chg) => chg.shortName === change) : null;
     const selectedDirection = movement && movement.dir ? DIRECTIONS.find((dir) => dir.shortName === movement.dir) : null;
@@ -380,7 +381,7 @@ class AirmetEditMode extends PureComponent {
                     {this.getWindSpeedUnitLabel(wind.speed.unit)}
                   </DropdownToggle>
                   <DropdownMenu>
-                    {UNITS_WIND_SPEED.map((unit, index) =>
+                    {UNITS_LABELED.map((unit, index) =>
                       <DropdownItem key={`unitDropDown-${index}`}
                         onClick={(evt) => dispatch(actions.updateAirmetAction(uuid, 'wind.speed.unit', unit.unit))}>{unit.label}
                       </DropdownItem>
@@ -392,15 +393,30 @@ class AirmetEditMode extends PureComponent {
             : null
           }
           {isObscuringNeeded
-            ? <Input data-field='visibility' placeholder={'Set visibility'}
-              onChange={(selectedValues) => dispatch(actions.updateAirmetAction(uuid, 'visibility', selectedValues))}
-              type='number' step='1' min='1' />
+            ? <Input data-field='visibility'
+              onChange={(evt) => dispatch(actions.updateAirmetAction(uuid, 'visibility.val',
+                typeof evt.target.value === 'string' && evt.target.value.length > 0
+                  ? parseInt(evt.target.value)
+                  : null))}
+              value={(!visibility || !Number.isInteger(visibility.val))
+                ? ''
+                : `${visibility.val}`} placeholder={'Set visibility'}
+              type='number' step='1' min='0' max='9999'
+              className={classNames({
+                required: true,
+                missing: !visibility || !Number.isInteger(visibility.val)
+              })}
+            />
             : null
           }
           {isObscuringNeeded
-            ? <Input data-field='cause' placeholder={'Select cause'}
-              /* onChange={(selectedValues) => dispatch(actions.updateAirmetAction(uuid, 'visibility', selectedValues))}
-              type='number' step='1' min='1' */ />
+            ? <Typeahead filterBy={['name', 'code']} labelKey='name' data-field='obscuring'
+              options={obscuringPhenomena} placeholder={'Select cause'}
+              onFocus={() => dispatch(actions.updateAirmetAction(uuid, 'obscuring', []))}
+              onChange={(selectedValues) => dispatch(actions.updateAirmetAction(uuid, 'obscuring', selectedValues))}
+              selected={selectedObscuringPhenomenon ? [selectedObscuringPhenomenon] : []}
+              className={!selectedObscuringPhenomenon ? 'missing' : null}
+              clearButton />
             : null
           }
           <Checkbox
@@ -419,7 +435,7 @@ class AirmetEditMode extends PureComponent {
                   {this.getUnitLabel(levelinfo.levels[0].unit)}
                 </DropdownToggle>
                 <DropdownMenu>
-                  {UNITS_ALT.map((unit, index) =>
+                  {UNITS_LABELED.map((unit, index) =>
                     <DropdownItem key={`unitDropDown-${index}`}
                       onClick={(evt) => dispatch(actions.updateAirmetAction(uuid, 'levelinfo.levels.0.unit', unit))}>{unit.label}</DropdownItem>
                   )}
@@ -515,7 +531,7 @@ class AirmetEditMode extends PureComponent {
                     {this.getUnitLabel(levelinfo.levels[0].unit)}
                   </DropdownToggle>
                   <DropdownMenu>
-                    {UNITS_ALT.map((unit, index) =>
+                    {UNITS_LABELED.map((unit, index) =>
                       <DropdownItem key={`unitDropDown-${index}`}
                         onClick={(evt) => dispatch(actions.updateAirmetAction(uuid, 'levelinfo.levels.0.unit', unit))}>{unit.label}</DropdownItem>
                     )}
@@ -541,7 +557,7 @@ class AirmetEditMode extends PureComponent {
                         {this.getUnitLabel(levelinfo.levels[0].unit)}
                       </DropdownToggle>
                       <DropdownMenu>
-                        {UNITS_ALT.map((unit, index) =>
+                        {UNITS_LABELED.map((unit, index) =>
                           <DropdownItem key={`unitDropDown-${index}`}
                             onClick={(evt) => {
                               evt.preventDefault(); // prevent the switch from being triggered
@@ -574,7 +590,7 @@ class AirmetEditMode extends PureComponent {
                     {this.getUnitLabel(levelinfo.levels[1].unit)}
                   </DropdownToggle>
                   <DropdownMenu>
-                    {UNITS_ALT.map((unit, index) =>
+                    {UNITS_LABELED.map((unit, index) =>
                       <DropdownItem key={`unitDropDown-${index}`}
                         onClick={(evt) => dispatch(actions.updateAirmetAction(uuid, 'levelinfo.levels.1.unit', unit))}>{unit.label}</DropdownItem>
                     )}
@@ -681,7 +697,8 @@ AirmetEditMode.propTypes = {
   abilities: PropTypes.shape(abilitiesPropTypes),
   copiedAirmetRef: PropTypes.string,
   hasEdits: PropTypes.bool,
-  availablePhenomena: PropTypes.array,
+  availablePhenomena: PropTypes.arrayOf(AIRMET_TYPES.PHENOMENON),
+  obscuringPhenomena: PropTypes.arrayOf(AIRMET_TYPES.OBSCURING_PHENOMENON),
   focus: PropTypes.bool,
   drawModeStart: PropTypes.string,
   feedbackStart: PropTypes.string,
@@ -691,6 +708,7 @@ AirmetEditMode.propTypes = {
   maxHoursInAdvance: PropTypes.number,
   airmet: AIRMET_TYPES.AIRMET,
   isWindNeeded: PropTypes.bool,
+  isObscuringNeeded: PropTypes.bool,
   isLevelFieldNeeded: PropTypes.bool
 };
 

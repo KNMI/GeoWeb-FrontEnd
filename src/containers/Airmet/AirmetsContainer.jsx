@@ -83,7 +83,7 @@ class AirmetsContainer extends Component {
   render () {
     const maxSize = 580;
     const { isContainerOpen, selectedAirmet, selectedAuxiliaryInfo, categories, focussedCategoryRef,
-      phenomena, parameters, copiedAirmetRef, displayModal } = this.state;
+      phenomena, parameters, obscuringPhenomena, copiedAirmetRef, displayModal } = this.state;
     const { drawProperties } = this.props;
     const header = <ContainerHeader isContainerOpen={isContainerOpen} dispatch={this.localDispatch} actions={LOCAL_ACTIONS} />;
     const startFeature = drawProperties.adagucMapDraw.geojson.features.find((feature) => feature.properties.featureFunction === 'start');
@@ -115,6 +115,7 @@ class AirmetsContainer extends Component {
                     actions={LOCAL_ACTIONS}
                     phenomena={phenomena}
                     parameters={parameters}
+                    obscuringPhenomena={obscuringPhenomena}
                     copiedAirmetRef={copiedAirmetRef}
                     hasStartCoordinates={hasStartCoordinates}
                     hasStartIntersectionCoordinates={hasStartIntersectionCoordinates}

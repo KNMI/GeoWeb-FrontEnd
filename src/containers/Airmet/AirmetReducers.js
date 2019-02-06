@@ -2,7 +2,7 @@ import produce from 'immer';
 import moment from 'moment';
 import { notify } from 'reapop';
 import {
-  AIRMET_MODES, AIRMET_TEMPLATES, UNITS, UNITS_ALT, MODES_LVL, MOVEMENT_TYPES, DISTRIBUTION_TYPES,
+  AIRMET_MODES, AIRMET_TEMPLATES, UNITS, UNITS_LABELED, MODES_LVL, MOVEMENT_TYPES, DISTRIBUTION_TYPES,
   AIRMET_VARIANTS_PREFIXES, DATETIME_FORMAT } from '../../components/Airmet/AirmetTemplates';
 import { LOCAL_ACTION_TYPES, CATEGORY_REFS, STATUSES } from './AirmetActions';
 import { clearEmptyPointersAndAncestors, safeMerge, isFeatureGeoJsonComplete,
@@ -596,6 +596,9 @@ const getEmptyAirmet = (container) => {
         unit: UNITS.DEGREES
       }
     },
+    visibility: {
+      unit: UNITS.M
+    },
     cloudLevels: {
       lower: {
         unit: UNITS.FT
@@ -750,7 +753,7 @@ const updateAirmet = (dataField, value, container) => {
   if (dataField.indexOf('levelinfo') !== -1) {
     switch (fieldToUpdate) {
       case 'unit':
-        value = UNITS_ALT.includes(value)
+        value = UNITS_LABELED.includes(value)
           ? value.unit
           : UNITS.FL.unit;
         break;
@@ -780,6 +783,9 @@ const updateAirmet = (dataField, value, container) => {
     selectedAirmetUpdate.wind = produce(AIRMET_TEMPLATES.WIND, (draftState) => {
       draftState.speed.unit = UNITS.KT;
       draftState.direction.unit = UNITS.DEGREES;
+    });
+    selectedAirmetUpdate.visibility = produce(AIRMET_TEMPLATES.VISIBILITY, (draftState) => {
+      draftState.unit = UNITS.M;
     });
     selectedAirmetUpdate.cloudLevels = produce(AIRMET_TEMPLATES.CLOUD_LEVELS, (draftState) => {
       draftState.lower.unit = UNITS.FT;

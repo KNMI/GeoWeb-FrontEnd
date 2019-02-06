@@ -49,19 +49,19 @@ class AirmetsCategory extends PureComponent {
     const filteredPhenomena = isSelectedAirmet
       ? availablePhenomena.filter((entry) => entry.code === selectedAirmet.phenomenon)
       : [];
-    const specificPhenomena = filteredPhenomena.length > 0 
-    ? {
-      isWindNeeded: filteredPhenomena[0].paraminfo === PARAMS_NEEDED.NEEDS_WIND,
-      isCloudLevelsNeeded: filteredPhenomena[0].paraminfo === PARAMS_NEEDED.NEEDS_CLOUDLEVELS,
-      isObsuringNeeded: filteredPhenomena[0].paraminfo === PARAMS_NEEDED.NEEDS_OBSCURATION,
-      isLevelFieldNeeded: filteredPhenomena[0].paraminfo === PARAMS_NEEDED.NEEDS_NONE
-    }
-    :{
-      isWindNeeded: false,
-      isCloudLevelsNeeded: false,
-      isObsuringNeeded: false,
-      isLevelFieldNeeded: false,
-    }
+    const specificPhenomena = filteredPhenomena.length > 0
+      ? {
+        isWindNeeded: filteredPhenomena[0].paraminfo === PARAMS_NEEDED.NEEDS_WIND,
+        isCloudLevelsNeeded: filteredPhenomena[0].paraminfo === PARAMS_NEEDED.NEEDS_CLOUDLEVELS,
+        isObscuringNeeded: filteredPhenomena[0].paraminfo === PARAMS_NEEDED.NEEDS_OBSCURATION,
+        isLevelFieldNeeded: filteredPhenomena[0].paraminfo === PARAMS_NEEDED.NEEDS_NONE
+      }
+      : {
+        isWindNeeded: false,
+        isCloudLevelsNeeded: false,
+        isObscuringNeeded: false,
+        isLevelFieldNeeded: false
+      };
     const prefix = AIRMET_VARIANTS_PREFIXES.NORMAL;
     const activeFirEntry = Object.entries(parameters.firareas).filter((entry) => entry[1].firname === airmetToShow.firname &&
       entry[1].location_indicator_icao === airmetToShow.location_indicator_icao);
@@ -86,7 +86,7 @@ class AirmetsCategory extends PureComponent {
       maxHoursDuration,
       isWindNeeded : specificPhenomena.isWindNeeded,
       isCloudLevelsNeeded : specificPhenomena.isCloudLevelsNeeded,
-      isObsuringNeeded : specificPhenomena.isObsuringNeeded,
+      isObscuringNeeded : specificPhenomena.isObscuringNeeded,
       isLevelFieldNeeded : specificPhenomena.isLevelFieldNeeded,
       adjacentFirs
     };
@@ -94,7 +94,7 @@ class AirmetsCategory extends PureComponent {
 
   render () {
     const { typeRef, title, icon, airmets, selectedAirmet, selectedAuxiliaryInfo, geojson, copiedAirmetRef, isOpen, dispatch, actions, abilities,
-      phenomena, parameters, displayModal, hasStartCoordinates, hasStartIntersectionCoordinates } = this.props;
+      phenomena, parameters, obscuringPhenomena, displayModal, hasStartCoordinates, hasStartIntersectionCoordinates } = this.props;
     const maxSize = 10000; // for now, arbitrairy big
     const itemLimit = 25;
     const isCreateCategory = typeRef === CATEGORY_REFS.ADD_AIRMET;
@@ -138,9 +138,8 @@ class AirmetsCategory extends PureComponent {
                 <Row>
                   <Col className='btn-group-vertical'>
                     {airmetCollection.map((airmet) => {
-                      const { isSelectedAirmet, isWindNeeded, isCloudLevelsNeeded, isObsuringNeeded, isLevelFieldNeeded, isCancelFor, maxHoursInAdvance, maxHoursDuration,
+                      const { isSelectedAirmet, isWindNeeded, isCloudLevelsNeeded, isObscuringNeeded, isLevelFieldNeeded, isCancelFor, maxHoursInAdvance, maxHoursDuration,
                         adjacentFirs, airmetToShow } = this.derivedAirmetProperties(airmet, selectedAirmet, parameters, availablePhenomena);
-
                       // Render selected AIRMET
                       if (isSelectedAirmet) {
                         const AirmetComponent = selectedAuxiliaryInfo.mode === AIRMET_MODES.EDIT ? AirmetEditMode : AirmetReadMode;
@@ -152,9 +151,10 @@ class AirmetsCategory extends PureComponent {
                           hasEdits={selectedAuxiliaryInfo.hasEdits}
                           isWindNeeded={isWindNeeded}
                           isCloudLevelsNeeded={isCloudLevelsNeeded}
-                          isObsuringNeeded={isObsuringNeeded}
+                          isObscuringNeeded={isObscuringNeeded}
                           isLevelFieldNeeded={isLevelFieldNeeded}
                           availablePhenomena={availablePhenomena}
+                          obscuringPhenomena={obscuringPhenomena}
                           focus
                           airmet={airmetToShow}
                           geojson={geojson}
@@ -208,7 +208,8 @@ AirmetsCategory.propTypes = {
   airmets: PropTypes.arrayOf(AIRMET_TYPES.AIRMET),
   selectedAirmet: AIRMET_TYPES.AIRMET,
   selectedAuxiliaryInfo: AIRMET_TYPES.AUXILIARY_INFO,
-  phenomena: PropTypes.array,
+  phenomena: PropTypes.arrayOf(AIRMET_TYPES.PHENOMENON),
+  obscuringPhenomena: PropTypes.arrayOf(AIRMET_TYPES.OBSCURING_PHENOMENON),
   isOpen: PropTypes.bool,
   abilities: PropTypes.shape(abilitiesPropTypes),
   dispatch: PropTypes.func,

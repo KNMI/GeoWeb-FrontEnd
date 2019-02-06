@@ -104,39 +104,56 @@ export default class WhatSection extends PureComponent {
             <Col xs={{ size: 2, offset: 1 }}>
               <Badge>Visibility</Badge>
             </Col>
-            <Col xs='4'>
+            <Col xs='9'>
               {children.visibility}
               {children.visibility && hasClass(children.visibility.props.className, 'required')
                 ? <span className={classNames('required', { missing: hasClass(children.visibility.props.className, 'missing') })} />
                 : null
               }
             </Col>
-            <Col xs={{ size: 4, offset: 1 }}>
-              {children.oscuring}
-              {children.oscuring && hasClass(children.oscuring.props.className, 'required')
-                ? <span className={classNames('required', { missing: hasClass(children.oscuring.props.className, 'missing') })} />
+          </Row>
+          : null
+        }
+        {children.obscuring
+          ? <Row>
+            <Col xs={{ size: 2, offset: 1 }}>
+              <Badge>Cause</Badge>
+            </Col>
+            <Col xs='9'>
+              {children.obscuring}
+              {children.obscuring && children.obscuring.props.selected
+                ? <span className={children.obscuring.props.selected.length > 0 ? 'required' : 'required missing'} />
                 : null
               }
             </Col>
           </Row>
           : null
         }
-        {children.level
+        {
+          /* <Col xs={{ size: 4, offset: 1 }}>
+            {children.obscuring}
+            {children.obscuring && hasClass(children.obscuring.props.className, 'required')
+              ? <span className={classNames('required', { missing: hasClass(children.obscuring.props.className, 'missing') })} />
+              : null
+            }
+          </Col> */
+        }
+        {/* children.cloud_levels
           ? <Row>
             <Col xs={{ size: 2, offset: 1 }}>
               <Badge>Level Up</Badge>
             </Col>
-            <Col xs={{ size: 2, offset: 3 }}>
+            <Col xs={{ size: 2, offset: 1 }}>
               {children['above-toggle']}
             </Col>
-            <Col xs='5'>
+            <Col xs='4'>
               {children['at-above-altitude'] && children['at-above-altitude'].props && !children['at-above-altitude'].props.disabled
                 ? <span className={children['at-above-altitude'].props.className === 'missing' ? 'required missing' : 'required'} />
                 : null
               }
             </Col>
           </Row>
-          : null
+          : null */
         }
       </Col>
     </Row>;

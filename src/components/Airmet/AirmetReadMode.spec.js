@@ -11,13 +11,13 @@ const airmet = {
 describe('(Component) AirmetReadMode', () => {
   it('mount renders a AirmetReadMode', () => {
     const abilities = { isCancelable: false, isDeletable: true, isEditable: true, isCopyable: true, isPublishable: true };
-    const _component = mount(<AirmetReadMode airmet={airmet} abilities={abilities} />);
+    const _component = mount(<AirmetReadMode airmet={airmet} obscuring={[]} abilities={abilities} />);
     expect(_component.type()).to.eql(AirmetReadMode);
   });
 
   it('shallow renders a ReactStrap Button', () => {
     const abilities = { isCancelable: false, isDeletable: true, isEditable: true, isCopyable: true, isPublishable: true };
-    const _component = shallow(<AirmetReadMode airmet={airmet} abilities={abilities} />);
+    const _component = shallow(<AirmetReadMode airmet={airmet} obscuring={[]} abilities={abilities} />);
     expect(_component.type()).to.eql(Button);
   });
 });

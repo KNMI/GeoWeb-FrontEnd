@@ -366,16 +366,13 @@ const UNITS = {
 };
 
 // Units for altitude
-const UNITS_ALT = [
+const UNITS_LABELED = [
   { unit: UNITS.FL, label: 'FL' },
   { unit: UNITS.FT, label: 'ft' },
-  { unit: UNITS.M, label: 'm' }
-];
-
-// Units for wind speed
-const UNITS_WIND_SPEED = [
+  { unit: UNITS.M, label: 'm' },
   { unit: UNITS.KT, label: 'KT' },
-  { unit: UNITS.MPS, label: 'MPS' }
+  { unit: UNITS.MPS, label: 'm/s' },
+  { unit: UNITS.DEGREES, label: '°' }
 ];
 
 // Modes for levels
@@ -467,8 +464,7 @@ module.exports = {
   DIRECTIONS: DIRECTIONS,
   CHANGES: CHANGES,
   PARAMS_NEEDED: PARAMS_NEEDED,
-  UNITS_ALT: UNITS_ALT,
-  UNITS_WIND_SPEED: UNITS_WIND_SPEED,
+  UNITS_LABELED: UNITS_LABELED,
   UNITS: UNITS,
   MODES_LVL: MODES_LVL,
   MODES_LVL_OPTIONS: MODES_LVL_OPTIONS,
