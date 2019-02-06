@@ -208,7 +208,7 @@ AirmetsCategory.propTypes = {
   airmets: PropTypes.arrayOf(AIRMET_TYPES.AIRMET),
   selectedAirmet: AIRMET_TYPES.AIRMET,
   selectedAuxiliaryInfo: AIRMET_TYPES.AUXILIARY_INFO,
-  phenomena: PropTypes.arrayOf(AIRMET_TYPES.PHENOMENON),
+  phenomena: PropTypes.array,
   obscuringPhenomena: PropTypes.arrayOf(AIRMET_TYPES.OBSCURING_PHENOMENON),
   isOpen: PropTypes.bool,
   abilities: PropTypes.shape(abilitiesPropTypes),

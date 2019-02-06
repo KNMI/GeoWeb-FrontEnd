@@ -3,6 +3,7 @@ import Adaguc from './ADAGUC/Adaguc';
 import Panel from './Panel';
 import { Row, Col } from 'reactstrap';
 import PropTypes from 'prop-types';
+import MomentPropTypes from 'react-moment-proptypes';
 import TimeseriesComponent from './TimeseriesComponent';
 import ProgtempComponent from './ProgtempComponent';
 import axios from 'axios';
@@ -318,7 +319,7 @@ SinglePanel.propTypes = {
   panelsActions: PropTypes.object.isRequired,
   adagucActions: PropTypes.object.isRequired,
   urls: PropTypes.object,
-  referenceTime: PropTypes.string,
+  referenceTime: MomentPropTypes.momentObj,
   model: PropTypes.string,
   isLoggedIn: PropTypes.bool,
   progtempLocations: PropTypes.array

@@ -18,6 +18,7 @@ import Switch from '../Basis/Switch';
 import HeaderSection from '../SectionTemplates/HeaderSection';
 import WhatSection from '../SectionTemplates/WhatSection';
 import ValiditySection from '../SectionTemplates/ValiditySection';
+import CompactedHeightsSection from '../SectionTemplates/CompactedHeightsSection';
 import ActionSection from '../SectionTemplates/ActionSection';
 import FirSection from '../SectionTemplates/FirSection';
 import DrawSection from '../SectionTemplates/DrawSection';
@@ -265,7 +266,6 @@ class AirmetEditMode extends PureComponent {
       wind, cloudLevels, obscuring, visibility } = airmet;
     const obsFcTime = obsOrForecast ? obsOrForecast.obsFcTime : null;
     const isObserved = obsOrForecast ? obsOrForecast.obs : null;
-
     const now = moment.utc();
     const dateLimits = dateRanges(now, validdate, validdateEnd, maxHoursInAdvance, maxHoursDuration);
     const selectedPhenomenon = availablePhenomena.find((ph) => ph.code === phenomenon);
@@ -419,34 +419,47 @@ class AirmetEditMode extends PureComponent {
               clearButton />
             : null
           }
-          <Checkbox
-            value={levelMode.hasTops ? 'above' : ''}
-            option={{ optionId: 'above', label: 'Above' }}
-            onChange={this.setMode}
-            data-field='above-toggle'
-          />
-          <InputGroup data-field='at-above-altitude'
-            className={!isLevelBetween && levelinfo && levelinfo.levels && levelinfo.levels[0] &&
-              (!levelinfo.levels[0].value || levelinfo.levels[0].value > this.maxLevelPerUnit(levelinfo.levels[0].unit)) ? 'missing' : null}
-            disabled={isLevelBetween}>
-            <InputGroupAddon addonType='prepend'>
-              <ButtonDropdown toggle={() => this.toggleDropDown(DROP_DOWN_NAMES.AT_OR_ABOVE)} isOpen={isAtOrAboveDropDownOpen}>
-                <DropdownToggle caret disabled={isLevelBetween}>
-                  {this.getUnitLabel(levelinfo.levels[0].unit)}
-                </DropdownToggle>
-                <DropdownMenu>
-                  {UNITS_LABELED.map((unit, index) =>
-                    <DropdownItem key={`unitDropDown-${index}`}
-                      onClick={(evt) => dispatch(actions.updateAirmetAction(uuid, 'levelinfo.levels.0.unit', unit))}>{unit.label}</DropdownItem>
-                  )}
-                </DropdownMenu>
-              </ButtonDropdown>
-            </InputGroupAddon>
-            <Input placeholder='Level' disabled={isLevelBetween} type='number' pattern='\d{0,5}'
-              min='0' step={this.stepLevelPerUnit(levelinfo.levels[0].unit)} max={this.maxLevelPerUnit(levelinfo.levels[0].unit)}
-              value={(isLevelBetween || !levelinfo.levels[0].value) ? '' : this.formatLevelPerUnit(levelinfo.levels[0].value, levelinfo.levels[0].unit)}
-              onChange={(evt) => dispatch(actions.updateAirmetAction(uuid, 'levelinfo.levels.0.value', evt.target.value))} />
-          </InputGroup>
+          {isCloudLevelsNeeded
+            ? <CompactedHeightsSection data-field='cloud_levels'>
+              <Checkbox
+                value={cloudLevels && cloudLevels.upper && cloudLevels.upper.above ? 'above' : ''}
+                option={{ optionId: 'above', label: 'Above' }}
+                onChange={(evt) => dispatch(actions.updateAirmetAction(uuid, 'cloudLevels.upper.above', !!evt.target.checked))}
+                data-field='above-toggle'
+              />
+              <InputGroup
+                data-field='upper'
+                className={cloudLevels && cloudLevels.upper &&
+                  (!cloudLevels.upper.val || !cloudLevels.upper.unit) ? 'missing' : null}>
+                <InputGroupAddon addonType='prepend'>{this.getUnitLabel(cloudLevels.upper.unit)}</InputGroupAddon>
+                <Input placeholder='Upper level' type='number'
+                  min='0' step={this.stepLevelPerUnit(cloudLevels.upper.unit)} max={this.maxLevelPerUnit(cloudLevels.upper.unit)}
+                  value={!cloudLevels.upper.val ? '' : this.formatLevelPerUnit(cloudLevels.upper.val, cloudLevels.upper.unit)}
+                  onChange={(evt) => dispatch(actions.updateAirmetAction(uuid, 'cloudLevels.upper.val', parseInt(evt.target.value)))} />
+              </InputGroup>
+              <Switch
+                className={cloudLevels && cloudLevels.lower && !cloudLevels.lower.surface &&
+                  (!cloudLevels.lower.val || !cloudLevels.lower.unit || cloudLevels.lower.val > this.maxLevelPerUnit(cloudLevels.lower.unit)) ? 'missing' : null}
+                value={cloudLevels && cloudLevels.lower && cloudLevels.lower.surface ? 'sfc' : 'lvl'}
+                checkedOption={{
+                  optionId: 'lvl',
+                  label: <InputGroup className='label'>
+                    <InputGroupAddon addonType='prepend'>{this.getUnitLabel(cloudLevels.lower.unit)}</InputGroupAddon>
+                    <Input placeholder='Lower level' disabled={cloudLevels && cloudLevels.lower && cloudLevels.lower.surface} type='number'
+                      min='0' step={this.stepLevelPerUnit(cloudLevels.lower.unit)} max={this.maxLevelPerUnit(cloudLevels.lower.unit)}
+                      value={(!cloudLevels || !cloudLevels.lower || cloudLevels.lower.surface || !cloudLevels.lower.val)
+                        ? ''
+                        : this.formatLevelPerUnit(cloudLevels.lower.val, cloudLevels.lower.unit)}
+                      onChange={(evt) => dispatch(actions.updateAirmetAction(uuid, 'cloudLevels.lower.val', parseInt(evt.target.value)))} />
+                  </InputGroup>
+                }}
+                unCheckedOption={{ optionId: 'sfc', label: 'SFC' }}
+                onChange={(evt) => dispatch(actions.updateAirmetAction(uuid, 'cloudLevels.lower', { surface: !evt.target.checked, val: null }))}
+                data-field='lower'
+              />
+            </CompactedHeightsSection>
+            : null
+          }
         </WhatSection>
 
         <ValiditySection>
@@ -697,7 +710,7 @@ AirmetEditMode.propTypes = {
   abilities: PropTypes.shape(abilitiesPropTypes),
   copiedAirmetRef: PropTypes.string,
   hasEdits: PropTypes.bool,
-  availablePhenomena: PropTypes.arrayOf(AIRMET_TYPES.PHENOMENON),
+  availablePhenomena: PropTypes.array,
   obscuringPhenomena: PropTypes.arrayOf(AIRMET_TYPES.OBSCURING_PHENOMENON),
   focus: PropTypes.bool,
   drawModeStart: PropTypes.string,
@@ -709,7 +722,8 @@ AirmetEditMode.propTypes = {
   airmet: AIRMET_TYPES.AIRMET,
   isWindNeeded: PropTypes.bool,
   isObscuringNeeded: PropTypes.bool,
-  isLevelFieldNeeded: PropTypes.bool
+  isLevelFieldNeeded: PropTypes.bool,
+  isCloudLevelsNeeded: PropTypes.bool
 };
 
 export default AirmetEditMode;

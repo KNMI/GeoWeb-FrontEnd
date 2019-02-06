@@ -18,6 +18,12 @@ import ChangeSection from '../SectionTemplates/ChangeSection';
 import IssueSection from '../SectionTemplates/IssueSection';
 import ConfirmationModal from '../ConfirmationModal';
 import MovementSection from '../SectionTemplates/MovementSection';
+import CompactedHeightsSection from '../SectionTemplates/CompactedHeightsSection';
+
+const CLOUD_LEVEL_PARTS = {
+  UPPER: 'UPPER',
+  LOWER: 'LOWER'
+};
 
 class AirmetReadMode extends PureComponent {
   getUnitLabel (unitName) {
@@ -27,8 +33,8 @@ class AirmetReadMode extends PureComponent {
       : '';
   };
 
-  getValueLabel (value, unit) {
-    if (typeof value !== 'number' || value === 0) {
+  getValueLabel (value, unit, showZero = false) {
+    if (typeof value !== 'number' || (value === 0 && showZero !== true)) {
       return null;
     }
     const valueAsString = value.toString();
@@ -50,6 +56,28 @@ class AirmetReadMode extends PureComponent {
         break;
     }
     return valueAsString.padStart(minimalCharactersCount, '0');
+  };
+
+  showCloudLevels (cloudLevels, part) {
+    switch (part) {
+      case CLOUD_LEVEL_PARTS.UPPER:
+        const above = cloudLevels.upper && cloudLevels.upper.above === true ? 'above' : '';
+        const upperValue = cloudLevels.upper && Number.isInteger(cloudLevels.upper.val) && cloudLevels.lower.val > 0 && typeof cloudLevels.upper.unit === 'string'
+          ? `${this.getValueLabel(cloudLevels.upper.val, cloudLevels.upper.unit)} ${this.getUnitLabel(cloudLevels.upper.unit)}`
+          : '(no upper level provided)';
+        return `Between ${above} ${upperValue}`;
+      case CLOUD_LEVEL_PARTS.LOWER:
+        const hasValue = cloudLevels.lower && (cloudLevels.lower.surface === true ||
+            (Number.isInteger(cloudLevels.lower.val) && cloudLevels.lower.val > 0 && typeof cloudLevels.lower.unit === 'string'));
+        const lowerValue = !hasValue
+          ? '(no lower level provided)'
+          : cloudLevels.lower.surface === true
+            ? 'surface'
+            : `${this.getValueLabel(cloudLevels.lower.val, cloudLevels.lower.unit)} ${this.getUnitLabel(cloudLevels.lower.unit)}`;
+        return `and ${lowerValue}`;
+      default:
+        return '(no cloud levels provided)';
+    }
   };
 
   showLevels (levelinfo) {
@@ -283,7 +311,7 @@ class AirmetReadMode extends PureComponent {
           {isWindNeeded
             ? <span data-field='wind_direction'>
               {wind && wind.direction && Number.isInteger(wind.direction.val)
-                ? `${this.getValueLabel(wind.direction.val, wind.direction.unit)} ${this.getUnitLabel(wind.direction.unit)}`
+                ? `${this.getValueLabel(wind.direction.val, wind.direction.unit, true)} ${this.getUnitLabel(wind.direction.unit)}`
                 : '(no direction provided)'
               }
             </span>
@@ -293,7 +321,7 @@ class AirmetReadMode extends PureComponent {
             ? <span data-field='wind_speed'>
               {wind && wind.speed && Number.isInteger(wind.speed.val) &&
                 typeof wind.speed.unit === 'string'
-                ? `${this.getValueLabel(wind.speed.val, wind.speed.unit)} ${this.getUnitLabel(wind.speed.unit)}`
+                ? `${this.getValueLabel(wind.speed.val, wind.speed.unit, true)} ${this.getUnitLabel(wind.speed.unit)}`
                 : '(no speed provided)'
               }
             </span>
@@ -302,7 +330,7 @@ class AirmetReadMode extends PureComponent {
           {isObscuringNeeded
             ? <span data-field='visibility'>
               {visibility && Number.isInteger(visibility.val)
-                ? `${this.getValueLabel(visibility.val, visibility.unit)} ${this.getUnitLabel(visibility.unit)}`
+                ? `${this.getValueLabel(visibility.val, visibility.unit, true)} ${this.getUnitLabel(visibility.unit)}`
                 : '(no visibility provided)'
               }
             </span>
@@ -315,6 +343,17 @@ class AirmetReadMode extends PureComponent {
                 : '(no cause provided)'
               }
             </span>
+            : null
+          }
+          {isCloudLevelsNeeded
+            ? cloudLevels
+              ? <CompactedHeightsSection data-field='cloud_levels'>
+                <span data-field='completeUpper'>{this.showCloudLevels(cloudLevels, CLOUD_LEVEL_PARTS.UPPER)}</span>
+                <span data-field='completeLower'>{this.showCloudLevels(cloudLevels, CLOUD_LEVEL_PARTS.LOWER)}</span>
+              </CompactedHeightsSection>
+              : <CompactedHeightsSection data-field='cloud_levels'>
+                <span data-field='completeUpper'>{'(no cloud levels provided)'}</span>
+              </CompactedHeightsSection>
             : null
           }
         </WhatSection>

@@ -129,31 +129,9 @@ export default class WhatSection extends PureComponent {
           </Row>
           : null
         }
-        {
-          /* <Col xs={{ size: 4, offset: 1 }}>
-            {children.obscuring}
-            {children.obscuring && hasClass(children.obscuring.props.className, 'required')
-              ? <span className={classNames('required', { missing: hasClass(children.obscuring.props.className, 'missing') })} />
-              : null
-            }
-          </Col> */
-        }
-        {/* children.cloud_levels
-          ? <Row>
-            <Col xs={{ size: 2, offset: 1 }}>
-              <Badge>Level Up</Badge>
-            </Col>
-            <Col xs={{ size: 2, offset: 1 }}>
-              {children['above-toggle']}
-            </Col>
-            <Col xs='4'>
-              {children['at-above-altitude'] && children['at-above-altitude'].props && !children['at-above-altitude'].props.disabled
-                ? <span className={children['at-above-altitude'].props.className === 'missing' ? 'required missing' : 'required'} />
-                : null
-              }
-            </Col>
-          </Row>
-          : null */
+        {children.cloud_levels
+          ? children.cloud_levels
+          : null
         }
       </Col>
     </Row>;
