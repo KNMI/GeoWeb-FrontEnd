@@ -161,7 +161,6 @@ const retrievePhenomena = (container) => {
 };
 
 const updatePhenomena = (rawPhenomenaData, container) => {
-  // TODO: discuss with Wim
   if (!Array.isArray(rawPhenomenaData)) {
     return Promise.resolve();
   }
@@ -194,7 +193,6 @@ const retrieveObscuringPhenomena = (container) => {
 };
 
 const updateObscuringPhenomena = (rawObscuringPhenomenaData, container) => {
-  // TODO: discuss with Wim
   if (!Array.isArray(rawObscuringPhenomenaData)) {
     return Promise.resolve();
   }

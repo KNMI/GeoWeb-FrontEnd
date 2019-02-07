@@ -167,6 +167,11 @@ class AirmetEditMode extends PureComponent {
         return 9999;
       case UNITS.FT:
         return 99999;
+      case UNITS.DEGREES:
+        return 360;
+      case UNITS.MPS:
+      case UNITS.KT:
+        return 99;
       default:
         return null;
     }
@@ -174,6 +179,10 @@ class AirmetEditMode extends PureComponent {
 
   stepLevelPerUnit (unit) {
     switch (unit) {
+      case UNITS.DEGREES:
+      case UNITS.MPS:
+      case UNITS.KT:
+        return 1;
       case UNITS.FL:
         return 10;
       case UNITS.M:
@@ -352,7 +361,7 @@ class AirmetEditMode extends PureComponent {
               value={(!wind || !wind.direction || !Number.isInteger(wind.direction.val))
                 ? ''
                 : `${wind.direction.val}`} placeholder={'Set direction'}
-              type='number' step='1' min='0' max='360'
+              type='number' step={this.stepLevelPerUnit(wind.direction.unit)} min='0' max={this.maxLevelPerUnit(wind.direction.unit)}
               className={classNames({
                 required: true,
                 missing: !wind || !wind.direction || !Number.isInteger(wind.direction.val)
@@ -373,7 +382,7 @@ class AirmetEditMode extends PureComponent {
                 value={(!wind || !wind.speed || !Number.isInteger(wind.speed.val))
                   ? ''
                   : `${wind.speed.val}`}
-                placeholder={'Set speed'} type='number' step='1' min='0' max='99'
+                placeholder={'Set speed'} type='number' step={this.stepLevelPerUnit(wind.speed.unit)} min='0' max={this.maxLevelPerUnit(wind.speed.unit)}
               />
               <InputGroupAddon addonType='append'>
                 <ButtonDropdown toggle={() => this.toggleDropDown(DROP_DOWN_NAMES.WIND_SPEED)} isOpen={isWindSpeedDropDownOpen}>
@@ -381,7 +390,7 @@ class AirmetEditMode extends PureComponent {
                     {this.getWindSpeedUnitLabel(wind.speed.unit)}
                   </DropdownToggle>
                   <DropdownMenu>
-                    {UNITS_LABELED.map((unit, index) =>
+                    {UNITS_LABELED.filter((item) => item.dim === 'speed').map((unit, index) =>
                       <DropdownItem key={`unitDropDown-${index}`}
                         onClick={(evt) => dispatch(actions.updateAirmetAction(uuid, 'wind.speed.unit', unit.unit))}>{unit.label}
                       </DropdownItem>
@@ -401,7 +410,7 @@ class AirmetEditMode extends PureComponent {
               value={(!visibility || !Number.isInteger(visibility.val))
                 ? ''
                 : `${visibility.val}`} placeholder={'Set visibility'}
-              type='number' step='1' min='0' max='9999'
+              type='number' step={this.stepLevelPerUnit(visibility.unit)} min='0' max={this.maxLevelPerUnit(visibility.unit)}
               className={classNames({
                 required: true,
                 missing: !visibility || !Number.isInteger(visibility.val)
@@ -544,7 +553,7 @@ class AirmetEditMode extends PureComponent {
                     {this.getUnitLabel(levelinfo.levels[0].unit)}
                   </DropdownToggle>
                   <DropdownMenu>
-                    {UNITS_LABELED.map((unit, index) =>
+                    {UNITS_LABELED.filter((item) => item.dim === 'length').map((unit, index) =>
                       <DropdownItem key={`unitDropDown-${index}`}
                         onClick={(evt) => dispatch(actions.updateAirmetAction(uuid, 'levelinfo.levels.0.unit', unit))}>{unit.label}</DropdownItem>
                     )}
@@ -570,7 +579,7 @@ class AirmetEditMode extends PureComponent {
                         {this.getUnitLabel(levelinfo.levels[0].unit)}
                       </DropdownToggle>
                       <DropdownMenu>
-                        {UNITS_LABELED.map((unit, index) =>
+                        {UNITS_LABELED.filter((item) => item.dim === 'length').map((unit, index) =>
                           <DropdownItem key={`unitDropDown-${index}`}
                             onClick={(evt) => {
                               evt.preventDefault(); // prevent the switch from being triggered
@@ -603,7 +612,7 @@ class AirmetEditMode extends PureComponent {
                     {this.getUnitLabel(levelinfo.levels[1].unit)}
                   </DropdownToggle>
                   <DropdownMenu>
-                    {UNITS_LABELED.map((unit, index) =>
+                    {UNITS_LABELED.filter((item) => item.dim === 'length').map((unit, index) =>
                       <DropdownItem key={`unitDropDown-${index}`}
                         onClick={(evt) => dispatch(actions.updateAirmetAction(uuid, 'levelinfo.levels.1.unit', unit))}>{unit.label}</DropdownItem>
                     )}

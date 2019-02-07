@@ -11,9 +11,9 @@ describe('(Component) AirmetsCategory', () => {
       firareas: { EHAA: {} }
     };
     const phenomena = [{
-      code: 'OBSC_TSGR',
+      code: 'OCNL_TSGR',
       layerpreset: 'airmet_layer_TS',
-      name: 'Obscured thunderstorm with hail'
+      name: 'Occasional thunderstorms with hail'
     }];
     const _component = mount(<AirmetsCategory airmets={[]} parameters={parameters} phenomena={phenomena} />);
     expect(_component.type()).to.eql(AirmetsCategory);
@@ -26,9 +26,9 @@ describe('(Component) AirmetsCategory', () => {
       firareas: { EHAA: {} }
     };
     const phenomena = [{
-      code: 'OBSC_TSGR',
+      code: 'OCNL_TSGR',
       layerpreset: 'airmet_layer_TS',
-      name: 'Obscured thunderstorm with hail'
+      name: 'Occasional thunderstorms with hail'
     }];
     const _component = shallow(<AirmetsCategory airmets={[]} parameters={parameters} phenomena={phenomena} />);
     expect(_component.type()).to.eql(Card);

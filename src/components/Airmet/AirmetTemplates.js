@@ -365,14 +365,14 @@ const UNITS = {
   DEGREES: 'degrees'
 };
 
-// Units for altitude
+// Units label
 const UNITS_LABELED = [
-  { unit: UNITS.FL, label: 'FL' },
-  { unit: UNITS.FT, label: 'ft' },
-  { unit: UNITS.M, label: 'm' },
-  { unit: UNITS.KT, label: 'KT' },
-  { unit: UNITS.MPS, label: 'm/s' },
-  { unit: UNITS.DEGREES, label: '°' }
+  { unit: UNITS.FL, label: 'FL', dim: 'length' },
+  { unit: UNITS.FT, label: 'ft', dim: 'length' },
+  { unit: UNITS.M, label: 'm', dim: 'length' },
+  { unit: UNITS.KT, label: 'KT', dim: 'speed' },
+  { unit: UNITS.MPS, label: 'm/s', dim: 'speed' },
+  { unit: UNITS.DEGREES, label: 'deg', dim: 'angle' }
 ];
 
 // Modes for levels
