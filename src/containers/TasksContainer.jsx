@@ -49,12 +49,16 @@ const items = [
       { title: 'Shared products' },
       { title: 'Warnings' },
       {
+        title: 'TAFs',
+        link: 'products/tafs'
+      },
+      {
         title: 'SIGMETs',
         link: 'products/sigmets'
       },
       {
-        title: 'TAFs',
-        link: 'products/tafs'
+        title: 'AIRMETs',
+        link: 'products/airmets'
       },
       { title: 'Forecasts' },
       { title: 'Analyses' }

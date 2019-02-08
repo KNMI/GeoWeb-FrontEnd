@@ -14,21 +14,21 @@ import Icon from 'react-fa';
 import Checkbox from '../Basis/Checkbox';
 import RadioGroup from '../Basis/RadioGroup';
 import Switch from '../Basis/Switch';
-import HeaderSection from './Sections/HeaderSection';
-import WhatSection from './Sections/WhatSection';
-import ValiditySection from './Sections/ValiditySection';
-import ActionSection from './Sections/ActionSection';
-import FirSection from './Sections/FirSection';
-import DrawSection from './Sections/DrawSection';
-import ProgressSection from './Sections/ProgressSection';
-import MovementSection from './Sections/MovementSection';
-import IssueSection from './Sections/IssueSection';
-import ChangeSection from './Sections/ChangeSection';
-import HeightsSection from './Sections/HeightsSection';
+import HeaderSection from '../SectionTemplates/HeaderSection';
+import WhatSection from '../SectionTemplates/WhatSection';
+import ValiditySection from '../SectionTemplates/ValiditySection';
+import ActionSection from '../SectionTemplates/ActionSection';
+import FirSection from '../SectionTemplates/FirSection';
+import DrawSection from '../SectionTemplates/DrawSection';
+import ProgressSection from '../SectionTemplates/ProgressSection';
+import MovementSection from '../SectionTemplates/MovementSection';
+import IssueSection from '../SectionTemplates/IssueSection';
+import ChangeSection from '../SectionTemplates/ChangeSection';
+import HeightsSection from '../SectionTemplates/HeightsSection';
 import {
   DIRECTIONS, UNITS_ALT, UNITS, MODES_LVL, MODES_LVL_OPTIONS, CHANGES, MOVEMENT_TYPES, MOVEMENT_OPTIONS, SIGMET_TYPES,
   DATETIME_FORMAT, DISTRIBUTION_OPTIONS, dateRanges } from './SigmetTemplates';
-import EndPositionSection from './Sections/EndPositionSection';
+import EndPositionSection from '../SectionTemplates/EndPositionSection';
 
 const DROP_DOWN_NAMES = {
   AT_OR_ABOVE: 'atOrAbove',
@@ -313,7 +313,7 @@ class SigmetEditMode extends PureComponent {
     return <Button tag='div' className={`Sigmet row${focus ? ' focus' : ''}`} id={uuid}
       onClick={!focus ? (evt) => dispatch(actions.focusSigmetAction(evt, uuid)) : null}>
       <Col>
-        <HeaderSection />
+        <HeaderSection label={'SIGMET'} />
         <WhatSection>
           <Typeahead filterBy={['name', 'code']} labelKey='name' data-field='phenomenon'
             options={availablePhenomena} placeholder={'Select phenomenon'}

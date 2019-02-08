@@ -2,15 +2,15 @@ import React, { PureComponent } from 'react';
 import { Button, Col, Row, Badge } from 'reactstrap';
 import Moment from 'react-moment';
 import PropTypes from 'prop-types';
-import { TIME_LABEL_FORMAT_UTC, DATETIME_START_FORMAT } from './SigmetTemplates';
+import { TIME_LABEL_FORMAT_UTC, DATETIME_START_FORMAT } from './AirmetTemplates';
 import HeaderSection from '../SectionTemplates/HeaderSection';
 
-class SigmetMinifiedMode extends PureComponent {
+class AirmetMinifiedMode extends PureComponent {
   render () {
     const { dispatch, actions, uuid, phenomenon, validdate, validdateEnd, tac, isCancelFor } = this.props;
-    return <Button tag='div' className={`Sigmet minified row`} onClick={(evt) => dispatch(actions.focusSigmetAction(evt, uuid))}>
+    return <Button tag='div' className={`Airmet minified row`} onClick={(evt) => dispatch(actions.focusAirmetAction(evt, uuid))}>
       <Col>
-        <HeaderSection type={phenomenon} isCancelFor={isCancelFor} label={'SIGMET'} />
+        <HeaderSection type={phenomenon} isCancelFor={isCancelFor} label={'AIRMET'} />
         <Row>
           <Col xs={{ size: 2, offset: 1 }}>
             <Badge color='success'>Valid</Badge>
@@ -34,10 +34,10 @@ class SigmetMinifiedMode extends PureComponent {
   }
 }
 
-SigmetMinifiedMode.propTypes = {
+AirmetMinifiedMode.propTypes = {
   dispatch: PropTypes.func,
   actions: PropTypes.shape({
-    focusSigmetAction: PropTypes.func
+    focusAirmetAction: PropTypes.func
   }),
   uuid: PropTypes.string,
   tac: PropTypes.string,
@@ -47,4 +47,4 @@ SigmetMinifiedMode.propTypes = {
   isCancelFor: PropTypes.number
 };
 
-export default SigmetMinifiedMode;
+export default AirmetMinifiedMode;

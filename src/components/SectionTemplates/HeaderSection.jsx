@@ -4,12 +4,12 @@ import PropTypes from 'prop-types';
 
 export default class HeaderSection extends PureComponent {
   render () {
-    const { type, isCancelFor } = this.props;
+    const { type, isCancelFor, label } = this.props;
     return <Row className='Header'>
       <Col>
         <Row>
           <Col xs='3'>
-            <Badge color='info'>SIGMET</Badge>
+            <Badge color='info'>{label}</Badge>
           </Col>
           <Col xs='6'>{type}</Col>
           <Col xs='3'>
@@ -25,6 +25,7 @@ export default class HeaderSection extends PureComponent {
 }
 
 HeaderSection.propTypes = {
+  label: PropTypes.string,
   type: PropTypes.string,
   isCancelFor: PropTypes.number
 };

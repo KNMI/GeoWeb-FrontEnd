@@ -1,0 +1,570 @@
+.AirmetsContainer {
+  .ContainerHeader {
+    .btn:not(:first-of-type) {
+      margin-left: 0.33rem;
+      font-size: 0.8rem;
+    }
+  }
+
+  .accordionsWrapper {
+    max-height: 100%;
+    width: 100%;
+  }
+
+  .AirmetsCategory {
+    min-width: 0;
+    min-height: 2.5rem;
+    flex-wrap: nowrap;
+
+    > .col {
+      flex-direction: column;
+    }
+
+    .card-header {
+      flex: none;
+      .col:nth-child(2):not(.col-auto) {
+        padding-left: 0.9rem;
+      }
+      cursor: not-allowed;
+    }
+  }
+
+  .AirmetsCategory.open {
+    flex: 1;
+
+    > .col {
+      > .row:not(.card-header) {
+        overflow-y: scroll;
+        flex: auto;
+        .btn-group-vertical {
+          min-height: min-content;
+          max-height: min-content;
+          min-width: 0;
+          flex-grow: 1;
+        }
+      }
+    }
+  }
+
+  .AirmetsCategory.openable {
+    .card-header {
+      cursor: pointer;
+    }
+  }
+
+  .AirmetsCategory.minified {
+    .card-header {
+      flex: inherit;
+      flex-direction: row;
+      padding: 0.2rem 0.2rem 0.5rem 0.7rem;
+      span.fa {
+        padding-top: 0.4rem;
+      }
+      span.badge {
+        font-size: 60%;
+        border-width: 0.08rem;
+        padding: 0.1rem 0.2rem;
+        max-height: 1rem;
+        margin-left: -0.5rem;
+      }
+    }
+  }
+}
+
+.accordion .Airmet.btn.row {
+  flex-direction: column;
+  flex: 0 auto;
+  padding: 0.19rem;
+  line-height: 1.4;
+  color: #292b2c;
+
+  .Header {
+    margin: 0.33rem 0;
+  }
+
+  .What {
+    .row:nth-child(4) {
+      // > :nth-child(2) {
+      //   padding-right: 0.2rem;
+      // }
+      > :nth-child(3) {
+        z-index: 110;
+      }
+      .btn-group .dropdown-menu {
+        margin: 0;
+        min-width: 4rem;
+        padding: 0.3rem;
+      }
+      .input-group-append .btn {
+        min-width: 4rem;
+      }
+      :not(span).required {
+        margin: 0;
+        padding: 0;
+        
+        &:after {
+          width: 1rem;
+          z-index: 100;
+        }
+        &.unitAfter:after {
+          padding-top: 0.35rem;
+          margin-left: -5rem;
+          margin-right: 4rem;
+        }
+      }
+    }
+    .row:not(:first-of-type) {
+      margin-top: 0.2rem;
+    }
+    [data-field=phenomenon] {
+      font-weight: bold;
+    }
+    .row:nth-child(n + 4) {
+      input.form-control {
+        padding: 0.2rem 0.75rem;
+      }
+    }
+  }
+
+  .Validity, .Where, .Draw, .Level, .Progress, .Move, .Change, .Issue, .EndPosition {
+    margin-top: 0.33rem;
+    padding-top: 0.33rem;
+    border-top: 0.05rem solid #ccc;
+  }
+
+  .Validity {
+    .row:nth-child(2) {
+      margin-top: 0.2rem;
+      margin-bottom: 0.1rem;
+    }
+    .row:nth-child(3) .DateTimePicker {
+      z-index: 50;
+    }
+  }
+
+  .Validity .required::after {
+    padding-top: 0.33rem;
+    padding-right: 0.33rem;
+    width: 4%;
+    text-align: right;
+  }
+
+  .Draw {
+    min-height: 3.685rem;
+    padding-bottom: 0.33rem;
+    border: 0.06rem solid transparent;
+
+    .btn {
+      width: 3rem;
+      margin: 0 0.33rem 0 0;
+    }
+
+    [data-field=drawing_alert] {
+      margin: 0.33rem 0 0 0;
+      width: 100%;
+      white-space: normal;
+    }
+  }
+  .Draw.required, .Validity .required:not(span) {
+    margin-left: unset;
+  }
+  .Draw.warning {
+    border-radius: 0.25rem;
+    border-color: #d9534f; /* #f90; */
+  }
+  .Draw.missing, .Validity .missing {
+    border-radius: 0.25rem;
+    border-color: #d9534f;
+  }
+  .Draw.required::after {
+    padding-top: 1rem;
+    padding-right: 0.33rem;
+    width: 8.33%;
+    text-align: right;
+  }
+
+  .CompactedLevel > .col:not(.complete) {
+    > .row:first-child {
+      > :nth-child(2) {
+        margin-top: 0.5rem;
+      }
+      > :nth-child(3) {
+        margin-top: 0.75rem;
+        label {
+          padding: 0;
+          margin: 0;
+        }
+      }
+    }
+    > .row:nth-child(2) {
+      > :first-child {
+        margin-top: 0.55rem;
+      }
+      > :nth-child(2) {
+        .Switch > .col-auto {
+          flex-basis: 0;
+          flex-grow: 1;
+          > label {
+            flex: 1;
+            > .checkbox + span {
+              flex: 1;
+            }
+          }
+        }
+        .Switch label {
+          padding: 0;
+          > span:first-of-type, > span.checkbox {
+            margin-top: 0.8rem;
+          }
+          > span:first-of-type {
+            margin-left: 0.55rem;
+          }
+          > span .label.input-group {
+            margin: 0;
+          }
+          > span:last-of-type {
+            margin-right: 0;
+          }
+          .input-group span:not(.checkbox) {
+            margin: 0;
+            padding: 0.375rem 0.75rem!important;
+          }
+        }
+      }
+    }
+  }
+
+  .Level {
+    [data-field=tops-toggle] input {
+      margin-right: 0.2rem;
+    }
+
+    [data-field=above-toggle] input {
+      margin-right: 0.2rem;
+    }
+
+    .Switch > .col-auto {
+      flex-basis: 0;
+      flex-grow: 1;
+      > label {
+        flex: 1;
+        > .checkbox + span {
+          flex: 1;
+        }
+      }
+    }
+
+    .btn-group {
+      height: 100%;
+
+      .dropdown-toggle {
+        min-width: 3.2rem;
+      }
+
+      .dropdown-menu {
+        margin: 0;
+        min-width: 3rem;
+        padding: 0.3rem;
+
+        button {
+          padding: 0.2rem 0.5rem;
+          border-radius: 0.2rem;
+        }
+
+        button:hover {
+          background-color: #c5edff;
+        }
+      }
+    }
+    > .col > .row:first-child {
+      margin-bottom: 0.2rem;
+    }
+    .row:nth-child(2) {
+      > div:nth-child(1) {
+        margin-top: 0.6rem;
+        label {
+          padding: 0;
+          margin: 0;
+        }
+      }
+      > div:nth-child(2) {
+        margin-top: 0.5rem;
+        label {
+          width: 100%;
+          padding: 0;
+          padding-right: 0.33rem;
+          margin: 0;
+          text-align: right;
+        }
+      }
+      > div:nth-child(3) {
+        padding-left: 0.2rem;
+      }
+    }
+
+    .row:nth-child(3) {
+      margin-top: 0.1rem;
+      > div:first-child {
+        margin-top: 0.5rem;
+        label {
+          width: 100%;
+          padding: 0;
+          padding-right: 0.33rem;
+          margin: 0;
+          text-align: right;
+        }
+      }
+      > div:nth-child(2) {
+        padding-left: 0.2rem;
+      }
+    }
+
+    .row:nth-child(4) {
+      margin-top: 0.05rem;
+      > div:first-child {
+        margin-top: 0.6rem;
+      }
+
+      > div:nth-child(2) {
+        .Switch label {
+          padding: 0;
+          > span:first-of-type, > span.checkbox {
+            margin-top: 0.8rem;
+          }
+          > span:first-of-type {
+            margin-left: 0.75rem;
+          }
+          > span .label.input-group {
+            margin: 0;
+          }
+          > span:last-of-type {
+            margin-right: 0;
+          }
+        }
+      }
+    }
+  }
+
+  .Progress {
+    .row:first-child {
+      margin-bottom: 0.25rem;
+    }
+  }
+
+  .Move {
+    .required {
+      margin: 0;
+      padding: 0;
+      z-index: unset;
+      &:after {
+        padding-top: 0.33rem;
+        z-index: 100;
+      }
+      &.missing:after {
+        margin-left: -0.9rem;
+      }
+      &.unitAfter:after {
+        padding-top: 0.6rem;
+        margin-left: -4rem;
+        margin-right: 3rem;
+        width: 1rem;
+      }
+    }
+    .row:nth-child(2) {
+      margin-top: 0.2rem;
+    }
+    .row:nth-child(3) {
+      margin-top: 0.1rem;
+    }
+  }
+
+  .Issue {
+    span.tac {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 27rem;
+    }
+    span.required {
+      margin: 0;
+    }
+    > .row:nth-child(3), > .row:nth-child(4) {
+      margin: 0.1rem 0;
+    }
+    .row.required {
+      margin: 0;
+      margin-bottom: 0.33rem;
+      padding: 0.2rem 0 0.3rem 0.33rem;
+      width: 100%;
+      border-radius: 0.25rem;
+      border: 0.06rem solid rgba(0, 0, 0, 0.15);
+      &::after {
+        line-height: 1.2;
+        padding-top: 0.23rem;
+        padding-right: 0.33rem;
+        text-align: right;
+      }
+      &.missing {
+        border-color: #d9534f;
+      }
+    }
+  }
+
+  .Action {
+    border-top: 0.06rem solid #ccc;
+    padding-top: 0.33rem;
+
+    .btn:not(:last-of-type) {
+      margin-right: 0.33rem;
+    }
+  }
+
+  .col {
+    flex-direction: column;
+  }
+  .row {
+    flex-direction: row;
+    flex: 0 auto;
+  }
+
+  .row.disabled:not(label) {
+    background-color: #f4f4f4;
+    box-shadow: inset 0.1rem 0.1rem 0.1rem rgba(175, 175, 175, 0.3);
+    border-radius: 0.2rem 0 0 0.2rem;
+  }
+  .row.disabled .row {
+    border-top: unset;
+  }
+  .disabled .form-control:disabled, .form-control:disabled, button.dropdown-toggle:disabled {
+    background: #f4f4f4;
+    cursor: not-allowed;
+  }
+  .row.disabled ~ .disabled {
+    border-radius: unset;
+    box-shadow: inset 0.1rem 0 0.1rem rgba(175, 175, 175, 0.3);
+  }
+
+  label {
+    padding-top: 0.2rem;
+    font-size: inherit;
+    font-family: inherit;
+    color: #666;
+  }
+  .disabled label, .disabled span:not(.fa):not(.badge), .disabled input::placeholder, .form-control:disabled::placeholder, button.dropdown-toggle:disabled {
+    color: #999;
+    cursor: not-allowed;
+  }
+
+  .badge {
+    padding: 0.25em 0.4em;
+    margin-right: 0.33rem;
+    width: 100%;
+    height: 1.2rem;
+    border-width: 0.05rem;
+  }
+
+  .disabled .badge {
+    color: #eee;
+    background-color: #919191;
+    border-color: #eee;
+  }
+
+  .bootstrap-typeahead, .bootstrap-typeahead-input {
+    width: 100%;
+  }
+
+  .btn-group .btn {
+    padding: 0.19rem 0.5rem;
+  }
+
+  .btn-primary {
+    padding: 0.5rem 0.7rem;
+  }
+
+  button.clear {
+    &:disabled, &:disabled:hover {
+      color: #aaa;
+      cursor: default;
+      opacity: 0.5;
+    }
+    span {
+      line-height: 0.9;
+      vertical-align: top;
+    }
+  }
+
+  .required {
+    margin-left: -0.9rem;
+    padding-top: 0.35rem;
+    color: #888;
+    z-index: 100;
+  }
+  .input-group + .required, .Switch + .required {
+    padding-top: 0.6rem;
+  }
+
+  .input-group.unitAfter + .required {
+    margin-left: -3.7rem;
+  }
+
+  .required:after {
+    content: '*';
+  }
+  .warning {
+    color: #d9534f; /* #f90; */
+  }
+  .required.missing:after {
+    color: #d9534f;
+    font-weight: bold;
+  }
+
+  .CollapseOmni.collapsing {
+    -webkit-transition: all 0.5s ease-in-out;
+    -moz-transition: all 0.5s ease-in-out;
+    -o-transition: all 0.5s ease-in-out;
+    transition: all 0.5s ease-in-out;
+  }
+}
+
+.accordion .Airmet.btn.row.minified {
+  .row:nth-child(2) {
+    > div:nth-child(2) span {
+      margin: 0 0.33rem;
+    }
+  }
+  span.tac {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 27rem;
+  }
+}
+.accordion .Airmet.btn.row.minified:not(:hover) {
+  opacity: 0.85;
+}
+
+.accordion .Airmet.btn-secondary.focus {
+  background: #fff;
+  border-color: #999;
+  border-width: 0.1rem 0.1rem 0.2rem 0.06rem;
+  border-radius: 0.3rem;
+  cursor: default;
+  box-shadow: unset;
+}
+
+.accordion .Airmet.btn-secondary:not(.focus) {
+  background: #eee;
+  border-color: #ccc;
+  cursor: pointer;
+}
+
+.accordion .Airmet.btn-secondary:not(.focus):hover {
+  background-color: #f4f8ff;
+}
+.accordion .Airmet.btn-secondary.focus:hover {
+  box-shadow: unset;
+  outline: unset;
+  border-width: 0.1rem 0.1rem 0.2rem 0.06rem;
+}
+
+.AirmetsCategory.accordion .card-body {
+  margin-right: 0.33rem;
+}

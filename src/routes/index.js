@@ -20,6 +20,7 @@ import TafValidationManagementPanel from '../components/Management/TafValidation
 import TafExampleTafManagementPanel from '../components/Management/TafExampleTafManagementPanel';
 import TafLocationsManagementPanel from '../components/Management/TafLocationsManagementPanel';
 import SigmetParameterManagementPanel from '../components/Management/SigmetParameterManagementPanel';
+import AirmetParameterManagementPanel from '../components/Management/AirmetParameterManagementPanel';
 import LocationManagementPanel from '../components/Management/LocationManagementPanel';
 import ManagementCategoryPanel from '../containers/Management/ManagementCategoryPanel';
 import TafsContainer from '../containers/Taf/TafsContainer';
@@ -31,8 +32,10 @@ import LayerManagerPanel from '../components/LayerManagerPanel';
 import MapPanel from '../components/MapPanel';
 import SidebarContainer from '../containers/Management/SidebarContainer';
 import SigmetsContainer from '../containers/Sigmet/SigmetsContainer';
+import AirmetsContainer from '../containers/Airmet/AirmetsContainer';
 
 // const SigmetManagementPanel = (props) => <Async load={import('../components/Management/SigmetManagementPanel')} componentProps={props} />;
+// const AirmetManagementPanel = (props) => <Async load={import('../components/Management/AirmetManagementPanel')} componentProps={props} />;
 // const TitleBarContainer = (props) => <Async load={import('../containers/TitleBarContainer')} componentProps={props} />;
 // const MapActionsContainer = (props) => <Async load={import('../containers/MapActionsContainer')} componentProps={props} />;
 // const LayerManagerPanel = (props) => <Async load={import('../components/LayerManagerPanel')} componentProps={props} />;
@@ -40,6 +43,7 @@ import SigmetsContainer from '../containers/Sigmet/SigmetsContainer';
 // const SidebarContainer = (props) => <Async load={import('../containers/Management/SidebarContainer')} componentProps={props} />;
 // const ManagementPanel = (props) => <Async load={import('../components/Management/ManagementPanel')} componentProps={props} />;
 // const SigmetsContainer = (props) => <Async load={import('../containers/Sigmet/SigmetsContainer')} componentProps={props} />;
+// const AirmetsContainer = (props) => <Async load={import('../containers/Airmet/AirmetsContainer')} componentProps={props} />;
 
 const mapStateToHeaderProps = state => ({
   title: 'header',
@@ -105,6 +109,15 @@ const mapDispatchToSigmetProps = function (dispatch) {
     adagucActions
   });
 };
+const mapDispatchToAirmetProps = function (dispatch) {
+  return ({
+    dispatch,
+    drawActions,
+    mapActions,
+    panelsActions,
+    adagucActions
+  });
+};
 const mapStateToMapProps = state => ({
   drawProperties: { ...state.drawProperties },
   mapProperties: { ...state.mapProperties },
@@ -153,6 +166,11 @@ export const createRoutes = (store) => {
     urls: state.urls,
     sources: state.adagucProperties.sources
   }), mapDispatchToSigmetProps)(SigmetsContainer));
+  const airmet = React.createElement(connect((state) => ({
+    drawProperties: state.drawProperties,
+    urls: state.urls,
+    sources: state.adagucProperties.sources
+  }), mapDispatchToAirmetProps)(AirmetsContainer));
   const taf = connect(mapStateToTafsContainerProps, mapDispatchToLayerManagerProps)(TafsContainer);
   const trigger = React.createElement(connect(mapStateToLayerManagerProps, mapDispatchToLayerManagerProps)(TriggersContainer));
   const manageLeft = React.createElement(SidebarContainer);
@@ -163,6 +181,7 @@ export const createRoutes = (store) => {
   const tafValidmanPanel = connect(mapStateToManagementPanelProps)(TafValidationManagementPanel);
   const tafexTafmanPanel = connect(mapStateToManagementPanelProps)(TafExampleTafManagementPanel);
   const sigparmanPanel = connect(mapStateToManagementPanelProps)(SigmetParameterManagementPanel);
+  const airparmanPanel = connect(mapStateToManagementPanelProps)(AirmetParameterManagementPanel);
   // Location
   const locmanPanel = connect(mapStateToManagementPanelProps)(LocationManagementPanel);
   // Categories
@@ -171,6 +190,7 @@ export const createRoutes = (store) => {
   const prodmanPanel = withCategoryConfiguration(ManagementCategoryPanel, managementCategoriesConfig.products);
   const tafmanPanel = withCategoryConfiguration(ManagementCategoryPanel, managementCategoriesConfig.taf);
   const sigmanPanel = withCategoryConfiguration(ManagementCategoryPanel, managementCategoriesConfig.sigmet);
+  const airmanPanel = withCategoryConfiguration(ManagementCategoryPanel, managementCategoriesConfig.airmet);
   return (
     /* Default route */
     <Route path='/' component={BaseLayout} title='GeoWeb'>
@@ -189,6 +209,13 @@ export const createRoutes = (store) => {
           </Route>
           <Route path='sigmets' title='SIGMETs'>
             <Route component={SidebarredLayout} secondLeftSidebar={sigmet} leftSidebar={leftSidebar}>
+              <Route component={FooteredLayout} footer={layerManager} >
+                <IndexRoute component={map} />
+              </Route>
+            </Route>
+          </Route>
+          <Route path='airmets' title='AIRMETs'>
+            <Route component={SidebarredLayout} secondLeftSidebar={airmet} leftSidebar={leftSidebar}>
               <Route component={FooteredLayout} footer={layerManager} >
                 <IndexRoute component={map} />
               </Route>
@@ -255,6 +282,20 @@ export const createRoutes = (store) => {
                   <Route>
                     <Route component={FooteredLayout} >
                       <IndexRoute component={sigparmanPanel} />
+                    </Route>
+                  </Route>
+                </Route>
+              </Route>
+              <Route path='airmet' title='AIRMET'>
+                <Route>
+                  <Route component={FooteredLayout} >
+                    <IndexRoute component={airmanPanel} />
+                  </Route>
+                </Route>
+                <Route path='parameters' title='Parameters'>
+                  <Route>
+                    <Route component={FooteredLayout} >
+                      <IndexRoute component={airparmanPanel} />
                     </Route>
                   </Route>
                 </Route>
