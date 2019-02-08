@@ -20,11 +20,6 @@ import ConfirmationModal from '../ConfirmationModal';
 import MovementSection from '../SectionTemplates/MovementSection';
 import CompactedHeightsSection from '../SectionTemplates/CompactedHeightsSection';
 
-const CLOUD_LEVEL_PARTS = {
-  UPPER: 'UPPER',
-  LOWER: 'LOWER'
-};
-
 class AirmetReadMode extends PureComponent {
   getUnitLabel (unitName) {
     const unit = UNITS_LABELED.find((unit) => unit.unit === unitName);
@@ -58,26 +53,18 @@ class AirmetReadMode extends PureComponent {
     return valueAsString.padStart(minimalCharactersCount, '0');
   };
 
-  showCloudLevels (cloudLevels, part) {
-    switch (part) {
-      case CLOUD_LEVEL_PARTS.UPPER:
-        const above = cloudLevels.upper && cloudLevels.upper.above === true ? 'above' : '';
-        const upperValue = cloudLevels.upper && Number.isInteger(cloudLevels.upper.val) && cloudLevels.lower.val > 0 && typeof cloudLevels.upper.unit === 'string'
-          ? `${this.getValueLabel(cloudLevels.upper.val, cloudLevels.upper.unit)} ${this.getUnitLabel(cloudLevels.upper.unit)}`
-          : '(no upper level provided)';
-        return `Between ${above} ${upperValue}`;
-      case CLOUD_LEVEL_PARTS.LOWER:
-        const hasValue = cloudLevels.lower && (cloudLevels.lower.surface === true ||
-            (Number.isInteger(cloudLevels.lower.val) && cloudLevels.lower.val > 0 && typeof cloudLevels.lower.unit === 'string'));
-        const lowerValue = !hasValue
-          ? '(no lower level provided)'
-          : cloudLevels.lower.surface === true
-            ? 'surface'
-            : `${this.getValueLabel(cloudLevels.lower.val, cloudLevels.lower.unit)} ${this.getUnitLabel(cloudLevels.lower.unit)}`;
-        return `and ${lowerValue}`;
-      default:
-        return '(no cloud levels provided)';
-    }
+  showCloudLevels (cloudLevels) {
+    const hasValues = cloudLevels.upper && Number.isInteger(cloudLevels.upper.val) &&
+      cloudLevels.upper.val > 0 && typeof cloudLevels.upper.unit === 'string' && cloudLevels.lower &&
+      ((Number.isInteger(cloudLevels.lower.val) && cloudLevels.lower.val > 0) || cloudLevels.lower.surface === true) &&
+      typeof cloudLevels.lower.unit === 'string';
+    const above = cloudLevels.upper && cloudLevels.upper.above === true ? 'above' : '';
+    return !hasValues
+      ? '(no complete cloud levels provided)'
+      : `Between   ${cloudLevels.lower.surface === true
+        ? 'surface'
+        : `${this.getValueLabel(cloudLevels.lower.val, cloudLevels.lower.unit)} ${this.getUnitLabel(cloudLevels.lower.unit)}`}
+        and ${above} ${this.getValueLabel(cloudLevels.upper.val, cloudLevels.upper.unit)} ${this.getUnitLabel(cloudLevels.upper.unit)}`;
   };
 
   showLevels (levelinfo) {
@@ -348,11 +335,10 @@ class AirmetReadMode extends PureComponent {
           {isCloudLevelsNeeded
             ? cloudLevels
               ? <CompactedHeightsSection data-field='cloud_levels'>
-                <span data-field='completeUpper'>{this.showCloudLevels(cloudLevels, CLOUD_LEVEL_PARTS.UPPER)}</span>
-                <span data-field='completeLower'>{this.showCloudLevels(cloudLevels, CLOUD_LEVEL_PARTS.LOWER)}</span>
+                <span data-field='complete'>{this.showCloudLevels(cloudLevels)}</span>
               </CompactedHeightsSection>
               : <CompactedHeightsSection data-field='cloud_levels'>
-                <span data-field='completeUpper'>{'(no cloud levels provided)'}</span>
+                <span data-field='complete'>{'(no cloud levels provided)'}</span>
               </CompactedHeightsSection>
             : null
           }

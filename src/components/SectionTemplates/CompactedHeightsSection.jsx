@@ -16,16 +16,13 @@ export default class CompactedHeightsSection extends PureComponent {
     }
     return (
       <Row className='CompactedLevel' >
-        {localChildren.completeUpper && localChildren.completeLower
+        {localChildren.complete
           ? <Col className='complete'>
             <Row>
               <Col xs={{ size: 2, offset: 1 }}>
                 <Badge>Levels</Badge>
               </Col>
-              <Col xs='9'>{localChildren.completeUpper}</Col>
-            </Row>
-            <Row>
-              <Col xs={{ size: 9, offset: 3 }}>{localChildren.completeLower}</Col>
+              <Col xs='9'>{localChildren.complete}</Col>
             </Row>
           </Col>
           : <Col>
