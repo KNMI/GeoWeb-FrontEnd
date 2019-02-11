@@ -10,6 +10,7 @@
 @import 'layermanager';
 @import 'managementpanel';
 @import 'sigmet';
+@import 'airmet';
 @import 'checkbox';
 @import 'radio';
 @import 'switch';
@@ -311,6 +312,7 @@ button.search-clear.btn.btn-secondary:disabled {
 }
 
 .missing {
+  &.form-control,
   .form-control, .form-control.rbt-input {
     border-color: #d9534f;
   }

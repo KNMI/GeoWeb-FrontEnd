@@ -25,16 +25,22 @@ const ITEMS = [
     icon:   'exclamation-triangle'
   },
   {
+    title: 'TAF',
+    ref:   'TAF',
+    icon:  'sun-o',
+    link: 'products/tafs'
+  },
+  {
     title: 'SIGMETs',
     ref:   'sigmets',
     icon:  'plane',
     link: 'products/sigmets'
   },
   {
-    title: 'TAF',
-    ref:   'TAF',
-    icon:  'sun-o',
-    link: 'products/tafs'
+    title: 'AIRMETs',
+    ref:   'airmets',
+    icon:  'plane',
+    link: 'products/airmets'
   },
   {
     title: 'Forecasts',
