@@ -37,31 +37,14 @@ class AirmetsContainer extends Component {
     const { geojson: currentGeoJson } = this.props.drawProperties.adagucMapDraw;
     if (prevProps.drawProperties.adagucMapDraw.geojson.features && currentGeoJson.features) {
       const prevStartFeature = this.findFeatureByFunction('start', prevProps);
-      const prevEndFeature = this.findFeatureByFunction('end', prevProps);
       const currentStartFeature = this.findFeatureByFunction('start');
-      const currentEndFeature = this.findFeatureByFunction('end');
       if (!prevStartFeature || !currentStartFeature) {
-        return;
-      }
-      if (!prevEndFeature || !currentEndFeature) {
         return;
       }
       if (!isEqual(prevStartFeature, currentStartFeature)) {
         this.localDispatch(LOCAL_ACTIONS.toggleHasEdits(null, true))
           .then(() =>
             this.localDispatch(LOCAL_ACTIONS.createFirIntersectionAction(currentStartFeature.id, currentGeoJson)))
-          .then((hasCreatedFirIntersection) => {
-            if (hasCreatedFirIntersection && this.state.selectedAirmet.length > 0) {
-              this.localDispatch(LOCAL_ACTIONS.verifyAirmetAction(this.state.selectedAirmet[0]));
-            }
-          }).catch((error) => {
-            console.warn(error);
-          });
-      }
-      if (!isEqual(prevEndFeature, currentEndFeature)) {
-        this.localDispatch(LOCAL_ACTIONS.toggleHasEdits(null, true))
-          .then(() =>
-            this.localDispatch(LOCAL_ACTIONS.createFirIntersectionAction(currentEndFeature.id, currentGeoJson)))
           .then((hasCreatedFirIntersection) => {
             if (hasCreatedFirIntersection && this.state.selectedAirmet.length > 0) {
               this.localDispatch(LOCAL_ACTIONS.verifyAirmetAction(this.state.selectedAirmet[0]));
