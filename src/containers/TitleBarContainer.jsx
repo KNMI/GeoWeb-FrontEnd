@@ -998,9 +998,12 @@ class LayoutDropDown extends PureComponent {
               <Row>
                 <h5>Load preset</h5>
               </Row>
-              <Row style={{ marginTop: '0.5rem' }}>
-                <Typeahead align='justify' filterBy={['name', 'keywords']} labelKey='name' options={this.props.presets} placeholder={'Type the preset name'} onChange={(ph) => this.setPreset(ph)} />
-              </Row>
+              {this.props.presets
+                ? <Row style={{ marginTop: '0.5rem' }}>
+                  <Typeahead align='justify' filterBy={['name', 'keywords']} labelKey='name' options={this.props.presets} placeholder={'Type the preset name'} onChange={(ph) => this.setPreset(ph)} />
+                </Row>
+                : null
+              }
             </Col>
             <Col xs='8' style={{ paddingLeft: '1rem' }}>
               <Row>

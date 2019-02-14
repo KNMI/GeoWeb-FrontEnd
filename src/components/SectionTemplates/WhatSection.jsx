@@ -13,7 +13,7 @@ export default class WhatSection extends PureComponent {
       this.props.children.map(child => {
         if (child && child.props) {
           if (children[child.props['data-field']]) {
-            console.warn('Data field [' + child.props['data-field' + '] is already set, skipping previous']);
+            console.warn('Data field [' + child.props['data-field'] + '] is already set, skipping previous');
           }
           children[child.props['data-field']] = child;
         }
