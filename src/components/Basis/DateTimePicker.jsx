@@ -87,7 +87,7 @@ export default class DateTimePicker extends PureComponent {
   render () {
     const { value, min, max, onChange, className, required, disabled, utc } = this.props;
     const hourStep = 1;
-    const minuteStep = 5;
+    const minuteStep = 1;
     const parsedValue = this.parseTimestamp(value);
     const parsedMin = this.parseTimestamp(min);
     const parsedMax = this.parseTimestamp(max);
