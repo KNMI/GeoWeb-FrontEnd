@@ -1044,6 +1044,11 @@ const createFirIntersection = (featureId, geojson, container) => {
 
 const clearSigmet = (event, uuid, container) => {
   selectSigmet([getEmptySigmet(container)], container).then(() =>
+    setStatePromise(container, {
+      selectedAuxiliaryInfo: {
+        mode: SIGMET_MODES.EDIT
+      }
+    })).then(() =>
     showFeedback(container, 'Sigmet cleared',
       'The input on this Sigmet has been cleared successfully', FEEDBACK_STATUS.OK)
   );

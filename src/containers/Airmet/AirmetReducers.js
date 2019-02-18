@@ -992,6 +992,11 @@ const createFirIntersection = (featureId, geojson, container) => {
 
 const clearAirmet = (event, uuid, container) => {
   selectAirmet([getEmptyAirmet(container)], container).then(() =>
+    setStatePromise(container, {
+      selectedAuxiliaryInfo: {
+        mode: AIRMET_MODES.EDIT
+      }
+    })).then(() =>
     showFeedback(container, 'Airmet cleared',
       'The input on this Airmet has been cleared successfully', FEEDBACK_STATUS.OK)
   );
