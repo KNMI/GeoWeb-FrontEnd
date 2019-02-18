@@ -246,10 +246,10 @@ class SigmetReadMode extends PureComponent {
    */
   reduceAbilities () {
     const { abilities, isCancelFor } = this.props;
-    const { validdate, validdate_end: validdateEnd } = this.props.sigmet;
+    const { validdate_end: validdateEnd } = this.props.sigmet;
     const abilitiesCtAs = []; // CtA = Call To Action
     const now = moment.utc();
-    const isInValidityPeriod = !now.isBefore(validdate) && !now.isAfter(validdateEnd);
+    const isInValidityPeriod = !now.isAfter(validdateEnd);
     if (focus) {
       Object.values(READ_ABILITIES).map((ability) => {
         if (abilities[ability.check] === true && (ability.dataField !== 'cancel' || !isCancelFor)) {
