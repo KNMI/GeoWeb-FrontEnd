@@ -1213,7 +1213,8 @@ const pasteAirmet = (event, container) => {
     selectedAirmet: [newPartialState],
     copiedAirmetRef: null
   }).then(() => {
-    dispatch(drawActions.setGeoJSON(copiedAirmet.geojson));
+    return setAirmetDrawing(copiedAirmet.geojson, copiedAirmet.firname, container);
+  }).then(() => {
     showFeedback(container, 'Airmet pasted',
       'The copied properties have been pasted successfully into the current Airmet', FEEDBACK_STATUS.OK);
   });

@@ -1262,7 +1262,8 @@ const pasteSigmet = (event, container) => {
     selectedSigmet: [newPartialState],
     copiedSigmetRef: null
   }).then(() => {
-    dispatch(drawActions.setGeoJSON(copiedSigmet.geojson));
+    return setSigmetDrawing(copiedSigmet.geojson, copiedSigmet.firname, container);
+  }).then(() => {
     showFeedback(container, 'Sigmet pasted',
       'The copied properties have been pasted successfully into the current Sigmet', FEEDBACK_STATUS.OK);
   });
