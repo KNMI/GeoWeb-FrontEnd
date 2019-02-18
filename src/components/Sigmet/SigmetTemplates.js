@@ -379,22 +379,22 @@ SIGMET_VARIANTS_PREFIXES[SIGMET_VARIANTS.TROPICAL_CYCLONE] = 'tc_';
 
 const dateRanges = (now, startTimestamp, endTimestamp, maxHoursInAdvance, maxHoursDuration) => ({
   obsFcTime: {
-    min: now.clone().subtract(3, 'hour'),
+    min: now.clone().subtract(3, 'hour').startOf('hour'),
     max: endTimestamp !== null && moment(endTimestamp, DATETIME_FORMAT).isValid()
-      ? moment.utc(endTimestamp, DATETIME_FORMAT)
-      : now.clone().add(maxHoursDuration + maxHoursInAdvance, 'hour')
+      ? moment.utc(endTimestamp, DATETIME_FORMAT).endOf('minute')
+      : now.clone().add(maxHoursDuration + maxHoursInAdvance, 'hour').endOf('minute')
   },
   validDate: {
-    min: now.clone(),
-    max: now.clone().add(maxHoursInAdvance, 'hour')
+    min: now.clone().startOf('minute'),
+    max: now.clone().add(maxHoursInAdvance, 'hour').endOf('minute')
   },
   validDateEnd: {
     min: startTimestamp !== null && moment(startTimestamp, DATETIME_FORMAT).isValid()
-      ? moment.utc(startTimestamp, DATETIME_FORMAT)
-      : now.clone(),
+      ? moment.utc(startTimestamp, DATETIME_FORMAT).startOf('minute')
+      : now.clone().startOf('minute'),
     max: startTimestamp !== null && moment(startTimestamp, DATETIME_FORMAT).isValid()
-      ? moment.utc(startTimestamp, DATETIME_FORMAT).add(maxHoursDuration, 'hour')
-      : now.clone().add(maxHoursDuration, 'hour')
+      ? moment.utc(startTimestamp, DATETIME_FORMAT).add(maxHoursDuration, 'hour').endOf('minute')
+      : now.clone().add(maxHoursDuration, 'hour').endOf('minute')
   }
 });
 
