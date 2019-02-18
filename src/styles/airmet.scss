@@ -492,7 +492,7 @@
     }
   }
 
-  .required {
+  :not(input).required {
     margin-left: -0.9rem;
     padding-top: 0.35rem;
     color: #888;

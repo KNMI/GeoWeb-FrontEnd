@@ -1043,7 +1043,12 @@ const createFirIntersection = (featureId, geojson, container) => {
 };
 
 const clearSigmet = (event, uuid, container) => {
-  selectSigmet([getEmptySigmet(container)]).then(() =>
+  selectSigmet([getEmptySigmet(container)], container).then(() =>
+    setStatePromise(container, {
+      selectedAuxiliaryInfo: {
+        mode: SIGMET_MODES.EDIT
+      }
+    })).then(() =>
     showFeedback(container, 'Sigmet cleared',
       'The input on this Sigmet has been cleared successfully', FEEDBACK_STATUS.OK)
   );
@@ -1222,7 +1227,7 @@ const pasteSigmet = (event, container) => {
   const affectedSigmet = Array.isArray(selectedSigmet) && selectedSigmet.length === 1
     ? selectedSigmet[0]
     : null;
-  if (!affectedSigmet || !affectedSigmet.uuid || !indicesCopiedSigmet.isFound) {
+  if (!affectedSigmet || !indicesCopiedSigmet.isFound) {
     return;
   }
   const copiedSigmet = categories[indicesCopiedSigmet.categoryIndex].sigmets[indicesCopiedSigmet.sigmetIndex];
