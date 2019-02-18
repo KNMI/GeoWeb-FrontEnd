@@ -5,7 +5,8 @@ import moment from 'moment';
 import produce from 'immer';
 import PropTypes from 'prop-types';
 import { READ_ABILITIES, byReadAbilities, MODALS, MODAL_TYPES } from '../../containers/Sigmet/SigmetActions';
-import { UNITS, UNITS_ALT, DIRECTIONS, CHANGES, MODES_LVL, MOVEMENT_TYPES, SIGMET_TYPES, DATETIME_LABEL_FORMAT_UTC, dateRanges } from './SigmetTemplates';
+import { UNITS, UNITS_ALT, DIRECTIONS, CHANGES, MODES_LVL, MOVEMENT_TYPES, SIGMET_TYPES, dateRanges } from './SigmetTemplates';
+import { DATETIME_LABEL_FORMAT_UTC } from '../../config/DayTimeConfig';
 
 import HeaderSection from '../SectionTemplates/HeaderSection';
 import WhatSection from '../SectionTemplates/WhatSection';

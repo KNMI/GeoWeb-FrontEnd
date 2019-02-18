@@ -5,7 +5,8 @@ import moment from 'moment';
 import produce from 'immer';
 import PropTypes from 'prop-types';
 import { READ_ABILITIES, byReadAbilities, MODALS, MODAL_TYPES } from '../../containers/Airmet/AirmetActions';
-import { UNITS, UNITS_LABELED, DIRECTIONS, CHANGES, MODES_LVL, MOVEMENT_TYPES, AIRMET_TYPES, DATETIME_LABEL_FORMAT_UTC, dateRanges } from './AirmetTemplates';
+import { UNITS, UNITS_LABELED, DIRECTIONS, CHANGES, MODES_LVL, MOVEMENT_TYPES, AIRMET_TYPES, dateRanges } from './AirmetTemplates';
+import { DATETIME_LABEL_FORMAT_UTC } from '../../config/DayTimeConfig';
 
 import HeaderSection from '../SectionTemplates/HeaderSection';
 import WhatSection from '../SectionTemplates/WhatSection';
