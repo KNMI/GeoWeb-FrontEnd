@@ -5,7 +5,8 @@ import moment from 'moment';
 import produce from 'immer';
 import PropTypes from 'prop-types';
 import { READ_ABILITIES, byReadAbilities, MODALS, MODAL_TYPES } from '../../containers/Sigmet/SigmetActions';
-import { UNITS, UNITS_ALT, DIRECTIONS, CHANGES, MODES_LVL, MOVEMENT_TYPES, SIGMET_TYPES, DATETIME_LABEL_FORMAT_UTC, dateRanges } from './SigmetTemplates';
+import { UNITS, UNITS_ALT, DIRECTIONS, CHANGES, MODES_LVL, MOVEMENT_TYPES, SIGMET_TYPES, dateRanges } from './SigmetTemplates';
+import { DATETIME_LABEL_FORMAT_UTC } from '../../config/DayTimeConfig';
 
 import HeaderSection from '../SectionTemplates/HeaderSection';
 import WhatSection from '../SectionTemplates/WhatSection';
@@ -45,8 +46,9 @@ class SigmetReadMode extends PureComponent {
   };
 
   showLevels (levelinfo) {
+    const sLevelsInfoMissed = '(no complete levels info provided)';
     if (!levelinfo) {
-      return;
+      return sLevelsInfoMissed;
     }
     const level0 = levelinfo.levels[0];
     const level1 = levelinfo.levels[1];
@@ -60,34 +62,34 @@ class SigmetReadMode extends PureComponent {
       case MODES_LVL.ABV:
         return unit0Label && value0Label
           ? `Above ${is0FL ? unit0Label : ''} ${value0Label} ${!is0FL ? unit0Label : ''}`
-          : null;
+          : sLevelsInfoMissed;
       case MODES_LVL.AT:
         return unit0Label && value0Label
           ? `At ${is0FL ? unit0Label : ''} ${value0Label} ${!is0FL ? unit0Label : ''}`
-          : null;
+          : sLevelsInfoMissed;
       case MODES_LVL.BETW:
         return unit0Label && value0Label && unit1Label && value1Label
           ? `Between ${is0FL ? unit0Label : ''} ${value0Label} ${!is0FL ? unit0Label : ''} and
             ${is1FL ? unit1Label : ''} ${value1Label} ${!is1FL ? unit1Label : ''}`
-          : null;
+          : sLevelsInfoMissed;
       case MODES_LVL.BETW_SFC:
         return unit1Label && value1Label
           ? `Between surface and ${is1FL ? unit1Label : ''} ${value1Label} ${!is1FL ? unit1Label : ''}`
-          : null;
+          : sLevelsInfoMissed;
       case MODES_LVL.TOPS:
         return unit0Label && value0Label
           ? `Tops at ${is0FL ? unit0Label : ''} ${value0Label} ${!is0FL ? unit0Label : ''}`
-          : null;
+          : sLevelsInfoMissed;
       case MODES_LVL.TOPS_ABV:
         return unit0Label && value0Label
           ? `Tops above ${is0FL ? unit0Label : ''} ${value0Label} ${!is0FL ? unit0Label : ''}`
-          : null;
+          : sLevelsInfoMissed;
       case MODES_LVL.TOPS_BLW:
         return unit0Label && value0Label
           ? `Tops below ${is0FL ? unit0Label : ''} ${value0Label} ${!is0FL ? unit0Label : ''}`
-          : null;
+          : sLevelsInfoMissed;
       default:
-        return '';
+        return sLevelsInfoMissed;
     }
   };
 

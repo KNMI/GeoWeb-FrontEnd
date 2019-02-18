@@ -991,7 +991,12 @@ const createFirIntersection = (featureId, geojson, container) => {
 };
 
 const clearAirmet = (event, uuid, container) => {
-  selectAirmet([getEmptyAirmet(container)]).then(() =>
+  selectAirmet([getEmptyAirmet(container)], container).then(() =>
+    setStatePromise(container, {
+      selectedAuxiliaryInfo: {
+        mode: AIRMET_MODES.EDIT
+      }
+    })).then(() =>
     showFeedback(container, 'Airmet cleared',
       'The input on this Airmet has been cleared successfully', FEEDBACK_STATUS.OK)
   );
@@ -1170,7 +1175,7 @@ const pasteAirmet = (event, container) => {
   const affectedAirmet = Array.isArray(selectedAirmet) && selectedAirmet.length === 1
     ? selectedAirmet[0]
     : null;
-  if (!affectedAirmet || !affectedAirmet.uuid || !indicesCopiedAirmet.isFound) {
+  if (!affectedAirmet || !indicesCopiedAirmet.isFound) {
     return;
   }
   const copiedAirmet = categories[indicesCopiedAirmet.categoryIndex].airmets[indicesCopiedAirmet.airmetIndex];
@@ -1191,7 +1196,10 @@ const pasteAirmet = (event, container) => {
     'forecast_position_time',
     'location_indicator_icao',
     'location_indicator_mwo',
-    'va_extra_fields',
+    'cloudLevels',
+    'visibility',
+    'obscuring',
+    'wind',
     'type'
   ];
   const newPartialState = {};
