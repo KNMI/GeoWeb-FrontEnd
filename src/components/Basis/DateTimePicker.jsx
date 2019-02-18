@@ -5,7 +5,7 @@ import NumberInput from '../Basis/NumberInput';
 import moment from 'moment';
 import PropTypes from 'prop-types';
 import MomentPropTypes from 'react-moment-proptypes';
-import { HOUR_LABEL_FORMAT, MINUTE_LABEL_FORMAT, CALENDAR_FORMAT, DATETIME_FORMAT, DATETIME_LABEL_FORMAT_UTC } from '../Sigmet/SigmetTemplates';
+import { HOUR_LABEL_FORMAT, MINUTE_LABEL_FORMAT, CALENDAR_FORMAT, DATETIME_FORMAT, DATETIME_LABEL_FORMAT_UTC } from '../../config/DayTimeConfig';
 
 export default class DateTimePicker extends PureComponent {
   constructor (props) {
