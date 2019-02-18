@@ -2,7 +2,7 @@ import React, { PureComponent } from 'react';
 import { Button, Col, Row, Badge } from 'reactstrap';
 import Moment from 'react-moment';
 import PropTypes from 'prop-types';
-import { TIME_LABEL_FORMAT_UTC, DATETIME_START_FORMAT } from './AirmetTemplates';
+import { TIME_LABEL_FORMAT_UTC, DATETIME_START_FORMAT } from '../../config/DayTimeConfig';
 import HeaderSection from '../SectionTemplates/HeaderSection';
 
 class AirmetMinifiedMode extends PureComponent {
