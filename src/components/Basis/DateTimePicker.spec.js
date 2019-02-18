@@ -2,7 +2,7 @@ import React from 'react';
 import DateTimePicker from './DateTimePicker';
 import moment from 'moment';
 import { mount } from 'enzyme';
-import { DATETIME_FORMAT } from '../Sigmet/SigmetTemplates';
+import { DATETIME_FORMAT } from '../../config/DayTimeConfig';
 
 describe('(Component) Basis/DateTimePicker', () => {
   it('renders a DateTimePicker', () => {

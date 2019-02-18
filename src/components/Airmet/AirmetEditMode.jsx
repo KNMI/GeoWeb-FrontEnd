@@ -29,8 +29,9 @@ import ChangeSection from '../SectionTemplates/ChangeSection';
 import HeightsSection from '../SectionTemplates/HeightsSection';
 import {
   DIRECTIONS, UNITS_LABELED, UNITS, MODES_LVL, MODES_LVL_OPTIONS, CHANGES, MOVEMENT_TYPES, MOVEMENT_OPTIONS, AIRMET_TYPES,
-  DATETIME_FORMAT, DISTRIBUTION_OPTIONS, dateRanges
+  DISTRIBUTION_OPTIONS, dateRanges
 } from './AirmetTemplates';
+import { DATETIME_FORMAT } from '../../config/DayTimeConfig';
 
 const DROP_DOWN_NAMES = {
   AT_OR_ABOVE: 'atOrAbove',

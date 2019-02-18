@@ -3,7 +3,8 @@ import moment from 'moment';
 import { notify } from 'reapop';
 import {
   SIGMET_MODES, SIGMET_TEMPLATES, UNITS, UNITS_ALT, MODES_LVL, MOVEMENT_TYPES, DISTRIBUTION_TYPES,
-  PHENOMENON_CODE_VOLCANIC_ASH, SIGMET_VARIANTS_PREFIXES, DATETIME_FORMAT } from '../../components/Sigmet/SigmetTemplates';
+  PHENOMENON_CODE_VOLCANIC_ASH, SIGMET_VARIANTS_PREFIXES } from '../../components/Sigmet/SigmetTemplates';
+import { DATETIME_FORMAT } from '../../config/DayTimeConfig';
 import { LOCAL_ACTION_TYPES, CATEGORY_REFS, STATUSES } from './SigmetActions';
 import { clearEmptyPointersAndAncestors, safeMerge, isFeatureGeoJsonComplete,
   MODES_GEO_SELECTION, MODES_GEO_MAPPING, isObject } from '../../utils/json';

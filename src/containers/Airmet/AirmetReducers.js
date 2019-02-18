@@ -3,7 +3,8 @@ import moment from 'moment';
 import { notify } from 'reapop';
 import {
   AIRMET_MODES, AIRMET_TEMPLATES, UNITS, UNITS_LABELED, MODES_LVL, MOVEMENT_TYPES, DISTRIBUTION_TYPES,
-  AIRMET_VARIANTS_PREFIXES, DATETIME_FORMAT } from '../../components/Airmet/AirmetTemplates';
+  AIRMET_VARIANTS_PREFIXES } from '../../components/Airmet/AirmetTemplates';
+import { DATETIME_FORMAT } from '../../config/DayTimeConfig';
 import { LOCAL_ACTION_TYPES, CATEGORY_REFS, STATUSES } from './AirmetActions';
 import { clearEmptyPointersAndAncestors, safeMerge, isFeatureGeoJsonComplete,
   MODES_GEO_SELECTION, MODES_GEO_MAPPING, isObject } from '../../utils/json';

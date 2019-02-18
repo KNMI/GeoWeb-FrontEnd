@@ -27,7 +27,8 @@ import ChangeSection from '../SectionTemplates/ChangeSection';
 import HeightsSection from '../SectionTemplates/HeightsSection';
 import {
   DIRECTIONS, UNITS_ALT, UNITS, MODES_LVL, MODES_LVL_OPTIONS, CHANGES, MOVEMENT_TYPES, MOVEMENT_OPTIONS, SIGMET_TYPES,
-  DATETIME_FORMAT, DISTRIBUTION_OPTIONS, dateRanges } from './SigmetTemplates';
+  DISTRIBUTION_OPTIONS, dateRanges } from './SigmetTemplates';
+import { DATETIME_FORMAT } from '../../config/DayTimeConfig';
 import EndPositionSection from '../SectionTemplates/EndPositionSection';
 
 const DROP_DOWN_NAMES = {
