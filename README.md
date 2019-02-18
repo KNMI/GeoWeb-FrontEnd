@@ -7,6 +7,12 @@ The GeoWeb FrontEnd started at the Royal Netherlands Meteorological Institute as
 ## Notice
 This software is under very active development and should NEVER EVER be used in production! It is currently very alpha, very incomplete, and comes without any guarantees. It may create a perpetual thundercloud above your head.
 
+## REMARK:
+3 packages should not be updated without care:
+* ```css-loader```: will break reapop-notifications
+* ```bootstrap```: will break button sizes
+* ```react-router```: the implemented configuration is in version 3 style (centralized), for version 4 we'll need to rewrite the configuration (decentralized)
+
 ## What you'll find here
 
 - [Components](#components)
