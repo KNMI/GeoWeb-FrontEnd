@@ -8,6 +8,7 @@ import TimeseriesComponent from './TimeseriesComponent';
 import ProgtempComponent from './ProgtempComponent';
 import axios from 'axios';
 import moment from 'moment';
+import classNames from 'classnames';
 import { ReadLocations } from '../utils/admin';
 import { GetServiceByNamePromise } from '../utils/getServiceByName';
 
@@ -74,13 +75,15 @@ export class SinglePanel extends Component {
            this.props.isLoggedIn !== nextProps.isLoggedIn ||
            this.props.mapProperties !== nextProps.mapProperties ||
            this.props.panelsProperties.panelLayout !== nextProps.panelsProperties.panelLayout ||
+           this.props.panelsProperties.panelFeedback.status !== nextProps.panelsProperties.panelFeedback.status ||
+           this.props.panelsProperties.panelFeedback.message !== nextProps.panelsProperties.panelFeedback.message ||
            this.props.panelsProperties.panels[mapId].type !== nextProps.panelsProperties.panels[mapId].type ||
            this.props.adagucProperties.timeDimension !== nextProps.adagucProperties.timeDimension || specificChangesHappening;
   }
 
   render () {
     const { title, mapProperties, dispatch, mapActions, mapId, panelsProperties, panelsActions, adagucActions } = this.props;
-    const { activePanelId, panels, panelLayout } = panelsProperties;
+    const { activePanelId, panels, panelLayout, panelFeedback } = panelsProperties;
     const type = panels[mapId].type;
     const { cursor } = this.props.adagucProperties;
 
@@ -96,8 +99,8 @@ export class SinglePanel extends Component {
     }
 
     return (<Panel isLoggedIn={this.props.isLoggedIn} layout={panelLayout} adagucActions={adagucActions} locations={this.props.progtempLocations} location={text} dispatch={dispatch}
-      panelsActions={panelsActions} type={type} mapActions={mapActions} title={title} mapMode={mapProperties.mapMode} mapId={mapId}
-      className={mapId === activePanelId && type === 'ADAGUC' ? 'activePanel' : ''} referenceTime={this.props.referenceTime}>
+      panelsActions={panelsActions} type={type} mapActions={mapActions} title={title} mapMode={mapProperties.mapMode} mapId={mapId} feedback={panelFeedback.message}
+      className={classNames({ activePanel: mapId === activePanelId && type === 'ADAGUC', error: panelFeedback.status === 'error' })} referenceTime={this.props.referenceTime}>
       {this.renderPanelContent(type)}
     </Panel>);
   }
@@ -169,11 +172,12 @@ class MapPanel extends PureComponent {
   }
   render () {
     const { panelsProperties, user } = this.props;
+    const { panelLayout } = panelsProperties;
     let isLoggedIn = false;
     if (user) {
       isLoggedIn = user.isLoggedIn;
     }
-    switch (panelsProperties.panelLayout) {
+    switch (panelLayout) {
       case 'dual':
         return (
           <Row tag='main'>

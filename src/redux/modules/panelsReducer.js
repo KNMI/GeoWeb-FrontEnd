@@ -11,9 +11,15 @@ const SET_PANEL_TYPE = 'SET_PANEL_TYPE';
 const SET_ACTIVE_LAYER = 'SET_ACTIVE_LAYER';
 const SET_ACTIVE_PANEL = 'SET_ACTIVE_PANEL';
 const SET_PANEL_LAYOUT = 'SET_PANEL_LAYOUT';
+const SET_PANEL_FEEDBACK = 'SET_PANEL_FEEDBACK';
 const RESET_LAYERS = 'RESET_LAYERS';
 const SET_DIMENSION_VALUE = 'SET_DIMENSION_VALUE';
 const SET_BASELAYER = 'SET_BASELAYER';
+
+const FEEDBACK_STATUSES = {
+  OK: 'ok',
+  ERROR: 'error'
+};
 
 const addLayer = createAction(ADD_LAYER);
 const setActiveLayer = createAction(SET_ACTIVE_LAYER);
@@ -25,6 +31,7 @@ const moveLayer = createAction(MOVE_LAYER);
 const setPanelType = createAction(SET_PANEL_TYPE);
 const setActivePanel = createAction(SET_ACTIVE_PANEL);
 const setPanelLayout = createAction(SET_PANEL_LAYOUT);
+const setPanelFeedback = createAction(SET_PANEL_FEEDBACK);
 const resetLayers = createAction(RESET_LAYERS);
 const setDimensionValue = createAction(SET_DIMENSION_VALUE);
 const setBaseLayer = createAction(SET_BASELAYER);
@@ -72,6 +79,10 @@ let INITIAL_STATE = {
     }
   ],
   panelLayout: 'single',
+  panelFeedback: {
+    status: FEEDBACK_STATUSES.ERROR,
+    message: 'test'
+  },
   activePanelId: 0
 };
 
@@ -86,6 +97,7 @@ export const actions = {
   setPanelType,
   setActivePanel,
   setPanelLayout,
+  setPanelFeedback,
   resetLayers,
   setDimensionValue,
   setBaseLayer
@@ -234,6 +246,12 @@ export default handleActions({
     const panelLayout = numPanels === 1 ? 'single' : payload;
     const activePanelId = state.activePanelId < numPanels ? state.activePanelId : 0;
     return { ...state, panelLayout, activePanelId };
+  },
+  [SET_PANEL_FEEDBACK]: (state, { payload }) => {
+    const status = Object.values(FEEDBACK_STATUSES).includes(payload.status) ? payload.status : FEEDBACK_STATUSES.OK;
+    const message = typeof payload.message === 'string' ? payload.message : null;
+    const panelFeedback = { ...state.panelFeedback, status, message };
+    return { ...state, panelFeedback };
   },
   [SET_DIMENSION_VALUE]: (state, { payload }) => {
     const { mapId, layerIndex, dimensionName, value } = payload;

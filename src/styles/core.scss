@@ -77,6 +77,10 @@ button.btn.btn-sm, button.btn.btn-group-sm > .btn {
 .Panel.activePanel > .title {
   background-color: #017daf; /* #bcdff1; */
 }
+.Panel.activePanel.error > .content,
+.Panel.activePanel.error > .title {
+  background-color: #d9534f; /* #bcdff1; */
+}
 #root {
   height: inherit;
   width: inherit;
