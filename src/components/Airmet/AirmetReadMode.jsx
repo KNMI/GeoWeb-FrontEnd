@@ -203,8 +203,10 @@ class AirmetReadMode extends PureComponent {
    * @returns {boolean} Whether or not the basic values in this specific Airmet are valid
    */
   isValid () {
-    const { maxHoursInAdvance, maxHoursDuration, hasStartCoordinates, hasStartIntersectionCoordinates } = this.props;
-    const { validdate, validdate_end: validdateEnd, phenomenon, firname, change, type: distributionType } = this.props.airmet;
+    const { maxHoursInAdvance, maxHoursDuration, hasStartCoordinates, hasStartIntersectionCoordinates,
+      isWindNeeded, isCloudLevelsNeeded, isObscuringNeeded, isLevelFieldNeeded } = this.props;
+    const { validdate, validdate_end: validdateEnd, phenomenon, firname, change, type: distributionType,
+      wind, cloudLevels, obscuring, visibility } = this.props.airmet;
     const now = moment.utc();
     const startTimestamp = moment.utc(validdate);
     const endTimestamp = moment.utc(validdateEnd);
@@ -213,12 +215,26 @@ class AirmetReadMode extends PureComponent {
       dateLimits.validDate.max.isSameOrAfter(startTimestamp);
     const isEndValid = dateLimits.validDateEnd.min.isSameOrBefore(endTimestamp) &&
       dateLimits.validDateEnd.max.isSameOrAfter(endTimestamp);
+    const isWindValid = !isWindNeeded || (wind && wind.speed && typeof wind.speed.unit === 'string' && wind.speed.unit.length > 0 &&
+      typeof wind.speed.val === 'number' && wind.direction && typeof wind.direction.val === 'number');
+    const isCloudLevelsValid = !isCloudLevelsNeeded || (cloudLevels && cloudLevels.lower && cloudLevels.upper &&
+      typeof cloudLevels.lower.surface === 'boolean' && (cloudLevels.lower.surface ||
+        (typeof cloudLevels.lower.unit === 'string' && cloudLevels.lower.unit.length > 0 &&
+      typeof cloudLevels.lower.val === 'number')) &&
+      typeof cloudLevels.upper.above === 'boolean' && typeof cloudLevels.upper.unit === 'string' && cloudLevels.upper.unit.length > 0 &&
+      typeof cloudLevels.upper.val === 'number');
+    const isObscuringValid = !isObscuringNeeded || (Array.isArray(obscuring) && obscuring.length > 0 &&
+      typeof obscuring[0].name === 'string' && obscuring[0].name.length > 0 &&
+      typeof obscuring[0].code === 'string' && obscuring[0].code.length > 0 &&
+      visibility && typeof visibility.val === 'number');
+    const isLevelFieldValid = !isLevelFieldNeeded || this.isLevelInfoValid();
     const hasPhenomenon = typeof phenomenon === 'string' && phenomenon.length > 0;
     const hasFir = typeof firname === 'string' && firname.length > 0;
     const hasChange = typeof change === 'string' && change.length > 0;
     const hasType = typeof distributionType === 'string' && distributionType.length > 0;
     return isStartValid && isEndValid && hasStartCoordinates && hasStartIntersectionCoordinates &&
-      hasPhenomenon && hasFir && hasChange && hasType && this.isLevelInfoValid() && this.isMovementValid();
+      hasPhenomenon && hasFir && hasChange && hasType && this.isMovementValid() &&
+      isWindValid && isCloudLevelsValid && isObscuringValid && isLevelFieldValid;
   };
 
   /**
