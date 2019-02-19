@@ -1221,9 +1221,8 @@ const copySigmet = (event, container) => {
  * @param {Element} container The container in which the paste action was triggered
  */
 const pasteSigmet = (event, container) => {
-  const { state, props } = container;
+  const { state } = container;
   const { selectedSigmet, categories, focussedCategoryRef } = state;
-  const { dispatch, drawActions } = props;
   const indicesCopiedSigmet = findCategoryAndSigmetIndex(state.copiedSigmetRef, state);
   const affectedSigmet = Array.isArray(selectedSigmet) && selectedSigmet.length === 1
     ? selectedSigmet[0]

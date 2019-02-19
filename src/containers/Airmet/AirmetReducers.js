@@ -1169,9 +1169,8 @@ const copyAirmet = (event, container) => {
  * @param {Element} container The container in which the paste action was triggered
  */
 const pasteAirmet = (event, container) => {
-  const { state, props } = container;
+  const { state } = container;
   const { selectedAirmet, categories, focussedCategoryRef } = state;
-  const { dispatch, drawActions } = props;
   const indicesCopiedAirmet = findCategoryAndAirmetIndex(state.copiedAirmetRef, state);
   const affectedAirmet = Array.isArray(selectedAirmet) && selectedAirmet.length === 1
     ? selectedAirmet[0]
