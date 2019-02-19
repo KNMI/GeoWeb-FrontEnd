@@ -1317,7 +1317,7 @@ const cancelSigmet = (event, container) => {
       const indices = findCategoryAndSigmetIndex(affectedSigmet.uuid, state);
       const publishedCategory = categories.find((category) => category.ref === CATEGORY_REFS.ACTIVE_SIGMETS);
       if (indices.isFound && publishedCategory) {
-        const canceledSigmet = categories[indices.categoryIndex][indices.sigmetIndex];
+        const canceledSigmet = categories[indices.categoryIndex].sigmets[indices.sigmetIndex];
         const cancelSigmet = publishedCategory.sigmets.find((sigmet) => sigmet.cancels === canceledSigmet.sequence &&
         sigmet.phenomenon === canceledSigmet.phenomenon);
         if (cancelSigmet) {

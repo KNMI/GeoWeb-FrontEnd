@@ -1268,7 +1268,7 @@ const cancelAirmet = (event, container) => {
       const indices = findCategoryAndAirmetIndex(affectedAirmet.uuid, state);
       const publishedCategory = categories.find((category) => category.ref === CATEGORY_REFS.ACTIVE_AIRMETS);
       if (indices.isFound && publishedCategory) {
-        const canceledAirmet = categories[indices.categoryIndex][indices.airmetIndex];
+        const canceledAirmet = categories[indices.categoryIndex].airmets[indices.airmetIndex];
         const cancelAirmet = publishedCategory.airmets.find((airmet) => airmet.cancels === canceledAirmet.sequence &&
         airmet.phenomenon === canceledAirmet.phenomenon);
         if (cancelAirmet) {
