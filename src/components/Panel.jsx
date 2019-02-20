@@ -39,17 +39,14 @@ class Panel extends PureComponent {
               <ModeLocationChanger mapId={mapId} type={type} location={this.props.location}
                 dispatch={dispatch} isLoggedIn={isLoggedIn} panelsActions={panelsActions}
                 adagucActions={this.props.adagucActions} locations={this.props.locations} referenceTime={this.props.referenceTime} />
-              {typeof feedback === 'string'
-                ? <span>{feedback}</span>
-                : null
-              }
             </Row>
-            : <Row className='title notitle' style={style}>
-              {typeof feedback === 'string'
-                ? <span>{feedback}</span>
-                : null
-              }
+            : <Row className='title notitle' style={style} />
+          }
+          {typeof feedback === 'string'
+            ? <Row className='title notitle' style={{ marginTop: '-2rem', marginBottom: '2rem', zIndex: 10000 }}>
+              <span>{feedback}</span>
             </Row>
+            : null
           }
           <Row className='content notitle' style={{ ...style, height: '100%' }}>
             {this.props.children}
