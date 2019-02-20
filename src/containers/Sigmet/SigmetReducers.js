@@ -794,6 +794,11 @@ const updateSigmet = (dataField, value, container) => {
   if ((dataField === 'validdate' || dataField === 'validdate_end') && value === null) {
     value = moment.utc().add(1, 'minute').format(DATETIME_FORMAT);
   }
+  if (dataField.indexOf('volcano.name') !== -1) {
+    value = typeof value === 'string'
+      ? value.toUpperCase()
+      : null;
+  }
   if (dataField.indexOf('volcano.position') !== -1) {
     value = (value !== null && !isNaN(value))
       ? parseFloat(value)
