@@ -812,7 +812,7 @@ const updateSigmet = (dataField, value, container) => {
           : UNITS.FL.unit;
         break;
       case 'value':
-        value = value !== null && !isNaN(value) ? parseInt(value) : null;
+        value = value !== null && !isNaN(value) && value !== 0 && value !== '0' ? parseInt(value) : null;
         break;
       case 'mode':
         const betweenModes = [MODES_LVL.BETW, MODES_LVL.BETW_SFC];

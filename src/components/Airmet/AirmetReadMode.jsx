@@ -152,7 +152,7 @@ class AirmetReadMode extends PureComponent {
   isLevelValid (level) {
     return typeof level === 'object' &&
       typeof level.unit === 'string' && level.unit.length > 0 &&
-      typeof level.value === 'number' && !isNaN(level.value);
+      typeof level.value === 'number' && !isNaN(level.value) && level.value !== 0;
   }
 
   /**
@@ -220,9 +220,9 @@ class AirmetReadMode extends PureComponent {
     const isCloudLevelsValid = !isCloudLevelsNeeded || (cloudLevels && cloudLevels.lower && cloudLevels.upper &&
       typeof cloudLevels.lower.surface === 'boolean' && (cloudLevels.lower.surface ||
         (typeof cloudLevels.lower.unit === 'string' && cloudLevels.lower.unit.length > 0 &&
-      typeof cloudLevels.lower.val === 'number')) &&
+      typeof cloudLevels.lower.val === 'number' && cloudLevels.lower.val !== 0)) &&
       typeof cloudLevels.upper.above === 'boolean' && typeof cloudLevels.upper.unit === 'string' && cloudLevels.upper.unit.length > 0 &&
-      typeof cloudLevels.upper.val === 'number');
+      typeof cloudLevels.upper.val === 'number' && cloudLevels.upper.val !== 0);
     const isObscuringValid = !isObscuringNeeded || (Array.isArray(obscuring) && obscuring.length > 0 &&
       typeof obscuring[0].name === 'string' && obscuring[0].name.length > 0 &&
       typeof obscuring[0].code === 'string' && obscuring[0].code.length > 0 &&
