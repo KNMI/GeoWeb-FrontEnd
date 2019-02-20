@@ -735,6 +735,22 @@ input[type=number]::-webkit-inner-spin-button {
   width: 100%;
 }
 
+.Panel > .feedback {
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: -1.9rem;
+  margin-bottom: -1.2rem;
+  padding-top: 1.2rem;
+  span {
+    padding: 0.2rem 0.75rem;
+    color: #d9534f;
+    z-index: 100;
+    border: 0.0625rem solid #d9534f;
+    border-radius: 0.25rem;
+    background-color: #fff;
+  }
+}
+
 .Panel > .content {
   box-sizing: border-box;
   background: white;

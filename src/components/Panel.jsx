@@ -16,7 +16,7 @@ class Panel extends PureComponent {
   render () {
     const { title, style, className, isLoggedIn, mapId, dispatch, type, panelsActions, mapMode, feedback } = this.props;
     const panelOpts = ['ADAGUC', 'TIMESERIES', 'PROGTEMP'];
-    const isActive = className.split(' ').includes('activePanel');
+    const isActive = typeof className === 'string' ? className.split(' ').includes('activePanel') : false;
     if (!title) {
       const onClick = type === 'ADAGUC' ? (e) => {
         e.stopPropagation();
@@ -43,7 +43,7 @@ class Panel extends PureComponent {
             : <Row className='title notitle' style={style} />
           }
           {typeof feedback === 'string'
-            ? <Row className='title notitle' style={{ marginTop: '-2rem', marginBottom: '2rem', zIndex: 10000 }}>
+            ? <Row className='feedback'>
               <span>{feedback}</span>
             </Row>
             : null
