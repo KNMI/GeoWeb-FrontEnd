@@ -1,6 +1,7 @@
 import { createAction, handleActions } from 'redux-actions';
 import { MAP_STYLES } from '../../constants/map_styles';
 import cloneDeep from 'lodash.clonedeep';
+import { FEEDBACK_STATUS } from '../../config/StatusConfig';
 const ADD_LAYER = 'ADD_LAYER';
 const ADD_OVERLAY_LAYER = 'ADD_OVERLAY_LAYER';
 const DELETE_LAYER = 'DELETE_LAYER';
@@ -15,11 +16,6 @@ const SET_PANEL_FEEDBACK = 'SET_PANEL_FEEDBACK';
 const RESET_LAYERS = 'RESET_LAYERS';
 const SET_DIMENSION_VALUE = 'SET_DIMENSION_VALUE';
 const SET_BASELAYER = 'SET_BASELAYER';
-
-const FEEDBACK_STATUSES = {
-  OK: 'ok',
-  ERROR: 'error'
-};
 
 const addLayer = createAction(ADD_LAYER);
 const setActiveLayer = createAction(SET_ACTIVE_LAYER);
@@ -80,8 +76,8 @@ let INITIAL_STATE = {
   ],
   panelLayout: 'single',
   panelFeedback: {
-    status: FEEDBACK_STATUSES.ERROR,
-    message: 'test'
+    status: FEEDBACK_STATUS.OK,
+    message: null
   },
   activePanelId: 0
 };
@@ -248,7 +244,7 @@ export default handleActions({
     return { ...state, panelLayout, activePanelId };
   },
   [SET_PANEL_FEEDBACK]: (state, { payload }) => {
-    const status = Object.values(FEEDBACK_STATUSES).includes(payload.status) ? payload.status : FEEDBACK_STATUSES.OK;
+    const status = Object.values(FEEDBACK_STATUS).includes(payload.status) ? payload.status : FEEDBACK_STATUS.OK;
     const message = typeof payload.message === 'string' ? payload.message : null;
     const panelFeedback = { ...state.panelFeedback, status, message };
     return { ...state, panelFeedback };

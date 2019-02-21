@@ -9,6 +9,7 @@ import { LOCAL_ACTION_TYPES, CATEGORY_REFS, STATUSES } from './AirmetActions';
 import { clearEmptyPointersAndAncestors, safeMerge, isFeatureGeoJsonComplete,
   MODES_GEO_SELECTION, MODES_GEO_MAPPING, isObject } from '../../utils/json';
 import { getPresetForPhenomenon } from '../../components/Airmet/AirmetPresets';
+import { FEEDBACK_STATUS } from '../../config/StatusConfig';
 import axios from 'axios';
 import cloneDeep from 'lodash.clonedeep';
 import isEqual from 'lodash.isequal';
@@ -24,12 +25,6 @@ const ERROR_MSG = {
   RETRIEVE_TACS: 'Could not retrieve AIRMET TAC:',
   FEATURE_ID_MISMATCH: 'GeoJson: the %s feature has a mutated id',
   FIND_CATEGORY: 'Could not find category'
-};
-
-const FEEDBACK_STATUS = {
-  OK: 'success',
-  WARN: 'warning',
-  ERROR: 'error'
 };
 
 /**

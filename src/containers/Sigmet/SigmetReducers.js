@@ -8,6 +8,7 @@ import { DATETIME_FORMAT } from '../../config/DayTimeConfig';
 import { LOCAL_ACTION_TYPES, CATEGORY_REFS, STATUSES } from './SigmetActions';
 import { clearEmptyPointersAndAncestors, safeMerge, isFeatureGeoJsonComplete,
   MODES_GEO_SELECTION, MODES_GEO_MAPPING, isObject } from '../../utils/json';
+import { FEEDBACK_STATUS } from '../../config/StatusConfig';
 import { getPresetForPhenomenon } from '../../components/Sigmet/SigmetPresets';
 import axios from 'axios';
 import cloneDeep from 'lodash.clonedeep';
@@ -23,12 +24,6 @@ const ERROR_MSG = {
   RETRIEVE_TACS: 'Could not retrieve SIGMET TAC:',
   FEATURE_ID_MISMATCH: 'GeoJson: the %s feature has a mutated id',
   FIND_CATEGORY: 'Could not find category'
-};
-
-const FEEDBACK_STATUS = {
-  OK: 'success',
-  WARN: 'warning',
-  ERROR: 'error'
 };
 
 /**
@@ -987,7 +982,7 @@ const createIntersectionData = (feature, firname, container) => {
 };
 
 const createFirIntersection = (featureId, geojson, container) => {
-  const { dispatch, drawActions, urls } = container.props;
+  const { dispatch, drawActions, panelsActions, urls } = container.props;
   const { selectedSigmet, categories, focussedCategoryRef } = container.state;
   const activeCategory = categories.find((category) => category.ref === focussedCategoryRef);
   if (!activeCategory) {
@@ -1025,6 +1020,10 @@ const createFirIntersection = (featureId, geojson, container) => {
             [feedbackProperty]: responseMessage
           }
         }).then(() => {
+          dispatch(panelsActions.setPanelFeedback({
+            status: responseMessage ? FEEDBACK_STATUS.ERROR : FEEDBACK_STATUS.OK,
+            message: responseMessage
+          }));
           if (responseSucceeded === true) {
             dispatch(drawActions.setFeature({
               geometry: { coordinates: responseFeature.geometry.coordinates, type: responseFeature.geometry.type },

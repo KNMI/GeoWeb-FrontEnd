@@ -11,6 +11,7 @@ import moment from 'moment';
 import classNames from 'classnames';
 import { ReadLocations } from '../utils/admin';
 import { GetServiceByNamePromise } from '../utils/getServiceByName';
+import { FEEDBACK_STATUS } from '../config/StatusConfig';
 
 export class SinglePanel extends Component {
   constructor () {
@@ -100,7 +101,7 @@ export class SinglePanel extends Component {
 
     return (<Panel isLoggedIn={this.props.isLoggedIn} layout={panelLayout} adagucActions={adagucActions} locations={this.props.progtempLocations} location={text} dispatch={dispatch}
       panelsActions={panelsActions} type={type} mapActions={mapActions} title={title} mapMode={mapProperties.mapMode} mapId={mapId} feedback={panelFeedback.message}
-      className={classNames({ activePanel: mapId === activePanelId && type === 'ADAGUC', error: panelFeedback.status === 'error' })} referenceTime={this.props.referenceTime}>
+      className={classNames({ activePanel: mapId === activePanelId && type === 'ADAGUC', error: panelFeedback.status === FEEDBACK_STATUS.ERROR })} referenceTime={this.props.referenceTime}>
       {this.renderPanelContent(type)}
     </Panel>);
   }
