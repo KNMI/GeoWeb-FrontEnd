@@ -61,9 +61,6 @@ export default class IssueSection extends PureComponent {
                   {children.distribution_type}
                 </Col>
                 <Col />
-                <Col xs='auto'>
-                  {children.clear_distribution_type}
-                </Col>
               </Row>
             </Col>
           </Row>
