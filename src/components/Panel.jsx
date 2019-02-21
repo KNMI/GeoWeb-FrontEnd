@@ -42,7 +42,7 @@ class Panel extends PureComponent {
             </Row>
             : <Row className='title notitle' style={style} />
           }
-          {typeof feedback === 'string'
+          {typeof feedback === 'string' && isActive
             ? <Row className='feedback'>
               <span>{feedback}</span>
             </Row>

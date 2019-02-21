@@ -753,6 +753,11 @@ input[type=number]::-webkit-inner-spin-button {
     background-color: #fff;
     box-shadow: 0.1rem 0.12rem 0.2rem rgba(1,84,125,0.25);
     min-height: fit-content;
+  }
+}
+
+.col-12 > .Panel > .feedback, .row > .col-6 > .Panel > .feedback {
+  span {
     min-width: 32rem;
   }
 }
