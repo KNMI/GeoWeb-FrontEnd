@@ -91,13 +91,13 @@ export default class DateTimePicker extends PureComponent {
     const parsedValue = this.parseTimestamp(value);
     const parsedMin = this.parseTimestamp(min);
     const parsedMax = this.parseTimestamp(max);
-    const firstDay = parsedMin.clone().startOf('day');
+    const firstDay = parsedMin.clone();
     const nextToLastDay = parsedMax.clone().startOf('day').add(1, 'day');
     const dayOptions = [];
     let dayToAdd = firstDay.clone();
     while (dayToAdd.isBefore(nextToLastDay)) {
       dayOptions.push({ label: dayToAdd.calendar(null, CALENDAR_FORMAT), timestamp: dayToAdd.clone() });
-      dayToAdd.add(1, 'day');
+      dayToAdd.startOf('day').add(1, 'day');
     }
     const dataField = this.props['data-field'];
     const hourMinimum = parsedValue.isSame(parsedMin, 'day')

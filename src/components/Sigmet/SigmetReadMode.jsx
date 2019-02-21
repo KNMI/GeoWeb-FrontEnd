@@ -144,7 +144,7 @@ class SigmetReadMode extends PureComponent {
   isLevelValid (level) {
     return typeof level === 'object' &&
       typeof level.unit === 'string' && level.unit.length > 0 &&
-      typeof level.value === 'number' && !isNaN(level.value);
+      typeof level.value === 'number' && !isNaN(level.value) && level.value !== 0;
   }
 
   /**
