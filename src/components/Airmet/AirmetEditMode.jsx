@@ -676,7 +676,7 @@ class AirmetEditMode extends PureComponent {
             clearButton />
         </ChangeSection>
 
-        <IssueSection className={`required${typeof distributionType !== 'string' || distributionType.length === 0 ? ' missing' : ''}`}>
+        <IssueSection>
           <span data-field='issuedate'>(Not yet published)</span>
           <span data-field='issueLocation'>{locationIndicatorMwo}</span>
           <span className='tac' data-field='tac' title={tac}>{tac}</span>
@@ -686,9 +686,6 @@ class AirmetEditMode extends PureComponent {
             onChange={(evt, selectedOption = null) => dispatch(actions.updateAirmetAction(uuid, 'type', selectedOption))}
             data-field='distribution_type'
           />
-          <button className='clear close' title={typeof distributionType === 'string' ? 'Clear' : null}
-            disabled={typeof distributionType !== 'string' || distributionType.length === 0} data-field='clear_distribution_type'
-            onClick={(evt) => dispatch(actions.updateAirmetAction(uuid, 'type', null))}><span>×</span></button>
         </IssueSection>
 
         <ActionSection colSize={3}>
