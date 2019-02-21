@@ -903,6 +903,7 @@ const drawSigmet = (event, uuid, container, action, featureFunction) => {
   if (action === selectedAuxiliaryInfo[drawMode]) {
     updatableFeatureProps.geometry.coordinates.push(...features[featureIndex].geometry.coordinates);
   }
+  setPanelFeedback(null, container);
   switch (action) {
     case 'select-point':
       dispatch(mapActions.setMapMode('draw'));
