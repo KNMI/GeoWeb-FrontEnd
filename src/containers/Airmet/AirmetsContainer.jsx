@@ -63,6 +63,10 @@ class AirmetsContainer extends Component {
     this.localDispatch(LOCAL_ACTIONS.retrieveAirmetsAction());
   }
 
+  componentWillUnmount () {
+    this.localDispatch(LOCAL_ACTIONS.cleanupAction());
+  }
+
   render () {
     const maxSize = 580;
     const { isContainerOpen, selectedAirmet, selectedAuxiliaryInfo, categories, focussedCategoryRef,

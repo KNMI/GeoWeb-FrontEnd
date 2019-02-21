@@ -79,6 +79,10 @@ class SigmetsContainer extends Component {
     this.localDispatch(LOCAL_ACTIONS.retrieveSigmetsAction());
   }
 
+  componentWillUnmount () {
+    this.localDispatch(LOCAL_ACTIONS.cleanupAction());
+  }
+
   render () {
     const maxSize = 580;
     const { isContainerOpen, selectedSigmet, selectedAuxiliaryInfo, categories, focussedCategoryRef,

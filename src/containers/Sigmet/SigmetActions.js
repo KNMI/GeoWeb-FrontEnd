@@ -25,7 +25,8 @@ export const LOCAL_ACTION_TYPES = {
   CREATE_FIR_INTERSECTION: 'CREATE_FIR_INTERSECTION',
   VERIFY_SIGMET: 'VERIFY_SIGMET',
   TOGGLE_HAS_EDITS: 'TOGGLE_HAS_EDITS',
-  TOGGLE_SIGMET_MODAL: 'TOGGLE_SIGMET_MODAL'
+  TOGGLE_SIGMET_MODAL: 'TOGGLE_SIGMET_MODAL',
+  CLEANUP: 'CLEANUP'
 };
 
 export const LOCAL_ACTIONS = {
@@ -51,7 +52,8 @@ export const LOCAL_ACTIONS = {
   createFirIntersectionAction: (featureId, geoJson) => ({ type: LOCAL_ACTION_TYPES.CREATE_FIR_INTERSECTION, featureId: featureId, geoJson: geoJson }),
   verifySigmetAction: (sigmetObject) => ({ type: LOCAL_ACTION_TYPES.VERIFY_SIGMET, sigmetObject: sigmetObject }),
   toggleSigmetModalAction: (evt, uuid, type) => ({ type: LOCAL_ACTION_TYPES.TOGGLE_SIGMET_MODAL, event: evt, uuid: uuid, modalType: type }),
-  toggleHasEdits: (evt, val) => ({ type: LOCAL_ACTION_TYPES.TOGGLE_HAS_EDITS, event: evt, value: val })
+  toggleHasEdits: (evt, val) => ({ type: LOCAL_ACTION_TYPES.TOGGLE_HAS_EDITS, event: evt, value: val }),
+  cleanupAction: () => ({ type: LOCAL_ACTION_TYPES.CLEANUP })
 };
 
 export const MODAL_TYPES = {

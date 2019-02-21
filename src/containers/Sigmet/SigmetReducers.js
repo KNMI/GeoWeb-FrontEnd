@@ -415,6 +415,7 @@ const selectSigmet = (selection, container) => {
 
   if (selection.length === 0) {
     // clear all
+    setPanelFeedback(null, container);
     return setStatePromise(container, {
       selectedSigmet: [],
       selectedAuxiliaryInfo: {
@@ -450,6 +451,7 @@ const selectSigmet = (selection, container) => {
   // * draw SIGMET features,
   // * retrieve SIGMET preset and
   // * update display preset
+  setPanelFeedback(null, container);
   return setStatePromise(container, {
     selectedSigmet: selection,
     selectedAuxiliaryInfo: {
@@ -974,6 +976,26 @@ const cleanFeatures = (features) => {
       : null;
 };
 
+const setPanelFeedback = (message, container) => {
+  const { dispatch, panelsActions } = container.props;
+  dispatch(panelsActions.setPanelFeedback({
+    status: message ? FEEDBACK_STATUS.ERROR : FEEDBACK_STATUS.OK,
+    message: message
+  }));
+};
+
+const cleanup = (container) => {
+  const { dispatch, drawActions } = container.props;
+  setPanelFeedback(null, container);
+  dispatch(drawActions.setGeoJSON(initialGeoJson()));
+  return setStatePromise(container, {
+    selectedAuxiliaryInfo: {
+      feedbackStart: null,
+      feedbackEnd: null
+    }
+  });
+};
+
 const createIntersectionData = (feature, firname, container) => {
   const cleanedFeature = cleanFeatures(feature);
   return (!isFeatureGeoJsonComplete(cleanedFeature))
@@ -982,7 +1004,7 @@ const createIntersectionData = (feature, firname, container) => {
 };
 
 const createFirIntersection = (featureId, geojson, container) => {
-  const { dispatch, drawActions, panelsActions, urls } = container.props;
+  const { dispatch, drawActions, urls } = container.props;
   const { selectedSigmet, categories, focussedCategoryRef } = container.state;
   const activeCategory = categories.find((category) => category.ref === focussedCategoryRef);
   if (!activeCategory) {
@@ -1020,10 +1042,7 @@ const createFirIntersection = (featureId, geojson, container) => {
             [feedbackProperty]: responseMessage
           }
         }).then(() => {
-          dispatch(panelsActions.setPanelFeedback({
-            status: responseMessage ? FEEDBACK_STATUS.ERROR : FEEDBACK_STATUS.OK,
-            message: responseMessage
-          }));
+          setPanelFeedback(responseMessage, container);
           if (responseSucceeded === true) {
             dispatch(drawActions.setFeature({
               geometry: { coordinates: responseFeature.geometry.coordinates, type: responseFeature.geometry.type },
@@ -1055,8 +1074,15 @@ const clearSigmet = (event, uuid, container) => {
 };
 
 const discardSigmet = (event, uuid, container) => {
-  showFeedback(container, 'Changes discarded', 'The changes are successfully discarded', FEEDBACK_STATUS.OK);
-  focusSigmet(null, container).then(() => synchronizeSigmets(container));
+  focusSigmet(null, container)
+    .then(() => synchronizeSigmets(container))
+    .then(() => focusSigmet(uuid, container))
+    .then(() => setStatePromise(container, {
+      selectedAuxiliaryInfo: {
+        mode: SIGMET_MODES.EDIT
+      }
+    }))
+    .then(() => showFeedback(container, 'Changes discarded', 'The changes are successfully discarded', FEEDBACK_STATUS.OK));
 };
 
 /**
@@ -1484,5 +1510,8 @@ export default (localAction, container) => {
       break;
     case LOCAL_ACTION_TYPES.TOGGLE_SIGMET_MODAL:
       toggleSigmetModal(localAction.event, localAction.modalType, container);
+      break;
+    case LOCAL_ACTION_TYPES.CLEANUP:
+      cleanup(container);
   }
 };
