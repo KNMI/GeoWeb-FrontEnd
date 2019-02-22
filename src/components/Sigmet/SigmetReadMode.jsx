@@ -5,7 +5,7 @@ import moment from 'moment';
 import produce from 'immer';
 import PropTypes from 'prop-types';
 import { READ_ABILITIES, byReadAbilities, MODALS, MODAL_TYPES } from '../../containers/Sigmet/SigmetActions';
-import { UNITS, UNITS_ALT, DIRECTIONS, CHANGES, MODES_LVL, MOVEMENT_TYPES, SIGMET_TYPES, dateRanges } from './SigmetTemplates';
+import { UNITS, UNITS_ALT, DIRECTIONS, MODES_LVL, MOVEMENT_TYPES, SIGMET_TYPES, dateRanges } from './SigmetTemplates';
 import { DATETIME_LABEL_FORMAT_UTC } from '../../config/DayTimeConfig';
 
 import HeaderSection from '../SectionTemplates/HeaderSection';
@@ -343,7 +343,11 @@ class SigmetReadMode extends PureComponent {
           : null
         }
         <ChangeSection>
-          <span data-field='change'>{(change && CHANGES.find((obj) => obj.shortName === change).longName) || '(change not set yet)'}</span>
+          <span data-field='change_type'>
+            {typeof change === 'string' && change.length > 0
+              ? change
+              : '(no change assigned yet)'}
+          </span>
         </ChangeSection>
 
         <IssueSection>
