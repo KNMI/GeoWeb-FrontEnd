@@ -14,14 +14,15 @@ class Panel extends PureComponent {
   }
 
   render () {
-    const { title, style, className, isLoggedIn, mapId, dispatch, type, panelsActions, mapMode } = this.props;
+    const { title, style, className, isLoggedIn, mapId, dispatch, type, panelsActions, mapMode, feedback } = this.props;
     const panelOpts = ['ADAGUC', 'TIMESERIES', 'PROGTEMP'];
+    const isActive = typeof className === 'string' ? className.split(' ').includes('activePanel') : false;
     if (!title) {
       const onClick = type === 'ADAGUC' ? (e) => {
         e.stopPropagation();
         e.preventDefault();
         if (!panelsActions) return;
-        if (mapMode !== 'progtemp' && mapMode !== 'timeseries' && !className && type === 'ADAGUC') {
+        if (mapMode !== 'progtemp' && mapMode !== 'timeseries' && !isActive && type === 'ADAGUC') {
           dispatch(panelsActions.setActivePanel(mapId));
         }
       } : null;
@@ -41,6 +42,12 @@ class Panel extends PureComponent {
             </Row>
             : <Row className='title notitle' style={style} />
           }
+          {typeof feedback === 'string' && isActive
+            ? <Row className='feedback'>
+              <span>{feedback}</span>
+            </Row>
+            : null
+          }
           <Row className='content notitle' style={{ ...style, height: '100%' }}>
             {this.props.children}
           </Row>
@@ -50,7 +57,7 @@ class Panel extends PureComponent {
       return (
         <div className={'Panel ' + className} onClick={() => {
           if (!panelsActions) return;
-          if (mapMode !== 'progtemp' && mapMode !== 'timeseries' && !className) {
+          if (mapMode !== 'progtemp' && mapMode !== 'timeseries' && !isActive) {
             dispatch(panelsActions.setActivePanel(mapId));
           }
         }}>
@@ -232,7 +239,8 @@ Panel.propTypes = {
   location: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
   type: PropTypes.string,
   locations: PropTypes.array,
-  isLoggedIn: PropTypes.bool
+  isLoggedIn: PropTypes.bool,
+  feedback: PropTypes.string
 };
 
 ModeLocationChanger.propTypes = {

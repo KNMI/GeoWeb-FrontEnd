@@ -77,6 +77,10 @@ button.btn.btn-sm, button.btn.btn-group-sm > .btn {
 .Panel.activePanel > .title {
   background-color: #017daf; /* #bcdff1; */
 }
+.Panel.activePanel.error > .content,
+.Panel.activePanel.error > .title {
+  background-color: #d9534f; /* #bcdff1; */
+}
 #root {
   height: inherit;
   width: inherit;
@@ -729,6 +733,33 @@ input[type=number]::-webkit-inner-spin-button {
 
 .Panel > .title .form-inline .form-control {
   width: 100%;
+}
+
+.Panel > .feedback {
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: -1.9rem;
+  margin-bottom: -1.2rem;
+  padding-top: 1.2rem;
+  max-height: 3.1rem;
+  overflow: visible;
+  span {
+    padding: 0.15rem 0.65rem;
+    color: #d9534f;
+    font-size: 0.9rem;
+    z-index: 100;
+    border: 0.0625rem solid #d9534f;
+    border-radius: 0.25rem;
+    background-color: #fff;
+    box-shadow: 0.1rem 0.12rem 0.2rem rgba(1,84,125,0.25);
+    min-height: fit-content;
+  }
+}
+
+.col-12 > .Panel > .feedback, .row > .col-6 > .Panel > .feedback {
+  span {
+    min-width: 32rem;
+  }
 }
 
 .Panel > .content {

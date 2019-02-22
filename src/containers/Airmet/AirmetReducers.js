@@ -9,6 +9,7 @@ import { LOCAL_ACTION_TYPES, CATEGORY_REFS, STATUSES } from './AirmetActions';
 import { clearEmptyPointersAndAncestors, safeMerge, isFeatureGeoJsonComplete,
   MODES_GEO_SELECTION, MODES_GEO_MAPPING, isObject } from '../../utils/json';
 import { getPresetForPhenomenon } from '../../components/Airmet/AirmetPresets';
+import { FEEDBACK_STATUS } from '../../config/StatusConfig';
 import axios from 'axios';
 import cloneDeep from 'lodash.clonedeep';
 import isEqual from 'lodash.isequal';
@@ -24,12 +25,6 @@ const ERROR_MSG = {
   RETRIEVE_TACS: 'Could not retrieve AIRMET TAC:',
   FEATURE_ID_MISMATCH: 'GeoJson: the %s feature has a mutated id',
   FIND_CATEGORY: 'Could not find category'
-};
-
-const FEEDBACK_STATUS = {
-  OK: 'success',
-  WARN: 'warning',
-  ERROR: 'error'
 };
 
 /**
@@ -401,6 +396,7 @@ const selectAirmet = (selection, container) => {
 
   if (selection.length === 0) {
     // clear all
+    setPanelFeedback(null, container);
     return setStatePromise(container, {
       selectedAirmet: [],
       selectedAuxiliaryInfo: {
@@ -428,6 +424,7 @@ const selectAirmet = (selection, container) => {
   // * draw AIRMET features,
   // * retrieve AIRMET preset and
   // * update display preset
+  setPanelFeedback(null, container);
   return setStatePromise(container, {
     selectedAirmet: selection,
     selectedAuxiliaryInfo: {
@@ -857,6 +854,7 @@ const drawAirmet = (event, uuid, container, action, featureFunction) => {
   if (action === selectedAuxiliaryInfo[drawMode]) {
     updatableFeatureProps.geometry.coordinates.push(...features[featureIndex].geometry.coordinates);
   }
+  setPanelFeedback(null, container);
   switch (action) {
     case 'select-point':
       dispatch(mapActions.setMapMode('draw'));
@@ -930,6 +928,26 @@ const cleanFeatures = (features) => {
       : null;
 };
 
+const setPanelFeedback = (message, container) => {
+  const { dispatch, panelsActions } = container.props;
+  dispatch(panelsActions.setPanelFeedback({
+    status: message ? FEEDBACK_STATUS.ERROR : FEEDBACK_STATUS.OK,
+    message: message
+  }));
+};
+
+const cleanup = (container) => {
+  const { dispatch, drawActions } = container.props;
+  setPanelFeedback(null, container);
+  dispatch(drawActions.setGeoJSON(initialGeoJson()));
+  return setStatePromise(container, {
+    selectedAuxiliaryInfo: {
+      feedbackStart: null,
+      feedbackEnd: null
+    }
+  });
+};
+
 const createIntersectionData = (feature, firname, container) => {
   const cleanedFeature = cleanFeatures(feature);
   return (!isFeatureGeoJsonComplete(cleanedFeature))
@@ -976,6 +994,7 @@ const createFirIntersection = (featureId, geojson, container) => {
             [feedbackProperty]: responseMessage
           }
         }).then(() => {
+          setPanelFeedback(responseMessage, container);
           if (responseSucceeded === true) {
             dispatch(drawActions.setFeature({
               geometry: { coordinates: responseFeature.geometry.coordinates, type: responseFeature.geometry.type },
@@ -1007,8 +1026,15 @@ const clearAirmet = (event, uuid, container) => {
 };
 
 const discardAirmet = (event, uuid, container) => {
-  showFeedback(container, 'Changes discarded', 'The changes are successfully discarded', FEEDBACK_STATUS.OK);
-  focusAirmet(null, container).then(() => synchronizeAirmets(container));
+  focusAirmet(null, container)
+    .then(() => synchronizeAirmets(container))
+    .then(() => focusAirmet(uuid, container))
+    .then(() => setStatePromise(container, {
+      selectedAuxiliaryInfo: {
+        mode: AIRMET_MODES.EDIT
+      }
+    }))
+    .then(() => showFeedback(container, 'Changes discarded', 'The changes are successfully discarded', FEEDBACK_STATUS.OK));
 };
 
 /**
@@ -1441,5 +1467,8 @@ export default (localAction, container) => {
       break;
     case LOCAL_ACTION_TYPES.TOGGLE_AIRMET_MODAL:
       toggleAirmetModal(localAction.event, localAction.modalType, container);
+      break;
+    case LOCAL_ACTION_TYPES.CLEANUP:
+      cleanup(container);
   }
 };

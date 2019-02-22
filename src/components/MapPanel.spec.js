@@ -92,7 +92,11 @@ const state = {
       }
     ],
     activePanelId: 0,
-    panelLayout: 'single'
+    panelLayout: 'single',
+    panelFeedback: {
+      status: 'ok',
+      message: 'test'
+    }
   }
 };
 

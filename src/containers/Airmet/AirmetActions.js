@@ -26,7 +26,8 @@ export const LOCAL_ACTION_TYPES = {
   VERIFY_AIRMET: 'VERIFY_AIRMET',
   TOGGLE_HAS_EDITS: 'TOGGLE_HAS_EDITS',
   RETRIEVE_OBSCURING_PHENOMENA: 'RETRIEVE_OBSCURING_PHENOMENA',
-  TOGGLE_AIRMET_MODAL: 'TOGGLE_AIRMET_MODAL'
+  TOGGLE_AIRMET_MODAL: 'TOGGLE_AIRMET_MODAL',
+  CLEANUP: 'CLEANUP'
 };
 
 export const LOCAL_ACTIONS = {
@@ -53,7 +54,8 @@ export const LOCAL_ACTIONS = {
   createFirIntersectionAction: (featureId, geoJson) => ({ type: LOCAL_ACTION_TYPES.CREATE_FIR_INTERSECTION, featureId: featureId, geoJson: geoJson }),
   verifyAirmetAction: (airmetObject) => ({ type: LOCAL_ACTION_TYPES.VERIFY_AIRMET, airmetObject: airmetObject }),
   toggleAirmetModalAction: (evt, uuid, type) => ({ type: LOCAL_ACTION_TYPES.TOGGLE_AIRMET_MODAL, event: evt, uuid: uuid, modalType: type }),
-  toggleHasEdits: (evt, val) => ({ type: LOCAL_ACTION_TYPES.TOGGLE_HAS_EDITS, event: evt, value: val })
+  toggleHasEdits: (evt, val) => ({ type: LOCAL_ACTION_TYPES.TOGGLE_HAS_EDITS, event: evt, value: val }),
+  cleanupAction: () => ({ type: LOCAL_ACTION_TYPES.CLEANUP })
 };
 
 export const MODAL_TYPES = {
