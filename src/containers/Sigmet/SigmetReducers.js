@@ -2,7 +2,7 @@ import produce from 'immer';
 import moment from 'moment';
 import { notify } from 'reapop';
 import {
-  SIGMET_MODES, SIGMET_TEMPLATES, UNITS, UNITS_ALT, MODES_LVL, MOVEMENT_TYPES, DISTRIBUTION_TYPES,
+  SIGMET_MODES, SIGMET_TEMPLATES, UNITS, UNITS_ALT, MODES_LVL, MOVEMENT_TYPES, DISTRIBUTION_TYPES, CHANGE_TYPES,
   PHENOMENON_CODE_VOLCANIC_ASH, SIGMET_VARIANTS_PREFIXES } from '../../components/Sigmet/SigmetTemplates';
 import { DATETIME_FORMAT } from '../../config/DayTimeConfig';
 import { LOCAL_ACTION_TYPES, CATEGORY_REFS, STATUSES } from './SigmetActions';
@@ -637,6 +637,7 @@ const getEmptySigmet = (container) => {
   const newProps = {
     status: STATUSES.CONCEPT,
     type: DISTRIBUTION_TYPES.NORMAL,
+    change: CHANGE_TYPES.NOCHANGE,
     levelinfo: {
       mode: MODES_LVL.AT,
       levels: [

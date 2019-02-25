@@ -2,7 +2,7 @@ import produce from 'immer';
 import moment from 'moment';
 import { notify } from 'reapop';
 import {
-  AIRMET_MODES, AIRMET_TEMPLATES, UNITS, UNITS_LABELED, MODES_LVL, MOVEMENT_TYPES, DISTRIBUTION_TYPES,
+  AIRMET_MODES, AIRMET_TEMPLATES, UNITS, UNITS_LABELED, MODES_LVL, MOVEMENT_TYPES, DISTRIBUTION_TYPES, CHANGE_TYPES,
   AIRMET_VARIANTS_PREFIXES } from '../../components/Airmet/AirmetTemplates';
 import { DATETIME_FORMAT } from '../../config/DayTimeConfig';
 import { LOCAL_ACTION_TYPES, CATEGORY_REFS, STATUSES } from './AirmetActions';
@@ -577,6 +577,7 @@ const getEmptyAirmet = (container) => {
   const newProps = {
     status: STATUSES.CONCEPT,
     type: DISTRIBUTION_TYPES.NORMAL,
+    change: CHANGE_TYPES.NOCHANGE,
     levelinfo: {
       mode: MODES_LVL.AT,
       levels: [
