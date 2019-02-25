@@ -78,15 +78,19 @@ export default class AdagucMeasureDistance extends PureComponent {
       E.g. when the map is dragging/panning, this event is not triggerd
     */
     const { mouseX, mouseY } = event;
+    const { webmapjs } = this.props;
+    this.mouseX = mouseX;
+    this.mouseY = mouseY;
+
+    webmapjs.updateMouseCursorCoordinates({ x: mouseX, y:mouseY });
+
     if (this.mouseX === mouseX && this.mouseY === mouseY) {
       return;
     }
-    this.mouseX = mouseX;
-    this.mouseY = mouseY;
     if (this.props.isInEditMode === false) {
       return;
     }
-    const { webmapjs } = this.props;
+
     this.mouseGeoCoord = webmapjs.getLatLongFromPixelCoord({ x: mouseX, y: mouseY });
 
     if (this.isMeasuring === true) {
