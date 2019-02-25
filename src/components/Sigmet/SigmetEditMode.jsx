@@ -583,7 +583,7 @@ class SigmetEditMode extends PureComponent {
           <RadioGroup
             value={change}
             options={CHANGE_OPTIONS}
-            onChange={(evt, selectedOption = null) => dispatch(actions.updateAirmetAction(uuid, 'change', selectedOption))}
+            onChange={(evt, selectedOption = null) => dispatch(actions.updateSigmetAction(uuid, 'change', selectedOption))}
             data-field='change_type'
           />
         </ChangeSection>
