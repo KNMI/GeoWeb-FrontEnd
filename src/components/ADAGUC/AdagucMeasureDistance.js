@@ -79,14 +79,14 @@ export default class AdagucMeasureDistance extends PureComponent {
     */
     const { mouseX, mouseY } = event;
     const { webmapjs } = this.props;
-    this.mouseX = mouseX;
-    this.mouseY = mouseY;
 
     webmapjs.updateMouseCursorCoordinates({ x: mouseX, y:mouseY });
 
     if (this.mouseX === mouseX && this.mouseY === mouseY) {
       return;
     }
+    this.mouseX = mouseX;
+    this.mouseY = mouseY;
     if (this.props.isInEditMode === false) {
       return;
     }
