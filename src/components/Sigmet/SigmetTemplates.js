@@ -317,13 +317,13 @@ const DIRECTIONS = [
 // Change types
 const CHANGE_TYPES = {
   WEAKENING: 'WKN',
-  NOCHANGE: 'NC',
+  NO_CHANGE: 'NC',
   INTENSIFYING: 'INTSF'
 };
 
 const CHANGE_OPTIONS = [
   { optionId: CHANGE_TYPES.WEAKENING, label: 'Weakening', disabled: false },
-  { optionId: CHANGE_TYPES.NOCHANGE, label: 'No change', disabled: false },
+  { optionId: CHANGE_TYPES.NO_CHANGE, label: 'No change', disabled: false },
   { optionId: CHANGE_TYPES.INTENSIFYING, label: 'Intensifying', disabled: false }
 ];
 

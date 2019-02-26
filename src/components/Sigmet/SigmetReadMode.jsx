@@ -5,7 +5,7 @@ import moment from 'moment';
 import produce from 'immer';
 import PropTypes from 'prop-types';
 import { READ_ABILITIES, byReadAbilities, MODALS, MODAL_TYPES } from '../../containers/Sigmet/SigmetActions';
-import { UNITS, UNITS_ALT, DIRECTIONS, MODES_LVL, MOVEMENT_TYPES, SIGMET_TYPES, dateRanges } from './SigmetTemplates';
+import { UNITS, UNITS_ALT, DIRECTIONS, MODES_LVL, CHANGE_OPTIONS, MOVEMENT_TYPES, SIGMET_TYPES, dateRanges } from './SigmetTemplates';
 import { DATETIME_LABEL_FORMAT_UTC } from '../../config/DayTimeConfig';
 
 import HeaderSection from '../SectionTemplates/HeaderSection';
@@ -278,6 +278,8 @@ class SigmetReadMode extends PureComponent {
     const abilityCtAs = this.reduceAbilities(); // CtA = Call To Action
     const selectedDirection = movement && DIRECTIONS.find((obj) => obj.shortName === movement.dir);
     const directionLongName = selectedDirection ? selectedDirection.longName : null;
+    const selectedChange = typeof change === 'string' && CHANGE_OPTIONS.find((option) => option.optionId === change);
+    const selectedChangeLabel = selectedChange ? selectedChange.label : null;
     const modalConfig = this.getModalConfig(displayModal, uuid, isVolcanicAsh, adjacentFirs, moveTo);
     return <Button tag='div' className={`Sigmet row${focus ? ' focus' : ''}`} onClick={(evt) => dispatch(actions.focusSigmetAction(evt, uuid))}>
       <Col>
@@ -344,9 +346,7 @@ class SigmetReadMode extends PureComponent {
         }
         <ChangeSection>
           <span data-field='change_type'>
-            {typeof change === 'string' && change.length > 0
-              ? change
-              : '(no change assigned yet)'}
+            {selectedChangeLabel || '(no change assigned yet)'}
           </span>
         </ChangeSection>
 

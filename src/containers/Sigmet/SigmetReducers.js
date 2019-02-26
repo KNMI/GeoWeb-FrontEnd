@@ -637,7 +637,7 @@ const getEmptySigmet = (container) => {
   const newProps = {
     status: STATUSES.CONCEPT,
     type: DISTRIBUTION_TYPES.NORMAL,
-    change: CHANGE_TYPES.NOCHANGE,
+    change: CHANGE_TYPES.NO_CHANGE,
     levelinfo: {
       mode: MODES_LVL.AT,
       levels: [
