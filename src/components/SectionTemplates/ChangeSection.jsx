@@ -21,11 +21,12 @@ export default class ChangeSection extends PureComponent {
             <Badge color='success'>Change</Badge>
           </Col>
           <Col xs='9'>
-            {children.change}
-            {children.change && children.change.props.selected
-              ? <span className={children.change.props.selected.length > 0 ? 'required' : 'required missing'} />
-              : null
-            }
+            <Row>
+              <Col xs='auto'>
+                {children.change_type}
+              </Col>
+              <Col />
+            </Row>
           </Col>
         </Row>
       </Col>
