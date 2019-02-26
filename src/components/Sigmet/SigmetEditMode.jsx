@@ -26,7 +26,7 @@ import IssueSection from '../SectionTemplates/IssueSection';
 import ChangeSection from '../SectionTemplates/ChangeSection';
 import HeightsSection from '../SectionTemplates/HeightsSection';
 import {
-  DIRECTIONS, UNITS_ALT, UNITS, MODES_LVL, MODES_LVL_OPTIONS, CHANGES, MOVEMENT_TYPES, MOVEMENT_OPTIONS, SIGMET_TYPES,
+  DIRECTIONS, UNITS_ALT, UNITS, MODES_LVL, MODES_LVL_OPTIONS, CHANGE_OPTIONS, MOVEMENT_TYPES, MOVEMENT_OPTIONS, SIGMET_TYPES,
   DISTRIBUTION_OPTIONS, dateRanges } from './SigmetTemplates';
 import { DATETIME_FORMAT } from '../../config/DayTimeConfig';
 import EndPositionSection from '../SectionTemplates/EndPositionSection';
@@ -257,7 +257,6 @@ class SigmetEditMode extends PureComponent {
     const dateLimits = dateRanges(now, validdate, validdateEnd, maxHoursInAdvance, maxHoursDuration);
     const selectedPhenomenon = availablePhenomena.find((ph) => ph.code === phenomenon);
     const selectedFir = availableFirs.find((fir) => fir.location_indicator_icao === locationIndicatorIcao);
-    const selectedChange = change ? CHANGES.find((chg) => chg.shortName === change) : null;
     const selectedDirection = movement && movement.dir ? DIRECTIONS.find((dir) => dir.shortName === movement.dir) : null;
     const levelMode = this.getMode();
     const isLevelBetween = levelMode.extent === MODES_LVL.BETW;
@@ -581,13 +580,12 @@ class SigmetEditMode extends PureComponent {
         </EndPositionSection>
 
         <ChangeSection>
-          <Typeahead filterBy={['shortName', 'longName']} labelKey='longName' data-field='change'
-            options={CHANGES} placeholder={'Select change'}
-            onFocus={() => dispatch(actions.updateSigmetAction(uuid, 'change', null))}
-            onChange={(selectedValues) => dispatch(actions.updateSigmetAction(uuid, 'change', selectedValues.length > 0 ? selectedValues[0].shortName : null))}
-            selected={selectedChange ? [selectedChange] : []}
-            className={!selectedChange ? 'missing' : null}
-            clearButton />
+          <RadioGroup
+            value={change}
+            options={CHANGE_OPTIONS}
+            onChange={(evt, selectedOption = null) => dispatch(actions.updateSigmetAction(uuid, 'change', selectedOption))}
+            data-field='change_type'
+          />
         </ChangeSection>
 
         <IssueSection>

@@ -5,7 +5,7 @@ import moment from 'moment';
 import produce from 'immer';
 import PropTypes from 'prop-types';
 import { READ_ABILITIES, byReadAbilities, MODALS, MODAL_TYPES } from '../../containers/Airmet/AirmetActions';
-import { UNITS, UNITS_LABELED, DIRECTIONS, CHANGES, MODES_LVL, MOVEMENT_TYPES, AIRMET_TYPES, dateRanges } from './AirmetTemplates';
+import { UNITS, UNITS_LABELED, DIRECTIONS, MODES_LVL, CHANGE_OPTIONS, MOVEMENT_TYPES, AIRMET_TYPES, dateRanges } from './AirmetTemplates';
 import { DATETIME_LABEL_FORMAT_UTC } from '../../config/DayTimeConfig';
 
 import HeaderSection from '../SectionTemplates/HeaderSection';
@@ -297,6 +297,8 @@ class AirmetReadMode extends PureComponent {
     const abilityCtAs = this.reduceAbilities(); // CtA = Call To Action
     const selectedDirection = movement && DIRECTIONS.find((obj) => obj.shortName === movement.dir);
     const directionLongName = selectedDirection ? selectedDirection.longName : null;
+    const selectedChange = typeof change === 'string' && CHANGE_OPTIONS.find((option) => option.optionId === change);
+    const selectedChangeLabel = selectedChange ? selectedChange.label : null;
     const modalConfig = this.getModalConfig(displayModal, uuid, adjacentFirs, moveTo);
     return <Button tag='div' className={`Airmet row${focus ? ' focus' : ''}`} onClick={(evt) => dispatch(actions.focusAirmetAction(evt, uuid))}>
       <Col>
@@ -392,7 +394,9 @@ class AirmetReadMode extends PureComponent {
           : null
         }
         <ChangeSection>
-          <span data-field='change'>{(change && CHANGES.find((obj) => obj.shortName === change).longName) || '(change not set yet)'}</span>
+          <span data-field='change_type'>
+            {selectedChangeLabel || '(no change assigned yet)'}
+          </span>
         </ChangeSection>
 
         <IssueSection>

@@ -351,10 +351,16 @@ const DIRECTIONS = [
 ];
 
 // Change types
-const CHANGES = [
-  { shortName: 'WKN', longName: 'Weakening' },
-  { shortName: 'NC', longName: 'No change' },
-  { shortName: 'INTSF', longName: 'Intensifying' }
+const CHANGE_TYPES = {
+  WEAKENING: 'WKN',
+  NO_CHANGE: 'NC',
+  INTENSIFYING: 'INTSF'
+};
+
+const CHANGE_OPTIONS = [
+  { optionId: CHANGE_TYPES.WEAKENING, label: 'Weakening', disabled: false },
+  { optionId: CHANGE_TYPES.NO_CHANGE, label: 'No change', disabled: false },
+  { optionId: CHANGE_TYPES.INTENSIFYING, label: 'Intensifying', disabled: false }
 ];
 
 const UNITS = {
@@ -443,7 +449,8 @@ module.exports = {
   DISTRIBUTION_TYPES: DISTRIBUTION_TYPES,
   DISTRIBUTION_OPTIONS: DISTRIBUTION_OPTIONS,
   DIRECTIONS: DIRECTIONS,
-  CHANGES: CHANGES,
+  CHANGE_TYPES: CHANGE_TYPES,
+  CHANGE_OPTIONS: CHANGE_OPTIONS,
   PARAMS_NEEDED: PARAMS_NEEDED,
   UNITS_LABELED: UNITS_LABELED,
   UNITS: UNITS,
