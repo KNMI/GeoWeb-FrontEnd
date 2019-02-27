@@ -3,6 +3,7 @@ import { Row, Col } from 'reactstrap';
 import { Typeahead } from 'react-bootstrap-typeahead';
 import NumberInput from '../Basis/NumberInput';
 import moment from 'moment';
+import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import MomentPropTypes from 'react-moment-proptypes';
 import { HOUR_LABEL_FORMAT, MINUTE_LABEL_FORMAT, CALENDAR_FORMAT, DATETIME_FORMAT, DATETIME_LABEL_FORMAT_UTC } from '../../config/DayTimeConfig';
@@ -109,9 +110,11 @@ export default class DateTimePicker extends PureComponent {
     const minuteMinimum = parsedValue.isSame(parsedMin, 'hour') ? parsedMin.minute() : 0;
     const minuteMaximum = parsedValue.isSame(parsedMax, 'hour') ? parsedMax.minute() : 59;
 
-    const shouldHightlight = (required && !value) || (value && (parsedValue.isBefore(parsedMin) || parsedValue.isAfter(parsedMax)));
+    const shouldHightlightDueToMissing = (required && !value) || (value && (parsedValue.isBefore(parsedMin) || parsedValue.isAfter(parsedMax)));
+    const shouldHightlightDueToInvalid = (value && (parsedValue.isBefore(parsedMin) || parsedValue.isAfter(parsedMax)));
+    const prevClassNames = typeof className === 'string' ? className.split(' ') : [];
 
-    return <Row className={`DateTimePicker${className ? ` ${className}` : ''}${required ? ` required${shouldHightlight ? ' missing' : ''}` : ''}`}>
+    return <Row className={classNames('DateTimePicker', prevClassNames, { required: this.props.required, missing: shouldHightlightDueToMissing, invalid: shouldHightlightDueToInvalid })}>
       <Col>
         <label className={`row${disabled ? ' disabled' : ''}`}
           title={!disabled ? moment.utc(value).format(DATETIME_LABEL_FORMAT_UTC) : null}

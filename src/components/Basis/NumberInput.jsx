@@ -214,13 +214,13 @@ export default class NumberInput extends PureComponent {
       }
       if (!isNaN(resultValue)) {
         if (evt.deltaY < 0) {
-          if (resultValue <= max - step) {
+          if (resultValue <= max - step && resultValue + step >= min) {
             resultValue += step - resultValue % step;
           } else {
             resultValue = min;
           }
         } else if (evt.deltaY > 0) {
-          if (resultValue >= min + step) {
+          if (resultValue >= min + step && resultValue - step <= max) {
             resultValue -= step + resultValue % step;
           } else {
             resultValue = max;
