@@ -1,4 +1,4 @@
-import React, { PureComponent } from 'react';
+import React, { PureComponent, Fragment } from 'react';
 import moment from 'moment';
 import { Row, Col } from 'reactstrap';
 import PropTypes from 'prop-types';
@@ -113,7 +113,8 @@ class TimeSchedule extends PureComponent {
       currentMinorTick.add(minorTickInterval);
     }
 
-    const numberOfMajorTickIntervals = majorTicks.length + 2; // one interval for the EndMoment, one for the (left/right) margins
+    const remainderRatio = endMoment.diff(majorTicks.slice(-1)[0], 'minutes') / majorTickInterval.asMinutes();
+    const numberOfMajorTickIntervals = majorTicks.length + 1 + remainderRatio; // one for the (left/right) margins, interval for the EndMoment
     const marginMajorBasis = 100 / (2 * numberOfMajorTickIntervals); // each margin is half the size of an interval
     const intervalMajorBasis = 100 / numberOfMajorTickIntervals;
     const intervalRatio = majorTickInterval.asMinutes() / minorTickInterval.asMinutes();
@@ -187,8 +188,10 @@ class TimeSchedule extends PureComponent {
         <Row className='marks' style={{ marginTop: '0.7rem' }}>
           <Col style={{ flexBasis: marginMajorBasis + '%', maxWidth: marginMajorBasis + '%' }} />
           <Col className='tick' style={{ flexBasis: intervalMajorBasis + '%', maxWidth: intervalMajorBasis + '%' }} />
-          {majorTicks.map((tick, index) =>
-            <Col className='tick' key={'tickMajorTop' + index} style={{ flexBasis: intervalMajorBasis + '%', maxWidth: intervalMajorBasis + '%' }} />
+          {majorTicks.map((tick, index, ticks) =>
+            index !== ticks.length - 1
+              ? <Col className='tick' key={'tickMajorTop' + index} style={{ flexBasis: intervalMajorBasis + '%', maxWidth: intervalMajorBasis + '%' }} />
+              : <Col className='tick' key={'tickMajorTop' + index} style={{ flexBasis: intervalMajorBasis * remainderRatio + '%', maxWidth: intervalMajorBasis * remainderRatio + '%' }} />
           )}
           <Col className='tick' style={{ flexBasis: marginMajorBasis + '%', maxWidth: marginMajorBasis + '%' }} />
         </Row>
@@ -205,17 +208,24 @@ class TimeSchedule extends PureComponent {
         <Row className='marks'>
           <Col style={{ flexBasis: marginMajorBasis + '%', maxWidth: marginMajorBasis + '%' }} />
           <Col className='tick' style={{ flexBasis: intervalMajorBasis + '%', maxWidth: intervalMajorBasis + '%' }} />
-          {majorTicks.map((tick, index) =>
-            <Col className='tick' key={'tickMajorBottom' + index} style={{ flexBasis: intervalMajorBasis + '%', maxWidth: intervalMajorBasis + '%' }} />
+          {majorTicks.map((tick, index, ticks) =>
+            index !== ticks.length - 1
+              ? <Col className='tick' key={'tickMajorBottom' + index} style={{ flexBasis: intervalMajorBasis + '%', maxWidth: intervalMajorBasis + '%' }} />
+              : <Col className='tick' key={'tickMajorBottom' + index} style={{ flexBasis: intervalMajorBasis * remainderRatio + '%', maxWidth: intervalMajorBasis * remainderRatio + '%' }} />
           )}
           <Col className='tick' style={{ flexBasis: marginMajorBasis + '%', maxWidth: marginMajorBasis + '%' }} />
         </Row>
         <Row>
           <Col className='tick' style={{ flexBasis: intervalMajorBasis + '%', maxWidth: intervalMajorBasis + '%' }}>{startMoment.format('DD-MM HH:mm')}</Col>
-          {majorTicks.map((tick, index) =>
-            <Col className='tick' key={'tickMajorLabel' + index} style={{ flexBasis: intervalMajorBasis + '%', maxWidth: intervalMajorBasis + '%' }}>{tick.format('HH:mm')}</Col>
+          {majorTicks.map((tick, index, ticks) =>
+            index !== ticks.length - 1
+              ? <Col className='tick' key={'tickMajorLabel' + index} style={{ flexBasis: intervalMajorBasis + '%', maxWidth: intervalMajorBasis + '%' }}>{tick.format('HH:mm')}</Col>
+              : <Fragment key={'tickMajorLabel' + index}>
+                <Col style={{ flexBasis: intervalMajorBasis * (1 - remainderRatio) / 2 + '%', maxWidth: intervalMajorBasis * (1 - remainderRatio) / 2 + '%' }} />
+                <Col className='tick' style={{ flexBasis: intervalMajorBasis * remainderRatio + '%', maxWidth: intervalMajorBasis * remainderRatio + '%' }}>{tick.format('HH:mm')}</Col>
+              </Fragment>
           )}
-          <Col className='tick' style={{ flexBasis: intervalMajorBasis + '%', maxWidth: intervalMajorBasis + '%' }}>{endMoment.format('DD-MM HH:mm')}</Col>
+          <Col className='tick' style={{ flexBasis: intervalMajorBasis * remainderRatio + '%', maxWidth: intervalMajorBasis * remainderRatio + '%' }}>{endMoment.format('DD-MM HH:mm')}</Col>
         </Row>
       </Col>
     </Row>;
