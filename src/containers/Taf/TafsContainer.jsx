@@ -44,7 +44,7 @@ export default class TafsContainer extends Component {
       <Col className='TafsContainer'>
         <Panel className='Panel' title={<ContainerHeader />}>
           <Col>
-            <TafSelector selectableTafs={selectableTafs} selectedTaf={selectedTaf}
+            <TafSelector selectableTafs={selectableTafs} selectedTaf={selectedTaf} dispatch={this.localDispatch} actions={LOCAL_ACTIONS}
               onChange={(tafSelection) => this.localDispatch(LOCAL_ACTIONS.selectTafAction(tafSelection))} />
             {tafToShow
               ? <Taf selectedTaf={tafToShow} urls={this.props.urls} dispatch={this.localDispatch} actions={LOCAL_ACTIONS}

@@ -496,11 +496,11 @@ class Taf extends Component {
         return;
       }
 
-      const getPhenomenonPresetUrl = (phenomenon) => {
-        // TODO: More presets per phenomenon
-        // TODO: This should be done in a better way
-        return window.location.origin + window.location.pathname + '?presetid=06c0a5b4-1e98-4d19-8e8e-39a66fc4e10b&location=EHAM#/';
-      };
+      // const getPhenomenonPresetUrl = (phenomenon) => {
+      //   // TODO: More presets per phenomenon
+      //   // TODO: This should be done in a better way
+      //   return window.location.origin + window.location.pathname + '?presetid=06c0a5b4-1e98-4d19-8e8e-39a66fc4e10b&location=EHAM#/';
+      // };
       if (phenomenonName !== this.state.preset.forPhenomenon) {
         if (!this.state.preset.inWindow || this.state.preset.inWindow.closed) {
           // Only do this if it isnt already opened

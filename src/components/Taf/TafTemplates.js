@@ -77,6 +77,7 @@ TEMPLATES.SELECTABLE_TAF = {
   hasEdits: false, // boolean
   label: {
     time: null, // string
+    date: null, // string
     text: null, // string
     status: null, // string
     icon: null // string
@@ -201,6 +202,7 @@ TYPES.SELECTABLE_TAF = PropTypes.shape({
   hasEdits: PropTypes.bool,
   label: PropTypes.shape({
     time: PropTypes.string,
+    date: PropTypes.string,
     text: PropTypes.string,
     status: PropTypes.string,
     icon: PropTypes.string
@@ -311,6 +313,7 @@ const getPhenomenonLabel = (typeSymbol) => {
 
 const TIMESTAMP_FORMAT = ('YYYY-MM-DD[T]HH:mm:ss[Z]');
 const TIMELABEL_FORMAT = ('HH:mm');
+const DATELABEL_FORMAT = ('DD-MMM');
 
 module.exports = {
   TAF_TEMPLATES: TEMPLATES,
@@ -324,5 +327,6 @@ module.exports = {
   getPhenomenonType: getPhenomenonType,
   getPhenomenonLabel: getPhenomenonLabel,
   TIMESTAMP_FORMAT: TIMESTAMP_FORMAT,
-  TIMELABEL_FORMAT: TIMELABEL_FORMAT
+  TIMELABEL_FORMAT: TIMELABEL_FORMAT,
+  DATELABEL_FORMAT: DATELABEL_FORMAT
 };
