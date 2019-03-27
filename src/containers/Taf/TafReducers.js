@@ -9,7 +9,7 @@ import { notify } from 'reapop';
 import cloneDeep from 'lodash.clonedeep';
 import { ReadLocations } from '../../utils/admin';
 import { LOCAL_ACTION_TYPES, STATUSES, LIFECYCLE_STAGE_NAMES, MODES, FEEDBACK_CATEGORIES, FEEDBACK_STATUSES } from './TafActions';
-import { TAF_TEMPLATES, TIMELABEL_FORMAT, TIMESTAMP_FORMAT } from '../../components/Taf/TafTemplates';
+import { TAF_TEMPLATES, TIMELABEL_FORMAT, DATELABEL_FORMAT, TIMESTAMP_FORMAT } from '../../components/Taf/TafTemplates';
 import TafValidator from '../../components/Taf/TafValidator';
 
 const STATUS_ICONS = {
@@ -90,7 +90,7 @@ const isSameSelectableTaf = (tafA, tafB) => {
  */
 const isTafSelectable = (locations, timestamps) => (taf) => {
   if (!taf || !taf.metadata || typeof taf.metadata.validityStart !== 'string' ||
-      typeof taf.metadata.location !== 'string' || typeof taf.metadata.type !== 'string') {
+    typeof taf.metadata.location !== 'string' || typeof taf.metadata.type !== 'string') {
     return false;
   }
   return true;
@@ -277,6 +277,7 @@ const wrapIntoSelectableTaf = (tafData) => {
   const location = tafData.metadata.location.toUpperCase();
   const timestamp = moment.utc(tafData.metadata.validityStart);
   const time = timestamp.format(TIMELABEL_FORMAT);
+  const date = timestamp.format(DATELABEL_FORMAT);
 
   const newProperties = {
     location: location,
@@ -284,7 +285,8 @@ const wrapIntoSelectableTaf = (tafData) => {
     timestamp: timestamp,
     label: {
       time: time,
-      text: `${location} ${time}`,
+      date: date,
+      text: `${location} ${time} ${date}`,
       status: `${tafData.metadata.status} / ${tafData.metadata.type}`,
       icon: iconName
     },
@@ -374,7 +376,8 @@ const updateSelectableTafs = (container, tafs, status) => {
           draftSelectable.location = combination.location;
           draftSelectable.timestamp = combination.timestamp;
           draftSelectable.label.time = combination.timestamp.format(TIMELABEL_FORMAT);
-          draftSelectable.label.text = `${combination.location} ${draftSelectable.label.time}`;
+          draftSelectable.label.date = combination.timestamp.format(DATELABEL_FORMAT);
+          draftSelectable.label.text = `${combination.location} ${draftSelectable.label.time} ${draftSelectable.label.date}`;
           draftSelectable.label.status = `${STATUSES.NEW} / ${LIFECYCLE_STAGE_NAMES.NORMAL}`;
           draftSelectable.label.icon = STATUS_ICONS.NEW;
           draftSelectable.tafData.metadata.location = combination.location;
@@ -395,7 +398,7 @@ const updateSelectableTafs = (container, tafs, status) => {
     });
     // Update selectedTaf
     if (draftState.selectedTaf && Array.isArray(draftState.selectedTaf) &&
-        draftState.selectedTaf.length > 0 && draftState.selectedTaf[0].tafData.metadata.status === status) {
+      draftState.selectedTaf.length > 0 && draftState.selectedTaf[0].tafData.metadata.status === status) {
       const newDataSelectedTaf = draftState.selectableTafs.find((selectableTaf) => isSameSelectableTaf(selectableTaf, draftState.selectedTaf[0]));
       draftState.selectedTaf.length = 0;
       if (newDataSelectedTaf) {
@@ -445,7 +448,7 @@ const selectTaf = (selection, container) => {
     draftState.selectedTaf.length = 0;
     draftState.selectedTaf.push(selection[0]);
     if (selection[0].tafData && selection[0].tafData.metadata && selection[0].tafData.metadata.status &&
-        selection[0].tafData.metadata.status === STATUSES.NEW) {
+      selection[0].tafData.metadata.status === STATUSES.NEW) {
       draftState.mode = MODES.EDIT;
     }
   }), () => {
@@ -455,12 +458,16 @@ const selectTaf = (selection, container) => {
   });
 };
 
-const discardTaf = (event, container) => {
+const discardTaf = (event, shouldSwitch, container) => {
   const { state } = container;
   container.setState(produce(state, draftState => {
     const { selectedTaf } = state;
     draftState.mode = MODES.READ;
+    draftState.displayModal = null;
     draftState.selectedTaf.length = 0;
+    if (shouldSwitch) {
+      return;
+    }
     if (selectedTaf && Array.isArray(selectedTaf) && selectedTaf.length === 1) {
       if (selectedTaf[0].tafData && selectedTaf[0].tafData.metadata && selectedTaf[0].tafData.metadata.uuid) {
         const uuid = selectedTaf[0].tafData.metadata.uuid;
@@ -562,7 +569,7 @@ const saveTaf = (event, container) => {
     const { props } = container;
     const { dispatch } = props;
     dispatch(notify({
-      title:'Couldn\'t save TAF',
+      title: 'Couldn\'t save TAF',
       message: 'Unable to save TAF',
       status: 'error',
       position: 'bl',
@@ -949,7 +956,10 @@ export default (localAction, container) => {
       selectTaf(localAction.selection, container);
       break;
     case LOCAL_ACTION_TYPES.DISCARD_TAF:
-      discardTaf(localAction.event, container);
+      discardTaf(localAction.event, false, container);
+      break;
+    case LOCAL_ACTION_TYPES.SWITCH_TAF:
+      discardTaf(localAction.event, true, container);
       break;
     case LOCAL_ACTION_TYPES.SAVE_TAF:
       saveTaf(localAction.event, container);

@@ -30,6 +30,7 @@ export const LOCAL_ACTIONS = {
   updateFeedbackAction: (title, status, category, subTitle, list) => ({ type: LOCAL_ACTION_TYPES.UPDATE_FEEDBACK, title: title, status: status, category: category, subTitle: subTitle, list: list }),
   selectTafAction: (tafSelection) => ({ type: LOCAL_ACTION_TYPES.SELECT_TAF, selection: tafSelection }),
   discardTafAction: (evt) => ({ type: LOCAL_ACTION_TYPES.DISCARD_TAF, event: evt }),
+  switchTafAction: (evt) => ({ type: LOCAL_ACTION_TYPES.SWITCH_TAF, event: evt }),
   saveTafAction: (evt) => ({ type: LOCAL_ACTION_TYPES.SAVE_TAF, event: evt }),
   editTafAction: (evt) => ({ type: LOCAL_ACTION_TYPES.EDIT_TAF, event: evt }),
   deleteTafAction: (evt) => ({ type: LOCAL_ACTION_TYPES.DELETE_TAF, event: evt }),
@@ -75,6 +76,28 @@ export const MODALS = {
       action: 'cancelTafAction'
     },
     toggleAction: 'toggleTafModalAction'
+  },
+  CONFIRM_DISCARD: {
+    type: 'confirm discard',
+    title: 'Discard TAF?',
+    message: (identifier) => `Are you sure you want to discard ${identifier}?`,
+    button: {
+      label: 'Discard',
+      icon: 'ban',
+      action: 'discardTafAction'
+    },
+    toggleAction: 'toggleTafModalAction'
+  },
+  CONFIRM_SWITCH: {
+    type: 'confirm switch',
+    title: 'Switch to another TAF?',
+    message: (identifier) => `Switching to another TAF will discard unsaved changes. Are you sure you want to switch?`,
+    button: {
+      label: 'Switch',
+      icon: 'exchange',
+      action: 'switchTafAction'
+    },
+    toggleAction: 'toggleTafModalAction'
   }
 };
 
@@ -83,7 +106,8 @@ export const EDIT_ABILITIES = {
     'dataField': 'discard',
     'label': 'Discard',
     'check': 'isDiscardable',
-    'action': 'discardTafAction'
+    'action': 'toggleTafModalAction',
+    'parameter': MODALS.CONFIRM_DISCARD.type
   },
   PASTE: {
     'dataField': 'paste',
