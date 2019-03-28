@@ -631,7 +631,7 @@ class SigmetEditMode extends PureComponent {
       </Col>
       {modalConfig
         ? <ConfirmationModal config={modalConfig} dispatch={dispatch} actions={actions}
-          identifier={`this SIGMET for ${phenomenon}`} />
+          identifier={`the SIGMET for ${phenomenon}`} />
         : null
       }
     </Button>;
