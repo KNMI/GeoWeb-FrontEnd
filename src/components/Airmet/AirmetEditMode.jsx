@@ -218,7 +218,7 @@ class AirmetEditMode extends PureComponent {
   /**
  * Compose the specific configuration for the confirmation modal
  * @param {string} displayModal The name of the modal to display
- * @param {string} uuid The identifier for the focussed SIGMET
+ * @param {string} uuid The identifier for the focussed AIRMET
  * @returns {Object} The configuration for the confirmation modal
  */
   getModalConfig (displayModal, uuid) {
