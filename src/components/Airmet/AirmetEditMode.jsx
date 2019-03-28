@@ -717,7 +717,7 @@ class AirmetEditMode extends PureComponent {
       </Col>
       {modalConfig
         ? <ConfirmationModal config={modalConfig} dispatch={dispatch} actions={actions}
-          identifier={`this AIRMET for ${phenomenon}`} />
+          identifier={`the AIRMET for ${phenomenon}`} />
         : null
       }
     </Button>;
