@@ -67,7 +67,9 @@ export default class TafsContainer extends Component {
           </Col>
           {modalConfig
             ? <ConfirmationModal config={modalConfig} dispatch={this.localDispatch} actions={LOCAL_ACTIONS}
-              identifier={tafToShow && typeOfTafToShow ? `the TAF for ${tafToShow.location} ${tafToShow.timestamp.format('HH:mm')} ${typeOfTafToShow}` : null} />
+              identifier={tafToShow && typeOfTafToShow
+                ? `the TAF for ${tafToShow.location} ${tafToShow.timestamp.format('HH:mm')} ${tafToShow.timestamp.format('DD-MMM')} ${typeOfTafToShow}`
+                : null} />
             : null
           }
         </Panel>

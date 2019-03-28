@@ -98,7 +98,7 @@ export const MODALS = {
   CONFIRM_DISCARD: {
     type: MODAL_TYPES.TYPE_CONFIRM_DISCARD,
     title: 'Discard SIGMET?',
-    message: (identifier) => `Are you sure you want to discard ${identifier}?`,
+    message: (identifier) => `Are you sure you want to discard the changes of ${identifier}?`,
     button: {
       label: 'Discard',
       icon: 'ban',
