@@ -80,7 +80,7 @@ export const MODALS = {
   CONFIRM_DISCARD: {
     type: 'confirm discard',
     title: 'Discard TAF?',
-    message: (identifier) => `Are you sure you want to discard ${identifier}?`,
+    message: (identifier) => `Are you sure you want to discard the changes of ${identifier}?`,
     button: {
       label: 'Discard',
       icon: 'ban',

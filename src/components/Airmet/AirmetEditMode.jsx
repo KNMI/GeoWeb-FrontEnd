@@ -10,7 +10,7 @@ import moment from 'moment';
 import classNames from 'classnames';
 import cloneDeep from 'lodash.clonedeep';
 import PropTypes from 'prop-types';
-import { EDIT_ABILITIES, byEditAbilities } from '../../containers/Airmet/AirmetActions';
+import { EDIT_ABILITIES, byEditAbilities, MODALS } from '../../containers/Airmet/AirmetActions';
 import Icon from 'react-fa';
 import Checkbox from '../Basis/Checkbox';
 import RadioGroup from '../Basis/RadioGroup';
@@ -25,6 +25,7 @@ import DrawSection from '../SectionTemplates/DrawSection';
 import ProgressSection from '../SectionTemplates/ProgressSection';
 import MovementSection from '../SectionTemplates/MovementSection';
 import IssueSection from '../SectionTemplates/IssueSection';
+import ConfirmationModal from '../ConfirmationModal';
 import ChangeSection from '../SectionTemplates/ChangeSection';
 import HeightsSection from '../SectionTemplates/HeightsSection';
 import {
@@ -215,6 +216,21 @@ class AirmetEditMode extends PureComponent {
   };
 
   /**
+ * Compose the specific configuration for the confirmation modal
+ * @param {string} displayModal The name of the modal to display
+ * @param {string} uuid The identifier for the focussed AIRMET
+ * @returns {Object} The configuration for the confirmation modal
+ */
+  getModalConfig (displayModal, uuid) {
+    const modalEntries = Object.entries(MODALS).filter((modalEntry) => modalEntry[1].type === displayModal);
+    return Array.isArray(modalEntries) && modalEntries.length > 0 ? produce(modalEntries[0][1], draftState => {
+      if (draftState.button) {
+        draftState.button.arguments = uuid; /* Used in action dispatch with right arguments */
+      }
+    }) : null;
+  }
+
+  /**
 * Add disabled flag to abilities
 * @param {object} ability The ability to provide the flag for
 * @param {boolean} isInValidityPeriod Whether or not the referred Airmet is active
@@ -266,7 +282,7 @@ class AirmetEditMode extends PureComponent {
   }
 
   render () {
-    const { dispatch, actions, airmet, availablePhenomena, obscuringPhenomena, hasStartCoordinates, feedbackStart,
+    const { dispatch, actions, airmet, displayModal, availablePhenomena, obscuringPhenomena, hasStartCoordinates, feedbackStart,
       availableFirs, focus, maxHoursInAdvance, maxHoursDuration, isWindNeeded, isCloudLevelsNeeded, isObscuringNeeded, isLevelFieldNeeded } = this.props;
     const { isAtOrAboveDropDownOpen, isBetweenLowerDropDownOpen, isBetweenUpperDropDownOpen, isWindSpeedDropDownOpen } = this.state;
 
@@ -324,6 +340,7 @@ class AirmetEditMode extends PureComponent {
       ? `${messagePrefix} ${isObserved ? 'observed' : 'expected to occur'}.`
       : feedbackStart || '';
     const abilityCtAs = this.reduceAbilities(selectedPhenomenon); // CtA = Call To Action
+    const modalConfig = this.getModalConfig(displayModal, uuid);
     return <Button tag='div' className={`Airmet row${focus ? ' focus' : ''}`} id={uuid}
       onClick={!focus ? (evt) => dispatch(actions.focusAirmetAction(evt, uuid)) : null}>
       <Col>
@@ -692,12 +709,17 @@ class AirmetEditMode extends PureComponent {
               data-field={ability.dataField}
               color='primary'
               disabled={ability.disabled}
-              onClick={(evt) => dispatch(actions[ability.action](evt, uuid))}>
+              onClick={(evt) => dispatch(actions[ability.action](evt, uuid, ability.parameter))}>
               {ability.label}
             </Button>
           )}
         </ActionSection>
       </Col>
+      {modalConfig
+        ? <ConfirmationModal config={modalConfig} dispatch={dispatch} actions={actions}
+          identifier={`the AIRMET for ${phenomenon}`} />
+        : null
+      }
     </Button>;
   }
 }
@@ -710,11 +732,13 @@ Object.values(EDIT_ABILITIES).map(ability => {
 AirmetEditMode.propTypes = {
   dispatch: PropTypes.func,
   actions: PropTypes.shape({
-    saveAirmetAction: PropTypes.func
+    saveAirmetAction: PropTypes.func,
+    discardAirmetAction: PropTypes.func
   }),
   abilities: PropTypes.shape(abilitiesPropTypes),
   copiedAirmetRef: PropTypes.string,
   hasEdits: PropTypes.bool,
+  displayModal: PropTypes.string,
   availablePhenomena: PropTypes.array,
   obscuringPhenomena: PropTypes.arrayOf(AIRMET_TYPES.OBSCURING_PHENOMENON),
   focus: PropTypes.bool,

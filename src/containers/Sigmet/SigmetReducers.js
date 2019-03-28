@@ -1085,6 +1085,7 @@ const discardSigmet = (event, uuid, container) => {
     .then(() => synchronizeSigmets(container))
     .then(() => focusSigmet(uuid, container))
     .then(() => setStatePromise(container, {
+      displayModal: null,
       selectedAuxiliaryInfo: {
         mode: SIGMET_MODES.EDIT
       }

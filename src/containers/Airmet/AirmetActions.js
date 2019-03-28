@@ -61,7 +61,8 @@ export const LOCAL_ACTIONS = {
 export const MODAL_TYPES = {
   TYPE_CONFIRM_DELETE: 'confirm delete',
   TYPE_CONFIRM_CANCEL: 'confirm cancel',
-  TYPE_CONFIRM_PUBLISH: 'confirm publish'
+  TYPE_CONFIRM_PUBLISH: 'confirm publish',
+  TYPE_CONFIRM_DISCARD: 'confirm discard'
 };
 
 export const MODALS = {
@@ -96,6 +97,18 @@ export const MODALS = {
     },
     toggleAction: 'toggleAirmetModalAction'
   },
+  CONFIRM_DISCARD: {
+    type: MODAL_TYPES.TYPE_CONFIRM_DISCARD,
+    title: 'Discard AIRMET?',
+    message: (identifier) => `Are you sure you want to discard the changes of ${identifier}?`,
+    button: {
+      label: 'Discard',
+      icon: 'ban',
+      action: 'discardAirmetAction',
+      arguments: null // We use uuid here, which is passed to action
+    },
+    toggleAction: 'toggleAirmetModalAction'
+  },
   CONFIRM_PUBLISH: {
     type: MODAL_TYPES.TYPE_CONFIRM_PUBLISH,
     title: 'Publish AIRMET?',
@@ -127,7 +140,8 @@ export const EDIT_ABILITIES = {
     'dataField': 'discard',
     'label': 'Discard changes',
     'check': 'isDiscardable',
-    'action': 'discardAirmetAction'
+    'action': 'toggleAirmetModalAction',
+    'parameter': MODALS.CONFIRM_DISCARD.type
   },
   PASTE: {
     'dataField': 'paste',

@@ -1031,6 +1031,7 @@ const discardAirmet = (event, uuid, container) => {
     .then(() => synchronizeAirmets(container))
     .then(() => focusAirmet(uuid, container))
     .then(() => setStatePromise(container, {
+      displayModal: null,
       selectedAuxiliaryInfo: {
         mode: AIRMET_MODES.EDIT
       }
