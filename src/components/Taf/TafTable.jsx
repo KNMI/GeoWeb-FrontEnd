@@ -126,7 +126,7 @@ class TafTable extends Component {
    */
   updateValue (element) {
     const name = element ? (element.name || element.props.name) : null;
-    const value = element && element.value && typeof element.value === 'string' ? element.value.trim().toUpperCase() : null;
+    const value = element && element.value && typeof element.value === 'string' ? element.value.trim() : null;
 
     // Empty in this case means that val is an object which has keys, but for every key its value is null
     const isObjInArrayEmpty = (val, lastPathElem) => {
