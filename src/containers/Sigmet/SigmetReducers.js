@@ -1236,7 +1236,7 @@ const copySigmet = (event, container) => {
     : null;
   if (!affectedSigmet || !affectedSigmet.uuid) {
     showFeedback(container, 'Sigmet could not be copied',
-      `The properties of SIGMET ${affectedSigmet.uuid} could not be copied`, FEEDBACK_STATUS.ERROR);
+      `There is no SIGMET selected, therefore there is nothing to be copied`, FEEDBACK_STATUS.ERROR);
     return;
   }
 

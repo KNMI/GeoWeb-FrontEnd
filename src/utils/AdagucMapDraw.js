@@ -653,7 +653,7 @@ export default class AdagucMapDraw extends PureComponent {
       return false;
     };
 
-    if (checkIfVertexNrIsOK === false) {
+    if (checkIfVertexNrIsOK() === false) {
       this.mouseIsOverVertexNr = this.VERTEX.NONE;
       return;
     }

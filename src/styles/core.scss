@@ -299,7 +299,7 @@ button.search-clear.btn.btn-secondary:disabled {
   box-shadow: inherit;
 }
 
-.search-clear.btn.btn-secondary:not(:disabled):active, search-clear.btn.btn-secondary:not(.disabled):active {
+.search-clear.btn.btn-secondary:not(:disabled):active, .search-clear.btn.btn-secondary:not(.disabled):active {
   border-color: #3299cb80;
   color: $ux-interactive-color-checked;
   background: inherit;

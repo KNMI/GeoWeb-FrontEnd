@@ -227,7 +227,7 @@ div.TimeSchedule > div.col > div.row > div.col{
 }
 
 .TimeSchedule .scheduleHighlight.leftArrow::before, .TimeSchedule .scheduleHighlight.rightArrow::after, .TimeSchedule .scheduleHighlight.bothArrow::before {
-  font-family: FontAwesome;
+  font-family: FontAwesome, Sans-serif;
   font-size: 80%;
   padding-top: 0.2rem;
   padding-right: 0.5rem;

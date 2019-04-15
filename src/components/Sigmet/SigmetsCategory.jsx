@@ -4,7 +4,7 @@ import CollapseOmni from '../../components/CollapseOmni';
 import Icon from 'react-fa';
 import PropTypes from 'prop-types';
 import { CATEGORY_REFS, READ_ABILITIES } from '../../containers/Sigmet/SigmetActions';
-import { SIGMET_MODES, SIGMET_VARIANTS_PREFIXES, PHENOMENON_CODE_VOLCANIC_ASH, SIGMET_TYPES } from './SigmetTemplates';
+import { SIGMET_MODES, SIGMET_VARIANTS_PREFIXES, PHENOMENON_CODE_VOLCANIC_ASH, PHENOMENON_CODE_TROPICAL_CYCLONE, SIGMET_TYPES } from './SigmetTemplates';
 import SigmetEditMode from './SigmetEditMode';
 import SigmetReadMode from './SigmetReadMode';
 import SigmetMinifiedMode from './SigmetMinifiedMode';
@@ -47,7 +47,7 @@ class SigmetsCategory extends PureComponent {
       ? parseInt(sigmetToShow.cancels)
       : null;
     const isVolcanicAsh = sigmetToShow.phenomenon ? sigmetToShow.phenomenon === PHENOMENON_CODE_VOLCANIC_ASH : false;
-    const isTropicalCyclone = false;
+    const isTropicalCyclone = sigmetToShow.phenomenon ? sigmetToShow.phenomenon === PHENOMENON_CODE_TROPICAL_CYCLONE : false;
     const prefix = isVolcanicAsh
       ? SIGMET_VARIANTS_PREFIXES.VOLCANIC_ASH
       : isTropicalCyclone

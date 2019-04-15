@@ -1182,7 +1182,7 @@ const copyAirmet = (event, container) => {
     : null;
   if (!affectedAirmet || !affectedAirmet.uuid) {
     showFeedback(container, 'Airmet could not be copied',
-      `The properties of AIRMET ${affectedAirmet.uuid} could not be copied`, FEEDBACK_STATUS.ERROR);
+      `There is no AIRMET selected, therefore there is nothing to be copied`, FEEDBACK_STATUS.ERROR);
     return;
   }
 
