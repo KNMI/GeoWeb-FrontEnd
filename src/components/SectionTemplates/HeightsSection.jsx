@@ -8,7 +8,7 @@ export default class HeightsSection extends PureComponent {
     if (!Array.isArray(children)) {
       localChildren[children.props['data-field']] = children;
     } else {
-      children.map(child => {
+      children.forEach(child => {
         if (child && child.props) {
           localChildren[child.props['data-field']] = child;
         }

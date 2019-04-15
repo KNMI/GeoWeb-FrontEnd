@@ -23,7 +23,7 @@ class TimeSchedule extends PureComponent {
    * @param {object} series The series to detect and annotate overlappings for
    */
   annotateOverlappings (series) {
-    series.ranges.map((range, index) => {
+    series.ranges.forEach((range, index) => {
       for (let prevIndex = 0; prevIndex < index; prevIndex++) {
         if (range.start.isBefore(series.ranges[prevIndex].end) && range.end.isAfter(series.ranges[prevIndex].start)) {
           range[STYLES].push(OVERLAPS);
@@ -37,7 +37,7 @@ class TimeSchedule extends PureComponent {
       }
     });
 
-    series.ranges.map((range, index) => {
+    series.ranges.forEach((range, index) => {
       for (let prevIndex = 0; prevIndex < index; prevIndex++) {
         const prevRange = series.ranges[prevIndex];
         if (range.start.isBefore(prevRange.end) && range.end.isAfter(prevRange.start) &&
@@ -49,7 +49,7 @@ class TimeSchedule extends PureComponent {
       }
     });
 
-    series.ranges.map((range, index) => {
+    series.ranges.forEach((range, index) => {
       for (let prevIndex = 0; prevIndex < index; prevIndex++) {
         const prevRange = series.ranges[prevIndex];
         if (range.start.isSameOrBefore(prevRange.end) && range.end.isSameOrAfter(prevRange.start) &&

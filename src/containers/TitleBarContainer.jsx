@@ -372,15 +372,15 @@ class TitleBarContainer extends PureComponent {
   sendFeedback (e, formValues) {
     const flattenLayers = (state) => {
       const stateCpy = cloneDeep(state);
-      stateCpy.panelsProperties.panels.map((panel) => {
-        panel.baselayers.map((layer) => {
+      stateCpy.panelsProperties.panels.forEach((panel) => {
+        panel.baselayers.forEach((layer) => {
           Object.keys(layer).forEach((k) => {
             if (!['service', 'name'].includes(k)) {
               delete layer[k];
             }
           });
         });
-        panel.layers.map((layer) => {
+        panel.layers.forEach((layer) => {
           Object.keys(layer).forEach((k) => {
             if (!['service', 'name'].includes(k)) {
               delete layer[k];
@@ -746,12 +746,12 @@ class LayoutDropDown extends PureComponent {
       // So first create all panels as null....
       const newPanels = [null, null, null, null];
       const promises = [];
-      thePreset.layers.map((panel, panelIdx) => {
+      thePreset.layers.forEach((panel, panelIdx) => {
         // Then for each panel initialize it to this object where layers is an empty array with the
         // length of the layers in the panel, as it needs to be inserted in a certain order. For the baselayers
         // this is irrelevant because the order of overlays is not relevant
         newPanels[panelIdx] = { 'layers': new Array(panel.length), 'baselayers': [] };
-        panel.map((layer, i) => {
+        panel.forEach((layer, i) => {
           // Create a Promise for parsing all WMJSlayers because we can only do something when ALL layers have been parsed
           promises.push(new Promise((resolve, reject) => {
             // eslint-disable-next-line no-undef
@@ -766,7 +766,7 @@ class LayoutDropDown extends PureComponent {
 
       // Once that happens, insert the layer in the appropriate place in the appropriate panel
       Promise.all(promises).then((layers) => {
-        layers.map((layerDescription) => {
+        layers.forEach((layerDescription) => {
           const { layer, panelIdx, index } = layerDescription;
           if (layer.keepOnTop === true) {
             layer.keepOnTop = true;

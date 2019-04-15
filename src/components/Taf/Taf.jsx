@@ -226,7 +226,7 @@ class Taf extends Component {
     const scheduleSeries = [];
     const scopeStart = moment.utc(tafData.metadata.validityStart);
     const scopeEnd = moment.utc(tafData.metadata.validityEnd);
-    Object.entries(tafData.forecast || {}).map((entry) => {
+    Object.entries(tafData.forecast || {}).forEach((entry) => {
       const value = this.serializePhenomenonValue(entry[0], entry[1], null);
       if (value !== null) {
         scheduleSeries.push({
@@ -292,7 +292,7 @@ class Taf extends Component {
             exclusiveTypes.forEach((exclusiveType) => {
               const exclusiveSeriesIndex = scheduleSeries.findIndex(serie => serie.label === getPhenomenonLabel(exclusiveType));
               if (exclusiveSeriesIndex !== -1) {
-                scheduleSeries[exclusiveSeriesIndex].ranges.map(range => {
+                scheduleSeries[exclusiveSeriesIndex].ranges.forEach(range => {
                   if (start.isSameOrBefore(range.end) && end.isSameOrAfter(range.start)) {
                     // it does overlap!
                     if (start.isSameOrBefore(range.start)) {

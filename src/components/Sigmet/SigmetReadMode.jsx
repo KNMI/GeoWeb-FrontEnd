@@ -251,7 +251,7 @@ class SigmetReadMode extends PureComponent {
     const now = moment.utc();
     const isInValidityPeriod = !now.isAfter(validdateEnd);
     if (focus) {
-      Object.values(READ_ABILITIES).map((ability) => {
+      Object.values(READ_ABILITIES).forEach((ability) => {
         if (abilities[ability.check] === true && (ability.dataField !== 'cancel' || !isCancelFor)) {
           ability.disabled = this.getDisabledFlag(ability.dataField, isInValidityPeriod);
           abilitiesCtAs.push(ability);
@@ -387,7 +387,7 @@ class SigmetReadMode extends PureComponent {
 }
 
 const abilitiesPropTypes = {};
-Object.values(READ_ABILITIES).map(ability => {
+Object.values(READ_ABILITIES).forEach(ability => {
   abilitiesPropTypes[ability.check] = PropTypes.bool;
 });
 

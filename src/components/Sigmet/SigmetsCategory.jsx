@@ -192,7 +192,7 @@ class SigmetsCategory extends PureComponent {
 }
 
 const abilitiesPropTypes = {};
-Object.values(READ_ABILITIES).map(ability => {
+Object.values(READ_ABILITIES).forEach(ability => {
   abilitiesPropTypes[ability.check] = PropTypes.bool;
 });
 

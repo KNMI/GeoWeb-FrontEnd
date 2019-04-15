@@ -7,7 +7,7 @@ export const windDirectionMap = {
 };
 
 const windDirectionInverse = {};
-Object.entries(windDirectionMap).map(entry => { windDirectionInverse[entry[1]] = entry[0]; });
+Object.entries(windDirectionMap).forEach(entry => { windDirectionInverse[entry[1]] = entry[0]; });
 export const windDirectionInverseMap = windDirectionInverse;
 
 export const windUnitMap = {
@@ -16,5 +16,5 @@ export const windUnitMap = {
 };
 
 const windUnitInverse = {};
-Object.entries(windUnitMap).map(entry => { windUnitInverse[entry[1]] = entry[0]; });
+Object.entries(windUnitMap).forEach(entry => { windUnitInverse[entry[1]] = entry[0]; });
 export const windUnitInverseMap = windUnitInverse;

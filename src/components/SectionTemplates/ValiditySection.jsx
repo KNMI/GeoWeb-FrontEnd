@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 export default class ValiditySection extends PureComponent {
   render () {
     const children = {};
-    this.props.children.map(child => {
+    this.props.children.forEach(child => {
       if (child && child.props) {
         children[child.props['data-field']] = child;
       }
