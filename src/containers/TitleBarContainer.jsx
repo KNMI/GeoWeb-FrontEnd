@@ -703,7 +703,7 @@ class LayoutDropDown extends PureComponent {
     }, (error) => {
       this.setState({ getCapBusy: false });
       console.error('error: ', error);
-      alert('Source could not be added. Is it a valid WMS url?');
+      console.warn('Source could not be added. Is it a valid WMS url?');
     });
   }
 
@@ -793,7 +793,7 @@ class LayoutDropDown extends PureComponent {
           sharePresetName: location.protocol + '//' + location.host + location.pathname + '?presetid=' + presetName + location.hash
         });
       } else {
-        alert('failed');
+        console.warn('sharePreset failed');
       }
     });
   }

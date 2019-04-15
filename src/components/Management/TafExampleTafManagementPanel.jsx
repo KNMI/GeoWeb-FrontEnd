@@ -57,13 +57,13 @@ export default class TafExampleTafManagementPanel extends React.Component {
       // If it is all consistent we're good
       const allTrue = results.every((a) => a);
       if (allTrue) {
-        alert('All TAFs validate as expected');
+        console.warn('All TAFs validate as expected');
       } else {
         const cleanedIndices = results.map((e, i) => { if (e === false) return i; }).filter((a) => a !== undefined);
         if (cleanedIndices.length === 1) {
-          alert('TAF ' + cleanedIndices[0] + ' does not validate as expected with the current schema');
+          console.warn('TAF ' + cleanedIndices[0] + ' does not validate as expected with the current schema');
         } else {
-          alert('TAF ' + niceList(cleanedIndices) + ' do not validate as expected with the current schema');
+          console.warn('TAF ' + niceList(cleanedIndices) + ' do not validate as expected with the current schema');
         }
       }
     });
