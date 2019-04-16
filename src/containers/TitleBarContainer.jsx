@@ -703,7 +703,7 @@ class LayoutDropDown extends PureComponent {
     }, (error) => {
       this.setState({ getCapBusy: false });
       console.error('error: ', error);
-      console.warn('Source could not be added. Is it a valid WMS url?');
+      console.warn('Source could not be added. Probably not valid WMS url.');
     });
   }
 

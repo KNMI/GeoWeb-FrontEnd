@@ -70,7 +70,7 @@ export class LocationMapper extends React.Component {
     const newLon = parseFloat(document.querySelector(`#loninput-${index}`).value);
     let arrayCpy = cloneDeep(this.state.locations);
     if (isNaN(newLat) || isNaN(newLon)) {
-      console.warn('Please enter location numbers');
+      console.warn('Location coordinates are missed or invalid');
       return;
     }
     arrayCpy[index].name = newName;
