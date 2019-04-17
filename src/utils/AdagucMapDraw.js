@@ -644,20 +644,6 @@ export default class AdagucMapDraw extends PureComponent {
       return;
     }
 
-    let checkIfVertexNrIsOK = () => {
-      if (this.mouseIsOverVertexNr !== this.SNAPPEDFEATURE.NONE && this.mouseIsOverVertexNr !== this.VERTEX.NONE) {
-        if (this.mouseIsOverVertexNr && this.mouseIsOverVertexNr.length && this.mouseIsOverVertexNr.length < featureCoords) {
-          return true;
-        }
-      }
-      return false;
-    };
-
-    if (checkIfVertexNrIsOK() === false) {
-      this.mouseIsOverVertexNr = this.VERTEX.NONE;
-      return;
-    }
-
     if (this.myDrawMode === this.DRAWMODE.MULTIPOINT) {
       if (this.mouseIsOverVertexNr !== this.SNAPPEDFEATURE.NONE) {
         featureCoords[this.mouseIsOverVertexNr][0] = this.mouseGeoCoord.x;
