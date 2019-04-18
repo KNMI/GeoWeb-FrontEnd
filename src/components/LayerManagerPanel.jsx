@@ -42,7 +42,7 @@ class LayerManagerPanel extends PureComponent {
     }
     const source = GetServiceByName(sources, 'OVL');
     if (source) {
-      Array.from({ length: panelsProperties.panels.length }, (item, index) => index).map((id) => {
+      Array.from({ length: panelsProperties.panels.length }, (item, index) => index).forEach((id) => {
         // eslint-disable-next-line no-undef
         new WMJSLayer({
           service: source,
@@ -320,7 +320,7 @@ class LayerChooser extends PureComponent {
     const protectedKeys = Object.keys(data).filter((key) => key.toLowerCase().indexOf(filter) !== -1 || filterSource(data[key].source, filter));
 
     // For each source....
-    Object.keys(data).map((key) => {
+    Object.keys(data).forEach((key) => {
       const vals = data[key].layers;
       if (vals) {
         // Delete all layers that do not match the filter
@@ -343,7 +343,7 @@ class LayerChooser extends PureComponent {
     // Filter all sources that have no layers that match the filter
     // except if the source itself is matched by the filter
     const keys = Object.keys(data);
-    keys.map((key) => {
+    keys.forEach((key) => {
       if (!data[key].layers || (data[key].layers.length === 0 && !protectedKeys.includes(key))) {
         delete data[key];
       }

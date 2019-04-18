@@ -111,7 +111,7 @@ export default handleActions({
   },
   [SET_ACTIVE_LAYER]: (state, { payload }) => {
     const stateCpy = cloneDeep(state);
-    stateCpy.panels[payload.activePanelId].layers.map((layer, i) => {
+    stateCpy.panels[payload.activePanelId].layers.forEach((layer, i) => {
       layer.active = (i === payload.layerClicked);
     });
     return stateCpy;
@@ -215,7 +215,7 @@ export default handleActions({
   [SET_PRESET_LAYERS]: (state, { payload }) => {
     const stateCpy = cloneDeep(state);
 
-    payload.map((panel, i) => {
+    payload.forEach((panel, i) => {
       stateCpy.panels[i].layers = [];
       if (panel) {
         stateCpy.panels[i].layers = panel.layers.filter((layer) => layer);
@@ -223,10 +223,10 @@ export default handleActions({
         stateCpy.panels[i].type = panel.type || 'ADAGUC';
       }
     });
-    stateCpy.panels.map((panel) => {
+    stateCpy.panels.forEach((panel) => {
       if (panel.layers.length > 0) {
         if (panel.layers.filter((layer) => layer.active).length !== 1) {
-          panel.layers.map((layer, i) => { layer.active = (i === 0); });
+          panel.layers.forEach((layer, i) => { layer.active = (i === 0); });
         }
       }
     });

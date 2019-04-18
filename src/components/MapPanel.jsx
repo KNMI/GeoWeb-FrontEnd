@@ -157,7 +157,7 @@ class MapPanel extends PureComponent {
     const { panelsProperties, dispatch, panelsActions } = this.props;
     const { panels, activePanelId } = panelsProperties;
 
-    prevProps.panelsProperties.panels.map((panel, i) => {
+    prevProps.panelsProperties.panels.forEach((panel, i) => {
       const prevType = panel.type;
       const currType = this.props.panelsProperties.panels[i].type;
       if (prevType !== 'ADAGUC' && currType === 'ADAGUC') {

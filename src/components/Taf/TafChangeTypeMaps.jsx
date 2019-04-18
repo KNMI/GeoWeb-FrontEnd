@@ -8,7 +8,7 @@ export const probabilityMap = {
 };
 
 const probabilityInverse = {};
-Object.entries(probabilityMap).map(entry => { probabilityInverse[entry[1]] = entry[0]; });
+Object.entries(probabilityMap).forEach(entry => { probabilityInverse[entry[1]] = entry[0]; });
 export const probabilityInverseMap = probabilityInverse;
 
 export const typeMap = {
@@ -18,7 +18,7 @@ export const typeMap = {
 };
 
 const typeInverse = {};
-Object.entries(typeMap).map(entry => { typeInverse[entry[1]] = entry[0]; });
+Object.entries(typeMap).forEach(entry => { typeInverse[entry[1]] = entry[0]; });
 export const typeInverseMap = typeInverse;
 
 /**
