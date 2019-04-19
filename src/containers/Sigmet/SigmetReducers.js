@@ -14,6 +14,7 @@ import axios from 'axios';
 import cloneDeep from 'lodash.clonedeep';
 import isEqual from 'lodash.isequal';
 import uuidv4 from 'uuid/v4';
+import { WMJSLayer } from 'adaguc-webmapjs';
 
 const ERROR_MSG = {
   RETRIEVE_SIGMETS: 'Could not retrieve SIGMETs:',
@@ -705,7 +706,6 @@ const updateDisplayedPreset = (preset, container) => {
         panel.map((layer, i) => {
           // Create a Promise for parsing all WMJSlayers because we can only do something when ALL layers have been parsed
           promises.push(new Promise((resolve, reject) => {
-            // eslint-disable-next-line no-undef
             const wmjsLayer = new WMJSLayer(layer);
             wmjsLayer.parseLayer((newLayer) => {
               if (!newLayer.service) {

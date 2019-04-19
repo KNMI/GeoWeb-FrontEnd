@@ -21,6 +21,8 @@ import cloneDeep from 'lodash.clonedeep';
 import { Typeahead } from 'react-bootstrap-typeahead';
 import { GetServices } from '../utils/getServiceByName';
 import { version } from '../../package.json';
+import { WMJSGetServiceFromStore, WMJSLayer } from 'adaguc-webmapjs';
+
 const timeFormat = 'ddd DD MMM YYYY HH:mm [UTC]';
 const browserFullScreenRequests = [
   'mozRequestFullScreen',
@@ -680,8 +682,7 @@ class LayoutDropDown extends PureComponent {
   handleAddSource (e) {
     var url = document.querySelector('#sourceurlinput').value;
     let items = JSON.parse(localStorage.getItem('geoweb'));
-    // eslint-disable-next-line no-undef
-    var getCap = WMJSgetServiceFromStore(url);
+    var getCap = WMJSGetServiceFromStore(url);
     this.setState({ getCapBusy: true });
     getCap.getCapabilities((e) => {
       this.setState({ getCapBusy: false });
@@ -754,7 +755,6 @@ class LayoutDropDown extends PureComponent {
         panel.map((layer, i) => {
           // Create a Promise for parsing all WMJSlayers because we can only do something when ALL layers have been parsed
           promises.push(new Promise((resolve, reject) => {
-            // eslint-disable-next-line no-undef
             const wmjsLayer = new WMJSLayer(layer);
             wmjsLayer.parseLayer((newLayer) => {
               newLayer.keepOnTop = (layer.overlay || layer.keepOnTop);

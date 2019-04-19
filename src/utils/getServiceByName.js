@@ -1,6 +1,7 @@
 import axios from 'axios';
 import PromiseWithTimout from '../utils/PromiseWithTimout';
 import moment from 'moment';
+import { WMJSGetServiceFromStore } from 'adaguc-webmapjs';
 
 const _getSourceByName = (sources, name) => {
   if (Object.keys(sources).includes(name)) {
@@ -83,8 +84,7 @@ export const GetServices = (BACKEND_SERVER_URL) => {
             if (!source.name) {
               return reject(new Error('Source has no name'));
             }
-            // eslint-disable-next-line no-undef
-            const service = WMJSgetServiceFromStore(source.service);
+            const service = WMJSGetServiceFromStore(source.service);
             if (!service) {
               return reject(new Error('Cannot get service from store'));
             }
