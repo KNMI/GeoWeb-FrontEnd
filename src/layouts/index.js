@@ -28,7 +28,7 @@ export function withLabeledChildren (LayoutComponent, datasetLabel) {
       const childrenToProcess = !Array.isArray(childrenFromProps) ? [childrenFromProps] : childrenFromProps;
       const childrenMap = {};
       if (typeof datasetLabel === 'string' && datasetLabel.length !== 0) {
-        childrenToProcess.map(child => {
+        childrenToProcess.forEach(child => {
           if (child && child.props) {
             childrenMap[child.props[`data-${datasetLabel}`]] = child;
           }

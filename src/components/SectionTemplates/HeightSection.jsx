@@ -7,7 +7,7 @@ export default class HeightSection extends PureComponent {
     if (!Array.isArray(this.props.children)) {
       children[this.props.children.props['data-field']] = this.props.children;
     } else {
-      this.props.children.map(child => {
+      this.props.children.forEach(child => {
         if (child && child.props) {
           children[child.props['data-field']] = child;
         }

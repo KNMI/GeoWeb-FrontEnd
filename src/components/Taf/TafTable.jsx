@@ -278,7 +278,7 @@ class TafTable extends Component {
   processValidation (validationReport) {
     const invalidFields = { base: [], changegroup: [] };
     if (validationReport && typeof validationReport === 'object') {
-      Object.keys(validationReport).map((pointer) => {
+      Object.keys(validationReport).forEach((pointer) => {
         const pointerParts = pointer.split('/');
         pointerParts.shift();
         if (pointerParts[0] === 'forecast') {

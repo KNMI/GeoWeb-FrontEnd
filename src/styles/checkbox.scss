@@ -45,7 +45,7 @@
   }
   span.checkbox::after {
     display: inherit;
-    font-family: FontAwesome;
+    font-family: FontAwesome, Sans-serif;
     color: $base-inner-color;
     margin-left: -1.1rem;
     margin-top: -0.1rem;

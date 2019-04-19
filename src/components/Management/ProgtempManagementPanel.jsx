@@ -45,7 +45,7 @@ export default class ProgtempManagementPanel extends React.Component {
   selectLocation (locationName) {
     const newLocations = cloneDeep(this.state.locations);
     let hasChanges = false;
-    newLocations.map((location) => {
+    newLocations.forEach((location) => {
       if (location.name === locationName && location.hasOwnProperty('availability') &&
         Array.isArray(location.availability)) {
         const index = location.availability.indexOf(PROGTEMP);

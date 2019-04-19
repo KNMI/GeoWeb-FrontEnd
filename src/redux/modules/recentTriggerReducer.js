@@ -25,7 +25,7 @@ export default handleActions({
   [ADD_NOTIFICATION]: (state, { payload }) => [...state, { ...payload.raw, discarded: false }].filter(filterYoung),
   [REMOVE_NOTIFICATION]: (state, { payload }) => {
     const stateClone = cloneDeep(state);
-    stateClone.map((trigger) => { trigger.discarded = trigger.uuid === payload; });
+    stateClone.forEach((trigger) => { trigger.discarded = trigger.uuid === payload; });
     return stateClone;
   },
   [SET_TRIGGER_LOCATIONS]: (state, { payload }) => ({ ...state, triggerLocations: payload })

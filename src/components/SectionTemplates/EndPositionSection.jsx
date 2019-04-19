@@ -7,7 +7,7 @@ export default class EndPositionSection extends PureComponent {
     const { children : childrenFromProps, disabled } = this.props;
     const childrenToProcess = !Array.isArray(childrenFromProps) ? [childrenFromProps] : childrenFromProps;
     const children = {};
-    childrenToProcess.map(child => {
+    childrenToProcess.forEach(child => {
       if (child && child.props) {
         children[child.props['data-field']] = child;
       }

@@ -141,7 +141,7 @@ export default class Adaguc extends PureComponent {
     const { animationSettings } = adagucProperties;
     const origPanel = cloneDeep(panel);
     const promises = [];
-    panel.layers.map((layer, i) => {
+    panel.layers.forEach((layer, i) => {
       promises.push(new Promise((resolve, reject) => {
         layer.parseLayer((newLayer) => {
           return resolve(newLayer);
@@ -149,7 +149,7 @@ export default class Adaguc extends PureComponent {
       }));
     });
     Promise.all(promises).then((newLayers) => {
-      newLayers.map((layer, i) => {
+      newLayers.forEach((layer, i) => {
         dispatch(panelsActions.replaceLayer({ index: i, layer: layer, mapId: mapId }));
         if (layer.active) {
           dispatch(panelsActions.setActiveLayer({ activePanelId: mapId, layerClicked: i }));
@@ -393,7 +393,7 @@ export default class Adaguc extends PureComponent {
       this.webMapJS.removeAllLayers();
       const layersCpy = cloneDeep(nextDataLayers);
       if (layersCpy && layersCpy.length > 0) {
-        layersCpy.reverse().map((layer) => {
+        layersCpy.reverse().forEach((layer) => {
           this.webMapJS.addLayer(layer);
           if (layer.active) {
             this.webMapJS.setActiveLayer(layer);
