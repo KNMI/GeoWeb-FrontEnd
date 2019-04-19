@@ -64,7 +64,7 @@ export default class TimeseriesComponent extends PureComponent {
     if (points && points.length > 0) {
       points.forEach((p) => { p.setAttribute('fill', '#ffffff'); });
     }
-    dataLines.map((d) => {
+    dataLines.forEach((d) => {
       const activeTimePoints = document.querySelectorAll('.' + d + '-' + time);
       if (activeTimePoints && activeTimePoints.length > 0) {
         activeTimePoints.forEach((point) => { point.setAttribute('fill', point.getAttribute('stroke')); });
@@ -78,7 +78,7 @@ export default class TimeseriesComponent extends PureComponent {
     if (!data) return;
     function remap (obj, refTime) {
       let newObj = [];
-      Object.keys(obj).map((k) => { newObj.push({ 'date': k, 'value': parseFloat(obj[k][refTime]) }); });
+      Object.keys(obj).forEach((k) => { newObj.push({ 'date': k, 'value': parseFloat(obj[k][refTime]) }); });
       return newObj;
     }
     function getWindInfo (windX, windY, unit) {

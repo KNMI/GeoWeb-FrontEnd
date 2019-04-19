@@ -126,7 +126,7 @@ class TafTable extends Component {
    */
   updateValue (element) {
     const name = element ? (element.name || element.props.name) : null;
-    const value = element && element.value && typeof element.value === 'string' ? element.value.trim().toUpperCase() : null;
+    const value = element && element.value && typeof element.value === 'string' ? element.value.trim() : null;
 
     // Empty in this case means that val is an object which has keys, but for every key its value is null
     const isObjInArrayEmpty = (val, lastPathElem) => {
@@ -278,7 +278,7 @@ class TafTable extends Component {
   processValidation (validationReport) {
     const invalidFields = { base: [], changegroup: [] };
     if (validationReport && typeof validationReport === 'object') {
-      Object.keys(validationReport).map((pointer) => {
+      Object.keys(validationReport).forEach((pointer) => {
         const pointerParts = pointer.split('/');
         pointerParts.shift();
         if (pointerParts[0] === 'forecast') {

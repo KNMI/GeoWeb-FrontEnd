@@ -8,5 +8,5 @@ export const visibilityUnitMap = {
 };
 
 const visibilityUnitInverse = {};
-Object.entries(visibilityUnitMap).map(entry => { visibilityUnitInverse[entry[1]] = entry[0]; });
+Object.entries(visibilityUnitMap).forEach(entry => { visibilityUnitInverse[entry[1]] = entry[0]; });
 export const visibilityUnitInverseMap = visibilityUnitInverse;

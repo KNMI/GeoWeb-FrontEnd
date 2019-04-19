@@ -10,7 +10,7 @@ export default class WhatSection extends PureComponent {
     if (!Array.isArray(this.props.children)) {
       children[this.props.children.props['data-field']] = this.props.children;
     } else {
-      this.props.children.map(child => {
+      this.props.children.forEach(child => {
         if (child && child.props) {
           if (children[child.props['data-field']]) {
             console.warn('Data field [' + child.props['data-field'] + '] is already set, skipping previous');

@@ -226,7 +226,7 @@ class Taf extends Component {
     const scheduleSeries = [];
     const scopeStart = moment.utc(tafData.metadata.validityStart);
     const scopeEnd = moment.utc(tafData.metadata.validityEnd);
-    Object.entries(tafData.forecast || {}).map((entry) => {
+    Object.entries(tafData.forecast || {}).forEach((entry) => {
       const value = this.serializePhenomenonValue(entry[0], entry[1], null);
       if (value !== null) {
         scheduleSeries.push({
@@ -267,7 +267,7 @@ class Taf extends Component {
         return;
       }
 
-      Object.entries(change.forecast).map((entry) => {
+      Object.entries(change.forecast).forEach((entry) => {
         let value = this.serializePhenomenonValue(entry[0], entry[1]);
         if (value !== null) {
           const type = getPhenomenonType(entry[0]);
@@ -292,17 +292,14 @@ class Taf extends Component {
             exclusiveTypes.forEach((exclusiveType) => {
               const exclusiveSeriesIndex = scheduleSeries.findIndex(serie => serie.label === getPhenomenonLabel(exclusiveType));
               if (exclusiveSeriesIndex !== -1) {
-                scheduleSeries[exclusiveSeriesIndex].ranges.map(range => {
+                scheduleSeries[exclusiveSeriesIndex].ranges.forEach(range => {
                   if (start.isSameOrBefore(range.end) && end.isSameOrAfter(range.start)) {
                     // it does overlap!
                     if (start.isSameOrBefore(range.start)) {
-                      if (end.isSameOrAfter(range.end)) {
-                        // fully includes / overrides previous range => set duration to 0
-                        range.end = range.start;
-                      } else {
-                        // there's a remainder at the end, but FM and BECMG changes are persistent => set duration to 0
-                        range.end = range.start;
-                      }
+                      // two options:
+                      //   * end >= range.end: fully includes / overrides previous range => set duration to 0
+                      //   * end < range.end: there's a remainder at the end, but FM and BECMG changes are persistent => set duration to 0
+                      range.end = range.start;
                       if (changeType === CHANGE_TYPES.BECMG && start.isSame(range.start)) {
                         const prevValue = type === PHENOMENON_TYPES.CAVOK ? '-' : range.value;
                         value = `${prevValue}\u2026 ${this.serializePhenomenonValue(entry[0], entry[1])}`; // \u2026 horizontal ellipsis
