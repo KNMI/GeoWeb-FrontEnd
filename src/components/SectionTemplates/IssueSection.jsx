@@ -7,7 +7,7 @@ export default class IssueSection extends PureComponent {
     const children = {};
     const { className, children : propsChildren } = this.props;
     if (Array.isArray(propsChildren)) {
-      propsChildren.map(child => {
+      propsChildren.forEach(child => {
         if (child && child.props) {
           children[child.props['data-field']] = child;
         }

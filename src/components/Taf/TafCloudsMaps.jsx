@@ -10,7 +10,7 @@ export const amountMap = {
 };
 
 const amountInverse = {};
-Object.entries(amountMap).map(entry => { amountInverse[entry[1]] = entry[0]; });
+Object.entries(amountMap).forEach(entry => { amountInverse[entry[1]] = entry[0]; });
 export const amountInverseMap = amountInverse;
 
 export const modMap = {
@@ -19,5 +19,5 @@ export const modMap = {
 };
 
 const modInverse = {};
-Object.entries(modMap).map(entry => { modInverse[entry[1]] = entry[0]; });
+Object.entries(modMap).forEach(entry => { modInverse[entry[1]] = entry[0]; });
 export const modInverseMap = modInverse;

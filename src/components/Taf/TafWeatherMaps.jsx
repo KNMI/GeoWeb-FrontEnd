@@ -10,7 +10,7 @@ export const qualifierMap = {
 };
 
 const qualifierInverse = {};
-Object.entries(qualifierMap).map(entry => { qualifierInverse[entry[1]] = entry[0]; });
+Object.entries(qualifierMap).forEach(entry => { qualifierInverse[entry[1]] = entry[0]; });
 export const qualifierInverseMap = qualifierInverse;
 
 export const descriptorMap = {
@@ -25,7 +25,7 @@ export const descriptorMap = {
 };
 
 const descriptorInverse = {};
-Object.entries(descriptorMap).map(entry => { descriptorInverse[entry[1]] = entry[0]; });
+Object.entries(descriptorMap).forEach(entry => { descriptorInverse[entry[1]] = entry[0]; });
 export const descriptorInverseMap = descriptorInverse;
 
 export const phenomenaMap = {
@@ -52,5 +52,5 @@ export const phenomenaMap = {
 };
 
 const phenomenaInverse = {};
-Object.entries(phenomenaMap).map(entry => { phenomenaInverse[entry[1]] = entry[0]; });
+Object.entries(phenomenaMap).forEach(entry => { phenomenaInverse[entry[1]] = entry[0]; });
 export const phenomenaInverseMap = phenomenaInverse;

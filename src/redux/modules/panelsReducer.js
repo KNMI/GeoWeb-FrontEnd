@@ -204,7 +204,7 @@ export default handleActions({
   },
   [SET_PRESET_LAYERS]: (state, { payload }) => {
     return produce(state, draftState => {
-      payload.map((panel, i) => {
+      payload.forEach((panel, i) => {
         draftState.panels[i].layers = [];
         if (panel) {
           draftState.panels[i].layers = panel.layers.filter((layer) => cloneWMJSLayerProps(layer));
@@ -212,10 +212,10 @@ export default handleActions({
           draftState.panels[i].type = panel.type || 'ADAGUC';
         }
       });
-      draftState.panels.map((panel) => {
+      draftState.panels.forEach((panel) => {
         if (panel.layers.length > 0) {
           if (panel.layers.filter((layer) => layer.active).length !== 1) {
-            panel.layers.map((layer, i) => { layer.active = (i === 0); });
+            panel.layers.forEach((layer, i) => { layer.active = (i === 0); });
           }
         }
       });

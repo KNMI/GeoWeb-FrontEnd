@@ -96,7 +96,7 @@ export const GetServices = (BACKEND_SERVER_URL) => {
 
         Promise.all(promises.map(reflect)).then((res) => {
           const sourcesDic = {};
-          res.map((promise) => {
+          res.forEach((promise) => {
             if (promise.status === 'resolved') {
               const { layers, source } = promise.data;
               sourcesDic[source.name] = { layers, source };

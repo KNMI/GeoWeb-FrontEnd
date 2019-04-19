@@ -380,7 +380,7 @@ export default class AdagucMapDraw extends PureComponent {
             };
             const sum = checkClockwiseOrder(featureCoords);
             if (sum < 0) {
-              featureCoords = featureCoords.reverse();
+              featureCoords.reverse();
               /* The lastly selected vertex is now aways the second in the array */
               if (this.mouseIsOverVertexNr !== this.VERTEX.NONE && this.mouseIsOverVertexNr !== this.VERTEX.MIDDLE_POINT_OF_FEATURE) {
                 this.mouseIsOverVertexNr = 1;
@@ -636,20 +636,6 @@ export default class AdagucMapDraw extends PureComponent {
     if (this.myDrawMode === this.DRAWMODE.POINT) {
       featureCoords[0] = this.mouseGeoCoord.x;
       featureCoords[1] = this.mouseGeoCoord.y;
-      return;
-    }
-
-    let checkIfVertexNrIsOK = () => {
-      if (this.mouseIsOverVertexNr !== this.SNAPPEDFEATURE.NONE && this.mouseIsOverVertexNr !== this.VERTEX.NONE) {
-        if (this.mouseIsOverVertexNr && this.mouseIsOverVertexNr.length && this.mouseIsOverVertexNr.length < featureCoords) {
-          return true;
-        }
-      }
-      return false;
-    };
-
-    if (checkIfVertexNrIsOK === false) {
-      this.mouseIsOverVertexNr = this.VERTEX.NONE;
       return;
     }
 

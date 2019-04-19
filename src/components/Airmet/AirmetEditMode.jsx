@@ -270,7 +270,7 @@ class AirmetEditMode extends PureComponent {
     const now = moment.utc();
     const isInValidityPeriod = !now.isBefore(validdate) && !now.isAfter(validdateEnd);
     if (focus) {
-      Object.values(EDIT_ABILITIES).map((ability) => {
+      Object.values(EDIT_ABILITIES).forEach((ability) => {
         if (abilities[ability.check] === true) {
           ability.disabled = this.getDisabledFlag(ability.dataField, isInValidityPeriod, selectedPhenomenon);
           abilitiesCtAs.push(ability);
@@ -725,7 +725,7 @@ class AirmetEditMode extends PureComponent {
 }
 
 const abilitiesPropTypes = {};
-Object.values(EDIT_ABILITIES).map(ability => {
+Object.values(EDIT_ABILITIES).forEach(ability => {
   abilitiesPropTypes[ability.check] = PropTypes.bool;
 });
 

@@ -24,7 +24,7 @@ export default class TafExampleTafManagementPanel extends React.Component {
   fetchTAFs () {
     axios.get(this.props.urls.BACKEND_SERVER_URL + '/admin/example_tafs').then((r) => {
       const fetchedTAFs = [];
-      r.data.payload.map((tafStr) => fetchedTAFs.push(JSON.parse(tafStr)));
+      r.data.payload.forEach((tafStr) => fetchedTAFs.push(JSON.parse(tafStr)));
       this.setState({ tafsAndMessages: cloneDeep(fetchedTAFs), onServer: cloneDeep(fetchedTAFs) });
     });
   }
@@ -50,20 +50,20 @@ export default class TafExampleTafManagementPanel extends React.Component {
     // Test every taf
     axios.all(promiseArray).then(tafs => {
       // For each taf, the success depends whether the taf is marked as invalid
-      tafs.map((taf, i) => {
+      tafs.forEach((taf, i) => {
         results.push(taf.data.succeeded !== this.state.tafsAndMessages[i].invalid);
       });
 
       // If it is all consistent we're good
       const allTrue = results.every((a) => a);
       if (allTrue) {
-        alert('All TAFs validate as expected');
+        console.warn('All TAFs validate as expected');
       } else {
         const cleanedIndices = results.map((e, i) => { if (e === false) return i; }).filter((a) => a !== undefined);
         if (cleanedIndices.length === 1) {
-          alert('TAF ' + cleanedIndices[0] + ' does not validate as expected with the current schema');
+          console.warn('TAF ' + cleanedIndices[0] + ' does not validate as expected with the current schema');
         } else {
-          alert('TAF ' + niceList(cleanedIndices) + ' do not validate as expected with the current schema');
+          console.warn('TAF ' + niceList(cleanedIndices) + ' do not validate as expected with the current schema');
         }
       }
     });
