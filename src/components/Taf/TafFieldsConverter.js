@@ -354,7 +354,7 @@ const jsonToTacForClouds = (cloudsAsJson, useFallback = false) => {
 
 const jsonToTacForVerticalVisibility = (verticalVisibilityAsJson, useFallback = false) => {
   let result = null;
-  if (verticalVisibilityAsJson && typeof verticalVisibilityAsJson === 'number') {
+  if (verticalVisibilityAsJson !== null && typeof verticalVisibilityAsJson === 'number') {
     result = 'VV' + verticalVisibilityAsJson.toString().padStart(3, '0');
   } else if (useFallback && verticalVisibilityAsJson && verticalVisibilityAsJson.hasOwnProperty('fallback')) {
     result = verticalVisibilityAsJson.fallback.value;
