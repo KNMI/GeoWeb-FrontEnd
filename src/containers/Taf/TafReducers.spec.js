@@ -147,7 +147,7 @@ describe('(Reducer) Taf/TafReducers', () => {
     };
     dispatch(LOCAL_ACTIONS.discardTafAction(), container);
     expect(container.state).to.be.a('object');
-    expect(container.state).to.have.property('mode', MODES.READ);
+    expect(container.state).to.have.property('mode', MODES.EDIT);
     expect(container.state).to.have.property('selectedTaf');
     expect(container.state.selectedTaf).to.eql([]);
   });
