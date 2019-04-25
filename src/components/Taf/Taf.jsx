@@ -665,9 +665,9 @@ class Taf extends Component {
       case READ_ABILITIES.CORRECT['dataField']:
         return tafType === LIFECYCLE_STAGE_NAMES.CANCELED || hasFollowUp === true;
       case READ_ABILITIES.AMEND['dataField']:
-        return !isInValidityPeriod || tafType === LIFECYCLE_STAGE_NAMES.CANCELED || hasFollowUp === true;
-      case READ_ABILITIES.CANCEL['dataField']:
         return !isInValidityPeriod || tafType === LIFECYCLE_STAGE_NAMES.CANCELED;
+      case READ_ABILITIES.CANCEL['dataField']:
+        return !isInValidityPeriod || tafType === LIFECYCLE_STAGE_NAMES.CANCELED || hasFollowUp === true;
       default:
         return false;
     }
