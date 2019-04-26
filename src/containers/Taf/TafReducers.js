@@ -462,7 +462,7 @@ const discardTaf = (event, shouldSwitch, container) => {
   const { state } = container;
   container.setState(produce(state, draftState => {
     const { selectedTaf } = state;
-    draftState.mode = MODES.READ;
+    draftState.mode = MODES.EDIT;
     draftState.displayModal = null;
     draftState.selectedTaf.length = 0;
     if (shouldSwitch) {
