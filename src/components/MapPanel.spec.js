@@ -1,7 +1,6 @@
 import React from 'react';
 import MapPanel from './MapPanel';
 import { shallow, mount } from 'enzyme';
-import sinon from 'sinon';
 import { Row } from 'reactstrap';
 import moxios from 'moxios';
 const baselayer = {
@@ -111,7 +110,6 @@ describe('(Component) MapPanel', () => {
     moxios.uninstall();
   });
   before(() => {
-    const emptyFunc = () => null;
     class LocalStorageMock {
       constructor () {
         this.store = {};
@@ -135,44 +133,6 @@ describe('(Component) MapPanel', () => {
     };
 
     global.localStorage = new LocalStorageMock();
-
-    global.getCurrentDateIso8601 = () => {
-      return { toISO8601: emptyFunc };
-    };
-    global.WMJSLayer = sinon.stub().returns({});
-    global.WMJSMap = sinon.stub().returns({
-      addLayer: emptyFunc,
-      addListener: emptyFunc,
-      destroy: emptyFunc,
-      draw: emptyFunc,
-      drawAutomatic: emptyFunc,
-      getActiveLayer: emptyFunc,
-      getBaseLayers: emptyFunc,
-      getDimension: emptyFunc,
-      getLatLongFromPixelCoord: emptyFunc,
-      getLayers: emptyFunc,
-      getListener: emptyFunc,
-      getPixelCoordFromLatLong: emptyFunc,
-      positionMapPinByLatLon: emptyFunc,
-      removeAllLayers: emptyFunc,
-      removeListener: emptyFunc,
-      setActive: emptyFunc,
-      setAnimationDelay: emptyFunc,
-      setBaseLayers: emptyFunc,
-      setBaseURL: emptyFunc,
-      setBBOX: emptyFunc,
-      setDimension: emptyFunc,
-      setMapModeNone: emptyFunc,
-      setMapModePan: emptyFunc,
-      setMapModeZoomBoxIn: emptyFunc,
-      setMessage: emptyFunc,
-      setProjection: emptyFunc,
-      setSize: emptyFunc,
-      setTimeOffset: emptyFunc,
-      setWMJSTileRendererTileSettings: emptyFunc,
-      showDialogs: emptyFunc,
-      stopAnimating: emptyFunc
-    });
   });
   it('Renders a Row', (done) => {
     const _component = shallow(<MapPanel

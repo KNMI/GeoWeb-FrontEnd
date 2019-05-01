@@ -123,16 +123,11 @@ export default class AdagucMapDraw extends PureComponent {
 
   getPixelCoordFromGeoCoord (featureCoords) {
     const { webmapjs } = this.props;
-    const { width, height } = webmapjs.getSize();
-    const bbox = webmapjs.getBBOX();
-    const proj = webmapjs.getProj4();
 
     const XYCoords = [];
     for (let j = 0; j < featureCoords.length; j++) {
       let coordinates = { x: featureCoords[j][0], y: featureCoords[j][1] };
-      proj.Proj4js.transform(proj.lonlat, proj.proj4, coordinates);
-      const x = (width * (coordinates.x - bbox.left)) / (bbox.right - bbox.left);
-      const y = (height * (coordinates.y - bbox.top)) / (bbox.bottom - bbox.top);
+      const { x, y } = webmapjs.getPixelCoordFromLatLong(coordinates);
       XYCoords.push({ x: x, y: y });
     }
     return XYCoords;
