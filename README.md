@@ -119,7 +119,6 @@ The application structure presented in this boilerplate is **fractal**, where fu
 ```
 
 
-
 ## Development
 
 #### Developer Tools
