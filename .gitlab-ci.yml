@@ -1,0 +1,88 @@
+image: docker:latest
+
+variables:
+  DOCKER_DRIVER: overlay2
+  DOCKER_HOST: tcp://localhost:2375
+  AWS_REGION: eu-west-1
+
+services:
+  - docker:dind
+
+stages:
+  - assets
+  - test
+  - compile
+  - build
+
+assets:
+  image: docker:latest
+  before_script:
+    - apk add --no-cache py-pip make
+    - pip install awscli
+  stage: assets
+  script:
+    - sh scripts/s3.sh -b knmi-geoweb-assets-$AWS_REGION
+  only:
+    refs:
+      - master
+
+.pre-build:
+  image: node:8-alpine
+  before_script:
+    - npm install
+  cache:
+    key: $CI_PROJECT_NAME_$CI_COMMIT_REF_NAME
+    policy: push
+    paths:
+      - node_modules/
+
+test:
+  stage: test
+  extends: .pre-build
+  script:
+    - npm test
+  cache:
+    key: $CI_PROJECT_NAME_$CI_COMMIT_REF_NAME
+    policy: pull
+    paths:
+      - node_modules/
+
+compile:
+  stage: compile
+  extends: .pre-build
+  script:
+    - npm run clean
+    - npm run deploy:prod-quick
+  artifacts:
+    paths:
+      - dist/
+  cache:
+    key: $CI_PROJECT_NAME_$CI_COMMIT_REF_NAME
+    policy: pull
+    paths:
+      - node_modules/
+
+build:
+  stage: build
+  image: docker:latest
+  variables:
+    IMAGE_TAG: 1.0.$CI_COMMIT_SHORT_SHA.$CI_PIPELINE_ID
+    REPO_NAMESPACE: knmi
+    REPOSITORY: geoweb-frontend
+    ECR_REGISTRY_IMAGE: $BUILD_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$REPO_NAMESPACE/$REPOSITORY
+  before_script:
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
+    - apk add --no-cache py-pip
+    - pip install awscli
+  script:
+    - docker build -t $CI_REGISTRY_IMAGE:latest .
+    - docker push $CI_REGISTRY_IMAGE:latest
+    - docker tag $CI_REGISTRY_IMAGE:latest $CI_REGISTRY_IMAGE:$IMAGE_TAG
+    - docker push $CI_REGISTRY_IMAGE:$IMAGE_TAG
+    - "sh scripts/ecr.sh -r $REPOSITORY"
+    - $(aws ecr get-login --no-include-email --region $AWS_REGION)
+    - docker tag $CI_REGISTRY_IMAGE:latest $ECR_REGISTRY_IMAGE:$IMAGE_TAG
+    - docker push $ECR_REGISTRY_IMAGE:$IMAGE_TAG
+  only:
+    refs:
+      - master
