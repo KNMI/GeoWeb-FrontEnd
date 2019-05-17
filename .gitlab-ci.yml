@@ -10,6 +10,7 @@ services:
 
 stages:
   - assets
+  - lint
   - test
   - compile
   - build
@@ -36,11 +37,21 @@ assets:
     paths:
       - node_modules/
 
+lint:
+  stage: lint
+  extends: .pre-build
+  script:
+    - npm run lint
+  cache:
+    key: $CI_PROJECT_NAME_$CI_COMMIT_REF_NAME
+    policy: pull
+    paths:
+      - node_modules/
+
 test:
   stage: test
   extends: .pre-build
   script:
-    - npm run lint
     - npm test
   cache:
     key: $CI_PROJECT_NAME_$CI_COMMIT_REF_NAME
