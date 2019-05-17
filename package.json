@@ -35,6 +35,12 @@
         "DEBUG": "app:*"
       }
     },
+    "lint": {
+        "command": "npm run lint",
+      "env": {
+        "DEBUG": "app:*"
+      }
+    },
     "deploy": {
       "command": "npm run lint && npm run test && npm run clean && npm run compile",
       "env": {
