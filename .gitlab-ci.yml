@@ -40,7 +40,7 @@ test:
   stage: test
   extends: .pre-build
   script:
-    - npm lint
+    - npm run lint
     - npm test
   cache:
     key: $CI_PROJECT_NAME_$CI_COMMIT_REF_NAME
