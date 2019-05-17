@@ -40,6 +40,7 @@ test:
   stage: test
   extends: .pre-build
   script:
+    - npm lint
     - npm test
   cache:
     key: $CI_PROJECT_NAME_$CI_COMMIT_REF_NAME
@@ -51,7 +52,6 @@ compile:
   stage: compile
   extends: .pre-build
   script:
-    - npm run clean
     - npm run deploy:prod-quick
   artifacts:
     paths:
