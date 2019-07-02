@@ -578,7 +578,7 @@ class TitleBarContainer extends PureComponent {
       } else if (selectedRole === 'user') {
         url += 'putuserpreset';
       } else {
-        url += 'putsrolespreset';
+        url += 'putrolespreset';
         params['roles'] = selectedRole;
       }
     }

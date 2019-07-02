@@ -10,6 +10,8 @@ const __PROD__ = project.globals.__PROD__;
 debug('Creating awesome webpack configuration.');
 const webpackConfig = {
   devServer: {
+    host: process.env.HOST || 'localhost', // your ip address
+    port: process.env.PORT || 3000,
     historyApiFallback: true,
     watchContentBase: true
   },
