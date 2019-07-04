@@ -66,7 +66,8 @@ webpackConfig.externals['react/lib/ReactContext'] = true;
 webpackConfig.externals['react/addons'] = true;
 webpackConfig.externals['basemaps'] = JSON.stringify(require('./basemaps.json'));
 webpackConfig.externals['jquery'] = 'jQuery';
-
+webpackConfig.externals['jQuery'] = 'jQuery';
+webpackConfig.externals['$'] = 'jQuery';
 // ------------------------------------
 // Plugins
 // ------------------------------------
