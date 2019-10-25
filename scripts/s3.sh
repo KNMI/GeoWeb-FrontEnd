@@ -9,7 +9,7 @@ create_bucket() {
   if ! aws s3api head-bucket --bucket $BUCKET_NAME --region $REGION; then
     echo -e "Bucket does not exist, creating ..."
     aws s3api create-bucket --bucket $BUCKET_NAME --create-bucket-configuration LocationConstraint=$REGION --region $REGION
-    aws s3api put-bucket-policy --bucket $BUCKET_NAME --policy {\"Version\":\"2012-10-17\",\"Statement\":[{\"Sid\":\"AllowGetObject\",\"Effect\":\"Allow\",\"Principal\":{\"AWS\":[\"arn:aws:iam::$DTA_ACCOUNT_ID:root\",\"arn:aws:iam::$PRD_ACCOUNT_ID:root\"]},\"Action\":\"s3:GetObject\",\"Resource\":\"arn:aws:s3:::$BUCKET_NAME\/*\"}]}
+    aws s3api put-bucket-policy --bucket $BUCKET_NAME --policy {\"Version\":\"2012-10-17\",\"Statement\":[{\"Sid\":\"AllowGetObject\",\"Effect\":\"Allow\",\"Principal\":{\"AWS\":[\"arn:aws:iam::$DTA_WLM_ACCOUNT_ID:root\",\"arn:aws:iam::$PRD_WLM_ACCOUNT_ID:root\"]},\"Action\":\"s3:GetObject\",\"Resource\":\"arn:aws:s3:::$BUCKET_NAME\/*\"}]}
   else
     echo -e "Bucket $BUCKET_NAME exists"
   fi
