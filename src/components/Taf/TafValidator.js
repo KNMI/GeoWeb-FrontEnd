@@ -26,7 +26,7 @@ const TafValidator = (BACKEND_SERVER_URL, tafAsObject, inputParsingReport) => {
             }
           }
           const aggregateReport = {
-            message: responseJson.message ? responseJson.message : 'TAF suggestions:',
+            message: responseJson.message ? responseJson.message : ' ',
             succeeded: inputParsingReport.succeeded && responseJson.succeeded,
             errors: Object.assign({}, inputParsingReport.errors, responseJson.errors),
             TAC:responseJson.TAC

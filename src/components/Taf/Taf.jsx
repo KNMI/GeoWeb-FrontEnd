@@ -751,7 +751,7 @@ class Taf extends Component {
               endMoment={moment.utc(tafData.metadata.validityEnd)} />
             : null
           }
-          {validationFeedback && mode === MODES.EDIT
+          {validationFeedback
             ? <FeedbackSection status={validationFeedback.status ? validationFeedback.status : FEEDBACK_STATUSES.INFO} category={FEEDBACK_CATEGORIES.VALIDATION}>
               {validationFeedback.title
                 ? <span data-field='title'>{validationFeedback.title}</span>
