@@ -739,7 +739,7 @@ const publishTaf = (event, container) => {
       const { dispatch } = props;
       dispatch(notify({
         title:'Error: Unable to publish TAF',
-        message: e,
+        message: JSON.stringify(e, null, 2),
         status: 'error',
         position: 'bl',
         dismissible: false
