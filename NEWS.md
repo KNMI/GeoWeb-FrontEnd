@@ -1,3 +1,8 @@
+2019-10-31
+* (Fix) GW-158: Validity start is directly updated when amend is pressed. This idone by an extra roundtrip to the server.
+* (Fix) GW-182: Validation on BECMG groups is now done after amendment
+* Delete TAF now works
+
 2019-10-28:
 
 * (Fix) GW-151: A published Taf can be ammended before it is active (before it enters its validity_start). Validity_start will remain the same. Validity period is not changed by the frontend, backend handles value of validity_start
