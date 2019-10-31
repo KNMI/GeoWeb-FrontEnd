@@ -768,7 +768,6 @@ class Taf extends Component {
             </FeedbackSection>
             : null
           }
-          { abilityCtAs.length === 0 && 'Error: This TAF has no abilities.' }
           <ActionSection>
             {abilityCtAs.map((ability) =>
               <Button key={`action-${ability.dataField}`}
