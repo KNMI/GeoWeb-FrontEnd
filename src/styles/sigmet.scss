@@ -140,10 +140,12 @@
   }
   .Draw.warning {
     border-radius: 0.25rem;
+    border-width: medium;
     border-color: #d9534f; /* #f90; */
   }
-  .Draw.missing, .Validity .missing, .What .invalid {
+  .Draw.missing, .Validity .missing, .Validity .invalid, .What .invalid {
     border-radius: 0.25rem;
+    border-width: medium;
     border-color: #d9534f;
   }
   .Draw.required::after {

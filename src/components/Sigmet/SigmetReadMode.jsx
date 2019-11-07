@@ -47,6 +47,7 @@ class SigmetReadMode extends PureComponent {
 
   showLevels (levelinfo) {
     const sLevelsInfoMissed = '(no complete levels info provided)';
+    const sLowerHigherThanUpperInfo = '(lower level higher than upper level)';
     if (!levelinfo) {
       return sLevelsInfoMissed;
     }
@@ -69,8 +70,10 @@ class SigmetReadMode extends PureComponent {
           : sLevelsInfoMissed;
       case MODES_LVL.BETW:
         return unit0Label && value0Label && unit1Label && value1Label
-          ? `Between ${is0FL ? unit0Label : ''} ${value0Label} ${!is0FL ? unit0Label : ''} and
-            ${is1FL ? unit1Label : ''} ${value1Label} ${!is1FL ? unit1Label : ''}`
+          ? value0Label < value1Label
+            ? `Between ${is0FL ? unit0Label : ''} ${value0Label} ${!is0FL ? unit0Label : ''} and
+              ${is1FL ? unit1Label : ''} ${value1Label} ${!is1FL ? unit1Label : ''}`
+            : sLowerHigherThanUpperInfo
           : sLevelsInfoMissed;
       case MODES_LVL.BETW_SFC:
         return unit1Label && value1Label
@@ -164,7 +167,8 @@ class SigmetReadMode extends PureComponent {
       case MODES_LVL.BETW:
         return Array.isArray(levelinfo.levels) && levelinfo.levels.length > 1 &&
           this.isLevelValid(levelinfo.levels[0]) &&
-          this.isLevelValid(levelinfo.levels[1]);
+          this.isLevelValid(levelinfo.levels[1]) &&
+          levelinfo.levels[0] < levelinfo.levels[1];
       case MODES_LVL.BETW_SFC:
         return Array.isArray(levelinfo.levels) && levelinfo.levels.length > 0 &&
           this.isLevelValid(levelinfo.levels[1]);
