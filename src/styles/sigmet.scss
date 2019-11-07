@@ -83,6 +83,10 @@
   }
 
   .What {
+    .invalid, .missing {
+      color: red;
+    }
+
     .row:not(:first-of-type) {
       margin-top: 0.2rem;
     }
@@ -93,6 +97,12 @@
       input.form-control {
         padding: 0.2rem 0.75rem;
       }
+    }
+  }
+
+  .Where {
+    .invalid, .missing {
+      color: red;
     }
   }
 
@@ -109,6 +119,10 @@
     }
     .row:nth-child(3) .DateTimePicker {
       z-index: 50;
+    }
+
+    .invalid, .missing {
+      color: red;
     }
   }
 
@@ -158,6 +172,10 @@
   .Level {
     [data-field=tops-toggle] input {
       margin-right: 0.2rem;
+    }
+
+    .invalid, .missing {
+      color: red;
     }
 
     .Switch > .col-auto {
@@ -263,12 +281,20 @@
   }
 
   .Progress {
-    .row:not(.RadioGroup):first-child {
-      margin-bottom: 0.33rem;
+    .invalid, .missing {
+      color: red;
     }
+
+    //.row:not(.RadioGroup):first-child {
+      // margin-bottom: 0.33rem;
+    //}
   }
 
   .Move {
+    .invalid, .missing {
+      color: red;
+    }
+
     .required {
       margin: 0;
       padding: 0;

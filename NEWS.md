@@ -1,3 +1,12 @@
+2019-11-07
+* Improved the user experience in Sigmet read-mode: when the Sigmet is not publishable, the mistake is highlight in red color
+
+2019-11-06
+* (Fix) GW-172: It is not possible anymore to have lower level higher than upper level.
+* (Fix) GW-170: Added extra decimal and better explanation in placeholder and tooltip of Lat and Lon for Vulcano
+* (Fix) GW-212: Future time is not possible anymore with Observed Sigmet
+* (Fix) GW-210: Increased the border thickness around the fields with mistakes in Sigmet Edit mode
+
 2019-11-04
 * Added product export viewer, go to /#/exportedproducts
 
