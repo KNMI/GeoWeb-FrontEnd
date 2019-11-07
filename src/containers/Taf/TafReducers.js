@@ -19,7 +19,7 @@ const STATUS_ICONS = {
 };
 
 /**
- * Creates all posible combinations of locations and timestamps, with a label
+ * Creates all possible combinations of locations and timestamps, with a label
  * @param {set} locations The locations to combine
  * @param {object} timestamps The timestamps to combine
  * @returns {array} The labeled combinations
@@ -147,26 +147,27 @@ const synchronizeSelectableTafs = (container) => {
   if (!urls || !urls.hasOwnProperty('BACKEND_SERVER_URL') || typeof urls.BACKEND_SERVER_URL !== 'string') {
     return;
   }
-
-  const tafResources = [
-    { url: `${urls.BACKEND_SERVER_URL}/tafs?active=true`, status: STATUSES.PUBLISHED },
-    { url: `${urls.BACKEND_SERVER_URL}/tafs?active=false&status=${STATUSES.CONCEPT}`, status: STATUSES.CONCEPT }
-  ];
-  tafResources.forEach((tafResource) => {
-    axios({
-      method: 'get',
-      url: tafResource.url,
-      withCredentials: true,
-      responseType: 'json'
-    }).then(response => {
-      if (response.data && Number.isInteger(response.data.ntafs)) {
-        if (!Array.isArray(response.data.tafs)) {
-          response.data.tafs = [];
+  container.setState({ selectableTafs: [] }, () => {
+    const tafResources = [
+      { url: `${urls.BACKEND_SERVER_URL}/tafs?active=true`, status: STATUSES.PUBLISHED },
+      { url: `${urls.BACKEND_SERVER_URL}/tafs?active=false&status=${STATUSES.CONCEPT}`, status: STATUSES.CONCEPT }
+    ];
+    tafResources.forEach((tafResource) => {
+      axios({
+        method: 'get',
+        url: tafResource.url,
+        withCredentials: true,
+        responseType: 'json'
+      }).then(response => {
+        if (response.data && Number.isInteger(response.data.ntafs)) {
+          if (!Array.isArray(response.data.tafs)) {
+            response.data.tafs = [];
+          }
+          updateSelectableTafs(container, response.data.tafs, tafResource.status);
         }
-        updateSelectableTafs(container, response.data.tafs, tafResource.status);
-      }
-    }).catch(error => {
-      console.error('Couldn\'t retrieve TAFs', error);
+      }).catch(error => {
+        console.error('Couldn\'t retrieve TAFs', error);
+      });
     });
   });
 };
@@ -275,7 +276,8 @@ const wrapIntoSelectableTaf = (tafData) => {
     }
   }
   const location = tafData.metadata.location.toUpperCase();
-  const timestamp = moment.utc(tafData.metadata.validityStart);
+  /* Very important to use baseTime as preference over validityStart, so we know the original time in the list. */
+  const timestamp = moment.utc(tafData.metadata.baseTime || tafData.metadata.validityStart);
   const time = timestamp.format(TIMELABEL_FORMAT);
   const date = timestamp.format(DATELABEL_FORMAT);
 
@@ -406,6 +408,7 @@ const updateSelectableTafs = (container, tafs, status) => {
       }
     }
   }), () => {
+    const { state } = container;
     if (state && state.selectedTaf && state.selectedTaf.length === 1) {
       validateTaf(state.selectedTaf[0].tafData, container);
     }
@@ -447,11 +450,14 @@ const selectTaf = (selection, container) => {
     }
     draftState.selectedTaf.length = 0;
     draftState.selectedTaf.push(selection[0]);
-    if (selection[0].tafData && selection[0].tafData.metadata && selection[0].tafData.metadata.status &&
-      selection[0].tafData.metadata.status === STATUSES.NEW) {
-      draftState.mode = MODES.EDIT;
+    draftState.mode = MODES.READ;
+    if (selection[0].tafData && selection[0].tafData.metadata && selection[0].tafData.metadata.status) {
+      if (selection[0].tafData.metadata.status === STATUSES.NEW) {
+        draftState.mode = MODES.EDIT;
+      }
     }
   }), () => {
+    const { state } = container;
     if (state && state.selectedTaf && state.selectedTaf.length === 1) {
       validateTaf(state.selectedTaf[0].tafData, container);
     }
@@ -462,7 +468,7 @@ const discardTaf = (event, shouldSwitch, container) => {
   const { state } = container;
   container.setState(produce(state, draftState => {
     const { selectedTaf } = state;
-    draftState.mode = MODES.EDIT;
+    draftState.mode = MODES.READ;
     draftState.displayModal = null;
     draftState.selectedTaf.length = 0;
     if (shouldSwitch) {
@@ -478,6 +484,7 @@ const discardTaf = (event, shouldSwitch, container) => {
       }
     }
   }), () => {
+    const { state } = container;
     if (state && state.selectedTaf && state.selectedTaf.length === 1) {
       validateTaf(state.selectedTaf[0].tafData, container);
     }
@@ -732,6 +739,7 @@ const deleteTaf = (event, container) => {
       console.error('Couldn\'t delete TAF', error);
       updateFeedback('Couldn\'t delete TAF',
         FEEDBACK_STATUSES.ERROR, FEEDBACK_CATEGORIES.LIFECYCLE, null, null, container, () => {
+          const { state } = container;
           container.setState(produce(state, draftState => {
             draftState.mode = MODES.READ;
           }));

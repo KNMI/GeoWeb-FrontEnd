@@ -405,9 +405,6 @@ describe('(Functions) TafFieldsConverter', () => {
     // Year boundary
     result = tacToJsonForTimestamp('0113', '2017-12-31T18:00:00Z', '2018-01-02T00:00:00Z');
     expect(result).to.eql('2018-01-01T13:00:00Z');
-    // Invalid hours
-    result = tacToJsonForTimestamp('2126', '2017-11-21T12:00:00Z', '2017-11-22T18:00:00Z');
-    expect(result).to.eql(null);
     // Empty
     result = tacToJsonForTimestamp('', '2017-10-31T12:00:00Z', '2017-11-01T18:00:00Z');
     expect(result).to.eql(null);
