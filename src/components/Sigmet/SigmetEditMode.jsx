@@ -48,6 +48,7 @@ class SigmetEditMode extends PureComponent {
     this.maxLevelPerUnit = this.maxLevelPerUnit.bind(this);
     this.stepLevelPerUnit = this.stepLevelPerUnit.bind(this);
     this.formatLevelPerUnit = this.formatLevelPerUnit.bind(this);
+    this.compare = this.compare.bind(this);
     this.state = {
       isAtOrAboveDropDownOpen: false,
       isBetweenLowerDropDownOpen: false,
@@ -256,7 +257,40 @@ class SigmetEditMode extends PureComponent {
     return abilitiesCtAs;
   }
 
+  compare (lowerLevel, upperLevel) {
+    var lowerLevelInMeter = 0;
+    var upperLevelInMeter = 0;
+
+    switch (lowerLevel.unit) {
+      case UNITS.FL:
+        lowerLevelInMeter = lowerLevel.value * 30.48;
+        break;
+      case UNITS.FT:
+        lowerLevelInMeter = lowerLevel.value * 0.3048;
+        break;
+      case UNITS.M:
+        lowerLevelInMeter = lowerLevel.value * 1;
+        break;
+    }
+    switch (upperLevel.unit) {
+      case UNITS.FL:
+        upperLevelInMeter = upperLevel.value * 30.48;
+        break;
+      case UNITS.FT:
+        upperLevelInMeter = upperLevel.value * 0.3048;
+        break;
+      case UNITS.M:
+        upperLevelInMeter = upperLevel.value * 1;
+        break;
+    }
+
+    return lowerLevelInMeter >= upperLevelInMeter;
+  }
+
   render () {
+    const latTooltip = 'Latitude in decimal degrees';
+    const lonTooltip = 'Longitude in decimal degrees\n' +
+      'Use + for East, - for West';
     const { dispatch, actions, sigmet, displayModal, availablePhenomena, hasStartCoordinates, hasEndCoordinates, feedbackStart, feedbackEnd,
       availableFirs, focus, isVolcanicAsh, volcanoCoordinates, maxHoursInAdvance, maxHoursDuration } = this.props;
     const { isAtOrAboveDropDownOpen, isBetweenLowerDropDownOpen, isBetweenUpperDropDownOpen } = this.state;
@@ -353,7 +387,7 @@ class SigmetEditMode extends PureComponent {
             }
             onChange={(evt, timestamp) => dispatch(actions.updateSigmetAction(uuid, 'obs_or_forecast', { obs: isObserved, obsFcTime: timestamp }))}
             min={dateLimits.obsFcTime.min}
-            max={dateLimits.obsFcTime.max}
+            max={isObserved ? dateLimits.obsFcTime.now : dateLimits.obsFcTime.max}
           />
           {isVolcanicAsh
             ? <Input type='text' value={volcanoName || ''} data-field='volcano_name' placeholder='Volcano name'
@@ -362,18 +396,20 @@ class SigmetEditMode extends PureComponent {
             : null
           }
           {isVolcanicAsh
-            ? <Input type='number' placeholder='00.0' step='0.1'
+            ? <Input type='number' placeholder='00.00 [deg]' step='0.1'
               value={Array.isArray(volcanoCoordinates) && volcanoCoordinates.length > 0 && volcanoCoordinates[0] !== null ? volcanoCoordinates[0] : ''}
               data-field='volcano_coordinates_lat'
+              title={latTooltip}
               onChange={(evt) => dispatch(actions.updateSigmetAction(uuid, 'va_extra_fields.volcano.position.0', evt.target.value || null))}
             />
             : null
           }
           {isVolcanicAsh
-            ? <Input type='number' placeholder='000.0' step='0.1'
+            ? <Input type='number' placeholder='±000.00 [deg]' step='0.1'
               value={Array.isArray(volcanoCoordinates) && volcanoCoordinates.length > 1 && volcanoCoordinates[1] !== null ? volcanoCoordinates[1] : ''}
               data-field='volcano_coordinates_lon'
               onChange={(evt) => dispatch(actions.updateSigmetAction(uuid, 'va_extra_fields.volcano.position.1', evt.target.value || null))}
+              title={lonTooltip}
             />
             : null
           }
@@ -473,9 +509,12 @@ class SigmetEditMode extends PureComponent {
               onChange={(evt) => dispatch(actions.updateSigmetAction(uuid, 'levelinfo.levels.0.value', evt.target.value))} />
           </InputGroup>
           <Switch
-            className={isLevelBetween && !levelMode.hasSurface &&
-              levelinfo && levelinfo.levels && levelinfo.levels[0] &&
-              (!levelinfo.levels[0].value || levelinfo.levels[0].value > this.maxLevelPerUnit(levelinfo.levels[0].unit)) ? 'missing' : null}
+            className={isLevelBetween && levelinfo && levelinfo.levels && levelinfo.levels[0] && !levelinfo.levels[0].value
+              ? 'missing'
+              : levelinfo.levels[0].value > this.maxLevelPerUnit(levelinfo.levels[0].unit) ||
+                  (levelinfo.levels[1] && levelinfo.levels[1].value && this.compare(levelinfo.levels[0], levelinfo.levels[1]))
+                ? 'invalid'
+                : null}
             value={levelMode.hasSurface ? 'sfc' : 'lvl'}
             checkedOption={{
               optionId: 'lvl',
@@ -511,7 +550,12 @@ class SigmetEditMode extends PureComponent {
           />
           <InputGroup
             data-field='between-lev-2'
-            className={isLevelBetween && levelinfo && levelinfo.levels && levelinfo.levels[1] && !levelinfo.levels[1].value ? 'missing' : null}
+            className={isLevelBetween && levelinfo && levelinfo.levels && levelinfo.levels[1] && !levelinfo.levels[1].value
+              ? 'missing'
+              : levelinfo.levels[1].value > this.maxLevelPerUnit(levelinfo.levels[1].unit) ||
+                  (levelinfo.levels[0] && levelinfo.levels[0].value && this.compare(levelinfo.levels[0], levelinfo.levels[1]))
+                ? 'invalid'
+                : null}
             disabled={!isLevelBetween}>
             <InputGroupAddon addonType='prepend'>
               <ButtonDropdown toggle={() => this.toggleDropDown(DROP_DOWN_NAMES.BETWEEN_UPPER)} isOpen={isBetweenUpperDropDownOpen}>
