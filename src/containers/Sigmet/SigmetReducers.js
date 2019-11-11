@@ -14,6 +14,7 @@ import axios from 'axios';
 import cloneDeep from 'lodash.clonedeep';
 import isEqual from 'lodash.isequal';
 import uuidv4 from 'uuid/v4';
+import { WMJSLayer } from 'adaguc-webmapjs';
 
 const ERROR_MSG = {
   RETRIEVE_SIGMETS: 'Could not retrieve SIGMETs:',
@@ -705,7 +706,6 @@ const updateDisplayedPreset = (preset, container) => {
         panel.forEach((layer, i) => {
           // Create a Promise for parsing all WMJSlayers because we can only do something when ALL layers have been parsed
           promises.push(new Promise((resolve, reject) => {
-            // eslint-disable-next-line no-undef
             const wmjsLayer = new WMJSLayer(layer);
             wmjsLayer.parseLayer((newLayer) => {
               if (!newLayer.service) {
@@ -992,9 +992,10 @@ const setPanelFeedback = (message, container) => {
 };
 
 const cleanup = (container) => {
-  const { dispatch, drawActions } = container.props;
+  const { dispatch, drawActions, panelsActions } = container.props;
   setPanelFeedback(null, container);
   dispatch(drawActions.setGeoJSON(initialGeoJson()));
+  dispatch(panelsActions.enableMapPin({ panelId: 0, enabled: true }));
   return setStatePromise(container, {
     selectedAuxiliaryInfo: {
       feedbackStart: null,
@@ -1361,9 +1362,10 @@ const cancelSigmet = (event, container) => {
 };
 
 const setSigmetDrawing = (geojson, firName, container) => {
-  const { dispatch, drawActions } = container.props;
+  const { dispatch, drawActions, panelsActions } = container.props;
   const enhancedGeojson = addFirFeature(geojson, firName || null, container);
   dispatch(drawActions.setGeoJSON(enhancedGeojson || geojson));
+  dispatch(panelsActions.enableMapPin({ panelId: 0, enabled: false }));
   return Promise.resolve();
 };
 

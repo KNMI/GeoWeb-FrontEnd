@@ -9,6 +9,10 @@ import { Icon } from 'react-fa';
 import PropTypes from 'prop-types';
 import cloneDeep from 'lodash.clonedeep';
 import { GetServiceByName } from '../utils/getServiceByName';
+import { WMJSLayer } from 'adaguc-webmapjs';
+import moment from 'moment';
+import { cloneWMJSLayerProps } from '../utils/CloneWMJSLayerProps';
+import { generateLayerId, getWMJSLayerById } from '../utils/ReactWMJSTools';
 var elementResizeEvent = require('element-resize-event');
 
 class LayerManagerPanel extends PureComponent {
@@ -43,8 +47,8 @@ class LayerManagerPanel extends PureComponent {
     const source = GetServiceByName(sources, 'OVL');
     if (source) {
       Array.from({ length: panelsProperties.panels.length }, (item, index) => index).forEach((id) => {
-        // eslint-disable-next-line no-undef
         new WMJSLayer({
+          id: generateLayerId(),
           service: source,
           title: 'OVL_EXT',
           name: 'countries',
@@ -53,7 +57,7 @@ class LayerManagerPanel extends PureComponent {
         }).parseLayer((layerObj) => {
           dispatch(panelsActions.addOverlaysLayer({
             panelId: id,
-            layer: layerObj
+            layer: cloneWMJSLayerProps(layerObj)
           }));
         });
       });
@@ -84,8 +88,8 @@ class LayerManagerPanel extends PureComponent {
   handleAddLayer (addItem) {
     const { dispatch, panelsActions, panelsProperties } = this.props;
     if (this.state.activeSource.goal !== 'OVERLAY') {
-      // eslint-disable-next-line no-undef
       new WMJSLayer({
+        id: generateLayerId(),
         service: this.state.activeSource.service,
         title: this.state.activeSource.title,
         name: addItem.name,
@@ -100,8 +104,8 @@ class LayerManagerPanel extends PureComponent {
         }));
       });
     } else {
-      // eslint-disable-next-line no-undef
       new WMJSLayer({
+        id: generateLayerId(),
         service: this.state.activeSource.service,
         title: this.state.activeSource.title,
         name: addItem.name,
@@ -110,7 +114,7 @@ class LayerManagerPanel extends PureComponent {
       }).parseLayer((layerObj) => {
         dispatch(panelsActions.addOverlaysLayer({
           panelId: panelsProperties.activePanelId,
-          layer: layerObj
+          layer: cloneWMJSLayerProps(layerObj)
         }));
       });
     }
@@ -185,8 +189,8 @@ class LayerMutations extends PureComponent {
 
     // Re-add the countries overlay
     const source = GetServiceByName(sources, 'OVL');
-    // eslint-disable-next-line no-undef
     new WMJSLayer({
+      id: generateLayerId(),
       service: source,
       title: 'OVL_EXT',
       name: 'countries',
@@ -256,8 +260,8 @@ class LayerChooser extends PureComponent {
   handleAddLayer (addItem) {
     const { dispatch, panelsActions, panelsProperties } = this.props;
     if (this.state.activeSource.goal !== 'OVERLAY') {
-      // eslint-disable-next-line no-undef
       new WMJSLayer({
+        id: generateLayerId(),
         service: this.state.activeSource.service,
         title: this.state.activeSource.title,
         name: addItem.name,
@@ -268,12 +272,12 @@ class LayerChooser extends PureComponent {
       }).parseLayer((layerObj) => {
         dispatch(panelsActions.addLayer({
           panelId: panelsProperties.activePanelId,
-          layer: layerObj
+          layer: cloneWMJSLayerProps(layerObj)
         }));
       });
     } else {
-      // eslint-disable-next-line no-undef
       new WMJSLayer({
+        id: generateLayerId(),
         service: this.state.activeSource.service,
         title: this.state.activeSource.title,
         name: addItem.name,
@@ -282,7 +286,7 @@ class LayerChooser extends PureComponent {
       }).parseLayer((layerObj) => {
         dispatch(panelsActions.addOverlaysLayer({
           panelId: panelsProperties.activePanelId,
-          layer: layerObj
+          layer: cloneWMJSLayerProps(layerObj)
         }));
       });
     }
@@ -434,9 +438,7 @@ class TimeControls extends Component {
 
   goToNow () {
     const { dispatch, adagucActions } = this.props;
-    // eslint-disable-next-line no-undef
-    let currentDate = getCurrentDateIso8601();
-    dispatch(adagucActions.setTimeDimension(currentDate.toISO8601()));
+    dispatch(adagucActions.setTimeDimension(moment.utc().format('YYYY-MM-DDTHH:mm:ss[Z]')));
   }
 
   handleDurationUpdate (e) {
@@ -463,17 +465,17 @@ class TimeControls extends Component {
     const { panel, currentTime, dispatch, adagucActions } = this.props;
     let i = 0;
     if (panel.layers.length === 0) {
-      // move one hour?
       return;
     }
-    for (; i < panel.layers.length; ++i) {
+    for (i = 0; i < panel.layers.length; i++) {
       if (panel.layers[i].active) {
         break;
       }
     }
-    const activeWMJSLayer = panel.layers[i];
+    if (!panel.layers[i] || !panel.layers[i].id) return;
+    const activeWMJSLayer = getWMJSLayerById(panel.layers[i].id);
     if (!activeWMJSLayer) {
-      // move one hour?
+      console.warn('No active layer selected');
       return;
     }
 

@@ -62,7 +62,8 @@ describe('(Reducer) Sigmet/SigmetReducers', () => {
         panelsActions: {
           setPanelLayout: () => { },
           setPresetLayers: () => { },
-          setPanelFeedback: () => { }
+          setPanelFeedback: () => { },
+          enableMapPin: () => { }
         },
         mapActions: {
           setCut: () => { }

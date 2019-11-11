@@ -9,6 +9,9 @@ import { DefaultLocations } from '../../constants/defaultlocations';
 import { ReadLocations } from '../../utils/admin';
 import { LoadURLPreset } from '../../utils/URLPresets';
 import { debounce } from '../../utils/debounce';
+import { WMJSMap, WMJSLayer } from 'adaguc-webmapjs';
+import { registerWMJSMap, generateLayerId, registerWMJSLayer, getWMJSLayerById } from '../../utils/ReactWMJSTools';
+import { cloneWMJSLayerProps } from '../../utils/CloneWMJSLayerProps';
 // FIXME: is this polyfill really a necessity, since we're using @runtime and transform-runtime? This pollutes the global namespace...
 import '@babel/polyfill/noConflict';
 const WMJSTileRendererTileSettings = require('../../../config/basemaps');
@@ -16,6 +19,7 @@ var elementResizeEvent = require('element-resize-event');
 export default class Adaguc extends PureComponent {
   constructor (props) {
     super(props);
+    this.updateLayers = this.updateLayers.bind(this);
     this.initAdaguc = this.initAdaguc.bind(this);
     this.resize = debounce(this.resize.bind(this), 100, false);
     this.onChangeAnimation = this.onChangeAnimation.bind(this);
@@ -27,8 +31,7 @@ export default class Adaguc extends PureComponent {
       dropdownOpenView: false,
       modal: false,
       activeTab: '1',
-      inSigmetModus: false,
-      layersChangedListenerInitialized: false
+      inSigmetModus: false
     };
     this.toggleView = this.toggleView.bind(this);
     this.progtempLocations = DefaultLocations;
@@ -37,12 +40,14 @@ export default class Adaguc extends PureComponent {
         this.progtempLocations = data;
       }
     });
+    this.layersChangedListenerInitialized = false;
   }
 
   resize () {
     const element = this.refs.adaguccontainer;
     if (element) {
       this.webMapJS.setSize(element.clientWidth, element.clientHeight);
+      this.webMapJS.draw();
     }
   }
   updateBBOX (wmjsmap) {
@@ -99,8 +104,9 @@ export default class Adaguc extends PureComponent {
     if (mapProperties.mapCreated) {
       return;
     }
-    // eslint-disable-next-line no-undef
     this.webMapJS = new WMJSMap(adagucMapRef, BACKEND_SERVER_XML2JSON);
+    registerWMJSMap(this.webMapJS, mapId);
+
     this.webMapJS.setBaseURL('./adagucwebmapjs/');
     this.webMapJS.setWMJSTileRendererTileSettings(WMJSTileRendererTileSettings);
     this.webMapJS.showDialogs(false);
@@ -115,7 +121,6 @@ export default class Adaguc extends PureComponent {
     this.webMapJS.addListener('aftersetbbox', this.updateBBOX, true);
     this.webMapJS.addListener('mouseclicked', e => this.findClosestCursorLoc(e), true);
 
-    // eslint-disable-next-line no-undef
     this.webMapJS.setBaseLayers(panels[mapId].baselayers.map((layer) => new WMJSLayer(layer)));
     // Set the baselayer and possible overlays
     const defaultPersonalURLs = JSON.stringify({ personal_urls: [] });
@@ -126,13 +131,11 @@ export default class Adaguc extends PureComponent {
     // Set the datalayers
     this.updateLayers([], panels[mapId].layers);
     this.reparseLayers();
-    // eslint-disable-next-line no-undef
-    const currentDate = getCurrentDateIso8601();
     if (this.props.active) {
-      dispatch(adagucActions.setTimeDimension(currentDate.toISO8601()));
+      dispatch(adagucActions.setTimeDimension(moment.utc().format('YYYY-MM-DDTHH:mm:ss[Z]')));
     }
 
-    this.webMapJS.draw('171');
+    this.webMapJS.draw('initAdaguc');
   }
 
   reparseLayers () {
@@ -143,8 +146,9 @@ export default class Adaguc extends PureComponent {
     const promises = [];
     panel.layers.forEach((layer, i) => {
       promises.push(new Promise((resolve, reject) => {
-        layer.parseLayer((newLayer) => {
-          return resolve(newLayer);
+        const wmjsLayer = getWMJSLayerById(layer.id);
+        wmjsLayer.parseLayer((newLayer) => {
+          return resolve(cloneWMJSLayerProps(newLayer));
         }, true);
       }));
     });
@@ -166,6 +170,9 @@ export default class Adaguc extends PureComponent {
       elementResizeEvent(this.refs.adaguccontainer, this.resize);
     }
     this.interval = setInterval(this.reparseLayers, moment.duration(1, 'minute').asMilliseconds());
+    if (this.webMapJS) {
+      this.webMapJS.draw();
+    }
   }
 
   componentWillMount () {
@@ -186,7 +193,7 @@ export default class Adaguc extends PureComponent {
       this.webMapJS.destroy();
     }
     clearInterval(this.interval);
-    this.setState({ layersChangedListenerInitialized: false });
+    this.layersChangedListenerInitialized = false;
   }
 
   orderChanged (currLayers, prevLayers) {
@@ -287,7 +294,6 @@ export default class Adaguc extends PureComponent {
     }
 
     if (change) {
-      // eslint-disable-next-line no-undef
       this.webMapJS.setBaseLayers(nextBaseLayers.map((layer) => new WMJSLayer(layer)));
     }
     return change;
@@ -312,7 +318,7 @@ export default class Adaguc extends PureComponent {
         case '11':
           nextActiveLayer = nextActiveLayers[0];
 
-          nextHasRefTime = nextActiveLayer.getDimension('reference_time');
+          nextHasRefTime = getWMJSLayerById(nextActiveLayer.id).getDimension('reference_time');
 
           // set the respective animation length
           if (nextHasRefTime) {
@@ -351,13 +357,6 @@ export default class Adaguc extends PureComponent {
   // Returns true when the panelsProperties are actually different w.r.t. next panelsProperties, otherwise false
   /* istanbul ignore next */
   updateLayers (currDataLayers, nextDataLayers, active) {
-    function isDefined (variable) {
-      if (typeof variable === 'undefined') {
-        return false;
-      }
-      return true;
-    };
-
     let change = false;
     if (currDataLayers.length !== nextDataLayers.length) {
       change = true;
@@ -368,24 +367,27 @@ export default class Adaguc extends PureComponent {
             currDataLayers[i].currentStyle !== nextDataLayers[i].currentStyle ||
             currDataLayers[i].opacity !== nextDataLayers[i].opacity ||
             currDataLayers[i].active !== nextDataLayers[i].active ||
-            /* TODO: WHAT ARE WE TRYING TO ACHIEVE
-              Answer: Has my layer changed, also compare dimensions.
-              Code below compares all dimensions  whcich do not have the string time inside their name. It compares their values.
-              When enabled, map jumps and flickers
-            */
-            // currDataLayers[i].dimensions.filter((dim) => !dim.name.includes('time')) !== nextDataLayers[i].dimensions.filter((dim) => !dim.name.includes('time')) ||
             currDataLayers[i].enabled !== nextDataLayers[i].enabled) {
           change = true;
           break;
         }
-        if (isDefined(currDataLayers[i].getDimension('time')) === isDefined(nextDataLayers[i].getDimension('time'))) {
-          if (isDefined(currDataLayers[i].getDimension('time')) && currDataLayers[i].getDimension('time').defaultValue !== nextDataLayers[i].getDimension('time').defaultValue) {
-            change = true;
-            break;
-          }
-        } else {
+        /* Check if dimensions have updated */
+        if (currDataLayers[i].dimensions.length !== nextDataLayers[i].dimensions.length) {
           change = true;
-          break;
+        } else {
+          for (let j = 0; j < currDataLayers[i].dimensions.length; j++) {
+            const curDim = currDataLayers[i].dimensions[j];
+            const nextDimIndex = nextDataLayers[i].dimensions.findIndex(d => d.name === curDim.name);
+            if (nextDimIndex === -1) {
+              change = true;
+              break;
+            } else {
+              const nextDim = nextDataLayers[i].dimensions[nextDimIndex];
+              if (nextDim.name !== curDim.name ||
+                nextDim.currentValue !== curDim.currentValue ||
+                nextDim.defaultValue !== curDim.defaultValue) { change = true; break; }
+            }
+          }
         }
       }
     }
@@ -394,9 +396,12 @@ export default class Adaguc extends PureComponent {
       const layersCpy = cloneDeep(nextDataLayers);
       if (layersCpy && layersCpy.length > 0) {
         layersCpy.reverse().forEach((layer) => {
-          this.webMapJS.addLayer(layer);
+          let wmjsLayer = new WMJSLayer({ ...layer, id: layer.id || generateLayerId() });
+          registerWMJSLayer(wmjsLayer, wmjsLayer.id);
+          wmjsLayer.parseLayer();
+          this.webMapJS.addLayer(wmjsLayer);
           if (layer.active) {
-            this.webMapJS.setActiveLayer(layer);
+            this.webMapJS.setActiveLayer(wmjsLayer);
           }
         });
       }
@@ -429,7 +434,6 @@ export default class Adaguc extends PureComponent {
     if (activePanelId !== nextProps.panelsProperties.activePanelId) {
       this.updateAnimationActiveLayerChange(activePanel.layers, nextActivePanel.layers, nextProps.active);
     }
-
     const layersChanged = this.updateLayers(activePanel.layers, nextActivePanel.layers, nextProps.active);
     const baseChanged = this.updateBaseLayers(baseLayers, nextBaseLayers);
 
@@ -444,13 +448,11 @@ export default class Adaguc extends PureComponent {
     if (active && (!nextProps.active || layersChanged || baseChanged)) {
       this.resize();
     }
-
-    this.webMapJS.draw('368');
   }
 
   /* istanbul ignore next */
   componentDidUpdate (prevProps) {
-    const { mapProperties, adagucProperties, active } = this.props;
+    const { mapProperties, adagucProperties, active, mapId, panelsProperties } = this.props;
     const { boundingBox, mapMode, projection } = mapProperties;
     const { timeDimension, cursor } = adagucProperties;
     const { code } = projection;
@@ -465,11 +467,20 @@ export default class Adaguc extends PureComponent {
     this.updateTime(timeDimension, prevTimeDimension || null);
     this.updateMapMode(mapMode, prevMapMode, active);
 
+    // Enable or disable the mappin
+    const currentPanelProps = panelsProperties.panels[mapId];
+    if (currentPanelProps) {
+      if (currentPanelProps.enableMapPin !== false) {
+        this.webMapJS.showMapPin();
+      } else {
+        this.webMapJS.hideMapPin();
+      }
+    }
+
     // Track cursor if necessary
     if (cursor && cursor.location && cursor !== prevCursor) {
       this.webMapJS.positionMapPinByLatLon({ x: cursor.location.x, y: cursor.location.y });
     }
-    this.webMapJS.draw('368');
   }
 
   /* istanbul ignore next */
@@ -477,22 +488,21 @@ export default class Adaguc extends PureComponent {
     const { dispatch, adagucActions } = this.props;
     const shouldAnimate = animationSettings.animate && active;
     const dispatchTime = (map) => {
-      dispatch(adagucActions.setTimeDimension(map.getDimension('time').currentValue));
+      if (map.isAnimating) {
+        dispatch(adagucActions.setTimeDimension(map.getDimension('time').currentValue));
+      }
     };
-    this.webMapJS.stopAnimating();
     if (active) {
       if (shouldAnimate) {
-        if (!this.state.layersChangedListenerInitialized) {
+        if (!this.layersChangedListenerInitialized) {
+          this.layersChangedListenerInitialized = true;
           this.webMapJS.addListener('onnextanimationstep', dispatchTime, true);
-          this.setState({ layersChangedListenerInitialized: true });
         }
-        this.webMapJS.setAnimationDelay(100);
+        this.webMapJS.setAnimationDelay(150);
         this.webMapJS.drawLastTimes(animationSettings.duration, 'hours');
       } else {
-        this.webMapJS.removeListener('onnextanimationstep', dispatchTime);
-        this.setState({ layersChangedListenerInitialized: false });
+        this.webMapJS.stopAnimating();
       }
-      this.webMapJS.draw('385');
     }
   }
   toggleView () {

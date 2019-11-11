@@ -1,7 +1,8 @@
 import { createAction, handleActions } from 'redux-actions';
 import { MAP_STYLES } from '../../constants/map_styles';
-import cloneDeep from 'lodash.clonedeep';
 import { FEEDBACK_STATUS } from '../../config/StatusConfig';
+import produce from 'immer';
+import { cloneWMJSLayerProps } from '../../utils/CloneWMJSLayerProps';
 const ADD_LAYER = 'ADD_LAYER';
 const ADD_OVERLAY_LAYER = 'ADD_OVERLAY_LAYER';
 const DELETE_LAYER = 'DELETE_LAYER';
@@ -16,8 +17,10 @@ const SET_PANEL_FEEDBACK = 'SET_PANEL_FEEDBACK';
 const RESET_LAYERS = 'RESET_LAYERS';
 const SET_DIMENSION_VALUE = 'SET_DIMENSION_VALUE';
 const SET_BASELAYER = 'SET_BASELAYER';
+const ADAGUC_ENABLE_MAP_PIN = 'ADAGUC_ENABLE_MAP_PIN';
 
 const addLayer = createAction(ADD_LAYER);
+const enableMapPin = createAction(ADAGUC_ENABLE_MAP_PIN);
 const setActiveLayer = createAction(SET_ACTIVE_LAYER);
 const addOverlaysLayer = createAction(ADD_OVERLAY_LAYER);
 const deleteLayer = createAction(DELETE_LAYER);
@@ -50,25 +53,21 @@ const getNumPanels = (name) => {
 let INITIAL_STATE = {
   panels: [
     {
-      // eslint-disable-next-line no-undef
       baselayers: [MAP_STYLES[0]],
       layers: [],
       type: 'ADAGUC'
     },
     {
-      // eslint-disable-next-line no-undef
       baselayers: [MAP_STYLES[0]],
       layers: [],
       type: 'ADAGUC'
     },
     {
-      // eslint-disable-next-line no-undef
       baselayers: [MAP_STYLES[0]],
       layers: [],
       type: 'ADAGUC'
     },
     {
-      // eslint-disable-next-line no-undef
       baselayers: [MAP_STYLES[0]],
       layers: [],
       type: 'ADAGUC'
@@ -83,6 +82,7 @@ let INITIAL_STATE = {
 };
 
 export const actions = {
+  enableMapPin,
   addLayer,
   addOverlaysLayer,
   deleteLayer,
@@ -101,20 +101,27 @@ export const actions = {
 
 export default handleActions({
   [RESET_LAYERS]: (state) => {
-    const stateCpy = cloneDeep(state);
-    stateCpy.panels[state.activePanelId] = {
-      baselayers: [MAP_STYLES[0]],
-      layers: [],
-      type: 'ADAGUC'
-    };
-    return stateCpy;
+    return produce(state, draftState => {
+      draftState.panels[state.activePanelId] = {
+        baselayers: [MAP_STYLES[0]],
+        layers: [],
+        type: 'ADAGUC'
+      };
+    });
   },
   [SET_ACTIVE_LAYER]: (state, { payload }) => {
-    const stateCpy = cloneDeep(state);
-    stateCpy.panels[payload.activePanelId].layers.forEach((layer, i) => {
-      layer.active = (i === payload.layerClicked);
+    return produce(state, draftState => {
+      draftState.panels[payload.activePanelId].layers.map((layer, i) => {
+        layer.active = (i === payload.layerClicked);
+      });
     });
-    return stateCpy;
+  },
+  [ADAGUC_ENABLE_MAP_PIN]: (state, { payload }) => {
+    const panelId = payload.panelId;
+    const enabled = payload.enabled;
+    return produce(state, draftState => {
+      draftState.panels[panelId].enableMapPin = enabled;
+    });
   },
   [SET_PANEL_TYPE]: (state, { payload }) => {
     const mapId = payload.mapId;
@@ -124,14 +131,13 @@ export default handleActions({
     return { ...state, panels: panelsCpy };
   },
   [ADD_LAYER]: (state, { payload }) => {
-    const panelId = payload.panelId;
-
-    const stateCpy = cloneDeep(state);
-    stateCpy.panels[panelId].layers.unshift(payload.layer);
-    if (stateCpy.panels[panelId].layers.length === 1) {
-      stateCpy.panels[panelId].layers[0].active = true;
-    }
-    return stateCpy;
+    return produce(state, draftState => {
+      const panelId = payload.panelId;
+      draftState.panels[panelId].layers.unshift(payload.layer);
+      if (draftState.panels[panelId].layers.length === 1) {
+        draftState.panels[panelId].layers[0].active = true;
+      }
+    });
   },
   [ADD_OVERLAY_LAYER]: (state, { payload }) => {
     const panelId = payload.panelId;
@@ -141,96 +147,89 @@ export default handleActions({
     if (currentOverlays.some((layer) => layer.service === payload.layer.service && layer.name === payload.layer.name)) {
       return state;
     }
-    const stateCpy = cloneDeep(state);
-    stateCpy.panels[panelId].baselayers.unshift(payload.layer);
-    return stateCpy;
+    return produce(state, draftState => {
+      draftState.panels[panelId].baselayers.unshift(payload.layer);
+    });
   },
   [DELETE_LAYER]: (state, { payload }) => {
     const { idx, type, mapId } = payload;
-    const stateCpy = cloneDeep(state);
-    switch (type) {
-      case 'data':
-        const { layers } = stateCpy.panels[mapId || state.activePanelId];
-        layers.splice(idx, 1);
-        if (layers.length === 1 || (layers.length > 0 && !layers.some((layer) => layer.active === true))) {
-          layers[0].active = true;
-        }
-        return stateCpy;
+    return produce(state, draftState => {
+      switch (type) {
+        case 'data':
+          const { layers } = draftState.panels[mapId || state.activePanelId];
+          layers.splice(idx, 1);
+          if (layers.length === 1 || (layers.length > 0 && !layers.some((layer) => layer.active === true))) {
+            layers[0].active = true;
+          }
+          return;
 
-      case 'overlay':
-        const { baselayers } = stateCpy.panels[mapId || state.activePanelId];
-        const base = baselayers.filter((layer) => !layer.keepOnTop);
-        const overlay = baselayers.filter((layer) => layer.keepOnTop === true);
-        overlay.splice(idx, 1);
-        stateCpy.panels[mapId || state.activePanelId].baselayers = base.concat(overlay);
-        return stateCpy;
-      default:
-        return state;
-    }
+        case 'overlay':
+          const { baselayers } = draftState.panels[mapId || state.activePanelId];
+          const base = baselayers.filter((layer) => !layer.keepOnTop);
+          const overlay = baselayers.filter((layer) => layer.keepOnTop === true);
+          overlay.splice(idx, 1);
+          draftState.panels[mapId || state.activePanelId].baselayers = base.concat(overlay);
+          break;
+        default:
+      }
+    });
   },
   [REPLACE_LAYER]: (state, { payload }) => {
     const { index, layer, mapId } = payload;
-    const stateCpy = cloneDeep(state);
-
-    if (layer.keepOnTop === true) {
-      const baseLayers = stateCpy.panels[mapId].baselayers.filter((layer) => !layer.keepOnTop);
-      const overlays = stateCpy.panels[mapId].baselayers.filter((layer) => layer.keepOnTop === true);
-      overlays[index] = layer;
-      stateCpy.panels[mapId].baselayers = baseLayers.concat(overlays);
-    } else {
-      stateCpy.panels[mapId].layers[index] = cloneDeep(layer);
-    }
-
-    const numActiveLayers = stateCpy.panels[mapId].layers.filter((layer) => layer.active === true).length;
-
-    // If there are no active layers left, set it active
-    if (stateCpy.panels[mapId].layers.length > 0 && numActiveLayers === 0) {
-      stateCpy.panels[mapId].layers[index].active = true;
-    }
-
-    // If there are more than one, set it to false and figure this out later
-    if (numActiveLayers > 1) {
-      stateCpy.panels[mapId].layers[index].active = false;
-    }
-
-    return stateCpy;
+    return produce(state, draftState => {
+      if (layer.keepOnTop === true) {
+        const baseLayers = state.panels[mapId].baselayers.filter((layer) => !layer.keepOnTop);
+        const overlays = state.panels[mapId].baselayers.filter((layer) => layer.keepOnTop === true);
+        overlays[index] = layer;
+        draftState.panels[mapId].baselayers = baseLayers.concat(overlays);
+      } else {
+        draftState.panels[mapId].layers[index] = { ...layer };
+      }
+      const numActiveLayers = state.panels[mapId].layers.filter((layer) => layer.active === true).length;
+      // If there are no active layers left, set it active
+      if (state.panels[mapId].layers.length > 0 && numActiveLayers === 0) {
+        draftState.panels[mapId].layers[index].active = true;
+      }
+      // If there are more than one, set it to false and figure this out later
+      if (numActiveLayers > 1) {
+        draftState.panels[mapId].layers[index].active = false;
+      }
+    });
   },
   [MOVE_LAYER]: (state, { payload }) => {
     const { oldIndex, newIndex, type } = payload;
     const move = function (arr, from, to) {
       arr.splice(to, 0, arr.splice(from, 1)[0]);
     };
-
-    const stateCpy = cloneDeep(state);
-    if (type === 'data') {
-      move(stateCpy.panels[state.activePanelId].layers, oldIndex, newIndex);
-    } else {
-      const base = stateCpy.panels[state.activePanelId].baselayers.filter((layer) => !layer.keepOnTop);
-      const overlays = stateCpy.panels[state.activePanelId].baselayers.filter((layer) => layer.keepOnTop === true);
-      move(overlays, oldIndex, newIndex);
-      stateCpy.panels[state.activePanelId].baselayers = base.concat(overlays);
-    }
-    return stateCpy;
+    return produce(state, draftState => {
+      if (type === 'data') {
+        move(draftState.panels[state.activePanelId].layers, oldIndex, newIndex);
+      } else {
+        const base = draftState.panels[state.activePanelId].baselayers.filter((layer) => !layer.keepOnTop);
+        const overlays = draftState.panels[state.activePanelId].baselayers.filter((layer) => layer.keepOnTop === true);
+        move(overlays, oldIndex, newIndex);
+        draftState.panels[state.activePanelId].baselayers = base.concat(overlays);
+      }
+    });
   },
   [SET_PRESET_LAYERS]: (state, { payload }) => {
-    const stateCpy = cloneDeep(state);
-
-    payload.forEach((panel, i) => {
-      stateCpy.panels[i].layers = [];
-      if (panel) {
-        stateCpy.panels[i].layers = panel.layers.filter((layer) => layer);
-        stateCpy.panels[i].baselayers = [MAP_STYLES[0]].concat(panel.baselayers);
-        stateCpy.panels[i].type = panel.type || 'ADAGUC';
-      }
-    });
-    stateCpy.panels.forEach((panel) => {
-      if (panel.layers.length > 0) {
-        if (panel.layers.filter((layer) => layer.active).length !== 1) {
-          panel.layers.forEach((layer, i) => { layer.active = (i === 0); });
+    return produce(state, draftState => {
+      payload.forEach((panel, i) => {
+        draftState.panels[i].layers = [];
+        if (panel) {
+          draftState.panels[i].layers = panel.layers.filter((layer) => cloneWMJSLayerProps(layer));
+          draftState.panels[i].baselayers = [MAP_STYLES[0]].concat(panel.baselayers);
+          draftState.panels[i].type = panel.type || 'ADAGUC';
         }
-      }
+      });
+      draftState.panels.forEach((panel) => {
+        if (panel.layers.length > 0) {
+          if (panel.layers.filter((layer) => layer.active).length !== 1) {
+            panel.layers.forEach((layer, i) => { layer.active = (i === 0); });
+          }
+        }
+      });
     });
-    return stateCpy;
   },
   [SET_ACTIVE_PANEL]: (state, { payload }) => {
     const numPanels = getNumPanels(state.panelLayout);
@@ -251,20 +250,22 @@ export default handleActions({
   },
   [SET_DIMENSION_VALUE]: (state, { payload }) => {
     const { mapId, layerIndex, dimensionName, value } = payload;
-
-    const stateCpy = cloneDeep(state);
-    const layer = stateCpy.panels[mapId].layers[layerIndex];
-    const layerDim = layer.dimensions.filter((dim) => dim.name === dimensionName);
-    if (layerDim.length !== 1) {
-      return state;
-    }
-    layerDim[0].currentValue = value;
-    return stateCpy;
+    return produce(state, draftState => {
+      const layer = draftState.panels[mapId].layers[layerIndex];
+      const layerDim = layer.dimensions.filter((dim) => dim.name === dimensionName);
+      if (layerDim.length !== 1) {
+        return;
+      }
+      layerDim[0].currentValue = value;
+    });
   },
   [SET_BASELAYER]: (state, { payload }) => {
     const { index, layer } = payload;
-    const stateCpy = cloneDeep(state);
-    Object.assign(stateCpy.panels[state.activePanelId].baselayers.filter((baselayer) => !baselayer.keepOnTop)[index], layer);
-    return stateCpy;
+    return produce(state, draftState => {
+      const baseLayer = draftState.panels[state.activePanelId].baselayers.filter((baselayer) => !baselayer.keepOnTop)[index];
+      baseLayer.name = layer.name;
+      baseLayer.service = layer.service;
+      baseLayer.type = layer.type;
+    });
   }
 }, INITIAL_STATE);

@@ -86,6 +86,7 @@
   "dependencies": {
     "@babel/polyfill": "^7.2.5",
     "@babel/runtime": "^7.3.1",
+    "adaguc-webmapjs": "3.3.25",
     "availity-reactstrap-validation": "^2.5.0",
     "axios": "^0.18.0",
     "bootstrap": "4.1.3",
@@ -96,7 +97,6 @@
     "fs-extra": "^7.0.1",
     "immer": "^2.0.0",
     "ip": "^1.1.5",
-    "jquery": "^3.3.1",
     "lodash.clonedeep": "^4.5.0",
     "lodash.escaperegexp": "^4.1.2",
     "lodash.get": "^4.4.2",
