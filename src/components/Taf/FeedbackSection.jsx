@@ -15,7 +15,7 @@ export default class FeedBackSection extends PureComponent {
       (a, b) => a.concat(Array.isArray(b) ? flatten(b) : b), []
     );
     return <Row className='TafFeedbackSection'>
-      <Alert color={status} className='col'>
+      <Alert color='primary' className='col'>
         <Row className='alert-heading'>
           <Col>{children.title || 'No title provided'}</Col>
         </Row>
@@ -32,8 +32,8 @@ export default class FeedBackSection extends PureComponent {
             <Col>
               <ListGroup>
                 {(flatten(Object.values(children.list.props.children).filter(v => Array.isArray(v)))).map((value, index) => {
-                  return (<ListGroupItem key={'errmessageno' + index} color={status}
-                    style={{ borderColor: '#a94442' }}>{(index + 1)} - {value}</ListGroupItem>);
+                  return (<ListGroupItem key={'errmessageno' + index} color='primary'
+                    style={{ borderColor: '#3377FF' }}>{(index + 1)} - {value}</ListGroupItem>);
                 })}
               </ListGroup>
             </Col>

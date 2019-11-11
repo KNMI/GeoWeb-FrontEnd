@@ -147,7 +147,7 @@ describe('(Reducer) Taf/TafReducers', () => {
     };
     dispatch(LOCAL_ACTIONS.discardTafAction(), container);
     expect(container.state).to.be.a('object');
-    expect(container.state).to.have.property('mode', MODES.EDIT);
+    expect(container.state).to.have.property('mode', MODES.READ);
     expect(container.state).to.have.property('selectedTaf');
     expect(container.state.selectedTaf).to.eql([]);
   });
@@ -169,10 +169,11 @@ describe('(Reducer) Taf/TafReducers', () => {
         selectedTaf: []
       }
     };
-    container.setState = (partialState) => {
+    container.setState = (partialState, callback) => {
       Object.entries(partialState).forEach((entry) => {
         container.state[entry[0]] = entry[1];
       });
+      if (callback) callback();
     };
     dispatch(LOCAL_ACTIONS.updateTafsAction(), container);
     moxios.wait(() => {
@@ -223,10 +224,11 @@ describe('(Reducer) Taf/TafReducers', () => {
         selectedTaf: []
       }
     };
-    container.setState = (partialState) => {
+    container.setState = (partialState, callback) => {
       Object.entries(partialState).forEach((entry) => {
         container.state[entry[0]] = entry[1];
       });
+      if (callback) callback();
     };
     dispatch(LOCAL_ACTIONS.updateTafsAction(), container);
     moxios.wait(() => {
@@ -316,10 +318,11 @@ describe('(Reducer) Taf/TafReducers', () => {
         selectedTaf: []
       }
     };
-    container.setState = (partialState) => {
+    container.setState = (partialState, callback) => {
       Object.entries(partialState).forEach((entry) => {
         container.state[entry[0]] = entry[1];
       });
+      if (callback) callback();
     };
     dispatch(LOCAL_ACTIONS.updateTafsAction(), container);
     moxios.wait(() => {
@@ -418,10 +421,11 @@ describe('(Reducer) Taf/TafReducers', () => {
         selectedTaf: []
       }
     };
-    container.setState = (partialState) => {
+    container.setState = (partialState, callback) => {
       Object.entries(partialState).forEach((entry) => {
         container.state[entry[0]] = entry[1];
       });
+      if (callback) callback();
     };
     dispatch(LOCAL_ACTIONS.updateTafsAction(), container);
     moxios.wait(() => {

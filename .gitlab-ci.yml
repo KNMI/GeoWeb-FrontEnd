@@ -1,0 +1,96 @@
+image: registry.gitlab.com/knmi/shs/knmi-build-image:latest
+
+variables:
+  DOCKER_DRIVER: overlay2
+  DOCKER_HOST: tcp://localhost:2375
+  REGION: eu-west-1
+
+services:
+  - docker:dind
+
+stages:
+  - assets
+  - lint
+  - test
+  - compile
+  - build
+
+assets:
+  image: registry.gitlab.com/knmi/shs/knmi-build-image:latest
+  stage: assets
+  before_script:
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
+  script:
+    - sh scripts/s3.sh -b knmi-geoweb-assets-$REGION
+  only:
+    refs:
+      - master
+
+.pre-build:
+  image: node:8-alpine
+  before_script:
+    - npm install
+  cache:
+    key: $CI_PROJECT_NAME_$CI_COMMIT_REF_NAME
+    policy: push
+    paths:
+      - node_modules/
+
+lint:
+  stage: lint
+  extends: .pre-build
+  script:
+    - npm run lint
+  cache:
+    key: $CI_PROJECT_NAME_$CI_COMMIT_REF_NAME
+    policy: pull
+    paths:
+      - node_modules/
+
+test:
+  stage: test
+  extends: .pre-build
+  script:
+    - npm test
+  cache:
+    key: $CI_PROJECT_NAME_$CI_COMMIT_REF_NAME
+    policy: pull
+    paths:
+      - node_modules/
+
+compile:
+  stage: compile
+  extends: .pre-build
+  script:
+    - npm run deploy:prod-quick
+  artifacts:
+    paths:
+      - dist/
+  cache:
+    key: $CI_PROJECT_NAME_$CI_COMMIT_REF_NAME
+    policy: pull
+    paths:
+      - node_modules/
+
+build:
+  stage: build
+  image: registry.gitlab.com/knmi/shs/knmi-build-image:latest
+  variables:
+    IMAGE_TAG: 1.0.$CI_COMMIT_SHORT_SHA.$CI_PIPELINE_ID
+    REPO_NAMESPACE: knmi
+    REPOSITORY: geoweb-frontend
+    ECR_REGISTRY_IMAGE: $BUILD_ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/$REPO_NAMESPACE/$REPOSITORY
+  before_script:
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
+  script:
+    - docker build -t $CI_REGISTRY_IMAGE:latest .
+    - docker push $CI_REGISTRY_IMAGE:latest
+    - docker tag $CI_REGISTRY_IMAGE:latest $CI_REGISTRY_IMAGE:$IMAGE_TAG
+    - docker push $CI_REGISTRY_IMAGE:$IMAGE_TAG
+    - "sh /build-utils/ecr.sh -n knmi -r $REPOSITORY -a $DTA_WLM_ACCOUNT_ID,$PRD_WLM_ACCOUNT_ID,$DTA_GEOWEB_ACCOUNT_ID,$PRD_GEOWEB_ACCOUNT_ID"
+    - $(aws ecr get-login --no-include-email --region $REGION)
+    - docker tag $CI_REGISTRY_IMAGE:latest $ECR_REGISTRY_IMAGE:$IMAGE_TAG
+    - docker push $ECR_REGISTRY_IMAGE:$IMAGE_TAG
+  only:
+    refs:
+      - master

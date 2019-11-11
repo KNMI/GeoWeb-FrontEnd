@@ -15,6 +15,8 @@ import { connect } from 'react-redux';
 import TasksContainer from '../containers/TasksContainer';
 import TriggersContainer from '../containers/TriggersContainer';
 
+import ExportedProductsContainer from '../containers/ExportedProductsContainer';
+
 import ProgtempManagementPanel from '../components/Management/ProgtempManagementPanel';
 import TafValidationManagementPanel from '../components/Management/TafValidationManagementPanel';
 import TafExampleTafManagementPanel from '../components/Management/TafExampleTafManagementPanel';
@@ -191,6 +193,8 @@ export const createRoutes = (store) => {
   const tafmanPanel = withCategoryConfiguration(ManagementCategoryPanel, managementCategoriesConfig.taf);
   const sigmanPanel = withCategoryConfiguration(ManagementCategoryPanel, managementCategoriesConfig.sigmet);
   const airmanPanel = withCategoryConfiguration(ManagementCategoryPanel, managementCategoriesConfig.airmet);
+  // Exports
+  const exportedProductsPanel = connect(mapStateToManagementPanelProps)(ExportedProductsContainer);
   return (
     /* Default route */
     <Route path='/' component={BaseLayout} title='GeoWeb'>
@@ -229,6 +233,13 @@ export const createRoutes = (store) => {
             </Route>
           </Route>
 
+        </Route>
+        <Route path='exportedproducts' title='Exported products'>
+          <Route component={SidebarredLayout} leftSidebar={leftSidebar} >
+            <Route component={FooteredLayout} >
+              <IndexRoute component={exportedProductsPanel} />
+            </Route>
+          </Route>
         </Route>
         <Route path='monitoring_and_triggers' title='Monitoring & Triggers'>
           <Route component={SidebarredLayout} secondLeftSidebar={trigger} leftSidebar={leftSidebar}>

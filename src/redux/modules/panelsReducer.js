@@ -17,8 +17,10 @@ const SET_PANEL_FEEDBACK = 'SET_PANEL_FEEDBACK';
 const RESET_LAYERS = 'RESET_LAYERS';
 const SET_DIMENSION_VALUE = 'SET_DIMENSION_VALUE';
 const SET_BASELAYER = 'SET_BASELAYER';
+const ADAGUC_ENABLE_MAP_PIN = 'ADAGUC_ENABLE_MAP_PIN';
 
 const addLayer = createAction(ADD_LAYER);
+const enableMapPin = createAction(ADAGUC_ENABLE_MAP_PIN);
 const setActiveLayer = createAction(SET_ACTIVE_LAYER);
 const addOverlaysLayer = createAction(ADD_OVERLAY_LAYER);
 const deleteLayer = createAction(DELETE_LAYER);
@@ -80,6 +82,7 @@ let INITIAL_STATE = {
 };
 
 export const actions = {
+  enableMapPin,
   addLayer,
   addOverlaysLayer,
   deleteLayer,
@@ -111,6 +114,13 @@ export default handleActions({
       draftState.panels[payload.activePanelId].layers.map((layer, i) => {
         layer.active = (i === payload.layerClicked);
       });
+    });
+  },
+  [ADAGUC_ENABLE_MAP_PIN]: (state, { payload }) => {
+    const panelId = payload.panelId;
+    const enabled = payload.enabled;
+    return produce(state, draftState => {
+      draftState.panels[panelId].enableMapPin = enabled;
     });
   },
   [SET_PANEL_TYPE]: (state, { payload }) => {

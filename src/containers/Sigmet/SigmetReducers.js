@@ -992,9 +992,10 @@ const setPanelFeedback = (message, container) => {
 };
 
 const cleanup = (container) => {
-  const { dispatch, drawActions } = container.props;
+  const { dispatch, drawActions, panelsActions } = container.props;
   setPanelFeedback(null, container);
   dispatch(drawActions.setGeoJSON(initialGeoJson()));
+  dispatch(panelsActions.enableMapPin({ panelId: 0, enabled: true }));
   return setStatePromise(container, {
     selectedAuxiliaryInfo: {
       feedbackStart: null,
@@ -1361,9 +1362,10 @@ const cancelSigmet = (event, container) => {
 };
 
 const setSigmetDrawing = (geojson, firName, container) => {
-  const { dispatch, drawActions } = container.props;
+  const { dispatch, drawActions, panelsActions } = container.props;
   const enhancedGeojson = addFirFeature(geojson, firName || null, container);
   dispatch(drawActions.setGeoJSON(enhancedGeojson || geojson));
+  dispatch(panelsActions.enableMapPin({ panelId: 0, enabled: false }));
   return Promise.resolve();
 };
 

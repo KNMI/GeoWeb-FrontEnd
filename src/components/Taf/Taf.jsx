@@ -665,7 +665,7 @@ class Taf extends Component {
       case READ_ABILITIES.CORRECT['dataField']:
         return tafType === LIFECYCLE_STAGE_NAMES.CANCELED || hasFollowUp === true;
       case READ_ABILITIES.AMEND['dataField']:
-        return !isInValidityPeriod || tafType === LIFECYCLE_STAGE_NAMES.CANCELED;
+        return tafType === LIFECYCLE_STAGE_NAMES.CANCELED;
       case READ_ABILITIES.CANCEL['dataField']:
         return !isInValidityPeriod || tafType === LIFECYCLE_STAGE_NAMES.CANCELED || hasFollowUp === true;
       default:
@@ -751,7 +751,7 @@ class Taf extends Component {
               endMoment={moment.utc(tafData.metadata.validityEnd)} />
             : null
           }
-          {validationFeedback && mode === MODES.EDIT
+          {validationFeedback
             ? <FeedbackSection status={validationFeedback.status ? validationFeedback.status : FEEDBACK_STATUSES.INFO} category={FEEDBACK_CATEGORIES.VALIDATION}>
               {validationFeedback.title
                 ? <span data-field='title'>{validationFeedback.title}</span>

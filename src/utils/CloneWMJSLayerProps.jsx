@@ -25,7 +25,7 @@ export const cloneWMJSLayerProps = (wmjsLayer) => {
   if (wmjsLayer.currentStyle) { layer.currentStyle = wmjsLayer.currentStyle; }
   if (wmjsLayer.sldURL) { layer.sldURL = wmjsLayer.sldURL; }
   if (wmjsLayer.format) layer.format = wmjsLayer.format; else layer.format = 'image/png';
-  if (wmjsLayer.opacity) { layer.opacity = wmjsLayer.opacity; }
+  if (wmjsLayer.opacity !== null) { layer.opacity = wmjsLayer.opacity; }
   if (wmjsLayer.title) layer.title = wmjsLayer.title;
   if (wmjsLayer.enabled === false) layer.enabled = false; else layer.enabled = true;
   if (wmjsLayer.keepOnTop === true) layer.keepOnTop = true;

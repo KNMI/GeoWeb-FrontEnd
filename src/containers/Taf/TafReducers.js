@@ -19,7 +19,7 @@ const STATUS_ICONS = {
 };
 
 /**
- * Creates all posible combinations of locations and timestamps, with a label
+ * Creates all possible combinations of locations and timestamps, with a label
  * @param {set} locations The locations to combine
  * @param {object} timestamps The timestamps to combine
  * @returns {array} The labeled combinations
@@ -147,26 +147,27 @@ const synchronizeSelectableTafs = (container) => {
   if (!urls || !urls.hasOwnProperty('BACKEND_SERVER_URL') || typeof urls.BACKEND_SERVER_URL !== 'string') {
     return;
   }
-
-  const tafResources = [
-    { url: `${urls.BACKEND_SERVER_URL}/tafs?active=true`, status: STATUSES.PUBLISHED },
-    { url: `${urls.BACKEND_SERVER_URL}/tafs?active=false&status=${STATUSES.CONCEPT}`, status: STATUSES.CONCEPT }
-  ];
-  tafResources.forEach((tafResource) => {
-    axios({
-      method: 'get',
-      url: tafResource.url,
-      withCredentials: true,
-      responseType: 'json'
-    }).then(response => {
-      if (response.data && Number.isInteger(response.data.ntafs)) {
-        if (!Array.isArray(response.data.tafs)) {
-          response.data.tafs = [];
+  container.setState({ selectableTafs: [] }, () => {
+    const tafResources = [
+      { url: `${urls.BACKEND_SERVER_URL}/tafs?active=true`, status: STATUSES.PUBLISHED },
+      { url: `${urls.BACKEND_SERVER_URL}/tafs?active=false&status=${STATUSES.CONCEPT}`, status: STATUSES.CONCEPT }
+    ];
+    tafResources.forEach((tafResource) => {
+      axios({
+        method: 'get',
+        url: tafResource.url,
+        withCredentials: true,
+        responseType: 'json'
+      }).then(response => {
+        if (response.data && Number.isInteger(response.data.ntafs)) {
+          if (!Array.isArray(response.data.tafs)) {
+            response.data.tafs = [];
+          }
+          updateSelectableTafs(container, response.data.tafs, tafResource.status);
         }
-        updateSelectableTafs(container, response.data.tafs, tafResource.status);
-      }
-    }).catch(error => {
-      console.error('Couldn\'t retrieve TAFs', error);
+      }).catch(error => {
+        console.error('Couldn\'t retrieve TAFs', error);
+      });
     });
   });
 };
@@ -242,9 +243,9 @@ const updateFeedback = (title, status, category, subTitle, list, container, call
   }
   container.setState(produce(state, draftState => {
     draftState.feedback[category] = {
-      title: title,
+      title: title ? typeof title === 'string' ? title : JSON.stringify(title) : null,
       status: status,
-      subTitle: subTitle,
+      subTitle: subTitle ? typeof subTitle === 'string' ? subTitle : JSON.stringify(subTitle) : null,
       list: list
     };
   }), () => callback(container));
@@ -275,7 +276,8 @@ const wrapIntoSelectableTaf = (tafData) => {
     }
   }
   const location = tafData.metadata.location.toUpperCase();
-  const timestamp = moment.utc(tafData.metadata.validityStart);
+  /* Very important to use baseTime as preference over validityStart, so we know the original time in the list. */
+  const timestamp = moment.utc(tafData.metadata.baseTime || tafData.metadata.validityStart);
   const time = timestamp.format(TIMELABEL_FORMAT);
   const date = timestamp.format(DATELABEL_FORMAT);
 
@@ -406,6 +408,7 @@ const updateSelectableTafs = (container, tafs, status) => {
       }
     }
   }), () => {
+    const { state } = container;
     if (state && state.selectedTaf && state.selectedTaf.length === 1) {
       validateTaf(state.selectedTaf[0].tafData, container);
     }
@@ -447,11 +450,14 @@ const selectTaf = (selection, container) => {
     }
     draftState.selectedTaf.length = 0;
     draftState.selectedTaf.push(selection[0]);
-    if (selection[0].tafData && selection[0].tafData.metadata && selection[0].tafData.metadata.status &&
-      selection[0].tafData.metadata.status === STATUSES.NEW) {
-      draftState.mode = MODES.EDIT;
+    draftState.mode = MODES.READ;
+    if (selection[0].tafData && selection[0].tafData.metadata && selection[0].tafData.metadata.status) {
+      if (selection[0].tafData.metadata.status === STATUSES.NEW) {
+        draftState.mode = MODES.EDIT;
+      }
     }
   }), () => {
+    const { state } = container;
     if (state && state.selectedTaf && state.selectedTaf.length === 1) {
       validateTaf(state.selectedTaf[0].tafData, container);
     }
@@ -462,7 +468,7 @@ const discardTaf = (event, shouldSwitch, container) => {
   const { state } = container;
   container.setState(produce(state, draftState => {
     const { selectedTaf } = state;
-    draftState.mode = MODES.EDIT;
+    draftState.mode = MODES.READ;
     draftState.displayModal = null;
     draftState.selectedTaf.length = 0;
     if (shouldSwitch) {
@@ -478,6 +484,7 @@ const discardTaf = (event, shouldSwitch, container) => {
       }
     }
   }), () => {
+    const { state } = container;
     if (state && state.selectedTaf && state.selectedTaf.length === 1) {
       validateTaf(state.selectedTaf[0].tafData, container);
     }
@@ -590,6 +597,63 @@ const saveTaf = (event, container) => {
 };
 
 /**
+ * Deletes a taf by given uuid, returns a promise.
+ * @param {*} container The container
+ * @param {*} uuid The uuid of the taf.
+ * @return A promise
+ */
+const deleteTAFByUUID = (container, uuid) => {
+  const { BACKEND_SERVER_URL } = container.props.urls;
+  return axios({
+    method: 'delete',
+    url: `${BACKEND_SERVER_URL}/tafs/${uuid}`,
+    withCredentials: true,
+    responseType: 'json'
+  });
+};
+
+/** Saving concept TAF to backend and deleting it right away while returning its information.
+ * @param {Element} container The container in which the save action was triggered
+ * @returns {Promise}
+ */
+const checkConceptTafPromise = (container, tafToCheck) => {
+  return new Promise((resolve, reject) => {
+    const { BACKEND_SERVER_URL } = container.props.urls;
+    if (!tafToCheck) {
+      reject(new Error('Unable to save TAF: No TAF is selected'));
+      return;
+    }
+    /* Sanitize TAF and set its status to CONCEPT and clear its uuid */
+    const taf = sanitizeTaf(produce(tafToCheck.tafData, draft => {
+      draft.metadata.status = STATUSES.CONCEPT;
+      draft.metadata.uuid = null;
+    })).taf;
+
+    /* Post the TAF as concept to the backend, the backend will return a modified version */
+    axios({
+      method: 'post',
+      url: `${BACKEND_SERVER_URL}/tafs`,
+      withCredentials: true,
+      data: JSON.stringify(taf),
+      headers: { 'Content-Type': 'application/json' }
+    }).then(response => {
+      /* Try to obtain the id from the saved concept TAF */
+      let uuid = null;
+      try {
+        uuid = response.data.tafjson.metadata.uuid;
+      } catch (e) { console.error('POST TAF: No uuid obtained from backend', response); }
+      /* Now delete this TAF directly by UUID */
+      deleteTAFByUUID(container, uuid).finally(() => {
+        resolve(response);
+      });
+    }).catch(error => {
+      console.error('Couldn\'t check TAF', error);
+      reject(new Error('Unable to checkConceptTafPromise TAF'));
+    });
+  });
+};
+
+/**
  * Saving TAF to backend
  * @param {object} event The event that triggered saving
  * @param {Element} container The container in which the save action was triggered
@@ -601,6 +665,7 @@ const saveTafPromise = (event, container) => {
     const { selectedTaf } = state;
     const { BACKEND_SERVER_URL } = props.urls;
     if (!selectedTaf || !Array.isArray(selectedTaf) || selectedTaf.length !== 1 || !BACKEND_SERVER_URL) {
+      console.error('!selectedTaf', selectedTaf);
       reject(new Error('Unable to save TAF: No TAF is selected'));
       return;
     }
@@ -657,6 +722,7 @@ const deleteTaf = (event, container) => {
   const { selectedTaf } = state;
   const { BACKEND_SERVER_URL } = props.urls;
   if (!selectedTaf || !Array.isArray(selectedTaf) || selectedTaf.length !== 1 || !BACKEND_SERVER_URL) {
+    console.error('!selectedTaf', selectedTaf);
     return;
   }
   const uuid = selectedTaf[0].tafData.metadata.uuid;
@@ -667,17 +733,13 @@ const deleteTaf = (event, container) => {
     draftState.mode = MODES.EDIT;
     draftState.displayModal = null;
   }), () => {
-    axios({
-      method: 'delete',
-      url: `${BACKEND_SERVER_URL}/tafs/${uuid}`,
-      withCredentials: true,
-      responseType: 'json'
-    }).then(response => {
+    deleteTAFByUUID(container, uuid).then(response => {
       updateFeedback('TAF has been deleted', FEEDBACK_STATUSES.SUCCESS, FEEDBACK_CATEGORIES.LIFECYCLE, response.data, null, container, synchronizeSelectableTafs);
     }).catch(error => {
       console.error('Couldn\'t delete TAF', error);
       updateFeedback('Couldn\'t delete TAF',
         FEEDBACK_STATUSES.ERROR, FEEDBACK_CATEGORIES.LIFECYCLE, null, null, container, () => {
+          const { state } = container;
           container.setState(produce(state, draftState => {
             draftState.mode = MODES.READ;
           }));
@@ -739,7 +801,7 @@ const publishTaf = (event, container) => {
       const { dispatch } = props;
       dispatch(notify({
         title:'Error: Unable to publish TAF',
-        message: e,
+        message: JSON.stringify(e, null, 2),
         status: 'error',
         position: 'bl',
         dismissible: false
@@ -754,10 +816,13 @@ const publishTaf = (event, container) => {
  * @param {Element} container The container in which the create amendation action was triggered
  */
 const amendTaf = (event, container) => {
-  const { state } = container;
-  if (container.state.selectedTaf[0].tafData.metadata.status !== STATUSES.PUBLISHED) {
-    return;
+  const { selectedTaf } = container.state;
+  if (!selectedTaf || !Array.isArray(selectedTaf) || selectedTaf.length !== 1) {
+    console.error('Unable to save TAF: No TAF is selected');
+    throw (new Error('Unable to save TAF: No TAF is selected'));
   }
+  /* Set the properties of the TAF to amended */
+  const { state } = container;
   container.setState(produce(state, draftState => {
     draftState.selectedTaf[0].tafData.metadata.previousUuid = draftState.selectedTaf[0].tafData.metadata.uuid;
     draftState.selectedTaf[0].tafData.metadata.uuid = null;
@@ -765,7 +830,21 @@ const amendTaf = (event, container) => {
     draftState.selectedTaf[0].tafData.metadata.status = STATUSES.CONCEPT;
     draftState.selectedTaf[0].tafData.metadata.type = LIFECYCLE_STAGE_NAMES.AMENDMENT;
     draftState.mode = MODES.EDIT;
-  }));
+  }), () => {
+    /* Create a temporary TAF object to send to the backend, and use its info on the amended TAF */
+    checkConceptTafPromise(container, container.state.selectedTaf[0])
+      .then((response) => {
+        const checkedConceptTaf = response.data.tafjson;
+        if (checkedConceptTaf) {
+          const { state } = container;
+          container.setState(produce(state, draftState => {
+            /* Update the validity start immediately */
+            draftState.selectedTaf[0].tafData.metadata.validityStart = checkedConceptTaf.metadata.validityStart;
+            draftState.mode = MODES.EDIT;
+          }));
+        }
+      });
+  });
 };
 
 /**
@@ -821,6 +900,7 @@ const addTafRow = (rowIndex, container) => {
   const { state } = container;
   const { selectedTaf } = state;
   if (!selectedTaf || !Array.isArray(selectedTaf) || selectedTaf.length !== 1) {
+    console.error('!selectedTaf', selectedTaf);
     return;
   }
   if (typeof rowIndex !== 'number') {
@@ -840,6 +920,7 @@ const removeTafRow = (rowIndex, container) => {
   const { state } = container;
   const { selectedTaf } = state;
   if (!selectedTaf || !Array.isArray(selectedTaf) || selectedTaf.length !== 1 || typeof rowIndex !== 'number') {
+    console.error('!selectedTaf', selectedTaf);
     return;
   }
   container.setState(produce(state, draftState => {
@@ -907,7 +988,7 @@ const updateTAC = (TAC, container) => {
   const { state } = container;
   const { selectedTaf } = state;
   if (!selectedTaf || !Array.isArray(selectedTaf) || selectedTaf.length !== 1) {
-    console.error('No TAF selected');
+    console.error('No TAF selected', selectedTaf);
     return;
   }
   container.setState(produce(state, draftState => {

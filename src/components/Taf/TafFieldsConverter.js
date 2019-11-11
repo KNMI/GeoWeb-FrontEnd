@@ -454,8 +454,8 @@ const tacToJsonForTimestamp = (timestampAsTac, scopeStart, scopeEnd, useFallback
         if (scopeEndMoment.month() !== scopeStartMoment.month() && dateValue < 15) {
           resultMoment.add(1, 'months');
         }
-        result = resultMoment.format('YYYY-MM-DDTHH:mm:ss') + 'Z';
       }
+      result = resultMoment.format('YYYY-MM-DDTHH:mm:ss') + 'Z';
     }
   }
   if (useFallback && !result && timestampAsTac && typeof timestampAsTac === 'string') {

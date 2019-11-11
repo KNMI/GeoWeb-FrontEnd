@@ -1,6 +1,6 @@
 {
   "name": "geoweb-frontend",
-  "version": "0.54.0",
+  "version": "1.0.2",
   "description": "GeoWeb FrontEnd is the platform for the Early Warning Center and Weather Room",
   "main": "index.js",
   "engines": {
@@ -86,7 +86,7 @@
   "dependencies": {
     "@babel/polyfill": "^7.2.5",
     "@babel/runtime": "^7.3.1",
-    "adaguc-webmapjs": "3.3.5",
+    "adaguc-webmapjs": "3.3.25",
     "availity-reactstrap-validation": "^2.5.0",
     "axios": "^0.18.0",
     "bootstrap": "4.1.3",
@@ -182,7 +182,7 @@
     "jsdom-global": "^3.0.2",
     "mocha": "^5.2.0",
     "moxios": "^0.4.0",
-    "node-sass": "^4.11.0",
+    "node-sass": "^4.12.0",
     "nyc": "^13.3.0",
     "precommit-hook": "^3.0.0",
     "react-addons-perf": "^15.4.2",

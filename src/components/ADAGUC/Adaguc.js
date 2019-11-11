@@ -47,6 +47,7 @@ export default class Adaguc extends PureComponent {
     const element = this.refs.adaguccontainer;
     if (element) {
       this.webMapJS.setSize(element.clientWidth, element.clientHeight);
+      this.webMapJS.draw();
     }
   }
   updateBBOX (wmjsmap) {
@@ -169,6 +170,9 @@ export default class Adaguc extends PureComponent {
       elementResizeEvent(this.refs.adaguccontainer, this.resize);
     }
     this.interval = setInterval(this.reparseLayers, moment.duration(1, 'minute').asMilliseconds());
+    if (this.webMapJS) {
+      this.webMapJS.draw();
+    }
   }
 
   componentWillMount () {
@@ -448,7 +452,7 @@ export default class Adaguc extends PureComponent {
 
   /* istanbul ignore next */
   componentDidUpdate (prevProps) {
-    const { mapProperties, adagucProperties, active } = this.props;
+    const { mapProperties, adagucProperties, active, mapId, panelsProperties } = this.props;
     const { boundingBox, mapMode, projection } = mapProperties;
     const { timeDimension, cursor } = adagucProperties;
     const { code } = projection;
@@ -462,6 +466,16 @@ export default class Adaguc extends PureComponent {
     this.updateBoundingBox(boundingBox, prevBoundingBox, code, prevCode);
     this.updateTime(timeDimension, prevTimeDimension || null);
     this.updateMapMode(mapMode, prevMapMode, active);
+
+    // Enable or disable the mappin
+    const currentPanelProps = panelsProperties.panels[mapId];
+    if (currentPanelProps) {
+      if (currentPanelProps.enableMapPin !== false) {
+        this.webMapJS.showMapPin();
+      } else {
+        this.webMapJS.hideMapPin();
+      }
+    }
 
     // Track cursor if necessary
     if (cursor && cursor.location && cursor !== prevCursor) {

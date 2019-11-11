@@ -5,6 +5,7 @@
 @import 'slider';
 @import 'taftable';
 @import 'taf';
+@import 'exportedproducts';
 @import 'popover';
 @import 'datetime';
 @import 'layermanager';
@@ -315,10 +316,11 @@ button.search-clear.btn.btn-secondary:disabled {
   box-shadow: unset;
 }
 
-.missing {
+.missing, .invalid {
   &.form-control,
   .form-control, .form-control.rbt-input {
     border-color: #d9534f;
+    border-width: medium;
   }
 }
 
