@@ -5,6 +5,7 @@
 * Updated version of adaguc-webmapjs from 3.0.4 to 3.2.25
 * Refactored the panelReducer which interacts with adaguc-webmapjs. Replaced cloneDeep with immer's produce where possible
 * The redux state was becoming too big by putting the complete WMJSLayer object on the redux state. To prevent this, there is now a cloneWMJSLayerProps method which clone the a WMJSLayer instance properties required for the redux state.
+* Removed "Aviation Message Converter" version info
 
 2019-11-07
 * Improved the user experience in Sigmet read-mode: when the Sigmet is not publishable, the mistake is highlight in red color
