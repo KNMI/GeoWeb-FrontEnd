@@ -1,6 +1,10 @@
 2019-11-11
 * Merged master into style/ADAGUC/from_npm
-* hide map pin during sigmet drawing
+* Hide map pin during sigmet drawing
+* Replaced the static adaguc-webmapjs.js file with the new NPM package. This solves an issue for the DWD where they want to add local WMS from their own workstation to GeoWeb-FrontEnd.
+* Updated version of adaguc-webmapjs from 3.0.4 to 3.2.25
+* Refactored the panelReducer which interacts with adaguc-webmapjs. Replaced cloneDeep with immer's produce where possible
+* The redux state was becoming too big by putting the complete WMJSLayer object on the redux state. To prevent this, there is now a cloneWMJSLayerProps method which clone the a WMJSLayer instance properties required for the redux state.
 
 2019-11-07
 * Improved the user experience in Sigmet read-mode: when the Sigmet is not publishable, the mistake is highlight in red color
