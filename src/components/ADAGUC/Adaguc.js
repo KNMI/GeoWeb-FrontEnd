@@ -498,7 +498,7 @@ export default class Adaguc extends PureComponent {
           this.layersChangedListenerInitialized = true;
           this.webMapJS.addListener('onnextanimationstep', dispatchTime, true);
         }
-        this.webMapJS.setAnimationDelay(200);
+        this.webMapJS.setAnimationDelay(150);
         this.webMapJS.drawLastTimes(animationSettings.duration, 'hours');
       } else {
         this.webMapJS.stopAnimating();

@@ -106,7 +106,6 @@
     "lodash.set": "^4.3.2",
     "lodash.unset": "^4.5.2",
     "moment": "^2.24.0",
-    "proj4": "^2.5.0",
     "prop-types": "^15.7.1",
     "rc-slider": "^8.6.5",
     "react": "^16.8.1",

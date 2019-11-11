@@ -44,7 +44,6 @@ export default class Layer extends PureComponent {
     const { dispatch, panelsActions, index, activePanelId } = this.props;
     const { name, text } = newValue;
     const newLayer = { ...this.props.layer, name, title: text, id: generateLayerId() };
-    console.log('alterlayer');
     new WMJSLayer(newLayer).parseLayer((parsedLayer) => {
       const layer = cloneWMJSLayerProps(parsedLayer);
       dispatch(panelsActions.replaceLayer({ mapId: activePanelId, index: index, layer: layer }));
