@@ -68,7 +68,6 @@ class TitleBarContainer extends PureComponent {
       sharePresetName: '',
       fieldToFocus: null,
       versionInfo: {
-        messageconverter: '...',
         backend: '...',
         frontend: version
       }
@@ -322,7 +321,6 @@ class TitleBarContainer extends PureComponent {
           <ul>
             <li>Frontend: {this.state.versionInfo.frontend}</li>
             <li>Backend: {this.state.versionInfo.backend}</li>
-            <li>Message converter: {this.state.versionInfo.messageconverter}</li>
           </ul>
           <FormText color='muted'>
             {loginModalMessage ? null : 'Backend: ' + urls.BACKEND_SERVER_URL}
@@ -476,7 +474,6 @@ class TitleBarContainer extends PureComponent {
     axios.get(this.props.urls.BACKEND_SERVER_URL + '/versioninfo/version', { withCredentials: true }).then((res) => {
       this.setState({ versionInfo: {
         ...this.state.versionInfo,
-        messageconverter: res.data.messageconverter,
         backend: res.data.backend
       } });
     }).catch((error) => {
