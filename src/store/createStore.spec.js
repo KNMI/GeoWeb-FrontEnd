@@ -65,7 +65,7 @@ describe('(Store) createStore', () => {
 
   before(() => {
     fetchMock.get('*', { BACKEND_SERVER_URL: 'http://localhost:8080' });
-    GetServiceByNamePromise(BACKEND_SERVER_URL, 'Harmonie36').then((service) => {
+    GetServiceByNamePromise(BACKEND_SERVER_URL, '', 'Harmonie36').then((service) => {
       initialState.adagucProperties.source.service = service;
     });
   });

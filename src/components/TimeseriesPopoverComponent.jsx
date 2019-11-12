@@ -35,7 +35,7 @@ export default class ProgtempPopoverComponent extends Component {
   }
 
   setReferenceTime (model) {
-    return GetServiceByNamePromise(this.props.urls.BACKEND_SERVER_URL, 'Harmonie36').then(
+    return GetServiceByNamePromise(this.props.urls.BACKEND_SERVER_URL, this.props.urls.BACKEND_SERVER_XML2JSON, 'Harmonie36').then(
       (serviceURL) => {
         try {
           let referenceTimeRequestURL = serviceURL + '&SERVICE=WMS&VERSION=1.3.0&REQUEST=GetReferenceTimes&LAYERS=air_temperature__at_2m';
@@ -143,6 +143,7 @@ ProgtempPopoverComponent.propTypes = {
   dispatch: PropTypes.func.isRequired,
   adagucActions: PropTypes.object.isRequired,
   urls: PropTypes.shape({
-    BACKEND_SERVER_URL: PropTypes.string
+    BACKEND_SERVER_URL: PropTypes.string,
+    BACKEND_SERVER_XML2JSON: PropTypes.string
   })
 };

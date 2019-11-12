@@ -122,7 +122,7 @@ class MapPanel extends PureComponent {
     });
   }
   componentWillMount () {
-    GetServiceByNamePromise(this.props.urls.BACKEND_SERVER_URL, 'Harmonie36').then(
+    GetServiceByNamePromise(this.props.urls.BACKEND_SERVER_URL, this.props.urls.BACKEND_SERVER_XML2JSON, 'Harmonie36').then(
       (serviceURL) => {
         try {
           let referenceTimeRequestURL = serviceURL + '&SERVICE=WMS&VERSION=1.3.0&REQUEST=GetReferenceTimes&LAYERS=air_temperature__at_2m';
@@ -333,7 +333,8 @@ MapPanel.propTypes = {
   mapProperties: PropTypes.object.isRequired,
   adagucProperties: PropTypes.object.isRequired,
   urls: PropTypes.shape({
-    BACKEND_SERVER_URL: PropTypes.string
+    BACKEND_SERVER_URL: PropTypes.string,
+    BACKEND_SERVER_XML2JSON: PropTypes.string
   }),
   panelsProperties: PropTypes.object,
   dispatch: PropTypes.func.isRequired,
