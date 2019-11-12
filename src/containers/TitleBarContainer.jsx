@@ -77,7 +77,7 @@ class TitleBarContainer extends PureComponent {
   getServices () {
     const { urls, dispatch, adagucActions } = this.props;
 
-    GetServices(urls.BACKEND_SERVER_URL).then((sources) => {
+    GetServices(urls.BACKEND_SERVER_URL, urls.BACKEND_SERVER_XML2JSON).then((sources) => {
       dispatch(adagucActions.setSources(sources));
     });
   }
@@ -679,7 +679,7 @@ class LayoutDropDown extends PureComponent {
   handleAddSource (e) {
     var url = document.querySelector('#sourceurlinput').value;
     let items = JSON.parse(localStorage.getItem('geoweb'));
-    var getCap = WMJSGetServiceFromStore(url);
+    var getCap = WMJSGetServiceFromStore(url, this.props.urls.BACKEND_SERVER_XML2JSON);
     this.setState({ getCapBusy: true });
     getCap.getCapabilities((e) => {
       this.setState({ getCapBusy: false });
@@ -1047,7 +1047,8 @@ LayoutDropDown.propTypes = {
   presets: PropTypes.array,
   panelsActions: PropTypes.object,
   urls: PropTypes.shape({
-    BACKEND_SERVER_URL: PropTypes.string
+    BACKEND_SERVER_URL: PropTypes.string,
+    BACKEND_SERVER_XML2JSON: PropTypes.string
   }),
   panelsProperties: PropTypes.shape({
     panels: PropTypes.array
