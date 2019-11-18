@@ -192,3 +192,18 @@ Both `.scss` and `.css` file extensions are supported out of the box. After bein
 ### Server
 
 This starter kit comes packaged with an Express server. It's important to note that the sole purpose of this server is to provide `webpack-dev-middleware` and `webpack-hot-middleware` for hot module replacement. Using a custom Express app in place of [webpack-dev-server](https://github.com/webpack/webpack-dev-server) makes it easier to extend the starter kit to include functionality such as API's, universal rendering, and more -- all without bloating the base boilerplate.
+
+## Docker
+
+You can build a local docker version by doing:
+```
+docker build -t geoweb-frontend -f Dockerfile.nodebuild .
+```
+
+You can start it via:
+
+```
+docker run -it -p 10000:80 -e GEOWEBBACKENDURL=https://geoweb.knmi.nl/backend -e BACKEND_SERVER_XML2JSON=https://geoweb.knmi.nl/backend/XML2JSON geoweb-frontend 
+```
+
+The geoweb-frontend will now be connected to https://geoweb.knmi.nl/backend and run over port 10000.
