@@ -29,6 +29,11 @@ export default class FirSection extends PureComponent {
             {children.location_indicator_icao}
           </Col>
         </Row>
+        <Row>
+          <Col xs={{ size: 9, offset: 3 }}>
+            {children.geometry}
+          </Col>
+        </Row>
       </Col>
     </Row>;
   }

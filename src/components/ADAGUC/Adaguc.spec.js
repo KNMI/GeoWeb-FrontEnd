@@ -1,5 +1,5 @@
 import React from 'react';
-import { default as Adaguc } from './Adaguc';
+import Adaguc from './Adaguc';
 import reducer from '../../redux/reducers';
 import { shallow } from 'enzyme';
 import sinon from 'sinon';
@@ -104,47 +104,6 @@ describe('(Component) Adaguc', () => {
     };
     _dispatchSpy = sinon.spy((action) => {
       _globalState = reducer(_globalState, action);
-    });
-  });
-
-  before(() => {
-    const emptyFunc = () => null;
-    global.getCurrentDateIso8601 = () => {
-      return { toISO8601: emptyFunc };
-    };
-    global.WMJSLayer = sinon.stub().returns({});
-    global.WMJSMap = sinon.stub().returns({
-      addLayer: emptyFunc,
-      addListener: emptyFunc,
-      destroy: emptyFunc,
-      draw: emptyFunc,
-      drawAutomatic: emptyFunc,
-      getActiveLayer: emptyFunc,
-      getBaseLayers: emptyFunc,
-      getDimension: emptyFunc,
-      getLatLongFromPixelCoord: emptyFunc,
-      getLayers: emptyFunc,
-      getListener: emptyFunc,
-      getPixelCoordFromLatLong: emptyFunc,
-      positionMapPinByLatLon: emptyFunc,
-      removeAllLayers: emptyFunc,
-      removeListener: emptyFunc,
-      setActive: emptyFunc,
-      setAnimationDelay: emptyFunc,
-      setBaseLayers: emptyFunc,
-      setBaseURL: emptyFunc,
-      setBBOX: emptyFunc,
-      setDimension: emptyFunc,
-      setMapModeNone: emptyFunc,
-      setMapModePan: emptyFunc,
-      setMapModeZoomBoxIn: emptyFunc,
-      setMessage: emptyFunc,
-      setProjection: emptyFunc,
-      setSize: emptyFunc,
-      setTimeOffset: emptyFunc,
-      setWMJSTileRendererTileSettings: emptyFunc,
-      showDialogs: emptyFunc,
-      stopAnimating: emptyFunc
     });
   });
 

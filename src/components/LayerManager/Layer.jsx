@@ -9,7 +9,9 @@ import Slider from 'rc-slider';
 import { Icon } from 'react-fa';
 import PropTypes from 'prop-types';
 import { MAP_STYLES } from '../../constants/map_styles';
-
+import { WMJSLayer } from 'adaguc-webmapjs';
+import { cloneWMJSLayerProps } from '../../utils/CloneWMJSLayerProps';
+import { generateLayerId, getWMJSLayerById } from '../../utils/ReactWMJSTools';
 require('rc-slider/assets/index.css');
 
 export default class Layer extends PureComponent {
@@ -35,31 +37,30 @@ export default class Layer extends PureComponent {
 
   alterBaseLayer (newBaseLayer) {
     const { dispatch, panelsActions, index, activePanelId } = this.props;
-    // eslint-disable-next-line no-undef
     dispatch(panelsActions.setBaseLayer({ mapId: activePanelId, index: index, layer: new WMJSLayer(newBaseLayer) }));
   }
 
   alterLayer (newValue) {
     const { dispatch, panelsActions, index, activePanelId } = this.props;
     const { name, text } = newValue;
-    const newLayer = { ...this.props.layer, name, title: text };
-    // eslint-disable-next-line no-undef
-    new WMJSLayer(newLayer).parseLayer((l) => {
-      dispatch(panelsActions.replaceLayer({ mapId: activePanelId, index: index, layer: l }));
+    const newLayer = { ...this.props.layer, name, title: text, id: generateLayerId() };
+    new WMJSLayer(newLayer).parseLayer((parsedLayer) => {
+      const layer = cloneWMJSLayerProps(parsedLayer);
+      dispatch(panelsActions.replaceLayer({ mapId: activePanelId, index: index, layer: layer }));
     });
   }
 
   alterStyle (newValue) {
     const { dispatch, panelsActions, index, activePanelId } = this.props;
     const newLayer = { ...this.props.layer };
-    newLayer.setStyle(newValue);
+    newLayer.currentStyle = newValue;
     dispatch(panelsActions.replaceLayer({ mapId: activePanelId, index: index, layer: newLayer }));
   }
 
   alterOpacity (newValue) {
     const { dispatch, panelsActions, index, activePanelId } = this.props;
     const newLayer = { ...this.props.layer };
-    newLayer.setOpacity(newValue);
+    newLayer.opacity = newValue;
     dispatch(panelsActions.replaceLayer({ mapId: activePanelId, index: index, layer: newLayer }));
   }
 
@@ -171,7 +172,9 @@ export default class Layer extends PureComponent {
   renderRemainingDimensions (layer, id) {
     const { dispatch, panelsActions, index, activePanelId } = this.props;
 
-    const dimensions = layer.dimensions;
+    const wmjsLayer = getWMJSLayerById(layer.id);
+    if (!wmjsLayer) return;
+    const dimensions = wmjsLayer.dimensions;
     if (!dimensions || !Array.isArray(dimensions)) return;
 
     const remainingDimensions = dimensions.filter((dim) => dim.name !== 'time' && dim.name !== 'reference_time');
@@ -203,7 +206,8 @@ export default class Layer extends PureComponent {
 
   render () {
     const { layer, color, index } = this.props;
-    const styles = layer && layer.styles ? layer.styles.map((styleObj) => styleObj.name) : [];
+    const wmjsLayer = getWMJSLayerById(layer.id);
+    const styles = wmjsLayer && wmjsLayer.styles ? wmjsLayer.styles.map((styleObj) => styleObj.name) : [];
     switch (this.props.role) {
       case 'datalayers':
         let refTime = null;
@@ -216,23 +220,23 @@ export default class Layer extends PureComponent {
           {this.renderStyleChanger()}
           {this.renderOpacityChanger()}
 
-          <ConcreteCell active={layer.active} color={color}>{layer.WMJSService.title}</ConcreteCell>
+          <ConcreteCell active={layer.active} color={color}>{(wmjsLayer && wmjsLayer.WMJSService && wmjsLayer.WMJSService.title) || '-'}</ConcreteCell>
           <EditableCell id={'layer' + id} onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
-            layer.WMJSService.getLayerObjectsFlat((layers) => {
-              this.setState({ layerChangerOpen: true, target: 'layer'+ id, serviceLayers: layers });
+            wmjsLayer.WMJSService.getLayerObjectsFlat((layers) => {
+              this.setState({ layerChangerOpen: true, target: 'layer' + id, serviceLayers: layers });
             });
           }} active={layer.active} color={color}>{layer.title}</EditableCell>
           <EditableCell id={'style' + id} onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
-            this.setState({ styleChangerOpen: true, target: 'style'+ id, serviceStyles: styles });
+            this.setState({ styleChangerOpen: true, target: 'style' + id, serviceStyles: styles });
           }} active={layer.active} color={color}>{layer.currentStyle}</EditableCell>
           <EditableCell id={'opacity' + id} onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
-            this.setState({ opacityChangerOpen: true, target: 'opacity'+id });
+            this.setState({ opacityChangerOpen: true, target: 'opacity' + id });
           }} active={layer.active} color={color}>{parseInt(layer.opacity * 100) + '%'}</EditableCell>
           <ConcreteCell active={layer.active} color={color}>{refTime ? refTime.currentValue : null}</ConcreteCell>
           {this.renderRemainingDimensions(layer, id)}</Col>);

@@ -1,3 +1,21 @@
+2019-11-11
+* Merged master into style/ADAGUC/from_npm
+* Hide map pin during sigmet drawing
+* Replaced the static adaguc-webmapjs.js file with the new NPM package. This solves an issue for the DWD where they want to add local WMS from their own workstation to GeoWeb-FrontEnd.
+* Updated version of adaguc-webmapjs from 3.0.4 to 3.2.25
+* Refactored the panelReducer which interacts with adaguc-webmapjs. Replaced cloneDeep with immer's produce where possible
+* The redux state was becoming too big by putting the complete WMJSLayer object on the redux state. To prevent this, there is now a cloneWMJSLayerProps method which clone the a WMJSLayer instance properties required for the redux state.
+* Removed "Aviation Message Converter" version info
+
+2019-11-07
+* Improved the user experience in Sigmet read-mode: when the Sigmet is not publishable, the mistake is highlight in red color
+
+2019-11-06
+* (Fix) GW-172: It is not possible anymore to have lower level higher than upper level.
+* (Fix) GW-170: Added extra decimal and better explanation in placeholder and tooltip of Lat and Lon for Vulcano
+* (Fix) GW-212: Future time is not possible anymore with Observed Sigmet
+* (Fix) GW-210: Increased the border thickness around the fields with mistakes in Sigmet Edit mode
+
 2019-11-04
 * Added product export viewer, go to /#/exportedproducts
 

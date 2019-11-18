@@ -39,7 +39,7 @@ export default class TimeseriesComponent extends PureComponent {
     if (!(model && location && referenceTime)) return;
     const refTimeStr = referenceTime.format('YYYY-MM-DDTHH:mm:ss') + 'Z';
 
-    return GetServiceByNamePromise(this.props.urls.BACKEND_SERVER_URL, 'Harmonie36').then(
+    return GetServiceByNamePromise(this.props.urls.BACKEND_SERVER_URL, this.props.urls.BACKEND_SERVER_XML2JSON, 'Harmonie36').then(
       (serviceURL) => {
         try {
           let url = serviceURL + '&SERVICE=WMS&VERSION=1.3.0&REQUEST=GetPointValue&LAYERS=&' +

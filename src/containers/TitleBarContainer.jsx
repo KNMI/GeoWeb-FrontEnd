@@ -21,6 +21,8 @@ import cloneDeep from 'lodash.clonedeep';
 import { Typeahead } from 'react-bootstrap-typeahead';
 import { GetServices } from '../utils/getServiceByName';
 import { version } from '../../package.json';
+import { WMJSGetServiceFromStore, WMJSLayer } from 'adaguc-webmapjs';
+
 const timeFormat = 'ddd DD MMM YYYY HH:mm [UTC]';
 const browserFullScreenRequests = [
   'mozRequestFullScreen',
@@ -66,7 +68,6 @@ class TitleBarContainer extends PureComponent {
       sharePresetName: '',
       fieldToFocus: null,
       versionInfo: {
-        messageconverter: '...',
         backend: '...',
         frontend: version
       }
@@ -76,7 +77,7 @@ class TitleBarContainer extends PureComponent {
   getServices () {
     const { urls, dispatch, adagucActions } = this.props;
 
-    GetServices(urls.BACKEND_SERVER_URL).then((sources) => {
+    GetServices(urls.BACKEND_SERVER_URL, urls.BACKEND_SERVER_XML2JSON).then((sources) => {
       dispatch(adagucActions.setSources(sources));
     });
   }
@@ -320,7 +321,6 @@ class TitleBarContainer extends PureComponent {
           <ul>
             <li>Frontend: {this.state.versionInfo.frontend}</li>
             <li>Backend: {this.state.versionInfo.backend}</li>
-            <li>Message converter: {this.state.versionInfo.messageconverter}</li>
           </ul>
           <FormText color='muted'>
             {loginModalMessage ? null : 'Backend: ' + urls.BACKEND_SERVER_URL}
@@ -474,7 +474,6 @@ class TitleBarContainer extends PureComponent {
     axios.get(this.props.urls.BACKEND_SERVER_URL + '/versioninfo/version', { withCredentials: true }).then((res) => {
       this.setState({ versionInfo: {
         ...this.state.versionInfo,
-        messageconverter: res.data.messageconverter,
         backend: res.data.backend
       } });
     }).catch((error) => {
@@ -680,8 +679,7 @@ class LayoutDropDown extends PureComponent {
   handleAddSource (e) {
     var url = document.querySelector('#sourceurlinput').value;
     let items = JSON.parse(localStorage.getItem('geoweb'));
-    // eslint-disable-next-line no-undef
-    var getCap = WMJSgetServiceFromStore(url);
+    var getCap = WMJSGetServiceFromStore(url, this.props.urls.BACKEND_SERVER_XML2JSON);
     this.setState({ getCapBusy: true });
     getCap.getCapabilities((e) => {
       this.setState({ getCapBusy: false });
@@ -754,7 +752,6 @@ class LayoutDropDown extends PureComponent {
         panel.forEach((layer, i) => {
           // Create a Promise for parsing all WMJSlayers because we can only do something when ALL layers have been parsed
           promises.push(new Promise((resolve, reject) => {
-            // eslint-disable-next-line no-undef
             const wmjsLayer = new WMJSLayer(layer);
             wmjsLayer.parseLayer((newLayer) => {
               newLayer.keepOnTop = (layer.overlay || layer.keepOnTop);
@@ -1050,7 +1047,8 @@ LayoutDropDown.propTypes = {
   presets: PropTypes.array,
   panelsActions: PropTypes.object,
   urls: PropTypes.shape({
-    BACKEND_SERVER_URL: PropTypes.string
+    BACKEND_SERVER_URL: PropTypes.string,
+    BACKEND_SERVER_XML2JSON: PropTypes.string
   }),
   panelsProperties: PropTypes.shape({
     panels: PropTypes.array

@@ -1,6 +1,7 @@
 import axios from 'axios';
 import PromiseWithTimout from '../utils/PromiseWithTimout';
 import moment from 'moment';
+import { WMJSGetServiceFromStore } from 'adaguc-webmapjs';
 
 const _getSourceByName = (sources, name) => {
   if (Object.keys(sources).includes(name)) {
@@ -33,10 +34,10 @@ export const GetServiceByName = (sources, name) => {
 // @sources The adagucproperties sources object
 // @name Name of the service as specified by the name attribute in the result of getServices servlet
 // @return promise which resolves URL of WMS service or null if failed
-export const GetServiceByNamePromise = (backendurl, name) => {
+export const GetServiceByNamePromise = (backendurl, xml2jsonurl, name) => {
   return new Promise((resolve, reject) => {
     // console.log('GetServiceByName');
-    GetServices(backendurl).then(
+    GetServices(backendurl, xml2jsonurl).then(
       (sources) => {
         // console.log('GetServiceByName, 13 ok', sources);
         let result = _getSourceByName(sources, name);
@@ -54,7 +55,7 @@ export const GetServiceByNamePromise = (backendurl, name) => {
 };
 
 /* Promise which resolves all panelsProperties and services */
-export const GetServices = (BACKEND_SERVER_URL) => {
+export const GetServices = (BACKEND_SERVER_URL, BACKEND_SERVER_XML2JSON) => {
   return new Promise((resolve, reject) => {
     const defaultURLs = ['getServices', 'getOverlayServices'].map((url) => BACKEND_SERVER_URL + '/' + url);
     const allURLs = [...defaultURLs];
@@ -83,14 +84,13 @@ export const GetServices = (BACKEND_SERVER_URL) => {
             if (!source.name) {
               return reject(new Error('Source has no name'));
             }
-            // eslint-disable-next-line no-undef
-            const service = WMJSgetServiceFromStore(source.service);
+            const service = WMJSGetServiceFromStore(source.service, BACKEND_SERVER_XML2JSON);
             if (!service) {
               return reject(new Error('Cannot get service from store'));
             }
             service.getLayerObjectsFlat((layers) => { return resolve({ layers, source }); });
           });
-          promises.push(new PromiseWithTimout(r, moment.duration(5000, 'milliseconds').asMilliseconds()));
+          promises.push(new PromiseWithTimout(r, moment.duration(15000, 'milliseconds').asMilliseconds()));
         }
         const sort = (obj) => Object.keys(obj).sort().reduce((acc, c) => { acc[c] = obj[c]; return acc; }, {});
 

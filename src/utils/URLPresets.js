@@ -1,6 +1,8 @@
 import axios from 'axios';
 import validator from 'validator';
 import { DefaultLocations } from '../constants/defaultlocations';
+import { WMJSLayer } from 'adaguc-webmapjs';
+
 export var PresetURLWasLoaded = false;
 
 export const _getURLParameter = (windowLocationHref, key) => {
@@ -51,7 +53,6 @@ export const _loadPreset = (props, presetName, failure) => {
         panel.forEach((layer, i) => {
           // Create a Promise for parsing all WMJSlayers because we can only do something when ALL layers have been parsed
           promises.push(new Promise((resolve, reject) => {
-            // eslint-disable-next-line no-undef
             const wmjsLayer = new WMJSLayer(layer);
             wmjsLayer.parseLayer((newLayer) => {
               if (layer.overlay || layer.keepOnTop) {

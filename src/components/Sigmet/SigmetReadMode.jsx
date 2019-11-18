@@ -4,7 +4,7 @@ import Moment from 'react-moment';
 import moment from 'moment';
 import produce from 'immer';
 import PropTypes from 'prop-types';
-import { READ_ABILITIES, byReadAbilities, MODALS, MODAL_TYPES } from '../../containers/Sigmet/SigmetActions';
+import { READ_ABILITIES, byReadAbilities, MODALS, MODAL_TYPES, STATUSES } from '../../containers/Sigmet/SigmetActions';
 import { UNITS, UNITS_ALT, DIRECTIONS, MODES_LVL, CHANGE_OPTIONS, MOVEMENT_TYPES, SIGMET_TYPES, dateRanges } from './SigmetTemplates';
 import { DATETIME_LABEL_FORMAT_UTC } from '../../config/DayTimeConfig';
 
@@ -47,6 +47,7 @@ class SigmetReadMode extends PureComponent {
 
   showLevels (levelinfo) {
     const sLevelsInfoMissed = '(no complete levels info provided)';
+    const sLowerHigherThanUpperInfo = '(lower level higher than upper level)';
     if (!levelinfo) {
       return sLevelsInfoMissed;
     }
@@ -69,8 +70,10 @@ class SigmetReadMode extends PureComponent {
           : sLevelsInfoMissed;
       case MODES_LVL.BETW:
         return unit0Label && value0Label && unit1Label && value1Label
-          ? `Between ${is0FL ? unit0Label : ''} ${value0Label} ${!is0FL ? unit0Label : ''} and
-            ${is1FL ? unit1Label : ''} ${value1Label} ${!is1FL ? unit1Label : ''}`
+          ? this.compare(level0, level1)
+            ? `Between ${is0FL ? unit0Label : ''} ${value0Label} ${!is0FL ? unit0Label : ''} and
+              ${is1FL ? unit1Label : ''} ${value1Label} ${!is1FL ? unit1Label : ''}`
+            : sLowerHigherThanUpperInfo
           : sLevelsInfoMissed;
       case MODES_LVL.BETW_SFC:
         return unit1Label && value1Label
@@ -164,13 +167,43 @@ class SigmetReadMode extends PureComponent {
       case MODES_LVL.BETW:
         return Array.isArray(levelinfo.levels) && levelinfo.levels.length > 1 &&
           this.isLevelValid(levelinfo.levels[0]) &&
-          this.isLevelValid(levelinfo.levels[1]);
+          this.isLevelValid(levelinfo.levels[1]) &&
+          this.compare(levelinfo.levels[0], levelinfo.levels[1]);
       case MODES_LVL.BETW_SFC:
         return Array.isArray(levelinfo.levels) && levelinfo.levels.length > 0 &&
           this.isLevelValid(levelinfo.levels[1]);
       default:
         return false;
     }
+  }
+
+  compare (lowerLevel, upperLevel) {
+    var lowerLevelInMeter = 0;
+    var upperLevelInMeter = 0;
+
+    switch (lowerLevel.unit) {
+      case UNITS.FL:
+        lowerLevelInMeter = lowerLevel.value * 30.48;
+        break;
+      case UNITS.FT:
+        lowerLevelInMeter = lowerLevel.value * 0.3048;
+        break;
+      case UNITS.M:
+        lowerLevelInMeter = lowerLevel.value * 1;
+        break;
+    }
+    switch (upperLevel.unit) {
+      case UNITS.FL:
+        upperLevelInMeter = upperLevel.value * 30.48;
+        break;
+      case UNITS.FT:
+        upperLevelInMeter = upperLevel.value * 0.3048;
+        break;
+      case UNITS.M:
+        upperLevelInMeter = upperLevel.value * 1;
+        break;
+    }
+    return lowerLevelInMeter < upperLevelInMeter;
   }
 
   /**
@@ -194,25 +227,64 @@ class SigmetReadMode extends PureComponent {
   }
 
   /**
-   * Check whether or not the basic values for this specific Sigmet are valid
-   * @returns {boolean} Whether or not the basic values in this specific Sigmet are valid
+   * Check whether the start date is is valid
+   * @returns {boolean} The result
    */
-  isValid () {
-    const { maxHoursInAdvance, maxHoursDuration, hasStartCoordinates, hasStartIntersectionCoordinates } = this.props;
-    const { validdate, validdate_end: validdateEnd, phenomenon, firname, change, type: distributionType } = this.props.sigmet;
+  isStartValid () {
+    const { maxHoursInAdvance, maxHoursDuration } = this.props;
+    const { validdate, validdate_end: validdateEnd } = this.props.sigmet;
     const now = moment.utc();
     const startTimestamp = moment.utc(validdate);
     const endTimestamp = moment.utc(validdateEnd);
     const dateLimits = dateRanges(now, startTimestamp, endTimestamp, maxHoursInAdvance, maxHoursDuration);
-    const isStartValid = dateLimits.validDate.min.isSameOrBefore(startTimestamp) &&
+    return dateLimits.validDate.min.isSameOrBefore(startTimestamp) &&
       dateLimits.validDate.max.isSameOrAfter(startTimestamp);
-    const isEndValid = dateLimits.validDateEnd.min.isSameOrBefore(endTimestamp) &&
-      dateLimits.validDateEnd.max.isSameOrAfter(endTimestamp);
+  }
+
+  /**
+   * Check whether the end date is is valid
+   * @returns {boolean} The result
+   */
+  isEndValid () {
+    const { maxHoursInAdvance, maxHoursDuration } = this.props;
+    const { validdate, validdate_end: validdateEnd } = this.props.sigmet;
+    const now = moment.utc();
+    const startTimestamp = moment.utc(validdate);
+    const endTimestamp = moment.utc(validdateEnd);
+    const dateLimits = dateRanges(now, startTimestamp, endTimestamp, maxHoursInAdvance, maxHoursDuration);
+    return dateLimits.validDateEnd.min.isSameOrBefore(endTimestamp) &&
+    dateLimits.validDateEnd.max.isSameOrAfter(endTimestamp);
+  }
+
+  /**
+   * Check whether the start geometry is valid
+   * @returns {boolean} The result
+   */
+  isStartGeometryValid () {
+    const { hasStartCoordinates, hasStartIntersectionCoordinates } = this.props;
+    return hasStartCoordinates && hasStartIntersectionCoordinates;
+  }
+
+  /**
+   * Check whether the start geometry is valid
+   * @returns {boolean} The result
+   */
+  isEndGeometryValid () {
+    const { hasEndCoordinates, hasEndIntersectionCoordinates } = this.props;
+    return hasEndCoordinates && hasEndIntersectionCoordinates;
+  }
+
+  /**
+   * Check whether or not the basic values for this specific Sigmet are valid
+   * @returns {boolean} Whether or not the basic values in this specific Sigmet are valid
+   */
+  isValid () {
+    const { phenomenon, firname, change, type: distributionType } = this.props.sigmet;
     const hasPhenomenon = typeof phenomenon === 'string' && phenomenon.length > 0;
     const hasFir = typeof firname === 'string' && firname.length > 0;
     const hasChange = typeof change === 'string' && change.length > 0;
     const hasType = typeof distributionType === 'string' && distributionType.length > 0;
-    return isStartValid && isEndValid && hasStartCoordinates && hasStartIntersectionCoordinates &&
+    return this.isStartValid() && this.isEndValid() && this.isStartGeometryValid() &&
       hasPhenomenon && hasFir && hasChange && hasType && this.isLevelInfoValid() && this.isMovementValid();
   };
 
@@ -268,7 +340,8 @@ class SigmetReadMode extends PureComponent {
       location_indicator_icao: locationIndicatorIcao, location_indicator_mwo: locationIndicatorMwo,
       levelinfo, movement_type: movementType, movement, change, tac, va_extra_fields: vaExtraFields, obs_or_forecast: obsOrForecast,
       issuedate, sequence, firname } = sigmet;
-
+    const { status } = sigmet;
+    const isPublished = status === STATUSES.PUBLISHED;
     const { no_va_expected: isNoVolcanicAshExpected, volcano } = vaExtraFields;
     const volcanoName = volcano.name || null;
     const obsFcTime = obsOrForecast ? obsOrForecast.obsFcTime : null;
@@ -311,17 +384,18 @@ class SigmetReadMode extends PureComponent {
         </WhatSection>
 
         <ValiditySection>
-          <Moment format={DATETIME_LABEL_FORMAT_UTC} date={validdate} data-field='validdate' utc />
-          <Moment format={DATETIME_LABEL_FORMAT_UTC} date={validdateEnd} data-field='validdate_end' utc />
+          <Moment format={DATETIME_LABEL_FORMAT_UTC} date={validdate} data-field='validdate' className={(!this.isStartValid() && !isPublished) && 'invalid'} utc />
+          <Moment format={DATETIME_LABEL_FORMAT_UTC} date={validdateEnd} data-field='validdate_end' className={this.isEndValid() ? null : 'invalid'} utc />
         </ValiditySection>
 
         <FirSection>
           <span data-field='firname'>{firname}</span>
           <span data-field='location_indicator_icao'>{locationIndicatorIcao}</span>
+          <span data-field='geometry' className={this.isStartGeometryValid() ? null : 'missing'}>{this.isStartGeometryValid() ? null : 'Missing Geometry'}</span>
         </FirSection>
 
         <HeightSection>
-          <span data-field='level'>{this.showLevels(levelinfo)}</span>
+          <span data-field='level' className={this.isLevelInfoValid() ? null : 'invalid'}>{this.showLevels(levelinfo)}</span>
         </HeightSection>
 
         <ProgressSection>
@@ -336,16 +410,23 @@ class SigmetReadMode extends PureComponent {
             ? <span data-field='move_to_fir'>{`Moving to ${moveTo[0]} FIR`}</span>
             : null
           }
+          <span data-field='geometry' className={(movementType === MOVEMENT_TYPES.FORECAST_POSITION && !this.isEndGeometryValid()) ? 'invalid' : null}>
+            {(movementType === MOVEMENT_TYPES.FORECAST_POSITION && !this.isEndGeometryValid()) ? 'Missing Geometry' : null}
+          </span>
         </ProgressSection>
         {movementType === MOVEMENT_TYPES.MOVEMENT
           ? <MovementSection>
-            <span data-field='speed' >{movement.speed}KT</span>
-            <span data-field='direction'>{directionLongName}</span>
+            <span data-field='speed' className={movement.speed === null ? 'missing' : null} >
+              {movement.speed === null ? '(speed not provided) ' : movement.speed}KT
+            </span>
+            <span data-field='direction' className={directionLongName === null ? 'missing' : null} >
+              {directionLongName === null ? '(direction not provided)' : directionLongName}
+            </span>
           </MovementSection>
           : null
         }
         <ChangeSection>
-          <span data-field='change_type'>
+          <span data-field='change_type' className={this.hasChange ? null : 'invalid'}>
             {selectedChangeLabel || '(no change assigned yet)'}
           </span>
         </ChangeSection>

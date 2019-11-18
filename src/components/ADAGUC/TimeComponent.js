@@ -4,7 +4,8 @@ import { Col } from 'reactstrap';
 import PropTypes from 'prop-types';
 import { debounce } from '../../utils/debounce';
 import moment from 'moment';
-
+import { parseISO8601DateToDate, DateInterval, ParseISOTimeRangeDuration } from 'adaguc-webmapjs';
+import { getWMJSLayerById } from '../../utils/ReactWMJSTools';
 export default class TimeComponent extends Component {
   constructor () {
     super();
@@ -23,14 +24,6 @@ export default class TimeComponent extends Component {
     this.changeMinute = this.changeMinute.bind(this);
     this.debouncedForceUpdate = debounce(this.forceUpdate, 100, false);
   }
-  /* istanbul ignore next */
-  // eventOnMapDimUpdate () {
-  //   this.eventOnDimChange();
-  // }
-  // /* istanbul ignore next */
-  // eventOnDimChange () {
-  //   window.requestAnimationFrame(this.drawCanvas);
-  // }
 
   /* istanbul ignore next */
   drawTimeIndicationBlocks (ctx, timeBlockStartIndex, timeBlockStopIndex, canvasDateIntervalHour, sliderStopIndex, scaleWidth, canvasHeight) {
@@ -62,7 +55,11 @@ export default class TimeComponent extends Component {
     ctx.lineWidth = 1;
     for (let j = 0; j < layers.length; j++) {
       const y = j * layerHeight + 1 + overlayers.length * layerHeight;
-      const layer = layers[j];
+      const layer = getWMJSLayerById(layers[j].id);
+      if (!layer) {
+        console.warn('Unable to find wmjslayer with id ' + layers[j].id);
+        continue;
+      }
       const activeLayer = layer.active;
       const dim = layer.getDimension('time');
       if (!dim) {
@@ -118,9 +115,11 @@ export default class TimeComponent extends Component {
   drawCanvas () {
     const { timedim, panel } = this.props;
     if (!timedim) {
+      console.warn('drawCanvas: No time dim');
       return;
     }
     if (timedim.length !== 20 || timedim[19] !== 'Z' || timedim[10] !== 'T') {
+      console.warn('drawCanvas: timedim not properly formatted', timedim);
       return;
     }
     this.hoverDateDone = this.hoverDate;
@@ -128,9 +127,7 @@ export default class TimeComponent extends Component {
     if (!ctx) {
       return;
     }
-    // eslint-disable-next-line no-undef
     const canvasWidth = ctx.canvas.width;
-    // eslint-disable-next-line no-undef
     const numlayers = Math.max(2, panel.layers.length + 1);
     // const numlayers = wmjslayers.baselayers && wmjslayers.panelsProperties ? wmjslayers.baselayers.length + wmjslayers.panelsProperties.length + 1 : 2;
     const canvasHeight = Math.max(20 * (numlayers - 2), this.props.height);
@@ -146,11 +143,7 @@ export default class TimeComponent extends Component {
     ctx.font = '14px Helvetica';
     ctx.lineWidth = 1;
     const scaleWidth = canvasWidth;
-    // eslint-disable-next-line no-undef
-    const currentDate = getCurrentDateIso8601();
-    // eslint-disable-next-line no-undef
     this.startDate = parseISO8601DateToDate(timedim);
-    // eslint-disable-next-line no-undef
     this.endDate = parseISO8601DateToDate(timedim);
 
     this.timeWidth = 24 / 2;
@@ -163,26 +156,24 @@ export default class TimeComponent extends Component {
     this.endDate.setUTCMinutes(0);
     this.endDate.setUTCSeconds(0);
 
-    // eslint-disable-next-line no-undef
     this.startDate.add(new DateInterval(0, 0, 0, 0, 0, 0));
-    // eslint-disable-next-line no-undef
     this.endDate.add(new DateInterval(0, 0, 0, this.timeWidth, 0, 0));
     const canvasDateIntervalStr = this.startDate.toISO8601() + '/' + this.endDate.toISO8601() + '/PT1M';
-    // eslint-disable-next-line
-    this.canvasDateInterval = new parseISOTimeRangeDuration(canvasDateIntervalStr);
+    this.canvasDateInterval = new ParseISOTimeRangeDuration(canvasDateIntervalStr);
     let sliderCurrentIndex = -1;
     try {
-      sliderCurrentIndex = this.canvasDateInterval.getTimeStepFromISODate(currentDate.toISO8601(), true);
+      sliderCurrentIndex = this.canvasDateInterval.getTimeStepFromISODate(moment.utc().format('YYYY-MM-DDTHH:mm:ss[Z]'), true);
     } catch (e) {
-      // ???????
-      // Apparantly we're reliant on exceptions
+      /*
+        getTimeStepFromISODate throws exceptions if the requested date is outside the daterange of the dateinterval
+      */
+      sliderCurrentIndex = 0; // TODO: Maybe set default of the WMJSLayer here
     }
     const sliderMapIndex = this.canvasDateInterval.getTimeStepFromISODate(timedim);
     const sliderStopIndex = this.canvasDateInterval.getTimeStepFromISODate(this.endDate.toISO8601());
 
     const canvasDateIntervalStrHour = this.startDate.toISO8601() + '/' + this.endDate.toISO8601() + '/PT1H';
-    // eslint-disable-next-line
-    const canvasDateIntervalHour = new parseISOTimeRangeDuration(canvasDateIntervalStrHour);
+    const canvasDateIntervalHour = new ParseISOTimeRangeDuration(canvasDateIntervalStrHour);
     const timeBlockStartIndex = canvasDateIntervalHour.getTimeStepFromDate(this.startDate);
     const timeBlockStopIndex = canvasDateIntervalHour.getTimeStepFromISODate(this.endDate.toISO8601());
 
@@ -256,7 +247,6 @@ export default class TimeComponent extends Component {
       return;
     }
     const isodate = this.toISO8601(value);
-    // eslint-disable-next-line no-undef
     const date = parseISO8601DateToDate(isodate);
     this.props.dispatch(
       this.props.adagucActions.setTimeDimension(date.toISO8601())
@@ -309,23 +299,16 @@ export default class TimeComponent extends Component {
     date.second = value;
     this.setNewDate(date);
   }
-  /* istanbul ignore next */
-  // componentDidMount () {
-  //   if (this.timer) {
-  //     clearInterval(this.timer);
-  //   }
-  //   this.timer = setInterval(window.requestAnimationFrame(this.drawCanvas), 60000);
-  // }
+
   /* istanbul ignore next */
   componentDidUpdate () {
-    window.requestAnimationFrame(this.drawCanvas);
+    // window.requestAnimationFrame(this.drawCanvas);
+    try {
+      this.drawCanvas();
+    } catch (e) {
+      console.error(e);
+    }
   }
-  /* istanbul ignore next */
-  // componentWillUnmount () {
-  //   if (this.timer) {
-  //     clearInterval(this.timer);
-  //   }
-  // }
   /* istanbul ignore next */
   onRenderCanvas (ctx) {
     this.ctx = ctx;
@@ -344,6 +327,10 @@ export default class TimeComponent extends Component {
     if (layerClicked >= 0 && layerClicked < layers.length) {
       dispatch(panelsActions.setActiveLayer({ activePanelId, layerClicked }));
     }
+    if (!this.canvasDateInterval) {
+      console.warn('this.canvasDateInterval is undefined');
+      return;
+    }
     const s = this.canvasDateInterval.getTimeSteps() - 1;
     const newTimeStep = parseInt(t * s);
     /* istanbul ignore next */
@@ -352,9 +339,7 @@ export default class TimeComponent extends Component {
   }
   /* istanbul ignore next */
   handleButtonClickNow () {
-    // eslint-disable-next-line no-undef
-    const currentDate = getCurrentDateIso8601();
-    this.props.dispatch(this.props.actions.setTimeDimension(currentDate.toISO8601()));
+    this.props.dispatch(this.props.actions.setTimeDimension(moment.utc().format('YYYY-MM-DDTHH:mm:ss[Z]')));
     // this.eventOnDimChange();
   }
   /* istanbul ignore next */
