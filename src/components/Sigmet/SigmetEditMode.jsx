@@ -28,8 +28,9 @@ import ChangeSection from '../SectionTemplates/ChangeSection';
 import HeightsSection from '../SectionTemplates/HeightsSection';
 import {
   DIRECTIONS, UNITS_ALT, UNITS, MODES_LVL, MODES_LVL_OPTIONS, CHANGE_OPTIONS, MOVEMENT_TYPES, MOVEMENT_OPTIONS, SIGMET_TYPES,
-  DISTRIBUTION_OPTIONS, dateRanges } from './SigmetTemplates';
+  DISTRIBUTION_OPTIONS } from './SigmetTemplates';
 import { DATETIME_FORMAT } from '../../config/DayTimeConfig';
+import { isObsOrFcValid, isStartValidityTimeValid, isEndValidityTimeValid } from './SigmetValidation';
 import EndPositionSection from '../SectionTemplates/EndPositionSection';
 
 const DROP_DOWN_NAMES = {
@@ -291,8 +292,9 @@ class SigmetEditMode extends PureComponent {
     const latTooltip = 'Latitude in decimal degrees';
     const lonTooltip = 'Longitude in decimal degrees\n' +
       'Use + for East, - for West';
-    const { dispatch, actions, sigmet, displayModal, availablePhenomena, hasStartCoordinates, hasEndCoordinates, feedbackStart, feedbackEnd,
-      availableFirs, focus, isVolcanicAsh, volcanoCoordinates, maxHoursInAdvance, maxHoursDuration } = this.props;
+    const { dispatch, actions, sigmet, displayModal, availablePhenomena, hasStartCoordinates, hasStartIntersectionCoordinates,
+      hasEndCoordinates, hasEndIntersectionCoordinates, feedbackStart, feedbackEnd,
+      availableFirs, focus, isVolcanicAsh, volcanoCoordinates } = this.props;
     const { isAtOrAboveDropDownOpen, isBetweenLowerDropDownOpen, isBetweenUpperDropDownOpen } = this.state;
 
     const { phenomenon, uuid, type: distributionType, validdate, validdate_end: validdateEnd,
@@ -303,8 +305,6 @@ class SigmetEditMode extends PureComponent {
     const obsFcTime = obsOrForecast ? obsOrForecast.obsFcTime : null;
     const isObserved = obsOrForecast ? obsOrForecast.obs : null;
 
-    const now = moment.utc();
-    const dateLimits = dateRanges(now, validdate, validdateEnd, maxHoursInAdvance, maxHoursDuration);
     const selectedPhenomenon = availablePhenomena.find((ph) => ph.code === phenomenon);
     const selectedFir = availableFirs.find((fir) => fir.location_indicator_icao === locationIndicatorIcao);
     const selectedDirection = movement && movement.dir ? DIRECTIONS.find((dir) => dir.shortName === movement.dir) : null;
@@ -385,9 +385,8 @@ class SigmetEditMode extends PureComponent {
               ? moment.utc(obsFcTime, DATETIME_FORMAT)
               : obsFcTime
             }
+            invalid={!isObsOrFcValid(this.props)}
             onChange={(evt, timestamp) => dispatch(actions.updateSigmetAction(uuid, 'obs_or_forecast', { obs: isObserved, obsFcTime: timestamp }))}
-            min={dateLimits.obsFcTime.min}
-            max={isObserved ? dateLimits.obsFcTime.now : dateLimits.obsFcTime.max}
           />
           {isVolcanicAsh
             ? <Input type='text' value={volcanoName || ''} data-field='volcano_name' placeholder='Volcano name'
@@ -416,23 +415,21 @@ class SigmetEditMode extends PureComponent {
         </WhatSection>
 
         <ValiditySection>
-          <TimePicker data-field='validdate' utc required
+          <TimePicker data-field='validdate' utc
             value={moment(validdate, DATETIME_FORMAT).isValid()
               ? moment.utc(validdate, DATETIME_FORMAT)
               : validdate
             }
+            invalid={!isStartValidityTimeValid(this.props)}
             onChange={(evt, timestamp) => dispatch(actions.updateSigmetAction(uuid, 'validdate', timestamp))}
-            min={dateLimits.validDate.min}
-            max={dateLimits.validDate.max}
           />
-          <TimePicker data-field='validdate_end' utc required
+          <TimePicker data-field='validdate_end' utc
             value={moment(validdateEnd, DATETIME_FORMAT).isValid()
               ? moment.utc(validdateEnd, DATETIME_FORMAT)
               : validdateEnd
             }
+            invalid={!isEndValidityTimeValid(this.props)}
             onChange={(evt, timestamp) => dispatch(actions.updateSigmetAction(uuid, 'validdate_end', timestamp))}
-            min={dateLimits.validDateEnd.min}
-            max={dateLimits.validDateEnd.max}
           />
         </ValiditySection>
 
@@ -459,7 +456,7 @@ class SigmetEditMode extends PureComponent {
           <span data-field='location_indicator_icao'>{locationIndicatorIcao}</span>
         </FirSection>
 
-        <DrawSection className={`required${hasStartCoordinates ? '' : ' missing'}${feedbackStart ? ' warning' : ''}`} title={drawMessage()}>
+        <DrawSection className={`required${hasStartCoordinates && hasStartIntersectionCoordinates ? '' : ' missing'}${feedbackStart ? ' warning' : ''}`} title={drawMessage()}>
           {
             drawActions().map((actionItem, index) =>
               <Button color='primary' key={actionItem.action + '_button'} data-field={actionItem.action + '_button'}
@@ -624,7 +621,7 @@ class SigmetEditMode extends PureComponent {
         </MovementSection>
         <EndPositionSection disabled={movementType !== MOVEMENT_TYPES.FORECAST_POSITION}>
           <DrawSection data-field='drawbar' title={drawMessage(true)}
-            className={movementType === MOVEMENT_TYPES.FORECAST_POSITION ? `required${hasEndCoordinates ? '' : ' missing'}${feedbackEnd ? ' warning' : ''}` : ''}>
+            className={movementType === MOVEMENT_TYPES.FORECAST_POSITION ? `required${hasEndCoordinates && hasEndIntersectionCoordinates ? '' : ' missing'}${feedbackEnd ? ' warning' : ''}` : ''}>
             {
               drawActions(true).map((actionItem, index) =>
                 <Button color='primary' key={actionItem.action + '_button'} data-field={actionItem.action + '_button'}
@@ -704,10 +701,10 @@ SigmetEditMode.propTypes = {
   feedbackStart: PropTypes.string,
   feedbackEnd: PropTypes.string,
   hasStartCoordinates: PropTypes.bool,
+  hasStartIntersectionCoordinates: PropTypes.bool,
   hasEndCoordinates: PropTypes.bool,
+  hasEndIntersectionCoordinates: PropTypes.bool,
   availableFirs: PropTypes.array,
-  maxHoursDuration: PropTypes.number,
-  maxHoursInAdvance: PropTypes.number,
   volcanoCoordinates: PropTypes.arrayOf(PropTypes.number),
   isVolcanicAsh: PropTypes.bool,
   sigmet: SIGMET_TYPES.SIGMET

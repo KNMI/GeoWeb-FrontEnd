@@ -5,7 +5,7 @@ import moment from 'moment';
 import produce from 'immer';
 import PropTypes from 'prop-types';
 import { READ_ABILITIES, byReadAbilities, MODALS, MODAL_TYPES, STATUSES } from '../../containers/Sigmet/SigmetActions';
-import { UNITS, UNITS_ALT, DIRECTIONS, MODES_LVL, CHANGE_OPTIONS, MOVEMENT_TYPES, SIGMET_TYPES, dateRanges } from './SigmetTemplates';
+import { UNITS, UNITS_ALT, DIRECTIONS, MODES_LVL, CHANGE_OPTIONS, MOVEMENT_TYPES, SIGMET_TYPES } from './SigmetTemplates';
 import { DATETIME_LABEL_FORMAT_UTC } from '../../config/DayTimeConfig';
 
 import HeaderSection from '../SectionTemplates/HeaderSection';
@@ -19,6 +19,7 @@ import ChangeSection from '../SectionTemplates/ChangeSection';
 import IssueSection from '../SectionTemplates/IssueSection';
 import ConfirmationModal from '../ConfirmationModal';
 import MovementSection from '../SectionTemplates/MovementSection';
+import { isObsOrFcValid, isStartValidityTimeValid, isEndValidityTimeValid } from './SigmetValidation';
 
 class SigmetReadMode extends PureComponent {
   getUnitLabel (unitName) {
@@ -227,36 +228,6 @@ class SigmetReadMode extends PureComponent {
   }
 
   /**
-   * Check whether the start date is is valid
-   * @returns {boolean} The result
-   */
-  isStartValid () {
-    const { maxHoursInAdvance, maxHoursDuration } = this.props;
-    const { validdate, validdate_end: validdateEnd } = this.props.sigmet;
-    const now = moment.utc();
-    const startTimestamp = moment.utc(validdate);
-    const endTimestamp = moment.utc(validdateEnd);
-    const dateLimits = dateRanges(now, startTimestamp, endTimestamp, maxHoursInAdvance, maxHoursDuration);
-    return dateLimits.validDate.min.isSameOrBefore(startTimestamp) &&
-      dateLimits.validDate.max.isSameOrAfter(startTimestamp);
-  }
-
-  /**
-   * Check whether the end date is is valid
-   * @returns {boolean} The result
-   */
-  isEndValid () {
-    const { maxHoursInAdvance, maxHoursDuration } = this.props;
-    const { validdate, validdate_end: validdateEnd } = this.props.sigmet;
-    const now = moment.utc();
-    const startTimestamp = moment.utc(validdate);
-    const endTimestamp = moment.utc(validdateEnd);
-    const dateLimits = dateRanges(now, startTimestamp, endTimestamp, maxHoursInAdvance, maxHoursDuration);
-    return dateLimits.validDateEnd.min.isSameOrBefore(endTimestamp) &&
-    dateLimits.validDateEnd.max.isSameOrAfter(endTimestamp);
-  }
-
-  /**
    * Check whether the start geometry is valid
    * @returns {boolean} The result
    */
@@ -284,7 +255,7 @@ class SigmetReadMode extends PureComponent {
     const hasFir = typeof firname === 'string' && firname.length > 0;
     const hasChange = typeof change === 'string' && change.length > 0;
     const hasType = typeof distributionType === 'string' && distributionType.length > 0;
-    return this.isStartValid() && this.isEndValid() && this.isStartGeometryValid() &&
+    return isObsOrFcValid(this.props) && isStartValidityTimeValid(this.props) && isEndValidityTimeValid(this.props) && this.isStartGeometryValid() &&
       hasPhenomenon && hasFir && hasChange && hasType && this.isLevelInfoValid() && this.isMovementValid();
   };
 
@@ -361,7 +332,7 @@ class SigmetReadMode extends PureComponent {
           <span data-field='phenomenon'>{phenomenon}</span>
           <span data-field='obs_or_fcst'>{isObserved ? 'Observed' : 'Forecast'}</span>
           {obsFcTime
-            ? <Moment format={DATETIME_LABEL_FORMAT_UTC} date={obsFcTime} data-field='obsFcTime' utc />
+            ? <Moment format={DATETIME_LABEL_FORMAT_UTC} date={obsFcTime} data-field='obsFcTime' utc className={(!isObsOrFcValid(this.props) && !isPublished) ? 'invalid' : null} />
             : <span data-field='obsFcTime'>
               {isObserved
                 ? '(no observation time provided)'
@@ -384,8 +355,8 @@ class SigmetReadMode extends PureComponent {
         </WhatSection>
 
         <ValiditySection>
-          <Moment format={DATETIME_LABEL_FORMAT_UTC} date={validdate} data-field='validdate' className={(!this.isStartValid() && !isPublished) && 'invalid'} utc />
-          <Moment format={DATETIME_LABEL_FORMAT_UTC} date={validdateEnd} data-field='validdate_end' className={this.isEndValid() ? null : 'invalid'} utc />
+          <Moment format={DATETIME_LABEL_FORMAT_UTC} date={validdate} data-field='validdate' className={(!isStartValidityTimeValid(this.props) && !isPublished) ? 'invalid' : null} utc />
+          <Moment format={DATETIME_LABEL_FORMAT_UTC} date={validdateEnd} data-field='validdate_end' className={isEndValidityTimeValid(this.props) ? null : 'invalid'} utc />
         </ValiditySection>
 
         <FirSection>
@@ -484,8 +455,6 @@ SigmetReadMode.propTypes = {
   abilities: PropTypes.shape(abilitiesPropTypes),
   focus: PropTypes.bool,
   copiedSigmetRef: PropTypes.string,
-  maxHoursInAdvance: PropTypes.number,
-  maxHoursDuration: PropTypes.number,
   hasStartCoordinates: PropTypes.bool,
   hasStartIntersectionCoordinates: PropTypes.bool,
   hasEndCoordinates: PropTypes.bool,

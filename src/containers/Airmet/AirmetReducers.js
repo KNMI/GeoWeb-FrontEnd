@@ -3,11 +3,14 @@ import moment from 'moment';
 import { notify } from 'reapop';
 import {
   AIRMET_MODES, AIRMET_TEMPLATES, UNITS, UNITS_LABELED, MODES_LVL, MOVEMENT_TYPES, DISTRIBUTION_TYPES, CHANGE_TYPES,
-  AIRMET_VARIANTS_PREFIXES } from '../../components/Airmet/AirmetTemplates';
+  AIRMET_VARIANTS_PREFIXES
+} from '../../components/Airmet/AirmetTemplates';
 import { DATETIME_FORMAT } from '../../config/DayTimeConfig';
 import { LOCAL_ACTION_TYPES, CATEGORY_REFS, STATUSES } from './AirmetActions';
-import { clearEmptyPointersAndAncestors, safeMerge, isFeatureGeoJsonComplete,
-  MODES_GEO_SELECTION, MODES_GEO_MAPPING, isObject } from '../../utils/json';
+import {
+  clearEmptyPointersAndAncestors, safeMerge, isFeatureGeoJsonComplete,
+  MODES_GEO_SELECTION, MODES_GEO_MAPPING, isObject
+} from '../../utils/json';
 import { getPresetForPhenomenon } from '../../components/Airmet/AirmetPresets';
 import { FEEDBACK_STATUS } from '../../config/StatusConfig';
 import axios from 'axios';
@@ -119,7 +122,7 @@ const retrieveParameters = (container) => {
 };
 
 const updateParameters = (parameters, container) => {
-  const { active_firs : activeFirs, firareas } = parameters;
+  const { active_firs: activeFirs, firareas } = parameters;
   if (Array.isArray(activeFirs)) {
     activeFirs.forEach((firKey) => {
       const firData = firareas
@@ -744,9 +747,16 @@ const updateAirmet = (dataField, value, container) => {
       preset = getPresetForPhenomenon(value, sources);
     }
   }
-  if ((dataField === 'validdate' || dataField === 'validdate_end') && value === null) {
-    value = moment.utc().add(1, 'minute').format(DATETIME_FORMAT);
+  if ((dataField === 'validdate') && value === null) {
+    value = moment.utc().format(DATETIME_FORMAT);
   }
+  if ((dataField === 'validdate_end') && value === null) {
+    /* if validity start is defined, use this, otherwise use current time */
+    value = affectedAirmet.validdate
+      ? moment(affectedAirmet.validdate).utc().add(1, 'hour').format(DATETIME_FORMAT)
+      : moment.utc().add(1, 'hour').format(DATETIME_FORMAT);
+  }
+
   if (dataField.indexOf('levelinfo') !== -1) {
     switch (fieldToUpdate) {
       case 'unit':
@@ -831,7 +841,8 @@ const clearRelatedIntersection = (featureId, features, dispatch, drawActions) =>
     dispatch(drawActions.setFeature({
       geometry: { coordinates: [], type: null },
       properties: { selectionType: null },
-      featureId: relatedIntersection.id }));
+      featureId: relatedIntersection.id
+    }));
   }
 };
 
@@ -1283,7 +1294,7 @@ const cancelAirmet = (event, container) => {
     return;
   }
   setStatePromise(container, {
-    selectedAirmet: [ { status: STATUSES.CANCELED } ]
+    selectedAirmet: [{ status: STATUSES.CANCELED }]
   }).then(() => postAirmet(container))
     .then((uuid) => {
       showFeedback(container, 'Airmet canceled', `Airmet ${uuid} was successfully canceled`, FEEDBACK_STATUS.OK);
@@ -1301,7 +1312,7 @@ const cancelAirmet = (event, container) => {
       if (indices.isFound && publishedCategory) {
         const canceledAirmet = categories[indices.categoryIndex].airmets[indices.airmetIndex];
         const cancelAirmet = publishedCategory.airmets.find((airmet) => airmet.cancels === canceledAirmet.sequence &&
-        airmet.phenomenon === canceledAirmet.phenomenon);
+          airmet.phenomenon === canceledAirmet.phenomenon);
         if (cancelAirmet) {
           focusAirmet(cancelAirmet.uuid, container);
         }
@@ -1380,7 +1391,7 @@ const toggleAirmetModal = (event, type, container) => {
  * @param {component} container The container in which the AIRMET modal should be toggled
  */
 const toggleHasEdits = (event, value, container) => {
-  const { hasEdits : prevHasEdits } = container.state.selectedAuxiliaryInfo;
+  const { hasEdits: prevHasEdits } = container.state.selectedAuxiliaryInfo;
   const newValue = typeof value === 'boolean' ? value : !prevHasEdits;
   if (event) {
     event.stopPropagation();

@@ -1,7 +1,5 @@
 import PropTypes from 'prop-types';
 import cloneDeep from 'lodash.clonedeep';
-import moment from 'moment';
-import { DATETIME_FORMAT } from '../../config/DayTimeConfig';
 
 const AIRMET_MODES = {
   EDIT: 'EDIT',
@@ -419,27 +417,6 @@ const DISTRIBUTION_OPTIONS = [
 const AIRMET_VARIANTS_PREFIXES = {};
 AIRMET_VARIANTS_PREFIXES[AIRMET_VARIANTS.NORMAL] = '';
 
-const dateRanges = (now, startTimestamp, endTimestamp, maxHoursInAdvance, maxHoursDuration) => ({
-  obsFcTime: {
-    min: now.clone().subtract(3, 'hour').startOf('hour'),
-    max: endTimestamp !== null && moment(endTimestamp, DATETIME_FORMAT).isValid()
-      ? moment.utc(endTimestamp, DATETIME_FORMAT).endOf('minute')
-      : now.clone().add(maxHoursDuration + maxHoursInAdvance, 'hour').endOf('minute')
-  },
-  validDate: {
-    min: now.clone().startOf('minute'),
-    max: now.clone().add(maxHoursInAdvance, 'hour').endOf('minute')
-  },
-  validDateEnd: {
-    min: startTimestamp !== null && moment(startTimestamp, DATETIME_FORMAT).isValid()
-      ? moment.utc(startTimestamp, DATETIME_FORMAT).startOf('minute')
-      : now.clone().startOf('minute'),
-    max: startTimestamp !== null && moment(startTimestamp, DATETIME_FORMAT).isValid()
-      ? moment.utc(startTimestamp, DATETIME_FORMAT).add(maxHoursDuration, 'hour').endOf('minute')
-      : now.clone().add(maxHoursDuration, 'hour').endOf('minute')
-  }
-});
-
 module.exports = {
   AIRMET_MODES: AIRMET_MODES,
   AIRMET_TEMPLATES: TEMPLATES,
@@ -456,6 +433,5 @@ module.exports = {
   UNITS: UNITS,
   MODES_LVL: MODES_LVL,
   MODES_LVL_OPTIONS: MODES_LVL_OPTIONS,
-  AIRMET_VARIANTS_PREFIXES: AIRMET_VARIANTS_PREFIXES,
-  dateRanges: dateRanges
+  AIRMET_VARIANTS_PREFIXES: AIRMET_VARIANTS_PREFIXES
 };

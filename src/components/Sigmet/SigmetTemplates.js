@@ -1,7 +1,5 @@
 import PropTypes from 'prop-types';
 import cloneDeep from 'lodash.clonedeep';
-import moment from 'moment';
-import { DATETIME_FORMAT } from '../../config/DayTimeConfig';
 
 const SIGMET_MODES = {
   EDIT: 'EDIT',
@@ -384,27 +382,6 @@ SIGMET_VARIANTS_PREFIXES[SIGMET_VARIANTS.NORMAL] = '';
 SIGMET_VARIANTS_PREFIXES[SIGMET_VARIANTS.VOLCANIC_ASH] = 'va_';
 SIGMET_VARIANTS_PREFIXES[SIGMET_VARIANTS.TROPICAL_CYCLONE] = 'tc_';
 
-const dateRanges = (now, startTimestamp, endTimestamp, maxHoursInAdvance, maxHoursDuration) => ({
-  obsFcTime: {
-    min: now.clone().subtract(3, 'hour').startOf('hour'),
-    max: endTimestamp !== null && moment(endTimestamp, DATETIME_FORMAT).isValid()
-      ? moment.utc(endTimestamp, DATETIME_FORMAT).endOf('minute')
-      : now.clone().add(maxHoursDuration + maxHoursInAdvance, 'hour').endOf('minute')
-  },
-  validDate: {
-    min: now.clone().startOf('minute'),
-    max: now.clone().add(maxHoursInAdvance, 'hour').endOf('minute')
-  },
-  validDateEnd: {
-    min: startTimestamp !== null && moment(startTimestamp, DATETIME_FORMAT).isValid()
-      ? moment.utc(startTimestamp, DATETIME_FORMAT).startOf('minute')
-      : now.clone().startOf('minute'),
-    max: startTimestamp !== null && moment(startTimestamp, DATETIME_FORMAT).isValid()
-      ? moment.utc(startTimestamp, DATETIME_FORMAT).add(maxHoursDuration, 'hour').endOf('minute')
-      : now.clone().add(maxHoursDuration, 'hour').endOf('minute')
-  }
-});
-
 module.exports = {
   SIGMET_MODES: SIGMET_MODES,
   SIGMET_TEMPLATES: TEMPLATES,
@@ -422,6 +399,5 @@ module.exports = {
   MODES_LVL_OPTIONS: MODES_LVL_OPTIONS,
   SIGMET_VARIANTS_PREFIXES: SIGMET_VARIANTS_PREFIXES,
   PHENOMENON_CODE_VOLCANIC_ASH: PHENOMENON_CODE_VOLCANIC_ASH,
-  PHENOMENON_CODE_TROPICAL_CYCLONE: PHENOMENON_CODE_TROPICAL_CYCLONE,
-  dateRanges: dateRanges
+  PHENOMENON_CODE_TROPICAL_CYCLONE: PHENOMENON_CODE_TROPICAL_CYCLONE
 };
