@@ -30,9 +30,9 @@ import ChangeSection from '../SectionTemplates/ChangeSection';
 import HeightsSection from '../SectionTemplates/HeightsSection';
 import {
   DIRECTIONS, UNITS_LABELED, UNITS, MODES_LVL, MODES_LVL_OPTIONS, CHANGE_OPTIONS, MOVEMENT_TYPES, MOVEMENT_OPTIONS, AIRMET_TYPES,
-  DISTRIBUTION_OPTIONS, dateRanges
-} from './AirmetTemplates';
+  DISTRIBUTION_OPTIONS } from './AirmetTemplates';
 import { DATETIME_FORMAT } from '../../config/DayTimeConfig';
+import { isObsOrFcValid, isStartValidityTimeValid, isEndValidityTimeValid } from './AirmetValidation';
 
 const DROP_DOWN_NAMES = {
   AT_OR_ABOVE: 'atOrAbove',
@@ -281,9 +281,39 @@ class AirmetEditMode extends PureComponent {
     return abilitiesCtAs;
   }
 
+  compare (lowerLevel, upperLevel) {
+    var lowerLevelInMeter = 0;
+    var upperLevelInMeter = 0;
+
+    switch (lowerLevel.unit) {
+      case UNITS.FL:
+        lowerLevelInMeter = lowerLevel.value * 30.48;
+        break;
+      case UNITS.FT:
+        lowerLevelInMeter = lowerLevel.value * 0.3048;
+        break;
+      case UNITS.M:
+        lowerLevelInMeter = lowerLevel.value * 1;
+        break;
+    }
+    switch (upperLevel.unit) {
+      case UNITS.FL:
+        upperLevelInMeter = upperLevel.value * 30.48;
+        break;
+      case UNITS.FT:
+        upperLevelInMeter = upperLevel.value * 0.3048;
+        break;
+      case UNITS.M:
+        upperLevelInMeter = upperLevel.value * 1;
+        break;
+    }
+
+    return lowerLevelInMeter >= upperLevelInMeter;
+  }
+
   render () {
-    const { dispatch, actions, airmet, displayModal, availablePhenomena, obscuringPhenomena, hasStartCoordinates, feedbackStart,
-      availableFirs, focus, maxHoursInAdvance, maxHoursDuration, isWindNeeded, isCloudLevelsNeeded, isObscuringNeeded, isLevelFieldNeeded } = this.props;
+    const { dispatch, actions, airmet, displayModal, availablePhenomena, obscuringPhenomena, hasStartCoordinates, hasStartIntersectionCoordinates, feedbackStart,
+      availableFirs, focus, isWindNeeded, isCloudLevelsNeeded, isObscuringNeeded, isLevelFieldNeeded } = this.props;
     const { isAtOrAboveDropDownOpen, isBetweenLowerDropDownOpen, isBetweenUpperDropDownOpen, isWindSpeedDropDownOpen } = this.state;
 
     const { phenomenon, uuid, type: distributionType, validdate, validdate_end: validdateEnd,
@@ -292,8 +322,6 @@ class AirmetEditMode extends PureComponent {
       wind, cloudLevels, obscuring, visibility } = airmet;
     const obsFcTime = obsOrForecast ? obsOrForecast.obsFcTime : null;
     const isObserved = obsOrForecast ? obsOrForecast.obs : null;
-    const now = moment.utc();
-    const dateLimits = dateRanges(now, validdate, validdateEnd, maxHoursInAdvance, maxHoursDuration);
     const selectedPhenomenon = availablePhenomena.find((ph) => ph.code === phenomenon);
     const selectedObscuringPhenomenon = Array.isArray(obscuring) && obscuring.length > 0 ? obscuring[0] : null;
     const selectedFir = availableFirs.find((fir) => fir.location_indicator_icao === locationIndicatorIcao);
@@ -365,9 +393,8 @@ class AirmetEditMode extends PureComponent {
               ? moment.utc(obsFcTime, DATETIME_FORMAT)
               : obsFcTime
             }
+            invalid={!isObsOrFcValid(this.props)}
             onChange={(evt, timestamp) => dispatch(actions.updateAirmetAction(uuid, 'obs_or_forecast', { obs: isObserved, obsFcTime: timestamp }))}
-            min={dateLimits.obsFcTime.min}
-            max={dateLimits.obsFcTime.max}
           />
           {isWindNeeded
             ? <Input data-field='wind_direction'
@@ -419,20 +446,26 @@ class AirmetEditMode extends PureComponent {
             : null
           }
           {isObscuringNeeded
-            ? <Input data-field='visibility'
-              onChange={(evt) => dispatch(actions.updateAirmetAction(uuid, 'visibility.val',
-                typeof evt.target.value === 'string' && evt.target.value.length > 0
-                  ? parseInt(evt.target.value)
-                  : null))}
-              value={(!visibility || !Number.isInteger(visibility.val))
-                ? ''
-                : `${visibility.val}`} placeholder={'Set visibility'}
-              type='number' step={this.stepLevelPerUnit(visibility.unit)} min='0' max={this.maxLevelPerUnit(visibility.unit)}
-              className={classNames({
+            ? <InputGroup data-field='visibility'
+              className={classNames('unitAfter', {
                 required: true,
-                missing: !visibility || !Number.isInteger(visibility.val)
+                missing: !visibility || !Number.isInteger(visibility.val),
+                invalid: visibility.val > 10000
               })}
-            />
+              disabled>
+              <Input
+                onChange={(evt) => dispatch(actions.updateAirmetAction(uuid, 'visibility.val',
+                  typeof evt.target.value === 'string' && evt.target.value.length > 0
+                    ? parseInt(evt.target.value)
+                    : null))}
+                value={(!visibility || !Number.isInteger(visibility.val))
+                  ? ''
+                  : `${visibility.val}`
+                } placeholder={'Set visibility'}
+                type='number' step={this.stepLevelPerUnit(visibility.unit)} min={0} max={this.maxLevelPerUnit(visibility.unit)}
+              />
+              <InputGroupAddon addonType='append'>M</InputGroupAddon>
+            </InputGroup>
             : null
           }
           {isObscuringNeeded
@@ -455,8 +488,11 @@ class AirmetEditMode extends PureComponent {
               />
               <InputGroup
                 data-field='upper'
-                className={cloudLevels && cloudLevels.upper &&
-                  (!cloudLevels.upper.val || !cloudLevels.upper.unit) ? 'missing' : null}>
+                className={cloudLevels && cloudLevels.upper && (!cloudLevels.upper.val || !cloudLevels.upper.unit)
+                  ? 'missing'
+                  : (cloudLevels && cloudLevels.lower && cloudLevels.lower.val) && cloudLevels.upper.val <= cloudLevels.lower.val
+                    ? 'invalid'
+                    : null}>
                 <InputGroupAddon addonType='prepend'>{this.getUnitLabel(cloudLevels.upper.unit)}</InputGroupAddon>
                 <Input placeholder='Upper level' type='number'
                   min='0' step={this.stepLevelPerUnit(cloudLevels.upper.unit)} max={this.maxLevelPerUnit(cloudLevels.upper.unit)}
@@ -464,8 +500,12 @@ class AirmetEditMode extends PureComponent {
                   onChange={(evt) => dispatch(actions.updateAirmetAction(uuid, 'cloudLevels.upper.val', parseInt(evt.target.value)))} />
               </InputGroup>
               <Switch
-                className={cloudLevels && cloudLevels.lower && !cloudLevels.lower.surface &&
-                  (!cloudLevels.lower.val || !cloudLevels.lower.unit || cloudLevels.lower.val > this.maxLevelPerUnit(cloudLevels.lower.unit)) ? 'missing' : null}
+                className={cloudLevels && cloudLevels.lower && !cloudLevels.lower.surface && (!cloudLevels.lower.val || !cloudLevels.lower.unit)
+                  ? 'missing'
+                  : (cloudLevels && cloudLevels.upper && cloudLevels.upper.val && cloudLevels.upper.val <= cloudLevels.lower.val) ||
+                     cloudLevels.lower.val > this.maxLevelPerUnit(cloudLevels.lower.unit)
+                    ? 'invalid'
+                    : null}
                 value={cloudLevels && cloudLevels.lower && cloudLevels.lower.surface ? 'sfc' : 'lvl'}
                 checkedOption={{
                   optionId: 'lvl',
@@ -489,23 +529,21 @@ class AirmetEditMode extends PureComponent {
         </WhatSection>
 
         <ValiditySection>
-          <TimePicker data-field='validdate' utc required
+          <TimePicker data-field='validdate' utc
             value={moment(validdate, DATETIME_FORMAT).isValid()
               ? moment.utc(validdate, DATETIME_FORMAT)
               : validdate
             }
+            invalid={!isStartValidityTimeValid(this.props)}
             onChange={(evt, timestamp) => dispatch(actions.updateAirmetAction(uuid, 'validdate', timestamp))}
-            min={dateLimits.validDate.min}
-            max={dateLimits.validDate.max}
           />
-          <TimePicker data-field='validdate_end' utc required
+          <TimePicker data-field='validdate_end' utc
             value={moment(validdateEnd, DATETIME_FORMAT).isValid()
               ? moment.utc(validdateEnd, DATETIME_FORMAT)
               : validdateEnd
             }
+            invalid={!isEndValidityTimeValid(this.props)}
             onChange={(evt, timestamp) => dispatch(actions.updateAirmetAction(uuid, 'validdate_end', timestamp))}
-            min={dateLimits.validDateEnd.min}
-            max={dateLimits.validDateEnd.max}
           />
         </ValiditySection>
 
@@ -532,7 +570,7 @@ class AirmetEditMode extends PureComponent {
           <span data-field='location_indicator_icao'>{locationIndicatorIcao}</span>
         </FirSection>
 
-        <DrawSection className={`required${hasStartCoordinates ? '' : ' missing'}${feedbackStart ? ' warning' : ''}`} title={drawMessage()}>
+        <DrawSection className={`required${hasStartCoordinates && hasStartIntersectionCoordinates ? '' : ' missing'}${feedbackStart ? ' warning' : ''}`} title={drawMessage()}>
           {
             drawActions().map((actionItem, index) =>
               <Button color='primary' key={actionItem.action + '_button'} data-field={actionItem.action + '_button'}
@@ -583,9 +621,12 @@ class AirmetEditMode extends PureComponent {
                 onChange={(evt) => dispatch(actions.updateAirmetAction(uuid, 'levelinfo.levels.0.value', evt.target.value))} />
             </InputGroup>
             <Switch
-              className={isLevelBetween && !levelMode.hasSurface &&
-                levelinfo && levelinfo.levels && levelinfo.levels[0] &&
-                (!levelinfo.levels[0].value || levelinfo.levels[0].value > this.maxLevelPerUnit(levelinfo.levels[0].unit)) ? 'missing' : null}
+              className={isLevelBetween && !levelMode.hasSurface && levelinfo && levelinfo.levels && levelinfo.levels[0] && !levelinfo.levels[0].value
+                ? 'missing'
+                : levelinfo.levels[0].value > this.maxLevelPerUnit(levelinfo.levels[0].unit) ||
+                    (levelinfo.levels[1] && levelinfo.levels[1].value && this.compare(levelinfo.levels[0], levelinfo.levels[1]))
+                  ? 'invalid'
+                  : null}
               value={levelMode.hasSurface ? 'sfc' : 'lvl'}
               checkedOption={{
                 optionId: 'lvl',
@@ -621,7 +662,11 @@ class AirmetEditMode extends PureComponent {
             />
             <InputGroup
               data-field='between-lev-2'
-              className={isLevelBetween && levelinfo && levelinfo.levels && levelinfo.levels[1] && !levelinfo.levels[1].value ? 'missing' : null}
+              className={isLevelBetween && levelinfo && levelinfo.levels && levelinfo.levels[1] && !levelinfo.levels[1].value
+                ? 'missing'
+                : levelinfo.levels[0] && levelinfo.levels[0].value && this.compare(levelinfo.levels[0], levelinfo.levels[1])
+                  ? 'invalid'
+                  : null}
               disabled={!isLevelBetween}>
               <InputGroupAddon addonType='prepend'>
                 <ButtonDropdown toggle={() => this.toggleDropDown(DROP_DOWN_NAMES.BETWEEN_UPPER)} isOpen={isBetweenUpperDropDownOpen}>
@@ -745,9 +790,8 @@ AirmetEditMode.propTypes = {
   drawModeStart: PropTypes.string,
   feedbackStart: PropTypes.string,
   hasStartCoordinates: PropTypes.bool,
+  hasStartIntersectionCoordinates: PropTypes.bool,
   availableFirs: PropTypes.array,
-  maxHoursDuration: PropTypes.number,
-  maxHoursInAdvance: PropTypes.number,
   airmet: AIRMET_TYPES.AIRMET,
   isWindNeeded: PropTypes.bool,
   isObscuringNeeded: PropTypes.bool,

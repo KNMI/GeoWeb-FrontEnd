@@ -789,8 +789,14 @@ const updateSigmet = (dataField, value, container) => {
       preset = getPresetForPhenomenon(value, sources);
     }
   }
-  if ((dataField === 'validdate' || dataField === 'validdate_end') && value === null) {
-    value = moment.utc().add(1, 'minute').format(DATETIME_FORMAT);
+  if ((dataField === 'validdate') && value === null) {
+    value = moment.utc().format(DATETIME_FORMAT);
+  }
+  if ((dataField === 'validdate_end') && value === null) {
+    /* if validity start is defined, use this, otherwise use current time */
+    value = affectedSigmet.validdate
+      ? moment(affectedSigmet.validdate).utc().add(1, 'hour').format(DATETIME_FORMAT)
+      : moment.utc().add(1, 'hour').format(DATETIME_FORMAT);
   }
   if (dataField.indexOf('volcano.name') !== -1) {
     value = typeof value === 'string'

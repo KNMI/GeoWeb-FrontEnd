@@ -86,35 +86,26 @@ export default class DateTimePicker extends PureComponent {
   }
 
   render () {
-    const { value, min, max, onChange, className, required, disabled, utc } = this.props;
+    const { value, min, onChange, className, disabled, utc, invalid } = this.props;
     const hourStep = 1;
     const minuteStep = 1;
     const parsedValue = this.parseTimestamp(value);
     const parsedMin = this.parseTimestamp(min);
-    const parsedMax = this.parseTimestamp(max);
+
     const firstDay = parsedMin.clone();
-    const nextToLastDay = parsedMax.clone().startOf('day').add(1, 'day');
     const dayOptions = [];
     let dayToAdd = firstDay.clone();
-    while (dayToAdd.isBefore(nextToLastDay)) {
-      dayOptions.push({ label: dayToAdd.calendar(null, CALENDAR_FORMAT), timestamp: dayToAdd.clone() });
-      dayToAdd.startOf('day').add(1, 'day');
-    }
-    const dataField = this.props['data-field'];
-    const hourMinimum = parsedValue.isSame(parsedMin, 'day')
-      ? parsedMin.hour() + (parsedValue.minute() < parsedMin.minute() ? 1 : 0)
-      : 0;
-    const hourMaximum = parsedValue.isSame(parsedMax, 'day')
-      ? parsedMax.hour() - (parsedValue.minute() > parsedMax.minute() ? 1 : 0)
-      : 23;
-    const minuteMinimum = parsedValue.isSame(parsedMin, 'hour') ? parsedMin.minute() : 0;
-    const minuteMaximum = parsedValue.isSame(parsedMax, 'hour') ? parsedMax.minute() : 59;
 
-    const shouldHightlightDueToMissing = (required && !value) || (value && (parsedValue.isBefore(parsedMin) || parsedValue.isAfter(parsedMax)));
-    const shouldHightlightDueToInvalid = (value && (parsedValue.isBefore(parsedMin) || parsedValue.isAfter(parsedMax)));
+    dayOptions.push({ label: dayToAdd.calendar(null, CALENDAR_FORMAT), timestamp: dayToAdd.clone() });
+    dayToAdd.startOf('day').add(1, 'day');
+    dayOptions.push({ label: dayToAdd.calendar(null, CALENDAR_FORMAT), timestamp: dayToAdd.clone() });
+    dayToAdd.startOf('day').add(1, 'day');
+
+    const dataField = this.props['data-field'];
+
     const prevClassNames = typeof className === 'string' ? className.split(' ') : [];
 
-    return <Row className={classNames('DateTimePicker', prevClassNames, { required: this.props.required, missing: shouldHightlightDueToMissing, invalid: shouldHightlightDueToInvalid })}>
+    return <Row className={classNames('DateTimePicker', prevClassNames, { required: this.props.required, invalid: invalid })}>
       <Col>
         <label className={`row${disabled ? ' disabled' : ''}`}
           title={!disabled ? moment.utc(value).format(DATETIME_LABEL_FORMAT_UTC) : null}
@@ -133,7 +124,7 @@ export default class DateTimePicker extends PureComponent {
           <NumberInput
             disabled={disabled} className='col-1'
             value={parsedValue.isValid() ? parsedValue.format(HOUR_LABEL_FORMAT) : ''}
-            min={hourMinimum} max={hourMaximum} step={hourStep} minLength={2} maxLength={2} data-field={`${dataField}-hour`}
+            step={hourStep} minLength={2} maxLength={2} data-field={`${dataField}-hour`}
             onChange={(evt, value) => onChange(evt, parsedValue.isValid() && typeof value === 'string'
               ? parsedValue.clone().hour(parseInt(value)).format(DATETIME_FORMAT)
               : null)} />
@@ -141,7 +132,7 @@ export default class DateTimePicker extends PureComponent {
           <NumberInput
             disabled={disabled} className='col-1'
             value={parsedValue.isValid() ? parsedValue.format(MINUTE_LABEL_FORMAT) : ''}
-            min={minuteMinimum} max={minuteMaximum} step={minuteStep} minLength={2} maxLength={2} data-field={`${dataField}-minute`}
+            step={minuteStep} minLength={2} maxLength={2} data-field={`${dataField}-minute`}
             onChange={(evt, value) => onChange(evt, parsedValue.isValid() && typeof value === 'string'
               ? parsedValue.clone().minute(parseInt(value)).format(DATETIME_FORMAT)
               : null)} />
@@ -169,7 +160,7 @@ DateTimePicker.propTypes = {
   onChange: PropTypes.func,
   value: timestampType,
   min: timestampType,
-  max: timestampType,
+  invalid: PropTypes.bool,
   'data-field': PropTypes.string.isRequired,
   required: PropTypes.bool,
   disabled: PropTypes.bool,

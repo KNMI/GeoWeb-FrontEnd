@@ -4,8 +4,8 @@ import Moment from 'react-moment';
 import moment from 'moment';
 import produce from 'immer';
 import PropTypes from 'prop-types';
-import { READ_ABILITIES, byReadAbilities, MODALS, MODAL_TYPES } from '../../containers/Airmet/AirmetActions';
-import { UNITS, UNITS_LABELED, DIRECTIONS, MODES_LVL, CHANGE_OPTIONS, MOVEMENT_TYPES, AIRMET_TYPES, dateRanges } from './AirmetTemplates';
+import { READ_ABILITIES, byReadAbilities, MODALS, MODAL_TYPES, STATUSES } from '../../containers/Airmet/AirmetActions';
+import { UNITS, UNITS_LABELED, DIRECTIONS, MODES_LVL, CHANGE_OPTIONS, MOVEMENT_TYPES, AIRMET_TYPES } from './AirmetTemplates';
 import { DATETIME_LABEL_FORMAT_UTC } from '../../config/DayTimeConfig';
 
 import HeaderSection from '../SectionTemplates/HeaderSection';
@@ -20,6 +20,7 @@ import IssueSection from '../SectionTemplates/IssueSection';
 import ConfirmationModal from '../ConfirmationModal';
 import MovementSection from '../SectionTemplates/MovementSection';
 import CompactedHeightsSection from '../SectionTemplates/CompactedHeightsSection';
+import { isObsOrFcValid, isStartValidityTimeValid, isEndValidityTimeValid } from './AirmetValidation';
 
 class AirmetReadMode extends PureComponent {
   getUnitLabel (unitName) {
@@ -55,21 +56,26 @@ class AirmetReadMode extends PureComponent {
   };
 
   showCloudLevels (cloudLevels) {
+    const sCloudLevelsInfoMissed = '(no complete cloud levels provided)';
+    const sCloudHigherThanUpperInfo = '(lower cloud level higher than upper cloud level)';
     const hasValues = cloudLevels.upper && Number.isInteger(cloudLevels.upper.val) &&
       cloudLevels.upper.val > 0 && typeof cloudLevels.upper.unit === 'string' && cloudLevels.lower &&
       ((Number.isInteger(cloudLevels.lower.val) && cloudLevels.lower.val > 0) || cloudLevels.lower.surface === true) &&
       typeof cloudLevels.lower.unit === 'string';
     const above = cloudLevels.upper && cloudLevels.upper.above === true ? 'above' : '';
     return !hasValues
-      ? '(no complete cloud levels provided)'
-      : `Between   ${cloudLevels.lower.surface === true
-        ? 'surface'
-        : `${this.getValueLabel(cloudLevels.lower.val, cloudLevels.lower.unit)} ${this.getUnitLabel(cloudLevels.lower.unit)}`}
-        and ${above} ${this.getValueLabel(cloudLevels.upper.val, cloudLevels.upper.unit)} ${this.getUnitLabel(cloudLevels.upper.unit)}`;
+      ? sCloudLevelsInfoMissed
+      : cloudLevels.upper && cloudLevels.upper.val && cloudLevels.lower && cloudLevels.lower.val && cloudLevels.lower.val >= cloudLevels.upper.val
+        ? sCloudHigherThanUpperInfo
+        : `Between   ${cloudLevels.lower.surface === true
+          ? 'surface'
+          : `${this.getValueLabel(cloudLevels.lower.val, cloudLevels.lower.unit)} ${this.getUnitLabel(cloudLevels.lower.unit)}`}
+          and ${above} ${this.getValueLabel(cloudLevels.upper.val, cloudLevels.upper.unit)} ${this.getUnitLabel(cloudLevels.upper.unit)}`;
   };
 
   showLevels (levelinfo) {
     const sLevelsInfoMissed = '(no complete levels info provided)';
+    const sLowerHigherThanUpperInfo = '(lower level higher than upper level)';
     if (!levelinfo) {
       return sLevelsInfoMissed;
     }
@@ -92,8 +98,10 @@ class AirmetReadMode extends PureComponent {
           : sLevelsInfoMissed;
       case MODES_LVL.BETW:
         return unit0Label && value0Label && unit1Label && value1Label
-          ? `Between ${is0FL ? unit0Label : ''} ${value0Label} ${!is0FL ? unit0Label : ''} and
-            ${is1FL ? unit1Label : ''} ${value1Label} ${!is1FL ? unit1Label : ''}`
+          ? this.compare(level0, level1)
+            ? `Between ${is0FL ? unit0Label : ''} ${value0Label} ${!is0FL ? unit0Label : ''} and
+              ${is1FL ? unit1Label : ''} ${value1Label} ${!is1FL ? unit1Label : ''}`
+            : sLowerHigherThanUpperInfo
           : sLevelsInfoMissed;
       case MODES_LVL.BETW_SFC:
         return unit1Label && value1Label
@@ -172,13 +180,43 @@ class AirmetReadMode extends PureComponent {
       case MODES_LVL.BETW:
         return Array.isArray(levelinfo.levels) && levelinfo.levels.length > 1 &&
           this.isLevelValid(levelinfo.levels[0]) &&
-          this.isLevelValid(levelinfo.levels[1]);
+          this.isLevelValid(levelinfo.levels[1]) &&
+          this.compare(levelinfo.levels[0], levelinfo.levels[1]);
       case MODES_LVL.BETW_SFC:
         return Array.isArray(levelinfo.levels) && levelinfo.levels.length > 0 &&
           this.isLevelValid(levelinfo.levels[1]);
       default:
         return false;
     }
+  }
+
+  compare (lowerLevel, upperLevel) {
+    var lowerLevelInMeter = 0;
+    var upperLevelInMeter = 0;
+
+    switch (lowerLevel.unit) {
+      case UNITS.FL:
+        lowerLevelInMeter = lowerLevel.value * 30.48;
+        break;
+      case UNITS.FT:
+        lowerLevelInMeter = lowerLevel.value * 0.3048;
+        break;
+      case UNITS.M:
+        lowerLevelInMeter = lowerLevel.value * 1;
+        break;
+    }
+    switch (upperLevel.unit) {
+      case UNITS.FL:
+        upperLevelInMeter = upperLevel.value * 30.48;
+        break;
+      case UNITS.FT:
+        upperLevelInMeter = upperLevel.value * 0.3048;
+        break;
+      case UNITS.M:
+        upperLevelInMeter = upperLevel.value * 1;
+        break;
+    }
+    return lowerLevelInMeter < upperLevelInMeter;
   }
 
   /**
@@ -199,30 +237,35 @@ class AirmetReadMode extends PureComponent {
   }
 
   /**
+   * Check whether the start geometry is valid
+   * @returns {boolean} The result
+   */
+  isStartGeometryValid () {
+    const { hasStartCoordinates, hasStartIntersectionCoordinates } = this.props;
+    return hasStartCoordinates && hasStartIntersectionCoordinates;
+  }
+
+  isCloudLevelsValid () {
+    const { isCloudLevelsNeeded } = this.props;
+    const { cloudLevels } = this.props.airmet;
+    return !isCloudLevelsNeeded || (cloudLevels && cloudLevels.lower && cloudLevels.upper && cloudLevels.lower.val < cloudLevels.upper.val &&
+    typeof cloudLevels.lower.surface === 'boolean' && (cloudLevels.lower.surface ||
+      (typeof cloudLevels.lower.unit === 'string' && cloudLevels.lower.unit.length > 0 &&
+    typeof cloudLevels.lower.val === 'number' && cloudLevels.lower.val !== 0)) &&
+    typeof cloudLevels.upper.above === 'boolean' && typeof cloudLevels.upper.unit === 'string' && cloudLevels.upper.unit.length > 0 &&
+    typeof cloudLevels.upper.val === 'number' && cloudLevels.upper.val !== 0);
+  }
+
+  /**
    * Check whether or not the basic values for this specific Airmet are valid
    * @returns {boolean} Whether or not the basic values in this specific Airmet are valid
    */
   isValid () {
-    const { maxHoursInAdvance, maxHoursDuration, hasStartCoordinates, hasStartIntersectionCoordinates,
-      isWindNeeded, isCloudLevelsNeeded, isObscuringNeeded, isLevelFieldNeeded } = this.props;
-    const { validdate, validdate_end: validdateEnd, phenomenon, firname, change, type: distributionType,
-      wind, cloudLevels, obscuring, visibility } = this.props.airmet;
-    const now = moment.utc();
-    const startTimestamp = moment.utc(validdate);
-    const endTimestamp = moment.utc(validdateEnd);
-    const dateLimits = dateRanges(now, startTimestamp, endTimestamp, maxHoursInAdvance, maxHoursDuration);
-    const isStartValid = dateLimits.validDate.min.isSameOrBefore(startTimestamp) &&
-      dateLimits.validDate.max.isSameOrAfter(startTimestamp);
-    const isEndValid = dateLimits.validDateEnd.min.isSameOrBefore(endTimestamp) &&
-      dateLimits.validDateEnd.max.isSameOrAfter(endTimestamp);
+    const { isWindNeeded, isObscuringNeeded, isLevelFieldNeeded } = this.props;
+    const { phenomenon, firname, change, type: distributionType,
+      wind, obscuring, visibility } = this.props.airmet;
     const isWindValid = !isWindNeeded || (wind && wind.speed && typeof wind.speed.unit === 'string' && wind.speed.unit.length > 0 &&
       typeof wind.speed.val === 'number' && wind.direction && typeof wind.direction.val === 'number');
-    const isCloudLevelsValid = !isCloudLevelsNeeded || (cloudLevels && cloudLevels.lower && cloudLevels.upper &&
-      typeof cloudLevels.lower.surface === 'boolean' && (cloudLevels.lower.surface ||
-        (typeof cloudLevels.lower.unit === 'string' && cloudLevels.lower.unit.length > 0 &&
-      typeof cloudLevels.lower.val === 'number' && cloudLevels.lower.val !== 0)) &&
-      typeof cloudLevels.upper.above === 'boolean' && typeof cloudLevels.upper.unit === 'string' && cloudLevels.upper.unit.length > 0 &&
-      typeof cloudLevels.upper.val === 'number' && cloudLevels.upper.val !== 0);
     const isObscuringValid = !isObscuringNeeded || (Array.isArray(obscuring) && obscuring.length > 0 &&
       typeof obscuring[0].name === 'string' && obscuring[0].name.length > 0 &&
       typeof obscuring[0].code === 'string' && obscuring[0].code.length > 0 &&
@@ -232,9 +275,9 @@ class AirmetReadMode extends PureComponent {
     const hasFir = typeof firname === 'string' && firname.length > 0;
     const hasChange = typeof change === 'string' && change.length > 0;
     const hasType = typeof distributionType === 'string' && distributionType.length > 0;
-    return isStartValid && isEndValid && hasStartCoordinates && hasStartIntersectionCoordinates &&
+    return isObsOrFcValid(this.props) && isStartValidityTimeValid(this.props) && isEndValidityTimeValid(this.props) && this.isStartGeometryValid() &&
       hasPhenomenon && hasFir && hasChange && hasType && this.isMovementValid() &&
-      isWindValid && isCloudLevelsValid && isObscuringValid && isLevelFieldValid;
+      isWindValid && this.isCloudLevelsValid() && isObscuringValid && isLevelFieldValid;
   };
 
   /**
@@ -290,7 +333,8 @@ class AirmetReadMode extends PureComponent {
       location_indicator_icao: locationIndicatorIcao, location_indicator_mwo: locationIndicatorMwo,
       levelinfo, movement_type: movementType, movement, change, tac, obs_or_forecast: obsOrForecast,
       issuedate, sequence, firname, wind, cloudLevels, obscuring, visibility } = airmet;
-
+    const { status } = airmet;
+    const isPublished = status === STATUSES.PUBLISHED;
     const selectedObscuringPhenomenon = Array.isArray(obscuring) && obscuring.length > 0 ? obscuring[0] : null;
     const obsFcTime = obsOrForecast ? obsOrForecast.obsFcTime : null;
     const isObserved = obsOrForecast ? obsOrForecast.obs : null;
@@ -307,7 +351,7 @@ class AirmetReadMode extends PureComponent {
           <span data-field='phenomenon'>{phenomenon}</span>
           <span data-field='obs_or_fcst'>{isObserved ? 'Observed' : 'Forecast'}</span>
           {obsFcTime
-            ? <Moment format={DATETIME_LABEL_FORMAT_UTC} date={obsFcTime} data-field='obsFcTime' utc />
+            ? <Moment format={DATETIME_LABEL_FORMAT_UTC} date={obsFcTime} data-field='obsFcTime' utc className={(!isObsOrFcValid(this.props) && !isPublished) ? 'invalid' : null} />
             : <span data-field='obsFcTime'>
               {isObserved
                 ? '(no observation time provided)'
@@ -316,7 +360,7 @@ class AirmetReadMode extends PureComponent {
             </span>
           }
           {isWindNeeded
-            ? <span data-field='wind_direction'>
+            ? <span data-field='wind_direction' className={(wind && wind.direction && Number.isInteger(wind.direction.val)) ? null : 'invalid'}>
               {wind && wind.direction && Number.isInteger(wind.direction.val)
                 ? `${this.getValueLabel(wind.direction.val, wind.direction.unit, true)} ${this.getUnitLabel(wind.direction.unit)}`
                 : '(no direction provided)'
@@ -325,7 +369,8 @@ class AirmetReadMode extends PureComponent {
             : null
           }
           {isWindNeeded
-            ? <span data-field='wind_speed'>
+            ? <span data-field='wind_speed'
+              className={(wind && wind.speed && Number.isInteger(wind.speed.val) && typeof wind.speed.unit === 'string') ? null : 'invalid'}>
               {wind && wind.speed && Number.isInteger(wind.speed.val) &&
                 typeof wind.speed.unit === 'string'
                 ? `${this.getValueLabel(wind.speed.val, wind.speed.unit, true)} ${this.getUnitLabel(wind.speed.unit)}`
@@ -335,7 +380,7 @@ class AirmetReadMode extends PureComponent {
             : null
           }
           {isObscuringNeeded
-            ? <span data-field='visibility'>
+            ? <span data-field='visibility' className={visibility && Number.isInteger(visibility.val) && visibility.val >= 10000 ? 'invalid' : null}>
               {visibility && Number.isInteger(visibility.val)
                 ? `${this.getValueLabel(visibility.val, visibility.unit, true)} ${this.getUnitLabel(visibility.unit)}`
                 : '(no visibility provided)'
@@ -344,7 +389,7 @@ class AirmetReadMode extends PureComponent {
             : null
           }
           {isObscuringNeeded
-            ? <span data-field='obscuring'>
+            ? <span data-field='obscuring' className={selectedObscuringPhenomenon && typeof selectedObscuringPhenomenon.code === 'string' ? null : 'invalid'}>
               {selectedObscuringPhenomenon && typeof selectedObscuringPhenomenon.code === 'string'
                 ? selectedObscuringPhenomenon.code
                 : '(no cause provided)'
@@ -355,7 +400,7 @@ class AirmetReadMode extends PureComponent {
           {isCloudLevelsNeeded
             ? cloudLevels
               ? <CompactedHeightsSection data-field='cloud_levels'>
-                <span data-field='complete'>{this.showCloudLevels(cloudLevels)}</span>
+                <span data-field='complete' className={this.isCloudLevelsValid() ? null : 'invalid'}>{this.showCloudLevels(cloudLevels)}</span>
               </CompactedHeightsSection>
               : <CompactedHeightsSection data-field='cloud_levels'>
                 <span data-field='complete'>{'(no cloud levels provided)'}</span>
@@ -365,18 +410,19 @@ class AirmetReadMode extends PureComponent {
         </WhatSection>
 
         <ValiditySection>
-          <Moment format={DATETIME_LABEL_FORMAT_UTC} date={validdate} data-field='validdate' utc />
-          <Moment format={DATETIME_LABEL_FORMAT_UTC} date={validdateEnd} data-field='validdate_end' utc />
+          <Moment format={DATETIME_LABEL_FORMAT_UTC} date={validdate} data-field='validdate' className={(!isStartValidityTimeValid(this.props) && !isPublished) ? 'invalid' : null} utc />
+          <Moment format={DATETIME_LABEL_FORMAT_UTC} date={validdateEnd} data-field='validdate_end' className={isEndValidityTimeValid(this.props) ? null : 'invalid'} utc />
         </ValiditySection>
 
         <FirSection>
           <span data-field='firname'>{firname}</span>
           <span data-field='location_indicator_icao'>{locationIndicatorIcao}</span>
+          <span data-field='geometry' className={this.isStartGeometryValid() ? null : 'missing'}>{this.isStartGeometryValid() ? null : 'Missing Geometry'}</span>
         </FirSection>
 
         {isLevelFieldNeeded
           ? <HeightSection>
-            <span data-field='level'>{this.showLevels(levelinfo)}</span>
+            <span data-field='level' className={this.isLevelInfoValid() ? null : 'invalid'}>{this.showLevels(levelinfo)}</span>
           </HeightSection>
           : null
         }
@@ -388,8 +434,12 @@ class AirmetReadMode extends PureComponent {
         </ProgressSection>
         {movementType === MOVEMENT_TYPES.MOVEMENT
           ? <MovementSection>
-            <span data-field='speed' >{movement.speed}KT</span>
-            <span data-field='direction'>{directionLongName}</span>
+            <span data-field='speed' className={movement.speed === null ? 'missing' : null}>
+              {movement.speed === null ? '(speed not provided) ' : movement.speed}KT
+            </span>
+            <span data-field='direction' className={directionLongName === null ? 'missing' : null} >
+              {directionLongName === null ? '(direction not provided)' : directionLongName}
+            </span>
           </MovementSection>
           : null
         }
@@ -452,8 +502,6 @@ AirmetReadMode.propTypes = {
   abilities: PropTypes.shape(abilitiesPropTypes),
   focus: PropTypes.bool,
   copiedAirmetRef: PropTypes.string,
-  maxHoursInAdvance: PropTypes.number,
-  maxHoursDuration: PropTypes.number,
   hasStartCoordinates: PropTypes.bool,
   hasStartIntersectionCoordinates: PropTypes.bool,
   isCancelFor: PropTypes.number,
