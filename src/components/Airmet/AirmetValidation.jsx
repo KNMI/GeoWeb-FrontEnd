@@ -31,8 +31,8 @@ export const isObsOrFcValid = (airmetProps) => {
  * Rules for validity start time:
  * - it is mandatory (empty field is not valid)
  * - it should be valid date object
- * - validityStart >= now && validityStart >= (now+maxHoursInAdvance) if FCS phenomenon
- * - validityStart >= (now-2h) && validityStart >= (now+maxHoursInAdvance) if OBS phenomenon
+ * - validityStart >= now && validityStart <= (now+maxHoursInAdvance) if FCS phenomenon
+ * - validityStart >= (now-2h) && validityStart <= (now+maxHoursInAdvance) if OBS phenomenon
  * @returns {boolean} The result
  */
 export const isStartValidityTimeValid = (airmetProps) => {
@@ -60,7 +60,7 @@ export const isStartValidityTimeValid = (airmetProps) => {
  * Rules for validity end time:
  * - it is mandatory (empty field is not valid)
  * - it should be valid date object
- * - validityEnd > validityStart && validityEnd >= (validityStart+maxHoursDuration)
+ * - validityEnd > validityStart && validityEnd <= (validityStart+maxHoursDuration)
  * @returns {boolean} The result
  */
 export const isEndValidityTimeValid = (airmetProps) => {
