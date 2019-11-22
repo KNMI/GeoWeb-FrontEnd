@@ -529,7 +529,7 @@ class AirmetEditMode extends PureComponent {
         </WhatSection>
 
         <ValiditySection>
-          <TimePicker data-field='validdate' utc
+          <TimePicker data-field='validdate' utc required
             value={moment(validdate, DATETIME_FORMAT).isValid()
               ? moment.utc(validdate, DATETIME_FORMAT)
               : validdate
@@ -537,7 +537,7 @@ class AirmetEditMode extends PureComponent {
             invalid={!isStartValidityTimeValid(this.props)}
             onChange={(evt, timestamp) => dispatch(actions.updateAirmetAction(uuid, 'validdate', timestamp))}
           />
-          <TimePicker data-field='validdate_end' utc
+          <TimePicker data-field='validdate_end' utc required
             value={moment(validdateEnd, DATETIME_FORMAT).isValid()
               ? moment.utc(validdateEnd, DATETIME_FORMAT)
               : validdateEnd
