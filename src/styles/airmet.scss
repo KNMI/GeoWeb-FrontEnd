@@ -116,6 +116,13 @@
           margin-right: 3rem;
           width: 1rem;
         }
+        &.unitBefore:after {
+          padding-top: 0.4rem;
+          padding-right: 0.35rem;
+          margin-left: -1.1rem;
+          margin-right: 0rem;
+          width: 1.1rem;
+        }
       }
     }
     .row:not(:first-of-type) {

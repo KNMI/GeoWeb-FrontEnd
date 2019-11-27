@@ -415,20 +415,10 @@ class AirmetEditMode extends PureComponent {
           }
           {isWindNeeded
             ? <InputGroup data-field='wind_speed'
-              className={classNames('required', 'unitAfter', {
+              className={classNames('unitBefore', 'required', {
                 missing: !wind || !wind.speed || !Number.isInteger(wind.speed.val)
-              })} >
-              <Input
-                onChange={(evt) => dispatch(actions.updateAirmetAction(uuid, 'wind.speed.val',
-                  typeof evt.target.value === 'string' && evt.target.value.length > 0
-                    ? parseInt(evt.target.value)
-                    : null))}
-                value={(!wind || !wind.speed || !Number.isInteger(wind.speed.val))
-                  ? ''
-                  : `${wind.speed.val}`}
-                placeholder={'Set speed'} type='number' step={this.stepLevelPerUnit(wind.speed.unit)} min='0' max={this.maxLevelPerUnit(wind.speed.unit)}
-              />
-              <InputGroupAddon addonType='append'>
+              })}>
+              <InputGroupAddon addonType='prepend'>
                 <ButtonDropdown toggle={() => this.toggleDropDown(DROP_DOWN_NAMES.WIND_SPEED)} isOpen={isWindSpeedDropDownOpen}>
                   <DropdownToggle caret>
                     {this.getWindSpeedUnitLabel(wind.speed.unit)}
@@ -442,6 +432,16 @@ class AirmetEditMode extends PureComponent {
                   </DropdownMenu>
                 </ButtonDropdown>
               </InputGroupAddon>
+              <Input
+                onChange={(evt) => dispatch(actions.updateAirmetAction(uuid, 'wind.speed.val',
+                  typeof evt.target.value === 'string' && evt.target.value.length > 0
+                    ? parseInt(evt.target.value)
+                    : null))}
+                value={(!wind || !wind.speed || !Number.isInteger(wind.speed.val))
+                  ? ''
+                  : `${wind.speed.val}`}
+                placeholder={'Set speed'} type='number' step={this.stepLevelPerUnit(wind.speed.unit)} min='0' max={this.maxLevelPerUnit(wind.speed.unit)}
+              />
             </InputGroup>
             : null
           }
