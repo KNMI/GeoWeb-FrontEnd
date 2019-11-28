@@ -30,6 +30,49 @@ const browserFullScreenRequests = [
   'webkitRequestFullScreen'
 ];
 
+const getGenericLoginModal = (titleBarContiainer, loginModalOpen, loginModalMessage, toggleLoginModal, handleOnChange, handleKeyPressPassword) => {
+  const { urls } = titleBarContiainer.props;
+  return (<Modal isOpen={loginModalOpen} toggle={toggleLoginModal}>
+    <ModalHeader toggle={toggleLoginModal}>Sign in</ModalHeader>
+    <ModalBody>
+      <Collapse isOpen>
+        <InputGroup>
+          <input ref={(input) => { titleBarContiainer.inputRefs['username'] = input; }} className='form-control' tabIndex={0} placeholder='username' name='username'
+            onChange={titleBarContiainer.handleOnChange}
+            onFocus={titleBarContiainer.handleOnFocus}
+            onBlur={titleBarContiainer.handleOnFocus}
+          />
+          <Input ref={(input) => { titleBarContiainer.inputRefs['password'] = input; }} type='password' name='password' id='examplePassword' placeholder='password'
+            onKeyPress={handleKeyPressPassword} onChange={handleOnChange} onFocus={titleBarContiainer.handleOnFocus} />
+        </InputGroup>
+      </Collapse>
+      <FormText color='muted'>
+        {loginModalMessage ? null : 'Backend: ' + urls.BACKEND_SERVER_URL}
+      </FormText>
+      <FormText color='muted'>
+        {loginModalMessage}
+      </FormText>
+    </ModalBody>
+    <ModalFooter>
+      <Button color='primary' onClick={titleBarContiainer.doLogin} className='signInOut'>
+        <Icon className='icon' name='sign-in' />
+        Sign in
+      </Button>
+      <Button color='secondary' onClick={titleBarContiainer.toggleLoginModal}>Cancel</Button>
+    </ModalFooter>
+  </Modal>);
+};
+
+const getOauth2LoginModal = (titleBarContiainer, loginModalOpen, loginModalMessage, toggleLoginModal, handleOnChange, handleKeyPressPassword) => {
+  const { urls } = titleBarContiainer.props;
+  if (loginModalOpen) {
+    if (window && window.location) {
+      window.location = urls.BACKEND_SERVER_URL + '/login';
+    }
+  }
+  return null;
+};
+
 class TitleBarContainer extends PureComponent {
   constructor (props) {
     super(props);
@@ -48,12 +91,12 @@ class TitleBarContainer extends PureComponent {
     this.handleKeyPressPassword = this.handleKeyPressPassword.bind(this);
     this.checkCredentials = this.checkCredentials.bind(this);
     this.setLoggedOutCallback = this.setLoggedOutCallback.bind(this);
-    this.checkCredentialsOKCallback = this.checkCredentialsOKCallback.bind(this);
+    this.checkCredentialsOKCallbackGeneric = this.checkCredentialsOKCallbackGeneric.bind(this);
     this.checkCredentialsBadCallback = this.checkCredentialsBadCallback.bind(this);
     this.getServices = this.getServices.bind(this);
     this.fetchVersionInfo = this.fetchVersionInfo.bind(this);
     this.renderLoginModal = this.renderLoginModal.bind(this);
-
+    this.checkSignInMethod = this.checkSignInMethod.bind(this);
     this.render = this.render.bind(this);
     this.inputfieldUserName = '';
     this.inputfieldPassword = '';
@@ -70,10 +113,10 @@ class TitleBarContainer extends PureComponent {
       versionInfo: {
         backend: '...',
         frontend: version
-      }
+      },
+      signInMethod: 'generic'
     };
   }
-
   getServices () {
     const { urls, dispatch, adagucActions } = this.props;
 
@@ -107,10 +150,37 @@ class TitleBarContainer extends PureComponent {
     clearInterval(this.timer);
   }
 
+  /**
+   * This will check if the backend is running in traditional generic mode, or in keycloak/cognito OAuth2 mode.
+   */
+  checkSignInMethod () {
+    const { urls } = this.props;
+    return new Promise((resolve, reject) => {
+      axios({
+        method: 'get',
+        url: urls.BACKEND_SERVER_URL + '/login/options',
+        withCredentials: true,
+        responseType: 'json'
+      }).then(src => {
+        if (src.data.type && src.data.type === 'oauth2') {
+          resolve('oauth2');
+        } else {
+          resolve('generic');
+        }
+      }).catch((e) => {
+        resolve('generic');
+      });
+    });
+  }
+
   componentDidMount () {
     this.timer = setInterval(this.setTime, 15000);
     this.setState({ currentTime: moment().utc().format(timeFormat).toString() });
-    this.checkCredentials();
+    this.checkSignInMethod().then((signInMethod) => {
+      this.setState({ signInMethod: signInMethod }, () => {
+        this.checkCredentials();
+      });
+    });
     this.fieldToFocus = 'username';
     this.fetchVersionInfo();
   }
@@ -150,21 +220,33 @@ class TitleBarContainer extends PureComponent {
 
   doLogout () {
     const { urls } = this.props;
+    // if (this.state.signInMethod === 'oauth2') {
+    //   window.location = urls.BACKEND_SERVER_URL + '/logout';
+    //   return;
+    // }
+    console.log('Loggingout');
     this.toggleLoginModal();
+    const url = urls.BACKEND_SERVER_URL + '/logout' + (this.state.signInMethod === 'oauth2' ? '/geoweb' : '');
     axios({
       method: 'get',
-      url: urls.BACKEND_SERVER_URL + '/logout',
+      url: url,
       withCredentials: true,
       responseType: 'json'
     }).then(src => {
       this.setLoggedOutCallback('Signed out');
       hashHistory.push('/');
     }).catch(error => {
-      this.setLoggedOutCallback(error.response.data.message);
+      if (error.response && error.response.data) {
+        this.setLoggedOutCallback(error.response.data.message);
+      } else {
+        this.setLoggedOutCallback('Signed out');
+        hashHistory.push('/');
+      }
     });
   }
 
   checkCredentials (callback) {
+    const { dispatch } = this.props;
     const { urls } = this.props;
 
     try {
@@ -174,17 +256,48 @@ class TitleBarContainer extends PureComponent {
     } catch (e) {
       console.error(e);
     }
-    axios({
-      method: 'get',
-      url: urls.BACKEND_SERVER_URL + '/getuser',
-      withCredentials: true,
-      responseType: 'json'
-    }).then(src => {
-      this.checkCredentialsOKCallback(src.data);
-      if (callback) callback();
-    }).catch(error => {
-      this.checkCredentialsBadCallback(error);
-    });
+
+    if (this.state.signInMethod === null) {
+      this.checkCredentialsBadCallback(new Error('No authentication method found in /login/options'));
+      return;
+    }
+
+    if (this.state.signInMethod === 'oauth2') {
+      axios({
+        method: 'get',
+        url: urls.BACKEND_SERVER_URL + '/status',
+        withCredentials: true,
+        responseType: 'json'
+      }).then(src => {
+        if (src.data.userName && src.data.privileges) {
+          this.setState({
+            loginModal: false,
+            loginModalMessage: 'Signed in as user ' + src.data.userName
+          }, () => {
+            dispatch(this.props.userActions.login({ username: src.data.userName, roles: src.data.privileges }));
+          });
+        } else {
+          this.checkCredentialsBadCallback(new Error('Unable to get /status from backend'));
+        }
+        if (callback) callback();
+      }).catch(error => {
+        this.checkCredentialsBadCallback(error);
+      });
+    }
+
+    if (this.state.signInMethod === 'generic') {
+      axios({
+        method: 'get',
+        url: urls.BACKEND_SERVER_URL + '/getuser',
+        withCredentials: true,
+        responseType: 'json'
+      }).then(src => {
+        this.checkCredentialsOKCallbackGeneric(src.data);
+        if (callback) callback();
+      }).catch(error => {
+        this.checkCredentialsBadCallback(error);
+      });
+    }
   }
 
   setLoggedOutCallback (message) {
@@ -199,7 +312,7 @@ class TitleBarContainer extends PureComponent {
     this.getServices();
   };
 
-  checkCredentialsOKCallback (data) {
+  checkCredentialsOKCallbackGeneric (data) {
     const { dispatch } = this.props;
     const username = data.username ? data.username : data.userName;
     const roles = data.roles;
@@ -337,35 +450,11 @@ class TitleBarContainer extends PureComponent {
         </ModalFooter>
       </Modal>);
     } else {
-      return (<Modal isOpen={loginModalOpen} toggle={toggleLoginModal}>
-        <ModalHeader toggle={toggleLoginModal}>Sign in</ModalHeader>
-        <ModalBody>
-          <Collapse isOpen>
-            <InputGroup>
-              <input ref={(input) => { this.inputRefs['username'] = input; }} className='form-control' tabIndex={0} placeholder='username' name='username'
-                onChange={this.handleOnChange}
-                onFocus={this.handleOnFocus}
-                onBlur={this.handleOnFocus}
-              />
-              <Input ref={(input) => { this.inputRefs['password'] = input; }} type='password' name='password' id='examplePassword' placeholder='password'
-                onKeyPress={handleKeyPressPassword} onChange={handleOnChange} onFocus={this.handleOnFocus} />
-            </InputGroup>
-          </Collapse>
-          <FormText color='muted'>
-            {loginModalMessage ? null : 'Backend: ' + urls.BACKEND_SERVER_URL}
-          </FormText>
-          <FormText color='muted'>
-            {loginModalMessage}
-          </FormText>
-        </ModalBody>
-        <ModalFooter>
-          <Button color='primary' onClick={this.doLogin} className='signInOut'>
-            <Icon className='icon' name='sign-in' />
-            Sign in
-          </Button>
-          <Button color='secondary' onClick={this.toggleLoginModal}>Cancel</Button>
-        </ModalFooter>
-      </Modal>);
+      if (this.state.signInMethod === 'generic') {
+        return getGenericLoginModal(this, loginModalOpen, loginModalMessage, toggleLoginModal, handleOnChange, handleKeyPressPassword);
+      } else {
+        return getOauth2LoginModal(this, loginModalOpen, loginModalMessage, toggleLoginModal, handleOnChange, handleKeyPressPassword);
+      }
     }
   }
 
@@ -629,7 +718,14 @@ class TitleBarContainer extends PureComponent {
           </Col>
           <Col xs='auto'>
             <Nav>
-              <NavLink className='active' onClick={this.toggleLoginModal} ><Icon name='user' id='loginIcon' />{isLoggedIn ? ' ' + username : ' Sign in'}</NavLink>
+              {
+                this.state.signInMethod === null &&
+                (<NavLink className='active'><Icon name='user' id='loginIcon' />{isLoggedIn ? ' ' + username : ' ...'}</NavLink>)
+              }
+              {
+                this.state.signInMethod &&
+                (<NavLink className='active' onClick={this.toggleLoginModal} ><Icon name='user' id='loginIcon' />{isLoggedIn ? ' ' + username : ' Sign in'}</NavLink>)
+              }
               {hasRoleADMIN ? <Link to='manage' className='active nav-link'><Icon name='cog' /></Link> : ''}
               <NavLink className='active' onClick={this.toggleFeedbackModal}><Icon name='exclamation-triangle' /> Report problem</NavLink>
               <LayoutDropDown panelsProperties={this.props.panelsProperties} savePreset={this.savePreset}
