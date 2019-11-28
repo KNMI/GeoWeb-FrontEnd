@@ -7,7 +7,6 @@ import CollapseOmni from '../components/CollapseOmni';
 import Panel from '../components/Panel';
 import PropTypes from 'prop-types';
 import { CheckIfUserHasRole } from '../utils/user';
-import { UserRoleLists } from '../constants/userroles';
 const items = [
   {
     title: 'Checklist shift',
@@ -161,7 +160,7 @@ class TasksContainer extends Component {
 
   render () {
     const { user, isOpen : isOpenProp, openCategory } = this.props;
-    if (user && (!user.isLoggedIn || !CheckIfUserHasRole(user, UserRoleLists.METEOROLOGIST))) {
+    if (user && (!user.isLoggedIn || !CheckIfUserHasRole(user, 'MET'))) {
       return null;
     }
 
