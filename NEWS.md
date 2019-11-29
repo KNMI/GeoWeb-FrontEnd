@@ -1,3 +1,6 @@
+2019-11-28
+* (Fix) GW-227: Remove map pin in edit mode for Airmet
+
 2019-11-21
 * (FIX) Sigmet & Airmet: The validation rules are not using anymore min and max in Timepicker component but they are in one place (SigmetValidation and AirmetValidation)
 * Fix the css for Airmet Validity invalid property of Timepicker

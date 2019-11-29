@@ -60,7 +60,8 @@ describe('(Reducer) Airmet/AirmetReducers', () => {
         panelsActions: {
           setPanelLayout: () => { },
           setPresetLayers: () => { },
-          setPanelFeedback: () => { }
+          setPanelFeedback: () => { },
+          enableMapPin: () => { }
         },
         mapActions: {
           setCut: () => { }
