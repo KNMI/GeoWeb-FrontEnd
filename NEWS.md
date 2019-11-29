@@ -1,4 +1,10 @@
 2019-11-28
+* (FIX) GW-218: Updated SigmetReadMode to say 'Missing end geometry' if the end geometry is missed
+* (FIX) GW-218: AIRMET - TAC is currently not updating when deleting the start or end position of the FIR - Fixed this by ensuring the TAC gets an update from the backend if removed so it says 'Missing Geometry' in the example TAC
+* Fixed an issue where loads of errors appeared in the log when going over the map with your mouse - from adaguc if no valid coordinates
+
+2019-11-27
+* (FIX) GW-218: SIGMET - TAC is currently not updating when deleting the start or end position of the FIR - Fixed this by ensuring the TAC gets an update from the backend if removed so it says 'Missing Geometry' in the example TAC
 * (Fix) GW-227: Remove map pin in edit mode for Airmet
 
 2019-11-21
