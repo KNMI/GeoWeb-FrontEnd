@@ -875,7 +875,6 @@ const drawAirmet = (event, uuid, container, action, featureFunction) => {
       updatableFeatureProps.properties.selectionType = MODES_GEO_SELECTION.POINT;
       dispatch(drawActions.setFeature(updatableFeatureProps));
       clearRelatedIntersection(featureId, features, dispatch, drawActions);
-      setStatePromise(container, { selectedAuxiliaryInfo: { [drawMode]: action } });
       break;
     case 'select-region':
       dispatch(mapActions.setMapMode('draw'));
@@ -884,7 +883,6 @@ const drawAirmet = (event, uuid, container, action, featureFunction) => {
       updatableFeatureProps.properties.selectionType = MODES_GEO_SELECTION.BOX;
       dispatch(drawActions.setFeature(updatableFeatureProps));
       clearRelatedIntersection(featureId, features, dispatch, drawActions);
-      setStatePromise(container, { selectedAuxiliaryInfo: { [drawMode]: action } });
       break;
     case 'select-shape':
       dispatch(mapActions.setMapMode('draw'));
@@ -893,7 +891,6 @@ const drawAirmet = (event, uuid, container, action, featureFunction) => {
       updatableFeatureProps.properties.selectionType = MODES_GEO_SELECTION.POLY;
       dispatch(drawActions.setFeature(updatableFeatureProps));
       clearRelatedIntersection(featureId, features, dispatch, drawActions);
-      setStatePromise(container, { selectedAuxiliaryInfo: { [drawMode]: action } });
       break;
     case 'select-fir':
       dispatch(mapActions.setMapMode('pan'));
@@ -901,17 +898,19 @@ const drawAirmet = (event, uuid, container, action, featureFunction) => {
       updatableFeatureProps.properties.selectionType = MODES_GEO_SELECTION.FIR;
       dispatch(drawActions.setFeature(updatableFeatureProps));
       clearRelatedIntersection(featureId, features, dispatch, drawActions);
-      setStatePromise(container, { selectedAuxiliaryInfo: { [drawMode]: action } });
       break;
     case 'delete-selection':
       dispatch(mapActions.setMapMode('pan'));
       dispatch(drawActions.setFeature(updatableFeatureProps));
       clearRelatedIntersection(featureId, features, dispatch, drawActions);
-      setStatePromise(container, { selectedAuxiliaryInfo: { [drawMode]: action } });
       break;
     default:
       console.error(`Selection method ${action} unknown and not implemented`);
   }
+  setStatePromise(container, { selectedAuxiliaryInfo: { [drawMode]: action } })
+    .then(() => {
+      verifyAirmet(container.state.selectedAirmet[0], container);
+    });
   dispatch(drawActions.setFeatureNr(featureIndex));
 };
 

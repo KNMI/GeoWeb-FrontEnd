@@ -362,7 +362,7 @@ class SigmetReadMode extends PureComponent {
         <FirSection>
           <span data-field='firname'>{firname}</span>
           <span data-field='location_indicator_icao'>{locationIndicatorIcao}</span>
-          <span data-field='geometry' className={this.isStartGeometryValid() ? null : 'missing'}>{this.isStartGeometryValid() ? null : 'Missing Geometry'}</span>
+          <span data-field='geometry' className={this.isStartGeometryValid() ? null : 'missing'}>{this.isStartGeometryValid() ? null : 'Missing geometry'}</span>
         </FirSection>
 
         <HeightSection>
@@ -382,7 +382,7 @@ class SigmetReadMode extends PureComponent {
             : null
           }
           <span data-field='geometry' className={(movementType === MOVEMENT_TYPES.FORECAST_POSITION && !this.isEndGeometryValid()) ? 'invalid' : null}>
-            {(movementType === MOVEMENT_TYPES.FORECAST_POSITION && !this.isEndGeometryValid()) ? 'Missing Geometry' : null}
+            {(movementType === MOVEMENT_TYPES.FORECAST_POSITION && !this.isEndGeometryValid()) ? 'Missing end geometry' : null}
           </span>
         </ProgressSection>
         {movementType === MOVEMENT_TYPES.MOVEMENT

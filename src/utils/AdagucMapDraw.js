@@ -411,6 +411,9 @@ export default class AdagucMapDraw extends PureComponent {
 
       if (featureType === 'Point') {
         let featureCoords = feature.geometry.coordinates;
+        if (featureCoords == null || featureCoords.length === 0) {
+          continue;
+        }
         const XYCoords = this.getPixelCoordFromGeoCoord([featureCoords]);
         if (XYCoords.length === 0) {
           continue;
@@ -719,6 +722,9 @@ export default class AdagucMapDraw extends PureComponent {
     if (feature.geometry.type === 'Point') {
       this.snappedPolygonIndex = this.SNAPPEDFEATURE.NONE;
       const featureCoords = feature.geometry.coordinates;
+      if (featureCoords == null || featureCoords.length === 0) {
+        return;
+      }
       /* Get all vertexes */
       const XYCoords = this.convertGeoCoordsToScreenCoords([featureCoords]);
       if (this.checkDist(XYCoords[0], 0, mouseX, mouseY)) {

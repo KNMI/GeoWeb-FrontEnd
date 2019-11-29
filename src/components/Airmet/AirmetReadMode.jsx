@@ -417,7 +417,7 @@ class AirmetReadMode extends PureComponent {
         <FirSection>
           <span data-field='firname'>{firname}</span>
           <span data-field='location_indicator_icao'>{locationIndicatorIcao}</span>
-          <span data-field='geometry' className={this.isStartGeometryValid() ? null : 'missing'}>{this.isStartGeometryValid() ? null : 'Missing Geometry'}</span>
+          <span data-field='geometry' className={this.isStartGeometryValid() ? null : 'missing'}>{this.isStartGeometryValid() ? null : 'Missing geometry'}</span>
         </FirSection>
 
         {isLevelFieldNeeded
