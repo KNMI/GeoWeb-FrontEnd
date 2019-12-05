@@ -1,4 +1,5 @@
 import { createAction, handleActions } from 'redux-actions';
+import produce from 'immer';
 const INITIAL_STATE = {
   animationSettings: {
     animate: false,
@@ -32,6 +33,10 @@ export default handleActions({
   [SET_TIME_DIMENSION]: (state, { payload }) => ({ ...state, timeDimension: payload }),
   [TOGGLE_ANIMATION]: (state, { payload }) => ({ ...state, animationSettings: { ...state.animationSettings, animate: !state.animationSettings.animate } }),
   [CURSOR_LOCATION]: (state, { payload }) => ({ ...state, cursor: { location: payload } }),
-  [SET_SOURCES]: (state, { payload }) => ({ ...state, sources: { ...state.sources, ...payload } }),
+  [SET_SOURCES]: (state, { payload }) => {
+    return produce(state, draft => {
+      draft.sources = payload;
+    });
+  },
   [SET_ANIMATION_LENGTH]: (state, { payload }) => ({ ...state, animationSettings: { ...state.animationSettings, duration: payload } })
 }, INITIAL_STATE);

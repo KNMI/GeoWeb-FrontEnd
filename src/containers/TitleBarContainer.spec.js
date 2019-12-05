@@ -119,31 +119,6 @@ describe('(Component) TitleBarContainer', () => {
     });
   });
 
-  it('Checks checkCredentialsOKCallback method with user test', (done) => {
-    const _loginaction = sinon.spy();
-    _component = mount(
-      <TitleBarContainer urls={{ BACKEND_SERVER_URL: 'http://localhost:8080' }}
-        mapProperties={{ boundingBox: emptyObj, projection: emptyObj }}
-        user={{ roles: [], isLoggedIn: false }} userActions={{ login: _loginaction, logout: _logoutaction }}
-        dispatch={emptyFunc}
-        routes={[{ path: 'testpath' }]}
-      />
-    );
-    moxios.wait(() => {
-      const request = moxios.requests.mostRecent();
-      request.respondWith({
-        status: 200,
-        response: null
-      }).then(() => {
-        _component.instance().checkCredentialsOKCallback({ userName: 'test' });
-        expect(_component.state().loginModal).to.equal(false);
-        expect(_component.state().loginModalMessage).to.equal('Signed in as user test');
-        _loginaction.should.have.been.calledOnce();
-        done();
-      }).catch(done);
-    });
-  });
-
   it('Checks checkCredentialsBadCallback', (done) => {
     const _logoutaction = sinon.spy();
     _component = mount(
@@ -169,29 +144,6 @@ describe('(Component) TitleBarContainer', () => {
         });
         expect(_component.state().loginModalMessage).to.equal('invalid_user');
         _logoutaction.should.have.been.calledOnce();
-        done();
-      }).catch(done);
-    });
-  });
-
-  it('Checks checkCredentialsOKCallback method with invalid username \'\' ', (done) => {
-    _component = mount(
-      <TitleBarContainer urls={{ BACKEND_SERVER_URL: 'http://localhost:8080' }}
-        mapProperties={{ boundingBox: emptyObj, projection: emptyObj }}
-        user={{ roles: [], isLoggedIn: false }} userActions={{ login: _loginaction, logout: _logoutaction }}
-        dispatch={emptyFunc}
-        routes={[{ path: 'testpath' }]}
-      />
-    );
-    moxios.wait(() => {
-      const request = moxios.requests.mostRecent();
-      request.respondWith({
-        status: 200,
-        response: null
-      }).then(() => {
-        _component.instance().inputfieldUserName = 'someuser';
-        _component.instance().checkCredentialsOKCallback({ userName: '' });
-        expect(_component.state().loginModalMessage).to.equal('Unauthorized');
         done();
       }).catch(done);
     });
