@@ -1,3 +1,6 @@
+2019-12-11
+* (FIX) GW-215: Do not persist more than one polygon so that the backend accepts this geometry
+
 2019-11-28
 * (FIX) GW-218: Updated SigmetReadMode to say 'Missing end geometry' if the end geometry is missed
 * (FIX) GW-218: AIRMET - TAC is currently not updating when deleting the start or end position of the FIR - Fixed this by ensuring the TAC gets an update from the backend if removed so it says 'Missing Geometry' in the example TAC

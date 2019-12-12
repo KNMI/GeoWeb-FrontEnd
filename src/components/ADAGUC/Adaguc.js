@@ -510,6 +510,14 @@ export default class Adaguc extends PureComponent {
       dropdownOpenView: !this.state.dropdownOpenView
     });
   }
+  updateIfFirst (geojson, drawActions, dispatch) {
+    if (geojson && geojson.features && geojson.features.length > 0 && geojson.features[0].geometry &&
+      geojson.features[0].geometry.coordinates && geojson.features[0].geometry.coordinates.length === 1 &&
+      geojson.features[0].geometry.type === 'Polygon') {
+      // update feature only if it is first polygon
+      dispatch(drawActions.updateFeature(geojson));
+    }
+  }
   render () {
     const { mapProperties, drawProperties, drawActions, dispatch } = this.props;
     return (
@@ -525,7 +533,9 @@ export default class Adaguc extends PureComponent {
             drawMode={drawProperties && drawProperties.adagucMapDraw && drawProperties.adagucMapDraw.drawMode}
             featureNrToEdit={drawProperties && drawProperties.adagucMapDraw && drawProperties.adagucMapDraw.featureNrToEdit}
             webmapjs={this.webMapJS}
-            updateGeojson={(geojson) => dispatch(drawActions.updateFeature(geojson))}
+            updateGeojson={(geojson) => {
+              this.updateIfFirst(geojson, drawActions, dispatch);
+            }}
             deletePolygonCallback={() => dispatch(this.props.mapActions.setMapMode('draw'))}
             exitDrawModeCallback={() => dispatch(this.props.mapActions.setMapMode('pan'))}
           />
