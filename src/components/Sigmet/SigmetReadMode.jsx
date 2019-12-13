@@ -345,7 +345,7 @@ class SigmetReadMode extends PureComponent {
             : null
           }
           {isVolcanicAsh
-            ? <span data-field='volcano_coordinates_lat'>{Array.isArray(volcanoCoordinates) && volcanoCoordinates.length > 1 ? volcanoCoordinates[0] : null}</span>
+            ? <span className='something' data-field='volcano_coordinates_lat'>{Array.isArray(volcanoCoordinates) && volcanoCoordinates.length > 1 ? volcanoCoordinates[0] : null}</span>
             : null
           }
           {isVolcanicAsh

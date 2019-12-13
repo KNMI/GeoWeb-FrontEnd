@@ -30,7 +30,7 @@ import {
   DIRECTIONS, UNITS_ALT, UNITS, MODES_LVL, MODES_LVL_OPTIONS, CHANGE_OPTIONS, MOVEMENT_TYPES, MOVEMENT_OPTIONS, SIGMET_TYPES,
   DISTRIBUTION_OPTIONS } from './SigmetTemplates';
 import { DATETIME_FORMAT } from '../../config/DayTimeConfig';
-import { isObsOrFcValid, isStartValidityTimeValid, isEndValidityTimeValid } from './SigmetValidation';
+import { isObsOrFcValid, isStartValidityTimeValid, isEndValidityTimeValid, isLatValid, isLonValid } from './SigmetValidation';
 import EndPositionSection from '../SectionTemplates/EndPositionSection';
 
 const DROP_DOWN_NAMES = {
@@ -216,8 +216,8 @@ class SigmetEditMode extends PureComponent {
 *          and {string} property message to explain why...
 */
   getDisabledFlag (abilityRef, isInValidityPeriod, selectedPhenomenon) {
-    const { copiedSigmetRef, hasEdits } = this.props;
-    const { validdate, validdate_end: validdateEnd, obs_or_forecast: obsOrForecast } = this.props.sigmet;
+    const { copiedSigmetRef, hasEdits, isVolcanicAsh } = this.props;
+    const { validdate, validdate_end: validdateEnd, obs_or_forecast: obsOrForecast, va_extra_fields: vaExtraFields } = this.props.sigmet;
     const obsFcTime = obsOrForecast ? obsOrForecast.obsFcTime : null;
     if (!abilityRef) {
       return false;
@@ -229,7 +229,8 @@ class SigmetEditMode extends PureComponent {
         return !hasEdits;
       case EDIT_ABILITIES.SAVE['dataField']:
         return !hasEdits || !selectedPhenomenon || (obsFcTime !== null && !moment(obsFcTime, DATETIME_FORMAT).isValid()) ||
-          !moment(validdate, DATETIME_FORMAT).isValid() || !moment(validdateEnd, DATETIME_FORMAT).isValid();
+          !moment(validdate, DATETIME_FORMAT).isValid() || !moment(validdateEnd, DATETIME_FORMAT).isValid() ||
+          (isVolcanicAsh && (!isLatValid(vaExtraFields.volcano.position[0]) || !isLonValid(vaExtraFields.volcano.position[1])));
       default:
         return false;
     }
@@ -294,7 +295,7 @@ class SigmetEditMode extends PureComponent {
       'Use + for East, - for West';
     const { dispatch, actions, sigmet, displayModal, availablePhenomena, hasStartCoordinates, hasStartIntersectionCoordinates,
       hasEndCoordinates, hasEndIntersectionCoordinates, feedbackStart, feedbackEnd,
-      availableFirs, focus, isVolcanicAsh, volcanoCoordinates } = this.props;
+      availableFirs, focus, isVolcanicAsh } = this.props;
     const { isAtOrAboveDropDownOpen, isBetweenLowerDropDownOpen, isBetweenUpperDropDownOpen } = this.state;
 
     const { phenomenon, uuid, type: distributionType, validdate, validdate_end: validdateEnd,
@@ -302,6 +303,7 @@ class SigmetEditMode extends PureComponent {
       levelinfo, movement_type: movementType, movement, change, tac, va_extra_fields: vaExtraFields, obs_or_forecast: obsOrForecast } = sigmet;
     const { no_va_expected: isNoVolcanicAshExpected, volcano } = vaExtraFields;
     const volcanoName = volcano.name || null;
+    const volcanoCoordinates = volcano.position;
     const obsFcTime = obsOrForecast ? obsOrForecast.obsFcTime : null;
     const isObserved = obsOrForecast ? obsOrForecast.obs : null;
 
@@ -395,18 +397,18 @@ class SigmetEditMode extends PureComponent {
             : null
           }
           {isVolcanicAsh
-            ? <Input type='number' placeholder='00.00 [deg]' step='0.1'
+            ? <Input type='number' placeholder='00.00 [deg]' step='0.1' required
               value={Array.isArray(volcanoCoordinates) && volcanoCoordinates.length > 0 && volcanoCoordinates[0] !== null ? volcanoCoordinates[0] : ''}
               data-field='volcano_coordinates_lat'
-              title={latTooltip}
+              title={latTooltip} className={`required${!isLatValid(volcanoCoordinates[0]) ? ' missing' : ''}`}
               onChange={(evt) => dispatch(actions.updateSigmetAction(uuid, 'va_extra_fields.volcano.position.0', evt.target.value || null))}
             />
             : null
           }
           {isVolcanicAsh
-            ? <Input type='number' placeholder='±000.00 [deg]' step='0.1'
+            ? <Input type='number' placeholder='±000.00 [deg]' step='0.1' required
               value={Array.isArray(volcanoCoordinates) && volcanoCoordinates.length > 1 && volcanoCoordinates[1] !== null ? volcanoCoordinates[1] : ''}
-              data-field='volcano_coordinates_lon'
+              data-field='volcano_coordinates_lon' className={`required${!isLonValid(volcanoCoordinates[1]) ? ' missing' : ''}`}
               onChange={(evt) => dispatch(actions.updateSigmetAction(uuid, 'va_extra_fields.volcano.position.1', evt.target.value || null))}
               title={lonTooltip}
             />
@@ -705,7 +707,6 @@ SigmetEditMode.propTypes = {
   hasEndCoordinates: PropTypes.bool,
   hasEndIntersectionCoordinates: PropTypes.bool,
   availableFirs: PropTypes.array,
-  volcanoCoordinates: PropTypes.arrayOf(PropTypes.number),
   isVolcanicAsh: PropTypes.bool,
   sigmet: SIGMET_TYPES.SIGMET
 };
