@@ -419,7 +419,6 @@
   }
 
   .required {
-    margin-left: -0.9rem;
     padding-top: 0.33rem;
     color: #888;
     z-index: 100;
@@ -433,8 +432,14 @@
   }
 
   .required:after {
+    margin-left: -1.5rem;
     content: '*';
   }
+
+  .Draw.required::after {
+    margin-left: 0;
+  }
+
   .warning {
     color: #d9534f; /* #f90; */
   }

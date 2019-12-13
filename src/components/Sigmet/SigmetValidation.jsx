@@ -75,3 +75,11 @@ export const isEndValidityTimeValid = (sigmetProps) => {
   return endValidityTimeNew.isAfter(startValidityTimeNew) &&
     endValidityTimeNew.isSameOrBefore(maxEndValidityTime);
 };
+
+export const isLatValid = (lat) => {
+  return !isNaN(lat) && lat && lat >= 0 && lat <= 90;
+};
+
+export const isLonValid = (lon) => {
+  return !isNaN(lon) && lon && lon >= -180 && lon <= 180;
+};

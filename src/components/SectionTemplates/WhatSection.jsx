@@ -71,12 +71,22 @@ export default class WhatSection extends PureComponent {
             </Col>
             <Col xs='3'>
               {children.volcano_coordinates_lat}
+              {children.volcano_coordinates_lat
+                ? <span className={classNames({ required: hasClass(children.volcano_coordinates_lat.props.className, 'required') },
+                  { missing: hasClass(children.volcano_coordinates_lat.props.className, 'missing') })} />
+                : null
+              }
             </Col>
             <Col xs={{ size: 1, offset: 1 }}>
               <Badge>Lon</Badge>
             </Col>
             <Col xs='3'>
               {children.volcano_coordinates_lon}
+              {children.volcano_coordinates_lon
+                ? <span className={classNames({ required: hasClass(children.volcano_coordinates_lon.props.className, 'required') },
+                  { missing: hasClass(children.volcano_coordinates_lon.props.className, 'missing') })} />
+                : null
+              }
             </Col>
           </Row>
           : null
