@@ -1,3 +1,7 @@
+2019-12-16
+* (FIX) GW-267: Disable unused GUI components: report problem button, "Checklist shift", "Monitoring & Triggers", "Reports & logs",
+"Draw", "Bin", "Timeseries", and "Progtemp".
+
 2019-12-11
 * (FIX) GW-215: Do not persist more than one polygon so that the backend accepts this geometry
 

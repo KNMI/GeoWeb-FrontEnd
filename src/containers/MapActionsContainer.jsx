@@ -95,6 +95,7 @@ class MapActionContainer extends Component {
            this.props.user !== nextProps.user;
   }
 
+  /* Some options have been commented as a way to disable them */
   render () {
     const { title, adagucProperties, mapProperties } = this.props;
     const items = [
@@ -108,35 +109,35 @@ class MapActionContainer extends Component {
         action: 'zoom',
         icon: 'search-plus'
       },
-      {
+      /*       {
         title: 'Draw polygon',
         action: 'draw',
         icon: 'pencil'
-      },
-      {
+      }, */
+      /*       {
         title: 'Delete drawing point',
         action: 'delete',
         icon: 'trash'
-      },
+      }, */
       {
         title: 'Measure distance',
         action: 'measure',
         icon: 'arrows-h'
-      },
+      }/* ,
       {
         title: 'Show time series',
         action: 'timeseries',
         icon: 'line-chart',
         onClick: 'timeseries',
         disabled: !this.props.user || !this.props.user.isLoggedIn
-      },
-      {
+      }, */
+      /*       {
         title: 'Show progtemp',
         action: 'progtemp',
         icon: 'bullseye',
         onClick: 'progtemp',
         disabled: !this.props.user || !this.props.user.isLoggedIn
-      }
+      } */
     ];
 
     return (
