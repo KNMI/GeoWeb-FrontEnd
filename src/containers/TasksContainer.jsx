@@ -8,12 +8,12 @@ import Panel from '../components/Panel';
 import PropTypes from 'prop-types';
 import { CheckIfUserHasRole } from '../utils/user';
 import { UserRoleLists } from '../constants/userroles';
+/* Some options have been commented as a way to disable them */
 const items = [
-  {
+/*   {
     title: 'Checklist shift',
     notifications: 3,
     icon: 'calendar-check-o',
-    // link: 'checklist',
     tasks: [
       {
         title: 'Basis forecast',
@@ -41,14 +41,14 @@ const items = [
         eta: '15:15'
       }
     ]
-  },
+  }, */
   {
     title: 'Products',
     icon: 'gift',
     tasks: [
-      { title: 'Today\'s all shift products' },
+      /*       { title: 'Today\'s all shift products' },
       { title: 'Shared products' },
-      { title: 'Warnings' },
+      { title: 'Warnings' }, */
       {
         title: 'TAFs',
         link: 'products/tafs'
@@ -60,11 +60,11 @@ const items = [
       {
         title: 'AIRMETs',
         link: 'products/airmets'
-      },
-      { title: 'Forecasts' },
-      { title: 'Analyses' }
+      }
+      /*       { title: 'Forecasts' },
+      { title: 'Analyses' } */
     ]
-  },
+  }/* ,
   {
     title: 'Reports & Logs',
     icon: 'file-text-o',
@@ -73,15 +73,15 @@ const items = [
       { title: 'Shift report' },
       { title: 'Telephone records' }
     ]
-  },
-  {
+  }, */
+/*   {
     title: 'Monitoring & Triggers',
     icon: 'bell-o',
     tasks: [
       { title: 'Extremes' },
       { title: 'Alarms' }
     ]
-  }
+  } */
 ];
 
 class TasksContainer extends Component {
@@ -244,7 +244,7 @@ class TaskCategory extends Component {
     return (
       <Card className='row accordion'>
         {parentCollapsed ? <Link to={link}><CardHeader title={title}>
-          <Col xs='auto'>
+          <Col xs='auto' style={{ marginLeft: '0.3rem' }}>
             <Icon name={icon} />
           </Col>
           <Col xs='auto'>&nbsp;</Col>
@@ -253,7 +253,7 @@ class TaskCategory extends Component {
           </Col>
         </CardHeader></Link>
           : <CardHeader onClick={this.toggle} title={title}>
-            <Col xs='auto'>
+            <Col xs='auto' style={{ marginLeft: '0.3rem' }}>
               <Icon name={icon} />
             </Col>
             <Col style={{ marginLeft: '0.9rem' }}>
@@ -268,7 +268,7 @@ class TaskCategory extends Component {
             <Row>
               <Col className='btn-group-vertical'>
                 {tasks.map((item, i) =>
-                  <Button tag={Link} to={item.link} className='row' key={i} disabled={!item.link} >
+                  <Button tag={Link} to={item.link} className='row' key={i} disabled={!item.link} style={{ paddingBottom: '0.2rem' }}>
                     <Col xs='auto' style={{ paddingRight: '0.4rem' }}>
                       {item.eta}
                     </Col>
