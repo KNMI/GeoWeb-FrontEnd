@@ -568,9 +568,11 @@ const sanitizeTaf = (tafAsObject) => {
  * @param {Element} container The container in which the save action was triggered
  */
 const saveTaf = (event, container) => {
+  let feedback = 'TAF is saved';
+  if (container.state.selectedTaf[0].tafData.metadata.type === LIFECYCLE_STAGE_NAMES.CANCELED) feedback = 'TAF is canceled';
   saveTafPromise(event, container).then((response) => {
     const status = response.data.succeeded ? FEEDBACK_STATUSES.SUCCESS : FEEDBACK_STATUSES.ERROR;
-    updateFeedback('TAF is saved', status, FEEDBACK_CATEGORIES.LIFECYCLE, response.data.message, null, container, synchronizeSelectableTafs);
+    updateFeedback(feedback, status, FEEDBACK_CATEGORIES.LIFECYCLE, response.data.message, null, container, synchronizeSelectableTafs);
   }).catch((e) => {
     console.error('saveTaf error', e);
     const { props } = container;
