@@ -8,17 +8,19 @@
   .Panel .col {
     flex-direction: column;
   }
-  
-  .Container {
+}
+.ExportedProductsComponent {
+  .ExportedProductsComponentContainer {
     display: grid !important;
     grid-gap: 10px;
     padding: 0px;
-    grid-template: "listheader header" 30px
+    grid-template: "listheader header" 50px
                    "list viewer" 1fr
                     / 500px 1fr;
     width:100%;
     height:100%;
   }
+
   .ExportedProductsList {
     grid-area: list;
     width:100%;

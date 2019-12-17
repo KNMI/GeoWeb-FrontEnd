@@ -17,6 +17,8 @@ import TriggersContainer from '../containers/TriggersContainer';
 
 import ExportedProductsContainer from '../containers/ExportedProductsContainer';
 
+import TestProductsContainer from '../containers/TestProductsContainer';
+
 import ProgtempManagementPanel from '../components/Management/ProgtempManagementPanel';
 import TafValidationManagementPanel from '../components/Management/TafValidationManagementPanel';
 import TafExampleTafManagementPanel from '../components/Management/TafExampleTafManagementPanel';
@@ -195,6 +197,8 @@ export const createRoutes = (store) => {
   const airmanPanel = withCategoryConfiguration(ManagementCategoryPanel, managementCategoriesConfig.airmet);
   // Exports
   const exportedProductsPanel = connect(mapStateToManagementPanelProps)(ExportedProductsContainer);
+  // TestProducts
+  const testProductsPanel = connect(mapStateToManagementPanelProps)(TestProductsContainer);
   return (
     /* Default route */
     <Route path='/' component={BaseLayout} title='GeoWeb'>
@@ -238,6 +242,13 @@ export const createRoutes = (store) => {
           <Route component={SidebarredLayout} leftSidebar={leftSidebar} >
             <Route component={FooteredLayout} >
               <IndexRoute component={exportedProductsPanel} />
+            </Route>
+          </Route>
+        </Route>
+        <Route path='testproducts' title='Test page'>
+          <Route component={SidebarredLayout} leftSidebar={leftSidebar} >
+            <Route component={FooteredLayout} >
+              <IndexRoute component={testProductsPanel} />
             </Route>
           </Route>
         </Route>
