@@ -728,7 +728,21 @@ class Taf extends Component {
     return (
       <Row className='Taf'>
         <Col>
-          <TacView TAC={TAC} />
+          <Row>
+            <Col><TacView TAC={TAC} /></Col>
+            <Col>
+              <ActionSection>
+                {abilityCtAs.map((ability) =>
+                  <Button key={`action-${ability.dataField}`}
+                    data-field={ability.dataField}
+                    color='primary' disabled={ability.disabled}
+                    onClick={(evt) => dispatch(actions[ability.action](evt, ability.parameter))}>
+                    {ability.label}
+                  </Button>
+                )}
+              </ActionSection>
+            </Col>
+          </Row>
           <Row className='TafTable'>
             <Col>
               <TafTable
@@ -768,16 +782,6 @@ class Taf extends Component {
             </FeedbackSection>
             : null
           }
-          <ActionSection>
-            {abilityCtAs.map((ability) =>
-              <Button key={`action-${ability.dataField}`}
-                data-field={ability.dataField}
-                color='primary' disabled={ability.disabled}
-                onClick={(evt) => dispatch(actions[ability.action](evt, ability.parameter))}>
-                {ability.label}
-              </Button>
-            )}
-          </ActionSection>
         </Col>
       </Row>
     );
