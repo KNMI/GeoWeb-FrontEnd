@@ -103,6 +103,7 @@ class TafTable extends Component {
     this.updateValue = this.updateValue.bind(this);
     this.getBaseForecastLine = this.getBaseForecastLine.bind(this);
     this.processValidation = this.processValidation.bind(this);
+    this.autofillGroups = this.autofillGroups.bind(this);
   }
 
   /**
@@ -119,14 +120,56 @@ class TafTable extends Component {
         break;
     }
   }
-
+  /**
+   * Autofill any elements based on current and input value
+   */
+  autofillGroups (name, value) {
+    // Auto fill change group if first letter entered
+    const { taf } = this.props;
+    const nameSplit = name.split('-');
+    const changeGroupNum = nameSplit[1];
+    if (typeof nameSplit[2] !== 'undefined' && typeof taf.changegroups[changeGroupNum] !== 'undefined' && taf.changegroups[changeGroupNum].hasOwnProperty('changeType')) {
+      if (nameSplit[2] === 'change') {
+        const changeGroupVal = jsonToTacForChangeType(taf.changegroups[changeGroupNum].changeType, true) || '';
+        if (changeGroupVal === '') {
+          switch (value.toUpperCase()) {
+            case 'B':
+              return 'BECMG';
+            case 'T':
+              return 'TEMPO';
+            case 'F':
+              return 'FM';
+            default:
+              return value;
+          }
+        }
+      } else if (nameSplit[2] === 'probability') {
+        const probabilityVal = jsonToTacForProbability(taf.changegroups[changeGroupNum].changeType, true) || '';
+        if (probabilityVal === '') {
+          switch (value.toUpperCase()) {
+            case '3':
+              return 'PROB30';
+            case '4':
+              return 'PROB40';
+            default:
+              return value;
+          }
+        }
+      }
+      return value;
+    }
+    return value;
+  }
   /**
    * Updates the value in the state, according to the element value
    * @param  {HTMLElement} element The (input-)element to update the value from
    */
   updateValue (element) {
     const name = element ? (element.name || element.props.name) : null;
-    const value = element && element.value && typeof element.value === 'string' ? element.value.trim() : null;
+    const tempValue = element && element.value && typeof element.value === 'string' ? element.value.trim() : null;
+
+    // Autofill field based on input
+    const value = tempValue != null ? this.autofillGroups(name, tempValue) : tempValue;
 
     // Empty in this case means that val is an object which has keys, but for every key its value is null
     const isObjInArrayEmpty = (val, lastPathElem) => {
