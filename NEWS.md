@@ -1,3 +1,6 @@
+2020-02-01
+* GW-184: Added autofilling of the change and probability groups when entering certain characters. For examplem, when typing 'B' in the change field, it will automatically fill in 'BECMG' as that is the only valid option starting with B.
+
 2019-12-16
 * (FIX) GW-267: Disable unused GUI components: report problem button, "Checklist shift", "Monitoring & Triggers", "Reports & logs",
 "Draw", "Bin", "Timeseries", and "Progtemp".
