@@ -43,7 +43,7 @@ const getOauth2LoginModal = (titleBarContiainer, loginModalOpen, loginModalMessa
 class TitleBarContainer extends PureComponent {
   constructor (props) {
     super(props);
-    this.setTime = this.setTime.bind(this);
+    this.updateTime = this.updateTime.bind(this);
     this.doLogin = this.doLogin.bind(this);
     this.doLogout = this.doLogout.bind(this);
     this.savePreset = this.savePreset.bind(this);
@@ -69,7 +69,7 @@ class TitleBarContainer extends PureComponent {
     this.timer = -1;
     this.inputRefs = {};
     this.state = {
-      currentTime: moment().utc().format(timeFormat).toString(),
+      currentTime: this.props.currentTime || moment().utc().format(timeFormat).toString(),
       loginModal: this.props.loginModal,
       loginModalMessage: '',
       feedbackModalOpen: false,
@@ -106,7 +106,8 @@ class TitleBarContainer extends PureComponent {
     return false;
   }
 
-  setTime () {
+  /* Updates the current time in the state */
+  updateTime () {
     const time = moment().utc().format(timeFormat).toString();
     this.setState({ currentTime: time });
   }
@@ -139,8 +140,8 @@ class TitleBarContainer extends PureComponent {
   }
 
   componentDidMount () {
-    this.timer = setInterval(this.setTime, 15000);
-    this.setState({ currentTime: moment().utc().format(timeFormat).toString() });
+    this.timer = setInterval(this.updateTime, 15000);
+    this.setState({ currentTime: this.props.currentTime || moment().utc().format(timeFormat).toString() });
     this.checkSignInMethod().then((signInMethod) => {
       this.setState({ signInMethod: signInMethod }, () => {
         this.checkCredentials();
@@ -1084,7 +1085,8 @@ TitleBarContainer.propTypes = {
   adagucActions: PropTypes.object,
   bbox: PropTypes.array,
   fullState: PropTypes.object,
-  urls: PropTypes.object
+  urls: PropTypes.object,
+  currentTime: PropTypes.string
 };
 
 TitleBarContainer.defaultProps = {
