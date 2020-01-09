@@ -512,8 +512,8 @@ export default class Adaguc extends PureComponent {
   }
   updateIfFirst (geojson, drawActions, dispatch) {
     if (geojson && geojson.features && geojson.features.length > 0 && geojson.features[0].geometry &&
-      geojson.features[0].geometry.coordinates && geojson.features[0].geometry.coordinates.length === 1 &&
-      geojson.features[0].geometry.type === 'Polygon') {
+      geojson.features[0].geometry.coordinates && (geojson.features[0].geometry.type === 'Point' ||
+      (geojson.features[0].geometry.coordinates.length === 1 && geojson.features[0].geometry.type === 'Polygon'))) {
       // update feature only if it is first polygon
       dispatch(drawActions.updateFeature(geojson));
     }
