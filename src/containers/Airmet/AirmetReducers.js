@@ -874,7 +874,7 @@ const drawAirmet = (event, uuid, container, action, featureFunction) => {
       updatableFeatureProps.geometry.type = 'Point';
       updatableFeatureProps.properties.selectionType = MODES_GEO_SELECTION.POINT;
       dispatch(drawActions.setFeature(updatableFeatureProps));
-      clearRelatedIntersection(featureId, features, dispatch, drawActions);
+      if (action !== selectedAuxiliaryInfo[drawMode]) clearRelatedIntersection(featureId, features, dispatch, drawActions);
       break;
     case 'select-region':
       dispatch(mapActions.setMapMode('draw'));
@@ -882,7 +882,7 @@ const drawAirmet = (event, uuid, container, action, featureFunction) => {
       updatableFeatureProps.geometry.type = 'Polygon';
       updatableFeatureProps.properties.selectionType = MODES_GEO_SELECTION.BOX;
       dispatch(drawActions.setFeature(updatableFeatureProps));
-      clearRelatedIntersection(featureId, features, dispatch, drawActions);
+      if (action !== selectedAuxiliaryInfo[drawMode]) clearRelatedIntersection(featureId, features, dispatch, drawActions);
       break;
     case 'select-shape':
       dispatch(mapActions.setMapMode('draw'));
@@ -890,19 +890,19 @@ const drawAirmet = (event, uuid, container, action, featureFunction) => {
       updatableFeatureProps.geometry.type = 'Polygon';
       updatableFeatureProps.properties.selectionType = MODES_GEO_SELECTION.POLY;
       dispatch(drawActions.setFeature(updatableFeatureProps));
-      clearRelatedIntersection(featureId, features, dispatch, drawActions);
+      if (action !== selectedAuxiliaryInfo[drawMode]) clearRelatedIntersection(featureId, features, dispatch, drawActions);
       break;
     case 'select-fir':
       dispatch(mapActions.setMapMode('pan'));
       dispatch(drawActions.setFeatureEditPolygon());
       updatableFeatureProps.properties.selectionType = MODES_GEO_SELECTION.FIR;
       dispatch(drawActions.setFeature(updatableFeatureProps));
-      clearRelatedIntersection(featureId, features, dispatch, drawActions);
+      if (action !== selectedAuxiliaryInfo[drawMode]) clearRelatedIntersection(featureId, features, dispatch, drawActions);
       break;
     case 'delete-selection':
       dispatch(mapActions.setMapMode('pan'));
       dispatch(drawActions.setFeature(updatableFeatureProps));
-      clearRelatedIntersection(featureId, features, dispatch, drawActions);
+      if (action !== selectedAuxiliaryInfo[drawMode]) clearRelatedIntersection(featureId, features, dispatch, drawActions);
       break;
     default:
       console.error(`Selection method ${action} unknown and not implemented`);
@@ -987,6 +987,8 @@ const createFirIntersection = (featureId, geojson, container) => {
     return iSFeature.properties.relatesTo === featureId && iSFeature.properties.featureFunction === 'intersection';
   });
   if (intersectionData && intersectionFeature) {
+    /* Clean intersection feature coordinates before updating these */
+    intersectionFeature.geometry.coordinates = null;
     return axios({
       method: 'post',
       url: `${urls.BACKEND_SERVER_URL}/airmets/airmetintersections`,
