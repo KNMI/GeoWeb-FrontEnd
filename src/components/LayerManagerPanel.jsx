@@ -167,7 +167,7 @@ class LayerManagerPanel extends PureComponent {
           </Col>
           <LayerMutations toggleFullscreen={this.toggleFullscreen} toggleControls={this.toggleControls} dispatch={dispatch}
             panelsActions={panelsActions} activePanelId={activePanelId} sources={sources} toggleLayerChooser={this.toggleLayerChooser}
-            showControls={this.state.showControls} isFullScreen={isFullScreen}
+            showControls={this.state.showControls} isFullScreen={isFullScreen} currentPanel={currentPanel}
             removeAllLayersEnabled={currentPanel && ((currentPanel.baselayers.length > 2) || (currentPanel.layers.length > 0))} />
         </Row>
       </Panel>
@@ -213,7 +213,7 @@ class LayerMutations extends PureComponent {
           ? <Row style={{ flexDirection: isFullScreen ? 'row-reverse' : 'inherit' }}>
             <Col style={{ marginRight: 0 }} />
             <Col xs='auto' style={{ marginRight: 0 }}>
-              <Button disabled={Array.isArray(sources) || Object.keys(sources).length === 0} onClick={toggleLayerChooser}
+              <Button disabled={Array.isArray(sources)} onClick={toggleLayerChooser}
                 color='primary' title='Add layers'>
                 <Icon name='plus' />
               </Button>
