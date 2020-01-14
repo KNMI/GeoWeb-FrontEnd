@@ -1,3 +1,6 @@
+2020-01-14
+* GW-285: Add service layers button always available and delete buttons available only if there is some layers (except baselayer and country) added.
+
 2020-01-09
 * GW-279: During a previous change, a bug was introduced that made it impossible to set a point for AIRMET/SIGMET. This has been resolved and you are now able to draw a point on the map again.
 * GW-280: After having drawn a box or polygon, if you press the respective draw button again (either box or polygon) so as to move the drawn figure around or change its shape, a red border was shown around the drawing tools and the TAC was validated incorrectly. This has now been fixed
