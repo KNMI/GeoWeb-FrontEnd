@@ -7,6 +7,6 @@ COPY docker/nginx.conf /etc/nginx/nginx.conf
 CMD echo "{ \
   \"BACKEND_SERVER_URL\": \"${GEOWEBBACKENDURL}\", \
   \"WEBSERVER_URL\": \"${WEBSERVER_URL}\", \
-  \"BACKEND_SERVER_XML2JSON\": \"${GEOWEBBACKENDURL}/XML2JSON?\" \
+  \"BACKEND_SERVER_XML2JSON\": \"${XML2JSONPROXY}\" \
 }" > usr/share/nginx/html/urls.json \
   && nginx -g 'daemon off;'
