@@ -1,5 +1,6 @@
 2020-01-14
 * GW-285: Add service layers button always available and delete buttons available only if there is some layers (except baselayer and country) added.
+* GW-287: The FE will now make a call to the BE every 15 seconds enquiring if you are still logged in. If not, the headerbar is automatically updated to show that you need to log in.
 
 2020-01-09
 * GW-279: During a previous change, a bug was introduced that made it impossible to set a point for AIRMET/SIGMET. This has been resolved and you are now able to draw a point on the map again.

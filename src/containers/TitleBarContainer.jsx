@@ -140,7 +140,10 @@ class TitleBarContainer extends PureComponent {
   }
 
   componentDidMount () {
-    this.timer = setInterval(this.updateTime, 15000);
+    this.timer = setInterval(() => {
+      this.updateTime();
+      this.checkCredentials();
+    }, 15000);
     this.setState({ currentTime: this.props.currentTime || moment().utc().format(timeFormat).toString() });
     this.checkSignInMethod().then((signInMethod) => {
       this.setState({ signInMethod: signInMethod }, () => {
