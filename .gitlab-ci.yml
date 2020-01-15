@@ -87,7 +87,7 @@ build:
     - docker push $CI_REGISTRY_IMAGE:latest
     - docker tag $CI_REGISTRY_IMAGE:latest $CI_REGISTRY_IMAGE:$IMAGE_TAG
     - docker push $CI_REGISTRY_IMAGE:$IMAGE_TAG
-    - "sh /build-utils/ecr.sh -n knmi -r $REPOSITORY -a $DTA_WLM_ACCOUNT_ID,$PRD_WLM_ACCOUNT_ID,$DTA_GEOWEB_ACCOUNT_ID,$PRD_GEOWEB_ACCOUNT_ID"
+    - "sh /build-utils/ecr.sh -n knmi -r $REPOSITORY -a $DTA_GEOWEB_ACCOUNT_ID,$PRD_GEOWEB_ACCOUNT_ID"
     - $(aws ecr get-login --no-include-email --region $REGION)
     - docker tag $CI_REGISTRY_IMAGE:latest $ECR_REGISTRY_IMAGE:$IMAGE_TAG
     - docker push $ECR_REGISTRY_IMAGE:$IMAGE_TAG
