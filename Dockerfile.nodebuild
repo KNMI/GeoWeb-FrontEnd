@@ -20,6 +20,6 @@ EXPOSE 80
 # Set the command to start the node server.
 CMD echo "{ \
   \"BACKEND_SERVER_URL\": \"${GEOWEBBACKENDURL}\", \
-  \"BACKEND_SERVER_XML2JSON\": \"${GEOWEBBACKENDURL}/XML2JSON?\" \
+  \"BACKEND_SERVER_XML2JSON\": \"${XML2JSONPROXY}\" \
 }" > /usr/share/nginx/html/urls.json \
   && echo "Starting NGINX" && nginx -g 'daemon off;'
