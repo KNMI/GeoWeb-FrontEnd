@@ -203,7 +203,7 @@ docker build -t geoweb-frontend -f Dockerfile.nodebuild .
 You can start it via:
 
 ```
-docker run -it -p 10000:80 -e GEOWEBBACKENDURL=https://geoweb.knmi.nl/backend -e BACKEND_SERVER_XML2JSON=https://geoweb.knmi.nl/backend/XML2JSON geoweb-frontend 
+docker run -it -p 10000:80 -e GEOWEBBACKENDURL=https://geoweb.knmi.nl/backend -e XML2JSONPROXY=https://adaguc-services-geoweb.knmi.nl/adaguc-services/xml2json geoweb-frontend 
 ```
 
 The geoweb-frontend will now be connected to https://geoweb.knmi.nl/backend and run over port 10000.
