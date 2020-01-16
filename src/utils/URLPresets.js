@@ -1,7 +1,9 @@
 import axios from 'axios';
 import validator from 'validator';
+import produce from 'immer';
 import { DefaultLocations } from '../constants/defaultlocations';
 import { WMJSLayer } from 'adaguc-webmapjs';
+import { generateLayerId } from './ReactWMJSTools';
 
 export var PresetURLWasLoaded = false;
 
@@ -59,7 +61,10 @@ export const _loadPreset = (props, presetName, failure) => {
                 newLayer.overlay = true;
                 newLayer.keepOnTop = true;
               }
-              resolve({ layer: newLayer, panelIdx: panelIdx, index: i });
+              const skeletonLayer = produce(newLayer, draft => {
+                draft.id = generateLayerId();
+              });
+              return resolve({ layer: skeletonLayer, panelIdx: panelIdx, index: i });
             });
           }));
         });
@@ -75,7 +80,10 @@ export const _loadPreset = (props, presetName, failure) => {
             }
             newPanels[panelIdx].baselayers.push(layer);
           } else {
-            newPanels[panelIdx].layers[index] = layer;
+            const skeletonLayer = produce(layer, draft => {
+              draft.id = generateLayerId();
+            });
+            newPanels[panelIdx].layers[index] = skeletonLayer;
           }
         });
 
