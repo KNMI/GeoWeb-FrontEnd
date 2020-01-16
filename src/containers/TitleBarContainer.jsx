@@ -23,6 +23,8 @@ import { Typeahead } from 'react-bootstrap-typeahead';
 import { GetServices } from '../utils/getServiceByName';
 import { version } from '../../package.json';
 import { WMJSGetServiceFromStore, WMJSLayer } from 'adaguc-webmapjs';
+import { generateLayerId } from '../utils/ReactWMJSTools';
+import produce from 'immer';
 
 const timeFormat = 'ddd DD MMM YYYY HH:mm [UTC]';
 const browserFullScreenRequests = [
@@ -507,21 +509,21 @@ class TitleBarContainer extends PureComponent {
   }
 
   makePresetObj (presetName, saveLayers, savePanelLayout, saveBoundingBox, role) {
-    const { mapProperties } = this.props;
-    const { layout } = mapProperties;
+    const { panelsProperties } = this.props;
+    const { panelLayout } = panelsProperties;
     let numPanels;
-    if (/quad/.test(layout)) {
+    if (/quad/.test(panelLayout)) {
       numPanels = 4;
-    } else if (/triple/.test(layout)) {
+    } else if (/triple/.test(panelLayout)) {
       numPanels = 3;
-    } else if (/dual/.test(layout)) {
+    } else if (/dual/.test(panelLayout)) {
       numPanels = 2;
     } else {
       numPanels = 1;
     }
 
     const displayObj = {
-      type: layout,
+      type: panelLayout,
       npanels: numPanels
     };
     const bbox = {
@@ -775,7 +777,10 @@ class LayoutDropDown extends PureComponent {
             const wmjsLayer = new WMJSLayer(layer);
             wmjsLayer.parseLayer((newLayer) => {
               newLayer.keepOnTop = (layer.overlay || layer.keepOnTop);
-              return resolve({ layer: newLayer, panelIdx: panelIdx, index: i });
+              const skeletonLayer = produce(newLayer, draft => {
+                draft.id = generateLayerId();
+              });
+              return resolve({ layer: skeletonLayer, panelIdx: panelIdx, index: i });
             });
           }));
         });
@@ -789,7 +794,10 @@ class LayoutDropDown extends PureComponent {
             layer.keepOnTop = true;
             newPanels[panelIdx].baselayers.push(layer);
           } else {
-            newPanels[panelIdx].layers[index] = layer;
+            const skeletonLayer = produce(layer, draft => {
+              draft.id = generateLayerId();
+            });
+            newPanels[panelIdx].layers[index] = skeletonLayer;
           }
         });
         // Beware: a layer can still contain null values because a layer might have been a null value
