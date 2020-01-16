@@ -33,12 +33,12 @@ export const _loadPreset = (props, presetName, failure) => {
   }
   axios({
     method: 'get',
-    url: `${props.urls.BACKEND_SERVER_URL}/store/read`,
+    url: `${props.urls.BACKEND_SERVER_URL}/preset/getpreset`,
     params: { type: 'urlpresets', name: presetName },
     withCredentials: true,
     responseType: 'json'
   }).then((src) => {
-    const obj = JSON.parse(src.data.payload);
+    const obj = src.data;
     if (obj.display) {
       props.dispatch(props.panelsActions.setPanelLayout(obj.display.type));
     }

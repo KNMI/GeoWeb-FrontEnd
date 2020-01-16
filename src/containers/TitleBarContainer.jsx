@@ -811,7 +811,8 @@ class LayoutDropDown extends PureComponent {
     this.setState({ popoverOpen: false });
     const presetName = uuidV4();
     const dataToSend = this.makePresetObj(presetName, true, true, true, '');
-    SaveURLPreset(presetName, dataToSend, `${this.props.urls.BACKEND_SERVER_URL}/store/create`, (message) => {
+    SaveURLPreset(presetName, dataToSend, `${this.props.urls.BACKEND_SERVER_URL}/preset/putsharedpreset`, (message) => {
+      console.log('Message status ' + message.status);
       if (message.status === 'ok') {
         this.setState({
           sharePresetModal: true,
@@ -824,21 +825,21 @@ class LayoutDropDown extends PureComponent {
   }
 
   makePresetObj (presetName, saveLayers, savePanelLayout, saveBoundingBox, role) {
-    const { mapProperties } = this.props;
-    const { layout } = mapProperties;
+    const { panelsProperties } = this.props;
+    const { panelLayout } = panelsProperties;
     let numPanels;
-    if (/quad/.test(layout)) {
+    if (/quad/.test(panelLayout)) {
       numPanels = 4;
-    } else if (/triple/.test(layout)) {
+    } else if (/triple/.test(panelLayout)) {
       numPanels = 3;
-    } else if (/dual/.test(layout)) {
+    } else if (/dual/.test(panelLayout)) {
       numPanels = 2;
     } else {
       numPanels = 1;
     }
 
     const displayObj = {
-      type: layout,
+      type: panelLayout,
       npanels: numPanels
     };
     const bbox = {
