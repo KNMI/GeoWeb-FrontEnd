@@ -1,3 +1,6 @@
+2020-01-15
+* Removed WEBSERVER_URL because it is not used.
+
 2020-01-14
 * GW-285: Add service layers button always available and delete buttons available only if there is some layers (except baselayer and country) added.
 * GW-287: The FE will now make a call to the BE every 15 seconds enquiring if you are still logged in. If not, the headerbar is automatically updated to show that you need to log in.
