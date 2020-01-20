@@ -746,6 +746,9 @@ class LayoutDropDown extends PureComponent {
   setPreset (preset) {
     const { dispatch, panelsActions, mapActions } = this.props;
     const thePreset = preset[0];
+    if (!thePreset) {
+      return;
+    }
     if (thePreset.area) {
       if (thePreset.crs || thePreset.area.crs) {
         dispatch(mapActions.setCut({
