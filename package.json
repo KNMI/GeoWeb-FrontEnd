@@ -1,6 +1,6 @@
 {
   "name": "geoweb-frontend",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "GeoWeb FrontEnd is the platform for the Early Warning Center and Weather Room",
   "main": "index.js",
   "engines": {
