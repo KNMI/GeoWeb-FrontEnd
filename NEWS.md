@@ -1,3 +1,6 @@
+2020-02-24
+* Reintroduced "Report Problem" with link to Google Form.
+
 2020-01-15
 * GW-153: Presets can now be shared again.
 * GW-268: Added a fix that gives preset layers a correct id which ensures they are loaded and updated correctly
