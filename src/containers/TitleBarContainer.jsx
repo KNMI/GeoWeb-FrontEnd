@@ -338,8 +338,12 @@ class TitleBarContainer extends PureComponent {
   }
 
   toggleFeedbackModal () {
-    this.setState({ presetModal: false, loginModal: false, feedbackModalOpen: !this.state.feedbackModalOpen });
+    // It has been decided to report problems/issues using a google form (in url)
+    // this.setState({ presetModal: false, loginModal: false, feedbackModalOpen: !this.state.feedbackModalOpen });
+    const url = 'https://docs.google.com/forms/d/e/1FAIpQLScn1MdYHjaY9TgApJiNg7BjCaC0C_RzT6Zr3t3bQ3OPNQw7gA/viewform';
+    window.open(url, '_blank');
   }
+
   toggleSharePresetModal () {
     this.setState({ sharePresetModal: !this.state.sharePresetModal, loginModal: false, feedbackModalOpen: false, popoverOpen: false });
   }
@@ -653,7 +657,7 @@ class TitleBarContainer extends PureComponent {
                 (<NavLink className='active' onClick={this.toggleLoginModal} ><Icon name='user' id='loginIcon' />{isLoggedIn ? ' ' + username : ' Sign in'}</NavLink>)
               }
               {hasRoleADMIN ? <Link to='manage' className='active nav-link'><Icon name='cog' /></Link> : ''}
-              <NavLink className='deactivated' onClick={this.toggleFeedbackModal}><Icon name='exclamation-triangle' /> Report problem</NavLink>
+              <NavLink className='active' onClick={this.toggleFeedbackModal}><Icon name='exclamation-triangle' /> Report problem</NavLink>
               <LayoutDropDown panelsProperties={this.props.panelsProperties} savePreset={this.savePreset}
                 fetchNewPresets={this.fetchPresets} mapActions={this.props.mapActions} presets={this.state.presets} onChangeServices={this.getServices}
                 urls={this.props.urls} panelsActions={this.props.panelsActions} mapProperties={this.props.mapProperties} dispatch={this.props.dispatch} />
