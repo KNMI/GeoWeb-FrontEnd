@@ -88,7 +88,7 @@
     "@babel/runtime": "^7.3.1",
     "adaguc-webmapjs": "3.3.25",
     "availity-reactstrap-validation": "^2.5.0",
-    "axios": "^0.18.0",
+    "axios": "^0.21.1",
     "bootstrap": "4.1.3",
     "classnames": "^2.2.6",
     "deep-diff": "^1.0.2",
